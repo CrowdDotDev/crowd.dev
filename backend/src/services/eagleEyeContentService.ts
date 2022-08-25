@@ -5,6 +5,7 @@ import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import { getConfig } from '../config'
 import Error400 from '../errors/Error403'
+import track from '../segment/track'
 
 interface EagleEyeSearchPoint {
   vectorId: string
@@ -118,10 +119,42 @@ export default class EagleEyeContentService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
+      const recordBeforeUpdate = await EagleEyeContentRepository.findById(id, { ...this.options })
       const record = await EagleEyeContentRepository.update(id, data, {
         ...this.options,
         transaction,
       })
+
+      // If we are updating status we want to track it
+      if (data.status !== recordBeforeUpdate.status) {
+        // If we are going from null to status, we are either accepting or rejecting
+        if (data.status && data.status !== null && data.status !== undefined) {
+          track(
+            `EagleEye ${data.status}`,
+            {
+              ...data,
+              platform: record.platform,
+              keywords: record.keywords,
+              title: record.title,
+              url: record.url,
+            },
+            { ...this.options },
+          )
+          // Here we are bringing back a rejected post to the Inbox
+        } else if (recordBeforeUpdate.status === 'rejected' && data.status === null) {
+          track(
+            `EagleEye post from rejected to Inbox`,
+            {
+              ...data,
+              platform: record.platform,
+              keywords: record.keywords,
+              title: record.title,
+              url: record.url,
+            },
+            { ...this.options },
+          )
+        }
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 

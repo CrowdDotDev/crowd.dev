@@ -329,6 +329,22 @@ describe('eagleEyeContentRepository tests', () => {
       expect(found.count).toBe(3)
     })
 
+    it('Filter by nDays', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await addAll(mockIRepositoryOptions)
+
+      const found = await EagleEyeContentRepository.findAndCountAll(
+        {
+          filter: {
+            nDays: 1,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      expect(found.count).toBe(3)
+    })
+
     it('Filter by status NULL', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
