@@ -71,7 +71,7 @@ jobs:
           uses: actions/checkout@v2
 
         - name: Install dependencies
-          run: npm ci && cd ./backend/src/serverless/integrations && npm ci && cd ./backend/src/serverless/dbOperations && npm ci && cd ./backend/src/serverless/microservices/nodejs && npm ci
+          run: npm ci && cd ./src/serverless/integrations && npm ci && cd .../dbOperations && npm ci && cd ../microservices/nodejs && npm ci
 
         - name: change db port in env
           working-directory: ./backend
