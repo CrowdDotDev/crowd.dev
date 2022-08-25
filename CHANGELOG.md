@@ -8,15 +8,15 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- Eagle Eye backend @joanreyero (#273)
-- Eagle Eye frontend @mariobalca (#300)
-- NodeJS GitHub integration + Discussions @anilb0stanci (#266)
-- Dev.to integration backend @themarolt (#231)
-- Conversations auto-publish @mariobalca (#230)
+- Eagle Eye backend @joanreyero
+- Eagle Eye frontend @mariobalca
+- NodeJS GitHub integration + Discussions @anilb0stanci
+- Dev.to integration backend @themarolt
+- Conversations auto-publish @mariobalca
 
 ### ✨ Enhancements
 
-- Read only role @mariobalca (#235)
-- Tweak some useMeta titles and descriptions @mariobalca (#301)
-- Python sls lambda containers @anilb0stanci (#229)
-- Improved members score @CallmeMehdi (#132)
+- Read only role @mariobalca
+- Tweak some useMeta titles and descriptions @mariobalca
+- Python sls lambda containers @anilb0stanci
+- Improved members score @CallmeMehdi
