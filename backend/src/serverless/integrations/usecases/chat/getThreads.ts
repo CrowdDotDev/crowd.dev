@@ -33,5 +33,3 @@ async function getChannels(
 }
 
 export default getChannels
-
-// getDestinations('877903817948147752', 'ODc3OTEwNjM0MzA4NzA2MzI0.YR5f_g.TrYuoK2yWA5-LpPlDQ0Nlzc8dOE')
