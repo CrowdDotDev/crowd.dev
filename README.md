@@ -1,5 +1,5 @@
 <!-- PROJECT LOGO -->
-> **_IMPORTANT:_** This project is in beta and still under active development. Be aware that future releases can lead to breaking changes.
+> **_IMPORTANT:_** This project is still under active development. Be aware that future releases can lead to breaking changes.
 <br>
 
 <p align="center">
