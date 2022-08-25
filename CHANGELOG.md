@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.5.0 - 2022-08-25
+
+### Changes
+
+- Bumped up version to match pre-OSS version.
+
+### ✨ Enhancements
+
+- Simplified start of development environment @joanreyero (#5)
+
+### 🐞 Bug Fixes
+
+- EagleEye events @joanreyero (#6)
+
 ## v0.0.3 - 2022-08-24
 
 ### Changes
