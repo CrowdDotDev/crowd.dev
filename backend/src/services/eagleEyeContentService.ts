@@ -124,16 +124,17 @@ export default class EagleEyeContentService {
         transaction,
       })
 
-      if (data.status === 'engaged') {
+      if (data.status) {
         track(
-          'Eagle Eye Engaged',
-          { ...data, ...data, platform: record.platform, keywords: record.keywords },
-          { ...this.options },
-        )
-      } else if (data.status === 'rejected') {
-        track(
-          'Eagle Eye Rejected',
-          { ...data, platform: record.platform, keywords: record.keywords },
+          `EagleEye ${data.status}`,
+          {
+            ...data,
+            ...data,
+            platform: record.platform,
+            keywords: record.keywords,
+            title: record.title,
+            url: record.url,
+          },
           { ...this.options },
         )
       }
