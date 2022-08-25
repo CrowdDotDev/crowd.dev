@@ -24,8 +24,7 @@
     "stripe:login": "stripe login",
     "stripe:start": "stripe listen --forward-to localhost:8080/api/plan/stripe/webhook",
     "lint": "npx eslint .",
-    "format": "npx prettier --write .",
-    "postinstall": "bash ./util/postinstall.sh"
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "@cubejs-client/core": "^0.30.4",

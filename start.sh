@@ -47,5 +47,6 @@ echo $IS_DEV
 if [[ "$IS_DEV" = false ]]; then
     cd $CLI_HOME/docker && docker-compose -p crowd up --force-recreate
 else
+    bash backend/util/install-all.sh
     cd $CLI_HOME/docker && docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml -p crowd up --force-recreate
 fi

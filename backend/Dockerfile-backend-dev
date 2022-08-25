@@ -35,5 +35,4 @@ RUN cd ./src/serverless/microservices/python \
     && cd ../microservices/nodejs && npm i \
     && cd ../python/serverless && npm i \
     && cd /usr/crowd/backend \
-    && sed -i -e 's/postinstall/'randomthing'/g' ./package.json \
     && npm i

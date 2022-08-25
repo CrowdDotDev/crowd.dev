@@ -3,8 +3,7 @@ FROM node:16.16.0 as builder
 WORKDIR /usr/crowd/backend
 COPY . .
 
-RUN sed -i -e 's/postinstall/'randomthing'/g' ./package.json && \
-    npm install && \
+RUN npm install && \
     npm run build && \
     cp ./package.json ./dist/package.json
 
