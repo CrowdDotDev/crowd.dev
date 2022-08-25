@@ -41,8 +41,6 @@ cd $CLI_HOME/nginx/ssl && bash init-certs.sh
 
 export CROWD_VERSION=$CROWD_VERSION
 
-# cd $CLI_HOME/docker && docker-compose -p crowd up --force-recreate
-
 echo $IS_DEV
 if [[ "$IS_DEV" = false ]]; then
     cd $CLI_HOME/docker && docker-compose -p crowd up --force-recreate
