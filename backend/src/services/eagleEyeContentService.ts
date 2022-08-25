@@ -125,9 +125,17 @@ export default class EagleEyeContentService {
       })
 
       if (data.status === 'engaged') {
-        track('Eagle Eye Engaged', { ...data }, { ...this.options })
+        track(
+          'Eagle Eye Engaged',
+          { ...data, ...data, platform: record.platform, keywords: record.keywords },
+          { ...this.options },
+        )
       } else if (data.status === 'rejected') {
-        track('Eagle Eye Rejected', { ...data }, { ...this.options })
+        track(
+          'Eagle Eye Rejected',
+          { ...data, platform: record.platform, keywords: record.keywords },
+          { ...this.options },
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)
