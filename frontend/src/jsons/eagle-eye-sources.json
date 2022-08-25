@@ -1,0 +1,38 @@
+[
+  {
+    "platform": "hacker_news",
+    "name": "Hacker News",
+    "image":
+    "https://directory-cdn.anymailfinder.com/a644fc61-3287-4d9e-9b7f-c9859fa50a8f"
+  },
+  {
+    "platform": "devto",
+    "name": "DEV",
+    "image":
+    "https://i.pinimg.com/originals/23/49/2d/23492d49eefc1794c50377c2613baa00.jpg"
+  },
+  {
+    "platform": "github",
+    "name": "GitHub",
+    "image":
+    "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+  },
+  {
+    "platform": "twitter",
+    "name": "Twitter",
+    "image":
+    "https://cdn-icons-png.flaticon.com/512/733/733579.png"
+  },
+  {
+    "platform": "stackoverflow",
+    "name": "Stack Overflow",
+    "image":
+    "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
+  },
+  {
+    "platform": "reddit",
+    "name": "Reddit",
+    "image":
+    "https://cdn-icons-png.flaticon.com/512/2111/2111589.png"
+  }
+]

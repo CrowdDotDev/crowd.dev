@@ -1,0 +1,32 @@
+@import url('https://rsms.me/inter/inter.css');
+
+html body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+@supports (font-variation-settings: normal) {
+  html { font-family: 'Inter var', sans-serif; }
+}
+
+h1 {
+  @apply text-2xl;
+}
+h2 {
+  @apply text-xl;
+}
+h3 {
+  @apply text-lg;
+}
+
+a {
+  @apply no-underline text-secondary-900;
+  transition: opacity 0.2s;
+  &[href]:hover {
+    @apply opacity-80;
+  }
+}

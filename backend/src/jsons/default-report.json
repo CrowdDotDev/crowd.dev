@@ -1,0 +1,208 @@
+{
+  "name": "Default Report",
+  "public": true,
+  "widgets": [
+    {
+      "title": "Total activities, All time",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "number",
+        "query": {
+          "measures": ["Activities.count"],
+          "timeDimensions": [
+            {
+              "dimension": "Activities.date"
+            }
+          ],
+          "limit": 10000
+        },
+        "layout": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "title": "Total members, All time",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "number",
+        "query": {
+          "measures": ["Members.count"],
+          "timeDimensions": [
+            {
+              "dimension": "Members.joinedAt"
+            }
+          ],
+          "limit": 10000,
+          "order": {
+            "Members.joinedAt": "asc"
+          }
+        },
+        "layout": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "title": "New Activities",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "area",
+        "query": {
+          "measures": ["Activities.count"],
+          "timeDimensions": [
+            {
+              "dimension": "Activities.date",
+              "granularity": "day",
+              "dateRange": "Last 30 days"
+            }
+          ],
+          "limit": 10000
+        },
+        "layout": {
+          "x": 0,
+          "y": 6,
+          "w": 6,
+          "h": 18
+        }
+      }
+    },
+    {
+      "title": "New Members",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "bar",
+        "query": {
+          "measures": ["Members.count"],
+          "timeDimensions": [
+            {
+              "dimension": "Members.joinedAt",
+              "granularity": "day",
+              "dateRange": "Last 30 days"
+            }
+          ],
+          "limit": 10000,
+          "order": {
+            "Members.joinedAt": "asc"
+          }
+        },
+        "layout": {
+          "x": 6,
+          "y": 6,
+          "w": 6,
+          "h": 18
+        }
+      }
+    },
+    {
+      "title": "New Activities (by Platform)",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "pie",
+        "query": {
+          "measures": ["Activities.count"],
+          "dimensions": ["Activities.platform"],
+          "timeDimensions": [
+            {
+              "dimension": "Activities.date",
+              "dateRange": "Last 30 days"
+            }
+          ],
+          "limit": 10000,
+          "order": {
+            "Activities.count": "desc"
+          }
+        },
+        "layout": {
+          "x": 0,
+          "y": 24,
+          "w": 6,
+          "h": 18
+        }
+      }
+    },
+    {
+      "title": "New Members (by Platform)",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "pie",
+        "query": {
+          "measures": ["Members.count"],
+          "dimensions": ["Activities.platform"],
+          "timeDimensions": [
+            {
+              "dimension": "Members.joinedAt",
+              "dateRange": "Last 30 days"
+            }
+          ],
+          "limit": 10000,
+          "order": {
+            "Members.count": "desc"
+          }
+        },
+        "layout": {
+          "x": 6,
+          "y": 24,
+          "w": 6,
+          "h": 18
+        }
+      }
+    },
+    {
+      "title": "Members by Engagement Level",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "bar",
+        "query": {
+          "measures": ["Members.count"],
+          "dimensions": ["Members.score"],
+          "timeDimensions": [
+            {
+              "dimension": "Members.joinedAt"
+            }
+          ],
+          "limit": 10000,
+          "order": [["Members.count", "desc"]]
+        },
+        "layout": {
+          "x": 6,
+          "y": 42,
+          "w": 6,
+          "h": 18
+        }
+      }
+    },
+    {
+      "title": "Activities by Type",
+      "type": "cubejs",
+      "settings": {
+        "chartType": "pie",
+        "query": {
+          "measures": ["Activities.count"],
+          "dimensions": ["Activities.type"],
+          "timeDimensions": [
+            {
+              "dimension": "Activities.date"
+            }
+          ],
+          "limit": 10000,
+          "order": {
+            "Activities.count": "desc"
+          }
+        },
+        "layout": {
+          "x": 0,
+          "y": 42,
+          "w": 6,
+          "h": 23
+        }
+      }
+    }
+  ]
+}

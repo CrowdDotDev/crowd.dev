@@ -1,0 +1,364 @@
+<template>
+  <div class="widget-cube">
+    <app-widget-table
+      :config="{
+        title: widget.title,
+        subtitle: showSubtitle ? subtitle : null,
+        settings: editable ? {} : undefined,
+        type: 'cubejs',
+        loading: loading
+      }"
+      :editable="editable"
+      @trigger-duplicate-widget="handleDuplicate"
+      @trigger-edit-widget="handleEdit"
+      @trigger-delete-widget="handleDelete"
+      v-if="chartType === 'table'"
+      :data="data"
+    ></app-widget-table>
+    <app-widget-number
+      v-else-if="chartType === 'number'"
+      :config="{
+        title: widget.title,
+        subtitle: showSubtitle ? subtitle : null,
+        settings: editable ? {} : undefined,
+        type: 'cubejs',
+        data: data,
+        loading: loading,
+        suffix: widget.suffix,
+        unit: widget.unit,
+        measures: query ? query.measures : []
+      }"
+      :editable="editable"
+      :dashboard="dashboard"
+      @trigger-duplicate-widget="handleDuplicate"
+      @trigger-edit-widget="handleEdit"
+      @trigger-delete-widget="handleDelete"
+    >
+    </app-widget-number>
+    <app-widget
+      :config="{
+        title: widget.title,
+        subtitle: showSubtitle ? subtitle : null,
+        settings: editable ? {} : undefined,
+        loading: loading
+      }"
+      :editable="editable"
+      @trigger-duplicate-widget="handleDuplicate"
+      @trigger-edit-widget="handleEdit"
+      @trigger-delete-widget="handleDelete"
+      v-else
+    >
+      <component
+        :is="componentType"
+        :data="data"
+        v-bind="chartOptions"
+      ></component>
+    </app-widget>
+  </div>
+</template>
+
+<script>
+import moment from 'moment'
+import WidgetTable from '../widget-table'
+import WidgetNumber from '../widget-number'
+import Widget from '@/modules/widget/components/widget'
+import { i18n } from '@/i18n'
+import { ResultSet } from '@cubejs-client/core'
+
+export default {
+  name: 'WidgetCube',
+  props: {
+    widget: {
+      type: Object,
+      required: true
+    },
+    resultSet: {
+      type: ResultSet
+    },
+    showSubtitle: {
+      type: Boolean,
+      default: true
+    },
+    dashboard: {
+      type: Boolean,
+      default: false
+    },
+    editable: {
+      type: Boolean,
+      default: false
+    },
+    chartOptions: {
+      type: Object,
+      default: () => {}
+    }
+  },
+
+  components: {
+    'app-widget-table': WidgetTable,
+    'app-widget-number': WidgetNumber,
+    'app-widget': Widget
+  },
+
+  computed: {
+    loading() {
+      return (
+        !this.resultSet ||
+        this.resultSet.loadResponse === undefined
+      )
+    },
+    chartType() {
+      return this.widget.settings.chartType || 'line'
+    },
+    subtitle() {
+      const granularity =
+        this.widget.settings.query.timeDimensions.length > 0
+          ? this.widget.settings.query.timeDimensions[0]
+              .granularity
+          : null
+      const dateRange =
+        this.widget.settings.query.timeDimensions.length > 0
+          ? this.widget.settings.query.timeDimensions[0]
+              .dateRange || 'All time'
+          : null
+
+      if (this.chartType === 'number') {
+        return dateRange
+      } else if (granularity && dateRange) {
+        return `${dateRange}, per ${granularity.toLowerCase()}`
+      } else if (dateRange) {
+        return dateRange
+      } else {
+        return null
+      }
+    },
+    componentType() {
+      if (['table', 'number'].includes(this.chartType)) {
+        return this.chartType
+      } else {
+        return `${
+          this.chartType === 'bar'
+            ? 'column'
+            : this.chartType
+        }-chart`
+      }
+    },
+
+    query() {
+      return this.resultSet
+        ? this.resultSet.loadResponse
+          ? this.resultSet.loadResponse.pivotQuery
+          : null
+        : null
+    },
+
+    data() {
+      if (this.loading) {
+        return ['number'].includes(this.chartType) ? {} : []
+      }
+
+      let data
+
+      if (['line', 'area'].includes(this.chartType)) {
+        data = this.series(this.resultSet)
+      }
+
+      if (this.chartType === 'pie') {
+        data = this.pairs(this.resultSet)
+      }
+
+      if (this.chartType === 'bar') {
+        data = this.seriesPairs(this.resultSet)
+      }
+
+      if (this.chartType === 'table') {
+        data = this.tableData(this.resultSet)
+      }
+
+      if (this.chartType === 'number') {
+        // if widget type is 'number' we pick the last value of the array
+        data = {
+          value:
+            this.resultSet.series().length > 0
+              ? this.resultSet.series()[0].series[
+                  this.resultSet.series()[0].series.length -
+                    1
+                ].value
+              : 0
+        }
+      }
+
+      if (
+        // Sort X axis of engagement level based charts
+        this.query.dimensions.length > 0 &&
+        this.query.dimensions[0].includes('score') &&
+        (!this.query.timeDimensions.length ||
+          (this.query.timeDimensions.length > 0 &&
+            !this.query.timeDimensions[0].granularity))
+      ) {
+        data = this.sortEngagementLevelAxisX(data)
+      }
+
+      return data
+    }
+  },
+
+  methods: {
+    series(resultSet) {
+      // For line & area charts
+      const seriesNames = resultSet.seriesNames()
+      const pivot = resultSet.chartPivot()
+      const series = []
+
+      seriesNames.forEach((e) => {
+        const data = pivot.map((p) => [p.x, p[e.key]])
+        const { cube, dimension } = this.deconstructLabel(
+          e.key
+        )
+
+        const name =
+          dimension && dimension !== 'unknown'
+            ? dimension
+            : i18n('widget.cubejs.cubes.' + cube)
+        series.push({ name, data })
+      })
+      return series
+    },
+    pairs(resultSet) {
+      // For pie charts
+      return resultSet.series()[0]
+        ? resultSet.series()[0].series.map((item) => {
+            const formattedDate = moment(item.x).format(
+              'MMM DD'
+            )
+            item.x = item.x === '∅' ? 'unknown' : item.x
+            return [
+              moment(item.x).isValid() &&
+              ((this.query.dimensions[0] &&
+                !this.query.dimensions[0].includes(
+                  'score'
+                )) ||
+                !this.query.dimensions.length)
+                ? formattedDate
+                : item.x,
+              item.value
+            ]
+          })
+        : []
+    },
+    seriesPairs(resultSet) {
+      // For bar charts
+      return resultSet.series().map((seriesItem) => {
+        let { dimension, measure } = this.deconstructLabel(
+          seriesItem.title
+        )
+
+        if (
+          this.query.timeDimensions.length &&
+          !this.query.timeDimensions[0].granularity
+        ) {
+          dimension = i18n(
+            'widget.cubejs.' + this.query.dimensions[0]
+          )
+        }
+
+        measure = measure
+          ? measure
+          : i18n('widget.cubejs.' + this.query.measures[0])
+
+        const seriesName =
+          dimension && dimension !== 'unknown'
+            ? dimension
+            : measure
+        return {
+          name: seriesName,
+          data: seriesItem.series.map((item) => {
+            const formattedDate = moment(item.x).format(
+              'MMM DD'
+            )
+            item.x = item.x === '∅' ? 'unknown' : item.x
+            return [
+              moment(item.x).isValid() &&
+              ((this.query.dimensions[0] &&
+                !this.query.dimensions[0].includes(
+                  'score'
+                )) ||
+                !this.query.dimensions.length)
+                ? formattedDate
+                : item.x,
+              item.value
+            ]
+          })
+        }
+      })
+    },
+    tableData(resultSet) {
+      // For tables
+      return resultSet.tablePivot().map((r) => {
+        return Object.keys(r).reduce((acc, item) => {
+          acc[i18n('widget.cubejs.' + item)] = r[item]
+            ? r[item]
+            : 'unknown'
+          return acc
+        }, {})
+      })
+    },
+    sortEngagementLevelAxisX(data) {
+      let sortedData = data
+
+      if (this.chartType === 'bar') {
+        sortedData = sortedData.map((i) => {
+          return {
+            name: i.name,
+            data:
+              data.length > 0
+                ? data[0].data.sort((a, b) =>
+                    this.sortAlphabetically(a[0], b[0])
+                  )
+                : []
+          }
+        })
+      } else if (this.chartType === 'table') {
+        sortedData = data.sort((a, b) =>
+          this.sortAlphabetically(
+            Object.values(a)[0],
+            Object.values(b)[0]
+          )
+        )
+      }
+
+      return sortedData
+    },
+    sortAlphabetically(a, b) {
+      return Number(a) - Number(b)
+    },
+    deconstructLabel(label) {
+      const dimension =
+        label.split(',').length > 1
+          ? label.split(',')[0]
+          : this.query.dimensions.length
+          ? 'unknown'
+          : undefined
+      const cube =
+        dimension && dimension !== 'unknown'
+          ? label.split(',')[1].split('.')[0]
+          : label.split('.')[0]
+      const measure = label.split('.')[1]
+
+      return {
+        dimension,
+        cube,
+        measure
+      }
+    },
+    handleDuplicate() {
+      this.$emit('duplicate', this.widget)
+    },
+    handleEdit() {
+      this.$emit('edit', this.widget)
+    },
+    handleDelete() {
+      this.$emit('delete', this.widget)
+    }
+  }
+}
+</script>

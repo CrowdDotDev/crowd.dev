@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+  db-test:
+    image: postgres:13.6
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: crowd-web
+    ports:
+      - 5433:5432
+    volumes:
+      - pgdata-test:/var/lib/postgresql/data
+  search-engine-test:
+    image: getmeili/meilisearch:v0.27.2
+    ports:
+      - 7701:7700
+    volumes:
+      - search-test:/data.ms
+
+volumes:
+  pgdata-test:
+  search-test:

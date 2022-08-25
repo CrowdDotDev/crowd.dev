@@ -1,0 +1,110 @@
+import axios from 'axios'
+import authAxios from '@/shared/axios/auth-axios'
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import config from '@/config'
+
+export class ReportService {
+  static async update(id, data) {
+    const body = {
+      id,
+      data
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/report/${id}`,
+      body
+    )
+
+    return response.data
+  }
+
+  static async destroyAll(ids) {
+    const params = {
+      ids
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.delete(
+      `/tenant/${tenantId}/report`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
+  static async create(data) {
+    const body = {
+      data
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/report`,
+      body
+    )
+
+    return response.data
+  }
+
+  static async find(id) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/report/${id}`
+    )
+
+    return response.data
+  }
+
+  static async findPublic(id, tenantId) {
+    const response = await axios.get(
+      `${config.backendUrl}/tenant/${tenantId}/report/${id}`
+    )
+
+    return response.data
+  }
+
+  static async list(filter, orderBy, limit, offset) {
+    const params = {
+      filter,
+      orderBy,
+      limit,
+      offset
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/report`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
+  static async listAutocomplete(query, limit) {
+    const params = {
+      query,
+      limit
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/report/autocomplete`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+}

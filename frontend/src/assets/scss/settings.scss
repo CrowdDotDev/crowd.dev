@@ -1,0 +1,85 @@
+.settings-radio-group {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.settings-radio-button {
+  margin: 5px;
+}
+
+.settings-selected-value {
+  margin: 15px 0;
+}
+
+.settings-option-wrapper {
+  display: flex;
+  justify-items: center;
+  align-items: center;
+}
+
+.settings-box {
+  float: left;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+}
+
+.settings-box.amber {
+  background-color: #ffa000 !important; }
+
+.settings-box.blue {
+  background-color: #1976d2 !important; }
+
+.settings-box.cyan {
+  background-color: #0097a7 !important; }
+
+.settings-box.deep_orange {
+  background-color: #e64a19 !important; }
+
+.settings-box.deep_purple {
+  background-color: #512da8 !important; }
+
+.settings-box.green {
+  background-color: #388e3c !important; }
+
+.settings-box.indigo {
+  background-color: #303f9f !important; }
+
+.settings-box.light_blue {
+  background-color: #0288d1 !important; }
+
+.settings-box.light_green {
+  background-color: #689f38 !important; }
+
+.settings-box.lime {
+  background-color: #afb42b !important; }
+
+.settings-box.orange {
+  background-color: #f57c00 !important; }
+
+.settings-box.pink {
+  background-color: #c2185b !important; }
+
+.settings-box.purple {
+  background-color: #7b1fa2 !important; }
+
+.settings-box.red {
+  background-color: #d32f2f !important; }
+
+.settings-box.teal {
+  background-color: #00796b !important; }
+
+.settings-box.yellow {
+  background-color: #fbc02d !important; }
+
+.settings-box.grey {
+  background-color: #616161 !important; }
+
+.settings-box.blue_grey {
+  background-color: #455a64 !important; }
+
+.settings-box.brown {
+  background-color: #5d4037 !important; }
+

@@ -1,0 +1,15 @@
+.el-notification {
+  width: 450px;
+}
+
+.el-notification__title {
+  @apply font-semibold text-black m-0;
+}
+
+.el-notification__content {
+  font-size: 14px;
+  line-height: 21px;
+  margin: 0;
+  color: #606266;
+  text-align: justify
+}

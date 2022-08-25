@@ -1,0 +1,40 @@
+{
+    "name": "conversations",
+    "private": true,
+    "scripts": {
+        "build": "nuxt build",
+        "dev": "nuxt dev",
+        "generate": "nuxt generate",
+        "preview": "nuxt preview"
+    },
+    "devDependencies": {
+        "@nuxtjs/tailwindcss": "^5.0.0-4",
+        "@tailwindcss/forms": "^0.5.0",
+        "autoprefixer": "^10.4.4",
+        "css-loader": "^6.7.1",
+        "nuxt": "3.0.0-rc.1",
+        "postcss": "^8.4.12",
+        "style-loader": "^3.3.1",
+        "tailwindcss": "^3.0.24"
+    },
+    "dependencies": {
+        "@algolia/autocomplete-js": "^1.6.2",
+        "@algolia/autocomplete-theme-classic": "^1.6.2",
+        "@babel/runtime": "^7.17.9",
+        "@headlessui/vue": "^1.5.0",
+        "@heroicons/vue": "^1.0.6",
+        "@meilisearch/instant-meilisearch": "^0.7.0",
+        "@tailwindcss/line-clamp": "^0.4.0",
+        "instantsearch.css": "^7.4.5",
+        "lorem-ipsum": "^2.0.4",
+        "meilisearch": "^0.25.1",
+        "moment": "^2.29.4",
+        "typesense": "^1.2.2",
+        "typesense-instantsearch-adapter": "^2.4.0",
+        "vue-instantsearch": "^4.3.3",
+        "vue-plausible": "^1.3.1",
+        "vue-remix-icons": "^1.1.1",
+        "vue-server-renderer": "^2.6.14",
+        "vue-shortkey": "^3.1.7"
+    }
+}

@@ -1,0 +1,138 @@
+.form .form-buttons {
+  @apply w-full flex justify-end;
+}
+
+.form .form-field {
+  margin-top: 8px;
+}
+
+.form .el-select {
+  width: 100%;
+}
+
+.form .app-form-hint {
+  @apply text-gray-600;
+  font-size: 12px;
+}
+
+.form .el-checkbox__input.is-checked + .el-checkbox__label {
+  color: inherit;
+}
+
+.el-form.form {
+  .el-form-item__label {
+    @apply font-semibold text-black;
+    float: none;
+  }
+  .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before {
+    display: none;
+  }
+
+  .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:after {
+    content: '*';
+    margin-left: 4px;
+  }
+}
+
+.el-date-editor--daterange.el-input,
+.el-date-editor--daterange.el-input__inner,
+.el-date-editor--timerange.el-input,
+.el-date-editor--timerange.el-input__inner {
+  @apply w-auto;
+}
+
+.el-checkbox {
+  &__label {
+    @apply text-black;
+  }
+
+  &__input {
+    .el-checkbox__inner {
+      @apply h-5 w-5;
+      &::after {
+        height: 10px;
+        left: 7px;
+        top: 2px;
+      }
+
+      &:hover {
+        @apply border-secondary-900;
+      }
+    }
+
+    &.is-indeterminate {
+      .el-checkbox__inner::before {
+        top: 8px;
+      }
+    }
+
+    &.is-checked .el-checkbox__inner, &.is-indeterminate .el-checkbox__inner {
+      @apply bg-secondary-900 border-secondary-900;
+    }
+
+    &.is-disabled + span.el-checkbox__label {
+      @apply text-black;
+    }
+  }
+}
+
+.el-radio.is-bordered {
+  @apply m-0 px-4;
+
+  .el-radio__input {
+    @apply hidden;
+  }
+
+  .el-radio__label {
+    @apply p-0;
+  }
+
+  &.is-checked {
+    @apply border-primary-900;
+    background-color: #fff5f4;
+    .el-radio__label {
+      @apply text-primary-900;
+    }
+  }
+}
+
+.el-input.is-active .el-input__inner, .el-input__inner:focus {
+  @apply border-secondary-900;
+}
+
+.el-switch__label.is-active {
+  @apply text-secondary-900;
+}
+.el-switch.is-checked .el-switch__core {
+  @apply bg-secondary-900 border-secondary-900;
+}
+
+.el-form-item.is-error .el-input__inner,
+.el-form-item.is-error .el-input__inner:focus,
+.el-form-item.is-error .el-textarea__inner,
+.el-form-item.is-error .el-textarea__inner:focus,
+.el-message-box__input input.invalid,
+.el-message-box__input input.invalid:focus {
+  @apply border-red-900;
+}
+
+.el-form-item__error {
+  @apply text-red-900;
+}
+
+.el-select-dropdown__item {
+  @apply text-gray-900;
+  span.prefix {
+    @apply mr-2 font-light text-gray-400;
+  }
+}
+
+.el-select-dropdown.is-multiple .el-select-dropdown__item.selected ,
+.el-select-dropdown .el-select-dropdown__item.selected {
+  @apply text-secondary-900;
+  font-weight: 700;
+}
+
+.el-select-dropdown__item.hover, .el-select-dropdown__item:hover {
+  background-color: #fffbf8;
+}

@@ -1,0 +1,15 @@
+.el-dialog {
+  @apply rounded-xl w-full max-w-xl;
+
+  &__title {
+    @apply font-semibold;
+  }
+
+  &--lg {
+    @apply max-w-2xl;
+  }
+
+  &--xl {
+    @apply max-w-4xl;
+  }
+}

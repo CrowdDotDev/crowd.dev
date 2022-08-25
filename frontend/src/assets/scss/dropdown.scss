@@ -1,0 +1,20 @@
+.el-dropdown-menu__item, .el-dropdown-menu__item a {
+  @apply flex items-center text-gray-900;
+
+  i {
+    @apply mr-2;
+  }
+
+  &:focus, &:not(.is-disabled):hover {
+    @apply text-gray-900;
+    background-color: #fffbf8;
+  }
+}
+
+.el-dropdown-title {
+  @apply block font-semibold pb-2 px-5 text-sm text-gray-900;
+}
+
+.el-dropdown-separator {
+  @apply mx-5 mt-1 mb-3 border-gray-100;
+}

@@ -1,0 +1,4 @@
+./../crowd-backend
+./../crowd-check-merge-members
+./../crowd-github
+./../crowd-members-score

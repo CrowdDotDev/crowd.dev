@@ -1,0 +1,140 @@
+.btn {
+  @apply px-4 py-3 rounded-lg shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm;
+  transition: all 0.2s;
+
+  &.el-button {
+    span {
+      @apply flex items-center;
+    }
+  }
+
+  &--xl {
+    @apply px-8 py-4;
+  }
+
+  &--lg {
+    @apply px-6 py-3;
+  }
+
+  &--sm {
+    @apply px-3 py-2 text-sm;
+  }
+
+  &--xs {
+    @apply px-2 py-1 text-sm;
+  }
+
+  &--wide {
+    @apply px-6 py-1 text-sm;
+  }
+
+  &--primary {
+    @apply bg-primary-900 border border-primary-900 text-white;
+
+    &:hover, &:focus {
+      @apply bg-primary-900 border border-primary-900 text-white opacity-90;
+    }
+  }
+
+  &--secondary {
+    color: #606266;
+    border: 1px solid #e9e9e9;
+    background-color: #fff;
+    &:focus, &:hover {
+      color: #606266;
+      border: 1px solid #e9e9e9;
+      background-color: #fffbf8;
+      opacity: 0.9;
+    }
+
+    &--orange {
+      @apply text-primary-900 border-primary-900;
+      &:focus, &:hover {
+        @apply text-primary-900 border-primary-900;
+      }
+    }
+
+    &--red {
+      @apply text-red-900 border-red-900;
+      &:focus, &:hover {
+        @apply text-red-900 border-red-900;
+      }
+    }
+
+    &--green {
+      @apply text-green-900 border-green-900;
+      &:focus, &:hover {
+        @apply text-green-900 border-green-900;
+      }
+    }
+  }
+
+  &--menu-cta {
+    @apply text-white border-white bg-transparent;
+    &:focus, &:hover {
+      @apply text-primary-900 border-primary-900 bg-transparent;
+    }
+  }
+
+  &--link {
+    @apply bg-transparent border-0 p-0 rounded-none text-secondary-900 shadow-none;
+    &:hover {
+      @apply bg-transparent text-secondary-900 opacity-80;
+    }
+  }
+
+  &--full {
+    @apply w-full;
+  }
+
+  &[disabled] {
+    opacity: 0.75;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  i:not(:only-child) {
+    @apply mr-2;
+  }
+
+  &--circle {
+    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base flex-shrink-0;
+    i {
+      @apply m-0;
+    }
+  }
+
+  &--email, &--email:hover {
+    @apply border-0 text-primary-900;
+    background-color: rgba(219, 53, 0, 0.1);
+  }
+
+  &--twitter, &--twitter:hover {
+    background-color: rgba(0, 162, 245, 0.1);
+    color: #00A2F5;
+  }
+
+  &--github, &--github:hover {
+    background-color: rgba(89, 89, 89, 0.1);
+    color: #000;
+  }
+
+  &--linkedin, &--linkedin:hover {
+    background-color: rgba(2, 116, 179, 0.1);
+    color: #0274B3;
+  }
+
+  &--slack {
+    background-color: rgba(235, 179, 47, 0.1);
+    color: #ebb32f;
+  }
+
+  &--discord {
+    background-color: rgba(115, 124, 248, 0.1);
+    color: #737cf8;
+  }
+
+  &--email, &--twitter:hover, &--github:hover &--linkedin:hover {
+    @apply opacity-80;
+  }
+}

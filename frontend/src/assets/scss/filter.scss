@@ -1,0 +1,64 @@
+.filter .el-form {
+  @apply p-0;
+
+  .el-row {
+    @apply -mx-3;
+  }
+  .el-col {
+    @apply px-3;
+  }
+
+  .el-form-item {
+    @apply flex flex-col;
+    &__label { @apply block leading-none font-semibold text-left mb-2 pr-0 float-none; }
+    &__content { margin-left: 0!important; }
+  }
+}
+
+.filter .el-select {
+  width: 100%;
+}
+
+.filter .filter-buttons {
+  @apply mt-4;
+  text-align: right;
+}
+
+.filter-preview {
+  @apply flex items-center mb-8;
+}
+
+.filter-toggle {
+  @apply cursor-pointer flex items-center text-primary-900;
+  transition: background-color 0.2s;
+
+  &--active {
+    @apply text-primary-900;
+  }
+
+  &:hover {
+    @apply opacity-80;
+  }
+}
+
+.filter-preview .el-tag {
+  @apply my-1 mr-2;
+}
+
+.filter-preview-values {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.filter form {
+  padding: 16px;
+}
+
+.filter .el-date-editor--datetimerange.el-input__inner {
+  width: 100%;
+}
+
+.filter .el-date-editor--daterange.el-input__inner {
+  width: 100%;
+}

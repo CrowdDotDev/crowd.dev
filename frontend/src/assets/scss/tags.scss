@@ -1,0 +1,10 @@
+.tag {
+  @apply rounded px-3 py-1 leading-none bg-gray-50 my-1;
+  &--sm {
+    @apply px-1 py-0 text-sm;
+  }
+
+  &--xs {
+    @apply px-1 py-0 text-xs;
+  }
+}

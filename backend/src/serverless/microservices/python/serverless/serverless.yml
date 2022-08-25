@@ -1,0 +1,143 @@
+service: pythonMicroservices
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: staging
+  memorySize: 3072 # optional, in MB, default is 1024
+  timeout: 900 # optional, in seconds, default is 6
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'states:StartExecution'
+        - sqs:SendMessage
+        - secretsmanager:GetSecretValue
+      Resource:
+        - '*'
+  region: ${env:AWS_REGION}
+  ecr:
+    # In this section you can define images that will be built locally and uploaded to ECR
+    images:
+      pythonMicroservices:
+        path: ../
+
+custom:
+  currentStage: ${opt:stage, self:provider.stage} # 'staging' is default unless overriden by --stage flag
+  localstack:
+    host: ${env:LOCALSTACK_HOSTNAME}
+    stages:
+      # list of stages for which the plugin should be enabled
+      - local
+    ## Mounting is not supported with serverless-python-requirements plugin
+    #lambda:
+    #  # Enable this flag to improve performance
+    #  mountCode: True
+    docker:
+      # Enable this flag to run "docker ..." commands as sudo
+      sudo: False
+    debug: True
+
+constructs:
+  jobs:
+    type: queue
+    alarm: joan@crowd.dev
+    max-retries: 1
+    fifo: true
+    batchSize: 1 # Lambda will receive 1 message at a time
+    worker:
+      timeout: 900
+      image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+      environment:
+        DD_ENV: ${env:NODE_ENV}
+        DD_LAMBDA_HANDLER: serverless.handler_scheduled.worker
+        DD_LOGS_ENABLED: true
+        DD_CAPTURE_LAMBDA_PAYLOAD: true
+        DD_SITE: datadoghq.eu
+        DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
+        DD_TRACE_ENABLED: true
+        DD_TAGS: 'context:pythonMicroservices'
+        DD_SERVICE: 'pythonMicroservices'
+        DD_LOGS_INJECTION: true
+        NODE_ENV: ${env:NODE_ENV}
+        LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+        LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
+        DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+        DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+        DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+        DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+        PYTHON_MICROSERVICES_SQS_URL: ${env:PYTHON_MICROSERVICES_SQS_URL}
+
+functions:
+  coordinator:
+    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+    events:
+      - schedule:
+          rate: rate(2 hours)
+          input:
+            service: members_score
+      - schedule:
+          rate: rate(2 hours)
+          input:
+            service: check_merge
+    environment:
+      DD_ENV: ${env:NODE_ENV}
+      DD_LAMBDA_HANDLER: serverless.handler_scheduled.coordinator
+      DD_LOGS_ENABLED: true
+      DD_CAPTURE_LAMBDA_PAYLOAD: true
+      DD_SITE: datadoghq.eu
+      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
+      DD_TRACE_ENABLED: true
+      DD_TAGS: 'context:pythonMicroservices'
+      DD_SERVICE: 'pythonMicroservices'
+      DD_LOGS_INJECTION: true
+      DD_FLUSH_TO_LOG: true
+      DD_LOG_LEVEL: 'debug'
+      DD_ENHANCED_METRICS: true
+      NODE_ENV: ${env:NODE_ENV}
+      EDITION: ${env:EDITION}
+      SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
+      LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+      LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
+      DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+      DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+      DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+      AWS_ACCESS_KEY_ID_CROWD: ${env:AWS_ACCESS_KEY_ID, false}
+      AWS_SECRET_ACCESS_KEY_CROWD: ${env:AWS_SECRET_ACCESS_KEY, false}
+      DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+      PYTHON_MICROSERVICES_SQS_URL: ${env:PYTHON_MICROSERVICES_SQS_URL}
+
+  testSqs:
+    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+    environment:
+      DD_ENV: ${env:NODE_ENV}
+      DD_LAMBDA_HANDLER: serverless.handler_scheduled.worker
+      DD_LOGS_ENABLED: true
+      DD_CAPTURE_LAMBDA_PAYLOAD: true
+      DD_SITE: datadoghq.eu
+      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
+      DD_TRACE_ENABLED: true
+      DD_TAGS: 'context:pythonMicroservices'
+      DD_SERVICE: 'pythonMicroservices'
+      DD_LOGS_INJECTION: true
+      NODE_ENV: ${env:NODE_ENV}
+      EDITION: ${env:EDITION}
+      SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
+      DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+      DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+      DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+      DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+      PYTHON_MICROSERVICES_SQS_URL: ${env:PYTHON_MICROSERVICES_SQS_URL}
+
+package:
+  patterns:
+    - '!venv*/**'
+
+plugins:
+  - serverless-lift
+  - serverless-step-functions
+  - serverless-localstack

@@ -1,0 +1,77 @@
+service: EagleEye
+frameworkVersion: '3'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: staging
+  memorySize: 3072 # optional, in MB, default is 1024
+  timeout: 900 # optional, in seconds, default is 6
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'states:StartExecution'
+        - sqs:SendMessage
+        - secretsmanager:GetSecretValue
+      Resource:
+        - '*'
+  region: eu-central-1
+  ecr:
+    # In this section you can define images that will be built locally and uploaded to ECR
+    images:
+      EagleEye:
+        path: ./
+
+
+custom:
+  currentStage: ${opt:stage, self:provider.stage} # 'staging' is default unless overriden by --stage flag
+  
+functions:
+  scheduled:
+    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-eagle-eye-lambda:${env:CROWD_VERSION}
+    events:
+      - schedule:
+          rate: rate(2 hours)
+          input:
+            platform: hacker_news
+      - schedule:
+          rate: rate(2 hours)
+          input:
+            platform: devto
+    environment:
+      DD_ENV: ${env:NODE_ENV}
+      DD_CAPTURE_LAMBDA_PAYLOAD: true
+      DD_SITE: datadoghq.eu
+      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
+      DD_TRACE_ENABLED: true
+      DD_LAMBDA_HANDLER: handler.scheduled
+      DD_LOGS_ENABLED: true
+      DD_TAGS: 'context:eagleEye'
+      DD_SERVICE: 'eagleEye'
+      DD_LOGS_INJECTION: true
+      COHERE_API_KEY: ${env:COHERE_API_KEY}
+      VECTOR_API_KEY: ${env:VECTOR_API_KEY}
+      VECTOR_INDEX: ${env:VECTOR_INDEX}
+
+  search:
+    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-eagle-eye-lambda:${env:CROWD_VERSION}
+    environment:
+      DD_ENV: ${env:NODE_ENV}
+      DD_CAPTURE_LAMBDA_PAYLOAD: true
+      DD_SITE: datadoghq.eu
+      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
+      DD_TRACE_ENABLED: true
+      DD_LAMBDA_HANDLER: handler.search
+      DD_LOGS_ENABLED: true
+      DD_TAGS: 'context:eagleEye'
+      DD_SERVICE: 'eagleEye'
+      DD_LOGS_INJECTION: true
+      COHERE_API_KEY: ${env:COHERE_API_KEY}
+      VECTOR_API_KEY: ${env:VECTOR_API_KEY}
+      VECTOR_INDEX: ${env:VECTOR_INDEX}
+  
+
+package:
+  patterns:
+    - '!venv*/**'

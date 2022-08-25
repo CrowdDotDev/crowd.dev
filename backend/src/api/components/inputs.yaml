@@ -1,0 +1,40 @@
+components:
+  schemas:
+    MemberPlatformHelper:
+      type: object
+      required:
+        - platform
+      properties:
+        platform:
+          type: string
+          description: Platform for which to check member existence.
+
+    CommunityMemberUpsertInput:
+      allOf:
+        - $ref: '#/components/schemas/MemberPlatformHelper'
+        - $ref: '#/components/schemas/CommunityMemberNoId'
+
+    ActivityUpsertInput:
+      description: >-
+        An activity performed by a member of your community. The community member is sent as an ID.
+      allOf:
+        - $ref: '#/components/schemas/ActivityNoId'
+        - $ref: '#/components/schemas/ActivityUpsertWithMemberHelper'
+
+    ActivityUpsertWithMemberHelper:
+      type: object
+      required:
+        - communityMember
+      properties:
+        communityMember:
+          description: The unique identifier for the member that performed the activity.
+
+    ActivityUpsertWithMemberInput:
+      type: object
+      description: >-
+        An activity performed by a member of your community. The community member is sent as a whole object.
+      allOf:
+        - $ref: '#/components/schemas/ActivityNoId'
+      properties:
+        communityMember:
+          $ref: '#/components/schemas/CommunityMemberNoId'

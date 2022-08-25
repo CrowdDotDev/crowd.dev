@@ -1,0 +1,29 @@
+/* TailwindCSS initialization */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add global styles to this file, and also import other style files */
+@import 'element-ui.scss';
+@import 'layout.scss';
+@import 'typography.scss';
+@import 'plan.scss';
+@import 'auth.scss';
+@import 'onboard.scss';
+@import 'form.scss';
+@import 'filter.scss';
+@import 'errors.scss';
+@import 'colors.scss';
+@import 'settings.scss';
+@import 'table.scss';
+@import 'view.scss';
+@import 'buttons.scss';
+@import 'dropdown.scss';
+@import 'tags.scss';
+@import 'message-box.scss';
+@import 'dialogs.scss';
+@import 'panel.scss';
+@import 'pagination.scss';
+@import 'toast.scss';
+
+@import '~remixicon/fonts/remixicon.css';

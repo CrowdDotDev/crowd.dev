@@ -1,0 +1,52 @@
+.el-table {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #e9e9e9;
+  @apply mt-6;
+}
+
+.el-table .table-actions {
+  @apply flex items-center justify-end;
+}
+
+.el-table thead tr th:first-child,
+.el-table tbody tr td:first-child {
+  @apply pl-4
+}
+
+.el-table thead tr th:last-child,
+.el-table tbody tr td:last-child {
+  @apply pr-4;
+}
+
+.el-table thead tr th,
+.el-table tbody tr td,
+.el-table td, .el-table th.is-leaf{
+  border: none;
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.el-table--border::after, .el-table--group::after, .el-table::before {
+  background-color: #e9e9e9;
+}
+
+.el-table--border::after, .el-table--group::after {
+  @apply w-0;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped.current-row td, .el-table__body tr.current-row > td, .el-table__body tr.hover-row.current-row > td, .el-table__body tr.hover-row.el-table__row--striped.current-row > td, .el-table__body tr.hover-row.el-table__row--striped > td, .el-table__body tr.hover-row > td {
+  @apply bg-background;
+}
+
+.el-table tr.is-selected {
+  background-color: #f8fcff;
+}
+
+.el-table__cell * {
+  /* Non standard for WebKit */
+  word-break: break-word;
+
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  hyphens: auto;
+}

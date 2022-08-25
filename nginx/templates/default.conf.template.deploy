@@ -1,0 +1,59 @@
+
+server {
+
+  server_name ${NGINX_CROWD_BACKEND_DOMAIN};
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  root /var/www/html;
+  location / {
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto http;
+    proxy_pass http://crowd-backend:8080;
+
+  }
+}
+
+
+server {
+
+  server_name ${NGINX_CROWD_CUBEJS_DOMAIN};
+  listen 80;
+  listen [::]:80;
+
+  root /var/www/html;
+  location / {
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto http;
+    proxy_pass http://cubejs:4000;
+
+  }
+}
+
+server {
+
+  server_name ${NGINX_CROWD_MEILISEARCH_DOMAIN};
+  listen 80;
+  listen [::]:80;
+
+  root /var/www/html;
+  location / {
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto http;
+    proxy_pass http://search-engine:7700;
+
+  }
+}
+
