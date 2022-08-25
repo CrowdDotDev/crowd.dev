@@ -1,0 +1,54 @@
+name: Db-sync-migrations
+
+on:
+  push:
+    paths:
+      - "backend/src/database/migrations/**"
+      - "backend/src/database/initializers/seed-entities.ts"
+      - "backend/src/database/initializers/seed-test-data.ts"
+    branches:
+      - "main"
+
+jobs:
+  db-sync-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login docker hub
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Install root dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Install serverless integrations dependencies
+        working-directory: ./backend/src/serverless/integrations
+        run: npm ci
+
+      - name: Install serverless dbOperations dependencies
+        working-directory: ./backend/src/serverless/dbOperations
+        run: npm ci
+
+      - name: Get local database related env variables
+        working-directory: ./backend
+        run: |
+          curl -H 'Authorization: token ${{ secrets.GH_TOKEN }}' \
+          -H 'Accept: application/vnd.github.v4.raw' \
+          -L https://api.github.com/repos/CrowdHQ/crowd-environment/contents/environments/dotenv-local | grep "SEARCH_ENGINE\|DATABASE\|NODE_ENV*" > .env
+
+      - name: Run migrations
+        working-directory: ./backend
+        run: docker-compose -f docker/docker-compose-dev.yaml up -d && npm run sequelize-cli:source -- db:migrate
+
+      - name: Run seeder's for all entities
+        working-directory:  ./backend
+        run: npx ts-node ./src/database/initializers/seed-entities all
+
+      - name: Run test data seeder
+        working-directory:  ./backend
+        run: npx ts-node ./src/database/initializers/seed-test-data
+
+      - name: Publish migrated db to dockerhub
+        working-directory: ./backend
+        run: npm run db:publish -- latest

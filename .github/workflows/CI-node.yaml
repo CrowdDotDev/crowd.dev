@@ -1,0 +1,84 @@
+name: Node.js CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+jobs:
+  lint-format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./backend
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install serverless integrations dependencies
+        working-directory: ./backend/src/serverless/integrations
+        run: npm ci
+
+      - name: Install serverless dbOperations dependencies
+        working-directory: ./backend/src/serverless/dbOperations
+        run: npm ci
+
+      - name: Install serverless nodeMicroservices dependencies
+        working-directory: ./backend/src/serverless/microservices/nodejs
+        run: npm ci
+
+      - name: Check linting
+        run: npx eslint .
+
+      - name: Check formatting
+        run: npx prettier --check .
+
+
+
+  tests-main:
+    needs: lint-format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./backend
+
+    steps: 
+        - name: Check out repository code
+          uses: actions/checkout@v2
+
+        - name: Install root dependencies
+          run:  sed -i -e 's/postinstall/'randomthing'/g' ./package.json && npm ci
+        
+        - name: Run tests
+          working-directory: ./backend
+          run: npm test -- --testPathIgnorePatterns=serverless
+
+  tests-serverless:
+    needs: lint-format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./backend
+
+    steps:
+        - name: Check out repository code
+          uses: actions/checkout@v2
+
+        - name: Install root dependencies
+          run: npm ci
+
+        - name: change db port in env
+          working-directory: ./backend
+          run: sed -i -e 's/5433/'5434'/g' ./.env.test && sed -i -e 's/7701/'7702'/g' ./.env.test  
+        - name: change db port in docker compose
+          working-directory: ./backend
+          run: sed -i -e 's/5433/'5434'/g' ../docker/docker-compose.test.yaml && sed -i -e 's/7701/'7702'/g' ../docker/docker-compose.test.yaml
+        - name: Run tests
+          working-directory: ./backend
+          run: npm test -- --testPathPattern="serverless\/"

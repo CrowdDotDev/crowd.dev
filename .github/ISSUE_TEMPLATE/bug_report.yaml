@@ -1,0 +1,42 @@
+name: Bug Report
+description: Create a report to help us improve
+labels: ["type:bug 🐞"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    id: crowd-edition
+    attributes:
+      label: crowd.dev edition
+      description: Which crowd.dev edition are you reporting on?
+      options:
+        - Community (self hosted)
+        - Cloud (hosted)
+    validations:
+      required: true
+  - type: input
+    id: community-version
+    attributes:
+      label: Version
+      description: (community edition only) which version you are reporting on?
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command / Request
+      description: Command or request that led to the error. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output including errors and stacktraces. This will be automatically formatted into code, so no need for backticks.
+      render: shell

@@ -1,0 +1,20 @@
+name: Test Frontend
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: npm run start:json-server, npm run start:test
+          wait-on: 'http://localhost:4000'
+          working-directory: 'frontend'

@@ -1,0 +1,52 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+node_modules/
+
+# testing
+/frontend/tests/screenshots
+/frontend/tests/videos
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+api-test/__pycache__/api_test.cpython-39-pytest-6.2.4.pyc
+
+# python
+**/*-venv
+**/venv
+**/venv*
+
+**/__pycache__
+**/*.egg-info
+
+**/**/.idea
+
+**/.vscode*
+
+.vscode/settings.json
+
+.serverless
+.webpack
+.build
+.cache
+
+#docker
+/docker/docker-compose.yaml
+/docker/docker-compose.dev.yaml
+
+/backend/superface/**
+docker/volume
+
+openapi.json
