@@ -31,7 +31,7 @@
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.20",
     "meilisearch": "^0.25.0",
-    "moment": "2.28.0",
+    "moment": "2.29.4",
     "moment-timezone": "^0.5.34",
     "mv": "2.1.1",
     "omit-deep-by-values": "^1.0.2",
