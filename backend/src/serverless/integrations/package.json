@@ -21,7 +21,7 @@
     "aws-sdk": "2.814.0",
     "axios": "^0.27.2",
     "bcrypt": "5.0.0",
-    "cli-highlight": "2.1.4",
+    "cli-highlight": "2.1.11",
     "cors": "2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^14.3.2",
