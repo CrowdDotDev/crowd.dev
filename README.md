@@ -70,7 +70,7 @@ We currently support four integrations for self-hosting: GitHub, Twitter, Discor
 1. Get the mono repo from GitHub
 
 ```
-git clone git@github.com:CrowdDotDev/crowd-postgres.git
+git clone git@github.com:CrowdDotDev/crowd.dev.git
 ```
 
 2. Run the start script
