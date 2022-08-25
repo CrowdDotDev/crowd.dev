@@ -184,6 +184,14 @@ export default class EagleEyeContentRepository {
         })
       }
 
+      if (filter.nDays) {
+        whereAnd.push({
+          timestamp: {
+            [Op.gte]: moment().subtract(filter.nDays, 'days').toDate(),
+          },
+        })
+      }
+
       if (filter.title) {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'title', filter.title))
       }

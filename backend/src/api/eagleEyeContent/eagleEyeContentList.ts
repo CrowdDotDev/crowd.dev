@@ -10,7 +10,9 @@ export default async (req, res) => {
     const payload = await new EagleEyeContentService(req).findAndCountAll(req.query)
 
     if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Eagle Eye Content Filtered', { filter: req.query.filter }, { ...req })
+      const platforms = req.query.filter.platforms ? req.query.filter.platforms.split(',') : []
+      const nDays = req.query.filter.nDays
+      track('Eagle Eye Filter', { filter: req.query.filter, platforms, nDays }, { ...req })
     }
 
     await ApiResponseHandler.success(req, res, payload)

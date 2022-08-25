@@ -5,6 +5,7 @@ import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import { getConfig } from '../config'
 import Error400 from '../errors/Error403'
+import track from '../segment/track'
 
 interface EagleEyeSearchPoint {
   vectorId: string
@@ -122,6 +123,12 @@ export default class EagleEyeContentService {
         ...this.options,
         transaction,
       })
+
+      if (data.status === 'engaged') {
+        track('Eagle Eye Engaged', { ...data }, { ...this.options })
+      } else if (data.status === 'rejected') {
+        track('Eagle Eye Rejected', { ...data }, { ...this.options })
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 
