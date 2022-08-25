@@ -1,4 +1,7 @@
 <!-- PROJECT LOGO -->
+> **_IMPORTANT:_** This project is in beta and still under active development. Be aware that future releases can lead to breaking changes.
+<br>
+
 <p align="center">
   <a href="https://github.com/CrowdDotDev/crowd.dev">
     <img src="https://user-images.githubusercontent.com/41432658/180248099-7dd9d6b0-84d2-418a-946a-5c5a29aceffb.png" alt="Header Logo">
@@ -24,7 +27,6 @@
 </p>
 
 <!-- BODY -->
-> **_IMPORTANT:_** This project is still under active development. Be aware that future releases can lead to breaking changes.
 
 ## About crowd.dev
 
