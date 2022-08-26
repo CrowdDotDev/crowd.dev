@@ -477,6 +477,59 @@ describe('eagleEyeContentRepository tests', () => {
 
       await addAll(mockIRepositoryOptions)
 
+      const k1 = {
+        sourceId: 'sourceIdk1',
+        vectorId: 'sourceIdk1',
+        status: null,
+        platform: 'hacker_news',
+        title: 'title',
+        userAttributes: { github: 'hey', twitter: 'ho' },
+        text: 'text',
+        postAttributes: {
+          score: 10,
+        },
+        url: 'url',
+        timestamp: new Date(),
+        username: 'username',
+        keywords: ['keyword1'],
+        similarityScore: 0.9,
+      }
+
+      await new EagleEyeContentService(mockIRepositoryOptions).upsert(k1)
+
+      const k2 = {
+        sourceId: 'sourceIdk2',
+        vectorId: 'sourceIdk2',
+        status: null,
+        platform: 'hacker_news',
+        title: 'title',
+        userAttributes: { github: 'hey', twitter: 'ho' },
+        text: 'text',
+        postAttributes: {
+          score: 10,
+        },
+        url: 'url',
+        timestamp: new Date(),
+        username: 'username',
+        keywords: ['keyword2'],
+        similarityScore: 0.9,
+      }
+
+      try {
+        await EagleEyeContentRepository.findAndCountAll(
+          {
+            filter: {
+              keywords: 'keyword1,keyword2',
+            },
+          },
+          mockIRepositoryOptions,
+        )
+      } catch (e) {
+        console.log(e)
+      }
+
+      await new EagleEyeContentService(mockIRepositoryOptions).upsert(k2)
+
       expect(
         (
           await EagleEyeContentRepository.findAndCountAll(
@@ -488,7 +541,7 @@ describe('eagleEyeContentRepository tests', () => {
             mockIRepositoryOptions,
           )
         ).count,
-      ).toBe(2)
+      ).toBe(5)
     })
   })
 
