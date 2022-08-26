@@ -31,11 +31,17 @@ export default class UserRepository {
     return this._populateRelations(record, options)
   }
 
-  static async findAllUsersOfTenant(tenantId){
+  static async findAllUsersOfTenant(tenantId) {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     const records = await options.database.user.findAll({
-      tenants: tenantId
+      include: [
+        {
+          model: options.database.tenantUser,
+          as: 'tenants',
+          where: { tenantId },
+        },
+      ],
     })
 
     if (records.length === 0) {
@@ -43,7 +49,6 @@ export default class UserRepository {
     }
 
     return this._populateRelationsForRows(records, options)
-
   }
 
   static async create(data, options: IRepositoryOptions) {
