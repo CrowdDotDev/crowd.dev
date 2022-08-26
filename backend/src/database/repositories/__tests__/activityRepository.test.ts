@@ -35,10 +35,14 @@ describe('ActivityRepository tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
+        title: 'Title',
+        body: 'Here',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -53,8 +57,13 @@ describe('ActivityRepository tests', () => {
       delete activityCreated.communityMember
       const expectedActivityCreated = {
         id: activityCreated.id,
-        crowdInfo: activity.crowdInfo,
+        attributes: activity.attributes,
+        body: 'Here',
         type: 'activity',
+        title: 'Title',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
@@ -67,7 +76,6 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parent: null,
         parentId: null,
         sourceId: activity.sourceId,
@@ -108,7 +116,12 @@ describe('ActivityRepository tests', () => {
 
       const expectedActivityCreated = {
         id: activityCreated.id,
-        crowdInfo: {},
+        attributes: {},
+        body: null,
+        title: null,
+        url: null,
+        channel: null,
+        sentiment: null,
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -122,7 +135,6 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parent: null,
         parentId: null,
         sourceId: activityCreated.sourceId,
@@ -149,10 +161,10 @@ describe('ActivityRepository tests', () => {
       const activity = {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
+        body: 'Here',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -179,10 +191,10 @@ describe('ActivityRepository tests', () => {
       const activity = {
         platform: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
+        body: 'Here',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -209,10 +221,10 @@ describe('ActivityRepository tests', () => {
       const activity = {
         platform: PlatformType.GITHUB,
         type: 'activity',
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
+        body: 'Here',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -242,10 +254,6 @@ describe('ActivityRepository tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-        },
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -256,7 +264,12 @@ describe('ActivityRepository tests', () => {
 
       const expectedActivityFound = {
         id: activityCreated.id,
-        crowdInfo: activity.crowdInfo,
+        attributes: {},
+        body: null,
+        title: null,
+        url: null,
+        channel: null,
+        sentiment: null,
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -270,7 +283,6 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parent: null,
         parentId: null,
         sourceId: activity.sourceId,
@@ -438,10 +450,6 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          crowdInfo: {
-            replies: 12,
-            body: 'Here',
-          },
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -474,10 +482,10 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          crowdInfo: {
-            replies: 12,
-            body: 'Here',
+          attributes: {
+            thread: true,
           },
+          body: 'Here',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -487,7 +495,7 @@ describe('ActivityRepository tests', () => {
       )
 
       const found = await ActivityRepository.findOne(
-        { 'crowdInfo.replies': 12 },
+        { 'attributes.thread': true },
         mockIRepositoryOptions,
       )
 
@@ -513,10 +521,10 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          crowdInfo: {
+          attributes: {
             replies: 12,
-            body: 'Here',
           },
+          body: 'Here',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -551,10 +559,10 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          crowdInfo: {
+          attributes: {
             replies: 12,
-            body: 'Here',
           },
+          body: 'Here',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -584,7 +592,12 @@ describe('ActivityRepository tests', () => {
       delete updatedActivity.communityMember
       const expectedActivityUpdated = {
         id: activityReturned.id,
-        crowdInfo: activityReturned.crowdInfo,
+        body: activityReturned.body,
+        channel: null,
+        title: null,
+        sentiment: null,
+        url: null,
+        attributes: activityReturned.attributes,
         type: 'activity-new',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -598,7 +611,6 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parent: null,
         parentId: null,
         sourceId: activityReturned.sourceId,
@@ -639,10 +651,10 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          crowdInfo: {
+          attributes: {
             replies: 12,
-            body: 'Here',
           },
+          body: 'Here',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -654,6 +666,11 @@ describe('ActivityRepository tests', () => {
       const updateFields = {
         type: 'activity-new',
         platform: PlatformType.GITHUB,
+        body: 'There',
+        title: 'Title',
+        channel: 'Channel',
+        url: 'https://www.google.com',
+        sentiment: 0.9,
         communityMember: memberCreated2.id,
       }
 
@@ -673,7 +690,12 @@ describe('ActivityRepository tests', () => {
       delete updatedActivity.communityMember
       const expectedActivityUpdated = {
         id: activityReturned.id,
-        crowdInfo: activityReturned.crowdInfo,
+        attributes: activityReturned.attributes,
+        body: updateFields.body,
+        channel: updateFields.channel,
+        title: updateFields.title,
+        sentiment: updateFields.sentiment,
+        url: updateFields.url,
         type: 'activity-new',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -687,7 +709,6 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parent: null,
         parentId: null,
         sourceId: activityReturned.sourceId,

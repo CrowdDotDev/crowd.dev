@@ -234,11 +234,9 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'some-channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'some-channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -253,10 +251,8 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-29T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 2',
-            channel: 'some-channel',
-          },
+          body: 'conversation activity 2',
+          channel: 'some-channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -271,10 +267,8 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-30T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            channel: 'some-channel',
-            body: 'conversation activity 3',
-          },
+          channel: 'some-channel',
+          body: 'conversation activity 3',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -312,15 +306,11 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activity1Created, activity2Created, activity3Created],
         platform: activity1Created.platform,
-        activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-        ],
-        channel: activity1Created.crowdInfo.channel,
+        activitiesBodies: [activity1Created.body, activity2Created.body, activity3Created.body],
+        channel: activity1Created.channel,
         lastActive: activity3Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -331,9 +321,7 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-01T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 4',
-          },
+          body: 'conversation activity 4',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -368,15 +356,15 @@ describe('ConversationService tests', () => {
         activities: [activity1Created, activity2Created, activity3Created, activity4Created],
         platform: activity1Created.platform,
         activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-          activity4Created.crowdInfo.body,
+          activity1Created.body,
+          activity2Created.body,
+          activity3Created.body,
+          activity4Created.body,
         ],
-        channel: activity1Created.crowdInfo.channel,
+        channel: activity1Created.channel,
         lastActive: activity4Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -387,8 +375,8 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-02T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: '',
+          body: '',
+          attributes: {
             attachments: [
               {
                 id: '970587696546324510',
@@ -439,16 +427,16 @@ describe('ConversationService tests', () => {
         ],
         platform: activity1Created.platform,
         activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-          activity4Created.crowdInfo.body,
-          activity5Created.crowdInfo.body,
+          activity1Created.body,
+          activity2Created.body,
+          activity3Created.body,
+          activity4Created.body,
+          activity5Created.body,
         ],
         lastActive: activity5Created.timestamp,
         views: 0,
-        channel: activity1Created.crowdInfo.channel,
-        url: activity1Created.crowdInfo.url,
+        channel: activity1Created.channel,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -459,10 +447,10 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-03T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: '',
+          attributes: {
             attachments: [],
           },
+          body: '',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -489,6 +477,7 @@ describe('ConversationService tests', () => {
       // loaded document should be same as previously loaded one (activity6 shouldn't exist)
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
     })
+
     it('Should create a document representation of a conversation in the search engine when auto-publishing', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
@@ -525,11 +514,11 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -545,11 +534,11 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -607,11 +596,9 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activityParentCreated, activityChildCreated],
         platform: activityParentCreated.platform,
-        activitiesBodies: [
-          activityParentCreated.crowdInfo.body,
-          activityChildCreated.crowdInfo.body,
-        ],
+        activitiesBodies: [activityParentCreated.body, activityChildCreated.body],
         channel: 'crowd-web',
+        url: null,
         lastActive: activityChildCreated.timestamp,
         views: 0,
       }
@@ -680,10 +667,8 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            channel: 'some-channel',
-            body: 'conversation activity 1',
-          },
+          channel: 'some-channel',
+          body: 'conversation activity 1',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -784,11 +769,9 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-act-url.com',
-            body: 'conversation activity 1',
-            channel: 'some-channel',
-          },
+          url: 'https://parent-act-url.com',
+          body: 'conversation activity 1',
+          channel: 'some-channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -815,11 +798,11 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activity1Created],
         platform: activity1Created.platform,
-        activitiesBodies: [activity1Created.crowdInfo.body],
+        activitiesBodies: [activity1Created.body],
         lastActive: activity1Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
-        channel: activity1Created.crowdInfo.channel,
+        url: activity1Created.url,
+        channel: activity1Created.channel,
       }
 
       // check search engine
@@ -1097,11 +1080,8 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T10:13:30Z',
         platform: 'github',
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Github Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Github Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -1117,11 +1097,8 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T11:13:30Z',
         platform: 'github',
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -1146,10 +1123,8 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: 'discord',
-        crowdInfo: {
-          body: 'Some Discord Parent Activity',
-          channel: 'channel',
-        },
+        body: 'Some Discord Parent Activity',
+        channel: 'channel',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -1165,10 +1140,8 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: 'discord',
-        crowdInfo: {
-          body: 'Here',
-          channel: 'channel',
-        },
+        body: 'Here',
+        channel: 'channel',
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -1244,10 +1217,8 @@ describe('ConversationService tests', () => {
         slug: githubConversationCreated.slug,
         activities: [githubActivityParentCreated, githubActivityChildCreated],
         platform: githubActivityParentCreated.platform,
-        activitiesBodies: [
-          githubActivityParentCreated.crowdInfo.body,
-          githubActivityChildCreated.crowdInfo.body,
-        ],
+        url: null,
+        activitiesBodies: [githubActivityParentCreated.body, githubActivityChildCreated.body],
         channel: 'crowd-web',
         lastActive: githubActivityChildCreated.timestamp,
         views: 0,
