@@ -12,7 +12,8 @@ import { s3 } from '../../../../../services/aws'
 import UserRepository from '../../../../../database/repositories/userRepository'
 
 /**
- * Sends weekly analytics of a given tenant to the user email.
+ * Sends weekly analytics emails of a given tenant
+ * to all users of the tenant.
  * Data sent is for the last week.
  * @param tenantId
  */
