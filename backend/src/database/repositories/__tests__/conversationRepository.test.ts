@@ -267,12 +267,12 @@ describe('ConversationRepository tests', () => {
         {
           type: 'activity',
           timestamp: '2020-05-27T14:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Some Parent Activity',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Some Parent Activity',
+          channel: 'general',
           isKeyAction: true,
           communityMember: memberCreated.id,
           conversationId: conversation1Created.id,
@@ -286,12 +286,12 @@ describe('ConversationRepository tests', () => {
         {
           type: 'activity',
           timestamp: '2020-05-28T15:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Here',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Here',
+          channel: 'general',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -306,12 +306,12 @@ describe('ConversationRepository tests', () => {
         {
           type: 'activity',
           timestamp: '2020-05-29T16:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Here',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Here',
+          channel: 'general',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -323,7 +323,7 @@ describe('ConversationRepository tests', () => {
       )
 
       let conversation2Created = await ConversationRepository.create(
-        { title: 'a cool title', slug: 'a-cool-title-2' },
+        { title: 'a cool title 2', slug: 'a-cool-title-2' },
         mockIRepositoryOptions,
       )
 
@@ -332,11 +332,9 @@ describe('ConversationRepository tests', () => {
           type: 'message',
           timestamp: '2020-06-02T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'Some-Channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'Some-Channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -351,10 +349,8 @@ describe('ConversationRepository tests', () => {
           type: 'message',
           timestamp: '2020-06-03T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 2',
-            channel: 'Some-Channel',
-          },
+          body: 'conversation activity 2',
+          channel: 'Some-Channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,
@@ -373,11 +369,9 @@ describe('ConversationRepository tests', () => {
           type: 'message',
           timestamp: '2020-06-05T15:13:30Z',
           platform: PlatformType.SLACK,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'Some-Channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'Some-Channel',
           isKeyAction: true,
           communityMember: memberCreated.id,
           score: 1,

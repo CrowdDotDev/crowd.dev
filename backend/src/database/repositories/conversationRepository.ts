@@ -256,14 +256,9 @@ class ConversationRepository {
 
       if (filter.channel) {
         whereAnd.push({
-          [Op.or]: [
-            Sequelize.where(Sequelize.literal(`"activities"."crowdInfo"->>'channel'`), {
-              [Sequelize.Op.like]: `%${filter.channel}%`,
-            }),
-            Sequelize.where(Sequelize.literal(`"activities"."crowdInfo"->>'repo'`), {
-              [Sequelize.Op.like]: `https://github.com/%${filter.channel}%`,
-            }),
-          ],
+          channel: Sequelize.where(Sequelize.literal(`"activities"."channel"->>'channel'`), {
+            [Sequelize.Op.like]: `%${filter.channel}%`,
+          }),
         })
       }
 
