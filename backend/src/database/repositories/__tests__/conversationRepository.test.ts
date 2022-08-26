@@ -467,7 +467,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by channel (repo)
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { channel: 'CrowdDevHQ/crowd-web' } },
+        { filter: { channel: 'general' } },
         mockIRepositoryOptions,
       )
 

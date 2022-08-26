@@ -256,7 +256,7 @@ class ConversationRepository {
 
       if (filter.channel) {
         whereAnd.push({
-          channel: Sequelize.where(Sequelize.literal(`"activities"."channel"->>'channel'`), {
+          channel: Sequelize.where(Sequelize.literal(`"activities"."channel"`), {
             [Sequelize.Op.like]: `%${filter.channel}%`,
           }),
         })
