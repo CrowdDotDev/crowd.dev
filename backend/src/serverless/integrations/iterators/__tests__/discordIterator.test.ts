@@ -139,10 +139,10 @@ describe('Discord iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {
-            body: 'body here',
-            url: 'https://discordapp.com/channels/guild12345/1/12345',
-            channel: 'channel1',
+          body: 'body here',
+          url: 'https://discordapp.com/channels/guild12345/1/12345',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: ['1', '2', '3'],
             attachments: [],
@@ -194,10 +194,10 @@ describe('Discord iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '3',
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {
-            body: 'body here',
-            url: 'https://discordapp.com/channels/guild12345/3/12345',
-            channel: 'thread1',
+          body: 'body here',
+          url: 'https://discordapp.com/channels/guild12345/3/12345',
+          channel: 'thread1',
+          attributes: {
             thread: 'thread1',
             reactions: ['1', '2', '3'],
             attachments: [],
@@ -247,10 +247,10 @@ describe('Discord iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {
-            body: '',
-            url: 'https://discordapp.com/channels/guild12345/1/12345',
-            channel: 'channel1',
+          body: '',
+          url: 'https://discordapp.com/channels/guild12345/1/12345',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: [],
             attachments: [],
@@ -301,10 +301,10 @@ describe('Discord iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {
-            body: '',
-            url: 'https://discordapp.com/channels/guild12345/1/12345',
-            channel: 'channel1',
+          body: '',
+          url: 'https://discordapp.com/channels/guild12345/1/12345',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: [],
             attachments: [],
@@ -356,10 +356,10 @@ describe('Discord iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {
-            body: 'body here @mention and @mentions',
-            url: 'https://discordapp.com/channels/guild12345/1/12345',
-            channel: 'channel1',
+          body: 'body here @mention and @mentions',
+          url: 'https://discordapp.com/channels/guild12345/1/12345',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: ['1', '2', '3'],
             attachments: [],
@@ -412,7 +412,6 @@ describe('Discord iterator tests', () => {
             PlatformType.DISCORD,
           ),
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
-          crowdInfo: {},
           communityMember: {
             username: 'username',
             crowdInfo: {

@@ -295,7 +295,6 @@ export default class DiscordIterator extends BaseIterator {
             PlatformType.DISCORD,
           ),
           timestamp: moment(record.joinedAt).utc().toDate(),
-          crowdInfo: {},
           communityMember: {
             username: record.username,
             crowdInfo: {
@@ -351,10 +350,10 @@ export default class DiscordIterator extends BaseIterator {
           sourceId: record.id,
           sourceParentId: parent,
           timestamp: moment(record.createdAt).utc().toDate(),
-          crowdInfo: {
-            body: record.text ? DiscordIterator.removeMentions(record.text) : '',
-            url: `https://discordapp.com/channels/${this.guildId}/${endpoint}/${record.id}`,
-            channel: channelsInfo[endpoint].name,
+          body: record.text ? DiscordIterator.removeMentions(record.text) : '',
+          url: `https://discordapp.com/channels/${this.guildId}/${endpoint}/${record.id}`,
+          channel: channelsInfo[endpoint].name,
+          attributes: {
             thread: channelsInfo[endpoint].thread ? channelsInfo[endpoint].name : false,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
@@ -370,7 +369,7 @@ export default class DiscordIterator extends BaseIterator {
         } as any
 
         if (record.hasThread) {
-          activityObject.crowdInfo.threadStarter = record.hasThread
+          activityObject.attributes.threadStarter = record.hasThread
         }
 
         acc.push(activityObject)

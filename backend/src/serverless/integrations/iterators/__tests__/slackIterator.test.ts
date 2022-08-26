@@ -180,10 +180,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(1644599456476.499).toDate(),
-          crowdInfo: {
-            body: 'body here',
-            url: '',
-            channel: 'channel1',
+          body: 'body here',
+          url: '',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: ['1', '2', '3'],
             attachments: [],
@@ -226,10 +226,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           timestamp: moment(1644599456476.499).toDate(),
           sourceParentId: '',
-          crowdInfo: {
-            body: '',
-            url: '',
-            channel: 'channel1',
+          body: '',
+          url: '',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: [],
             attachments: [],
@@ -275,10 +275,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           sourceParentId: '',
           timestamp: moment(1644599456476.499).toDate(),
-          crowdInfo: {
-            body: 'body here @gilfoyle and @dinesh @mention',
-            url: '',
-            channel: 'channel1',
+          body: 'body here @gilfoyle and @dinesh @mention',
+          url: '',
+          channel: 'channel1',
+          attributes: {
             thread: false,
             reactions: ['1', '2', '3'],
             attachments: [],
@@ -355,10 +355,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           sourceParentId: 'threadId',
           timestamp: moment(Date.parse('2022-02-25T12:41:25.131Z')).toDate(),
-          crowdInfo: {
-            body: 'body here',
-            url: '',
-            channel: thread.channel,
+          body: 'body here',
+          url: '',
+          channel: thread.channel,
+          attributes: {
             thread: {
               id: thread.threadId,
               body: thread.placeholder,
@@ -408,10 +408,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           sourceParentId: 'threadId',
           timestamp: moment(Date.parse('2022-02-25T12:41:25.131Z')).toDate(),
-          crowdInfo: {
-            body: '',
-            url: '',
-            channel: thread.channel,
+          body: '',
+          url: '',
+          channel: thread.channel,
+          attributes: {
             thread: {
               body: thread.placeholder,
               id: thread.threadId,
@@ -463,10 +463,10 @@ describe('Slack iterator tests', () => {
           sourceId: '12345',
           sourceParentId: 'threadId',
           timestamp: moment(Date.parse('2022-02-25T12:41:25.131Z')).toDate(),
-          crowdInfo: {
-            body: 'body here @gilfoyle and @dinesh @mention',
-            url: '',
-            channel: thread.channel,
+          body: 'body here @gilfoyle and @dinesh @mention',
+          url: '',
+          channel: thread.channel,
+          attributes: {
             thread: {
               body: thread.placeholder,
               id: thread.threadId,
@@ -534,7 +534,6 @@ describe('Slack iterator tests', () => {
           type: 'channel_joined',
           sourceId: 'a12345',
           timestamp: received[0].timestamp,
-          crowdInfo: {},
           communityMember: {
             username: 'username',
             crowdInfo: {
@@ -573,7 +572,6 @@ describe('Slack iterator tests', () => {
           type: 'channel_joined',
           sourceId: 'a123456',
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {},
           communityMember: {
             username: 'username',
             crowdInfo: {

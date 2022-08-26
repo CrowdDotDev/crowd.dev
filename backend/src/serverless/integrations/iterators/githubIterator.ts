@@ -402,11 +402,11 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          body: record.bodyText,
-          url: record.url ? record.url : '',
-          repo: this.getRepoByName(repo).url,
-          title: record.title,
+        body: record.bodyText,
+        url: record.url ? record.url : '',
+        channel: this.getRepoByName(repo).url,
+        title: record.title,
+        attributes: {
           category: {
             id: record.category.id,
             isAnswerable: record.category.isAnswerable,
@@ -443,12 +443,12 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          body: record.bodyText,
-          url: record.url ? record.url : '',
-          repo: this.getRepoByName(repo).url,
+        body: record.bodyText,
+        url: record.url ? record.url : '',
+        channel: this.getRepoByName(repo).url,
+        title: record.title,
+        attributes: {
           state: record.state.toLowerCase(),
-          title: record.title,
         },
         communityMember: this.parseMember(record.author),
         score: GitHubGrid.issueOpened.score,
@@ -477,9 +477,7 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          repo: this.getRepoByName(repo).url,
-        },
+        channel: this.getRepoByName(repo).url,
         communityMember: this.parseMember(record.owner),
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
@@ -491,7 +489,7 @@ export default class GithubIterator extends BaseIterator {
 
   /**
    * Parses pull requests into crowd activities.
-   * Current pull request state is saved into crowdInfo.state
+   * Current pull request state is saved into attributes.state
    * @param records List of pull request created activities to be parsed
    * @param endpoint Current endpoint
    * @returns parsed fork activities that can be saved to the database.
@@ -508,12 +506,12 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          body: record.bodyText,
-          url: record.url ? record.url : '',
-          repo: this.getRepoByName(repo).url,
+        body: record.bodyText,
+        url: record.url ? record.url : '',
+        channel: this.getRepoByName(repo).url,
+        title: record.title,
+        attributes: {
           state: record.state.toLowerCase(),
-          title: record.title,
         },
         communityMember: this.parseMember(record.author),
         score: GitHubGrid.pullRequestOpened.score,
@@ -547,10 +545,10 @@ export default class GithubIterator extends BaseIterator {
         sourceId: commentId,
         sourceParentId: record.discussion.id,
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: record.url,
-          body: record.bodyText,
-          repo: this.getRepoByName(repo).url,
+        url: record.url,
+        body: record.bodyText,
+        channel: this.getRepoByName(repo).url,
+        attributes: {
           isAnswer: record.isAnswer ?? undefined,
         },
         communityMember: this.parseMember(record.author),
@@ -569,11 +567,9 @@ export default class GithubIterator extends BaseIterator {
           sourceId: reply.id,
           sourceParentId: commentId,
           timestamp: moment(reply.createdAt).utc().toDate(),
-          crowdInfo: {
-            url: reply.url,
-            body: reply.bodyText,
-            repo: this.getRepoByName(repo).url,
-          },
+          url: reply.url,
+          body: reply.bodyText,
+          channel: this.getRepoByName(repo).url,
           communityMember: this.parseMember(reply.author),
           score: GitHubGrid.comment.score,
           isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -607,11 +603,9 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: record.issue.id,
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: record.url,
-          body: record.bodyText,
-          repo: this.getRepoByName(repo).url,
-        },
+        url: record.url,
+        body: record.bodyText,
+        channel: this.getRepoByName(repo).url,
         communityMember: this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -640,11 +634,9 @@ export default class GithubIterator extends BaseIterator {
         sourceId: record.id,
         sourceParentId: record.pullRequest.id,
         timestamp: moment(record.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: record.url,
-          body: record.bodyText,
-          repo: this.getRepoByName(repo).url,
-        },
+        url: record.url,
+        body: record.bodyText,
+        channel: this.getRepoByName(repo).url,
         communityMember: this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -677,9 +669,7 @@ export default class GithubIterator extends BaseIterator {
         ),
         sourceParentId: '',
         timestamp: moment(record.starredAt).utc().toDate(),
-        crowdInfo: {
-          repo: this.getRepoByName(repo).url,
-        },
+        channel: this.getRepoByName(repo).url,
         communityMember: this.parseMember(record.node),
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,

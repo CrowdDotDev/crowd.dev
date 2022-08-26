@@ -126,7 +126,7 @@ describe('Github iterator tests', () => {
     })
   })
   describe('parseMembers tests', () => {
-    it('It should parse a member coming from graphql api properly', async () => {
+    it('It should parse a member coming from graphql api', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const repos: Repos = getRepos()
       const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -158,7 +158,7 @@ describe('Github iterator tests', () => {
   })
 
   describe('parseActivities tests', () => {
-    it('It should parse pull requests coming from graphql api properly', async () => {
+    it('It should parse pull requests coming from graphql api', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const repos: Repos = getRepos()
       const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -178,12 +178,12 @@ describe('Github iterator tests', () => {
           sourceId: singlePr.id,
           sourceParentId: '',
           timestamp: moment(singlePr.createdAt).utc().toDate(),
-          crowdInfo: {
-            body: singlePr.bodyText,
-            url: singlePr.url,
-            repo: repos[0].url,
+          body: singlePr.bodyText,
+          url: singlePr.url,
+          channel: repos[0].url,
+          title: singlePr.title,
+          attributes: {
             state: singlePr.state.toLowerCase(),
-            title: singlePr.title,
           },
           communityMember: ghi.parseMember(singlePr.author),
           score: GitHubGrid.pullRequestOpened.score,
@@ -196,7 +196,7 @@ describe('Github iterator tests', () => {
     })
   })
 
-  it('It should parse issues coming from graphql api properly', async () => {
+  it('It should parse issues coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -216,12 +216,12 @@ describe('Github iterator tests', () => {
         sourceId: singleIssue.id,
         sourceParentId: '',
         timestamp: moment(singleIssue.createdAt).utc().toDate(),
-        crowdInfo: {
-          body: singleIssue.bodyText,
-          url: singleIssue.url,
-          repo: repos[0].url,
+        body: singleIssue.bodyText,
+        url: singleIssue.url,
+        channel: repos[0].url,
+        title: singleIssue.title,
+        attributes: {
           state: singleIssue.state.toLowerCase(),
-          title: singleIssue.title,
         },
         communityMember: ghi.parseMember(singleIssue.author),
         score: GitHubGrid.issueOpened.score,
@@ -235,7 +235,7 @@ describe('Github iterator tests', () => {
     expect(issuesParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse forks coming from graphql api properly', async () => {
+  it('It should parse forks coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -255,9 +255,7 @@ describe('Github iterator tests', () => {
         sourceId: singleFork.id,
         sourceParentId: '',
         timestamp: moment(singleFork.createdAt).utc().toDate(),
-        crowdInfo: {
-          repo: repos[0].url,
-        },
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleFork.owner),
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
@@ -268,7 +266,7 @@ describe('Github iterator tests', () => {
     expect(forksParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse stars coming from graphql api properly', async () => {
+  it('It should parse stars coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -293,9 +291,7 @@ describe('Github iterator tests', () => {
         ),
         sourceParentId: '',
         timestamp: moment(singleStar.starredAt).utc().toDate(),
-        crowdInfo: {
-          repo: repos[0].url,
-        },
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleStar.node),
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
@@ -306,7 +302,7 @@ describe('Github iterator tests', () => {
     expect(starsParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse pull request comments coming from graphql api properly', async () => {
+  it('It should parse pull request comments coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -327,11 +323,9 @@ describe('Github iterator tests', () => {
         sourceId: singlePullRequestComment.id,
         sourceParentId: singlePullRequestComment.pullRequest.id,
         timestamp: moment(singlePullRequestComment.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singlePullRequestComment.url,
-          body: singlePullRequestComment.bodyText,
-          repo: repos[0].url,
-        },
+        url: singlePullRequestComment.url,
+        body: singlePullRequestComment.bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singlePullRequestComment.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -344,7 +338,7 @@ describe('Github iterator tests', () => {
     expect(pullRequestCommentsParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse issue comments coming from graphql api properly', async () => {
+  it('It should parse issue comments coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -364,11 +358,9 @@ describe('Github iterator tests', () => {
         sourceId: singleIssueComment.id,
         sourceParentId: singleIssueComment.issue.id,
         timestamp: moment(singleIssueComment.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleIssueComment.url,
-          body: singleIssueComment.bodyText,
-          repo: repos[0].url,
-        },
+        url: singleIssueComment.url,
+        body: singleIssueComment.bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleIssueComment.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -381,7 +373,7 @@ describe('Github iterator tests', () => {
     expect(issueCommentsParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse discussions coming from graphql api properly', async () => {
+  it('It should parse discussions coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -401,11 +393,11 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussion.id,
         sourceParentId: '',
         timestamp: moment(singleDiscussion.createdAt).utc().toDate(),
-        crowdInfo: {
-          body: singleDiscussion.bodyText,
-          url: singleDiscussion.url,
-          repo: repos[0].url,
-          title: singleDiscussion.title,
+        body: singleDiscussion.bodyText,
+        url: singleDiscussion.url,
+        channel: repos[0].url,
+        title: singleDiscussion.title,
+        attributes: {
           category: {
             id: singleDiscussion.category.id,
             isAnswerable: singleDiscussion.category.isAnswerable,
@@ -427,7 +419,7 @@ describe('Github iterator tests', () => {
     expect(discussionsParsed.numberOfRecords).toBe(1)
   })
 
-  it('It should parse discussions comments coming from graphql api properly', async () => {
+  it('It should parse discussions comments coming from graphql api', async () => {
     const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
     const repos: Repos = getRepos()
     const ghi = await getGithubIterator(repos, mockIRepositoryOptions)
@@ -448,10 +440,10 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.id,
         sourceParentId: singleDiscussionComment.discussion.id,
         timestamp: moment(singleDiscussionComment.createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.url,
-          body: singleDiscussionComment.bodyText,
-          repo: repos[0].url,
+        url: singleDiscussionComment.url,
+        body: singleDiscussionComment.bodyText,
+        channel: repos[0].url,
+        attributes: {
           isAnswer: singleDiscussionComment.isAnswer,
         },
         communityMember: ghi.parseMember(singleDiscussionComment.author),
@@ -465,11 +457,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[0].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[0].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[0].url,
-          body: singleDiscussionComment.replies.nodes[0].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[0].url,
+        body: singleDiscussionComment.replies.nodes[0].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[0].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -481,11 +471,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[1].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[1].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[1].url,
-          body: singleDiscussionComment.replies.nodes[1].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[1].url,
+        body: singleDiscussionComment.replies.nodes[1].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[1].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -497,11 +485,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[2].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[2].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[2].url,
-          body: singleDiscussionComment.replies.nodes[2].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[2].url,
+        body: singleDiscussionComment.replies.nodes[2].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[2].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -513,11 +499,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[3].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[3].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[3].url,
-          body: singleDiscussionComment.replies.nodes[3].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[3].url,
+        body: singleDiscussionComment.replies.nodes[3].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[3].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -529,11 +513,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[4].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[4].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[4].url,
-          body: singleDiscussionComment.replies.nodes[4].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[4].url,
+        body: singleDiscussionComment.replies.nodes[4].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[4].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -545,11 +527,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[5].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[5].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[5].url,
-          body: singleDiscussionComment.replies.nodes[5].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[5].url,
+        body: singleDiscussionComment.replies.nodes[5].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[5].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -561,11 +541,9 @@ describe('Github iterator tests', () => {
         sourceId: singleDiscussionComment.replies.nodes[6].id,
         sourceParentId: singleDiscussionComment.id,
         timestamp: moment(singleDiscussionComment.replies.nodes[6].createdAt).utc().toDate(),
-        crowdInfo: {
-          url: singleDiscussionComment.replies.nodes[6].url,
-          body: singleDiscussionComment.replies.nodes[6].bodyText,
-          repo: repos[0].url,
-        },
+        url: singleDiscussionComment.replies.nodes[6].url,
+        body: singleDiscussionComment.replies.nodes[6].bodyText,
+        channel: repos[0].url,
         communityMember: ghi.parseMember(singleDiscussionComment.replies.nodes[6].author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
