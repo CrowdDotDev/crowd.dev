@@ -72,6 +72,8 @@ constructs:
       environment:
         NODE_ENV: ${env:NODE_ENV}
         NODE_MICROSERVICES_STATEMACHINE_ARN: ${env:NODE_MICROSERVICES_STATEMACHINE_ARN}
+        LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+        LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
 
 functions:
   weeklyAnalyticsEmailsCoordinator:

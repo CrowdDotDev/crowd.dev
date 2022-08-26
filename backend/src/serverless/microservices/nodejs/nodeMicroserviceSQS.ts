@@ -1,10 +1,8 @@
 import moment from 'moment'
 import { NodeMicroserviceMessage } from './messageTypes'
 import { getConfig } from '../../../config'
+import { sqs } from '../../../services/aws'
 
-const { SQS } = require('aws-sdk')
-
-const sqs = new SQS()
 
 /**
  * Send a message to the node microservice queue
@@ -23,7 +21,7 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
   await sqs
     .sendMessage({
-      QueueUrl: getConfig().QUEUE_URL,
+      QueueUrl: getConfig().NODE_MICROSERVICES_SQS_URL,
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
       MessageBody: JSON.stringify(body),

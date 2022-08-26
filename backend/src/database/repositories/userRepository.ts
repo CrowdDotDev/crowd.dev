@@ -31,6 +31,21 @@ export default class UserRepository {
     return this._populateRelations(record, options)
   }
 
+  static async findAllUsersOfTenant(tenantId){
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+
+    const records = await options.database.user.findAll({
+      tenants: tenantId
+    })
+
+    if (records.length === 0) {
+      throw new Error404()
+    }
+
+    return this._populateRelationsForRows(records, options)
+
+  }
+
   static async create(data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
