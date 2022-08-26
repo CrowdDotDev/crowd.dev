@@ -163,7 +163,9 @@ export default class ActivityService {
 
       // if conversation is not already published, update conversation info with new parent
       if (!conversation.published) {
-        const newConversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+        const newConversationTitle = await conversationService.generateTitle(
+          parent.title || parent.body,
+        )
 
         conversation = await conversationService.update(conversation.id, {
           title: newConversationTitle,
@@ -180,7 +182,7 @@ export default class ActivityService {
       )
     } else {
       // neither child nor parent is in a conversation, create one from parent
-      const conversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+      const conversationTitle = await conversationService.generateTitle(parent.title || parent.body)
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
         this.options,
       )

@@ -24,10 +24,14 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
           'score',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'sourceId',
           'importHash',
         ]),
@@ -74,9 +78,13 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'score',
           'sourceId',
           'importHash',
@@ -272,18 +280,10 @@ class ActivityRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
       }
 
-      if (filter.info) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'info', filter.info))
-      }
-
       if (filter.communityMember) {
         whereAnd.push({
           communityMemberId: SequelizeFilterUtils.uuid(filter.communityMember),
         })
-      }
-
-      if (filter.crowdInfo) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'crowdInfo', filter.crowdInfo))
       }
 
       if (
@@ -311,6 +311,42 @@ class ActivityRepository {
         if (end !== undefined && end !== null && end !== '') {
           whereAnd.push({
             score: {
+              [Op.lte]: end,
+            },
+          })
+        }
+      }
+
+      if (filter.channel) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'channel', filter.channel))
+      }
+
+      if (filter.body) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'body', filter.body))
+      }
+
+      if (filter.title) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'title', filter.title))
+      }
+
+      if (filter.url) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'url', filter.url))
+      }
+
+      if (filter.sentimentRange) {
+        const [start, end] = filter.sentimentRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          whereAnd.push({
+            sentiment: {
+              [Op.gte]: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          whereAnd.push({
+            sentiment: {
               [Op.lte]: end,
             },
           })

@@ -39,9 +39,12 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: 1,
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
         sourceId: '#sourceId',
         isKeyAction: true,
@@ -58,7 +61,7 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityCreated.id,
-        crowdInfo: activity.crowdInfo,
+        attributes: activity.attributes,
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -72,7 +75,11 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
+        channel: null,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: 1,
         parent: null,
         parentId: null,
         conversationId: null,

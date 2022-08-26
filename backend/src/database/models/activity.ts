@@ -27,14 +27,6 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      info: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
-      crowdInfo: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
       isKeyAction: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -53,6 +45,26 @@ export default (sequelize) => {
       },
       sourceParentId: {
         type: DataTypes.STRING(255),
+      },
+      attributes: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {},
+      },
+      channel: {
+        type: DataTypes.TEXT,
+      },
+      body: {
+        type: DataTypes.TEXT,
+      },
+      title: {
+        type: DataTypes.TEXT,
+      },
+      url: {
+        type: DataTypes.TEXT,
+      },
+      sentiment: {
+        type: DataTypes.FLOAT,
       },
       importHash: {
         type: DataTypes.STRING(255),
