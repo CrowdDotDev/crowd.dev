@@ -234,6 +234,136 @@ describe('ActivityRepository tests', () => {
         ActivityRepository.create(activity, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
+
+    it('Should leave allowed HTML tags in body and title', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: '<p> This is some HTML </p>',
+        title: '<h1> This is some Title HTML </h1>',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
+        isKeyAction: true,
+        communityMember: memberCreated.id,
+        score: 1,
+        sourceId: '#sourceId1',
+      }
+
+      const activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
+
+      // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
+      activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
+      activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
+      delete activityCreated.communityMember
+      const expectedActivityCreated = {
+        id: activityCreated.id,
+        attributes: {},
+        body: '<p> This is some HTML </p>',
+        type: 'activity',
+        title: '<h1> This is some Title HTML </h1>',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
+        timestamp: new Date('2020-05-27T15:13:30Z'),
+        platform: PlatformType.GITHUB,
+        isKeyAction: true,
+        score: 1,
+        communityMemberId: memberCreated.id,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+        importHash: null,
+        parent: null,
+        parentId: null,
+        sourceId: activity.sourceId,
+        sourceParentId: null,
+        conversationId: null,
+      }
+
+      expect(activityCreated).toStrictEqual(expectedActivityCreated)
+    })
+
+    it('Should remove script tags in body and title', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        body: "<script> console.log('gotcha')</script> <p> Malicious </p>",
+        title: "<script> console.log('title gotcha')</script> <h1> Malicious title </h1>",
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
+        isKeyAction: true,
+        communityMember: memberCreated.id,
+        score: 1,
+        sourceId: '#sourceId1',
+      }
+
+      const activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
+
+      // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
+      activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
+      activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
+      delete activityCreated.communityMember
+      const expectedActivityCreated = {
+        id: activityCreated.id,
+        attributes: {},
+        body: '<p> Malicious </p>',
+        type: 'activity',
+        title: '<h1> Malicious title </h1>',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: 0.8,
+        timestamp: new Date('2020-05-27T15:13:30Z'),
+        platform: PlatformType.GITHUB,
+        isKeyAction: true,
+        score: 1,
+        communityMemberId: memberCreated.id,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+        importHash: null,
+        parent: null,
+        parentId: null,
+        sourceId: activity.sourceId,
+        sourceParentId: null,
+        conversationId: null,
+      }
+
+      expect(activityCreated).toStrictEqual(expectedActivityCreated)
+    })
   })
 
   describe('findById method', () => {
@@ -717,6 +847,98 @@ describe('ActivityRepository tests', () => {
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
+    })
+
+    it('Should update body and title with allowed HTML tags', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activityReturned = await ActivityRepository.create(
+        {
+          type: 'activity',
+          timestamp: '2020-05-27T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          attributes: {
+            replies: 12,
+          },
+          body: 'Here',
+          isKeyAction: true,
+          communityMember: memberCreated.id,
+          score: 1,
+          sourceId: '#sourceId1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const updateFields = {
+        body: '<p> This is some HTML </p>',
+        title: '<h1> This is some Title HTML </h1>',
+      }
+
+      const updatedActivity = await ActivityRepository.update(
+        activityReturned.id,
+        updateFields,
+        mockIRepositoryOptions,
+      )
+
+      expect(updatedActivity.body).toBe('<p> This is some HTML </p>')
+      expect(updatedActivity.title).toBe('<h1> This is some Title HTML </h1>')
+    })
+
+    it('Should sanitize body and title from non-allowed HTML tags', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activityReturned = await ActivityRepository.create(
+        {
+          type: 'activity',
+          timestamp: '2020-05-27T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          attributes: {
+            replies: 12,
+          },
+          body: 'Here',
+          isKeyAction: true,
+          communityMember: memberCreated.id,
+          score: 1,
+          sourceId: '#sourceId1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const updateFields = {
+        body: "<script> console.log('gotcha')</script> <p> Malicious </p>",
+        title: "<script> console.log('title gotcha')</script> <h1> Malicious title </h1>",
+      }
+
+      const updatedActivity = await ActivityRepository.update(
+        activityReturned.id,
+        updateFields,
+        mockIRepositoryOptions,
+      )
+
+      expect(updatedActivity.body).toBe('<p> Malicious </p>')
+      expect(updatedActivity.title).toBe('<h1> Malicious title </h1>')
     })
   })
 })

@@ -64,6 +64,7 @@
     "passport-slack": "0.0.7",
     "pg": "^8.7.3",
     "pm2": "^5.2.0",
+    "sanitize-html": "^2.7.1",
     "sequelize": "6.21.2",
     "sequelize-cli-typescript": "^3.2.0-c",
     "stripe": "10.0.0",

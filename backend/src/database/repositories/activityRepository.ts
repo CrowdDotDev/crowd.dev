@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import sanitizeHtml from 'sanitize-html'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -17,6 +18,15 @@ class ActivityRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
+
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
+    }
 
     const record = await options.database.activity.create(
       {
@@ -70,6 +80,14 @@ class ActivityRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
     }
 
     record = await record.update(
