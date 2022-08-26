@@ -3,7 +3,6 @@
     <div class="relative mx-3">
       <app-keywords-input
         v-model="selectedKeywords"
-        class="inline-input w-full"
         placeholder="Enter keywords, or topics..."
       />
       <span class="text-xs text-gray-400"

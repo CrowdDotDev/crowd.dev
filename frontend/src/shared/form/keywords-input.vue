@@ -4,21 +4,19 @@
     @click="focusKeywordInput"
     :class="focused ? 'el-input is-focus' : ''"
   >
-    <transition-group>
-      <el-tag
-        v-for="(keyword, idx) in innerKeywords"
-        v-bind="$attrs"
-        :key="keyword"
-        size="small"
-        type="info"
-        effect="light"
-        :closable="!readOnly"
-        :disable-transitions="false"
-        @close="remove(idx)"
-      >
-        {{ keyword }}
-      </el-tag>
-    </transition-group>
+    <el-tag
+      v-for="(keyword, idx) in innerKeywords"
+      v-bind="$attrs"
+      :key="keyword"
+      size="small"
+      type="info"
+      effect="light"
+      :disable-transitions="true"
+      :closable="!readOnly"
+      @close="remove(idx)"
+    >
+      {{ keyword }}
+    </el-tag>
     <input
       v-if="!readOnly"
       class="el-keywords-input"
@@ -137,20 +135,30 @@ export default {
 
 <style lang="scss">
 .el-keywords-input-wrapper {
-  @apply relative text-sm bg-white rounded-md pr-2 pl-1 h-10;
+  @apply relative text-sm bg-white rounded-md pr-2 pl-1 flex items-center flex-wrap;
   background-image: none;
   border: 1px solid #dcdfe6;
-  box-sizing: border-box;
+  box-sizing: content-box;
   color: #606266;
   outline: none;
   transition: border-color 0.2s
     cubic-bezier(0.645, 0.045, 0.355, 1);
+  min-height: 38px;
+
+  &.el-select > .el-tag {
+    margin: 4px 0 4px 4px;
+  }
 }
 
 .el-keywords-input {
-  @apply bg-transparent border-none pl-0 ml-2 h-10;
+  @apply bg-transparent border-none pl-0 ml-2 h-full;
   font-size: inherit;
   outline: none;
   width: 200px;
+  min-height: 24px;
+}
+
+.el-keywords-input-list {
+  @apply flex items-center flex-wrap h-full;
 }
 </style>
