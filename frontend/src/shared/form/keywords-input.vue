@@ -137,7 +137,7 @@ export default {
 
 <style lang="scss">
 .el-keywords-input-wrapper {
-  @apply relative text-sm bg-white rounded-md pr-2 pl-1 leading-loose;
+  @apply relative text-sm bg-white rounded-md pr-2 pl-1 h-10;
   background-image: none;
   border: 1px solid #dcdfe6;
   box-sizing: border-box;
@@ -148,7 +148,7 @@ export default {
 }
 
 .el-keywords-input {
-  @apply bg-transparent border-none pl-0 ml-2 leading-loose h-10;
+  @apply bg-transparent border-none pl-0 ml-2 h-10;
   font-size: inherit;
   outline: none;
   width: 200px;
