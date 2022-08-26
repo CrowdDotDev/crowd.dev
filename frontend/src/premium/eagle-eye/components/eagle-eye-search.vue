@@ -1,15 +1,15 @@
 <template>
   <div class="eagle-eye-search">
-    <app-autocomplete-many-input
-      class="inline-input w-full mx-3"
-      :fetchFn="handleSearchAutocomplete"
-      v-model="selectedKeywords"
-      placeholder="Enter keywords, or topics..."
-      :triggerOnFocus="false"
-      :inMemoryFilter="false"
-      @remove-tag="handleRemoveKeyword"
-    >
-    </app-autocomplete-many-input>
+    <div class="relative mx-3">
+      <app-keywords-input
+        v-model="selectedKeywords"
+        class="inline-input w-full"
+        placeholder="Enter keywords, or topics..."
+      />
+      <span class="text-xs text-gray-400"
+        >Press ENTER or comma (,) to separate keywords</span
+      >
+    </div>
     <app-eagle-eye-filter />
     <el-button
       class="btn btn--primary mx-3"
@@ -21,15 +21,13 @@
 </template>
 
 <script>
-import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 import AppEagleEyeFilter from './eagle-eye-filter'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'app-eagle-eye-search',
   components: {
-    AppEagleEyeFilter,
-    AppAutocompleteManyInput
+    AppEagleEyeFilter
   },
   computed: {
     ...mapGetters({
@@ -46,28 +44,16 @@ export default {
       doPopulate: 'eagleEye/doPopulate',
       doFetch: 'eagleEye/doFetch'
     }),
-    async handleSearchAutocomplete(query) {
-      return [
-        {
-          id: query,
-          label: query
-        }
-      ]
-    },
     async doSearch() {
       const filtersToApply = {
         ...this.filter,
         keywords: this.selectedKeywords
-          .map((k) => k.id)
           .join(',')
       }
       await this.doFetch({
         rawFilter: filtersToApply,
         filter: filtersToApply
       })
-    },
-    handleRemoveKeyword() {
-      this.doSearch()
     }
   },
   async created() {
@@ -76,12 +62,7 @@ export default {
     )
     this.selectedKeywords =
       savedKeywords && savedKeywords !== ''
-        ? savedKeywords.split(',').map((k) => {
-            return {
-              id: k,
-              label: k
-            }
-          })
+        ? savedKeywords.split(',')
         : []
 
     if (savedKeywords) {
@@ -93,6 +74,6 @@ export default {
 
 <style lang="scss">
 .eagle-eye-search {
-  @apply -mx-2 flex items-center mt-6;
+  @apply -mx-2 flex items-start mt-6;
 }
 </style>

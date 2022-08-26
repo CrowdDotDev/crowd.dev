@@ -16,6 +16,7 @@ import ListItemFile from '@/shared/list/list-item-file.vue'
 import NumberRangeInput from '@/shared/form/number-range-input.vue'
 import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
 import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue'
+import KeywordsInput from '@/shared/form/keywords-input.vue'
 import ViewItemRelationToOne from '@/shared/view/view-item-relation-to-one.vue'
 import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue'
 import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
@@ -52,7 +53,8 @@ export default {
     'app-filter-preview': FilterPreview,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
-    'app-alert': Alert
+    'app-alert': Alert,
+    'app-keywords-input': KeywordsInput
   },
 
   filters: [formatDateFilter, formatDatetimeFilter],
