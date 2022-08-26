@@ -3,7 +3,6 @@ import { NodeMicroserviceMessage } from './messageTypes'
 import { getConfig } from '../../../config'
 import { sqs } from '../../../services/aws'
 
-
 /**
  * Send a message to the node microservice queue
  * @param body The message body

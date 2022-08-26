@@ -88,8 +88,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
       for (const user of allTenantUsers) {
         if (user.email && user.emailVerified) {
-          const userFirstName = user.firstName ? user.firstName : user.email.split("@")[0]
-          
+          const userFirstName = user.firstName ? user.firstName : user.email.split('@')[0]
+
           const data = {
             analytics: {
               dateRangeStart: dateTimeStart.format('D MMMM, YYYY'),
