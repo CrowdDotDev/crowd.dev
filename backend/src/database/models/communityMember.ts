@@ -179,6 +179,11 @@ export default (sequelize) => {
       through: 'communityMemberTags',
     })
 
+    models.communityMember.belongsToMany(models.organization, {
+      as: 'organizations',
+      through: 'communityMemberOrganizations',
+    })
+
     models.communityMember.belongsToMany(models.communityMember, {
       as: 'noMerge',
       through: 'communityMemberNoMerge',
