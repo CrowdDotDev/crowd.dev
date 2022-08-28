@@ -196,7 +196,7 @@ class OrganizationRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '', eagerLoad = [] },
+    { filter, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -206,14 +206,9 @@ class OrganizationRepository {
       {
         model: options.database.communityMember,
         as: 'communityMembers',
-        attributes: [],
+        attributes: ['id'],
       },
     ]
-
-    const communityMemberCount = options.database.Sequelize.fn(
-      'COUNT',
-      options.database.Sequelize.col('communityMembers.id'),
-    )
 
     whereAnd.push({
       tenantId: tenant.id,
@@ -252,44 +247,25 @@ class OrganizationRepository {
     }
 
     const where = { [Op.and]: whereAnd }
+    try {
+      let {
+        rows,
+        count, // eslint-disable-line prefer-const
+      } = await options.database.organization.findAndCountAll({
+        where,
+        include,
+        limit: limit ? Number(limit) : undefined,
+        offset: offset ? Number(offset) : undefined,
+        order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
+        transaction: SequelizeRepository.getTransaction(options),
+      })
 
-    let {
-      rows,
-      count, // eslint-disable-line prefer-const
-    } = await options.database.organization.findAndCountAll({
-      attributes: [
-        'id',
-        'name',
-        'url',
-        'description',
-        'parentUrl',
-        'emails',
-        'phoneNumbers',
-        'logo',
-        'tags',
-        'twitter',
-        'linkedin',
-        'crunchbase',
-        'employees',
-        'revenueRange',
-        [communityMemberCount, 'communityMemberCount'],
-        'createdAt',
-        'updatedAt',
-        'tenantId',
-        'createdById',
-        'updatedById',
-      ],
-      where,
-      include,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
-      transaction: SequelizeRepository.getTransaction(options),
-    })
+      rows = await this._populateRelationsForRows(rows)
 
-    rows = await this._populateRelationsForRows(rows, eagerLoad)
-
-    return { rows, count }
+      return { rows, count }
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -348,19 +324,16 @@ class OrganizationRepository {
     )
   }
 
-  static async _populateRelationsForRows(rows, eagerLoad = []) {
+  static async _populateRelationsForRows(rows) {
     if (!rows) {
       return rows
     }
 
     return Promise.all(
-      rows.map(async (record) => {
+      rows.map((record) => {
         const rec = record.get({ plain: true })
-        for (const relationship of eagerLoad) {
-          rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
-            a.get({ plain: true }),
-          )
-        }
+        rec.communityMemberCount = record.communityMembers?.length
+        delete rec.communityMembers
         return rec
       }),
     )

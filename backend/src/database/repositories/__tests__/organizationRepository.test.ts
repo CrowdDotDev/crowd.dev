@@ -1,3 +1,4 @@
+import moment from 'moment'
 import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
@@ -137,8 +138,8 @@ describe('OrganizationRepository tests', () => {
 
       const member1 = await CommunityMemberRepository.findById(memberIds[0], mockIRepositoryOptions)
       const member2 = await CommunityMemberRepository.findById(memberIds[1], mockIRepositoryOptions)
-      expect(member1.organizations).toStrictEqual([organizationCreated.url])
-      expect(member2.organizations).toStrictEqual([organizationCreated.url])
+      expect(member1.organizations[0].url).toStrictEqual(organizationCreated.url)
+      expect(member2.organizations[0].url).toStrictEqual(organizationCreated.url)
     })
   })
 
@@ -146,10 +147,8 @@ describe('OrganizationRepository tests', () => {
     it('Should successfully find created organization by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization2add = { name: 'test-organization' }
-
       const organizationCreated = await OrganizationRepository.create(
-        organization2add,
+        toCreate,
         mockIRepositoryOptions,
       )
 
@@ -158,8 +157,8 @@ describe('OrganizationRepository tests', () => {
 
       const expectedOrganizationFound = {
         id: organizationCreated.id,
-        name: organization2add.name,
-        communityMembers: [],
+        ...toCreate,
+        communityMemberCount: 0,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -256,7 +255,7 @@ describe('OrganizationRepository tests', () => {
   })
 
   describe('findAndCountAll method', () => {
-    it('Should find and count all organizations, with various filters', async () => {
+    it('Should find and count all organizations, with simple filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const organization1 = { name: 'test-organization' }
@@ -284,6 +283,34 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'test-member' },
+          joinedAt: moment().toDate(),
+          organizations: [
+            organization1Created.id,
+            organization2Created.id,
+            organization3Created.id,
+          ],
+        },
+        mockIRepositoryOptions,
+      )
+
+      const expectedOrganization1 = await OrganizationRepository.findById(
+        organization1Created.id,
+        mockIRepositoryOptions,
+      )
+
+      const expectedOrganization2 = await OrganizationRepository.findById(
+        organization2Created.id,
+        mockIRepositoryOptions,
+      )
+
+      const expectedOrganization3 = await OrganizationRepository.findById(
+        organization3Created.id,
+        mockIRepositoryOptions,
+      )
+
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations
       let organizations = await OrganizationRepository.findAndCountAll(
@@ -292,7 +319,7 @@ describe('OrganizationRepository tests', () => {
       )
 
       expect(organizations.count).toEqual(2)
-      expect(organizations.rows).toStrictEqual([organization2Created, organization1Created])
+      expect(organizations.rows).toStrictEqual([expectedOrganization2, expectedOrganization1])
 
       // Test filter by id
       organizations = await OrganizationRepository.findAndCountAll(
@@ -301,7 +328,7 @@ describe('OrganizationRepository tests', () => {
       )
 
       expect(organizations.count).toEqual(1)
-      expect(organizations.rows).toStrictEqual([organization1Created])
+      expect(organizations.rows).toStrictEqual([expectedOrganization1])
 
       // Test filter by createdAt - find all between organization1.createdAt and organization3.createdAt
       organizations = await OrganizationRepository.findAndCountAll(
@@ -315,9 +342,9 @@ describe('OrganizationRepository tests', () => {
 
       expect(organizations.count).toEqual(3)
       expect(organizations.rows).toStrictEqual([
-        organization3Created,
-        organization2Created,
-        organization1Created,
+        expectedOrganization3,
+        expectedOrganization2,
+        expectedOrganization1,
       ])
 
       // Test filter by createdAt - find all where createdAt < organization2.createdAt
@@ -330,7 +357,7 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       expect(organizations.count).toEqual(2)
-      expect(organizations.rows).toStrictEqual([organization2Created, organization1Created])
+      expect(organizations.rows).toStrictEqual([expectedOrganization2, expectedOrganization1])
 
       // Test filter by createdAt - find all where createdAt < organization1.createdAt
       organizations = await OrganizationRepository.findAndCountAll(
@@ -342,7 +369,7 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       expect(organizations.count).toEqual(1)
-      expect(organizations.rows).toStrictEqual([organization1Created])
+      expect(organizations.rows).toStrictEqual([expectedOrganization1])
     })
   })
 
