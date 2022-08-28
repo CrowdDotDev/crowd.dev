@@ -1,4 +1,4 @@
-import { DataTypes } from 'sequelize'
+import { DataTypes, Op } from 'sequelize'
 
 export default (sequelize) => {
   const organization = sequelize.define(
@@ -15,7 +15,7 @@ export default (sequelize) => {
       },
       url: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       description: {
         type: DataTypes.TEXT,
@@ -46,17 +46,14 @@ export default (sequelize) => {
       },
       twitter: {
         type: DataTypes.JSONB,
-        allowNull: false,
         default: {},
       },
       linkedin: {
         type: DataTypes.JSONB,
-        allowNull: false,
         default: {},
       },
       crunchbase: {
         type: DataTypes.JSONB,
-        allowNull: false,
         default: {},
       },
       employees: {
@@ -89,10 +86,11 @@ export default (sequelize) => {
           },
         },
         {
-          unique: true,
           fields: ['url', 'tenantId'],
+          unique: true,
           where: {
             deletedAt: null,
+            url: { [Op.ne]: null },
           },
         },
       ],

@@ -1,6 +1,7 @@
 import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
+import CommunityMemberRepository from '../communityMemberRepository'
 
 const db = null
 
@@ -31,6 +32,29 @@ const toCreate = {
   },
   employees: 42,
   revenueRange: [10, 50],
+}
+
+async function createMembers(options) {
+  return [
+    (
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'gilfoyle' },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        options,
+      )
+    ).id,
+    (
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'dinesh' },
+          joinedAt: '2020-06-27T15:13:30Z',
+        },
+        options,
+      )
+    ).id,
+  ]
 }
 
 describe('OrganizationRepository tests', () => {
@@ -79,6 +103,42 @@ describe('OrganizationRepository tests', () => {
       await expect(() =>
         OrganizationRepository.create(organization2add, mockIRepositoryOptions),
       ).rejects.toThrow()
+    })
+
+    it('Should create an organization with community members succesfully', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const memberIds = await createMembers(mockIRepositoryOptions)
+
+      const toCreateWithMember = {
+        ...toCreate,
+        communityMembers: memberIds,
+      }
+      const organizationCreated = await OrganizationRepository.create(
+        toCreateWithMember,
+        mockIRepositoryOptions,
+      )
+      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
+      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
+
+      const expectedOrganizationCreated = {
+        id: organizationCreated.id,
+        ...toCreate,
+        communityMemberCount: 2,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
+
+      const member1 = await CommunityMemberRepository.findById(memberIds[0], mockIRepositoryOptions)
+      const member2 = await CommunityMemberRepository.findById(memberIds[1], mockIRepositoryOptions)
+      expect(member1.organizations).toStrictEqual([organizationCreated.url])
+      expect(member2.organizations).toStrictEqual([organizationCreated.url])
     })
   })
 
