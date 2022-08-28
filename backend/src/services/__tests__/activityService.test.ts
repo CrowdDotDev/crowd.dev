@@ -147,7 +147,7 @@ describe('ActivityService tests', () => {
         type: activity2.type,
         channel: null,
         attributes: {},
-        sentiment: null,
+        sentiment: 0.42,
         url: null,
         title: null,
         timestamp: new Date(activity2.timestamp),
@@ -255,7 +255,7 @@ describe('ActivityService tests', () => {
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
         title: activity1.title,
-        sentiment: null,
+        sentiment: 0.42,
         url: null,
         body: activity2.body,
         channel: null,
@@ -828,7 +828,7 @@ describe('ActivityService tests', () => {
         title: data2.title,
         url: data2.url,
         channel: data2.channel,
-        sentiment: null,
+        sentiment: 0.42,
         attributes: {},
         type: data2.type,
         timestamp: new Date(data2.timestamp),
@@ -959,7 +959,7 @@ describe('ActivityService tests', () => {
         title: dataParent.title,
         url: dataParent.url,
         channel: dataParent.channel,
-        sentiment: null,
+        sentiment: 0.42,
         attributes: {},
         type: dataParent.type,
         timestamp: new Date(dataParent.timestamp),
@@ -988,7 +988,7 @@ describe('ActivityService tests', () => {
         title: dataChild.title,
         url: dataChild.url,
         channel: dataChild.channel,
-        sentiment: null,
+        sentiment: 0.42,
         attributes: {},
         type: dataChild.type,
         timestamp: new Date(dataChild.timestamp),
@@ -1084,7 +1084,7 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: null,
+          sentiment: 0.42,
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1187,7 +1187,7 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: null,
+          sentiment: 0.42,
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1290,7 +1290,7 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: null,
+          sentiment: 0.42,
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1394,7 +1394,7 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: null,
+          sentiment: 0.42,
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -2116,6 +2116,24 @@ describe('ActivityService tests', () => {
       expect(activityParentCreated.conversationId).toBe(conversationCreated.id)
 
       expect(conversationCreated.published).toStrictEqual(false)
+    })
+  })
+
+  describe('shortenText method', () => {
+    it('Should leave a short text untouched', async () => {
+      const text = 'Short text here'
+      const shortenedText = ActivityService.shortenText(text, 100, 500)
+      expect(shortenedText).toBe(text)
+    })
+    it('Should shorten text of more than the allowed words', async () => {
+      const text = 'Some text here that is a bit too long'
+      const shortenedText = ActivityService.shortenText(text, 5, 500)
+      expect(shortenedText).toBe('Some text here that is')
+    })
+    it('Should shorten text of more than the allowed characters', async () => {
+      const text = 'Some text here that is a bit too long'
+      const shortenedText = ActivityService.shortenText(text, 50, 10)
+      expect(shortenedText.length).toBe(10)
     })
   })
 })

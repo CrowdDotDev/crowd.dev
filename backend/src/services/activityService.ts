@@ -9,6 +9,7 @@ import CommunityMemberService from './communityMemberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
+import { getConfig } from '../config'
 
 export default class ActivityService {
   options: IServiceOptions
@@ -72,6 +73,11 @@ export default class ActivityService {
           transaction,
         })
       } else {
+        if (!data.sentiment) {
+          const sentiment = await ActivityService.getSentiment(data)
+          data.sentiment = sentiment
+        }
+
         record = await ActivityRepository.create(data, {
           ...this.options,
           transaction,
@@ -125,6 +131,62 @@ export default class ActivityService {
 
       throw error
     }
+  }
+
+  /**
+   * Shorten a string to a max number of either words or characters
+   * @param text String to be shortened
+   * @param nWords Max number of words
+   * @param nChars Max number of characters
+   * @returns Shortened string
+   */
+  static shortenText(text, nWords, nChars) {
+    if (text.split(' ').length >= nWords) {
+      text = text.split(' ').slice(0, nWords).join(' ')
+    }
+    if (text.length >= nChars) {
+      text = text.slice(0, nChars)
+    }
+    return text
+  }
+
+  /**
+   * Get the sentiment of an activity from its body and title.
+   * It will cut the combination of body and title to a maximum of 90 words or 1400 characters.
+   * @param data Activity data. Includes body and title.
+   * @returns The sentiment of the combination of body and title. Between -1 and 1.
+   */
+  static async getSentiment(data) {
+    if (getConfig().NODE_ENV === 'test') {
+      return 0.42
+    }
+    if (getConfig().RAPID_API_KEY !== undefined) {
+      const text = ActivityService.shortenText(`${data.title} ${data.body}`, 90, 1400)
+
+      const axios = require('axios')
+
+      const encodedParams = new URLSearchParams()
+      encodedParams.append('text', text)
+
+      const options = {
+        method: 'POST',
+        url: 'https://twinword-sentiment-analysis.p.rapidapi.com/analyze/',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          'X-RapidAPI-Key': getConfig().RAPID_API_KEY,
+          'X-RapidAPI-Host': 'twinword-sentiment-analysis.p.rapidapi.com',
+        },
+        data: encodedParams,
+      }
+
+      return axios
+        .request(options)
+        .then((response) => response.data.score)
+        .catch((error) => {
+          throw error
+        })
+    }
+    return null
   }
 
   /**
