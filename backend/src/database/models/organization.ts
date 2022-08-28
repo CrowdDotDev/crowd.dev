@@ -17,7 +17,15 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      emailAddresses: {
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      parentUrl: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      emails: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
         default: [],
@@ -55,7 +63,7 @@ export default (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      annualRevenueRange: {
+      revenueRange: {
         type: DataTypes.ARRAY(DataTypes.INTEGER),
         allowNull: true,
         validator: {
