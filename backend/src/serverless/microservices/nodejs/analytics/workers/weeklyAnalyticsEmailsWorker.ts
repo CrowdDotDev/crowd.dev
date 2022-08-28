@@ -9,9 +9,11 @@ import { AnalyticsEmailsOutput } from '../../messageTypes'
 import { platformDisplayNames } from '../../../../../utils/platformDisplayNames'
 import getStage from '../../../../../services/helpers/getStage'
 import { s3 } from '../../../../../services/aws'
+import UserRepository from '../../../../../database/repositories/userRepository'
 
 /**
- * Sends weekly analytics of a given tenant to the user email.
+ * Sends weekly analytics emails of a given tenant
+ * to all users of the tenant.
  * Data sent is for the last week.
  * @param tenantId
  */
@@ -78,44 +80,48 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     )
 
     if (hasReasonableInsights({ newMembers, activeMembers, newActivities, newConversations })) {
-      const data = {
-        analytics: {
-          dateRangeStart: dateTimeStart.format('D MMMM, YYYY'),
-          dateRangeEnd: dateTimeEnd.format('D MMMM, YYYY'),
-          activeMembers,
-          newMembers,
-          activitiesTracked: newActivities,
-          conversationsStarted: newConversations,
-          hotConversations,
-          hasHotConversations: hotConversations.length > 0,
-          hotConversationsCount: hotConversations.length,
-        },
-        tenant: {
-          name: userContext.currentTenant.name,
-        },
-        user: {
-          name: userContext.currentUser.firstName,
-        },
-      }
+      const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
       const advancedSuppressionManager = {
         groupId: parseInt(getConfig().SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID, 10),
         groupsToDisplay: [parseInt(getConfig().SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID, 10)],
       }
 
-      console.log(`SENDING EMAIL!!!! to: ${userContext.currentUser.email}`)
-      console.log(`sendgrid template object: `)
-      console.log(data)
+      for (const user of allTenantUsers) {
+        if (user.email && user.emailVerified) {
+          const userFirstName = user.firstName ? user.firstName : user.email.split('@')[0]
 
-      new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
-        userContext.currentUser.email,
-        advancedSuppressionManager,
-      )
+          const data = {
+            analytics: {
+              dateRangeStart: dateTimeStart.format('D MMMM, YYYY'),
+              dateRangeEnd: dateTimeEnd.format('D MMMM, YYYY'),
+              activeMembers,
+              newMembers,
+              activitiesTracked: newActivities,
+              conversationsStarted: newConversations,
+              hotConversations,
+              hasHotConversations: hotConversations.length > 0,
+              hotConversationsCount: hotConversations.length,
+            },
+            tenant: {
+              name: userContext.currentTenant.name,
+            },
+            user: {
+              name: userFirstName,
+            },
+          }
 
-      new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
-        'team@crowd.dev',
-        advancedSuppressionManager,
-      )
+          await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
+            user.email,
+            advancedSuppressionManager,
+          )
+
+          await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
+            'team@crowd.dev',
+            advancedSuppressionManager,
+          )
+        }
+      }
 
       return { status: 200, emailSent: true }
     }
