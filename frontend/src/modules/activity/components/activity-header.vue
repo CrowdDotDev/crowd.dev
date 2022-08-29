@@ -166,7 +166,7 @@
             v-if="activity.platform !== 'apis'"
             :src="computedPlatformIcon"
             class="w-4 h-4"
-            alt="Platform"
+            :alt="`${activity.platform} logo`"
           />
           <span
             v-else-if="activity.platform === 'apis'"
