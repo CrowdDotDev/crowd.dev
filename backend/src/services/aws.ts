@@ -68,6 +68,7 @@ export async function detectSentiment(text) {
       negative: fromAWS.SentimentScore.Negative,
       neutral: fromAWS.SentimentScore.Neutral,
       mixed: fromAWS.SentimentScore.Mixed,
+      score: fromAWS.SentimentScore.Positive - fromAWS.SentimentScore.Negative,
     }
   }
   return {}

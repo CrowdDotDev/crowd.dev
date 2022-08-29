@@ -140,13 +140,14 @@ export default class ActivityService {
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
   static async getSentiment(data) {
-    if (getConfig().NODE_ENV === 'testtt') {
+    if (getConfig().NODE_ENV === 'test') {
       return {
         positive: 0.42,
         negative: 0.42,
         neutral: 0.42,
         mixed: 0.42,
         sentiment: 'positive',
+        score: 0.42,
       }
     }
 

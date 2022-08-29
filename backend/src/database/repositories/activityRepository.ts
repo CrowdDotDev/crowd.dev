@@ -80,11 +80,14 @@ class ActivityRepository {
             `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
           )
         }
-        if (!moods.includes(sentimentData.sentiment)) {
-          throw new Error(
-            `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
-          )
-        }
+      }
+      if (!moods.includes(sentimentData.sentiment)) {
+        throw new Error(
+          `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
+        )
+      }
+      if (typeof sentimentData.score !== 'number') {
+        throw new Error(`Invalid sentiment data. The 'score' property must exist and be a number.`)
       }
     }
   }
@@ -454,6 +457,16 @@ class ActivityRepository {
           })
         }
       }
+    }
+
+    if (orderBy) {
+      const listOrderBy = orderBy.split('_')
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (listOrderBy.includes(`${mood}Sentiment`)) {
+          listOrderBy[0] = `sentiment.${mood}`
+        }
+      }
+      orderBy = listOrderBy.join('_')
     }
 
     const where = { [Op.and]: whereAnd }
