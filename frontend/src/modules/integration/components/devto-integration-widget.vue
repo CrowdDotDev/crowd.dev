@@ -230,7 +230,10 @@ export default {
       this.users.push({
         id: this.maxId + 1,
         username:
-          username instanceof String ? username : '',
+          typeof username === 'string' ||
+          username instanceof String
+            ? username
+            : '',
         touched: false,
         valid: false,
         validating: false
@@ -245,7 +248,10 @@ export default {
       this.organizations.push({
         id: this.maxId + 1,
         username:
-          username instanceof String ? username : '',
+          typeof username === 'string' ||
+          username instanceof String
+            ? username
+            : '',
         touched: false,
         valid: false,
         validating: false
