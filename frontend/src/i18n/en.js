@@ -20,6 +20,7 @@ const en = {
     destroy: 'Delete',
     mustSelectARow: 'Must select a row',
     confirm: 'Confirm',
+    connect: 'Connect',
     filters: {
       active: 'Active Filters',
       hide: 'Hide Filters',
@@ -300,6 +301,10 @@ const en = {
         reaction_added: 'reacted to a message',
         channel_joined: 'joined channel',
         left_channel: 'left channel'
+      },
+      devto: {
+        commented: 'commented',
+        post: 'post'
       },
       fallback: 'created an activity'
     },

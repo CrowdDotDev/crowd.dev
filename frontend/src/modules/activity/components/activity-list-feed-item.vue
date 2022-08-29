@@ -33,6 +33,43 @@
         class="activity-list-feed-item-content-body"
         v-if="
           activity.crowdInfo.body &&
+          activity.platform === 'discord'
+        "
+      >
+        <blockquote
+          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
+          v-if="activity.parent && !belongsToConversation"
+        >
+          {{ activity.parent.crowdInfo.body }}
+        </blockquote>
+        <span
+          class="block whitespace-pre-wrap custom-break-all"
+          >{{ activity.crowdInfo.body }}</span
+        >
+      </div>
+      <div
+        class="activity-list-feed-item-content-body"
+        v-else-if="
+          activity.crowdInfo.body &&
+          activity.platform === 'devto'
+        "
+      >
+        <div
+          v-if="activity.parent && !belongsToConversation"
+        >
+          <blockquote
+            class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
+            v-html="activity.parent.crowdInfo.body"
+          />
+          <br />
+        </div>
+
+        <span v-html="activity.crowdInfo.body" />
+      </div>
+      <div
+        class="activity-list-feed-item-content-body"
+        v-else-if="
+          activity.crowdInfo.body &&
           activity.platform !== 'discord'
         "
       >
@@ -52,24 +89,7 @@
           >{{ activity.crowdInfo.body }}</span
         >
       </div>
-      <div
-        class="activity-list-feed-item-content-body"
-        v-if="
-          activity.crowdInfo.body &&
-          activity.platform === 'discord'
-        "
-      >
-        <blockquote
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-          v-if="activity.parent && !belongsToConversation"
-        >
-          {{ activity.parent.crowdInfo.body }}
-        </blockquote>
-        <span
-          class="block whitespace-pre-wrap custom-break-all"
-          >{{ activity.crowdInfo.body }}</span
-        >
-      </div>
+
       <a
         v-if="activity.crowdInfo.url"
         :href="activity.crowdInfo.url"

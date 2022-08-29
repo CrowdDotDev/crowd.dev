@@ -34,6 +34,24 @@ export default class PermissionChecker {
   }
 
   /**
+   * Validates if the user has any permission among specified
+   * and throws Error403 if it doesn't
+   */
+  validateHasAny(permissions) {
+    let hasOne = false
+    for (const perm of permissions) {
+      if (this.has(perm)) {
+        hasOne = true
+        break
+      }
+    }
+
+    if (!hasOne) {
+      throw new Error403(this.language)
+    }
+  }
+
+  /**
    * Checks if the user has permission to change certain protected
    * fields in an integration.
    * @param data Data sent to the integration write service

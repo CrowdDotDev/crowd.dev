@@ -21,8 +21,13 @@
           @click="trackClick('Twitter')"
           target="_blank"
           class="btn btn--circle btn--twitter mr-2"
-          ><i class="ri-sm ri-twitter-fill"></i
-        ></a>
+        >
+          <img
+            :src="findIcon('twitter')"
+            alt="Twitter"
+            class="community-member-channels-icon"
+          />
+        </a>
       </el-tooltip>
       <el-tooltip
         content="View GitHub Profile"
@@ -34,8 +39,13 @@
           @click="trackClick('GitHub')"
           target="_blank"
           class="btn btn--circle btn--github mr-2"
-          ><i class="ri-github-fill"></i
-        ></a>
+        >
+          <img
+            :src="findIcon('github')"
+            alt="Github"
+            class="community-member-channels-icon"
+          />
+        </a>
       </el-tooltip>
       <el-tooltip
         content="View LinkedIn Profile"
@@ -47,8 +57,31 @@
           v-if="member.crowdInfo.linkedin"
           target="_blank"
           class="btn btn--circle btn--linkedin mr-2"
-          ><i class="ri-linkedin-fill"></i
-        ></a>
+        >
+          <img
+            :src="findIcon('linkedin')"
+            alt="LinkedIn"
+            class="community-member-channels-icon"
+          />
+        </a>
+      </el-tooltip>
+      <el-tooltip
+        content="View Dev.to Profile"
+        placement="top"
+        v-if="member.crowdInfo.devto"
+      >
+        <a
+          :href="member.crowdInfo.devto.url"
+          @click="trackClick('Dev.to')"
+          target="_blank"
+          class="btn btn--circle btn--devto mr-2"
+        >
+          <img
+            :src="findIcon('devto')"
+            alt="Dev.to"
+            class="community-member-channels-icon"
+          />
+        </a>
       </el-tooltip>
       <span
         v-if="
@@ -56,20 +89,32 @@
           member.username.discord
         "
         class="btn btn--circle btn--discord mr-2"
-        ><i class="ri-discord-fill"></i
-      ></span>
+      >
+        <img
+          :src="findIcon('discord')"
+          alt="Discord"
+          class="community-member-channels-icon"
+        />
+      </span>
       <span
         v-if="
           member.crowdInfo.slack && member.username.slack
         "
         class="btn btn--circle btn--slack mr-2"
-        ><i class="ri-slack-line"></i
-      ></span>
+      >
+        <img
+          :src="findIcon('slack')"
+          alt="Slack"
+          class="community-member-channels-icon"
+        />
+      </span>
     </div>
   </div>
 </template>
 
 <script>
+import integrationsJsonArray from '@/jsons/integrations.json'
+
 export default {
   name: 'app-community-member-channels',
   props: {
@@ -88,7 +133,18 @@ export default {
           channel
         }
       )
+    },
+
+    findIcon(platform) {
+      return integrationsJsonArray.find(
+        (p) => p.platform === platform
+      ).image
     }
   }
 }
 </script>
+<style lang="scss">
+.community-member-channels-icon {
+  @apply w-4 h-4;
+}
+</style>

@@ -34,15 +34,19 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
     const articles = settings.articles ? settings.articles : []
 
-    let articlesFromAPI: DevtoArticle[]
-    if (settings.organization) {
-      // This will get all articles that belong to an organization
-      articlesFromAPI = await getAllOrganizationArticles(settings.organization)
-    } else if (settings.user) {
-      // this will get all articles that belong to a specific user
-      articlesFromAPI = await getAllUserArticles(settings.user)
-    } else {
-      console.log(`Devto integration ${integration.id} is not configured correctly!`)
+    const articlesFromAPI: DevtoArticle[] = []
+    if (settings.organizations.length > 0) {
+      for (const organization of settings.organizations) {
+        const articles = await getAllOrganizationArticles(organization)
+        articlesFromAPI.push(...articles)
+      }
+    }
+
+    if (settings.users.length > 0) {
+      for (const user of settings.users) {
+        const articles = await getAllUserArticles(user)
+        articlesFromAPI.push(...articles)
+      }
     }
 
     // Now lets find all articles that needs to be checked for fresh comments

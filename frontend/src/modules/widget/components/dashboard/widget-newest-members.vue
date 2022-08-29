@@ -48,7 +48,7 @@
                   </div>
                 </router-link>
                 <div
-                  class="block leading-none text-base pt-1"
+                  class="flex leading-none text-base pt-1"
                 >
                   <el-tooltip
                     content="GitHub"
@@ -57,14 +57,17 @@
                   >
                     <a
                       :href="
-                        member.crowdInfo.github.github_url
+                        member.crowdInfo.github.url
                       "
-                      v-if="member.crowdInfo.github"
+                      target="_blank"
                       class="mr-1"
-                      ><i
-                        class="ri-lg ri-github-fill text-gray-400 hover:text-black mr-1"
-                      ></i
-                    ></a>
+                    >
+                      <img
+                        :src="findIcon('github')"
+                        alt="Github"
+                        class="platform-icon"
+                      />
+                    </a>
                   </el-tooltip>
 
                   <el-tooltip
@@ -74,13 +77,16 @@
                   >
                     <a
                       :href="
-                        member.crowdInfo.twitter.twitter_url
+                        member.crowdInfo.twitter.url
                       "
-                      v-if="member.crowdInfo.twitter"
-                      ><i
-                        class="ri-lg ri-twitter-fill text-gray-400 hover:text-blue-400 mr-1"
-                      ></i
-                    ></a>
+                      target="_blank"
+                    >
+                      <img
+                        :src="findIcon('twitter')"
+                        alt="Twitter"
+                        class="platform-icon"
+                      />
+                    </a>
                   </el-tooltip>
 
                   <el-tooltip
@@ -92,11 +98,14 @@
                       :href="
                         member.crowdInfo.discord.html_url
                       "
-                      v-if="member.crowdInfo.discord"
-                      ><i
-                        class="ri-lg ri-discord-fill text-gray-400 hover:text-purple-600 mr-1"
-                      ></i
-                    ></a>
+                      target="_blank"
+                    >
+                      <img
+                        :src="findIcon('discord')"
+                        alt="Discord"
+                        class="platform-icon"
+                      />
+                    </a>
                   </el-tooltip>
 
                   <el-tooltip
@@ -108,11 +117,33 @@
                       :href="
                         member.crowdInfo.slack.html_url
                       "
-                      v-if="member.crowdInfo.slack"
-                      ><i
-                        class="ri-lg ri-slack-fill text-gray-400 hover:text-purple-600 mr-1"
-                      ></i
-                    ></a>
+                      target="_blank"
+                    >
+                      <img
+                        :src="findIcon('slack')"
+                        alt="Slack"
+                        class="platform-icon"
+                      />
+                    </a>
+                  </el-tooltip>
+
+                  <el-tooltip
+                    content="Dev.to"
+                    v-if="member.crowdInfo.devto"
+                    placement="top"
+                  >
+                    <a
+                      :href="
+                        member.crowdInfo.devto.url
+                      "
+                      target="_blank"
+                    >
+                      <img
+                        :src="findIcon('devto')"
+                        alt="Dev.to"
+                        class="platform-icon"
+                      />
+                    </a>
                   </el-tooltip>
 
                   <el-tooltip
@@ -149,6 +180,7 @@ import { CommunityMemberService } from '@/modules/community-member/community-mem
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import computedTimeAgo from '@/utils/time-ago'
+import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
   name: 'app-widget-newest-members',
@@ -196,6 +228,11 @@ export default {
   methods: {
     timeAgo(date) {
       return computedTimeAgo(date)
+    },
+    findIcon(platform) {
+      return integrationsJsonArray.find(
+        (p) => p.platform === platform
+      ).image
     }
   },
   async created() {
@@ -221,6 +258,16 @@ export default {
     max-width: 33.33%;
     @media only screen and (min-width: 1800px) {
       max-width: 25%;
+    }
+  }
+
+  .platform-icon {
+    @apply mr-1 w-4 h-4 opacity-60;
+    filter: grayscale(100%);
+
+    &:hover {
+      @apply opacity-100;
+      filter: none;
     }
   }
 }

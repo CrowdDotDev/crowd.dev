@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
 import { BaseOutput, DiscordOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import { Channels, Endpoint, Endpoints, State } from '../types/regularTypes'
@@ -352,7 +353,7 @@ export default class DiscordIterator extends BaseIterator {
           sourceParentId: parent,
           timestamp: moment(record.createdAt).utc().toDate(),
           crowdInfo: {
-            body: record.text ? DiscordIterator.removeMentions(record.text) : '',
+            body: record.text ? sanitizeHtml(DiscordIterator.removeMentions(record.text)) : '',
             url: `https://discordapp.com/channels/${this.guildId}/${endpoint}/${record.id}`,
             channel: channelsInfo[endpoint].name,
             thread: channelsInfo[endpoint].thread ? channelsInfo[endpoint].name : false,

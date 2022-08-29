@@ -190,6 +190,33 @@
                 </button>
               </app-popover>
             </div>
+            <div
+              v-else-if="
+                integrationJson.platform === 'devto'
+              "
+            >
+              <el-button
+                class="btn btn--secondary btn--sm"
+                @click="devto.modal = true"
+                v-if="
+                  integrations.devto === undefined ||
+                  integrations.devto.status === 'done'
+                "
+              >
+                {{
+                  integrations.devto ? 'Edit' : 'Connect'
+                }}
+              </el-button>
+              <devto-integration-widget
+                :integration="
+                  integrations.devto
+                    ? integrations.devto
+                    : null
+                "
+                :visible="devto.modal"
+                @close="devto.modal = false"
+              />
+            </div>
             <a
               class="btn btn--secondary btn--sm"
               target="_blank"
@@ -213,9 +240,10 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AppPopover from '@/shared/popover/popover'
+import DevtoIntegrationWidget from '@/modules/integration/components/devto-integration-widget'
 
 import config from '@/config'
 import integrationsJsonArray from '@/jsons/integrations.json'
@@ -230,7 +258,7 @@ export default {
     }
   },
 
-  components: { AppPopover },
+  components: { AppPopover, DevtoIntegrationWidget },
 
   computed: {
     ...mapGetters({
@@ -304,13 +332,17 @@ export default {
               'github',
               'slack',
               'discord',
-              'twitter'
+              'twitter',
+              'devto'
             ].includes(i.platform)
           )
         : integrationsJsonArray,
       twitter: {
         popover: false,
         hashtags: []
+      },
+      devto: {
+        modal: false
       }
     }
   },
