@@ -33,8 +33,8 @@
               }"
               class="flex items-center text-black"
             >
-              <span
-                class="font-semibold truncate"
+              <div
+                class="conversation-list-table--title"
                 v-html="scope.row.title"
               />
             </router-link>
@@ -293,6 +293,15 @@ export default {
 
   &--platform-icon {
     @apply w-4 h-4;
+  }
+
+  &--title {
+    @apply font-semibold truncate;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>
