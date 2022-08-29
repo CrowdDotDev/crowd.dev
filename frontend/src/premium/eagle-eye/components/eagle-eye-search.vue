@@ -27,12 +27,22 @@ export default {
   },
   computed: {
     ...mapGetters({
-      filter: 'eagleEye/filter'
+      filter: 'eagleEye/filter',
+      activeTab: 'eagleEye/activeTab'
     })
   },
   data() {
     return {
       selectedKeywords: []
+    }
+  },
+  watch: {
+    activeTab: {
+      handler: (newValue, oldValue) => {
+        if (newValue !== oldValue) {
+          this.selectedKeywords = []
+        }
+      }
     }
   },
   methods: {
