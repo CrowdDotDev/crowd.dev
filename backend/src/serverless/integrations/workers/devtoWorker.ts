@@ -1,3 +1,4 @@
+import lodash from 'lodash'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { BaseOutput } from '../../microservices/nodejs/messageTypes'
@@ -34,7 +35,7 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
     const articles = settings.articles ? settings.articles : []
 
-    const articlesFromAPI: DevtoArticle[] = []
+    let articlesFromAPI: DevtoArticle[] = []
     if (settings.organizations.length > 0) {
       for (const organization of settings.organizations) {
         const articles = await getAllOrganizationArticles(organization)
@@ -48,6 +49,8 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
         articlesFromAPI.push(...articles)
       }
     }
+
+    articlesFromAPI = lodash.uniqBy(articlesFromAPI, (a) => a.id)
 
     // Now lets find all articles that needs to be checked for fresh comments
     const articlesToCheck: DevtoArticle[] = []

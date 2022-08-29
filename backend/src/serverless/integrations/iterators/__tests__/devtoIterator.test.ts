@@ -147,12 +147,12 @@ describe('Dev.to iterator tests', () => {
       const activityCrowdInfo = activity.crowdInfo as any
       expect(activityCrowdInfo.body).toEqual('Hello world!')
       expect(activityCrowdInfo.userUrl).toEqual('https://dev.to/johndoe')
-      expect(activityCrowdInfo.commentUrl).toEqual('https://dev.to/johndoe/comment/123')
+      expect(activityCrowdInfo.url).toEqual('https://dev.to/johndoe/comment/123')
       expect(activityCrowdInfo.articleUrl).toEqual(article.url)
+      expect(activityCrowdInfo.articleTitle).toEqual(article.title)
 
       const communityMember = activity.communityMember
       expect(communityMember.username[PlatformType.DEVTO]).toEqual('johndoe')
-      expect(communityMember.crowdInfo[PlatformType.DEVTO].id).toEqual(123)
       expect(communityMember.bio).toEqual('Nice profile you got there')
       expect(communityMember.location).toEqual('Venice, Italy')
       expect(communityMember.crowdInfo[PlatformType.TWITTER].url).toEqual(
