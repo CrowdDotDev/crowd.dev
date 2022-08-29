@@ -22,7 +22,6 @@ class PullRequestsQuery extends BaseQuery {
                     createdAt
                     number
                 }
-                
               }
             }
           }`

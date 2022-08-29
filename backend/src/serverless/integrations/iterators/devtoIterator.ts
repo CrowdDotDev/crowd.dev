@@ -228,16 +228,15 @@ export default class DevtoIterator extends BaseIterator {
       timestamp: new Date(comment.created_at),
       sourceId: comment.id_code,
       sourceParentId: parentCommentId,
-      crowdInfo: {
-        bodyHtml: comment.body_html,
+      body: comment.body_html,
+      url: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}/comment/${
+        comment.id_code
+      }`,
+      attributes: {
         userUrl: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
-        commentUrl: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}/comment/${
-          comment.id_code
-        }`,
         articleUrl: article.url,
       },
       member,
-
       score: DevtoGrid.comment.score,
       isKeyAction: DevtoGrid.comment.isKeyAction,
     })

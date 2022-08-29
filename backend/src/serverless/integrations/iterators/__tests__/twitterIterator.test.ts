@@ -115,10 +115,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'First message #apis',
-            sourceId: '1234567',
-            url: 'https://twitter.com/i/status/1234567',
+          body: 'First message #apis',
+          url: 'https://twitter.com/i/status/1234567',
+          attributes: {
             attachments: [
               {
                 type: 'photo',
@@ -145,10 +144,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '123456789',
           timestamp: moment(Date.parse('2022-02-03T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'Second Message',
-            sourceId: '123456789',
-            url: 'https://twitter.com/i/status/123456798',
+          body: 'Second Message',
+          url: 'https://twitter.com/i/status/123456798',
+          attributes: {
             attachments: [
               {
                 type: 'photo',
@@ -206,10 +204,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'First message #apis',
-            sourceId: '1234567',
-            url: 'https://twitter.com/i/status/1234567',
+          body: 'First message #apis',
+          url: 'https://twitter.com/i/status/1234567',
+          attributes: {
             attachments: [
               {
                 type: 'photo',
@@ -258,10 +255,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            sourceId: '1234567',
-            body: '',
-            url: '',
+          body: '',
+          url: '',
+          attributes: {
             attachments: [],
           },
           member: {
@@ -312,11 +308,10 @@ describe('Integrations worker static tests', () => {
           type: 'hashtag',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'First message #apis',
+          body: 'First message #apis',
+          url: 'https://twitter.com/i/status/1234567',
+          attributes: {
             hashtag: '1234',
-            sourceId: '1234567',
-            url: 'https://twitter.com/i/status/1234567',
             attachments: [
               {
                 type: 'photo',
@@ -382,9 +377,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/michael_scott',
-          },
+          url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
@@ -409,9 +402,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/dwight_schrute',
-          },
+          url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
             reach: { twitter: 30 },
@@ -460,9 +451,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/michael_scott',
-          },
+          url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
@@ -527,9 +516,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/michael_scott',
-          },
+          url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
@@ -554,9 +541,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/dwight_schrute',
-          },
+          url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
             reach: { twitter: 30 },
@@ -603,9 +588,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/michael_scott',
-          },
+          url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
             reach: { twitter: 10 },
@@ -630,9 +613,7 @@ describe('Integrations worker static tests', () => {
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
-          crowdInfo: {
-            url: 'https://twitter.com/dwight_schrute',
-          },
+          url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
             reach: { twitter: 10 },
@@ -711,10 +692,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'First message #apis',
-            sourceId: '1234567',
-            url: 'https://twitter.com/i/status/1234567',
+          body: 'First message #apis',
+          url: 'https://twitter.com/i/status/1234567',
+          attributes: {
             attachments: [
               {
                 type: 'photo',
@@ -741,10 +721,9 @@ describe('Integrations worker static tests', () => {
           type: 'mention',
           sourceId: '123456789',
           timestamp: moment(Date.parse('2022-02-01T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'Second Message',
-            sourceId: '123456789',
-            url: 'https://twitter.com/i/status/123456798',
+          body: 'Second Message',
+          url: 'https://twitter.com/i/status/123456798',
+          attributes: {
             attachments: [
               {
                 type: 'photo',
@@ -821,10 +800,9 @@ describe('Integrations worker static tests', () => {
           type: 'hashtag',
           sourceId: '1234567',
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'First message #apis',
-            sourceId: '1234567',
-            url: 'https://twitter.com/i/status/1234567',
+          body: 'First message #apis',
+          url: 'https://twitter.com/i/status/1234567',
+          attributes: {
             hashtag: '1',
             attachments: [
               {
@@ -852,10 +830,9 @@ describe('Integrations worker static tests', () => {
           type: 'hashtag',
           sourceId: '123456789',
           timestamp: moment(Date.parse('2022-02-01T08:20:04.000Z')).toDate(),
-          crowdInfo: {
-            body: 'Second Message',
-            url: 'https://twitter.com/i/status/123456798',
-            sourceId: '123456789',
+          body: 'Second Message',
+          url: 'https://twitter.com/i/status/123456798',
+          attributes: {
             hashtag: '1',
             attachments: [
               {
@@ -890,17 +867,17 @@ describe('Integrations worker static tests', () => {
       const out = TwitterIterator.mapToPath(
         [
           {
-            crowdInfo: {
+            attributes: {
               sourceId: '1',
             },
           },
           {
-            crowdInfo: {
+            attributes: {
               sourceId: '2',
             },
           },
         ],
-        'crowdInfo.sourceId',
+        'attributes.sourceId',
       )
       expect(out).toEqual(['1', '2'])
     })

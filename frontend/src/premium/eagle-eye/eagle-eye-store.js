@@ -315,14 +315,12 @@ export default {
       })
     },
 
-    doChangeActiveTab(
-      { commit, dispatch, getters },
-      activeTab
-    ) {
+    doChangeActiveTab({ commit, dispatch }, activeTab) {
       commit('ACTIVE_TAB_CHANGED', activeTab)
       commit('RESETED')
       const filtersToApply = {
-        ...getters.filter,
+        keywords: undefined,
+        nDays: 1,
         status:
           activeTab === 'inbox' ? undefined : activeTab
       }

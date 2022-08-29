@@ -42,3 +42,34 @@ export const stepFunctions =
         endpoint: `${getConfig().LOCALSTACK_HOSTNAME}:${getConfig().LOCALSTACK_PORT}`,
       })
     : new AWS.StepFunctions()
+
+/**
+ * Get sentiment for a text using AWS Comprehend
+ * @param text Text to detect sentiment on
+ * @returns Sentiment object
+ */
+export async function detectSentiment(text) {
+  // Only if we have proper credentials
+  if (
+    getConfig().AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
+    getConfig().AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
+    getConfig().AWS_ACCESS_KEY_ID !== undefined &&
+    getConfig().AWS_SECRET_ACCESS_KEY !== undefined
+  ) {
+    const comprehend = new AWS.Comprehend()
+    const params = {
+      LanguageCode: 'en',
+      Text: text,
+    }
+    const fromAWS = await comprehend.detectSentiment(params).promise()
+    return {
+      sentiment: fromAWS.Sentiment.toLowerCase(),
+      positive: fromAWS.SentimentScore.Positive,
+      negative: fromAWS.SentimentScore.Negative,
+      neutral: fromAWS.SentimentScore.Neutral,
+      mixed: fromAWS.SentimentScore.Mixed,
+      score: fromAWS.SentimentScore.Positive - fromAWS.SentimentScore.Negative,
+    }
+  }
+  return {}
+}

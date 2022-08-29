@@ -215,15 +215,15 @@ export default class ConversationService {
     let channel = null
 
     if (activity.platform === PlatformType.DISCORD) {
-      channel = activity.crowdInfo.channel
+      channel = activity.channel
     } else if (activity.platform === PlatformType.SLACK) {
-      channel = activity.crowdInfo.channel
+      channel = activity.channel
     } else if (activity.platform === PlatformType.GITHUB) {
       const prefix = 'https://github.com/'
-      if (activity.crowdInfo.repo.startsWith(prefix)) {
-        channel = activity.crowdInfo.repo.slice(prefix.length).split('/')[1]
+      if (activity.channel.startsWith(prefix)) {
+        channel = activity.channel.slice(prefix.length).split('/')[1]
       } else {
-        channel = activity.crowdInfo.repo.split('/')[1]
+        channel = activity.channel.split('/')[1]
       }
     }
 
@@ -307,14 +307,13 @@ export default class ConversationService {
       })
       .filter(
         (act) =>
-          act.crowdInfo.body !== '' ||
-          (act.crowdInfo.attachments && act.crowdInfo.attachments.length > 0),
+          act.body !== '' || (act.attributes.attachments && act.attributes.attachments.length > 0),
       )
 
     // mark first(parent) activity as conversation starter for convenience
     plainActivities[0].conversationStarter = true
 
-    const activitiesBodies = plainActivities.map((a) => a.crowdInfo.body)
+    const activitiesBodies = plainActivities.map((a) => a.body)
 
     const channel = ConversationService.getChannelFromActivity(plainActivities[0])
     if (plainActivities[0].platform === PlatformType.SLACK) {
@@ -332,7 +331,7 @@ export default class ConversationService {
       activitiesBodies,
       lastActive: plainActivities[plainActivities.length - 1].timestamp,
       views: 0,
-      url: plainActivities[0].crowdInfo.url,
+      url: plainActivities[0].url,
     }
 
     console.log('adding doc to conversation: ')
@@ -353,9 +352,9 @@ export default class ConversationService {
     }
     return Promise.all(
       activities.map(async (act) => {
-        if (act.crowdInfo.attachments && act.crowdInfo.attachments.length > 0) {
-          act.crowdInfo.attachments = await Promise.all(
-            act.crowdInfo.attachments.map(async (attachment) => {
+        if (act.attributes.attachments && act.attributes.attachments.length > 0) {
+          act.attributes.attachments = await Promise.all(
+            act.attributes.attachments.map(async (attachment) => {
               if (attachment.mediaType === 'image/png') {
                 // Get the file URL from the attachment ID
                 const axios = require('axios')

@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import sanitizeHtml from 'sanitize-html'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -18,16 +19,33 @@ class ActivityRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
+
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
+    }
+
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
+    }
+
     const record = await options.database.activity.create(
       {
         ...lodash.pick(data, [
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
           'score',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'sourceId',
           'importHash',
         ]),
@@ -49,6 +67,31 @@ class ActivityRepository {
     return this.findById(record.id, options)
   }
 
+  /**
+   * Check whether sentiment data is valid
+   * @param sentimentData Object: {positive: number, negative: number, mixed: number, neutral: number, sentiment: 'positive' | 'negative' | 'mixed' | 'neutral'}
+   */
+  static _validateSentiment(sentimentData) {
+    if (!lodash.isEmpty(sentimentData)) {
+      const moods = ['positive', 'negative', 'mixed', 'neutral']
+      for (const prop of moods) {
+        if (typeof sentimentData[prop] !== 'number') {
+          throw new Error(
+            `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
+          )
+        }
+      }
+      if (!moods.includes(sentimentData.sentiment)) {
+        throw new Error(
+          `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
+        )
+      }
+      if (typeof sentimentData.score !== 'number') {
+        throw new Error(`Invalid sentiment data. The 'score' property must exist and be a number.`)
+      }
+    }
+  }
+
   static async update(id, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -68,15 +111,31 @@ class ActivityRepository {
       throw new Error404()
     }
 
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
+    }
+
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
+    }
+
     record = await record.update(
       {
         ...lodash.pick(data, [
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'score',
           'sourceId',
           'importHash',
@@ -272,18 +331,11 @@ class ActivityRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
       }
 
-      if (filter.info) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'info', filter.info))
-      }
 
       if (filter.member) {
         whereAnd.push({
           memberId: SequelizeFilterUtils.uuid(filter.member),
         })
-      }
-
-      if (filter.crowdInfo) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'crowdInfo', filter.crowdInfo))
       }
 
       if (
@@ -314,6 +366,50 @@ class ActivityRepository {
               [Op.lte]: end,
             },
           })
+        }
+      }
+
+      if (filter.channel) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'channel', filter.channel))
+      }
+
+      if (filter.body) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'body', filter.body))
+      }
+
+      if (filter.title) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'title', filter.title))
+      }
+
+      if (filter.url) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'url', filter.url))
+      }
+
+      if (filter.sentiment) {
+        whereAnd.push({
+          'sentiment.sentiment': filter.sentiment,
+        })
+      }
+
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (filter[`${mood}SentimentRange`]) {
+          const [start, end] = filter[`${mood}SentimentRange`]
+
+          if (start !== undefined && start !== null && start !== '') {
+            whereAnd.push({
+              [`sentiment.${mood}`]: {
+                [Op.gte]: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            whereAnd.push({
+              [`sentiment.${mood}`]: {
+                [Op.lte]: end,
+              },
+            })
+          }
         }
       }
 
@@ -364,8 +460,17 @@ class ActivityRepository {
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    if (orderBy) {
+      const listOrderBy = orderBy.split('_')
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (listOrderBy.includes(`${mood}Sentiment`)) {
+          listOrderBy[0] = `sentiment.${mood}`
+        }
+      }
+      orderBy = listOrderBy.join('_')
+    }
 
+    const where = { [Op.and]: whereAnd }
     let {
       rows,
       count, // eslint-disable-line prefer-const

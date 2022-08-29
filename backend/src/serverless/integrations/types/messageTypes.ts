@@ -64,7 +64,11 @@ export type AddActivitiesSingle = {
   member: Member
   sourceId?: string
   sourceParentId?: string
-  crowdInfo?: object
+  attributes?: object
+  body?: string
+  title?: string
+  url?: string
+  channel?: string
   score?: number
   isKeyAction?: boolean
 }

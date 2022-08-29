@@ -325,7 +325,6 @@ export default class SlackIterator extends BaseIterator {
           timestamp: _vm.onboarding
             ? moment('1970-01-01T00:00:00+00:00').utc().toDate()
             : moment().utc().toDate(),
-          crowdInfo: {},
           member: {
             username: record.username,
             crowdInfo: {
@@ -425,10 +424,10 @@ export default class SlackIterator extends BaseIterator {
           sourceId: record.id,
           sourceParentId: '',
           timestamp: moment(record.createdAt).utc().toDate(),
-          crowdInfo: {
-            body,
-            url: record.url ? record.url : '',
-            channel: channelsInfo[endpoint].name,
+          body,
+          url: record.url ? record.url : '',
+          channel: channelsInfo[endpoint].name,
+          attributes: {
             thread: false,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
@@ -470,10 +469,10 @@ export default class SlackIterator extends BaseIterator {
           sourceId: record.id,
           sourceParentId: threadInfo.threadId,
           timestamp: moment.unix(record.createdAt).utc().toDate(),
-          crowdInfo: {
-            body,
-            url: record.url ? record.url : '',
-            channel: threadInfo.channel,
+          body,
+          url: record.url ? record.url : '',
+          channel: threadInfo.channel,
+          attributes: {
             thread: {
               body: threadInfo.placeholder,
               id: threadInfo.threadId,

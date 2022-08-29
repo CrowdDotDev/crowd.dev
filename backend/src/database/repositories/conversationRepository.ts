@@ -256,14 +256,9 @@ class ConversationRepository {
 
       if (filter.channel) {
         whereAnd.push({
-          [Op.or]: [
-            Sequelize.where(Sequelize.literal(`"activities"."crowdInfo"->>'channel'`), {
-              [Sequelize.Op.like]: `%${filter.channel}%`,
-            }),
-            Sequelize.where(Sequelize.literal(`"activities"."crowdInfo"->>'repo'`), {
-              [Sequelize.Op.like]: `https://github.com/%${filter.channel}%`,
-            }),
-          ],
+          channel: Sequelize.where(Sequelize.literal(`"activities"."channel"`), {
+            [Sequelize.Op.like]: `%${filter.channel}%`,
+          }),
         })
       }
 
@@ -340,14 +335,12 @@ class ConversationRepository {
         [
           Sequelize.literal(
             `MAX(CASE
-              WHEN ( "activities"."crowdInfo" ->> 'thread' ) IS NOT NULL AND 
-           ( "activities"."crowdInfo" ->> 'thread' ) != 'false' AND
+              WHEN ( "activities"."attributes" ->> 'thread' ) IS NOT NULL AND 
+           ( "activities"."attributes" ->> 'thread' ) != 'false' AND
              "activities".platform = '${PlatformType.DISCORD}' THEN
               null
-              WHEN ("activities"."crowdInfo" ->> 'channel') IS NOT NULL then
-            "activities"."crowdInfo"->>'channel'
-              WHEN ( "activities"."crowdInfo" ->> 'repo' ) IS NOT NULL THEN
-              "activities"."crowdInfo" ->> 'repo'
+              WHEN ("activities"."channel") IS NOT NULL then
+            "activities"."channel"
               ELSE NULL
             END)`,
           ),
@@ -358,11 +351,7 @@ class ConversationRepository {
       include,
       order,
       transaction: SequelizeRepository.getTransaction(options),
-      group: [
-        'conversation.id',
-        'activities.platform',
-        Sequelize.literal(`"activities"."crowdInfo"->'repo'`),
-      ],
+      group: ['conversation.id', 'activities.platform', 'activities.channel'],
       having,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
@@ -449,12 +438,7 @@ class ConversationRepository {
     if (output.activityCount > 0) {
       output.platform = output.activities[0].platform ?? null
       output.lastActive = output.activities[output.activities.length - 1].timestamp
-
-      if (output.activities[0].crowdInfo.channel) {
-        output.channel = output.activities[0].crowdInfo.channel
-      } else if (output.activities[0].crowdInfo.repo) {
-        output.channel = this.extractGitHubRepoPath(output.activities[0].crowdInfo.repo)
-      }
+      output.channel = output.activities[0].channel ? output.activities[0].channel : null
     }
 
     return output

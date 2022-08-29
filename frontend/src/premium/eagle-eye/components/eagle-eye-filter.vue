@@ -130,6 +130,25 @@ export default {
       return activeFilters
     }
   },
+  watch: {
+    filter: {
+      handler(newValue, oldValue) {
+        if (newValue.nDays !== oldValue.nDays) {
+          this.nDays = newValue.nDays
+        }
+        this.platforms = newValue.platforms
+          ? newValue.platforms
+          : ['hacker_news', 'devto']
+      },
+      deep: true
+    },
+    'filter.platforms': {
+      handler(newValue) {
+        this.platforms = [...newValue]
+      },
+      deep: true
+    }
+  },
   methods: {
     ...mapActions({
       doReset: 'eagleEye/doReset',

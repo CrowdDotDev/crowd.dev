@@ -11,7 +11,7 @@
     multiple
     :placeholder="placeholder || ''"
     remote
-    reserve-keyword
+    :reserve-keyword="false"
     :allow-create="allowCreate"
     value-key="id"
     :class="inputClass"

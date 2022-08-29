@@ -39,9 +39,19 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+          score: 0.98,
+        },
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
         sourceId: '#sourceId',
         isKeyAction: true,
@@ -58,7 +68,7 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityCreated.id,
-        crowdInfo: activity.crowdInfo,
+        attributes: activity.attributes,
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -72,7 +82,18 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
+        channel: null,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+          score: 0.98,
+        },
         parent: null,
         parentId: null,
         conversationId: null,
@@ -99,9 +120,7 @@ describe('ActivityService tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
         platform: 'stackoverflow',
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -113,9 +132,7 @@ describe('ActivityService tests', () => {
         type: 'answer',
         timestamp: '2020-05-28T15:13:30Z',
         platform: 'stackoverflow',
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
         member: memberCreated.id,
         score: 2,
@@ -140,8 +157,20 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityCreated2.id,
-        crowdInfo: activity2.crowdInfo,
+        body: activity2.body,
         type: activity2.type,
+        channel: null,
+        attributes: {},
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+          score: 0.42,
+        },
+        url: null,
+        title: null,
         timestamp: new Date(activity2.timestamp),
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
@@ -154,7 +183,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityCreated1.id,
         sourceParentId: activity1.sourceId,
         sourceId: activity2.sourceId,
@@ -179,9 +207,10 @@ describe('ActivityService tests', () => {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
+        body: 'What is love?',
+        title: 'Song',
         platform: 'stackoverflow',
-        crowdInfo: {
-          question: 'What is love?',
+        attributes: {
           nested_1: {
             attribute_1: '1',
             nested_2: {
@@ -202,8 +231,8 @@ describe('ActivityService tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         member: memberCreated.id,
         platform: 'stackoverflow',
-        crowdInfo: {
-          question: 'Test',
+        body: 'Test',
+        attributes: {
           nested_1: {
             attribute_1: '1',
             nested_2: {
@@ -231,22 +260,35 @@ describe('ActivityService tests', () => {
       delete activityUpserted.member
       delete activityUpserted.parent
 
-      const crowdInfoExpected = {
-        ...activity1.crowdInfo,
-        ...activity2.crowdInfo,
+      const attributesExpected = {
+        ...activity1.attributes,
+        ...activity2.attributes,
       }
 
-      crowdInfoExpected.nested_1.nested_2.attribute_array = [1, 2, 3, 4, 5]
+      attributesExpected.nested_1.nested_2.attribute_array = [1, 2, 3, 4, 5]
 
       const expectedActivityCreated = {
         id: activityCreated1.id,
-        crowdInfo: crowdInfoExpected,
+        attributes: attributesExpected,
         type: activity2.type,
         timestamp: new Date(activity2.timestamp),
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
-        memberId: memberCreated.id,
+
+        title: activity1.title,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+          score: 0.42,
+        },
+        url: null,
+        body: activity2.body,
+        channel: null,
+        member: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -254,7 +296,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         sourceParentId: null,
         sourceId: activity1.sourceId,
@@ -293,9 +334,7 @@ describe('ActivityService tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         member: member1Created.id,
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -307,9 +346,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:14:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -323,9 +360,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:15:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Dont hurt me',
-        },
+        body: 'Dont hurt me',
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -339,9 +374,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:16:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'No more',
-        },
+        body: 'No more',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -374,9 +407,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:17:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna give you up',
-        },
+        body: 'Never gonna give you up',
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -388,9 +419,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:18:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna let you down',
-        },
+        body: 'Never gonna let you down',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -403,9 +432,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:19:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna run around and desert you',
-        },
+        body: 'Never gonna run around and desert you',
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -457,9 +484,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:16:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'No more',
-        },
+        body: 'No more',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -473,9 +498,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:15:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Dont hurt me',
-        },
+        body: 'Dont hurt me',
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -489,9 +512,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:14:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -506,9 +527,7 @@ describe('ActivityService tests', () => {
         timestamp: '2020-05-27T15:13:30Z',
         member: member1Created.id,
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -547,9 +566,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:18:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna let you down',
-        },
+        body: 'Never gonna let you down',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -562,9 +579,8 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:19:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna run around and desert you',
-        },
+        body: 'Never gonna run around and desert you',
+
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -577,9 +593,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:17:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna give you up',
-        },
+        body: 'Never gonna give you up',
         isKeyAction: true,
         member: member1Created.id,
         score: 2,
@@ -615,9 +629,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:21:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'additional reply to the reply chain',
-        },
+        body: 'additional reply to the reply chain',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -635,9 +647,7 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:35:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'additional message to the thread',
-        },
+        body: 'additional message to the thread',
         isKeyAction: true,
         member: member2Created.id,
         score: 2,
@@ -692,13 +702,18 @@ describe('ActivityService tests', () => {
 
       const data = {
         member,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          score: 0.98,
+          sentiment: 'positive',
         },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
@@ -724,8 +739,13 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityWithMember.id,
-        crowdInfo: data.crowdInfo,
         type: data.type,
+        body: data.body,
+        title: data.title,
+        url: data.url,
+        channel: data.channel,
+        sentiment: data.sentiment,
+        attributes: {},
         timestamp: new Date(data.timestamp),
         platform: data.platform,
         isKeyAction: data.isKeyAction,
@@ -738,7 +758,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         parent: null,
         sourceParentId: null,
@@ -785,19 +804,15 @@ describe('ActivityService tests', () => {
 
       const data = {
         member,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId1',
       }
 
@@ -807,19 +822,15 @@ describe('ActivityService tests', () => {
 
       const data2 = {
         member,
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
+        title: 'Add order by score and # of activities',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-11-30T14:20:27.000Z',
         type: 'pull_request-open',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId2',
         sourceParentId: data.sourceId,
       }
@@ -849,7 +860,19 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityWithMember2.id,
-        crowdInfo: data2.crowdInfo,
+        body: data2.body,
+        title: data2.title,
+        url: data2.url,
+        channel: data2.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+          score: 0.42,
+        },
+        attributes: {},
         type: data2.type,
         timestamp: new Date(data2.timestamp),
         platform: data2.platform,
@@ -863,7 +886,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityWithMember1.id,
         sourceParentId: data2.sourceParentId,
         sourceId: data2.sourceId,
@@ -910,19 +932,15 @@ describe('ActivityService tests', () => {
 
       const dataChild = {
         member,
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
+        title: 'Add order by score and # of activities',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-11-30T14:20:27.000Z',
         type: 'pull_request-open',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceParentId: '#sourceId1',
         sourceId: '#childSourceId',
       }
@@ -931,19 +949,15 @@ describe('ActivityService tests', () => {
 
       const dataParent = {
         member,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: dataChild.sourceParentId,
       }
 
@@ -984,7 +998,19 @@ describe('ActivityService tests', () => {
 
       const expectedParentActivityCreated = {
         id: activityWithMemberParent.id,
-        crowdInfo: dataParent.crowdInfo,
+        body: dataParent.body,
+        title: dataParent.title,
+        url: dataParent.url,
+        channel: dataParent.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+          score: 0.42,
+        },
+        attributes: {},
         type: dataParent.type,
         timestamp: new Date(dataParent.timestamp),
         platform: dataParent.platform,
@@ -998,7 +1024,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         sourceParentId: null,
         sourceId: dataParent.sourceId,
@@ -1009,7 +1034,19 @@ describe('ActivityService tests', () => {
 
       const expectedChildActivityCreated = {
         id: activityWithMemberChild.id,
-        crowdInfo: dataChild.crowdInfo,
+        body: dataChild.body,
+        title: dataChild.title,
+        url: dataChild.url,
+        channel: dataChild.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+          score: 0.42,
+        },
+        attributes: {},
         type: dataChild.type,
         timestamp: new Date(dataChild.timestamp),
         platform: dataChild.platform,
@@ -1023,7 +1060,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityWithMemberParent.id,
         sourceParentId: dataChild.sourceParentId,
         sourceId: dataChild.sourceId,
@@ -1033,274 +1069,6 @@ describe('ActivityService tests', () => {
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
     })
 
-    it('Create an activity with given member [no parent activity, upsert member, upsert activity]', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member = {
-        username: 'anil_github',
-        email: 'lala@l.com',
-        score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
-          },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
-          },
-        },
-        bio: 'Computer Science',
-        organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const data = {
-        member,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          newTestField: 'test',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      const activityWithMember1 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data)
-
-      const data2 = {
-        member: {
-          username: member.username,
-          platform: data.platform,
-          crowdInfo: { githubNewField: { body: 'test' } },
-        },
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-        // sourceParentId: data.sourceId,
-      }
-
-      const activityWithMember2 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data2)
-
-      // get the first created activity. Second call to createWithMember should be updating this
-      const upsertedActivity = await ActivityRepository.findById(
-        activityWithMember1.id,
-        mockIRepositoryOptions,
-      )
-
-      // get the first created member. Second call to createWithMember should be updating this object
-      const memberFound = await MemberRepository.findById(
-        activityWithMember1.memberId,
-        mockIRepositoryOptions,
-      )
-
-      // delete models before expect because we already have ids (memberId, parentId)
-      delete upsertedActivity.member
-      delete upsertedActivity.parent
-
-      upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
-      upsertedActivity.updatedAt = upsertedActivity.updatedAt.toISOString().split('T')[0]
-
-      const expectedActivityCreated = {
-        id: activityWithMember2.id,
-        crowdInfo: {
-          ...data.crowdInfo,
-          ...data2.crowdInfo,
-        },
-        type: data2.type,
-        timestamp: new Date(data2.timestamp),
-        platform: data2.platform,
-        isKeyAction: data2.isKeyAction,
-        score: data2.score,
-        memberId: memberFound.id,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-        importHash: null,
-        info: {},
-        parentId: null,
-        sourceId: data.sourceId,
-        sourceParentId: null,
-        conversationId: null,
-      }
-
-      expect(upsertedActivity).toStrictEqual(expectedActivityCreated)
-    })
-
-    it('Upsert activity. Member with different username, but same activity (member changed username)', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const member = {
-        username: 'anil_github',
-        email: 'lala@l.com',
-        score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
-          },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
-          },
-        },
-        bio: 'Computer Science',
-        organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const data = {
-        member,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          newTestField: 'test',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      const activityWithMember1 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data)
-
-      // This is the same activity. However, the member has changed username
-      const data2 = {
-        member: {
-          username: 'different_username',
-          platform: data.platform,
-          crowdInfo: { githubNewField: { body: 'test' } },
-        },
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
-        timestamp: data.timestamp,
-        type: data.type,
-        isKeyAction: true,
-        platform: data.platform,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
-
-      await ActivityRepository.findById(activityWithMember1.id, mockIRepositoryOptions)
-
-      const members = await MemberRepository.findAndCountAll(
-        { filter: {} },
-        mockIRepositoryOptions,
-      )
-
-      const activities = await ActivityRepository.findAndCountAll(
-        { filter: {} },
-        mockIRepositoryOptions,
-      )
-
-      expect(members.count).toBe(1)
-      expect(activities.count).toBe(1)
-
-      const memberFound = members.rows[0]
-      expect(memberFound.username).toStrictEqual({
-        github: 'different_username',
-        crowdUsername: 'anil_github',
-      })
-
-      // // delete models before expect because we already have ids (memberId, parentId)
-      // delete upsertedActivity.member
-      // delete upsertedActivity.parent
-
-      // upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
-      // upsertedActivity.updatedAt = upsertedActivity.updatedAt.toISOString().split('T')[0]
-
-      // const expectedActivityCreated = {
-      //   id: activityWithMember2.id,
-      //   crowdInfo: {
-      //     ...data.crowdInfo,
-      //     ...data2.crowdInfo,
-      //   },
-      //   type: data2.type,
-      //   timestamp: new Date(data2.timestamp),
-      //   platform: data2.platform,
-      //   isKeyAction: data2.isKeyAction,
-      //   score: data2.score,
-      //   memberId: member.id,
-      //   createdAt: SequelizeTestUtils.getNowWithoutTime(),
-      //   updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-      //   deletedAt: null,
-      //   tenantId: mockIRepositoryOptions.currentTenant.id,
-      //   createdById: mockIRepositoryOptions.currentUser.id,
-      //   updatedById: mockIRepositoryOptions.currentUser.id,
-      //   importHash: null,
-      //   info: {},
-      //   parentId: activityWithMember1.id,
-      //   sourceId: data.sourceId,
-      // }
-
-      // expect(upsertedActivity).toStrictEqual(expectedActivityCreated)
-    })
 
     describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
@@ -1342,19 +1110,15 @@ describe('ActivityService tests', () => {
 
         const data = {
           member,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1374,7 +1138,19 @@ describe('ActivityService tests', () => {
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            score: 0.42,
+            sentiment: 'positive',
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
@@ -1388,7 +1164,6 @@ describe('ActivityService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceParentId: null,
@@ -1445,19 +1220,15 @@ describe('ActivityService tests', () => {
 
         const data = {
           member,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1477,7 +1248,19 @@ describe('ActivityService tests', () => {
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            score: 0.42,
+            mixed: 0.42,
+            sentiment: 'positive',
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
@@ -1491,7 +1274,6 @@ describe('ActivityService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1548,19 +1330,15 @@ describe('ActivityService tests', () => {
 
         const data = {
           member,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1580,7 +1358,19 @@ describe('ActivityService tests', () => {
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            score: 0.42,
+            sentiment: 'positive',
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
@@ -1594,7 +1384,6 @@ describe('ActivityService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1651,19 +1440,16 @@ describe('ActivityService tests', () => {
 
         const data = {
           member,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          state: 'merged',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1683,7 +1469,19 @@ describe('ActivityService tests', () => {
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            score: 0.42,
+            sentiment: 'positive',
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
@@ -1697,7 +1495,6 @@ describe('ActivityService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1733,11 +1530,7 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1753,11 +1546,7 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1820,11 +1609,7 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1841,11 +1626,7 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1901,11 +1682,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        body: 'Some Parent Activity',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1921,10 +1699,6 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-        },
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -1993,11 +1767,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2013,11 +1785,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2091,11 +1860,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2111,11 +1877,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2190,11 +1953,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2210,11 +1970,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2292,11 +2049,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2312,11 +2066,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2374,7 +2125,7 @@ describe('ActivityService tests', () => {
           autoPublish: {
             status: 'custom',
             channelsByPlatform: {
-              github: ['a-different-test-repo'],
+              github: ['a-different-test-channel'],
             },
           },
         },
@@ -2394,11 +2145,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,
@@ -2414,10 +2162,7 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-        },
+        body: 'Here',
         isKeyAction: true,
         member: memberCreated.id,
         score: 1,

@@ -143,11 +143,11 @@ describe('Dev.to iterator tests', () => {
       expect(activity.sourceParentId).not.toBeDefined()
       expect(activity.score).toEqual(DevtoGrid.comment.score)
       expect(activity.isKeyAction).toEqual(DevtoGrid.comment.isKeyAction)
+      expect(activity.body).toEqual('Hello world!')
+      expect(activity.url).toEqual('https://dev.to/johndoe/comment/123')
 
-      const activityCrowdInfo = activity.crowdInfo as any
-      expect(activityCrowdInfo.bodyHtml).toEqual('Hello world!')
+      const activityCrowdInfo = activity.attributes as any
       expect(activityCrowdInfo.userUrl).toEqual('https://dev.to/johndoe')
-      expect(activityCrowdInfo.commentUrl).toEqual('https://dev.to/johndoe/comment/123')
       expect(activityCrowdInfo.articleUrl).toEqual(article.url)
 
       const member = activity.member

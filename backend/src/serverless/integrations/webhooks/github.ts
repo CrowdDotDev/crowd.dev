@@ -71,11 +71,11 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: issue.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: issue.html_url,
-          title: issue.title,
-          repo: this.payload.repository.html_url,
-          body: issue.body,
+        url: issue.html_url,
+        title: issue.title,
+        channel: this.payload.repository.html_url,
+        body: issue.body,
+        attributes: {
           state: issue.state,
         },
         score: scoreGrid.score,
@@ -112,12 +112,10 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: pull.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: pull.html_url,
-          title: pull.title,
-          repo: this.payload.repository.html_url,
-          body: pull.body,
-        },
+        url: pull.html_url,
+        title: pull.title,
+        channel: this.payload.repository.html_url,
+        body: pull.body,
         score: scoreGrid.score,
         isKeyAction: scoreGrid.isKeyAction,
       }
@@ -145,11 +143,11 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: discussion.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: discussion.html_url,
-          title: discussion.title,
-          repo: this.payload.repository.html_url,
-          body: discussion.body,
+        url: discussion.html_url,
+        title: discussion.title,
+        channel: this.payload.repository.html_url,
+        body: discussion.body,
+        attributes: {
           category: {
             id: discussion.category.node_id,
             isAnswerable: discussion.category.is_answerable,
@@ -192,9 +190,7 @@ export default class GitHubWebhook {
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: this.payload.repository.html_url,
-        },
+        channel: this.payload.repository.html_url,
         score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       }
@@ -224,9 +220,7 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: this.payload.forkee.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          repo: this.payload.repository.html_url,
-        },
+        channel: this.payload.repository.html_url,
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       }
@@ -260,11 +254,9 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: comment.node_id.toString(),
         sourceParentId,
-        crowdInfo: {
-          url: comment.html_url,
-          body: comment.body,
-          repo: this.payload.repository.html_url,
-        },
+        url: comment.html_url,
+        body: comment.body,
+        channel: this.payload.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -274,7 +266,7 @@ export default class GitHubWebhook {
 
   /**
    * Parse a discussion answered activity given the payload coming from the GitHub webhook.
-   * We will be updating score and crowdInfo.isSelectedAnswer for the already
+   * We will be updating score and attributes.isSelectedAnswer for the already
    * existing discussion comment.
    * @param type Any comment type activity can be marked as an answer:
    * issue-comment, pull_request-comment, discussion-comment
@@ -298,12 +290,12 @@ export default class GitHubWebhook {
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: answer.node_id.toString(),
         sourceParentId,
-        crowdInfo: {
-          url: answer.html_url,
-          body: answer.body,
-          repo: this.payload.repository.html_url,
+        attributes: {
           isSelectedAnswer: true,
         },
+        channel: this.payload.repository.html_url,
+        body: answer.body,
+        url: answer.html_url,
         score: GitHubGrid.selectedAnswer.score,
         isKeyAction: GitHubGrid.selectedAnswer.isKeyAction,
       }
