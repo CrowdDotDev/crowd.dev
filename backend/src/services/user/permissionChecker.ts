@@ -38,13 +38,7 @@ export default class PermissionChecker {
    * and throws Error403 if it doesn't
    */
   validateHasAny(permissions) {
-    let hasOne = false
-    for (const perm of permissions) {
-      if (this.has(perm)) {
-        hasOne = true
-        break
-      }
-    }
+    const hasOne = permissions.some((p) => this.has(p))
 
     if (!hasOne) {
       throw new Error403(this.language)
