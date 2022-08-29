@@ -42,7 +42,13 @@ describe('ActivityService tests', () => {
         body: 'Body',
         title: 'Title',
         url: 'URL',
-        sentiment: 1,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         attributes: {
           replies: 12,
         },
@@ -79,7 +85,13 @@ describe('ActivityService tests', () => {
         body: 'Body',
         title: 'Title',
         url: 'URL',
-        sentiment: 1,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         parent: null,
         parentId: null,
         conversationId: null,
@@ -147,7 +159,13 @@ describe('ActivityService tests', () => {
         type: activity2.type,
         channel: null,
         attributes: {},
-        sentiment: 0.42,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+        },
         url: null,
         title: null,
         timestamp: new Date(activity2.timestamp),
@@ -255,7 +273,13 @@ describe('ActivityService tests', () => {
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
         title: activity1.title,
-        sentiment: 0.42,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+        },
         url: null,
         body: activity2.body,
         channel: null,
@@ -676,7 +700,13 @@ describe('ActivityService tests', () => {
         body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
         title: 'Dashboard widgets and some other tweaks/adjustments',
         url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-        sentiment: 0.5,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
@@ -828,7 +858,13 @@ describe('ActivityService tests', () => {
         title: data2.title,
         url: data2.url,
         channel: data2.channel,
-        sentiment: 0.42,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+        },
         attributes: {},
         type: data2.type,
         timestamp: new Date(data2.timestamp),
@@ -959,7 +995,13 @@ describe('ActivityService tests', () => {
         title: dataParent.title,
         url: dataParent.url,
         channel: dataParent.channel,
-        sentiment: 0.42,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+        },
         attributes: {},
         type: dataParent.type,
         timestamp: new Date(dataParent.timestamp),
@@ -988,7 +1030,13 @@ describe('ActivityService tests', () => {
         title: dataChild.title,
         url: dataChild.url,
         channel: dataChild.channel,
-        sentiment: 0.42,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          sentiment: 'positive',
+        },
         attributes: {},
         type: dataChild.type,
         timestamp: new Date(dataChild.timestamp),
@@ -1084,7 +1132,13 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: 0.42,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            sentiment: 'positive',
+          },
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1187,7 +1241,13 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: 0.42,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            sentiment: 'positive',
+          },
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1290,7 +1350,13 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: 0.42,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            sentiment: 'positive',
+          },
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -1394,7 +1460,13 @@ describe('ActivityService tests', () => {
           title: data.title,
           url: data.url,
           channel: data.channel,
-          sentiment: 0.42,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            sentiment: 'positive',
+          },
           attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
@@ -2116,24 +2188,6 @@ describe('ActivityService tests', () => {
       expect(activityParentCreated.conversationId).toBe(conversationCreated.id)
 
       expect(conversationCreated.published).toStrictEqual(false)
-    })
-  })
-
-  describe('shortenText method', () => {
-    it('Should leave a short text untouched', async () => {
-      const text = 'Short text here'
-      const shortenedText = ActivityService.shortenText(text, 100, 500)
-      expect(shortenedText).toBe(text)
-    })
-    it('Should shorten text of more than the allowed words', async () => {
-      const text = 'Some text here that is a bit too long'
-      const shortenedText = ActivityService.shortenText(text, 5, 500)
-      expect(shortenedText).toBe('Some text here that is')
-    })
-    it('Should shorten text of more than the allowed characters', async () => {
-      const text = 'Some text here that is a bit too long'
-      const shortenedText = ActivityService.shortenText(text, 50, 10)
-      expect(shortenedText.length).toBe(10)
     })
   })
 })

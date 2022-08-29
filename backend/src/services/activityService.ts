@@ -134,23 +134,6 @@ export default class ActivityService {
   }
 
   /**
-   * Shorten a string to a max number of either words or characters
-   * @param text String to be shortened
-   * @param nWords Max number of words
-   * @param nChars Max number of characters
-   * @returns Shortened string
-   */
-  static shortenText(text, nWords, nChars) {
-    if (text.split(' ').length >= nWords) {
-      text = text.split(' ').slice(0, nWords).join(' ')
-    }
-    if (text.length >= nChars) {
-      text = text.slice(0, nChars)
-    }
-    return text
-  }
-
-  /**
    * Get the sentiment of an activity from its body and title.
    * It will cut the combination of body and title to a maximum of 90 words or 1400 characters.
    * @param data Activity data. Includes body and title.
@@ -158,11 +141,19 @@ export default class ActivityService {
    */
   static async getSentiment(data) {
     if (getConfig().NODE_ENV === 'test') {
-      return 0.42
+      return {
+        positive: 0.42,
+        negative: 0.42,
+        neutral: 0.42,
+        mixed: 0.42,
+        sentiment: 'positive',
+      }
     }
-    if (getConfig().RAPID_API_KEY !== undefined) {
-      const text = ActivityService.shortenText(`${data.title} ${data.body}`, 90, 1400)
 
+    // Concatenate title and body
+    const text = `${data.title} ${data.body}`.trim()
+
+    if (getConfig().RAPID_API_KEY !== undefined) {
       const axios = require('axios')
 
       const encodedParams = new URLSearchParams()
