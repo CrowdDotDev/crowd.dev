@@ -127,7 +127,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 100 },
             crowdInfo: {
@@ -156,7 +156,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'gilfoyle',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -216,7 +216,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 1 },
             crowdInfo: {
@@ -260,7 +260,7 @@ describe('Integrations worker static tests', () => {
           attributes: {
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 1 },
             crowdInfo: {
@@ -321,7 +321,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -378,7 +378,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/michael_scott',
-          communityMember: {
+          member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
             crowdInfo: {
@@ -403,7 +403,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/dwight_schrute',
-          communityMember: {
+          member: {
             username: 'dwight_schrute',
             reach: { twitter: 30 },
             crowdInfo: {
@@ -452,7 +452,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/michael_scott',
-          communityMember: {
+          member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
             crowdInfo: {
@@ -517,7 +517,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/michael_scott',
-          communityMember: {
+          member: {
             username: 'michael_scott',
             reach: { twitter: 1 },
             crowdInfo: {
@@ -542,7 +542,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/dwight_schrute',
-          communityMember: {
+          member: {
             username: 'dwight_schrute',
             reach: { twitter: 30 },
             crowdInfo: {
@@ -589,7 +589,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/michael_scott',
-          communityMember: {
+          member: {
             username: 'michael_scott',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -614,7 +614,7 @@ describe('Integrations worker static tests', () => {
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           url: 'https://twitter.com/dwight_schrute',
-          communityMember: {
+          member: {
             username: 'dwight_schrute',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -704,7 +704,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -733,7 +733,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'gilfoyle',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -813,7 +813,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'johndoe',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -843,7 +843,7 @@ describe('Integrations worker static tests', () => {
               },
             ],
           },
-          communityMember: {
+          member: {
             username: 'gilfoyle',
             reach: { twitter: 10 },
             crowdInfo: {
@@ -935,7 +935,7 @@ describe('Integrations worker static tests', () => {
           type: 'activity',
           platform: 'api',
           tenant: 'tenant12345',
-          communityMember: {
+          member: {
             crowdInfo: {
               id: '5',
             },
@@ -947,7 +947,7 @@ describe('Integrations worker static tests', () => {
           type: 'activity',
           platform: 'api',
           tenant: 'tenant12345',
-          communityMember: {
+          member: {
             crowdInfo: {
               id: '4',
             },
@@ -988,7 +988,7 @@ describe('Integrations worker static tests', () => {
           type: 'activity',
           platform: 'api',
           tenant: 'tenant12345',
-          communityMember: {
+          member: {
             crowdInfo: {
               id: '4',
             },
@@ -1000,7 +1000,7 @@ describe('Integrations worker static tests', () => {
           type: 'activity',
           platform: 'api',
           tenant: 'tenant12345',
-          communityMember: {
+          member: {
             crowdInfo: {
               id: '1',
             },

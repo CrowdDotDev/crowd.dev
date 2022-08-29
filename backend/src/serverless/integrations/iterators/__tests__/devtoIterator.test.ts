@@ -150,20 +150,16 @@ describe('Dev.to iterator tests', () => {
       expect(activityCrowdInfo.userUrl).toEqual('https://dev.to/johndoe')
       expect(activityCrowdInfo.articleUrl).toEqual(article.url)
 
-      const communityMember = activity.communityMember
-      expect(communityMember.username[PlatformType.DEVTO]).toEqual('johndoe')
-      expect(communityMember.crowdInfo[PlatformType.DEVTO].id).toEqual(123)
-      expect(communityMember.bio).toEqual('Nice profile you got there')
-      expect(communityMember.location).toEqual('Venice, Italy')
-      expect(communityMember.crowdInfo[PlatformType.TWITTER].url).toEqual(
-        'https://twitter.com/johntwitter',
-      )
-      expect(communityMember.username[PlatformType.TWITTER]).toEqual('johntwitter')
-      expect(communityMember.crowdInfo[PlatformType.GITHUB].name).toEqual('John')
-      expect(communityMember.crowdInfo[PlatformType.GITHUB].url).toEqual(
-        'https://github.com/johngithub',
-      )
-      expect(communityMember.username[PlatformType.GITHUB]).toEqual('johngithub')
+      const member = activity.member
+      expect(member.username[PlatformType.DEVTO]).toEqual('johndoe')
+      expect(member.crowdInfo[PlatformType.DEVTO].id).toEqual(123)
+      expect(member.bio).toEqual('Nice profile you got there')
+      expect(member.location).toEqual('Venice, Italy')
+      expect(member.crowdInfo[PlatformType.TWITTER].url).toEqual('https://twitter.com/johntwitter')
+      expect(member.username[PlatformType.TWITTER]).toEqual('johntwitter')
+      expect(member.crowdInfo[PlatformType.GITHUB].name).toEqual('John')
+      expect(member.crowdInfo[PlatformType.GITHUB].url).toEqual('https://github.com/johngithub')
+      expect(member.username[PlatformType.GITHUB]).toEqual('johngithub')
     })
 
     it('It should parse comment with parent and without children', async () => {

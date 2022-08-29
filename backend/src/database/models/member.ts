@@ -1,8 +1,8 @@
 import Sequelize, { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
-  const communityMember = sequelize.define(
-    'communityMember',
+  const member = sequelize.define(
+    'member',
     {
       id: {
         type: DataTypes.UUID,
@@ -169,41 +169,41 @@ export default (sequelize) => {
     },
   )
 
-  communityMember.associate = (models) => {
-    models.communityMember.hasMany(models.activity, {
+  member.associate = (models) => {
+    models.member.hasMany(models.activity, {
       as: 'activities',
     })
 
-    models.communityMember.belongsToMany(models.tag, {
+    models.member.belongsToMany(models.tag, {
       as: 'tags',
-      through: 'communityMemberTags',
+      through: 'memberTags',
     })
 
-    models.communityMember.belongsToMany(models.communityMember, {
+    models.member.belongsToMany(models.member, {
       as: 'noMerge',
-      through: 'communityMemberNoMerge',
+      through: 'memberNoMerge',
     })
 
-    models.communityMember.belongsTo(models.tenant, {
+    models.member.belongsTo(models.tenant, {
       as: 'tenant',
       foreignKey: {
         allowNull: false,
       },
     })
 
-    models.communityMember.belongsTo(models.user, {
+    models.member.belongsTo(models.user, {
       as: 'createdBy',
     })
 
-    models.communityMember.belongsTo(models.user, {
+    models.member.belongsTo(models.user, {
       as: 'updatedBy',
     })
 
-    models.communityMember.belongsToMany(models.communityMember, {
+    models.member.belongsToMany(models.member, {
       as: 'toMerge',
-      through: 'communityMemberToMerge',
+      through: 'memberToMerge',
     })
   }
 
-  return communityMember
+  return member
 }

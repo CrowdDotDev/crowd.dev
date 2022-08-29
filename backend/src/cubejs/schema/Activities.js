@@ -24,7 +24,7 @@ cube(`Activities`, {
 
   joins: {
     Members: {
-      sql: `${CUBE}."communityMemberId" = ${Members}."id"`,
+      sql: `${CUBE}."memberId" = ${Members}."id"`,
       relationship: `belongsTo`,
     },
   },
@@ -33,7 +33,7 @@ cube(`Activities`, {
     count: {
       type: `count`,
       drillMembers: [
-        communityMemberId,
+        memberId,
         sourceid,
         tenantId,
         id,
@@ -48,8 +48,8 @@ cube(`Activities`, {
   },
 
   dimensions: {
-    communityMemberId: {
-      sql: `${CUBE}."communityMemberId"`,
+    memberId: {
+      sql: `${CUBE}."memberId"`,
       type: `string`,
       shown: false,
     },

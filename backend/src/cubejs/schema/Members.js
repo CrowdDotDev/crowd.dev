@@ -8,8 +8,8 @@ cube(`Members`, {
 		 	DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP)
 		 	end
 		 
-		  AS time_to_first_interaction FROM "communityMembers" m
-LEFT JOIN activities a ON (a."communityMemberId" = m.id AND a."isKeyAction"=TRUE)
+		  AS time_to_first_interaction FROM "members" m
+LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
 WHERE m.type ='member'
 GROUP BY m.id`,
 
@@ -63,12 +63,12 @@ GROUP BY m.id`,
 
   joins: {
     Activities: {
-      sql: `${CUBE}.id = ${Activities}."communityMemberId"`,
+      sql: `${CUBE}.id = ${Activities}."memberId"`,
       relationship: `hasMany`,
     },
 
     MemberTags: {
-      sql: `${CUBE}.id = ${MemberTags}."communityMemberId"`,
+      sql: `${CUBE}.id = ${MemberTags}."memberId"`,
       relationship: `belongsTo`,
     },
   },

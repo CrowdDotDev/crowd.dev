@@ -81,7 +81,7 @@ const en = {
       message: 'Member does not exist',
     },
     activityDup: {
-      message: 'This activity has already been linked to this community member',
+      message: 'This activity has already been linked to this member',
     },
     invalidEagleEyeStatus: {
       message: 'Possible statuses are: "shown", "rejected", "engaged"',
@@ -107,7 +107,7 @@ const en = {
   },
 
   entities: {
-    communityMember: {
+    member: {
       errors: {
         unique: {
           username: 'Username must be unique',

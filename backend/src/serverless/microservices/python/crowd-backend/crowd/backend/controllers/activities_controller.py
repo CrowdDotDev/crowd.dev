@@ -1,6 +1,6 @@
 import uuid
 from uuid import UUID
-from crowd.backend.models import CommunityMember
+from crowd.backend.models import Member
 from crowd.backend.controllers import BaseController
 from crowd.backend.enums import Operations
 from crowd.backend.repository import Repository
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class ActivitiesController(BaseController):
     """
     Controller for activities in Crowd.dev.
-    It can add activities with the community members that perform them.
+    It can add activities with the members that perform them.
 
     Args:
         BaseController (BaseController): parent BaseController class.
@@ -47,14 +47,14 @@ class ActivitiesController(BaseController):
 
         for activity in activities:
             activity_to_validate = activity.copy()
-            if dbk.PLATFORM in activity_to_validate[dbk.COM_MEMBER]:
-                del activity_to_validate[dbk.COM_MEMBER][dbk.PLATFORM]
+            if dbk.PLATFORM in activity_to_validate[dbk.MEMBER]:
+                del activity_to_validate[dbk.MEMBER][dbk.PLATFORM]
             # validation
-            member_to_validate = activity_to_validate[dbk.COM_MEMBER].copy()
-            CommunityMember(**member_to_validate)
+            member_to_validate = activity_to_validate[dbk.MEMBER].copy()
+            Member(**member_to_validate)
             # Replace member by member id in activity if there is an id
-            activity_to_validate[dbk.COM_MEMBER + "Id"] = uuid.uuid4()
-            del activity_to_validate[dbk.COM_MEMBER]
+            activity_to_validate[dbk.MEMBER + "Id"] = uuid.uuid4()
+            del activity_to_validate[dbk.MEMBER]
             # Initialise activity for validation
             Activity(**activity_to_validate)
 

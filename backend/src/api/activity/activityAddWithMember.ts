@@ -8,9 +8,9 @@ import ActivityService from '../../services/activityService'
  * @summary Create or update an activity with a member
  * @tag Activities
  * @security Bearer
- * @description Create or update an activity with a community member.
+ * @description Create or update an activity with a member.
  * Activity existence is checked by sourceId and tenantId.
- * Community member existence is checked by platform and username.
+ * Member existence is checked by platform and username.
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityUpsertWithMemberInput} application/json
  * @response 200 - Ok

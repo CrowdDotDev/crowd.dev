@@ -4,7 +4,7 @@ __version__ = "0.0.6"
 import dotenv  # noqa
 
 from .activity import Activity  # noqa
-from .community_member import CommunityMember  # noqa
+from .member import Member  # noqa
 from .tenant_user import TenantUser
 from .tenant import Tenant
 from .user import User

@@ -11,7 +11,7 @@ import Roles from '../security/roles'
 import SettingsService from './settingsService'
 import Plans from '../security/plans'
 import { IServiceOptions } from './IServiceOptions'
-import CommunityMemberService from './communityMemberService'
+import MemberService from './memberService'
 import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
 import defaultReport from '../jsons/default-report.json'
 import dashboardWidgets from '../jsons/dashboard-widgets.json'
@@ -487,11 +487,11 @@ export default class TenantService {
 
   /**
    * Return a list of all the memberToMerge suggestions available in the
-   * tenant's community members
+   * tenant's members
    */
   async findMembersToMerge() {
-    const communityMemberService = new CommunityMemberService(this.options)
-    const { rows } = await communityMemberService.findMembersWithMergeSuggestions()
+    const memberService = new MemberService(this.options)
+    const { rows } = await memberService.findMembersWithMergeSuggestions()
 
     return rows
       .map((item) => {

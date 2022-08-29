@@ -49,7 +49,7 @@ class ActivityRepository {
           'sourceId',
           'importHash',
         ]),
-        communityMemberId: data.communityMember || null,
+        memberId: data.member || null,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -140,7 +140,7 @@ class ActivityRepository {
           'sourceId',
           'importHash',
         ]),
-        communityMemberId: data.communityMember || undefined,
+        memberId: data.member || undefined,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -185,8 +185,8 @@ class ActivityRepository {
 
     const include = [
       {
-        model: options.database.communityMember,
-        as: 'communityMember',
+        model: options.database.member,
+        as: 'member',
       },
       {
         model: options.database.activity,
@@ -283,8 +283,8 @@ class ActivityRepository {
     const whereAnd: Array<any> = []
     const include = [
       {
-        model: options.database.communityMember,
-        as: 'communityMember',
+        model: options.database.member,
+        as: 'member',
       },
       {
         model: options.database.activity,
@@ -331,9 +331,9 @@ class ActivityRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
       }
 
-      if (filter.communityMember) {
+      if (filter.member) {
         whereAnd.push({
-          communityMemberId: SequelizeFilterUtils.uuid(filter.communityMember),
+          memberId: SequelizeFilterUtils.uuid(filter.member),
         })
       }
 

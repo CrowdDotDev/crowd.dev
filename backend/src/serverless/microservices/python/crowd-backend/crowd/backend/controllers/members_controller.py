@@ -1,5 +1,5 @@
 import logging
-from crowd.backend.models import CommunityMember
+from crowd.backend.models import Member
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import BaseController
 from uuid import UUID
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MembersController(BaseController):
     """
-    Controller for community members in Crowd.dev.
+    Controller for members in Crowd.dev.
     It can add or update members, detect members to merge and do the merge, and mark members as not merging.
 
     Args:
@@ -26,7 +26,7 @@ class MembersController(BaseController):
         Function to upsert a list of Members
 
         Args:
-            members ([dict]): List of community members to be upserted
+            members ([dict]): List of members to be upserted
         """
         if type(members) is not list:
             members = [
@@ -42,7 +42,7 @@ class MembersController(BaseController):
                 del member_to_validate[dbk.PLATFORM]
 
             # validation
-            CommunityMember(**member_to_validate)
+            Member(**member_to_validate)
 
         # SQS function call
         return self.sqs.send_message(self.tenant_id, Operations.UPSERT_MEMBERS, members, send)

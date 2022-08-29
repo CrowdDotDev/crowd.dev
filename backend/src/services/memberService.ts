@@ -4,12 +4,12 @@ import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
-import CommunityMemberRepository from '../database/repositories/communityMemberRepository'
+import MemberRepository from '../database/repositories/memberRepository'
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 
-export default class CommunityMemberService {
+export default class MemberService {
   options: IServiceOptions
 
   constructor(options) {
@@ -47,13 +47,13 @@ export default class CommunityMemberService {
         })
       }
       if (data.noMerge) {
-        data.noMerge = await CommunityMemberRepository.filterIdsInTenant(data.noMerge, {
+        data.noMerge = await MemberRepository.filterIdsInTenant(data.noMerge, {
           ...this.options,
           transaction,
         })
       }
       if (data.toMerge) {
-        data.toMerge = await CommunityMemberRepository.filterIdsInTenant(data.toMerge, {
+        data.toMerge = await MemberRepository.filterIdsInTenant(data.toMerge, {
           ...this.options,
           transaction,
         })
@@ -67,7 +67,7 @@ export default class CommunityMemberService {
       }
       if (data.reach) {
         data.reach = typeof data.reach === 'object' ? data.reach : { [platform]: data.reach }
-        data.reach = CommunityMemberService.calculateReach(data.reach, {})
+        data.reach = MemberService.calculateReach(data.reach, {})
       } else {
         data.reach = { total: -1 }
       }
@@ -93,10 +93,10 @@ export default class CommunityMemberService {
       if (existing) {
         const { id } = existing
         delete existing.id
-        const toUpdate = CommunityMemberService.membersMerge(existing, data)
+        const toUpdate = MemberService.membersMerge(existing, data)
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
-        record = await CommunityMemberRepository.update(
+        record = await MemberRepository.update(
           id,
           toUpdate,
           {
@@ -108,7 +108,7 @@ export default class CommunityMemberService {
       } else {
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
-        record = await CommunityMemberRepository.create(
+        record = await MemberRepository.create(
           data,
           {
             ...this.options,
@@ -133,7 +133,7 @@ export default class CommunityMemberService {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'communityMember')
+      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 
       throw error
     }
@@ -156,7 +156,7 @@ export default class CommunityMemberService {
     if (typeof username === 'string') {
       // It is important to call it with doPupulateRelations=false
       // because otherwise the performance is greatly decreased in integrations
-      existing = await CommunityMemberRepository.memberExists(
+      existing = await MemberRepository.memberExists(
         username,
         platform,
         {
@@ -168,7 +168,7 @@ export default class CommunityMemberService {
       if (platform in username) {
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
-        existing = await CommunityMemberRepository.memberExists(
+        existing = await MemberRepository.memberExists(
           username[platform],
           platform,
           {
@@ -185,7 +185,7 @@ export default class CommunityMemberService {
   }
 
   /**
-   * Perform a merge between two community members.
+   * Perform a merge between two members.
    * - For all fields, a deep merge is performed.
    * - Then, an object is obtained with the fields that have been changed in the deep merge.
    * - The original member is updated,
@@ -196,8 +196,8 @@ export default class CommunityMemberService {
    * @returns Success/Error message
    */
   async merge(originalId, toMergeId) {
-    const original = await CommunityMemberRepository.findById(originalId, this.options)
-    const toMerge = await CommunityMemberRepository.findById(toMergeId, this.options)
+    const original = await MemberRepository.findById(originalId, this.options)
+    const toMerge = await MemberRepository.findById(toMergeId, this.options)
 
     if (original.id === toMerge.id) {
       return {
@@ -214,7 +214,7 @@ export default class CommunityMemberService {
     toMerge.activities = toMerge.activities.map((i) => i.get({ plain: true }))
 
     // Performs a merge and returns the fields that were changed so we can update
-    const toUpdate = CommunityMemberService.membersMerge(original, toMerge)
+    const toUpdate = MemberService.membersMerge(original, toMerge)
     if (toUpdate.activities) {
       toUpdate.activities = toUpdate.activities.map((a) => a.id)
     }
@@ -222,16 +222,16 @@ export default class CommunityMemberService {
     await this.update(originalId, toUpdate)
 
     // Remove toMerge from original member
-    await CommunityMemberRepository.removeToMerge(originalId, toMergeId, this.options)
+    await MemberRepository.removeToMerge(originalId, toMergeId, this.options)
 
     // Delete toMerge member
-    await CommunityMemberRepository.destroy(toMergeId, this.options, true)
+    await MemberRepository.destroy(toMergeId, this.options, true)
 
     return { status: 200, mergedId: originalId }
   }
 
   /**
-   * Call the merge function with the special fields for communityMembers.
+   * Call the merge function with the special fields for members.
    * We want to always keep the earlies joinedAt date.
    * We always want the original crowdUsername.
    * @param originalObject Original object to merge
@@ -256,7 +256,7 @@ export default class CommunityMemberService {
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       'username.crowdUsername': (oldValue, _newValue) => oldValue,
-      reach: (oldReach, newReach) => CommunityMemberService.calculateReach(oldReach, newReach),
+      reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
 
       // Get rid of activities that are the same and were in both members
       activities: (oldActivities, newActivities) => {
@@ -287,11 +287,11 @@ export default class CommunityMemberService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      await CommunityMemberRepository.addToMerge(memberOneId, memberTwoId, {
+      await MemberRepository.addToMerge(memberOneId, memberTwoId, {
         ...this.options,
         transaction,
       })
-      await CommunityMemberRepository.addToMerge(memberTwoId, memberOneId, {
+      await MemberRepository.addToMerge(memberTwoId, memberOneId, {
         ...this.options,
         transaction,
       })
@@ -316,20 +316,20 @@ export default class CommunityMemberService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      await CommunityMemberRepository.addNoMerge(memberOneId, memberTwoId, {
+      await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
         transaction,
       })
-      await CommunityMemberRepository.addNoMerge(memberTwoId, memberOneId, {
+      await MemberRepository.addNoMerge(memberTwoId, memberOneId, {
         ...this.options,
         transaction,
       })
 
-      await CommunityMemberRepository.removeToMerge(memberOneId, memberTwoId, {
+      await MemberRepository.removeToMerge(memberOneId, memberTwoId, {
         ...this.options,
         transaction,
       })
-      await CommunityMemberRepository.removeToMerge(memberTwoId, memberOneId, {
+      await MemberRepository.removeToMerge(memberTwoId, memberOneId, {
         ...this.options,
         transaction,
       })
@@ -361,19 +361,19 @@ export default class CommunityMemberService {
         })
       }
       if (data.noMerge) {
-        data.noMerge = await CommunityMemberRepository.filterIdsInTenant(
+        data.noMerge = await MemberRepository.filterIdsInTenant(
           data.noMerge.filter((i) => i !== id),
           { ...this.options, transaction },
         )
       }
       if (data.toMerge) {
-        data.toMerge = await CommunityMemberRepository.filterIdsInTenant(
+        data.toMerge = await MemberRepository.filterIdsInTenant(
           data.toMerge.filter((i) => i !== id),
           { ...this.options, transaction },
         )
       }
 
-      const record = await CommunityMemberRepository.update(id, data, {
+      const record = await MemberRepository.update(id, data, {
         ...this.options,
         transaction,
       })
@@ -384,7 +384,7 @@ export default class CommunityMemberService {
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
 
-      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'communityMember')
+      SequelizeRepository.handleUniqueFieldError(error, this.options.language, 'member')
 
       throw error
     }
@@ -394,7 +394,7 @@ export default class CommunityMemberService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      await CommunityMemberRepository.destroyBulk(
+      await MemberRepository.destroyBulk(
         ids,
         {
           ...this.options,
@@ -415,7 +415,7 @@ export default class CommunityMemberService {
 
     try {
       for (const id of ids) {
-        await CommunityMemberRepository.destroy(
+        await MemberRepository.destroy(
           id,
           {
             ...this.options,
@@ -433,19 +433,19 @@ export default class CommunityMemberService {
   }
 
   async findById(id, returnPlain = true, doPupulateRelations = true) {
-    return CommunityMemberRepository.findById(id, this.options, returnPlain, doPupulateRelations)
+    return MemberRepository.findById(id, this.options, returnPlain, doPupulateRelations)
   }
 
   async findAllAutocomplete(search, limit) {
-    return CommunityMemberRepository.findAllAutocomplete(search, limit, this.options)
+    return MemberRepository.findAllAutocomplete(search, limit, this.options)
   }
 
   async findAndCountAll(args) {
-    return CommunityMemberRepository.findAndCountAll(args, this.options)
+    return MemberRepository.findAndCountAll(args, this.options)
   }
 
   async findMembersWithMergeSuggestions() {
-    return CommunityMemberRepository.findMembersWithMergeSuggestions(this.options)
+    return MemberRepository.findMembersWithMergeSuggestions(this.options)
   }
 
   async import(data, importHash) {
@@ -466,7 +466,7 @@ export default class CommunityMemberService {
   }
 
   async _isImportHashExistent(importHash) {
-    const count = await CommunityMemberRepository.count(
+    const count = await MemberRepository.count(
       {
         importHash,
       },

@@ -1,7 +1,7 @@
 components:
   schemas:
     # defines the attributes of a member, excluding the ID
-    CommunityMemberNoId:
+    MemberNoId:
       description: A member of your community.
       type: object
       required:
@@ -94,7 +94,7 @@ components:
           format: uuid
 
       xml:
-        name: CommunityMember
+        name: Member
 
     # defines the attributes of a tag, excluding the ID.
     TagNoId:
@@ -132,7 +132,7 @@ components:
         - type
         - platform
         - timestamp
-        - communityMemberId
+        - memberId
         - tenantId
         - sourceId
 

@@ -8,11 +8,7 @@ import Operations from '../../dbOperations/operations'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { DevtoGrid } from '../grid/devtoGrid'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
-import {
-  AddActivitiesSingle,
-  CommunityMember,
-  DevtoIntegrationMessage,
-} from '../types/messageTypes'
+import { AddActivitiesSingle, Member, DevtoIntegrationMessage } from '../types/messageTypes'
 import { Endpoint, Endpoints, State } from '../types/regularTypes'
 import { getArticleComments } from '../usecases/devto/getArticleComments'
 import sendIntegrationsMessage from '../utils/integrationSQS'
@@ -193,7 +189,7 @@ export default class DevtoIterator extends BaseIterator {
     const article = single(this.articles, (a) => a.id === articleId)
     const activities: AddActivitiesSingle[] = []
 
-    const communityMember: CommunityMember = {
+    const member: Member = {
       username: {
         [PlatformType.DEVTO]: comment.fullUser.username,
       },
@@ -207,18 +203,18 @@ export default class DevtoIterator extends BaseIterator {
     }
 
     if (comment.fullUser.twitter_username) {
-      communityMember.crowdInfo.twitter = {
+      member.crowdInfo.twitter = {
         url: `https://twitter.com/${comment.fullUser.twitter_username}`,
       }
-      communityMember.username.twitter = comment.fullUser.twitter_username
+      member.username.twitter = comment.fullUser.twitter_username
     }
 
     if (comment.fullUser.github_username) {
-      communityMember.crowdInfo.github = {
+      member.crowdInfo.github = {
         name: comment.fullUser.name,
         url: `https://github.com/${comment.fullUser.github_username}`,
       }
-      communityMember.username.github = comment.fullUser.github_username
+      member.username.github = comment.fullUser.github_username
     }
 
     activities.push({
@@ -236,7 +232,7 @@ export default class DevtoIterator extends BaseIterator {
         userUrl: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         articleUrl: article.url,
       },
-      communityMember,
+      member,
       score: DevtoGrid.comment.score,
       isKeyAction: DevtoGrid.comment.isKeyAction,
     })

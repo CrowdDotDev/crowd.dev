@@ -43,7 +43,7 @@ function models() {
   const modelClasses = [
     require('./activity').default,
     require('./auditLog').default,
-    require('./communityMember').default,
+    require('./member').default,
     require('./file').default,
     require('./integration').default,
     require('./report').default,

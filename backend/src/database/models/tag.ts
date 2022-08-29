@@ -44,9 +44,9 @@ export default (sequelize) => {
   )
 
   tag.associate = (models) => {
-    models.tag.belongsToMany(models.communityMember, {
-      as: 'communityMembers',
-      through: 'communityMemberTags',
+    models.tag.belongsToMany(models.member, {
+      as: 'members',
+      through: 'memberTags',
       foreignKey: 'tagId',
     })
 

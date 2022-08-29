@@ -284,7 +284,7 @@ export default class TwitterIterator extends BaseIterator {
       // When onboarding we need a super old date. Otherwise we can place it in a 2h window
       timestamp: timestampObj.toDate(),
       url: `https://twitter.com/${record.username}`,
-      communityMember: {
+      member: {
         username: record.username,
         reach: { twitter: record.followersCount },
         crowdInfo: {
@@ -300,7 +300,7 @@ export default class TwitterIterator extends BaseIterator {
     // It is imperative that we remove the followers we have already seen.
     // Since they come without timestamps and we have set the followers timestamp to now(),
     // this would cause repeated activities otherwise
-    out = out.filter((activity) => !this.followers.has(activity.communityMember.crowdInfo.id))
+    out = out.filter((activity) => !this.followers.has(activity.member.crowdInfo.id))
 
     return out
   }
@@ -323,7 +323,7 @@ export default class TwitterIterator extends BaseIterator {
         attributes: {
           attachments: record.attachments ? record.attachments : [],
         },
-        communityMember: {
+        member: {
           username: record.author.username,
           crowdInfo: {
             id: record.author.id,
@@ -387,7 +387,7 @@ export default class TwitterIterator extends BaseIterator {
       case 'followers':
         return TwitterIterator.isJoin(
           this.followers,
-          TwitterIterator.mapToPath(activities, 'communityMember.crowdInfo.id'),
+          TwitterIterator.mapToPath(activities, 'member.crowdInfo.id'),
         )
 
       default:

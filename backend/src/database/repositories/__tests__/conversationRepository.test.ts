@@ -1,6 +1,6 @@
 import ConversationRepository from '../conversationRepository'
 import ActivityRepository from '../activityRepository'
-import CommunityMemberRepository from '../communityMemberRepository'
+import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import { PlatformType } from '../../../utils/platforms'
@@ -246,7 +246,7 @@ describe('ConversationRepository tests', () => {
     it('Should find and count all conversations, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -274,7 +274,7 @@ describe('ConversationRepository tests', () => {
           body: 'Some Parent Activity',
           channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           conversationId: conversation1Created.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -293,7 +293,7 @@ describe('ConversationRepository tests', () => {
           body: 'Here',
           channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -313,7 +313,7 @@ describe('ConversationRepository tests', () => {
           body: 'Here',
           channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -336,7 +336,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 1',
           channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
           sourceId: '#sourceId4',
@@ -352,7 +352,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 2',
           channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
           sourceId: '#sourceId5',
@@ -373,7 +373,7 @@ describe('ConversationRepository tests', () => {
           body: 'conversation activity 1',
           channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation3Created.id,
           sourceId: '#sourceId6',

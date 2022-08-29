@@ -6,7 +6,7 @@ from jmespath import search
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from crowd.backend.models.base import Base
-from crowd.backend.models import CommunityMember
+from crowd.backend.models import Member
 from crowd.backend.models import Activity
 from crowd.backend.models import Integration
 from crowd.backend.models import Tenant
@@ -191,7 +191,7 @@ class Repository(object):
 
     def find_members(self, username):
         return self.find_in_table(
-            CommunityMember,
+            Member,
             {"username.crowdUsername": username, "tenantId": uuid.UUID(self.tenant_id)},
             many=True,
         )
@@ -285,18 +285,18 @@ class Repository(object):
             **{dbk.TENANT: uuid.UUID(self.tenant_id)},
         }
 
-        search_query = self.session.query(CommunityMember)
+        search_query = self.session.query(Member)
 
         # Filter with query
         for attr, value in query.items():
-            search_query = search_query.filter(getattr(CommunityMember, attr) == value)
+            search_query = search_query.filter(getattr(Member, attr) == value)
 
         # Find members that are of type member
-        search_query = search_query.filter(CommunityMember.type == "member")
+        search_query = search_query.filter(Member.type == "member")
         # Find members that are new
         # We use a security padding of 5 minutes
         search_query = search_query.filter(
-            CommunityMember.createdAt >= (microservice.updatedAt - timedelta(minutes=5))
-        ).order_by(CommunityMember.createdAt.desc())
+            Member.createdAt >= (microservice.updatedAt - timedelta(minutes=5))
+        ).order_by(Member.createdAt.desc())
 
         return search_query.all()

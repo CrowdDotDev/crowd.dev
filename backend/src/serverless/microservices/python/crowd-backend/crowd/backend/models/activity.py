@@ -30,8 +30,8 @@ class Activity(Base):
     updatedAt = Column(DateTime)
     deletedAt = Column(DateTime)
 
-    communityMemberId = Column(String, ForeignKey("communityMembers.id"), nullable=False)
-    parentCommunityMember = relationship("CommunityMember", back_populates="activities")
+    memberId = Column(String, ForeignKey("members.id"), nullable=False)
+    parentMember = relationship("Member", back_populates="activities")
 
     parentId = Column(String, ForeignKey("activities.id"))
     parent = relationship("Activity")

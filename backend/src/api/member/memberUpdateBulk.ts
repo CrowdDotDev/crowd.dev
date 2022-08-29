@@ -1,18 +1,18 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import CommunityMemberService from '../../services/communityMemberService'
+import MemberService from '../../services/memberService'
 
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.communityMemberEdit)
+    new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
     const membersToUpdate = req.body.data
 
-    const communityMemberService = new CommunityMemberService(req)
+    const memberService = new MemberService(req)
 
     const promises = membersToUpdate.reduce((acc, item) => {
-      acc.push(communityMemberService.update(item.id, item))
+      acc.push(memberService.update(item.id, item))
       return acc
     }, [])
 

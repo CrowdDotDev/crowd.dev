@@ -16,7 +16,7 @@ servers:
 
 tags:
   - name: Members
-    description: Everything about community members
+    description: Everything about members
   - name: Activities
     description: Everything about activities
   - name: Conversations

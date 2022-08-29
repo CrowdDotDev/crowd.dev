@@ -105,7 +105,7 @@ export default (sequelize) => {
         },
         {
           unique: false,
-          fields: ['communityMemberId', 'tenantId'],
+          fields: ['memberId', 'tenantId'],
           where: {
             deletedAt: null,
           },
@@ -142,8 +142,8 @@ export default (sequelize) => {
   )
 
   activity.associate = (models) => {
-    models.activity.belongsTo(models.communityMember, {
-      as: 'communityMember',
+    models.activity.belongsTo(models.member, {
+      as: 'member',
       onDelete: 'cascade',
       foreignKey: {
         allowNull: false,

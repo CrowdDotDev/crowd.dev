@@ -5,8 +5,8 @@ import { detectSentiment } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
-import CommunityMemberRepository from '../database/repositories/communityMemberRepository'
-import CommunityMemberService from './communityMemberService'
+import MemberRepository from '../database/repositories/memberRepository'
+import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
@@ -37,11 +37,11 @@ export default class ActivityService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      if (data.communityMember) {
-        data.communityMember = await CommunityMemberRepository.filterIdInTenant(
-          data.communityMember,
-          { ...this.options, transaction },
-        )
+      if (data.member) {
+        data.member = await MemberRepository.filterIdInTenant(data.member, {
+          ...this.options,
+          transaction,
+        })
       }
 
       // If a sourceParentId is sent, try to find it in our db
@@ -84,14 +84,14 @@ export default class ActivityService {
           transaction,
         })
 
-        // Only track activity's platform and timestamp and communityMemberId. It is completely annonymous.
+        // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
           'Activity created',
           {
             id: record.id,
             platform: record.platform,
             timestamp: record.timestamp,
-            communityMemberId: record.communityMemberId,
+            memberId: record.memberId,
             createdAt: record.createdAt,
           },
           this.options,
@@ -275,16 +275,12 @@ export default class ActivityService {
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists
-        ? await new CommunityMemberService(this.options).findById(
-            activityExists.communityMemberId,
-            true,
-            false,
-          )
+        ? await new MemberService(this.options).findById(activityExists.memberId, true, false)
         : false
 
-      const member = await new CommunityMemberService(this.options).upsert(
+      const member = await new MemberService(this.options).upsert(
         {
-          ...data.communityMember,
+          ...data.member,
           platform: data.platform,
           joinedAt: data.timestamp,
         },
@@ -292,7 +288,7 @@ export default class ActivityService {
         existingMember,
       )
 
-      data.communityMember = member.id
+      data.member = member.id
 
       const record = await this.upsert(data, activityExists)
 
@@ -312,10 +308,10 @@ export default class ActivityService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      data.communityMember = await CommunityMemberRepository.filterIdInTenant(
-        data.communityMember,
-        { ...this.options, transaction },
-      )
+      data.member = await MemberRepository.filterIdInTenant(data.member, {
+        ...this.options,
+        transaction,
+      })
 
       if (data.parent) {
         data.parent = await ActivityRepository.filterIdInTenant(data.parent, {

@@ -1,14 +1,14 @@
 components:
   schemas:
-    CommunityMemberType:
+    MemberType:
       type: string
       enum:
         - member
-    CommunityMemberScore:
+    MemberScore:
       type: integer
       minimum: -1
       maximum: 10
-    CommunityMemberSort:
+    MemberSort:
       type: string
       enum:
         - activitiesCount_ASC

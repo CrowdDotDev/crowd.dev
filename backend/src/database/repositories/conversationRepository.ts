@@ -425,7 +425,7 @@ class ConversationRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     output.activities = await record.getActivities({
-      include: ['communityMember'],
+      include: ['member'],
       order: [['timestamp', 'ASC']],
       transaction,
     })

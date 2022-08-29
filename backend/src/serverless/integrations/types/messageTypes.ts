@@ -46,7 +46,7 @@ export interface SlackIntegrationMessage extends IntegrationsMessage {
 
 export interface GithubIntegrationMessage extends IntegrationsMessage {}
 
-export type CommunityMember = {
+export type Member = {
   username: any
   crowdInfo?: any
   email?: string
@@ -61,7 +61,7 @@ export type AddActivitiesSingle = {
   type: string
   platform: string
   tenant: string
-  communityMember: CommunityMember
+  member: Member
   sourceId?: string
   sourceParentId?: string
   attributes?: object

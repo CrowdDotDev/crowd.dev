@@ -3,7 +3,7 @@ from crowd.backend.repository.keys import DBKeys as dbk
 from datetime import datetime
 from dateutil import parser
 from crowd.backend.controllers import MembersController
-from crowd.backend.models import CommunityMember, Tenant
+from crowd.backend.models import Member, Tenant
 import time
 from crowd.backend.utils.datetime import CrowdDateTime as cdt
 import logging
@@ -30,7 +30,7 @@ class MembersScore:
 
         print(self.tenants.fetchall())
         self.team_members = [
-            member.id for member in self.repository.find_all(CommunityMember, query={"crowdInfo.team": True})
+            member.id for member in self.repository.find_all(Member, query={"crowdInfo.team": True})
         ]
 
         self.send = send
@@ -40,13 +40,13 @@ class MembersScore:
 
     def fetch_scores(self):
         """
-        This function accesses the database and fetches the mean scores for each community member for the last year
+        This function accesses the database and fetches the mean scores for each member for the last year
 
-        The sql query selects all community members for a tenant,
+        The sql query selects all members for a tenant,
         and joins it with a table containing every single day for the past year.
         This resulting table is then used to calculate the monthly mean score of
-        engagement for each community member for the past year.
-        The results of this query should be a table where each row contains a community member and his/her engagement
+        engagement for each member for the past year.
+        The results of this query should be a table where each row contains a member and his/her engagement
         for each month of the past year.
         """
         with self.repository.engine.connect() as con:
@@ -54,11 +54,11 @@ class MembersScore:
             id = self.repository.tenant_id
 
             self.mean_scores = con.execute(
-                f'select "communityMemberId", avg(number_daily_activities) as average_daily_activities, avg(summed_daily_score) as summed_daily_score, coalesce(stddev(number_daily_activities),0), coalesce(stddev(summed_daily_score),0)  ,extract(month from MyJoinDate) as month, extract(year from MyJoinDate) as year\
+                f'select "memberId", avg(number_daily_activities) as average_daily_activities, avg(summed_daily_score) as summed_daily_score, coalesce(stddev(number_daily_activities),0), coalesce(stddev(summed_daily_score),0)  ,extract(month from MyJoinDate) as month, extract(year from MyJoinDate) as year\
                 from (\
-                select FullDates."communityMemberId", FullDates.MyJoinDate, coalesce(sum(e), 0) as number_daily_activities, coalesce(sum(s), 0) as summed_daily_score from \
+                select FullDates."memberId", FullDates.MyJoinDate, coalesce(sum(e), 0) as number_daily_activities, coalesce(sum(s), 0) as summed_daily_score from \
                 (\
-                select "communityMemberId", AllDays.MyJoinDate, coalesce(sum(e), 0) as number_daily_activities, coalesce(sum(s), 0) as summed_daily_score\
+                select "memberId", AllDays.MyJoinDate, coalesce(sum(e), 0) as number_daily_activities, coalesce(sum(s), 0) as summed_daily_score\
                 from\
                 (SELECT date_trunc(\'day\', dd):: date as MyJoinDate\
                 FROM generate_series\
@@ -66,20 +66,20 @@ class MembersScore:
                     , (now())::timestamp\
                     , \'1 day\'::interval) dd\
                     ) AllDays\
-                cross join ( select "communityMemberId", count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
+                cross join ( select "memberId", count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
                 from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
-                group by "communityMemberId", date("timestamp") ) U\
-                group by "communityMemberId", Alldays.MyJoinDate order by Alldays.MyJoinDate ASC\
+                group by "memberId", date("timestamp") ) U\
+                group by "memberId", Alldays.MyJoinDate order by Alldays.MyJoinDate ASC\
                 ) FullDates \
-                left join (select "communityMemberId" as cm_id, count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
+                left join (select "memberId" as cm_id, count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
                 from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
-                group by "communityMemberId", date("timestamp")) T on T."cm_id"=FullDates."communityMemberId" and T."timestamp" = FullDates.MyJoinDate\
-                group by FullDates."communityMemberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
-                ) Daily group by "communityMemberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
+                group by "memberId", date("timestamp")) T on T."cm_id"=FullDates."memberId" and T."timestamp" = FullDates.MyJoinDate\
+                group by FullDates."memberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
+                ) Daily group by "memberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
             )
 
             self.tenants = con.execute(
-                'select count(*), "tenantId" from "communityMembers" cm group by "tenantId" order by count(*) ASC'
+                'select count(*), "tenantId" from "members" cm group by "tenantId" order by count(*) ASC'
             )
 
     def _calculate_months(self, date):
@@ -206,7 +206,7 @@ class MembersScore:
         # Keeping track of time for lambda timeout
         start = time.time()
         logger.info("Finding members...")
-        members = self.repository.find_all(CommunityMember, query={})
+        members = self.repository.find_all(Member, query={})
         logger.info("Found all members")
 
         logger.info("Saving original scores...")

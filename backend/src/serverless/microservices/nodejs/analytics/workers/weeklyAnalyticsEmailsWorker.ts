@@ -59,7 +59,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         const lastActivity =
           conversationLazyLoaded.activities[conversationLazyLoaded.activities.length - 1]
         c.lastActivity = lastActivity.get({ plain: true })
-        c.lastActivity.username = lastActivity.communityMember.username[c.platform]
+        c.lastActivity.username = lastActivity.member.username[c.platform]
         c.lastActiveFromNow = moment(c.lastActive).fromNow()
         c.replyCount = conversationLazyLoaded.activities.length - 1
         c.memberCount = conversationLazyLoaded.activities.reduce((acc, i) => {
@@ -68,8 +68,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
             acc.count = 0
           }
 
-          if (!acc.ids[i.communityMemberId]) {
-            acc.ids[i.communityMemberId] = true
+          if (!acc.ids[i.memberId]) {
+            acc.ids[i.memberId] = true
             acc.count += 1
           }
           return acc

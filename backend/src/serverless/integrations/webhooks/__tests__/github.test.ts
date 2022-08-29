@@ -174,7 +174,7 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.opened.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -218,7 +218,7 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.edited.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -258,7 +258,7 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.reopened.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -296,7 +296,7 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.closed.issue.closed_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -364,7 +364,7 @@ describe('Github webhooks tests', () => {
       )
       const discussion = await gh.discussion()
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -409,7 +409,7 @@ describe('Github webhooks tests', () => {
       )
       const discussion = await gh.discussion()
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -457,7 +457,7 @@ describe('Github webhooks tests', () => {
         TestEvents.discussion.answered.discussion.node_id.toString(),
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -500,7 +500,7 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.opened.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -545,7 +545,7 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.edited.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -586,7 +586,7 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.reopened.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -626,7 +626,7 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.closed.pull_request.closed_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -690,7 +690,7 @@ describe('Github webhooks tests', () => {
       const starTimestamp = star.timestamp
       delete star.timestamp
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -734,7 +734,7 @@ describe('Github webhooks tests', () => {
       const starTimestamp = star.timestamp
       delete star.timestamp
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -778,7 +778,7 @@ describe('Github webhooks tests', () => {
       const { tenantId, gh } = await init(TestEvents.fork.event, TestEvents.fork.created, true)
       const fork = await gh.fork()
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -818,7 +818,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -866,7 +866,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -914,7 +914,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -965,7 +965,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -1027,7 +1027,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },
@@ -1079,7 +1079,7 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
             github: 'testMember',
           },

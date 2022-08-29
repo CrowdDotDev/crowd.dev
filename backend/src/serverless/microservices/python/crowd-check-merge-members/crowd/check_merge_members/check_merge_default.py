@@ -1,7 +1,7 @@
 from crowd.backend.repository import Repository
 from crowd.backend.repository.keys import DBKeys as dbk
 from crowd.backend.controllers import MembersController
-from crowd.backend.models import CommunityMember
+from crowd.backend.models import Member
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class CheckMergeDefault:
         Returns:
                 (dict): Updated document.
         """
-        # Replacing  each CommunityMember with its respective id
+        # Replacing  each Member with its respective id
         out = [(str(ms[0].id), str(ms[1].id)) for ms in arr_of_merge_members if ms[0].id != ms[1].id]
         logger.info(f"Adding members to merge: {out}")
         if not self.test:
@@ -60,7 +60,7 @@ class CheckMergeDefault:
         possible(if mergeable) merge couples for the merge_candidates = [u1,u2], [u1,u3], [u2,u3]
 
         Args:
-            merge_candidates(list): a list of community member candidates to be proposed to be merged
+            merge_candidates(list): a list of member candidates to be proposed to be merged
         Returns:
             main_list (list): A list of 2-element lists that represents TO_MERGE field
             Ex:
@@ -107,7 +107,7 @@ class CheckMergeDefault:
         """
         Gathers the merge candidates into a crowdUsername => [] type of dictionary.
         Args:
-            members(list): List of community member dicts.
+            members(list): List of member dicts.
         Returns:
             member_hash(dict): a crowdUsername mapped dictionary that holds all the merge candidates for a crowdUsername.
             Ex:
@@ -137,18 +137,18 @@ class CheckMergeDefault:
 
     def get_members(self):
         """
-        Gets all the community members of a tenant
+        Gets all the members of a tenant
         Returns:
-                (list): List of community member documents.
+                (list): List of member documents.
         """
-        return self.repository.find_all(CommunityMember, query={dbk.TENANT: self.tenant_id})
+        return self.repository.find_all(Member, query={dbk.TENANT: self.tenant_id})
 
     def is_mergeable(self, user_1, user_2):
         """
         Two merge candidates considered mergeable when they have no conflicting platform usernames and no 'no_merges'
 
         Args:
-            user_1(dict), user_2(dict): Community member dicts to check is_mergeable in between
+            user_1(dict), user_2(dict): Member dicts to check is_mergeable in between
         Returns:
             (bool): False if no_merge found between users, else True
         """
@@ -159,7 +159,7 @@ class CheckMergeDefault:
         Checks no_merge field of merge candidates
 
         Args:
-            user_1(dict), user_2(dict): Community member dicts to check no_merge in between
+            user_1(dict), user_2(dict): Member dicts to check no_merge in between
         Returns:
             (bool): False if no_merge found between users, else True
         """
@@ -171,7 +171,7 @@ class CheckMergeDefault:
         Two users shouldn't proposed to be merged if they have different usernames for the same platform.
 
         Args:
-            user_1(dict), user_2(dict): Community member dicts to check conflicting platform usernames in between
+            user_1(dict), user_2(dict): Member dicts to check conflicting platform usernames in between
         Returns:
             (bool): False if conflicting platform usernames found between users, else True
         """

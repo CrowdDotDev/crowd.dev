@@ -1,28 +1,28 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import CommunityMemberService from '../../services/communityMemberService'
+import MemberService from '../../services/memberService'
 
 /**
- * GET /tenant/{tenantId}/community-member/{id}
- * @summary Find a member
+ * DELETE /tenant/{tenantId}/community-member/{id}
+ * @summary Delete a member
  * @tag Members
  * @security Bearer
- * @description Find a single member by ID.
+ * @description Delete a member given an ID
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @response 200 - Ok
- * @responseContent {CommunityMember} 200.application/json
- * @responseExample {CommunityMember} 200.application/json.Member
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.communityMemberRead)
+    new PermissionChecker(req).validateHas(Permissions.values.memberDestroy)
 
-    const payload = await new CommunityMemberService(req).findById(req.params.id)
+    await new MemberService(req).destroyAll(req.query.ids)
+
+    const payload = true
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

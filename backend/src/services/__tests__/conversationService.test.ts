@@ -1,7 +1,7 @@
 import moment from 'moment'
 import ConversationService from '../conversationService'
 import ActivityRepository from '../../database/repositories/activityRepository'
-import CommunityMemberRepository from '../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../database/repositories/memberRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import Plans from '../../security/plans'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
@@ -15,7 +15,7 @@ import Error400 from '../../errors/Error400'
 import { PlatformType } from '../../utils/platforms'
 import ActivityService from '../activityService'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 
 const db = null
 
@@ -28,8 +28,8 @@ function getConversationStyleActivity(activity) {
   activity.timestamp = moment(activity.timestamp).unix()
 
   // only the username will be returned as author, rest of the member object shouldn't be expected
-  activity.author = activity.communityMember.username[activity.platform]
-  delete activity.communityMember
+  activity.author = activity.member.username[activity.platform]
+  delete activity.member
 
   // parent won't be sent in the activity object to the search engine as well
   delete activity.parent
@@ -218,7 +218,7 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -238,7 +238,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 1',
           channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -254,7 +254,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 2',
           channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId2',
@@ -270,7 +270,7 @@ describe('ConversationService tests', () => {
           channel: 'some-channel',
           body: 'conversation activity 3',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId3',
@@ -323,7 +323,7 @@ describe('ConversationService tests', () => {
           platform: PlatformType.DISCORD,
           body: 'conversation activity 4',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId4',
@@ -388,7 +388,7 @@ describe('ConversationService tests', () => {
             ],
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId6',
@@ -452,7 +452,7 @@ describe('ConversationService tests', () => {
           },
           body: '',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId7',
@@ -501,7 +501,7 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -520,7 +520,7 @@ describe('ConversationService tests', () => {
         body: 'Some Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -540,7 +540,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -651,7 +651,7 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -670,7 +670,7 @@ describe('ConversationService tests', () => {
           channel: 'some-channel',
           body: 'conversation activity 1',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -753,7 +753,7 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -773,7 +773,7 @@ describe('ConversationService tests', () => {
           body: 'conversation activity 1',
           channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -1067,7 +1067,7 @@ describe('ConversationService tests', () => {
       )
       await ConversationSettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -1083,7 +1083,7 @@ describe('ConversationService tests', () => {
         body: 'Some Github Parent Activity',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#githubSourceId1',
       }
@@ -1100,7 +1100,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: githubActivityParentCreated.id,
         sourceId: '#githubSourceId2',
@@ -1126,7 +1126,7 @@ describe('ConversationService tests', () => {
         body: 'Some Discord Parent Activity',
         channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#discordSourceId1',
       }
@@ -1143,7 +1143,7 @@ describe('ConversationService tests', () => {
         body: 'Here',
         channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: discordActivityParentCreated.id,
         sourceId: '#discordSourceId1',
