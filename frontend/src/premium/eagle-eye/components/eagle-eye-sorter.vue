@@ -1,5 +1,5 @@
 <template>
-  <div class="eagle-eye-sorter" :style="computedWidth">
+  <div class="eagle-eye-sorter -mr-3" :style="computedWidth">
     <el-select
       :value="value"
       popper-class="eagle-eye-popper-class"
