@@ -39,13 +39,12 @@
         <blockquote
           class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-if="activity.parent && !belongsToConversation"
-        >
-          {{ activity.parent.crowdInfo.body }}
-        </blockquote>
+          v-html="activity.parent.crowdInfo.body"
+        />
         <span
           class="block whitespace-pre-wrap custom-break-all"
-          >{{ activity.crowdInfo.body }}</span
-        >
+          v-html="activity.crowdInfo.body"
+        />
       </div>
       <div
         class="activity-list-feed-item-content-body"
@@ -76,9 +75,8 @@
         <blockquote
           class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-if="activity.crowdInfo.thread"
-        >
-          {{ activity.crowdInfo.thread.body }}
-        </blockquote>
+          v-html="activity.crowdInfo.thread.body"
+        />
         <span
           v-if="activity.type === 'reaction_added'"
           v-html="renderEmoji(activity.crowdInfo.body)"
@@ -86,8 +84,8 @@
         <span
           v-else
           class="block whitespace-pre-wrap custom-break-all"
-          >{{ activity.crowdInfo.body }}</span
-        >
+          v-html="activity.crowdInfo.body"
+        />
       </div>
 
       <a
