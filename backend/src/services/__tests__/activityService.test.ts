@@ -42,13 +42,13 @@ describe('ActivityService tests', () => {
         body: 'Body',
         title: 'Title',
         url: 'URL',
-        sentiment: {
-          positive: 0.98,
-          negative: 0.0,
-          neutral: 0.02,
-          mixed: 0.0,
-          sentiment: 'positive',
-        },
+        // sentiment: {
+        //   positive: 0.98,
+        //   negative: 0.0,
+        //   neutral: 0.02,
+        //   mixed: 0.0,
+        //   sentiment: 'positive',
+        // },
         attributes: {
           replies: 12,
         },

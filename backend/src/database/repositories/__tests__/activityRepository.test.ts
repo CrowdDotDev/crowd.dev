@@ -272,6 +272,7 @@ describe('ActivityRepository tests', () => {
               sentiment: 'positive',
             },
             communityMember: memberCreated.id,
+            sourceId: '#sourceId1',
           },
           mockIRepositoryOptions,
         ),
@@ -292,10 +293,25 @@ describe('ActivityRepository tests', () => {
               sentiment: 'smth',
             },
             communityMember: memberCreated.id,
+            sourceId: '#sourceId1',
           },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
+
+      // Works with empty object
+      const created = await ActivityRepository.create(
+        {
+          type: 'activity',
+          timestamp: '2020-05-27T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          sentiment: {},
+          communityMember: memberCreated.id,
+          sourceId: '#sourceId1',
+        },
+        mockIRepositoryOptions,
+      )
+      expect(created.sentiment).toStrictEqual({})
     })
 
     it('Should leave allowed HTML tags in body and title', async () => {

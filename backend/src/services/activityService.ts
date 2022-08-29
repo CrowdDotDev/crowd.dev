@@ -1,6 +1,7 @@
 import { Transaction } from 'sequelize/types'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { detectSentiment } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -135,12 +136,11 @@ export default class ActivityService {
 
   /**
    * Get the sentiment of an activity from its body and title.
-   * It will cut the combination of body and title to a maximum of 90 words or 1400 characters.
    * @param data Activity data. Includes body and title.
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
   static async getSentiment(data) {
-    if (getConfig().NODE_ENV === 'test') {
+    if (getConfig().NODE_ENV === 'testtt') {
       return {
         positive: 0.42,
         negative: 0.42,
@@ -152,32 +152,7 @@ export default class ActivityService {
 
     // Concatenate title and body
     const text = `${data.title} ${data.body}`.trim()
-
-    if (getConfig().RAPID_API_KEY !== undefined) {
-      const axios = require('axios')
-
-      const encodedParams = new URLSearchParams()
-      encodedParams.append('text', text)
-
-      const options = {
-        method: 'POST',
-        url: 'https://twinword-sentiment-analysis.p.rapidapi.com/analyze/',
-        headers: {
-          'content-type': 'application/x-www-form-urlencoded',
-          'X-RapidAPI-Key': getConfig().RAPID_API_KEY,
-          'X-RapidAPI-Host': 'twinword-sentiment-analysis.p.rapidapi.com',
-        },
-        data: encodedParams,
-      }
-
-      return axios
-        .request(options)
-        .then((response) => response.data.score)
-        .catch((error) => {
-          throw error
-        })
-    }
-    return null
+    return detectSentiment(text)
   }
 
   /**

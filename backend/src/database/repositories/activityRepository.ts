@@ -72,16 +72,19 @@ class ActivityRepository {
    * @param sentimentData Object: {positive: number, negative: number, mixed: number, neutral: number, sentiment: 'positive' | 'negative' | 'mixed' | 'neutral'}
    */
   static _validateSentiment(sentimentData) {
-    for (const prop of ['positive', 'negative', 'neutral', 'mixed']) {
-      if (typeof sentimentData[prop] !== 'number') {
-        throw new Error(
-          `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
-        )
-      }
-      if (typeof sentimentData.sentiment !== 'string') {
-        throw new Error(
-          `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
-        )
+    if (!lodash.isEmpty(sentimentData)) {
+      const moods = ['positive', 'negative', 'mixed', 'neutral']
+      for (const prop of moods) {
+        if (typeof sentimentData[prop] !== 'number') {
+          throw new Error(
+            `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
+          )
+        }
+        if (!moods.includes(sentimentData.sentiment)) {
+          throw new Error(
+            `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
+          )
+        }
       }
     }
   }
