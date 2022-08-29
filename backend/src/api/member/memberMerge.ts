@@ -1,13 +1,13 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import CommunityMemberService from '../../services/communityMemberService'
+import MemberService from '../../services/memberService'
 
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.communityMemberEdit)
+    new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
     const { data } = req.body
-    const payload = await new CommunityMemberService(req).merge(
+    const payload = await new MemberService(req).merge(
       req.params.memberId,
       data.memberToMerge,
     )

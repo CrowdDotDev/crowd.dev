@@ -1,7 +1,7 @@
 components:
   examples:
-    # Community member examples
-    CommunityMember:
+    # Member examples
+    Member:
       value:
         id: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
         username:
@@ -58,7 +58,7 @@ components:
             createdAt: '2022-03-29T09:22:23.224Z'
             updatedAt: '2022-03-29T09:22:23.224Z'
             deletedAt:
-            communityMemberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+            memberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
             conversationId:
             parentId:
             tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
@@ -79,7 +79,7 @@ components:
             createdAt: '2022-03-29T09:22:23.159Z'
             updatedAt: '2022-03-29T09:22:23.159Z'
             deletedAt:
-            communityMemberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+            memberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
             conversationId:
             parentId:
             tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
@@ -106,7 +106,7 @@ components:
             updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
         noMerge: []
         toMerge: []
-    CommunityMember2:
+    Member2:
       value:
         id: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
         username:
@@ -161,7 +161,7 @@ components:
             createdAt: '2022-03-29T09:22:21.084Z'
             updatedAt: '2022-03-29T09:22:21.084Z'
             deletedAt: null
-            communityMemberId: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
+            memberId: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
             parentId: null
             tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
             createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
@@ -171,11 +171,11 @@ components:
         tags: []
         noMerge: []
         toMerge: []
-    CommunityMemberList:
+    MemberList:
       value:
         rows:
-          - $ref: '#/components/examples/CommunityMember'
-          - $ref: '#/components/examples/CommunityMember2'
+          - $ref: '#/components/examples/Member'
+          - $ref: '#/components/examples/Member2'
         count: 2
 
     ActivityUpsert:
@@ -196,13 +196,13 @@ components:
         createdAt: '2022-06-07T08:52:42.784Z'
         updatedAt: '2022-06-07T08:52:42.784Z'
         deletedAt: null
-        communityMemberId: b9c6851c-5b84-4e6c-a9ec-51f8dc41b4fd
+        memberId: b9c6851c-5b84-4e6c-a9ec-51f8dc41b4fd
         conversationId: null
         parentId: null
         tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
         createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
         updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        communityMember:
+        member:
           id: b9c6851c-5b84-4e6c-a9ec-51f8dc41b4fd
           username:
             github: gilfoyle
@@ -260,13 +260,13 @@ components:
         createdAt: '2022-03-29T09:22:31.989Z'
         updatedAt: '2022-03-29T09:22:31.989Z'
         deletedAt: null
-        communityMemberId: 4cec649e-b7f1-45be-a949-717bca766234
+        memberId: 4cec649e-b7f1-45be-a949-717bca766234
         conversationId: null
         parentId: null
         tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
         createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
         updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        communityMember:
+        member:
           id: 4cec649e-b7f1-45be-a949-717bca766234
           username:
             github: amicable tupman
@@ -325,13 +325,13 @@ components:
           createdAt: '2022-03-29T09:22:32.383Z'
           updatedAt: '2022-03-29T09:22:32.383Z'
           deletedAt: null
-          communityMemberId: ae10c9cc-769f-4736-8447-ed0a839948ca
+          memberId: ae10c9cc-769f-4736-8447-ed0a839948ca
           conversationId: null
           parentId: null
           tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
           createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
           updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-          communityMember:
+          member:
             id: ae10c9cc-769f-4736-8447-ed0a839948ca
             username:
               github: humorous beadwood

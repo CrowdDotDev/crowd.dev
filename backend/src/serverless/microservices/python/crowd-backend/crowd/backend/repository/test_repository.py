@@ -1,7 +1,7 @@
 from crowd.backend.models.integration import Integration
 from crowd.backend.repository import Repository
 from crowd.backend.models.activity import Activity
-from crowd.backend.models.community_member import CommunityMember
+from crowd.backend.models.member import Member
 import uuid
 
 
@@ -12,42 +12,42 @@ def test_find_in_table(api: "Repository"):
 
 
 def test_find_by_id(api: "Repository"):
-    """Tests the find by id function for a CommunityMember"""
-    result = api.find_by_id(CommunityMember, "26f6d9ed-cf73-4dad-80f2-7f6e23a38370")
+    """Tests the find by id function for a Member"""
+    result = api.find_by_id(Member, "26f6d9ed-cf73-4dad-80f2-7f6e23a38370")
     assert result.username == {"github": "0x161e-swei", "crowdUsername": "0x161e-swei"}
 
 
 def test_find_by_id_empty(api: "Repository"):
-    """Tests the find by id function on an unexistant CommunityMember"""
-    result = api.find_by_id(CommunityMember, uuid.UUID("123e4567-e89b-12d3-a456-426614174000"))
+    """Tests the find by id function on an unexistant Member"""
+    result = api.find_by_id(Member, uuid.UUID("123e4567-e89b-12d3-a456-426614174000"))
     assert result is None
 
 
 def test_find_all(api: "Repository"):
-    """Tests the find by id function for a CommunityMember"""
-    result = api.find_all(CommunityMember)
+    """Tests the find by id function for a Member"""
+    result = api.find_all(Member)
     assert len(result) > 0
-    assert type(result[0]) == CommunityMember
+    assert type(result[0]) == Member
 
 
 def test_find_all_single_target(api: "Repository"):
-    """Tests the find all function for a CommunityMember and using github username"""
-    result = api.find_all(CommunityMember, query={"username.github": "cjqpker"})
+    """Tests the find all function for a Member and using github username"""
+    result = api.find_all(Member, query={"username.github": "cjqpker"})
     assert len(result) == 1
-    assert type(result[0]) == CommunityMember
+    assert type(result[0]) == Member
 
 
 def test_find_members(api: "Repository"):
     """Tests the find members function"""
     result = api.find_members("ThomasPluck")
     assert len(result) > 0
-    assert type(result[0]) == CommunityMember
+    assert type(result[0]) == Member
     assert result[0].username["crowdUsername"] == "ThomasPluck"
 
 
 def test_count(api: "Repository"):
-    """Tests the count function for CommunityMembers that have their slack timzezone in Europe/Amsterdam"""
-    result = api.count(CommunityMember, {"crowdInfo.slack.timezone": "Europe/Amsterdam"})
+    """Tests the count function for Members that have their slack timzezone in Europe/Amsterdam"""
+    result = api.count(Member, {"crowdInfo.slack.timezone": "Europe/Amsterdam"})
     assert result == 2
 
 
@@ -90,8 +90,8 @@ def test_find_integration_by_identifier(api: "Repository"):
 
 
 def test_find_community_member_order_by_createdAt(api: "Repository"):
-    """Tests finding community members and ordering them with descending createdAt dates"""
+    """Tests finding members and ordering them with descending createdAt dates"""
 
-    members = api.find_all(CommunityMember, query={"type": "member"}, order={CommunityMember.createdAt: False})
+    members = api.find_all(Member, query={"type": "member"}, order={Member.createdAt: False})
 
     assert members[0].createdAt >= members[len(members) - 1].createdAt

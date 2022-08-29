@@ -188,7 +188,7 @@ describe('Slack iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -234,7 +234,7 @@ describe('Slack iterator tests', () => {
             reactions: [],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -283,7 +283,7 @@ describe('Slack iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -366,7 +366,7 @@ describe('Slack iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -419,7 +419,7 @@ describe('Slack iterator tests', () => {
             reactions: [],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -474,7 +474,7 @@ describe('Slack iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -535,7 +535,7 @@ describe('Slack iterator tests', () => {
           sourceId: 'a12345',
           timestamp: received[0].timestamp,
           crowdInfo: {},
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -574,7 +574,7 @@ describe('Slack iterator tests', () => {
           sourceId: 'a123456',
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
           crowdInfo: {},
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a123456',

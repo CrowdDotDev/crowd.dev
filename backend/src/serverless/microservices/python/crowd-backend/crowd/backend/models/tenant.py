@@ -30,7 +30,7 @@ class Tenant(Base):
 
     activities = relationship("Activity", back_populates="parentTenant")
 
-    communityMembers = relationship("CommunityMember", back_populates="parentTenant")
+    members = relationship("Member", back_populates="parentTenant")
 
     widgets = relationship("Widget", back_populates="parentTenant")
 

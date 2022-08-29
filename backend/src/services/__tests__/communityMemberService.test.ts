@@ -1,7 +1,7 @@
 import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import CommunityMemberService from '../communityMemberService'
-import CommunityMemberRepository from '../../database/repositories/communityMemberRepository'
+import MemberService from '../memberService'
+import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
@@ -10,7 +10,7 @@ import { PlatformType } from '../../utils/platforms'
 
 const db = null
 
-describe('CommunityMemberService tests', () => {
+describe('MemberService tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
   })
@@ -50,11 +50,11 @@ describe('CommunityMemberService tests', () => {
       }
 
       await expect(() =>
-        new CommunityMemberService(mockIServiceOptions).upsert(member1),
+        new MemberService(mockIServiceOptions).upsert(member1),
       ).rejects.toThrowError(new Error400())
     })
 
-    it('Should create non existent communitymember - string type username', async () => {
+    it('Should create non existent member - string type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -88,7 +88,7 @@ describe('CommunityMemberService tests', () => {
       const { username } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -122,7 +122,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent communitymember - crowdInfo with matching platform', async () => {
+    it('Should create non existent member - crowdInfo with matching platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -165,7 +165,7 @@ describe('CommunityMemberService tests', () => {
       const { username } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -199,7 +199,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent communitymember - object type username', async () => {
+    it('Should create non existent member - object type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -236,7 +236,7 @@ describe('CommunityMemberService tests', () => {
       const { platform } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -271,7 +271,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent communitymember - reach as number', async () => {
+    it('Should create non existent member - reach as number', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -293,7 +293,7 @@ describe('CommunityMemberService tests', () => {
       const { username } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -327,7 +327,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent communitymember - reach as object, platform in object', async () => {
+    it('Should create non existent member - reach as object, platform in object', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -349,7 +349,7 @@ describe('CommunityMemberService tests', () => {
       const { username } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -383,7 +383,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent communitymember - reach as object, platform not in object', async () => {
+    it('Should create non existent member - reach as object, platform not in object', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -405,7 +405,7 @@ describe('CommunityMemberService tests', () => {
       const { username } = member1
       const { crowdInfo } = member1
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -439,7 +439,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - simple', async () => {
+    it('Should update existent member succesfully - simple', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -471,7 +471,7 @@ describe('CommunityMemberService tests', () => {
       const member1Username = member1.username
       const member1CrowdInfo = member1.crowdInfo
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -482,7 +482,7 @@ describe('CommunityMemberService tests', () => {
         location: 'Ankara',
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -516,7 +516,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - crowdInfo with matching platform', async () => {
+    it('Should update existent member succesfully - crowdInfo with matching platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -550,7 +550,7 @@ describe('CommunityMemberService tests', () => {
       const member1Username = member1.username
       const member1CrowdInfo = member1.crowdInfo
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -572,7 +572,7 @@ describe('CommunityMemberService tests', () => {
 
       const member2CrowdInfo = member2.crowdInfo
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -612,7 +612,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - object type username', async () => {
+    it('Should update existent member succesfully - object type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -645,7 +645,7 @@ describe('CommunityMemberService tests', () => {
       const member1CrowdInfo = member1.crowdInfo
       const member1Platform = member1.platform
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -660,7 +660,7 @@ describe('CommunityMemberService tests', () => {
         location: 'Ankara',
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -723,7 +723,7 @@ describe('CommunityMemberService tests', () => {
         signals: 'testSignal',
       }
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -739,11 +739,11 @@ describe('CommunityMemberService tests', () => {
       }
 
       await expect(() =>
-        new CommunityMemberService(mockIServiceOptions).upsert(member2),
+        new MemberService(mockIServiceOptions).upsert(member2),
       ).rejects.toThrowError(new Error400())
     })
 
-    it('Should update existent communitymember succesfully - JSON fields', async () => {
+    it('Should update existent member succesfully - JSON fields', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -793,7 +793,7 @@ describe('CommunityMemberService tests', () => {
       const member1Platform = member1.platform
       const member1CrowdInfo = member1.crowdInfo
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -827,7 +827,7 @@ describe('CommunityMemberService tests', () => {
 
       const member2CrowdInfo = member2.crowdInfo
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -884,7 +884,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - null fields', async () => {
+    it('Should update existent member succesfully - null fields', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -934,7 +934,7 @@ describe('CommunityMemberService tests', () => {
       const member1CrowdInfo = member1.crowdInfo
       const member1Platform = member1.platform
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -951,7 +951,7 @@ describe('CommunityMemberService tests', () => {
 
       const member2CrowdInfo = member2.crowdInfo
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -1004,7 +1004,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - reach from default to complete - sending number', async () => {
+    it('Should update existent member succesfully - reach from default to complete - sending number', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -1016,7 +1016,7 @@ describe('CommunityMemberService tests', () => {
 
       const member1Username = member1.username
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -1027,7 +1027,7 @@ describe('CommunityMemberService tests', () => {
         reach: 10,
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -1061,7 +1061,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - reach from default to complete - sending platform', async () => {
+    it('Should update existent member succesfully - reach from default to complete - sending platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -1073,7 +1073,7 @@ describe('CommunityMemberService tests', () => {
 
       const member1Username = member1.username
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -1084,7 +1084,7 @@ describe('CommunityMemberService tests', () => {
         reach: { github: 10 },
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -1118,7 +1118,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - complex reach update from object', async () => {
+    it('Should update existent member succesfully - complex reach update from object', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -1131,7 +1131,7 @@ describe('CommunityMemberService tests', () => {
 
       const member1Username = member1.username
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -1142,7 +1142,7 @@ describe('CommunityMemberService tests', () => {
         reach: { github: 15, linkedin: 11 },
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -1176,7 +1176,7 @@ describe('CommunityMemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent communitymember succesfully - complex reach update from number', async () => {
+    it('Should update existent member succesfully - complex reach update from number', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const member1 = {
@@ -1189,7 +1189,7 @@ describe('CommunityMemberService tests', () => {
 
       const member1Username = member1.username
 
-      const memberCreated = await new CommunityMemberService(mockIServiceOptions).upsert(member1)
+      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
       memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
@@ -1200,7 +1200,7 @@ describe('CommunityMemberService tests', () => {
         reach: 30,
       }
 
-      const memberUpdated = await new CommunityMemberService(mockIServiceOptions).upsert(member2)
+      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
       memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
       memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
@@ -1239,7 +1239,7 @@ describe('CommunityMemberService tests', () => {
     it('Should merge', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       let t1 = await TagRepository.create({ name: 'tag1' }, mockIRepositoryOptions)
       let t2 = await TagRepository.create({ name: 'tag2' }, mockIRepositoryOptions)
@@ -1301,19 +1301,19 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await CommunityMemberRepository.create(
+      const returnedMember1 = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
-      const returnedMember2 = await CommunityMemberRepository.create(
+      const returnedMember2 = await MemberRepository.create(
         member2,
         mockIRepositoryOptions,
       )
-      const returnedMember3 = await CommunityMemberRepository.create(
+      const returnedMember3 = await MemberRepository.create(
         member3,
         mockIRepositoryOptions,
       )
-      const returnedMember4 = await CommunityMemberRepository.create(
+      const returnedMember4 = await MemberRepository.create(
         member4,
         mockIRepositoryOptions,
       )
@@ -1327,7 +1327,7 @@ describe('CommunityMemberService tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: returnedMember2.id,
+        member: returnedMember2.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -1336,28 +1336,28 @@ describe('CommunityMemberService tests', () => {
 
       // toMerge[1] = [(1,2),(1,4)] toMerge[2] = [(2,1)] toMerge[4] = [(4,1)]
       // noMerge[2] = [3]
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember1.id,
         returnedMember2.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember1.id,
         returnedMember4.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember2.id,
         returnedMember1.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember4.id,
         returnedMember1.id,
         mockIRepositoryOptions,
       )
 
-      await CommunityMemberRepository.addNoMerge(
+      await MemberRepository.addNoMerge(
         returnedMember2.id,
         returnedMember3.id,
         mockIRepositoryOptions,
@@ -1365,7 +1365,7 @@ describe('CommunityMemberService tests', () => {
 
       const response = await memberService.merge(returnedMember1.id, returnedMember2.id)
 
-      const mergedMember = await CommunityMemberRepository.findById(
+      const mergedMember = await MemberRepository.findById(
         response.mergedId,
         mockIRepositoryOptions,
       )
@@ -1381,8 +1381,8 @@ describe('CommunityMemberService tests', () => {
         mockIRepositoryOptions,
       )
 
-      // we don't need activity.communityMember because we're already expecting member->activities
-      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'communityMember')
+      // we don't need activity.member because we're already expecting member->activities
+      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'member')
 
       // we don't need activity.parent because it is 2 level deep (member->activity->parent)
       activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'parent')
@@ -1393,9 +1393,9 @@ describe('CommunityMemberService tests', () => {
       t3 = await TagRepository.findById(t3.id, mockIRepositoryOptions)
 
       // remove tags->member relations as well (we should be only checking 1-deep relations)
-      t1 = SequelizeTestUtils.objectWithoutKey(t1, 'communityMembers')
-      t2 = SequelizeTestUtils.objectWithoutKey(t2, 'communityMembers')
-      t3 = SequelizeTestUtils.objectWithoutKey(t3, 'communityMembers')
+      t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
+      t2 = SequelizeTestUtils.objectWithoutKey(t2, 'members')
+      t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
@@ -1440,7 +1440,7 @@ describe('CommunityMemberService tests', () => {
     it('Should catch when two members are the same', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1455,7 +1455,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const memberCreated = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated = await MemberRepository.create(member1, mockIRepositoryOptions)
       const mergeOutput = await memberService.merge(memberCreated.id, memberCreated.id)
 
       expect(mergeOutput).toStrictEqual({ status: 203, mergedId: memberCreated.id })
@@ -1467,7 +1467,7 @@ describe('CommunityMemberService tests', () => {
     it('Should not duplicate activities - by timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1482,12 +1482,12 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const createdMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const a1 = {
         timestamp: '2021-05-27T15:14:30Z',
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId1',
       }
@@ -1495,7 +1495,7 @@ describe('CommunityMemberService tests', () => {
       const aRepeated = {
         timestamp: '2021-06-27T15:14:30Z',
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId1',
       }
@@ -1512,9 +1512,9 @@ describe('CommunityMemberService tests', () => {
         joinedAt: '2021-05-27T15:14:30Z',
       }
 
-      const createdMember2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      aRepeated.communityMember = createdMember2.id
+      aRepeated.member = createdMember2.id
       aRepeated.sourceId = '#sourceId2'
 
       await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
@@ -1523,7 +1523,7 @@ describe('CommunityMemberService tests', () => {
         {
           timestamp: '2019-12-27T15:14:30Z',
           type: 'activity',
-          communityMember: createdMember2.id,
+          member: createdMember2.id,
           platform: PlatformType.GITHUB,
           sourceId: '#sourceId3',
         },
@@ -1566,7 +1566,7 @@ describe('CommunityMemberService tests', () => {
     it('Duplication of activities - one matching timestamp is duplicated because type is different', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1581,12 +1581,12 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const createdMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const a1 = {
         timestamp: moment(0).utc().toString(),
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId1',
       }
@@ -1594,7 +1594,7 @@ describe('CommunityMemberService tests', () => {
       const aRepeated = {
         timestamp: '2021-06-27T15:14:30Z',
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId2',
       }
@@ -1611,9 +1611,9 @@ describe('CommunityMemberService tests', () => {
         joinedAt: '2021-05-27T15:14:30Z',
       }
 
-      const createdMember2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      aRepeated.communityMember = createdMember2.id
+      aRepeated.member = createdMember2.id
 
       await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
 
@@ -1621,7 +1621,7 @@ describe('CommunityMemberService tests', () => {
         {
           timestamp: moment(0).utc().toString(),
           type: 'different',
-          communityMember: createdMember2.id,
+          member: createdMember2.id,
           platform: PlatformType.GITHUB,
           sourceId: '#sourceId3',
         },
@@ -1642,7 +1642,7 @@ describe('CommunityMemberService tests', () => {
     it('Duplication of activities - one matching timestamp is duplicated because platform is different', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1657,12 +1657,12 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const createdMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const a1 = {
         timestamp: moment(0).utc().toString(),
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId1',
       }
@@ -1670,7 +1670,7 @@ describe('CommunityMemberService tests', () => {
       const aRepeated = {
         timestamp: '2021-06-27T15:14:30Z',
         type: 'activity',
-        communityMember: createdMember.id,
+        member: createdMember.id,
         platform: PlatformType.GITHUB,
         sourceId: '#sourceId2',
       }
@@ -1687,9 +1687,9 @@ describe('CommunityMemberService tests', () => {
         joinedAt: '2021-05-27T15:14:30Z',
       }
 
-      const createdMember2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      aRepeated.communityMember = createdMember2.id
+      aRepeated.member = createdMember2.id
 
       await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
 
@@ -1697,7 +1697,7 @@ describe('CommunityMemberService tests', () => {
         {
           timestamp: moment(0).utc().toString(),
           type: 'activity',
-          communityMember: createdMember2.id,
+          member: createdMember2.id,
           platform: 'different',
           sourceId: '#sourceId3',
         },
@@ -1720,7 +1720,7 @@ describe('CommunityMemberService tests', () => {
     it('Should add two members to their respective noMerges, these members should be excluded from toMerges respectively', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1764,39 +1764,39 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      let returnedMember1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      let returnedMember2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
-      let returnedMember3 = await CommunityMemberRepository.create(member3, mockIRepositoryOptions)
+      let returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      let returnedMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
+      let returnedMember3 = await MemberRepository.create(member3, mockIRepositoryOptions)
 
       // toMerge[1] = [(1,2),(1,3)] toMerge[2] = [(2,1),(2,3)] toMerge[3] = [(3,1),(3,2)]
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember1.id,
         returnedMember2.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember2.id,
         returnedMember1.id,
         mockIRepositoryOptions,
       )
 
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember1.id,
         returnedMember3.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember3.id,
         returnedMember1.id,
         mockIRepositoryOptions,
       )
 
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember2.id,
         returnedMember3.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         returnedMember3.id,
         returnedMember2.id,
         mockIRepositoryOptions,
@@ -1804,7 +1804,7 @@ describe('CommunityMemberService tests', () => {
 
       await memberService.addToNoMerge(returnedMember1.id, returnedMember2.id)
 
-      returnedMember1 = await CommunityMemberRepository.findById(
+      returnedMember1 = await MemberRepository.findById(
         returnedMember1.id,
         mockIRepositoryOptions,
       )
@@ -1812,7 +1812,7 @@ describe('CommunityMemberService tests', () => {
       expect(returnedMember1.toMerge).toStrictEqual([returnedMember3.id])
       expect(returnedMember1.noMerge).toStrictEqual([returnedMember2.id])
 
-      returnedMember2 = await CommunityMemberRepository.findById(
+      returnedMember2 = await MemberRepository.findById(
         returnedMember2.id,
         mockIRepositoryOptions,
       )
@@ -1823,7 +1823,7 @@ describe('CommunityMemberService tests', () => {
       // call addToNoMerge once more, between member1 and member3
       await memberService.addToNoMerge(returnedMember1.id, returnedMember3.id)
 
-      returnedMember1 = await CommunityMemberRepository.findById(
+      returnedMember1 = await MemberRepository.findById(
         returnedMember1.id,
         mockIRepositoryOptions,
       )
@@ -1831,7 +1831,7 @@ describe('CommunityMemberService tests', () => {
       expect(returnedMember1.toMerge).toStrictEqual([])
       expect(returnedMember1.noMerge).toStrictEqual([returnedMember2.id, returnedMember3.id])
 
-      returnedMember3 = await CommunityMemberRepository.findById(
+      returnedMember3 = await MemberRepository.findById(
         returnedMember3.id,
         mockIRepositoryOptions,
       )
@@ -1842,7 +1842,7 @@ describe('CommunityMemberService tests', () => {
       // only toMerge relation (2,3) left. Testing addToNoMerge(2,3)
       await memberService.addToNoMerge(returnedMember3.id, returnedMember2.id)
 
-      returnedMember2 = await CommunityMemberRepository.findById(
+      returnedMember2 = await MemberRepository.findById(
         returnedMember2.id,
         mockIRepositoryOptions,
       )
@@ -1850,7 +1850,7 @@ describe('CommunityMemberService tests', () => {
       expect(returnedMember2.toMerge).toStrictEqual([])
       expect(returnedMember2.noMerge).toStrictEqual([returnedMember1.id, returnedMember3.id])
 
-      returnedMember3 = await CommunityMemberRepository.findById(
+      returnedMember3 = await MemberRepository.findById(
         returnedMember3.id,
         mockIRepositoryOptions,
       )
@@ -1862,7 +1862,7 @@ describe('CommunityMemberService tests', () => {
     it('Should throw 404 not found when trying to add non existent members to noMerge', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1877,7 +1877,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await CommunityMemberRepository.create(
+      const returnedMember1 = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -1894,7 +1894,7 @@ describe('CommunityMemberService tests', () => {
     it('Should find existing member with string username and default platform', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1909,7 +1909,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await CommunityMemberRepository.create(
+      const returnedMember1 = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -1929,7 +1929,7 @@ describe('CommunityMemberService tests', () => {
     it('Should return null if member is not found - string type', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1944,7 +1944,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const existing = await memberService.memberExists('some-random-username', 'crowdUsername')
 
@@ -1954,7 +1954,7 @@ describe('CommunityMemberService tests', () => {
     it('Should return null if member is not found - object type', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -1969,7 +1969,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const existing = await memberService.memberExists(
         {
@@ -1985,7 +1985,7 @@ describe('CommunityMemberService tests', () => {
     it('Should find existing member with object username and given platform', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -2000,7 +2000,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await CommunityMemberRepository.create(
+      const returnedMember1 = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -2020,7 +2020,7 @@ describe('CommunityMemberService tests', () => {
     it('Should throw 400 error when username is type of object and username[platform] is not present ', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
@@ -2035,7 +2035,7 @@ describe('CommunityMemberService tests', () => {
         },
       }
 
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
         memberService.memberExists({ discord: 'some-other-username' }, 'slack'),
@@ -2046,14 +2046,14 @@ describe('CommunityMemberService tests', () => {
   describe('Update Reach method', () => {
     it('Should keep as total: -1 for an empty new reach and a default old reach', async () => {
       const oldReach = { total: -1 }
-      const updatedReach = CommunityMemberService.calculateReach({}, oldReach)
+      const updatedReach = MemberService.calculateReach({}, oldReach)
       expect(updatedReach).toStrictEqual({
         total: -1,
       })
     })
     it('Should keep as total: -1 for a default new reach and a default old reach', async () => {
       const oldReach = { total: -1 }
-      const updatedReach = CommunityMemberService.calculateReach({ total: -1 }, oldReach)
+      const updatedReach = MemberService.calculateReach({ total: -1 }, oldReach)
       expect(updatedReach).toStrictEqual({
         total: -1,
       })
@@ -2061,7 +2061,7 @@ describe('CommunityMemberService tests', () => {
     it('Should update for a new reach and a default old reach', async () => {
       const oldReach = { total: -1 }
       const newReach = { twitter: 10 }
-      const updatedReach = CommunityMemberService.calculateReach(oldReach, newReach)
+      const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10,
         twitter: 10,
@@ -2070,7 +2070,7 @@ describe('CommunityMemberService tests', () => {
     it('Should update for a new reach and old reach in the same platform', async () => {
       const oldReach = { twitter: 5, total: 5 }
       const newReach = { twitter: 10 }
-      const updatedReach = CommunityMemberService.calculateReach(oldReach, newReach)
+      const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10,
         twitter: 10,
@@ -2079,7 +2079,7 @@ describe('CommunityMemberService tests', () => {
     it('Should update for a complex reach with different platforms', async () => {
       const oldReach = { twitter: 10, github: 20, discord: 50, total: 10 + 20 + 50 }
       const newReach = { twitter: 20, github: 2, linkedin: 10, total: 20 + 2 + 10 }
-      const updatedReach = CommunityMemberService.calculateReach(oldReach, newReach)
+      const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10 + 20 + 2 + 50,
         twitter: 20,
@@ -2091,7 +2091,7 @@ describe('CommunityMemberService tests', () => {
     it('Should work with reach 0', async () => {
       const oldReach = { total: -1 }
       const newReach = { twitter: 0 }
-      const updatedReach = CommunityMemberService.calculateReach(oldReach, newReach)
+      const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 0,
         twitter: 0,

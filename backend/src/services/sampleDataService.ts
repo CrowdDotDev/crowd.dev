@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
-import CommunityMemberService from './communityMemberService'
+import MemberService from './memberService'
 import TenantService from './tenantService'
 
 export default class SampleDataService {
@@ -39,7 +39,7 @@ export default class SampleDataService {
       memberPlain.crowdInfo.sample = true
 
       for (const activity of member.activities) {
-        activity.communityMember = memberPlain
+        activity.member = memberPlain
         activity.crowdInfo.sample = true
 
         // modify activity timestamp
@@ -62,7 +62,7 @@ export default class SampleDataService {
    */
   async deleteSampleData(): Promise<void> {
     // deleting sample members should cascade to their activities as well
-    const memberService = new CommunityMemberService(this.options)
+    const memberService = new MemberService(this.options)
     const tenantService = new TenantService(this.options)
 
     const memberIds = await (

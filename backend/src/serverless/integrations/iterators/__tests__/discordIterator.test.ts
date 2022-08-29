@@ -147,7 +147,7 @@ describe('Discord iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -202,7 +202,7 @@ describe('Discord iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -256,7 +256,7 @@ describe('Discord iterator tests', () => {
             attachments: [],
             threadStarter: true,
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -309,7 +309,7 @@ describe('Discord iterator tests', () => {
             reactions: [],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -364,7 +364,7 @@ describe('Discord iterator tests', () => {
             reactions: ['1', '2', '3'],
             attachments: [],
           },
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',
@@ -413,7 +413,7 @@ describe('Discord iterator tests', () => {
           ),
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
           crowdInfo: {},
-          communityMember: {
+          member: {
             username: 'username',
             crowdInfo: {
               id: 'a12345',

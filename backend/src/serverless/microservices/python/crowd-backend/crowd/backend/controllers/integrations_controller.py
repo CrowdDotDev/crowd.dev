@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class IntegrationsController(BaseController):
     """
     Controller for Integration in Crowd.dev.
-    It can add Integrations with the community members that perform them.
+    It can add Integrations with the members that perform them.
 
     Args:
         BaseController (BaseController): parent BaseController class.

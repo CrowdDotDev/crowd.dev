@@ -2,7 +2,7 @@ import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import TagRepository from '../database/repositories/tagRepository'
-import CommunityMemberRepository from '../database/repositories/communityMemberRepository'
+import MemberRepository from '../database/repositories/memberRepository'
 
 export default class TagService {
   options: IServiceOptions
@@ -15,9 +15,9 @@ export default class TagService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      if (data.communityMembers) {
-        data.communityMembers = await CommunityMemberRepository.filterIdsInTenant(
-          data.communityMembers,
+      if (data.members) {
+        data.members = await MemberRepository.filterIdsInTenant(
+          data.members,
           { ...this.options, transaction },
         )
       }
@@ -43,9 +43,9 @@ export default class TagService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      if (data.communityMembers) {
-        data.communityMembers = await CommunityMemberRepository.filterIdsInTenant(
-          data.communityMembers,
+      if (data.members) {
+        data.members = await MemberRepository.filterIdsInTenant(
+          data.members,
           { ...this.options, transaction },
         )
       }

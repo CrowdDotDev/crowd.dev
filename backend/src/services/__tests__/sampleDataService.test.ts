@@ -2,7 +2,7 @@ import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import SampleDataService from '../sampleDataService'
 import TenantService from '../tenantService'
 import ActivityService from '../activityService'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 import { PlatformType } from '../../utils/platforms'
 
 const db = null
@@ -19,14 +19,14 @@ describe('SampleDataService tests', () => {
   describe('generateSampleData', () => {
     it('Should succesfully generate sample data for discord and github', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const memberService = new CommunityMemberService(mockIServiceOptions)
+      const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
       const sampleDataService = new SampleDataService(mockIServiceOptions)
 
       const testSampleData = require('./test-sample-data.json')
 
       // create an ordinary member with activities
-      const communityMember = {
+      const member = {
         username: {
           crowdUsername: 'anil',
           github: 'anil_github',
@@ -61,7 +61,7 @@ describe('SampleDataService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -123,14 +123,14 @@ describe('SampleDataService tests', () => {
   describe('deleteSampleData method', () => {
     it('Should succesfully delete previously created sample data', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const memberService = new CommunityMemberService(mockIServiceOptions)
+      const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
       const sampleDataService = new SampleDataService(mockIServiceOptions)
 
       const testSampleData = require('./test-sample-data.json')
 
       // create an ordinary member with activities
-      const communityMember = {
+      const member = {
         username: {
           crowdUsername: 'anil',
           github: 'anil_github',
@@ -165,7 +165,7 @@ describe('SampleDataService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',

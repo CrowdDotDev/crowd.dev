@@ -29,7 +29,7 @@ class TagRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
@@ -68,7 +68,7 @@ class TagRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
@@ -270,7 +270,7 @@ class TagRepository {
     if (data) {
       values = {
         ...record.get({ plain: true }),
-        communityMemberIds: data.communityMembers,
+        memberIds: data.members,
       }
     }
 
@@ -302,7 +302,7 @@ class TagRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.communityMembers = await record.getCommunityMembers({
+    output.members = await record.getMembers({
       transaction,
       joinTableAttributes: [],
     })

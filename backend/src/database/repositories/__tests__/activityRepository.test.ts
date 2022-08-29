@@ -1,4 +1,4 @@
-import CommunityMemberRepository from '../communityMemberRepository'
+import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
@@ -20,7 +20,7 @@ describe('ActivityRepository tests', () => {
   describe('create method', () => {
     it('Should create the given activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -40,7 +40,7 @@ describe('ActivityRepository tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -50,7 +50,7 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
       const expectedActivityCreated = {
         id: activityCreated.id,
         crowdInfo: activity.crowdInfo,
@@ -59,7 +59,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -80,7 +80,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should create a bare-bones activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -95,7 +95,7 @@ describe('ActivityRepository tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         sourceId: '#sourceId1',
       }
 
@@ -104,7 +104,7 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -114,7 +114,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: false,
         score: 2,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -135,7 +135,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should throw error when no platform given', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -154,7 +154,7 @@ describe('ActivityRepository tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
       }
 
@@ -165,7 +165,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should throw error when no type given', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -184,7 +184,7 @@ describe('ActivityRepository tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
       }
 
@@ -195,7 +195,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should throw error when no timestamp given', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -214,7 +214,7 @@ describe('ActivityRepository tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
       }
 
@@ -227,7 +227,7 @@ describe('ActivityRepository tests', () => {
   describe('findById method', () => {
     it('Should successfully find created activity by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -247,7 +247,7 @@ describe('ActivityRepository tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -262,7 +262,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -286,7 +286,7 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityFound.createdAt = activityFound.createdAt.toISOString().split('T')[0]
       activityFound.updatedAt = activityFound.updatedAt.toISOString().split('T')[0]
-      delete activityFound.communityMember
+      delete activityFound.member
 
       expect(activityFound).toStrictEqual(expectedActivityFound)
     })
@@ -305,7 +305,7 @@ describe('ActivityRepository tests', () => {
     it('Should return the given ids of previously created activity entities', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -321,7 +321,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           sourceId: '#sourceId1',
         },
         mockIRepositoryOptions,
@@ -332,7 +332,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity-2',
           timestamp: '2020-06-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           sourceId: '#sourceId2',
         },
         mockIRepositoryOptions,
@@ -349,7 +349,7 @@ describe('ActivityRepository tests', () => {
     it('Should only return the ids of previously created activities and filter random uuids out', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -365,7 +365,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           sourceId: '#sourceId1',
         },
         mockIRepositoryOptions,
@@ -384,7 +384,7 @@ describe('ActivityRepository tests', () => {
     it('Should return an empty array for an irrelevant tenant', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -400,7 +400,7 @@ describe('ActivityRepository tests', () => {
           type: 'activity',
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           sourceId: '#sourceId1',
         },
         mockIRepositoryOptions,
@@ -422,7 +422,7 @@ describe('ActivityRepository tests', () => {
     it('Should return the created activity for a simple query', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -443,7 +443,7 @@ describe('ActivityRepository tests', () => {
             body: 'Here',
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -458,7 +458,7 @@ describe('ActivityRepository tests', () => {
     it('Should return the activity for a complex query', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -479,7 +479,7 @@ describe('ActivityRepository tests', () => {
             body: 'Here',
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -497,7 +497,7 @@ describe('ActivityRepository tests', () => {
     it('Should return null when non-existent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -518,7 +518,7 @@ describe('ActivityRepository tests', () => {
             body: 'Here',
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -535,7 +535,7 @@ describe('ActivityRepository tests', () => {
     it('Should succesfully update previously created activity - simple', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -556,7 +556,7 @@ describe('ActivityRepository tests', () => {
             body: 'Here',
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -581,7 +581,7 @@ describe('ActivityRepository tests', () => {
 
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
-      delete updatedActivity.communityMember
+      delete updatedActivity.member
       const expectedActivityUpdated = {
         id: activityReturned.id,
         crowdInfo: activityReturned.crowdInfo,
@@ -590,7 +590,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -612,7 +612,7 @@ describe('ActivityRepository tests', () => {
     it('Should succesfully update previously created activity - with member relation', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -623,7 +623,7 @@ describe('ActivityRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated2 = await CommunityMemberRepository.create(
+      const memberCreated2 = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test2',
@@ -644,7 +644,7 @@ describe('ActivityRepository tests', () => {
             body: 'Here',
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -654,7 +654,7 @@ describe('ActivityRepository tests', () => {
       const updateFields = {
         type: 'activity-new',
         platform: PlatformType.GITHUB,
-        communityMember: memberCreated2.id,
+        member: memberCreated2.id,
       }
 
       const updatedActivity = await ActivityRepository.update(
@@ -670,7 +670,7 @@ describe('ActivityRepository tests', () => {
 
       updatedActivity.createdAt = updatedActivity.createdAt.toISOString().split('T')[0]
       updatedActivity.updatedAt = updatedActivity.updatedAt.toISOString().split('T')[0]
-      delete updatedActivity.communityMember
+      delete updatedActivity.member
       const expectedActivityUpdated = {
         id: activityReturned.id,
         crowdInfo: activityReturned.crowdInfo,
@@ -679,7 +679,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated2.id,
+        memberId: memberCreated2.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,

@@ -12,10 +12,10 @@ import {
 } from '../types/iteratorTypes'
 import { Endpoint, State } from '../types/regularTypes'
 import sendIntegrationsMessage from '../utils/integrationSQS'
-import CommunityMemberRepository from '../../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../../database/repositories/memberRepository'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import BaseIterator from './baseIterator'
-import CommunityMemberService from '../../../services/communityMemberService'
+import MemberService from '../../../services/memberService'
 import getProfiles from '../usecases/social/profiles'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
@@ -150,7 +150,7 @@ export default class TwitterReachIterator extends BaseIterator {
         out.push({
           id: member.id,
           update: {
-            reach: CommunityMemberService.calculateReach(member.reach || {}, {
+            reach: MemberService.calculateReach(member.reach || {}, {
               twitter: record.followersCount,
             }),
           },
@@ -176,7 +176,7 @@ export default class TwitterReachIterator extends BaseIterator {
   }
 
   static async getMembers(userContext: IRepositoryOptions): Promise<Array<any>> {
-    const members = await CommunityMemberRepository.findAndCountAll(
+    const members = await MemberRepository.findAndCountAll(
       { filter: { platform: TwitterReachIterator.platform } },
       userContext,
     )

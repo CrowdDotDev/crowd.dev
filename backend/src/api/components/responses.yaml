@@ -1,20 +1,20 @@
 components:
   schemas:
-    CommunityMember:
+    Member:
       type: object
       allOf:
-        - $ref: '#/components/schemas/CommunityMemberNoId'
+        - $ref: '#/components/schemas/MemberNoId'
       properties:
         id:
           description: The unique identifier for a member of your community.
 
-    # We need this helper to add the communityMember as well
+    # We need this helper to add the member as well
     ActivityHelper:
       type: object
       required:
-        - communityMemberId
+        - memberId
       properties:
-        communityMemberId:
+        memberId:
           description: The unique identifier for the member that performed the activity.
 
     Activity:
@@ -47,20 +47,20 @@ components:
           items:
             type: string
 
-    CommunityMemberList:
-      description: List and count of community members.
+    MemberList:
+      description: List and count of members.
       type: object
       properties:
         rows:
-          description: List of community members
+          description: List of members
           type: array
           items:
-            $ref: '#/components/schemas/CommunityMember'
+            $ref: '#/components/schemas/Member'
         count:
           description: Count
           type: integer
       xml:
-        name: CommunityMembersList
+        name: MembersList
 
     ActivityList:
       description: List and count of activities.

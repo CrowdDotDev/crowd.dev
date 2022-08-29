@@ -1,6 +1,6 @@
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import TenantService from '../tenantService'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
 import { PlatformType } from '../../utils/platforms'
@@ -20,7 +20,7 @@ describe('TenantService tests', () => {
   describe('findMembersToMerge', () => {
     it('Should show the same merge suggestion once, with reverse order', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const communityMemberService = new CommunityMemberService(mockIServiceOptions)
+      const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
 
       const memberToCreate1 = {
@@ -51,16 +51,16 @@ describe('TenantService tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const member1 = await communityMemberService.upsert(memberToCreate1)
-      let member2 = await communityMemberService.upsert(memberToCreate2)
-      const member3 = await communityMemberService.upsert(memberToCreate3)
-      let member4 = await communityMemberService.upsert(memberToCreate4)
+      const member1 = await memberService.upsert(memberToCreate1)
+      let member2 = await memberService.upsert(memberToCreate2)
+      const member3 = await memberService.upsert(memberToCreate3)
+      let member4 = await memberService.upsert(memberToCreate4)
 
-      await communityMemberService.addToMerge(member1.id, member2.id)
-      await communityMemberService.addToMerge(member3.id, member4.id)
+      await memberService.addToMerge(member1.id, member2.id)
+      await memberService.addToMerge(member3.id, member4.id)
 
-      member2 = await communityMemberService.findById(member2.id)
-      member4 = await communityMemberService.findById(member4.id)
+      member2 = await memberService.findById(member2.id)
+      member4 = await memberService.findById(member4.id)
 
       expect(member2.toMerge).toHaveLength(1)
       expect(member4.toMerge).toHaveLength(1)

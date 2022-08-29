@@ -5,27 +5,27 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from crowd.backend.models.user import User
 
 association_noMerge_table = Table(
-    "communityMemberNoMerge",
+    "memberNoMerge",
     Base.metadata,
-    Column("communityMemberId", UUID(as_uuid=True), ForeignKey("communityMembers.id"), primary_key=True),
+    Column("memberId", UUID(as_uuid=True), ForeignKey("members.id"), primary_key=True),
 )
 
 association_toMerge_table = Table(
-    "communityMemberToMerge",
+    "memberToMerge",
     Base.metadata,
-    Column("communityMemberId", UUID(as_uuid=True), ForeignKey("communityMembers.id"), primary_key=True),
+    Column("memberId", UUID(as_uuid=True), ForeignKey("members.id"), primary_key=True),
 )
 
 
-class CommunityMember(Base):
+class Member(Base):
     """
-    CommunityMember model
+    Member model
 
     Args:
         Base (Base): Parent class
     """
 
-    __tablename__ = "communityMembers"  # Table name in database
+    __tablename__ = "members"  # Table name in database
 
     id = Column(String, primary_key=True)
     username = Column(JSONB, nullable=False)
@@ -45,7 +45,7 @@ class CommunityMember(Base):
     deletedAt = Column(DateTime)
 
     tenantId = Column(String, ForeignKey("tenants.id"), nullable=False)
-    parentTenant = relationship("Tenant", back_populates="communityMembers")
+    parentTenant = relationship("Tenant", back_populates="members")
 
     createdById = Column(String, ForeignKey("users.id"))
     updatedById = Column(String, ForeignKey("users.id"))
@@ -54,11 +54,11 @@ class CommunityMember(Base):
     updateParentUser = relationship("User", foreign_keys=[updatedById])
 
     # relationships
-    activities = relationship("Activity", back_populates="parentCommunityMember", lazy="dynamic")
+    activities = relationship("Activity", back_populates="parentMember", lazy="dynamic")
 
-    noMerge = relationship("CommunityMember", secondary=association_noMerge_table, back_populates="noMerge")
+    noMerge = relationship("Member", secondary=association_noMerge_table, back_populates="noMerge")
 
-    toMerge = relationship("CommunityMember", secondary=association_toMerge_table, back_populates="toMerge")
+    toMerge = relationship("Member", secondary=association_toMerge_table, back_populates="toMerge")
 
     # validation
     @validates("username")

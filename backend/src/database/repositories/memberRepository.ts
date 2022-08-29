@@ -11,7 +11,7 @@ const { Op } = Sequelize
 
 const log: boolean = false
 
-class CommunityMemberRepository {
+class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPupulateRelations = true) {
     // If crowdUsername is not in the username dict, we need to add it
     if (!('crowdUsername' in data.username)) {
@@ -24,7 +24,7 @@ class CommunityMemberRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const record = await options.database.communityMember.create(
+    const record = await options.database.member.create(
       {
         ...lodash.pick(data, [
           'username',
@@ -76,7 +76,7 @@ class CommunityMemberRepository {
 
     const include = [
       {
-        model: options.database.communityMember,
+        model: options.database.member,
         as: 'toMerge',
         through: {
           attributes: [],
@@ -85,7 +85,7 @@ class CommunityMemberRepository {
       },
     ]
 
-    const { rows, count } = await options.database.communityMember.findAndCountAll({
+    const { rows, count } = await options.database.member.findAndCountAll({
       where: {
         tenantId: currentTenant.id,
       },
@@ -149,7 +149,7 @@ class CommunityMemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.communityMember.findOne({
+    const record = await options.database.member.findOne({
       where: {
         tenantId: currentTenant.id,
         ...query,
@@ -174,7 +174,7 @@ class CommunityMemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "type", "info", "crowdInfo", "email", "score", "bio", "organisation", "location", "signals", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "communityMembers" AS "communityMember" WHERE ("communityMember"."deletedAt" IS NULL AND ("communityMember"."tenantId" = $tenantId AND ("communityMember"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "type", "info", "crowdInfo", "email", "score", "bio", "organisation", "location", "signals", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -184,7 +184,7 @@ class CommunityMemberRepository {
         username,
       },
       transaction,
-      model: options.database.communityMember,
+      model: options.database.member,
       limit: 1,
     })
     if (records.length === 0) {
@@ -203,7 +203,7 @@ class CommunityMemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    let record = await options.database.communityMember.findOne({
+    let record = await options.database.member.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -274,7 +274,7 @@ class CommunityMemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.communityMember.findOne({
+    const record = await options.database.member.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -299,7 +299,7 @@ class CommunityMemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    await options.database.communityMember.destroy({
+    await options.database.member.destroy({
       where: {
         id: ids,
         tenantId: currentTenant.id,
@@ -321,7 +321,7 @@ class CommunityMemberRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const record = await options.database.communityMember.findOne({
+    const record = await options.database.member.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -360,7 +360,7 @@ class CommunityMemberRepository {
       tenantId: currentTenant.id,
     }
 
-    const records = await options.database.communityMember.findAll({
+    const records = await options.database.member.findAll({
       attributes: ['id'],
       where,
       transaction,
@@ -374,7 +374,7 @@ class CommunityMemberRepository {
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    return options.database.communityMember.count({
+    return options.database.member.count({
       where: {
         ...filter,
         tenantId: tenant.id,
@@ -389,9 +389,9 @@ class CommunityMemberRepository {
   ) {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
-    const literalReachTotal = Sequelize.literal(`("communityMember".reach->'total')::int`)
+    const literalReachTotal = Sequelize.literal(`("member".reach->'total')::int`)
     const computedActivitiesCount = Sequelize.literal(
-      `(SELECT COUNT(*) FROM activities WHERE activities."communityMemberId" = "communityMember".id )`,
+      `(SELECT COUNT(*) FROM activities WHERE activities."memberId" = "member".id )`,
     )
 
     const whereAnd: Array<any> = []
@@ -403,7 +403,7 @@ class CommunityMemberRepository {
         separate: true,
       },
       {
-        model: options.database.communityMember,
+        model: options.database.member,
         as: 'toMerge',
         attributes: ['id'],
         through: {
@@ -411,7 +411,7 @@ class CommunityMemberRepository {
         },
       },
       {
-        model: options.database.communityMember,
+        model: options.database.member,
         as: 'noMerge',
         attributes: ['id'],
         through: {
@@ -441,18 +441,18 @@ class CommunityMemberRepository {
 
       if (filter.platform) {
         whereAnd.push(
-          SequelizeFilterUtils.jsonbILikeIncludes('communityMember', 'username', filter.platform),
+          SequelizeFilterUtils.jsonbILikeIncludes('member', 'username', filter.platform),
         )
       }
 
       if (filter.username) {
         whereAnd.push(
-          SequelizeFilterUtils.jsonbILikeIncludes('communityMember', 'username', filter.username),
+          SequelizeFilterUtils.jsonbILikeIncludes('member', 'username', filter.username),
         )
       }
 
       if (filter.info) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('communityMember', 'info', filter.info))
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'info', filter.info))
       }
 
       if (filter.crowdInfo) {
@@ -462,19 +462,19 @@ class CommunityMemberRepository {
       }
 
       if (filter.type) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('communityMember', 'type', filter.type))
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'type', filter.type))
       }
 
       if (filter.tags) {
         const whereTags = filter.tags.reduce((acc, item, index) => {
           if (index === 0) {
-            return `${acc} "communityMemberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
+            return `${acc} "memberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
           }
-          return `${acc} OR "communityMemberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
+          return `${acc} OR "memberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
         }, '')
 
         const tagFilterLiteral = Sequelize.literal(
-          `(SELECT "communityMembers".id FROM "communityMembers" INNER JOIN "communityMemberTags" ON "communityMemberTags"."communityMemberId" = "communityMembers".id WHERE ${whereTags})`,
+          `(SELECT "members".id FROM "members" INNER JOIN "memberTags" ON "memberTags"."memberId" = "members".id WHERE ${whereTags})`,
         )
 
         whereAnd.push({
@@ -485,7 +485,7 @@ class CommunityMemberRepository {
       }
 
       if (filter.email) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('communityMember', 'email', filter.email))
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'email', filter.email))
       }
 
       if (filter.scoreRange) {
@@ -509,13 +509,13 @@ class CommunityMemberRepository {
       }
 
       if (filter.bio) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('communityMember', 'bio', filter.bio))
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'bio', filter.bio))
       }
 
       if (filter.organisation) {
         whereAnd.push(
           SequelizeFilterUtils.ilikeIncludes(
-            'communityMember',
+            'member',
             'organisation',
             filter.organisation,
           ),
@@ -524,13 +524,13 @@ class CommunityMemberRepository {
 
       if (filter.location) {
         whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('communityMember', 'location', filter.location),
+          SequelizeFilterUtils.ilikeIncludes('member', 'location', filter.location),
         )
       }
 
       if (filter.signals) {
         whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('communityMember', 'signals', filter.signals),
+          SequelizeFilterUtils.ilikeIncludes('member', 'signals', filter.signals),
         )
       }
 
@@ -610,7 +610,7 @@ class CommunityMemberRepository {
     let {
       rows,
       count, // eslint-disable-line prefer-const
-    } = await options.database.communityMember.findAndCountAll({
+    } = await options.database.member.findAndCountAll({
       where,
       include,
       attributes: {
@@ -651,7 +651,7 @@ class CommunityMemberRepository {
 
     const where = { [Op.and]: whereAnd }
 
-    const records = await options.database.communityMember.findAll({
+    const records = await options.database.member.findAll({
       attributes: ['id', 'username'],
       where,
       limit: limit ? Number(limit) : undefined,
@@ -679,7 +679,7 @@ class CommunityMemberRepository {
 
       await AuditLogRepository.log(
         {
-          entityName: 'communityMember',
+          entityName: 'member',
           entityId: record.id,
           action,
           values,
@@ -765,4 +765,4 @@ class CommunityMemberRepository {
   }
 }
 
-export default CommunityMemberRepository
+export default MemberRepository

@@ -326,7 +326,7 @@ export default class SlackIterator extends BaseIterator {
             ? moment('1970-01-01T00:00:00+00:00').utc().toDate()
             : moment().utc().toDate(),
           crowdInfo: {},
-          communityMember: {
+          member: {
             username: record.username,
             crowdInfo: {
               id: record.id,
@@ -433,7 +433,7 @@ export default class SlackIterator extends BaseIterator {
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
-          communityMember: {
+          member: {
             username: _vm.members[record.author.id],
             crowdInfo: {
               id: record.author.id,
@@ -481,7 +481,7 @@ export default class SlackIterator extends BaseIterator {
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
-          communityMember: {
+          member: {
             username: _vm.members[record.author.id],
             crowdInfo: {
               id: record.author.id,

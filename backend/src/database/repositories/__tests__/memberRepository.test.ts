@@ -1,4 +1,4 @@
-import CommunityMemberRepository from '../communityMemberRepository'
+import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import TagRepository from '../tagRepository'
@@ -6,7 +6,7 @@ import { PlatformType } from '../../../utils/platforms'
 
 const db = null
 
-describe('CommunityMemberRepository tests', () => {
+describe('MemberRepository tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
   })
@@ -18,7 +18,7 @@ describe('CommunityMemberRepository tests', () => {
   })
 
   describe('create method', () => {
-    it('Should create the given community member succesfully', async () => {
+    it('Should create the given member succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const member2add = {
@@ -55,7 +55,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         member2add,
         mockIRepositoryOptions,
       )
@@ -131,7 +131,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         member2add,
         mockIRepositoryOptions,
         false,
@@ -174,7 +174,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         member2add,
         mockIRepositoryOptions,
       )
@@ -225,7 +225,7 @@ describe('CommunityMemberRepository tests', () => {
       }
 
       await expect(() =>
-        CommunityMemberRepository.create(member2add, mockIRepositoryOptions),
+        MemberRepository.create(member2add, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
 
@@ -240,7 +240,7 @@ describe('CommunityMemberRepository tests', () => {
       }
 
       await expect(() =>
-        CommunityMemberRepository.create(member2add, mockIRepositoryOptions),
+        MemberRepository.create(member2add, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
   })
@@ -254,7 +254,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         member2add,
         mockIRepositoryOptions,
       )
@@ -287,7 +287,7 @@ describe('CommunityMemberRepository tests', () => {
         toMerge: [],
       }
 
-      const memberById = await CommunityMemberRepository.findById(
+      const memberById = await MemberRepository.findById(
         memberCreated.id,
         mockIRepositoryOptions,
       )
@@ -307,7 +307,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         member2add,
         mockIRepositoryOptions,
       )
@@ -335,7 +335,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: new Date('2020-05-27T15:13:30Z'),
       }
 
-      const memberById = await CommunityMemberRepository.findById(
+      const memberById = await MemberRepository.findById(
         memberCreated.id,
         mockIRepositoryOptions,
         true,
@@ -354,7 +354,7 @@ describe('CommunityMemberRepository tests', () => {
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        CommunityMemberRepository.findById(randomUUID(), mockIRepositoryOptions),
+        MemberRepository.findById(randomUUID(), mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
   })
@@ -371,16 +371,16 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
-      const member2Returned = await CommunityMemberRepository.create(
+      const member2Returned = await MemberRepository.create(
         member2,
         mockIRepositoryOptions,
       )
 
-      const filterIdsReturned = await CommunityMemberRepository.filterIdsInTenant(
+      const filterIdsReturned = await MemberRepository.filterIdsInTenant(
         [member1Returned.id, member2Returned.id],
         mockIRepositoryOptions,
       )
@@ -396,14 +396,14 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-29T15:14:30Z',
       }
 
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
 
       const { randomUUID } = require('crypto')
 
-      const filterIdsReturned = await CommunityMemberRepository.filterIdsInTenant(
+      const filterIdsReturned = await MemberRepository.filterIdsInTenant(
         [member1Returned.id, randomUUID(), randomUUID()],
         mockIRepositoryOptions,
       )
@@ -419,7 +419,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-04-29T15:14:30Z',
       }
 
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -427,7 +427,7 @@ describe('CommunityMemberRepository tests', () => {
       // create a new tenant and bind options to it
       mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const filterIdsReturned = await CommunityMemberRepository.filterIdsInTenant(
+      const filterIdsReturned = await MemberRepository.filterIdsInTenant(
         [member1Returned.id],
         mockIRepositoryOptions,
       )
@@ -444,12 +444,12 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
 
-      const found = await CommunityMemberRepository.findOne(
+      const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
         mockIRepositoryOptions,
       )
@@ -464,7 +464,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -473,7 +473,7 @@ describe('CommunityMemberRepository tests', () => {
       delete member1Returned.tags
       delete member1Returned.activities
 
-      const found = await CommunityMemberRepository.findOne(
+      const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
         mockIRepositoryOptions,
         false,
@@ -490,12 +490,12 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
 
-      const found = await CommunityMemberRepository.findOne(
+      const found = await MemberRepository.findOne(
         { 'username.crowdUsername': 'test1' },
         mockIRepositoryOptions,
       )
@@ -511,10 +511,10 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        CommunityMemberRepository.findOne(
+        MemberRepository.findOne(
           { 'username.crowdUsername': 'test2' },
           mockIRepositoryOptions,
         ),
@@ -530,12 +530,12 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
 
-      const found = await CommunityMemberRepository.memberExists(
+      const found = await MemberRepository.memberExists(
         'test1',
         'crowdUsername',
         mockIRepositoryOptions,
@@ -551,7 +551,7 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await CommunityMemberRepository.create(
+      const member1Returned = await MemberRepository.create(
         member1,
         mockIRepositoryOptions,
       )
@@ -560,7 +560,7 @@ describe('CommunityMemberRepository tests', () => {
       delete member1Returned.tags
       delete member1Returned.activities
 
-      const found = await CommunityMemberRepository.memberExists(
+      const found = await MemberRepository.memberExists(
         'test1',
         'crowdUsername',
         mockIRepositoryOptions,
@@ -578,10 +578,10 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        CommunityMemberRepository.memberExists(
+        MemberRepository.memberExists(
           'test1',
           PlatformType.GITHUB,
           mockIRepositoryOptions,
@@ -597,10 +597,10 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        CommunityMemberRepository.memberExists('test2', 'crowdInfo', mockIRepositoryOptions),
+        MemberRepository.memberExists('test2', 'crowdInfo', mockIRepositoryOptions),
       )
     })
   })
@@ -609,7 +609,7 @@ describe('CommunityMemberRepository tests', () => {
     it('is successfully finding and counting all members, sortedBy activitiesCount DESC', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const member1 = await CommunityMemberRepository.create(
+      const member1 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -617,7 +617,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = await CommunityMemberRepository.create(
+      const member2 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test2' },
           score: '6',
@@ -625,7 +625,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member3 = await CommunityMemberRepository.create(
+      const member3 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test3' },
           score: '7',
@@ -640,7 +640,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member1.id,
+          memberId: member1.id,
           sourceId: '#sourceId1',
         },
         {
@@ -648,7 +648,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member2.id,
+          memberId: member2.id,
           sourceId: '#sourceId2',
         },
         {
@@ -656,7 +656,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member2.id,
+          memberId: member2.id,
           sourceId: '#sourceId3',
         },
         {
@@ -664,7 +664,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId4',
         },
         {
@@ -672,7 +672,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId5',
         },
         {
@@ -680,12 +680,12 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId6',
         },
       ])
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: {}, orderBy: 'activitiesCount_DESC' },
         mockIRepositoryOptions,
       )
@@ -708,7 +708,7 @@ describe('CommunityMemberRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
 
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -716,7 +716,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test2' },
           score: '6',
@@ -725,7 +725,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test3' },
           score: '7',
@@ -734,7 +734,7 @@ describe('CommunityMemberRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: { tags: [nodeTag.id, vueTag.id] } },
         mockIRepositoryOptions,
       )
@@ -756,7 +756,7 @@ describe('CommunityMemberRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
 
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -765,7 +765,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test2' },
           score: '6',
@@ -774,7 +774,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test3' },
           score: '7',
@@ -783,7 +783,7 @@ describe('CommunityMemberRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: { tags: [nodeTag.id] } },
         mockIRepositoryOptions,
       )
@@ -814,11 +814,11 @@ describe('CommunityMemberRepository tests', () => {
         score: '7',
         joinedAt: new Date(),
       }
-      await CommunityMemberRepository.create(user1, mockIRepositoryOptions)
-      await CommunityMemberRepository.create(user2, mockIRepositoryOptions)
-      await CommunityMemberRepository.create(user3, mockIRepositoryOptions)
+      await MemberRepository.create(user1, mockIRepositoryOptions)
+      await MemberRepository.create(user2, mockIRepositoryOptions)
+      await MemberRepository.create(user3, mockIRepositoryOptions)
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: { scoreRange: [1, 6] } },
         mockIRepositoryOptions,
       )
@@ -846,11 +846,11 @@ describe('CommunityMemberRepository tests', () => {
         score: '7',
         joinedAt: new Date(),
       }
-      await CommunityMemberRepository.create(user1, mockIRepositoryOptions)
-      await CommunityMemberRepository.create(user2, mockIRepositoryOptions)
-      await CommunityMemberRepository.create(user3, mockIRepositoryOptions)
+      await MemberRepository.create(user1, mockIRepositoryOptions)
+      await MemberRepository.create(user2, mockIRepositoryOptions)
+      await MemberRepository.create(user3, mockIRepositoryOptions)
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: { scoreRange: [7] } },
         mockIRepositoryOptions,
       )
@@ -873,7 +873,7 @@ describe('CommunityMemberRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
 
-      const member1 = await CommunityMemberRepository.create(
+      const member1 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -882,7 +882,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member2 = await CommunityMemberRepository.create(
+      const member2 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test2' },
           score: '6',
@@ -891,7 +891,7 @@ describe('CommunityMemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      const member3 = await CommunityMemberRepository.create(
+      const member3 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test3' },
           score: '7',
@@ -907,7 +907,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member1.id,
+          memberId: member1.id,
           sourceId: '#sourceId1',
         },
         {
@@ -915,7 +915,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member2.id,
+          memberId: member2.id,
           sourceId: '#sourceId2',
         },
         {
@@ -923,7 +923,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member2.id,
+          memberId: member2.id,
           sourceId: '#sourceId3',
         },
         {
@@ -931,7 +931,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId4',
         },
         {
@@ -939,7 +939,7 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId5',
         },
         {
@@ -947,12 +947,12 @@ describe('CommunityMemberRepository tests', () => {
           platform: PlatformType.SLACK,
           timestamp: new Date(),
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          communityMemberId: member3.id,
+          memberId: member3.id,
           sourceId: '#sourceId6',
         },
       ])
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         {
           filter: {},
           limit: 15,
@@ -980,7 +980,7 @@ describe('CommunityMemberRepository tests', () => {
         score: '1',
         joinedAt: '2021-05-27T15:14:30Z',
       }
-      const returnedMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const returnedMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const updateFields = {
         username: {
@@ -1016,7 +1016,7 @@ describe('CommunityMemberRepository tests', () => {
         signals: 'testSignal',
       }
 
-      const updatedMember = await CommunityMemberRepository.update(
+      const updatedMember = await MemberRepository.update(
         returnedMember.id,
         updateFields,
         mockIRepositoryOptions,
@@ -1067,7 +1067,7 @@ describe('CommunityMemberRepository tests', () => {
         score: '1',
         joinedAt: '2021-05-27T15:14:30Z',
       }
-      const returnedMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const returnedMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const updateFields = {
         username: {
@@ -1103,7 +1103,7 @@ describe('CommunityMemberRepository tests', () => {
         signals: 'testSignal',
       }
 
-      const updatedMember = await CommunityMemberRepository.update(
+      const updatedMember = await MemberRepository.update(
         returnedMember.id,
         updateFields,
         mockIRepositoryOptions,
@@ -1150,7 +1150,7 @@ describe('CommunityMemberRepository tests', () => {
       const tag3 = await TagRepository.create({ name: 'tag3' }, mockIRepositoryOptions)
 
       // Create member with tag3
-      let member1 = await CommunityMemberRepository.create(
+      let member1 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -1162,7 +1162,7 @@ describe('CommunityMemberRepository tests', () => {
 
       // When feeding tags attribute to update, update method will overwrite the member's tags with new given tags
       // member1 is expected to have [tag1,tag2] after update
-      member1 = await CommunityMemberRepository.update(
+      member1 = await MemberRepository.update(
         member1.id,
         { tags: [tag1.id, tag2.id] },
         mockIRepositoryOptions,
@@ -1173,10 +1173,10 @@ describe('CommunityMemberRepository tests', () => {
 
       member1.tags = member1.tags.map((i) => i.get({ plain: true }))
 
-      // strip communitymembers field from tags created to expect.
+      // strip members field from tags created to expect.
       // we won't be returning second level relationships.
-      const { communityMembers: _tag1Members, ...tag1Plain } = tag1
-      const { communityMembers: _tag2Members, ...tag2Plain } = tag2
+      const { members: _tag1Members, ...tag1Plain } = tag1
+      const { members: _tag2Members, ...tag2Plain } = tag2
 
       const expectedMemberCreated = {
         id: member1.id,
@@ -1215,7 +1215,7 @@ describe('CommunityMemberRepository tests', () => {
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        CommunityMemberRepository.update(
+        MemberRepository.update(
           randomUUID(),
           { organisation: 'test' },
           mockIRepositoryOptions,
@@ -1228,7 +1228,7 @@ describe('CommunityMemberRepository tests', () => {
 
       const { randomUUID } = require('crypto')
 
-      const member1 = await CommunityMemberRepository.create(
+      const member1 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -1238,7 +1238,7 @@ describe('CommunityMemberRepository tests', () => {
       )
 
       await expect(() =>
-        CommunityMemberRepository.update(
+        MemberRepository.update(
           member1.id,
           { tags: [randomUUID()] },
           mockIRepositoryOptions,
@@ -1256,13 +1256,13 @@ describe('CommunityMemberRepository tests', () => {
         score: '1',
         joinedAt: '2021-05-27T15:14:30Z',
       }
-      const returnedMember = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
+      const returnedMember = await MemberRepository.create(member1, mockIRepositoryOptions)
 
-      await CommunityMemberRepository.destroy(returnedMember.id, mockIRepositoryOptions, true)
+      await MemberRepository.destroy(returnedMember.id, mockIRepositoryOptions, true)
 
       // Try selecting it after destroy, should throw 404
       await expect(() =>
-        CommunityMemberRepository.findById(returnedMember.id, mockIRepositoryOptions),
+        MemberRepository.findById(returnedMember.id, mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
 
@@ -1272,7 +1272,7 @@ describe('CommunityMemberRepository tests', () => {
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        CommunityMemberRepository.destroy(randomUUID(), mockIRepositoryOptions),
+        MemberRepository.destroy(randomUUID(), mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
   })
@@ -1291,15 +1291,15 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      const memberUpdated1 = await CommunityMemberRepository.addToMerge(
+      const memberUpdated1 = await MemberRepository.addToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await CommunityMemberRepository.addToMerge(
+      const memberUpdated2 = await MemberRepository.addToMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
@@ -1322,27 +1322,27 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      const memberUpdated1 = await CommunityMemberRepository.addToMerge(
+      const memberUpdated1 = await MemberRepository.addToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await CommunityMemberRepository.addToMerge(
+      const memberUpdated2 = await MemberRepository.addToMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
       )
 
       // multiple calls to for same (member, mergeMember) should result in no change
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.addToMerge(
+      await MemberRepository.addToMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
@@ -1368,21 +1368,21 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await CommunityMemberRepository.addToMerge(
+      let memberUpdated1 = await MemberRepository.addToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await CommunityMemberRepository.addToMerge(
+      const memberUpdated2 = await MemberRepository.addToMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await CommunityMemberRepository.removeToMerge(
+      memberUpdated1 = await MemberRepository.removeToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
@@ -1410,21 +1410,21 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await CommunityMemberRepository.addNoMerge(
+      let memberUpdated1 = await MemberRepository.addNoMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await CommunityMemberRepository.addNoMerge(
+      const memberUpdated2 = await MemberRepository.addNoMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await CommunityMemberRepository.removeToMerge(
+      memberUpdated1 = await MemberRepository.removeToMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
@@ -1449,21 +1449,21 @@ describe('CommunityMemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated1 = await CommunityMemberRepository.create(member1, mockIRepositoryOptions)
-      const memberCreated2 = await CommunityMemberRepository.create(member2, mockIRepositoryOptions)
+      const memberCreated1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const memberCreated2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      let memberUpdated1 = await CommunityMemberRepository.addNoMerge(
+      let memberUpdated1 = await MemberRepository.addNoMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,
       )
-      const memberUpdated2 = await CommunityMemberRepository.addNoMerge(
+      const memberUpdated2 = await MemberRepository.addNoMerge(
         memberCreated2.id,
         memberCreated1.id,
         mockIRepositoryOptions,
       )
 
-      memberUpdated1 = await CommunityMemberRepository.removeNoMerge(
+      memberUpdated1 = await MemberRepository.removeNoMerge(
         memberCreated1.id,
         memberCreated2.id,
         mockIRepositoryOptions,

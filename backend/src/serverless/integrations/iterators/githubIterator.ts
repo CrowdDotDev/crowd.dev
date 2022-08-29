@@ -10,7 +10,7 @@ import StargazersQuery from '../usecases/github/graphql/stargazers'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { PlatformType } from '../../../utils/platforms'
-import { AddActivitiesSingle, CommunityMember, IntegrationsMessage } from '../types/messageTypes'
+import { AddActivitiesSingle, Member, IntegrationsMessage } from '../types/messageTypes'
 import sendIntegrationsMessage from '../utils/integrationSQS'
 import PullRequestsQuery from '../usecases/github/graphql/pullRequests'
 import bulkOperations from '../../dbOperations/operationsWorker'
@@ -416,7 +416,7 @@ export default class GithubIterator extends BaseIterator {
             description: record.category.description,
           },
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: GitHubGrid.discussionOpened.score,
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       })
@@ -450,7 +450,7 @@ export default class GithubIterator extends BaseIterator {
           state: record.state.toLowerCase(),
           title: record.title,
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: GitHubGrid.issueOpened.score,
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       })
@@ -480,7 +480,7 @@ export default class GithubIterator extends BaseIterator {
         crowdInfo: {
           repo: this.getRepoByName(repo).url,
         },
-        communityMember: this.parseMember(record.owner),
+        member: this.parseMember(record.owner),
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       })
@@ -515,7 +515,7 @@ export default class GithubIterator extends BaseIterator {
           state: record.state.toLowerCase(),
           title: record.title,
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       })
@@ -553,7 +553,7 @@ export default class GithubIterator extends BaseIterator {
           repo: this.getRepoByName(repo).url,
           isAnswer: record.isAnswer ?? undefined,
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
         isKeyAction: record.isAnswer
           ? GitHubGrid.selectedAnswer.isKeyAction
@@ -574,7 +574,7 @@ export default class GithubIterator extends BaseIterator {
             body: reply.bodyText,
             repo: this.getRepoByName(repo).url,
           },
-          communityMember: this.parseMember(reply.author),
+          member: this.parseMember(reply.author),
           score: GitHubGrid.comment.score,
           isKeyAction: GitHubGrid.comment.isKeyAction,
         })
@@ -612,7 +612,7 @@ export default class GithubIterator extends BaseIterator {
           body: record.bodyText,
           repo: this.getRepoByName(repo).url,
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -645,7 +645,7 @@ export default class GithubIterator extends BaseIterator {
           body: record.bodyText,
           repo: this.getRepoByName(repo).url,
         },
-        communityMember: this.parseMember(record.author),
+        member: this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -680,7 +680,7 @@ export default class GithubIterator extends BaseIterator {
         crowdInfo: {
           repo: this.getRepoByName(repo).url,
         },
-        communityMember: this.parseMember(record.node),
+        member: this.parseMember(record.node),
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       })
@@ -690,12 +690,12 @@ export default class GithubIterator extends BaseIterator {
   }
 
   /**
-   * Parses members into crowd communitymembers.
+   * Parses members into crowd members.
    * @param memberFromApi member object returned from the github graphQL api
    * @returns parsed members that can be saved to the database.
    */
-  parseMember(memberFromApi: any): CommunityMember {
-    const communityMember: CommunityMember = {
+  parseMember(memberFromApi: any): Member {
+    const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       crowdInfo: {
         github: {
@@ -711,12 +711,12 @@ export default class GithubIterator extends BaseIterator {
     }
 
     if (memberFromApi.twitterUsername) {
-      communityMember.crowdInfo.twitter = {
+      member.crowdInfo.twitter = {
         url: `https://twitter.com/${memberFromApi.twitterUsername}`,
       }
-      communityMember.username.twitter = memberFromApi.twitterUsername
+      member.username.twitter = memberFromApi.twitterUsername
     }
 
-    return communityMember
+    return member
   }
 }

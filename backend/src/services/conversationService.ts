@@ -301,8 +301,8 @@ export default class ConversationService {
       .map((act) => {
         act = act.get({ plain: true })
         act.timestamp = moment(act.timestamp).unix()
-        act.author = act.communityMember.username[act.platform]
-        delete act.communityMember
+        act.author = act.member.username[act.platform]
+        delete act.member
         return act
       })
       .filter(

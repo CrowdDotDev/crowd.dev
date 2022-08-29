@@ -296,7 +296,7 @@ export default class DiscordIterator extends BaseIterator {
           ),
           timestamp: moment(record.joinedAt).utc().toDate(),
           crowdInfo: {},
-          communityMember: {
+          member: {
             username: record.username,
             crowdInfo: {
               id: record.id,
@@ -359,7 +359,7 @@ export default class DiscordIterator extends BaseIterator {
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
-          communityMember: {
+          member: {
             username: record.author.username,
             crowdInfo: {
               id: record.author.id,

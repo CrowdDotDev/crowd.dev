@@ -15,7 +15,7 @@ import track from '../../segment/track'
  * @queryParam {string} [filter[platform]] - Filter by any field in the username object having the platform.
  * @queryParam {string} [filter[timestampRange]] - Timestamp lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.
  * @queryParam {int32} [filter[scoreRange]] - Score lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.
- * @queryParam {string} [filter[communityMemberId]] - Filter by community member. This would yield all the activities of the community member.
+ * @queryParam {string} [filter[memberId]] - Filter by member. This would yield all the activities of the member.
  * @queryParam {string} [filter[parent]] - Filter by parent. This would yield all the children of the parent.
  * @queryParam {string} [filter[conversationId]] - Filter by conversation. This would yield all activities in the conversation.
  * @queryParam {string} [filter[createdAtRange]] - CreatedAt lower bound. If you want a range, send this parameter twice with [min] and [max]. If you send it once it will be interpreted as a lower bound.

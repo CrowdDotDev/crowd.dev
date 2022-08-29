@@ -1,4 +1,4 @@
-import CommunityMemberService from '../../../../services/communityMemberService'
+import MemberService from '../../../../services/memberService'
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import TwitterReachIterator from '../twitterReachIterator'
 import { PlatformType } from '../../../../utils/platforms'
@@ -26,9 +26,9 @@ describe('Twitter iterator tests', () => {
   })
 
   async function addMembers(members, mockIServiceOptions) {
-    const communityMemberService = new CommunityMemberService(mockIServiceOptions)
+    const memberService = new MemberService(mockIServiceOptions)
     for (const member of members) {
-      await communityMemberService.upsert({
+      await memberService.upsert({
         username: member.username,
         platform: member.platform || PlatformType.TWITTER,
       })

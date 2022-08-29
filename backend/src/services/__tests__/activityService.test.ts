@@ -1,7 +1,7 @@
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 import ActivityService from '../activityService'
-import CommunityMemberRepository from '../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import ConversationService from '../conversationService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -26,7 +26,7 @@ describe('ActivityService tests', () => {
   describe('upsert method', () => {
     it('Should create non existent activity with no parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -45,7 +45,7 @@ describe('ActivityService tests', () => {
         },
         sourceId: '#sourceId',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
       }
 
@@ -54,7 +54,7 @@ describe('ActivityService tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
 
       const expectedActivityCreated = {
         id: activityCreated.id,
@@ -64,7 +64,7 @@ describe('ActivityService tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -85,7 +85,7 @@ describe('ActivityService tests', () => {
 
     it('Should create non existent activity with parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -97,7 +97,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         platform: 'stackoverflow',
         crowdInfo: {
           body: 'What is love?',
@@ -117,7 +117,7 @@ describe('ActivityService tests', () => {
           body: 'Baby dont hurt me',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: activityCreated1.sourceId,
@@ -132,7 +132,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       ).findAndCountAll({ slug: 'what-is-love' })
 
-      delete activityCreated2.communityMember
+      delete activityCreated2.member
       delete activityCreated2.parent
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated2.createdAt = activityCreated2.createdAt.toISOString().split('T')[0]
@@ -146,7 +146,7 @@ describe('ActivityService tests', () => {
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -166,7 +166,7 @@ describe('ActivityService tests', () => {
 
     it('Should update already existing activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -178,7 +178,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         platform: 'stackoverflow',
         crowdInfo: {
           question: 'What is love?',
@@ -200,7 +200,7 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         platform: 'stackoverflow',
         crowdInfo: {
           question: 'Test',
@@ -227,8 +227,8 @@ describe('ActivityService tests', () => {
       activityUpserted.createdAt = activityUpserted.createdAt.toISOString().split('T')[0]
       activityUpserted.updatedAt = activityUpserted.updatedAt.toISOString().split('T')[0]
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityUpserted.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityUpserted.member
       delete activityUpserted.parent
 
       const crowdInfoExpected = {
@@ -246,7 +246,7 @@ describe('ActivityService tests', () => {
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -266,7 +266,7 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
       const member1Created = await memberService.upsert({
@@ -291,7 +291,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: member1Created.id,
+        member: member1Created.id,
         platform: PlatformType.DISCORD,
         crowdInfo: {
           body: 'What is love?',
@@ -311,7 +311,7 @@ describe('ActivityService tests', () => {
           body: 'Baby dont hurt me',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: activityCreated1.sourceId,
@@ -327,7 +327,7 @@ describe('ActivityService tests', () => {
           body: 'Dont hurt me',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
         sourceParentId: activityCreated2.sourceId,
@@ -343,7 +343,7 @@ describe('ActivityService tests', () => {
           body: 'No more',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
         sourceParentId: activityCreated3.sourceId,
@@ -378,7 +378,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna give you up',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
       }
@@ -392,7 +392,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna let you down',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
         sourceParentId: activityCreated5.sourceId,
@@ -407,7 +407,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna run around and desert you',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
         sourceParentId: activityCreated5.sourceId,
@@ -430,7 +430,7 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
       const member1Created = await memberService.upsert({
@@ -461,7 +461,7 @@ describe('ActivityService tests', () => {
           body: 'No more',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
         sourceParentId: 'sourceId#3',
@@ -477,7 +477,7 @@ describe('ActivityService tests', () => {
           body: 'Dont hurt me',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
         sourceParentId: 'sourceId#2',
@@ -493,7 +493,7 @@ describe('ActivityService tests', () => {
           body: 'Baby dont hurt me',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: 'sourceId#1',
@@ -504,7 +504,7 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: member1Created.id,
+        member: member1Created.id,
         platform: PlatformType.DISCORD,
         crowdInfo: {
           body: 'What is love?',
@@ -551,7 +551,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna let you down',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
         sourceParentId: 'sourceId#5',
@@ -566,7 +566,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna run around and desert you',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
         sourceParentId: 'sourceId#5',
@@ -581,7 +581,7 @@ describe('ActivityService tests', () => {
           body: 'Never gonna give you up',
         },
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
       }
@@ -619,7 +619,7 @@ describe('ActivityService tests', () => {
           body: 'additional reply to the reply chain',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#8',
         sourceParentId: 'sourceId#1',
@@ -639,7 +639,7 @@ describe('ActivityService tests', () => {
           body: 'additional message to the thread',
         },
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#9',
         sourceParentId: 'sourceId#5',
@@ -656,7 +656,7 @@ describe('ActivityService tests', () => {
     it('Create an activity with given member [no parent activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const communityMember = {
+      const member = {
         username: {
           crowdUsername: 'anil',
           github: 'anil_github',
@@ -691,7 +691,7 @@ describe('ActivityService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -712,13 +712,13 @@ describe('ActivityService tests', () => {
         data,
       )
 
-      delete activityWithMember.communityMember
+      delete activityWithMember.member
 
       activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
       activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMember.memberId,
         mockIRepositoryOptions,
       )
 
@@ -730,7 +730,7 @@ describe('ActivityService tests', () => {
         platform: data.platform,
         isKeyAction: data.isKeyAction,
         score: data.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -752,7 +752,7 @@ describe('ActivityService tests', () => {
     it('Create an activity with given member [with parent activity, upsert member, new activity] [parent first, child later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const communityMember = {
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
@@ -784,7 +784,7 @@ describe('ActivityService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -806,7 +806,7 @@ describe('ActivityService tests', () => {
       ).createWithMember(data)
 
       const data2 = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
           title: 'Add order by score and # of activities',
@@ -835,15 +835,15 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       ).findAndCountAll({ slug: 'description-this-pull-request-adds-a-new-dashboard-and-related' })
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityWithMember2.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityWithMember2.member
       delete activityWithMember2.parent
 
       activityWithMember2.createdAt = activityWithMember2.createdAt.toISOString().split('T')[0]
       activityWithMember2.updatedAt = activityWithMember2.updatedAt.toISOString().split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember1.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMember1.memberId,
         mockIRepositoryOptions,
       )
 
@@ -855,7 +855,7 @@ describe('ActivityService tests', () => {
         platform: data2.platform,
         isKeyAction: data2.isKeyAction,
         score: data2.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -877,7 +877,7 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
-      const communityMember = {
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
@@ -909,7 +909,7 @@ describe('ActivityService tests', () => {
       }
 
       const dataChild = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
           title: 'Add order by score and # of activities',
@@ -930,7 +930,7 @@ describe('ActivityService tests', () => {
       let activityWithMemberChild = await activityService.createWithMember(dataChild)
 
       const dataParent = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -958,10 +958,10 @@ describe('ActivityService tests', () => {
       activityWithMemberChild = await activityService.findById(activityWithMemberChild.id)
       activityWithMemberParent = await activityService.findById(activityWithMemberParent.id)
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityWithMemberChild.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityWithMemberChild.member
       delete activityWithMemberChild.parent
-      delete activityWithMemberParent.communityMember
+      delete activityWithMemberParent.member
       delete activityWithMemberParent.parent
 
       activityWithMemberChild.createdAt = activityWithMemberChild.createdAt
@@ -977,8 +977,8 @@ describe('ActivityService tests', () => {
         .toISOString()
         .split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMemberChild.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMemberChild.memberId,
         mockIRepositoryOptions,
       )
 
@@ -990,7 +990,7 @@ describe('ActivityService tests', () => {
         platform: dataParent.platform,
         isKeyAction: dataParent.isKeyAction,
         score: dataParent.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1015,7 +1015,7 @@ describe('ActivityService tests', () => {
         platform: dataChild.platform,
         isKeyAction: dataChild.isKeyAction,
         score: dataChild.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1036,7 +1036,7 @@ describe('ActivityService tests', () => {
     it('Create an activity with given member [no parent activity, upsert member, upsert activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const communityMember = {
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
@@ -1068,7 +1068,7 @@ describe('ActivityService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1091,8 +1091,8 @@ describe('ActivityService tests', () => {
       ).createWithMember(data)
 
       const data2 = {
-        communityMember: {
-          username: communityMember.username,
+        member: {
+          username: member.username,
           platform: data.platform,
           crowdInfo: { githubNewField: { body: 'test' } },
         },
@@ -1124,13 +1124,13 @@ describe('ActivityService tests', () => {
       )
 
       // get the first created member. Second call to createWithMember should be updating this object
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember1.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMember1.memberId,
         mockIRepositoryOptions,
       )
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete upsertedActivity.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete upsertedActivity.member
       delete upsertedActivity.parent
 
       upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
@@ -1147,7 +1147,7 @@ describe('ActivityService tests', () => {
         platform: data2.platform,
         isKeyAction: data2.isKeyAction,
         score: data2.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -1168,7 +1168,7 @@ describe('ActivityService tests', () => {
     it('Upsert activity. Member with different username, but same activity (member changed username)', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const communityMember = {
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
@@ -1200,7 +1200,7 @@ describe('ActivityService tests', () => {
       }
 
       const data = {
-        communityMember,
+        member,
         crowdInfo: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1224,7 +1224,7 @@ describe('ActivityService tests', () => {
 
       // This is the same activity. However, the member has changed username
       const data2 = {
-        communityMember: {
+        member: {
           username: 'different_username',
           platform: data.platform,
           crowdInfo: { githubNewField: { body: 'test' } },
@@ -1249,7 +1249,7 @@ describe('ActivityService tests', () => {
 
       await ActivityRepository.findById(activityWithMember1.id, mockIRepositoryOptions)
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: {} },
         mockIRepositoryOptions,
       )
@@ -1262,14 +1262,14 @@ describe('ActivityService tests', () => {
       expect(members.count).toBe(1)
       expect(activities.count).toBe(1)
 
-      const member = members.rows[0]
-      expect(member.username).toStrictEqual({
+      const memberFound = members.rows[0]
+      expect(memberFound.username).toStrictEqual({
         github: 'different_username',
         crowdUsername: 'anil_github',
       })
 
-      // // delete models before expect because we already have ids (communityMemberId, parentId)
-      // delete upsertedActivity.communityMember
+      // // delete models before expect because we already have ids (memberId, parentId)
+      // delete upsertedActivity.member
       // delete upsertedActivity.parent
 
       // upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
@@ -1286,7 +1286,7 @@ describe('ActivityService tests', () => {
       //   platform: data2.platform,
       //   isKeyAction: data2.isKeyAction,
       //   score: data2.score,
-      //   communityMemberId: member.id,
+      //   memberId: member.id,
       //   createdAt: SequelizeTestUtils.getNowWithoutTime(),
       //   updatedAt: SequelizeTestUtils.getNowWithoutTime(),
       //   deletedAt: null,
@@ -1302,11 +1302,11 @@ describe('ActivityService tests', () => {
       // expect(upsertedActivity).toStrictEqual(expectedActivityCreated)
     })
 
-    describe('Community member tests in createWithMember', () => {
+    describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-        const communityMember = {
+        const member = {
           username: {
             crowdUsername: 'anil',
             github: 'anil_github',
@@ -1341,7 +1341,7 @@ describe('ActivityService tests', () => {
         }
 
         const data = {
-          communityMember,
+          member,
           crowdInfo: {
             body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
             title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1362,13 +1362,13 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
@@ -1380,7 +1380,7 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1407,7 +1407,7 @@ describe('ActivityService tests', () => {
       it('Should replace joinedAt when activity ts is earlier than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-        const communityMember = {
+        const member = {
           username: {
             crowdUsername: 'anil',
             github: 'anil_github',
@@ -1441,10 +1441,10 @@ describe('ActivityService tests', () => {
           joinedAt: '2022-05-27T15:13:30Z',
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
+          member,
           crowdInfo: {
             body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
             title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1465,13 +1465,13 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
@@ -1483,7 +1483,7 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1510,7 +1510,7 @@ describe('ActivityService tests', () => {
       it('Should not replace joinedAt when activity ts is later than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-        const communityMember = {
+        const member = {
           username: {
             crowdUsername: 'anil',
             github: 'anil_github',
@@ -1544,10 +1544,10 @@ describe('ActivityService tests', () => {
           joinedAt: '2020-05-27T15:13:30Z',
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
+          member,
           crowdInfo: {
             body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
             title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1568,13 +1568,13 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
@@ -1586,7 +1586,7 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1613,7 +1613,7 @@ describe('ActivityService tests', () => {
       it('It should replace joinedAt if the orginal was in year 1000', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-        const communityMember = {
+        const member = {
           username: {
             crowdUsername: 'anil',
             github: 'anil_github',
@@ -1647,10 +1647,10 @@ describe('ActivityService tests', () => {
           joinedAt: new Date('1000-01-01T00:00:00Z'),
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
+          member,
           crowdInfo: {
             body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
             title: 'Dashboard widgets and some other tweaks/adjustments',
@@ -1671,13 +1671,13 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
@@ -1689,7 +1689,7 @@ describe('ActivityService tests', () => {
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
@@ -1720,7 +1720,7 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -1739,7 +1739,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -1759,7 +1759,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -1802,7 +1802,7 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -1826,7 +1826,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         conversationId: conversation.id,
         sourceId: '#sourceId1',
@@ -1847,7 +1847,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -1883,7 +1883,7 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -1907,7 +1907,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -1926,7 +1926,7 @@ describe('ActivityService tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         conversationId: conversation.id,
@@ -1974,7 +1974,7 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -1999,7 +1999,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2019,7 +2019,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         conversationId: conversation.id,
@@ -2078,7 +2078,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -2097,7 +2097,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2117,7 +2117,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2177,7 +2177,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -2196,7 +2196,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2216,7 +2216,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2279,7 +2279,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -2298,7 +2298,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2318,7 +2318,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2381,7 +2381,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
           crowdUsername: 'test',
           github: 'test',
@@ -2400,7 +2400,7 @@ describe('ActivityService tests', () => {
           repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2419,7 +2419,7 @@ describe('ActivityService tests', () => {
           body: 'Here',
         },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',

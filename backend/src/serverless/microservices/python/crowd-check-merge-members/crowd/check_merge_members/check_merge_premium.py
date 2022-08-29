@@ -2,7 +2,7 @@ from crowd.backend.controllers import MicroservicesController
 from crowd.backend.repository import Repository
 from crowd.backend.repository.keys import DBKeys as dbk
 from crowd.backend.controllers import MembersController
-from crowd.backend.models import CommunityMember, Integration
+from crowd.backend.models import Member, Integration
 import logging
 from crowd.backend.enums import Services
 
@@ -53,7 +53,7 @@ class CheckMergePremium:
         self.sqs_sender = sqs_sender
 
         # Compute all members
-        all_members = self.repository.find_all(CommunityMember, query={"type": "member"})
+        all_members = self.repository.find_all(Member, query={"type": "member"})
 
         if self.microservice.init:
             # Compute new members
@@ -185,8 +185,8 @@ class CheckMergePremium:
         Function that finds top k similar users to the user given in argument in the database
 
         Args:
-            user (CommunityMember): The user to which we are going to find similar users
-            comparison (List(CommunityMember)): the list of users to compare user with
+            user (Member): The user to which we are going to find similar users
+            comparison (List(Member)): the list of users to compare user with
             same_platform (Boolean): Whether the user and the comaprison set have the same platform or not
         """
 
@@ -225,7 +225,7 @@ class CheckMergePremium:
                 else:
                     # Set threshhold
                     threshhold = CheckMergePremium.threshhold
-                    # Check if community members' have different usernames in same platform
+                    # Check if members' have different usernames in same platform
                     # In this case, they are not the same
                     common_platforms = user_platforms.intersection(comparison_platforms)
                     if self.check_same_platform(user, users[i], common_platforms):
@@ -264,8 +264,8 @@ class CheckMergePremium:
         If two users have two unsimilar usernames in the same platform it returns True, else it returns False
 
         Args:
-            user1 (CommunityMember): First user we are going to compare
-            user2 (CommunityMember): Second user we are going to compare
+            user1 (Member): First user we are going to compare
+            user2 (Member): Second user we are going to compare
             platforms (List(str)): the common platforms between users
         """
         for platform in platforms:

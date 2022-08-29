@@ -1,49 +1,49 @@
 cube(`MemberTags`, {
-  sql: `SELECT * FROM public."communityMemberTags"`,
+    sql: `SELECT * FROM public."memberTags"`,
 
-  joins: {
-    Tags: {
-      relationship: `hasMany`,
-      sql: `${CUBE}."tagId" = ${Tags}."id"`,
-    },
-  },
-
-  measures: {
-    count: {
-      type: `count`,
-      drillMembers: [communitymemberid, tagid, createdat, updatedat],
-      shown: false,
-    },
-  },
-
-  dimensions: {
-    id: {
-      sql: `CONCAT(${CUBE}.communityMemberId, ${CUBE}.tagId)`,
-      type: `string`,
-      primaryKey: true,
-    },
-    communitymemberid: {
-      sql: `${CUBE}."communityMemberId"`,
-      type: `string`,
-      shown: false,
+    joins: {
+        Tags: {
+            relationship: `hasMany`,
+            sql: `${CUBE}."tagId" = ${Tags}."id"`,
+        },
     },
 
-    tagid: {
-      sql: `${CUBE}."tagId"`,
-      type: `string`,
-      shown: false,
+    measures: {
+        count: {
+            type: `count`,
+            drillMembers: [memberid, tagid, createdat, updatedat],
+            shown: false,
+        },
     },
 
-    createdat: {
-      sql: `${CUBE}."createdAt"`,
-      type: `time`,
-      shown: false,
-    },
+    dimensions: {
+        id: {
+            sql: `CONCAT(${CUBE}.memberId, ${CUBE}.tagId)`,
+            type: `string`,
+            primaryKey: true,
+        },
+        memberid: {
+            sql: `${CUBE}."memberId"`,
+            type: `string`,
+            shown: false,
+        },
 
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
-      type: `time`,
-      shown: false,
+        tagid: {
+            sql: `${CUBE}."tagId"`,
+            type: `string`,
+            shown: false,
+        },
+
+        createdat: {
+            sql: `${CUBE}."createdAt"`,
+            type: `time`,
+            shown: false,
+        },
+
+        updatedat: {
+            sql: `${CUBE}."updatedAt"`,
+            type: `time`,
+            shown: false,
+        },
     },
-  },
 })
