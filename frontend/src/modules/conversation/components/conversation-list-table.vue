@@ -120,7 +120,7 @@
               class="btn btn--circle btn--devto mr-2"
               ><img
                 :src="findIcon('devto')"
-                alt="Dev.to"
+                alt="DEV"
                 class="conversation-list-table--platform-icon"
             /></span>
           </template>

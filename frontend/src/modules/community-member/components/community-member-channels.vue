@@ -66,7 +66,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        content="View Dev.to Profile"
+        content="View DEV Profile"
         placement="top"
         v-if="member.crowdInfo.devto"
       >
@@ -78,7 +78,7 @@
         >
           <img
             :src="findIcon('devto')"
-            alt="Dev.to"
+            alt="DEV"
             class="community-member-channels-icon"
           />
         </a>

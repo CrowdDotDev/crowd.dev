@@ -10,7 +10,7 @@
         <img
           :src="logoUrl"
           class="w-10 h-10 mr-4"
-          alt="Dev.to logo"
+          alt="DEV logo"
         />
         <div class="pt-1">
           <span
@@ -18,7 +18,7 @@
             >Integration</span
           >
           <span class="block text-lg font-medium"
-            >Dev.to</span
+            >DEV</span
           >
         </div>
       </div>

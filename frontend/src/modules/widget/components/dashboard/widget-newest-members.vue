@@ -56,9 +56,7 @@
                     placement="top"
                   >
                     <a
-                      :href="
-                        member.crowdInfo.github.url
-                      "
+                      :href="member.crowdInfo.github.url"
                       target="_blank"
                       class="mr-1"
                     >
@@ -76,9 +74,7 @@
                     placement="top"
                   >
                     <a
-                      :href="
-                        member.crowdInfo.twitter.url
-                      "
+                      :href="member.crowdInfo.twitter.url"
                       target="_blank"
                     >
                       <img
@@ -128,19 +124,17 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="Dev.to"
+                    content="DEV"
                     v-if="member.crowdInfo.devto"
                     placement="top"
                   >
                     <a
-                      :href="
-                        member.crowdInfo.devto.url
-                      "
+                      :href="member.crowdInfo.devto.url"
                       target="_blank"
                     >
                       <img
                         :src="findIcon('devto')"
-                        alt="Dev.to"
+                        alt="DEV"
                         class="platform-icon"
                       />
                     </a>
