@@ -69,6 +69,6 @@ export default {
 
 <style lang="scss">
 .eagle-eye-search {
-  @apply -mx-2 flex items-start mt-6;
+  @apply -mx-3 flex items-start mt-6;
 }
 </style>
