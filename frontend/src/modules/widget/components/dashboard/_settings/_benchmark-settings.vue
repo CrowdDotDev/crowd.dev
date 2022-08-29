@@ -1,8 +1,8 @@
 <template>
   <div class="benchmark-settings">
     <div
-      class="bg-gray-100 border p-4 mb-8 rounded"
       v-if="!githubIntegration"
+      class="bg-gray-100 border p-4 mb-8 rounded"
     >
       <div class="flex items-center mb-2 font-semibold">
         <i class="ri-information-line mr-2"></i>
@@ -28,7 +28,7 @@
         to see our available integrations.
       </div>
     </div>
-    <form @submit="handleSubmit" v-else>
+    <form v-else @submit="handleSubmit">
       <div class="flex justify-between items-center">
         <span class="text-sm"
           >1. Choose the time frame.</span
@@ -54,14 +54,14 @@
       >
       <div class="benchmark-settings-repositories">
         <div
-          class="benchmark-settings-repositories-item"
           v-for="(repo, index) in repositories"
           :key="repo.id"
+          class="benchmark-settings-repositories-item"
         >
           <div>
             <div
-              class="flex items-center"
               v-if="repo.editing !== true"
+              class="flex items-center"
             >
               <el-checkbox v-model="repo.active">{{
                 repo.label
@@ -73,7 +73,7 @@
               />
             </div>
 
-            <div class="flex items-center" v-else>
+            <div v-else class="flex items-center">
               <el-input
                 v-model="repo.label"
                 :placeholder="repo.value"
@@ -96,7 +96,7 @@
             <span class="el-dropdown-link">
               <i class="ri-xl ri-more-line"></i>
             </span>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu>
               <el-dropdown-item
                 icon="ri-pencil-line"
                 :command="{
@@ -126,9 +126,9 @@
           Add repository to benchmark</span
         >
         <el-autocomplete
+          v-model="query"
           class="inline-input w-full"
           :fetch-suggestions="handleSearchRepository"
-          v-model="query"
           placeholder="Type to search for repositories in GitHub"
           :trigger-on-focus="false"
           @select="handleAddRepository"
@@ -137,9 +137,9 @@
       <hr class="my-4" />
       <div class="flex items-center justify-end mt-8">
         <el-button
-          @click="handleSubmit"
           icon="ri-lg ri-save-line"
           class="btn btn--primary mr-2"
+          @click="handleSubmit"
         >
           <app-i18n code="common.save"></app-i18n>
         </el-button>
@@ -162,7 +162,7 @@ import { i18n } from '@/i18n'
 import Vue from 'vue'
 
 export default {
-  name: 'app-graph-benchmark-settings',
+  name: 'AppGraphBenchmarkSettings',
   props: {
     widget: {
       type: Object,

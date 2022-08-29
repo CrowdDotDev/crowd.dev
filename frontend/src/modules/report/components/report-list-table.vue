@@ -3,13 +3,13 @@
     <app-report-list-toolbar></app-report-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
+        ref="table"
+        v-loading="loading('table')"
         :border="true"
         :data="reports"
-        @sort-change="doChangeSort"
-        ref="table"
         row-key="id"
-        v-loading="loading('table')"
         :row-class-name="rowClass"
+        @sort-change="doChangeSort"
       >
         <el-table-column
           type="selection"
@@ -21,7 +21,7 @@
           prop="name"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <router-link
               :to="{
                 name: 'reportView',
@@ -36,7 +36,7 @@
           </template>
         </el-table-column>
         <el-table-column label="Public">
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.public ? 'Yes' : 'No' }}
           </template>
         </el-table-column>
@@ -44,12 +44,12 @@
           label="# of Widgets"
           prop="widgetsCount"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.widgets.length }}
           </template>
         </el-table-column>
         <el-table-column label="" width="200">
-          <template slot-scope="scope">
+          <template #default="scope">
             <div class="table-actions">
               <app-report-dropdown
                 :report="scope.row"
@@ -85,7 +85,7 @@ import ReportListDropdown from './report-list-toolbar'
 const { fields } = ReportModel
 
 export default {
-  name: 'app-report-list-table',
+  name: 'AppReportListTable',
   components: {
     'app-report-dropdown': ReportDropdown,
     'app-report-list-toolbar': ReportListDropdown

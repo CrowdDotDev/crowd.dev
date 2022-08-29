@@ -14,7 +14,7 @@
       </h1>
       <div class="content">
         <transition name="fade" mode="out-in">
-          <div class="content panel" v-if="step === 1">
+          <div v-if="step === 1" class="content panel">
             <img
               src="/images/tenant-create.svg"
               alt="create-tenant"
@@ -43,7 +43,7 @@ import AppOnboardPopulateData from './onboard-populate-data'
 import AppTenantNewForm from '../../auth/components/tenant-new-form'
 
 export default {
-  name: 'app-onboard-page',
+  name: 'AppOnboardPage',
 
   components: {
     AppTenantNewForm,

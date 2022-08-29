@@ -2,17 +2,17 @@
   <div>
     <label class="block leading-none mb-2">Limit</label>
     <el-input
-      placeholder="10000"
       v-model="value"
-      @change="(v) => $emit('update', v)"
+      placeholder="10000"
       :disabled="disabled"
+      @change="(v) => $emit('update', v)"
     ></el-input>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Limit',
+  name: 'AppQueryBuilderLimit',
   props: {
     limit: {
       type: Number,

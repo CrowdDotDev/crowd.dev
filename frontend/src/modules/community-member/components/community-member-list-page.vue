@@ -1,9 +1,9 @@
 <template>
   <div class="community-member-list-page">
     <div
-      class="app-page-spinner"
       v-if="widgetsLoading"
       v-loading="widgetsLoading"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <h1 class="app-content-title">
@@ -12,8 +12,8 @@
         ></app-i18n>
       </h1>
       <div
-        class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
         v-if="hasMembersToMerge"
+        class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
       >
         <div class="flex items-start">
           <i
@@ -50,10 +50,10 @@
           ></portal-target>
 
           <el-button
+            v-if="hasPermissionToCreate"
             icon="ri-lg ri-add-line"
             class="btn btn--primary ml-2"
             @click.prevent="creating = true"
-            v-if="hasPermissionToCreate"
           >
             <app-i18n code="common.new"></app-i18n>
           </el-button>
@@ -61,12 +61,12 @@
       </div>
 
       <el-dialog
-        :visible.sync="creating"
+        v-model:visible="creating"
         title="New Member"
         :append-to-body="true"
         :destroy-on-close="true"
-        @close="creating = false"
         custom-class="el-dialog--lg"
+        @close="creating = false"
       >
         <app-community-member-form-page
           @cancel="creating = false"
@@ -90,7 +90,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { CommunityMemberPermissions } from '../community-member-permissions'
 
 export default {
-  name: 'app-community-member-list-page',
+  name: 'AppCommunityMemberListPage',
 
   components: {
     'app-community-member-list-filter': CommunityMemberListFilter,

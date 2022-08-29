@@ -1,5 +1,5 @@
 <template>
-  <div id="app" v-if="!loadingInit">
+  <div v-if="!loadingInit" id="app">
     <transition mode="out-in" name="fade">
       <router-view />
     </transition>
@@ -12,7 +12,13 @@
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app',
+  name: 'App',
+
+  computed: {
+    ...mapGetters({
+      loadingInit: 'auth/loadingInit'
+    })
+  },
 
   created() {
     this.doInit()
@@ -20,7 +26,7 @@ export default {
     this.handleResize()
   },
 
-  destroyed() {
+  unmounted() {
     window.removeEventListener('resize', this.handleResize)
   },
 
@@ -36,12 +42,6 @@ export default {
         height: window.innerHeight
       })
     }
-  },
-
-  computed: {
-    ...mapGetters({
-      loadingInit: 'auth/loadingInit'
-    })
   }
 }
 </script>

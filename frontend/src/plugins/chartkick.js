@@ -143,30 +143,6 @@ let createComponent = function (app, tagName, chartType) {
         return acc
       }, {})
     },
-    render: function (createElement) {
-      // check if undefined so works with empty string
-      let loading =
-        this.chartOptions.loading !== undefined
-          ? this.chartOptions.loading
-          : 'Loading...'
-
-      // createElement() accepts VNodes,
-      // but limit to string since it may be used by Chartkick.js
-      if (typeof loading !== 'string') {
-        throw new Error('loading must be a string')
-      }
-
-      return createElement(
-        'div',
-        {
-          attrs: {
-            id: this.chartId
-          },
-          style: this.chartStyle
-        },
-        [loading]
-      )
-    },
     data: function () {
       return {
         chartId: null
@@ -236,6 +212,30 @@ let createComponent = function (app, tagName, chartType) {
           this.$el.innerText = 'Loading...'
         }
       }
+    },
+    render: function (createElement) {
+      // check if undefined so works with empty string
+      let loading =
+        this.chartOptions.loading !== undefined
+          ? this.chartOptions.loading
+          : 'Loading...'
+
+      // createElement() accepts VNodes,
+      // but limit to string since it may be used by Chartkick.js
+      if (typeof loading !== 'string') {
+        throw new Error('loading must be a string')
+      }
+
+      return createElement(
+        'div',
+        {
+          attrs: {
+            id: this.chartId
+          },
+          style: this.chartStyle
+        },
+        [loading]
+      )
     }
   })
 }

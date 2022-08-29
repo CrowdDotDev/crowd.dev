@@ -1,8 +1,8 @@
 <template>
   <div class="app-page-toolbar">
     <router-link
-      :to="{ path: `/user/${record.id}/edit` }"
       v-if="record && hasPermissionToEdit"
+      :to="{ path: `/user/${record.id}/edit` }"
     >
       <el-button
         icon="ri-lg ri-pencil-line"
@@ -20,7 +20,7 @@ import { AuditLogPermissions } from '@/modules/audit-log/audit-log-permissions'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-user-view-toolbar',
+  name: 'AppUserViewToolbar',
 
   computed: {
     ...mapGetters({

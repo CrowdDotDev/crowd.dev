@@ -28,7 +28,7 @@
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-  name: 'app-verify-email-page',
+  name: 'AppVerifyEmailPage',
 
   async mounted() {
     await this.doVerifyEmail(this.$route.query.token)

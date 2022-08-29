@@ -2,8 +2,8 @@
   <div>
     <div
       class="el-select el-keywords-input-wrapper"
-      @click="focusKeywordInput"
       :class="focused ? 'is-focus' : ''"
+      @click="focusKeywordInput"
     >
       <el-tag
         v-for="(keyword, idx) in innerKeywords"
@@ -22,8 +22,8 @@
         v-if="!readOnly"
         class="el-keywords-input"
         :placeholder="placeholder"
-        @input="inputKeyword"
         :value="newKeyword"
+        @input="inputKeyword"
         @keydown.delete.stop="removeLastKeyword"
         @keydown="addNew"
         @blur="addNew"

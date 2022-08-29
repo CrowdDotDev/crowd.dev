@@ -1,11 +1,11 @@
 <template>
   <div class="reach">
     <el-tooltip
-      placement="top"
       ref="tooltip"
+      placement="top"
       :disabled="member.reach.total === -1"
     >
-      <div slot="content">
+      <template #content>
         <div v-if="member.reach.github !== undefined">
           Github:
           <span class="font-semibold"
@@ -28,7 +28,7 @@
             }}</span
           >
         </div>
-      </div>
+      </template>
       <span v-if="member.reach.total !== -1">{{
         member.reach.total
       }}</span>
@@ -39,7 +39,7 @@
 
 <script>
 export default {
-  name: 'app-community-member-reach',
+  name: 'AppCommunityMemberReach',
   props: {
     member: {
       type: Object,

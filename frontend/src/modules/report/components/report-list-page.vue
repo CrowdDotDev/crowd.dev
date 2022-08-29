@@ -9,8 +9,8 @@
       ></portal-target>
 
       <router-link
-        :to="{ path: '/reports/new' }"
         v-if="hasPermissionToCreate"
+        :to="{ path: '/reports/new' }"
       >
         <el-button
           icon="ri-lg ri-add-line"
@@ -31,7 +31,7 @@ import ReportListTable from '@/modules/report/components/report-list-table.vue'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 
 export default {
-  name: 'app-report-list-page',
+  name: 'AppReportListPage',
 
   components: {
     'app-report-list-table': ReportListTable

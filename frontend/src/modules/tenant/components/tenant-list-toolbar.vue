@@ -13,7 +13,7 @@
 
 <script>
 export default {
-  name: 'app-tenant-list-toolbar'
+  name: 'AppTenantListToolbar'
 }
 </script>
 

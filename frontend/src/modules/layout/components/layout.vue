@@ -5,8 +5,8 @@
       <el-container :style="elMainStyle">
         <el-main class="relative">
           <banner
-            variant="alert"
             v-if="currentTenant.hasSampleData"
+            variant="alert"
           >
             <div
               class="flex items-center justify-center flex-grow"
@@ -15,8 +15,8 @@
               adding real data please
               <el-button
                 class="btn btn--xs btn--primary ml-4"
-                @click="handleDeleteSampleDataClick"
                 :loading="loading"
+                @click="handleDeleteSampleDataClick"
               >
                 Delete Sample Data
               </el-button>
@@ -38,7 +38,7 @@ import LogRocket from 'logrocket'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-layout',
+  name: 'AppLayout',
 
   components: {
     Banner
@@ -101,7 +101,7 @@ export default {
     }, 30000)
   },
 
-  destroyed() {
+  unmounted() {
     clearInterval(this.fetchIntegrationTimer)
   },
 

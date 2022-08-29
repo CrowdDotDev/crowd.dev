@@ -1,23 +1,23 @@
 <template>
   <el-form
+    ref="form"
     :model="model"
     :rules="rules"
-    @submit.prevent.native="doSubmit"
     class="form"
     label-position="left"
     label-width="0px"
-    ref="form"
+    @submit.prevent="doSubmit"
   >
     <el-form-item :prop="fields.tenantId.name">
       <el-select
-        placeholder
         v-model="model[fields.tenantId.name]"
+        placeholder
       >
         <el-option
+          v-for="option in invitedTenants"
           :key="option.id"
           :label="option.name"
           :value="option.id"
-          v-for="option in invitedTenants"
         ></el-option>
       </el-select>
     </el-form-item>
@@ -34,10 +34,10 @@
       </el-button>
 
       <el-button
-        @click="$emit('viewToggle')"
         class="w-100"
         native-type="button"
         style="margin-top: 16px"
+        @click="$emit('viewToggle')"
       >
         <app-i18n code="tenant.new.title"></app-i18n>
       </el-button>
@@ -52,11 +52,7 @@ import { TenantModel } from '@/modules/tenant/tenant-model'
 const { fields } = TenantModel
 
 export default {
-  name: 'app-tenant-select-form',
-
-  created() {
-    this.model.id = this.invitedTenants[0].id
-  },
+  name: 'AppTenantSelectForm',
 
   data() {
     return {
@@ -65,6 +61,10 @@ export default {
       },
       model: {}
     }
+  },
+
+  created() {
+    this.model.id = this.invitedTenants[0].id
   },
 
   computed: {

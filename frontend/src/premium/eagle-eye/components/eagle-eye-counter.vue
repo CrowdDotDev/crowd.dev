@@ -1,5 +1,5 @@
 <template>
-  <div class="text-gray-600 text-sm" v-if="count > 0">
+  <div v-if="count > 0" class="text-gray-600 text-sm">
     {{ count }}
     {{ typeOfPostsFound }} posts
     {{
@@ -16,7 +16,7 @@
 <script>
 import { mapGetters } from 'vuex'
 export default {
-  name: 'app-eagle-eye-counter',
+  name: 'AppEagleEyeCounter',
   computed: {
     ...mapGetters({
       count: 'eagleEye/count',

@@ -1,21 +1,21 @@
 <template>
   <div class="popover-wrapper">
     <el-popover
+      v-model="isVisible"
       :trigger="trigger"
       :title="title"
       :placement="placement"
-      v-model="isVisible"
-      @show="isVisible = true"
-      @hide="isVisible = false"
       :visible-arrow="visibleArrow"
       popper-class="app-popover"
+      @show="isVisible = true"
+      @hide="isVisible = false"
     >
       <slot v-if="isVisible"></slot>
     </el-popover>
     <transition name="fade">
       <div
-        class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
         v-if="isVisible"
+        class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
         @click="
           trigger === 'manual'
             ? $emit('hide')
@@ -28,7 +28,7 @@
 
 <script>
 export default {
-  name: 'app-popover',
+  name: 'AppPopover',
   props: {
     trigger: {
       type: String,
@@ -55,6 +55,11 @@ export default {
       default: null
     }
   },
+  data() {
+    return {
+      isVisible: this.visible
+    }
+  },
   watch: {
     visible: {
       handler(newValue) {
@@ -78,11 +83,6 @@ export default {
             offsetLeft - (offsetLeft < 242 ? 0 : 242) + 'px'
         }
       }
-    }
-  },
-  data() {
-    return {
-      isVisible: this.visible
     }
   }
 }

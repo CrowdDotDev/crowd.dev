@@ -5,14 +5,14 @@
       :key="index"
     >
       <el-input
-        placeholder="Name"
         v-model="attribute.name"
+        placeholder="Name"
         class="flex-grow block mx-2"
       >
       </el-input>
       <el-input
-        placeholder="Value"
         v-model="attribute.value"
+        placeholder="Value"
         class="flex-grow block mx-2"
       >
       </el-input>
@@ -40,7 +40,7 @@
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-custom-attribute-input',
+  name: 'AppCustomAttributeInput',
   props: {
     value: {
       type: Object,

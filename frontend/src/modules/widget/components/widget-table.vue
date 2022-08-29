@@ -5,15 +5,13 @@
       :editable="editable"
       @trigger-duplicate-widget="
         (widget) =>
-          this.$emit('trigger-duplicate-widget', widget)
+          $emit('trigger-duplicate-widget', widget)
       "
       @trigger-edit-widget="
-        (widget) =>
-          this.$emit('trigger-edit-widget', widget)
+        (widget) => $emit('trigger-edit-widget', widget)
       "
       @trigger-delete-widget="
-        (widget) =>
-          this.$emit('trigger-delete-widget', widget)
+        (widget) => $emit('trigger-delete-widget', widget)
       "
     >
       <div class="-mx-6 -mt-6">
@@ -23,7 +21,7 @@
             :key="column"
             :label="column"
           >
-            <template slot-scope="scope">
+            <template #default="scope">
               {{ scope.row[column] }}
             </template>
           </el-table-column>
@@ -37,7 +35,7 @@
 import Widget from '@/modules/widget/components/widget'
 
 export default {
-  name: 'Table',
+  name: 'AppWidgetTable',
   components: {
     'app-widget': Widget
   },

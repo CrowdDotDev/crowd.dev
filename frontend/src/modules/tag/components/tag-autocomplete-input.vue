@@ -1,20 +1,20 @@
 <template>
   <div style="display: flex">
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
-      :createFn="createTag"
-      v-model="model"
-      :placeholder="placeholder"
-      :createIfNotFound="canCreate"
       v-if="multiple"
+      v-model="model"
+      :fetch-fn="fetchFn"
+      :create-fn="createTag"
+      :placeholder="placeholder"
+      :create-if-not-found="canCreate"
     ></app-autocomplete-many-input>
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
-      :createFn="createTag"
-      v-model="model"
-      :placeholder="placeholder"
-      :createIfNotFound="canCreate"
       v-else
+      v-model="model"
+      :fetch-fn="fetchFn"
+      :create-fn="createTag"
+      :placeholder="placeholder"
+      :create-if-not-found="canCreate"
     ></app-autocomplete-one-input>
   </div>
 </template>
@@ -24,7 +24,7 @@ import { TagPermissions } from '@/modules/tag/tag-permissions'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-tag-autocomplete-input',
+  name: 'AppTagAutocompleteInput',
   props: {
     value: {},
     fetchFn: {

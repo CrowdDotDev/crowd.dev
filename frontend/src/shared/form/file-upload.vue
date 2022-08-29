@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-upload
+      ref="files"
       :accept="accept"
       :file-list="fileList"
       :http-request="uploadFromRequest"
@@ -10,7 +11,6 @@
       :on-remove="onRemove"
       :on-success="onSuccess"
       action
-      ref="files"
     >
       <el-button
         :disabled="loading || isFull"
@@ -29,17 +29,7 @@ import { FileUploader } from '@/shared/file-upload/file-uploader'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-file-upload',
-
-  data() {
-    return {
-      fileList: (this.value || []).map((item) => ({
-        ...item,
-        url: item.downloadUrl
-      })),
-      loading: false
-    }
-  },
+  name: 'AppFileUpload',
 
   props: {
     text: {
@@ -61,6 +51,16 @@ export default {
     btnClass: {
       type: String,
       default: null
+    }
+  },
+
+  data() {
+    return {
+      fileList: (this.value || []).map((item) => ({
+        ...item,
+        url: item.downloadUrl
+      })),
+      loading: false
     }
   },
 

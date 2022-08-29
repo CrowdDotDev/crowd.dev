@@ -1,13 +1,13 @@
 <template>
   <div class="widget panel">
     <div
-      class="app-page-spinner"
       v-show="loading"
       v-loading="loading"
+      class="app-page-spinner"
     ></div>
     <div
-      class="flex items-center leading-normal justify-between"
       v-if="!number"
+      class="flex items-center leading-normal justify-between"
     >
       <div>
         <div class="font-semibold text-base">
@@ -16,16 +16,16 @@
           }}
         </div>
         <div
-          style="color: #666"
           v-if="config.subtitle"
+          style="color: #666"
           class="text-sm"
         >
           {{ config.subtitle }}
         </div>
       </div>
       <router-link
-        :to="config.link"
         v-if="config.link"
+        :to="config.link"
         class="text-sm flex items-center ml-2"
       >
         <span class="block">{{ config.linkLabel }}</span>
@@ -36,36 +36,36 @@
       <slot></slot>
     </div>
     <el-dropdown
+      v-if="config.settings"
       trigger="click"
       @command="handleCommand"
-      v-if="config.settings"
     >
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <el-dropdown-menu>
         <el-dropdown-item
+          v-if="!editable"
           icon="ri-lg ri-settings-2-line"
           command="open-settings-modal"
-          v-if="!editable"
           >Settings</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="editable"
           icon="ri-lg ri-file-copy-line"
           command="trigger-duplicate-widget"
-          v-if="editable"
           >Duplicate Widget</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="editable"
           icon="ri-lg ri-pencil-line"
           command="trigger-edit-widget"
-          v-if="editable"
           >Edit Widget</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="editable"
           icon="ri-lg ri-delete-bin-line"
           command="trigger-delete-widget"
-          v-if="editable"
           >Delete Widget</el-dropdown-item
         >
       </el-dropdown-menu>
@@ -78,7 +78,7 @@ import { i18n } from '@/i18n'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'Widget',
+  name: 'AppWidget',
   props: {
     config: {
       type: Object,

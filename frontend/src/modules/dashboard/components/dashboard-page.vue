@@ -20,9 +20,9 @@
       </el-row>
     </div>
     <div
-      class="app-page-spinner"
       v-else
       v-loading="loading"
+      class="app-page-spinner"
     ></div>
   </div>
 </template>
@@ -35,7 +35,7 @@ import WidgetBenchmark from '@/modules/widget/components/dashboard/widget-benchm
 import WidgetIntegrations from '@/modules/widget/components/dashboard/widget-integrations'
 
 export default {
-  name: 'app-dashboard-page',
+  name: 'AppDashboardPage',
   components: {
     'app-dashboard-datetime-based-widgets': DashboardDatetimeBasedWidgets,
     'app-dashboard-recent-updates-widgets': DashboardRecentUpdatesWidgets,

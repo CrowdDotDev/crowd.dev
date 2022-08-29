@@ -21,7 +21,7 @@ import Widget from '../widget'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'widget-builder',
+  name: 'WidgetBuilder',
   components: {
     'app-widget': Widget
   },

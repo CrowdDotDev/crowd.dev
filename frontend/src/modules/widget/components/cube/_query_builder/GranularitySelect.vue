@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { GRANULARITIES } from '@cubejs-client/vue'
+import { GRANULARITIES } from '@cubejs-client/vue3'
 export default {
   name: 'GranularitySelect',
   props: {

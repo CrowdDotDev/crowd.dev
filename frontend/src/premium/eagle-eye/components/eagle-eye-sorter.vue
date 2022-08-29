@@ -1,12 +1,15 @@
 <template>
-  <div class="eagle-eye-sorter -mr-3" :style="computedWidth">
+  <div
+    class="eagle-eye-sorter -mr-3"
+    :style="computedWidth"
+  >
     <el-select
       :value="value"
       popper-class="eagle-eye-popper-class"
       prefix="sort"
       @change="handleChange"
     >
-      <div slot="prefix">Sort:</div>
+      <template #prefix>Sort:</template>
       <el-option
         key="relevance"
         value="similarityScore"
@@ -24,7 +27,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 export default {
-  name: 'app-eagle-eye-sorter',
+  name: 'AppEagleEyeSorter',
   data() {
     return {
       value: 'similarityScore'

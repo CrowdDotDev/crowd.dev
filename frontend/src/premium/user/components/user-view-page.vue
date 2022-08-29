@@ -22,17 +22,17 @@
       ></app-user-view-toolbar>
 
       <div
-        class="app-page-spinner"
         v-if="loading"
         v-loading="loading"
+        class="app-page-spinner"
       ></div>
 
       <el-form
+        v-if="record && !loading"
         :label-position="labelPosition"
         :label-width="labelWidthForm"
-        @submit.prevent.native
         class="form"
-        v-if="record && !loading"
+        @submit.prevent
       >
         <app-view-item-text
           :label="fields.email.label"
@@ -81,7 +81,7 @@
           :label="fields.roles.label"
           :value="presenter(record, 'roles')"
         >
-          <div :key="roleId" v-for="roleId in record.roles">
+          <div v-for="roleId in record.roles" :key="roleId">
             <el-tooltip
               :content="roleDescriptionOf(roleId)"
             >
@@ -104,13 +104,13 @@ import UserViewToolbar from '@/premium/user/components/user-view-toolbar.vue'
 const { fields } = UserModel
 
 export default {
-  name: 'app-user-view-page',
-
-  props: ['id'],
+  name: 'AppUserViewPage',
 
   components: {
     'app-user-view-toolbar': UserViewToolbar
   },
+
+  props: ['id'],
 
   computed: {
     ...mapGetters({

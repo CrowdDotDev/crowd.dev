@@ -6,7 +6,7 @@
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-i18n',
+  name: 'AppI18n',
   props: ['code', 'args', 'fallback'],
   computed: {
     message: function () {

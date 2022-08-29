@@ -1,13 +1,13 @@
 <template>
-  <button @click="onClick()" class="btn btn--secondary">
+  <button class="btn btn--secondary" @click="onClick()">
     <i
-      class="ri-lg ri-filter-line mr-2"
       v-if="!activeFiltersCount"
+      class="ri-lg ri-filter-line mr-2"
     >
     </i>
     <span
-      class="bg-primary-900 rounded-full h-4 w-4 text-white flex items-center justify-center text-xxs font-semibold mr-2"
       v-else
+      class="bg-primary-900 rounded-full h-4 w-4 text-white flex items-center justify-center text-xxs font-semibold mr-2"
       >{{ activeFiltersCount }}</span
     >
     Filters
@@ -16,7 +16,7 @@
 
 <script>
 export default {
-  name: 'app-filter-toggle',
+  name: 'AppFilterToggle',
   props: {
     expanded: {
       type: Boolean,

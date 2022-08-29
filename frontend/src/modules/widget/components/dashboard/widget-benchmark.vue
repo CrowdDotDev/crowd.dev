@@ -1,11 +1,11 @@
 <template>
   <app-widget
-    :config="config"
-    @open-settings-modal="modal = true"
-    class="widget-benchmark"
     v-if="widget"
+    :config="config"
+    class="widget-benchmark"
+    @open-settings-modal="modal = true"
   >
-    <div class="empty-placeholder" v-if="hasNoData">
+    <div v-if="hasNoData" class="empty-placeholder">
       <div class="text-center">
         <button
           class="btn btn--primary"
@@ -32,15 +32,15 @@
       }"
     />
     <el-dialog
+      v-model:visible="modal"
       :title="`${config.title} Settings`"
-      :visible.sync="modal"
       @close="modal = false"
     >
       <app-benchmark-settings
+        v-if="config.type === 'benchmark'"
         :widget="widget"
         :timeframe-options="timeframeOptions"
         @submit="handleSettingsSubmit"
-        v-if="config.type === 'benchmark'"
       />
     </el-dialog>
   </app-widget>
@@ -55,7 +55,7 @@ import { mapGetters, mapActions } from 'vuex'
 import moment from 'moment'
 
 export default {
-  name: 'app-widget-benchmark',
+  name: 'AppWidgetBenchmark',
   components: {
     'app-widget': Widget,
     'app-benchmark-settings': BenchmarkSettings

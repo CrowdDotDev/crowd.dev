@@ -1,11 +1,11 @@
 <template>
   <div>
     <div
-      class="app-page-spinner mt-16"
       v-if="loading"
       v-loading="loading"
+      class="app-page-spinner mt-16"
     ></div>
-    <div class="flex flex-wrap lg:flex-nowrap -mx-3" v-else>
+    <div v-else class="flex flex-wrap lg:flex-nowrap -mx-3">
       <div
         class="w-full lg:max-w-sm px-3 community-member-view flex-shrink-0"
       >
@@ -18,14 +18,14 @@
       <div class="flex-grow px-3 pt-12">
         <app-activity-platform-tabs
           :is-member="true"
-          @change="handleActivityPlatformChange"
           class="inline-block mb-4"
+          @change="handleActivityPlatformChange"
         />
         <div v-if="userActivities.length > 0">
           <app-activity-list-feed-item
             v-for="activity in userActivities"
-            :activity="activity"
             :key="activity.id"
+            :activity="activity"
           ></app-activity-list-feed-item>
         </div>
         <div
@@ -53,15 +53,15 @@ import ActivityListFeedItem from '@/modules/activity/components/activity-list-fe
 import AppActivityPlatformTabs from '../../activity/components/activity-platform-tabs'
 
 export default {
-  name: 'app-community-member-view-page',
-
-  props: ['id'],
+  name: 'AppCommunityMemberViewPage',
 
   components: {
     AppActivityPlatformTabs,
     'app-activity-list-feed-item': ActivityListFeedItem,
     'app-community-member-details': CommunityMemberDetails
   },
+
+  props: ['id'],
 
   data() {
     return {

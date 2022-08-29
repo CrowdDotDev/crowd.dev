@@ -89,7 +89,7 @@ import WidgetGraphMembers from '@/modules/widget/components/dashboard/widget-gra
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 
 export default {
-  name: 'dashboard-number-widgets',
+  name: 'DashboardNumberWidgets',
   components: {
     'app-widget-graph-members': WidgetGraphMembers,
     'app-widget-graph-activities': WidgetGraphActivities,

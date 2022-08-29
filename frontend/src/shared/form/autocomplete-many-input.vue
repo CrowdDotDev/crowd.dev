@@ -4,7 +4,6 @@
     :loading="loading"
     :remote-method="handleSearch"
     :value="value"
-    @change="onChange"
     clearable
     default-first-option
     filterable
@@ -15,6 +14,7 @@
     :allow-create="allowCreate"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
     <el-option
@@ -25,16 +25,16 @@
       <span>{{ currentQuery }}</span>
     </el-option>
     <el-option
+      v-for="initialOption of initialOptions"
       :key="initialOption.id"
       :label="initialOption.label"
       :value="initialOption"
-      v-for="initialOption of initialOptions"
     ></el-option>
     <el-option
+      v-for="record in dataSource"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
     ></el-option>
   </el-select>
 </template>
@@ -46,7 +46,7 @@ import isString from 'lodash/isString'
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-many-input',
+  name: 'AppAutocompleteManyInput',
 
   props: {
     value: {
@@ -108,13 +108,6 @@ export default {
     }
   },
 
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
-  },
-
   computed: {
     initialOptions() {
       if (!this.value || !this.value.length) {
@@ -148,6 +141,13 @@ export default {
         )
       )
     }
+  },
+
+  mounted() {
+    this.debouncedSearch = debounce(
+      this.handleSearch.bind(this),
+      300
+    )
   },
 
   methods: {

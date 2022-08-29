@@ -5,10 +5,10 @@
     </h1>
     <el-tabs v-model="activeTab" class="mt-8">
       <el-tab-pane
+        v-if="hasUsersModule"
         label="Users & Permissions"
         name="users"
-        labelClass="app-content-title"
-        v-if="hasUsersModule"
+        label-class="app-content-title"
       >
         <app-user-list-page class="pt-4" />
       </el-tab-pane>
@@ -64,7 +64,6 @@
                 <el-tooltip
                   content="Copy to Clipboard"
                   placement="top"
-                  slot="append"
                 >
                   <el-button
                     icon="ri-clipboard-line"
@@ -83,10 +82,9 @@
                 :readonly="showToken"
               >
                 <el-tooltip
+                  v-if="!showToken"
                   content="Show Auth Token"
                   placement="top"
-                  slot="append"
-                  v-if="!showToken"
                 >
                   <el-button
                     icon="ri-eye-line"
@@ -94,10 +92,9 @@
                   ></el-button>
                 </el-tooltip>
                 <el-tooltip
+                  v-else
                   content="Copy to Clipboard"
                   placement="top"
-                  slot="append"
-                  v-else
                 >
                   <el-button
                     icon="ri-clipboard-line"
@@ -123,11 +120,18 @@ import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {
-  name: 'app-settings-page',
+  name: 'AppSettingsPage',
 
   components: {
     'app-user-list-page': UserListPage,
     'app-integrations-list-page': IntegrationListPage
+  },
+
+  data() {
+    return {
+      activeTab: null,
+      showToken: false
+    }
   },
 
   computed: {
@@ -148,13 +152,6 @@ export default {
       } else if (config.edition === 'crowd-hosted') {
         return true
       } else return config.communityPremium === 'true'
-    }
-  },
-
-  data() {
-    return {
-      activeTab: null,
-      showToken: false
     }
   },
 

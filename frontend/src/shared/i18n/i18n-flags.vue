@@ -1,12 +1,12 @@
 <template>
   <div class="i18n-flags">
     <img
-      :alt="language.label"
+      v-for="language in languages"
       :key="language.id"
+      :alt="language.label"
       :src="language.flag"
       :title="language.label"
       @click="doChangeLanguage(language.id)"
-      v-for="language in languages"
     />
   </div>
 </template>
@@ -16,7 +16,7 @@ import { I18nUtil } from '@/shared/i18n/i18n-util'
 import { getLanguages } from '@/i18n'
 
 export default {
-  name: 'app-i18n-flags',
+  name: 'AppI18nFlags',
 
   computed: {
     languages() {

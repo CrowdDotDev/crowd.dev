@@ -5,7 +5,6 @@
     :remote-method="handleSearch"
     :value="value"
     :placeholder="placeholder || ''"
-    @change="onChange"
     clearable
     default-first-option
     filterable
@@ -14,18 +13,19 @@
     :reserve-keyword="false"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
   >
     <el-option
+      v-if="initialOption"
       :key="initialOption.id"
       :label="initialOption.label"
       :value="initialOption"
-      v-if="initialOption"
     ></el-option>
     <el-option
+      v-for="record in dataSource"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
     ></el-option>
   </el-select>
 </template>
@@ -37,7 +37,7 @@ import isString from 'lodash/isString'
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-one-input',
+  name: 'AppAutocompleteOneInput',
 
   props: {
     value: {
@@ -93,13 +93,6 @@ export default {
     }
   },
 
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
-  },
-
   computed: {
     initialOption() {
       if (
@@ -121,6 +114,13 @@ export default {
 
       return this.serverSideDataSource
     }
+  },
+
+  mounted() {
+    this.debouncedSearch = debounce(
+      this.handleSearch.bind(this),
+      300
+    )
   },
 
   methods: {

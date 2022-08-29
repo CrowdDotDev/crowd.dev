@@ -1,16 +1,16 @@
 <template>
   <el-carousel
+    v-if="value && value.length"
     :arrow="value && value.length > 1 ? 'hover' : 'never'"
     :indicator-position="
       value && value.length > 1 ? 'outside' : 'none'
     "
     class="text-center"
     trigger="click"
-    v-if="value && value.length"
   >
     <el-carousel-item
-      :key="index"
       v-for="(image, index) in value"
+      :key="index"
     >
       <a :href="image.downloadUrl" target="_blank">
         <img
@@ -29,7 +29,7 @@
 
 <script>
 export default {
-  name: 'app-image-carousel',
+  name: 'AppImageCarousel',
 
   props: {
     value: Array

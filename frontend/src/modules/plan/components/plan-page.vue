@@ -42,7 +42,7 @@ import PlanCardFree from '@/modules/plan/components/plan-card-free.vue'
 import PlanCardPaid from '@/modules/plan/components/plan-card-paid.vue'
 
 export default {
-  name: 'app-plan-page',
+  name: 'AppPlanPage',
 
   components: {
     'app-plan-card-free': PlanCardFree,

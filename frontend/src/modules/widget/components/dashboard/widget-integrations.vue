@@ -1,8 +1,8 @@
 <template>
   <app-widget
+    v-if="widget"
     :config="config"
     class="custom-height"
-    v-if="widget"
   >
     <div class="widget-integrations">
       <div
@@ -100,7 +100,7 @@ import { mapGetters, mapActions } from 'vuex'
 import integrationsJson from '@/jsons/integrations'
 
 export default {
-  name: 'widget-integrations',
+  name: 'WidgetIntegrations',
   components: {
     'app-widget': Widget
   },

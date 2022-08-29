@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isBlank">
-    <div :key="item.id" v-for="item in value">
+    <div v-for="item in value" :key="item.id">
       <a
         :href="item.downloadUrl"
         download
@@ -15,7 +15,7 @@
 import truncate from 'lodash/truncate'
 
 export default {
-  name: 'app-list-item-file',
+  name: 'AppListItemFile',
 
   props: ['value'],
 

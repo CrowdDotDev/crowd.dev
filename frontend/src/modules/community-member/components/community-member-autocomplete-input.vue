@@ -1,34 +1,34 @@
 <template>
   <div style="display: flex">
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
       v-if="mode !== 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
-      :inputClass="inputClass"
-      :inMemoryFilter="false"
+      :input-class="inputClass"
+      :in-memory-filter="false"
     ></app-autocomplete-one-input>
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
       v-if="mode === 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
-      :inputClass="inputClass"
-      :inMemoryFilter="false"
+      :input-class="inputClass"
+      :in-memory-filter="false"
     ></app-autocomplete-many-input>
     <el-button
-      @click="doOpenModal()"
+      v-if="hasPermissionToCreate && showCreate"
       icon="el-icon-plus"
       style="margin-left: 16px"
       class="btn btn--secondary btn--secondary--orange"
-      v-if="hasPermissionToCreate && showCreate"
+      @click="doOpenModal()"
     ></el-button>
     <portal to="modal">
       <app-community-member-form-modal
+        v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
-        v-if="dialogVisible"
       ></app-community-member-form-modal>
     </portal>
   </div>
@@ -40,7 +40,11 @@ import { CommunityMemberPermissions } from '@/modules/community-member/community
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-community-member-autocomplete-input',
+  name: 'AppCommunityMemberAutocompleteInput',
+
+  components: {
+    'app-community-member-form-modal': CommunityMemberFormModal
+  },
   props: [
     'value',
     'mode',
@@ -50,10 +54,6 @@ export default {
     'placeholder',
     'inputClass'
   ],
-
-  components: {
-    'app-community-member-form-modal': CommunityMemberFormModal
-  },
 
   data() {
     return {

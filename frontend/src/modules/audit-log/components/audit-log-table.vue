@@ -1,18 +1,18 @@
 <template>
   <div>
     <el-table
+      v-loading="loading"
       :border="true"
       :data="rows"
-      @sort-change="doChangeSort"
       row-key="id"
-      v-loading="loading"
+      @sort-change="doChangeSort"
     >
       <el-table-column
         :label="fields.timestamp.label"
         :prop="fields.timestamp.name"
         sortable="custom"
       >
-        <template slot-scope="scope">{{
+        <template #default="scope">{{
           presenter(scope.row, 'timestamp')
         }}</template>
       </el-table-column>
@@ -21,7 +21,7 @@
         :prop="fields.createdByEmail.name"
         sortable="custom"
       >
-        <template slot-scope="scope">{{
+        <template #default="scope">{{
           presenter(scope.row, 'createdByEmail')
         }}</template>
       </el-table-column>
@@ -30,7 +30,7 @@
         :prop="fields.entityName.name"
         sortable="custom"
       >
-        <template slot-scope="scope">{{
+        <template #default="scope">{{
           presenter(scope.row, 'entityName')
         }}</template>
       </el-table-column>
@@ -39,7 +39,7 @@
         :prop="fields.action.name"
         sortable="custom"
       >
-        <template slot-scope="scope">{{
+        <template #default="scope">{{
           presenter(scope.row, 'action')
         }}</template>
       </el-table-column>
@@ -48,7 +48,7 @@
         :prop="fields.entityId.name"
         sortable="custom"
       >
-        <template slot-scope="scope">{{
+        <template #default="scope">{{
           presenter(scope.row, 'entityId')
         }}</template>
       </el-table-column>
@@ -58,10 +58,10 @@
         align="center"
         width="120"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button
-            @click="view(scope.row[fields.values.name])"
             type="text"
+            @click="view(scope.row[fields.values.name])"
           >
             <app-i18n code="common.view"></app-i18n>
           </el-button>
@@ -90,7 +90,7 @@ import { mapGetters, mapActions } from 'vuex'
 const { fields } = AuditLogModel
 
 export default {
-  name: 'app-audit-log-table',
+  name: 'AppAuditLogTable',
 
   computed: {
     ...mapGetters({

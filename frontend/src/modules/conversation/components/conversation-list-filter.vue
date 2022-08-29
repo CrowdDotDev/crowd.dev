@@ -2,25 +2,25 @@
   <div class="filter">
     <portal to="conversation-filter-toggle">
       <app-filter-toggle
-        @click="doToggleExpanded"
-        :activeFiltersCount="activeFiltersCount"
+        :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-3"
+        @click="doToggleExpanded"
       ></app-filter-toggle>
     </portal>
 
     <el-dialog
-      :visible.sync="expanded"
+      v-model:visible="expanded"
       title="Conversations Filters"
       @close="expanded = false"
     >
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthFilter"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doFilter"
-        ref="form"
+        @submit.prevent="doFilter"
       >
         <app-filter-preview
           :values="model"
@@ -90,9 +90,9 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading('table')"
-            @click="doFilter"
             icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
+            @click="doFilter"
           >
             <app-i18n
               code="common.filters.apply"
@@ -101,9 +101,9 @@
 
           <el-button
             :disabled="loading('table')"
-            @click="doResetFilter"
             icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
+            @click="doResetFilter"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
@@ -131,7 +131,11 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-conversation-list-filter',
+  name: 'AppConversationListFilter',
+
+  components: {
+    AppPlatformAutocompleteInput
+  },
 
   data() {
     return {
@@ -139,10 +143,6 @@ export default {
       model: {},
       expanded: false
     }
-  },
-
-  components: {
-    AppPlatformAutocompleteInput
   },
 
   computed: {
@@ -165,21 +165,6 @@ export default {
     }
   },
 
-  async mounted() {
-    this.model = filterSchema.initialValues(
-      this.rawFilter,
-      this.$route.query
-    )
-
-    const rawFilter = this.model
-    const filter = filterSchema.cast(this.model)
-    return this.doFetch({
-      filter,
-      rawFilter,
-      keepPagination: true
-    })
-  },
-
   watch: {
     filter: {
       deep: true,
@@ -198,6 +183,21 @@ export default {
         }
       }
     }
+  },
+
+  async mounted() {
+    this.model = filterSchema.initialValues(
+      this.rawFilter,
+      this.$route.query
+    )
+
+    const rawFilter = this.model
+    const filter = filterSchema.cast(this.model)
+    return this.doFetch({
+      filter,
+      rawFilter,
+      keepPagination: true
+    })
   },
 
   methods: {

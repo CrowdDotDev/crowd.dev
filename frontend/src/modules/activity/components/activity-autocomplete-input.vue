@@ -1,30 +1,30 @@
 <template>
   <div style="display: flex">
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
       v-if="mode !== 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
     ></app-autocomplete-one-input>
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
       v-if="mode === 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
     ></app-autocomplete-many-input>
     <el-button
-      @click="doOpenModal()"
+      v-if="hasPermissionToCreate && showCreate"
       icon="el-icon-plus"
       style="margin-left: 16px"
       class="btn btn--primary"
-      v-if="hasPermissionToCreate && showCreate"
+      @click="doOpenModal()"
     ></el-button>
     <portal to="modal">
       <app-activity-form-modal
+        v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
-        v-if="dialogVisible"
       ></app-activity-form-modal>
     </portal>
   </div>
@@ -36,7 +36,11 @@ import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-activity-autocomplete-input',
+  name: 'AppActivityAutocompleteInput',
+
+  components: {
+    'app-activity-form-modal': ActivityFormModal
+  },
   props: [
     'value',
     'mode',
@@ -45,10 +49,6 @@ export default {
     'showCreate',
     'placeholder'
   ],
-
-  components: {
-    'app-activity-form-modal': ActivityFormModal
-  },
 
   data() {
     return {

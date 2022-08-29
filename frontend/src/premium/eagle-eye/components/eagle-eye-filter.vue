@@ -1,19 +1,19 @@
 <template>
   <div class="eagle-eye-filter">
     <app-filter-toggle
-      @click="expanded = true"
-      :activeFiltersCount="activeFiltersCount"
+      :active-filters-count="activeFiltersCount"
       :expanded="expanded"
+      @click="expanded = true"
     ></app-filter-toggle>
-    <el-dialog :visible.sync="expanded" title="Filters">
+    <el-dialog v-model:visible="expanded" title="Filters">
       <el-form class="form">
         <el-form-item label="Platform">
           <el-checkbox-group v-model="platforms">
             <div class="flex items-center flex-wrap">
               <el-checkbox
                 v-for="source of eagleEyeSources"
-                :label="source.platform"
                 :key="source.platform"
+                :label="source.platform"
                 class="w-1/2"
                 :disabled="
                   !['devto', 'hacker_news'].includes(
@@ -99,7 +99,7 @@
 import eagleEyeSourcesJson from '@/jsons/eagle-eye-sources.json'
 import { mapActions, mapGetters } from 'vuex'
 export default {
-  name: 'app-eagle-eye-filter',
+  name: 'AppEagleEyeFilter',
   data() {
     return {
       expanded: false,

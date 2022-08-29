@@ -55,7 +55,7 @@ function createFilterEntry(platform) {
 }
 
 export default {
-  name: 'app-community-member-platform-tabs',
+  name: 'AppCommunityMemberPlatformTabs',
   props: {
     isMember: {
       type: Boolean,

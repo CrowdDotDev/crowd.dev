@@ -5,8 +5,8 @@
         <transition-group name="fade" mode="out-in">
           <app-eagle-eye-list-item
             v-for="record in rows"
-            :record="record"
             :key="record.id"
+            :record="record"
           />
         </transition-group>
       </div>
@@ -20,8 +20,8 @@
         </span>
       </div>
       <div
-        class="el-pagination-wrapper"
         v-if="count > 0 && count > limit"
+        class="el-pagination-wrapper"
       >
         <el-pagination
           :current-page="pagination.currentPage || 1"
@@ -42,7 +42,7 @@ import AppEagleEyeListItem from './eagle-eye-list-item'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-eagle-eye-list',
+  name: 'AppEagleEyeList',
   components: {
     AppEagleEyeListItem
   },

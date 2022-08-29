@@ -1,8 +1,8 @@
 <template>
   <div class="app-page-toolbar mb-8">
     <router-link
-      :to="{ path: `/activity/${record.id}/edit` }"
       v-if="record && hasPermissionToEdit"
+      :to="{ path: `/activity/${record.id}/edit` }"
       class="mr-2"
     >
       <el-button
@@ -14,11 +14,11 @@
     </router-link>
 
     <el-button
+      v-if="record && hasPermissionToDestroy"
       :disabled="destroyLoading"
-      @click="doDestroyWithConfirm"
       icon="ri-lg ri-delete-bin-line"
       class="btn btn--secondary mr-2"
-      v-if="record && hasPermissionToDestroy"
+      @click="doDestroyWithConfirm"
     >
       <app-i18n code="common.destroy"></app-i18n>
     </el-button>
@@ -32,7 +32,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-activity-view-toolbar',
+  name: 'AppActivityViewToolbar',
 
   computed: {
     ...mapGetters({

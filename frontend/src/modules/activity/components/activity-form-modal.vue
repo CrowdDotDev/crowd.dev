@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-dialog
+      v-model:visible="dialogVisible"
       :title="title"
-      :visible.sync="dialogVisible"
       width="80%"
     >
       <app-activity-form
         :modal="true"
         :record="record"
-        :saveLoading="saveLoading"
+        :save-loading="saveLoading"
         @cancel="doCancel"
         @submit="doSubmit"
       />
@@ -23,13 +23,13 @@ import { i18n } from '@/i18n'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-activity-form-modal',
-
-  props: ['visible'],
+  name: 'AppActivityFormModal',
 
   components: {
     'app-activity-form': ActivityForm
   },
+
+  props: ['visible'],
 
   data() {
     return {

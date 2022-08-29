@@ -15,31 +15,31 @@
         </div>
 
         <div
-          class="app-page-spinner"
           v-if="loading"
           v-loading="loading"
+          class="app-page-spinner"
         ></div>
 
         <h3
-          style="font-weight: normal; text-align: center"
           v-if="warningMessage"
+          style="font-weight: normal; text-align: center"
         >
           {{ warningMessage }}
         </h3>
 
         <el-button
-          :loading="loading"
-          @click="doAcceptWithWrongEmail"
-          class="w-100 btn btn--primary"
           v-if="warningMessage"
+          :loading="loading"
+          class="w-100 btn btn--primary"
+          @click="doAcceptWithWrongEmail"
         >
           <app-i18n
             code="tenant.invitation.acceptWrongEmail"
           ></app-i18n>
         </el-button>
 
-        <div class="other-actions" v-if="!loading">
-          <el-button @click="doSignout" type="text">
+        <div v-if="!loading" class="other-actions">
+          <el-button type="text" @click="doSignout">
             <app-i18n code="auth.signout"></app-i18n>
           </el-button>
         </div>
@@ -52,7 +52,7 @@
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-invitation-page',
+  name: 'AppInvitationPage',
   data() {
     return {}
   },

@@ -1,8 +1,9 @@
-import Vue from 'vue'
-import PortalVue from 'portal-vue'
-import Element from 'element-ui'
-import app from '@/app.vue'
-import LogRocket from 'logrocket'
+import { createApp } from 'vue'
+import { createRouter } from '@/router'
+import { createStore } from '@/store'
+import plugins from '@/plugins'
+import modules from '@/modules'
+import { setupComponentsFiltersDirectivesAndMixins } from '@/app-module'
 
 import {
   i18n,
@@ -10,14 +11,17 @@ import {
   getElementUILanguage
 } from '@/i18n'
 
-import { SettingsService } from '@/modules/settings/settings-service'
+i18nInit()
+
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import { AuthService } from '@/modules/auth/auth-service'
+import { SettingsService } from '@/modules/settings/settings-service'
 
-Vue.use(PortalVue)
-Vue.config.productionTip =
-  process.env.NODE_ENV === 'production'
+import App from '@/app.vue'
+import LogRocket from 'logrocket'
 
 if (process.env.NODE_ENV === 'production') {
   LogRocket.init('kdnqcs/crowddev-app')
@@ -28,15 +32,9 @@ if (process.env.NODE_ENV === 'production') {
  * (We should probably revisit/refactor this later to be less confusing)
  */
 ;(async function () {
-  await i18nInit()
-  document.title = i18n('app.title')
-  Vue.use(Element, { locale: getElementUILanguage() })
-
-  const { routerAsync } = require('@/router')
-  const { storeAsync } = require('@/store')
-  const {
-    setupComponentsFiltersDirectivesAndMixins
-  } = require('@/app-module')
+  const app = createApp(App)
+  const router = await createRouter()
+  const store = await createStore()
   const isSocialOnboardRequested = AuthService.isSocialOnboardRequested()
 
   AuthToken.applyFromLocationUrlIfExists()
@@ -46,18 +44,31 @@ if (process.env.NODE_ENV === 'production') {
   }
   SettingsService.applyThemeFromTenant()
 
-  setupComponentsFiltersDirectivesAndMixins()
+  setupComponentsFiltersDirectivesAndMixins(app)
 
-  const store = storeAsync()
-  const router = routerAsync()
+  app.use(ElementPlus, { locale: getElementUILanguage() })
+  app.config.productionTip =
+    process.env.NODE_ENV === 'production'
 
-  const vueApp = new Vue({
-    store,
-    router,
-    render: (h) => h(app)
-  }).$mount('#app')
+  document.title = i18n('app.title')
+
+  const exists = (el) => Boolean(el)
+  Object.keys(modules)
+    .map((key) => modules[key].components)
+    .filter(exists)
+    .forEach((components) => {
+      Object.keys(components).forEach((name) => {
+        app.component(name, components[name])
+      })
+    })
+
+  Object.values(plugins).map((plugin) => {
+    app.use(plugin)
+  })
+
+  app.use(store).use(router).mount('#app')
 
   if (window.Cypress) {
-    window.app = vueApp
+    window.app = app
   }
 })()

@@ -4,25 +4,25 @@
   >
     <el-input
       :value="startValue"
-      @input="handleInputStart"
       style="width: 100%"
       placeholder="From"
+      @input="handleInputStart"
     ></el-input>
     <span style="margin-left: 8px; margin-right: 8px"
       >-</span
     >
     <el-input
       :value="endValue"
-      @input="handleInputEnd"
       style="width: 100%"
       placeholder="To"
+      @input="handleInputEnd"
     ></el-input>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app-number-range-input',
+  name: 'AppNumberRangeInput',
 
   props: ['value'],
 

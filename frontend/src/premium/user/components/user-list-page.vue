@@ -15,12 +15,12 @@
     </div>
 
     <el-dialog
-      :visible.sync="inviting"
+      v-model:visible="inviting"
       title="Invite User"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="inviting = false"
       custom-class="el-dialog--lg"
+      @close="inviting = false"
     >
       <app-user-new-page @cancel="inviting = false">
       </app-user-new-page>
@@ -38,7 +38,7 @@ import UserNewPage from '@/premium/user/components/user-new-page.vue'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {
-  name: 'app-user-list-page',
+  name: 'AppUserListPage',
 
   components: {
     'app-user-list-filter': UserListFilter,

@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-dropdown
+      v-if="!isReadOnly"
       trigger="click"
       @command="handleCommand"
-      v-if="!isReadOnly"
     >
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <el-dropdown-menu>
         <el-dropdown-item
           icon="ri-pencil-line"
           command="activityEdit"
@@ -22,12 +22,12 @@
       </el-dropdown-menu>
     </el-dropdown>
     <el-dialog
-      :visible.sync="editing"
+      v-model:visible="editing"
       title="Edit Activity"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="editing = false"
       custom-class="el-dialog--lg"
+      @close="editing = false"
     >
       <app-activity-form-page
         :id="activity.id"
@@ -45,7 +45,7 @@ import ActivityFormPage from './activity-form-page'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 
 export default {
-  name: 'app-activity-dropdown',
+  name: 'AppActivityDropdown',
   props: {
     activity: {
       type: Object,

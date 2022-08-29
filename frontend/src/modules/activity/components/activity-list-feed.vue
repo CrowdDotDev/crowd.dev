@@ -1,15 +1,15 @@
 <template>
   <div>
     <div
-      class="app-page-spinner"
       v-if="loading"
       v-loading="loading"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <activity-list-feed-item
         v-for="activity in rows"
-        :activity="activity"
         :key="activity.id"
+        :activity="activity"
       ></activity-list-feed-item>
       <div class="el-pagination-wrapper">
         <el-pagination
@@ -37,7 +37,7 @@ import ActivityListFeedItem from '@/modules/activity/components/activity-list-fe
 const { fields } = ActivityModel
 
 export default {
-  name: 'app-activity-list-feed',
+  name: 'AppActivityListFeed',
 
   components: {
     ActivityListFeedItem

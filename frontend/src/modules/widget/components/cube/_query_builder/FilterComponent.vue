@@ -79,8 +79,8 @@
 
         <div class="px-3 py-2 flex-grow">
           <el-input
-            type="text"
             v-model="filter.value"
+            type="text"
             @change="handleFilterChange"
           ></el-input>
         </div>

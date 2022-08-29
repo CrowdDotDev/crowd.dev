@@ -6,7 +6,7 @@
     "
   >
     <el-dialog
-      :visible.sync="widgetModal.visible"
+      v-model:visible="widgetModal.visible"
       :title="
         widgetModal.action === 'add'
           ? 'Add Widget'
@@ -15,9 +15,9 @@
       custom-class="el-dialog--xl"
     >
       <div
-        class="app-page-spinner"
         v-if="widgetModal.visible === false"
         v-loading="true"
+        class="app-page-spinner"
       ></div>
       <app-widget-cube-builder
         v-else
@@ -27,33 +27,33 @@
       />
     </el-dialog>
     <div
-      class="app-page-spinner"
       v-if="loadingCube"
       v-loading="loadingCube"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <div
-        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
         v-if="!model.widgets || model.widgets.length === 0"
+        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
       >
         No widgets were added to the report yet.
         <button
-          type="button"
-          @click="handleAddWidgetClick"
-          class="btn btn--secondary mt-1"
           v-if="editable"
+          type="button"
+          class="btn btn--secondary mt-1"
+          @click="handleAddWidgetClick"
         >
           <span class="flex items-center text-primary-900">
             <i class="ri-lg ri-add-line mr-1"></i>Add Widget
           </span>
         </button>
         <router-link
+          v-else
           :to="{
             name: 'reportEdit',
             params: { id: value.id }
           }"
           class="btn btn--secondary mt-1"
-          v-else
         >
           <span class="flex items-center text-primary-900">
             <i class="ri-lg ri-pencil-line mr-1"></i>Edit
@@ -75,12 +75,12 @@
         >
           <grid-item
             v-for="item in layout"
+            :key="item.i"
             :x="item.x"
             :y="item.y"
             :w="item.w"
             :h="item.h"
             :i="item.i"
-            :key="item.i"
             @move="
               (i, newX, newY) =>
                 handleWidgetMove(
@@ -109,11 +109,11 @@
             ></app-widget-cube-renderer>
           </grid-item>
         </grid-layout>
-        <div class="toolbar" v-if="editable">
+        <div v-if="editable" class="toolbar">
           <button
             type="button"
-            @click="handleAddWidgetClick"
             class="btn btn--secondary"
+            @click="handleAddWidgetClick"
           >
             <span
               class="flex items-center text-primary-900"
@@ -139,6 +139,12 @@ import { i18n } from '@/i18n'
 
 export default {
   name: 'ReportGridLayout',
+  components: {
+    GridLayout: VueGridLayout.GridLayout,
+    GridItem: VueGridLayout.GridItem,
+    'app-widget-cube-builder': WidgetCubeBuilder,
+    'app-widget-cube-renderer': WidgetCubeRenderer
+  },
   props: {
     value: {
       type: Object,
@@ -148,12 +154,6 @@ export default {
       type: Boolean,
       default: false
     }
-  },
-  components: {
-    GridLayout: VueGridLayout.GridLayout,
-    GridItem: VueGridLayout.GridItem,
-    'app-widget-cube-builder': WidgetCubeBuilder,
-    'app-widget-cube-renderer': WidgetCubeRenderer
   },
   computed: {
     ...mapGetters({

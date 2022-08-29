@@ -1,8 +1,8 @@
 <template>
   <div class="app-community-member-platform-input">
     <div
-      class="flex flex-1 mb-1 -mx-2"
       v-if="platforms.length > 0"
+      class="flex flex-1 mb-1 -mx-2"
     >
       <div
         class="mx-2 flex flex-1 text-xs text-gray-600 uppercase"
@@ -19,7 +19,7 @@
       >
         Profile URL
       </div>
-      <div class="w-8" v-if="platforms.length > 1"></div>
+      <div v-if="platforms.length > 1" class="w-8"></div>
     </div>
     <el-form-item
       v-for="(platform, index) in platforms"
@@ -31,19 +31,19 @@
         class="block mx-2 flex flex-1"
       />
       <el-input
-        placeholder="johndoe"
         v-model="platform.username"
+        placeholder="johndoe"
         class="block mx-2 flex flex-1"
       />
       <el-input
-        placeholder="https://github.com/johndoe"
         v-model="platform.url"
+        placeholder="https://github.com/johndoe"
         class="block mx-2 flex flex-1"
       />
       <el-tooltip content="Click to delete" placement="top">
         <button
-          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
           v-if="platforms.length > 1"
+          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
           type="button"
           @click="deletePlatform(index)"
         >
@@ -66,15 +66,15 @@ import { i18n } from '@/i18n'
 import AppPlatformAutocompleteInput from '@/shared/form/platform-autocomplete-input'
 
 export default {
-  name: 'app-community-member-platform-input',
+  name: 'AppCommunityMemberPlatformInput',
+  components: {
+    AppPlatformAutocompleteInput
+  },
   props: {
     value: {
       type: Array,
       default: () => []
     }
-  },
-  components: {
-    AppPlatformAutocompleteInput
   },
   data() {
     return {

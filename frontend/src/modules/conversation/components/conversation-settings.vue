@@ -1,36 +1,36 @@
 <template>
   <div class="conversation-settings">
     <el-button
-      @click="$emit('open')"
+      v-if="buttonVisible && hasPermissionToEdit"
       class="btn btn--secondary"
       icon="ri-lg ri-settings-2-line"
-      v-if="buttonVisible && hasPermissionToEdit"
+      @click="$emit('open')"
     >
       Settings
     </el-button>
     <el-dialog
       title="Community Help Center Settings"
       :visible="visible"
-      @close="$emit('close')"
       width="100%"
+      @close="$emit('close')"
     >
       <el-form
-        class="w-full form"
+        v-if="visible"
         ref="form"
+        class="w-full form"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doSubmit"
-        v-if="visible"
+        @submit.prevent="doSubmit"
       >
         <app-alert
+          v-if="!hasConversationsConfigured"
           type="info"
           class="mb-8"
-          v-if="!hasConversationsConfigured"
         >
-          <div slot="title">
+          <template #title>
             Please configure your Community Help Center
-          </div>
-          <div slot="body">
+          </template>
+          <template #body>
             Before publishing any Conversation, your
             Community Help Center needs to be configured.
             <br />
@@ -41,7 +41,7 @@
               >Community Slug</span
             >
             and <span class="font-semibold">Website</span>.
-          </div>
+          </template>
         </app-alert>
         <div
           class="font-semibold text-sm text-gray-200 mb-1"
@@ -103,10 +103,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('discord')"
             label="Discord URL"
             prop="discordInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('discord')"
           >
             <el-input
               v-model="model.discordInviteLink"
@@ -117,10 +117,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('slack')"
             label="Slack URL"
             prop="slackInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('slack')"
           >
             <el-input
               v-model="model.slackInviteLink"
@@ -131,10 +131,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('github')"
             label="GitHub URL"
             prop="githubInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('github')"
           >
             <el-input
               v-model="model.githubInviteLink"
@@ -195,23 +195,23 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="model.autoPublish.status === 'custom'"
             label="Channels"
             prop="channels"
             class="w-full lg:w-1/3 px-2"
-            v-if="model.autoPublish.status === 'custom'"
           >
             <el-select
+              v-model="model.autoPublish.channels"
               class="w-full"
               placeholder="Select channels"
-              v-model="model.autoPublish.channels"
               :filterable="true"
               :multiple="true"
             >
               <el-option
+                v-for="channel in computedChannelsList"
                 :key="channel.value"
                 :label="channel.label"
                 :value="channel.value"
-                v-for="channel in computedChannelsList"
               ></el-option>
             </el-select>
           </el-form-item>
@@ -262,8 +262,8 @@
                 >Primary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.primary"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -278,8 +278,8 @@
                 >Primary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.text"
+                size="mini"
               />
             </div>
             <div
@@ -289,8 +289,8 @@
                 >Secondary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.textSecondary"
+                size="mini"
               />
             </div>
             <div
@@ -298,8 +298,8 @@
             >
               <span class="text-xs text-gray-600">CTA</span>
               <el-color-picker
-                size="mini"
                 v-model="model.theme.textCta"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -315,8 +315,8 @@
                 >Normal</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bg"
+                size="mini"
               />
             </div>
             <div
@@ -326,8 +326,8 @@
                 >Highlight</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bgHighlight"
+                size="mini"
               />
             </div>
             <div
@@ -337,8 +337,8 @@
                 >Navigation</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bgNav"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -356,11 +356,11 @@
         <hr class="pb-2" />
         <div class="relative">
           <div
+            v-if="!hasPermissionToCustomize"
             class="absolute w-full inset-0 z-10 blur-2xl"
             :style="{
               backgroundColor: 'rgba(255,255,255,0.95)'
             }"
-            v-if="!hasPermissionToCustomize"
           >
             <div
               class="flex items-center justify-center flex-col pt-16"
@@ -405,27 +405,27 @@
         <div class="form-buttons mt-12">
           <el-button
             :disabled="loading"
-            @click="doSubmit"
             icon="ri-lg ri-save-line"
             class="btn btn--primary mr-2"
+            @click="doSubmit"
           >
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="loading"
-            @click="doReset"
             icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary mr-2"
+            @click="doReset"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="loading"
-            @click="$emit('close')"
             icon="ri-lg ri-close-line"
             class="btn btn--secondary"
+            @click="$emit('close')"
           >
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
@@ -459,7 +459,7 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-conversation-settings',
+  name: 'AppConversationSettings',
   props: {
     visible: {
       type: Boolean,

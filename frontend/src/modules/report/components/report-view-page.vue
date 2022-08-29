@@ -10,14 +10,14 @@
       ></app-report-dropdown>
     </div>
     <div
-      class="app-page-spinner"
       v-if="loading('view')"
       v-loading="loading('view')"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <app-report-grid-layout
-        class="-mx-4"
         v-model="report"
+        class="-mx-4"
       ></app-report-grid-layout>
     </div>
   </div>
@@ -29,14 +29,14 @@ import ReportGridLayout from './report-grid-layout'
 import ReportDropdown from './report-dropdown'
 
 export default {
-  name: 'app-report-view-page',
-
-  props: ['id'],
+  name: 'AppReportViewPage',
 
   components: {
     'app-report-grid-layout': ReportGridLayout,
     'app-report-dropdown': ReportDropdown
   },
+
+  props: ['id'],
 
   computed: {
     ...mapGetters({

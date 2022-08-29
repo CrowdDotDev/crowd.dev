@@ -3,17 +3,17 @@
     <app-community-member-list-toolbar></app-community-member-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
+        ref="table"
+        v-loading="loading"
         :border="true"
         :data="members"
         :default-sort="{
           prop: 'score',
           order: 'descending'
         }"
-        @sort-change="doChangeSort"
-        ref="table"
         row-key="id"
-        v-loading="loading"
         :row-class-name="rowClass"
+        @sort-change="doChangeSort"
       >
         <el-table-column
           type="selection"
@@ -26,7 +26,7 @@
           width="220"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <router-link
               :to="{
                 name: 'communityMemberView',
@@ -56,7 +56,7 @@
           width="180"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <app-community-member-engagement-level
               :member="scope.row"
             />
@@ -64,13 +64,13 @@
         </el-table-column>
 
         <el-table-column
+          v-if="!lookalike"
           label="Joined At"
           prop="joinedAt"
           sortable="custom"
-          v-if="!lookalike"
           width="120"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <el-tooltip
               placement="top"
               :content="date(scope.row.joinedAt)"
@@ -83,6 +83,7 @@
         </el-table-column>
 
         <el-table-column
+          v-if="!lookalike"
           :label="
             translate(
               'entities.communityMember.fields.numberActivities'
@@ -91,9 +92,8 @@
           prop="activitiesCount"
           sortable="custom"
           width="150"
-          v-if="!lookalike"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.activitiesCount }}
           </template>
         </el-table-column>
@@ -103,23 +103,23 @@
           prop="reach"
           width="120"
         >
-          <template slot="header">
+          <template #header>
             <span class="inline-flex items-center">
               <span class="inline-flex mr-1">Reach</span>
               <el-tooltip placement="top">
-                <div slot="content">
+                <template #content>
                   Combined followers on connected social
                   channels<br /><span class="italic"
                     >(Requires Twitter Integration)</span
                   >
-                </div>
+                </template>
                 <i
                   class="ri-information-line inline-flex items-center mr-2"
                 ></i>
               </el-tooltip>
             </span>
           </template>
-          <template slot-scope="scope">
+          <template #default="scope">
             <app-community-member-reach
               :member="scope.row"
             />
@@ -130,7 +130,7 @@
           label="Channels"
           :width="computedChannelsWidth"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <app-community-member-channels
               :member="scope.row"
             ></app-community-member-channels>
@@ -142,7 +142,7 @@
             translate('entities.communityMember.fields.tag')
           "
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <app-tag-list
               :member="scope.row"
               @tags-updated="doRefresh"
@@ -151,7 +151,7 @@
         </el-table-column>
 
         <el-table-column width="80">
-          <template slot-scope="scope">
+          <template #default="scope">
             <div class="table-actions">
               <app-community-member-dropdown
                 :member="scope.row"
@@ -193,13 +193,7 @@ import computedTimeAgo from '@/utils/time-ago'
 const { fields } = CommunityMemberModel
 
 export default {
-  name: 'app-community-member-list-table',
-  props: {
-    lookalike: {
-      type: Boolean,
-      default: false
-    }
-  },
+  name: 'AppCommunityMemberListTable',
   components: {
     'app-community-member-list-toolbar': CommunityMemberListToolbar,
     'app-community-member-dropdown': CommunityMemberDropdown,
@@ -207,6 +201,12 @@ export default {
     'app-tag-list': TagList,
     'app-community-member-engagement-level': CommunityMemberEngagementLevel,
     'app-community-member-reach': CommunityMemberReach
+  },
+  props: {
+    lookalike: {
+      type: Boolean,
+      default: false
+    }
   },
   mounted() {
     this.doMountTable(this.$refs.table)

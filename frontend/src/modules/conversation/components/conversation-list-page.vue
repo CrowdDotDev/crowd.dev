@@ -49,7 +49,7 @@ import ConversationSettings from '@/modules/conversation/components/conversation
 import config from '@/config'
 
 export default {
-  name: 'app-conversation-list-page',
+  name: 'AppConversationListPage',
 
   components: {
     'app-conversation-list-table': ConversationListTable,

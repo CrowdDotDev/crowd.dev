@@ -2,9 +2,9 @@
   <div>
     <app-autocomplete-one-input
       v-model="computedModel"
-      @input="handleInput"
       :options="platforms"
       :placeholder="placeholder"
+      @input="handleInput"
     />
   </div>
 </template>
@@ -14,7 +14,7 @@ import AppAutocompleteOneInput from './autocomplete-one-input'
 import integrationsJson from '@/jsons/integrations'
 
 export default {
-  name: 'app-platform-autocomplete-input',
+  name: 'AppPlatformAutocompleteInput',
   components: {
     AppAutocompleteOneInput
   },
@@ -26,6 +26,11 @@ export default {
     placeholder: {
       type: String,
       default: null
+    }
+  },
+  data() {
+    return {
+      model: null
     }
   },
   computed: {
@@ -53,11 +58,6 @@ export default {
           (i) => i.id === this.model
         )
       }
-    }
-  },
-  data() {
-    return {
-      model: null
     }
   },
   watch: {

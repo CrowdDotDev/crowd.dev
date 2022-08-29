@@ -2,12 +2,11 @@
   <form>
     <query-builder
       style="width: 100%"
-      :cubejsApi="cubejsApi"
-      :initialVizState="vizState"
+      :cubejs-api="cubejsApi"
+      :initial-viz-state="vizState"
     >
       <template
         #builder="{
-          validatedQuery,
           chartType,
           updateChartType,
           measures,
@@ -24,7 +23,6 @@
           limit,
           setLimit,
           orderMembers,
-          setOrder,
           updateOrder,
           isQueryPresent
         }"
@@ -39,8 +37,8 @@
                 >Title</label
               >
               <el-input
-                type="text"
                 v-model="model.title"
+                type="text"
                 placeholder="Most active contributors"
               />
             </div>
@@ -56,7 +54,7 @@
               <DimensionSelect
                 :translated-options="translatedOptions"
                 :measures="measures"
-                :availableDimensions="availableDimensions"
+                :available-dimensions="availableDimensions"
                 :dimensions="dimensions"
                 :set-dimensions="setDimensions"
               />
@@ -64,10 +62,10 @@
             <div class="px-3 py-2 w-full lg:w-1/3">
               <TimeDimensionSelect
                 :measures="measures"
-                :availableTimeDimensions="
+                :available-time-dimensions="
                   availableTimeDimensions
                 "
-                :timeDimensions="timeDimensions"
+                :time-dimensions="timeDimensions"
                 @change="setTimeDimensions"
               />
             </div>
@@ -81,7 +79,7 @@
 
             <div class="px-3 py-2 w-full lg:w-1/3">
               <DateRangeSelect
-                :timeDimensions="timeDimensions"
+                :time-dimensions="timeDimensions"
                 @change="setTimeDimensions"
               />
             </div>
@@ -132,21 +130,21 @@
             </div>
           </div>
           <div
-            class="additional-settings my-4 flex flex-wrap"
             v-if="additionalSettingsVisible"
+            class="additional-settings my-4 flex flex-wrap"
           >
             <Limit
               :limit="Number(limit)"
               :disabled="!isQueryPresent"
-              @update="setLimit"
               class="px-3 py-2 w-full lg:w-1/2"
+              @update="setLimit"
             />
             <Order
-              :orderMembers="orderMembers"
+              :order-members="orderMembers"
               :disabled="!isQueryPresent"
+              class="px-3 py-2 w-full lg:w-1/2"
               @orderChange="updateOrder.set"
               @reorder="updateOrder.reorder"
-              class="px-3 py-2 w-full lg:w-1/2"
             />
           </div>
           <hr class="mt-6 mb-4" />
@@ -155,7 +153,7 @@
               :measures="measures"
               :dimensions="dimensions"
               :filters="filters"
-              :setFilters="setFilters"
+              :set-filters="setFilters"
               :available-dimensions="
                 translatedOptions(availableDimensions)
               "
@@ -172,7 +170,6 @@
           resultSet,
           isQueryPresent,
           validatedQuery,
-          limit,
           chartType
         }"
       >
@@ -192,14 +189,14 @@
         </div>
         <div class="flex items-center justify-end mt-12">
           <el-button
+            icon="ri-lg ri-check-line"
+            class="btn btn--primary mr-2"
             @click="
               handleSubmit({
                 chartType,
                 query: validatedQuery
               })
             "
-            icon="ri-lg ri-check-line"
-            class="btn btn--primary mr-2"
           >
             Save Widget
           </el-button>
@@ -218,7 +215,7 @@
 </template>
 
 <script>
-import { QueryBuilder } from '@cubejs-client/vue'
+import { QueryBuilder } from '@cubejs-client/vue3'
 
 import WidgetCube from '@/modules/widget/components/cube/widget-cube'
 import { mapGetters, mapActions } from 'vuex'
@@ -236,14 +233,7 @@ import Limit from './_query_builder/Limit'
 import FilterComponent from '@/modules/widget/components/cube/_query_builder/FilterComponent.vue'
 
 export default {
-  name: 'widget-cube-builder',
-
-  props: {
-    value: {
-      type: Object,
-      default: () => {}
-    }
-  },
+  name: 'WidgetCubeBuilder',
 
   components: {
     QueryBuilder,
@@ -256,6 +246,13 @@ export default {
     Limit,
     FilterComponent,
     'app-widget-cube': WidgetCube
+  },
+
+  props: {
+    value: {
+      type: Object,
+      default: () => {}
+    }
   },
 
   data() {

@@ -1,9 +1,9 @@
 <template>
   <div class="community-member-list-page">
     <div
-      class="app-page-spinner"
       v-if="widgetsLoading"
       v-loading="widgetsLoading"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <h1 class="app-content-title">Discover Members</h1>
@@ -42,10 +42,6 @@
       ></app-community-member-list-filter>
       <div class="relative">
         <div
-          class="absolute flex items-center justify-center flex-grow w-full inset-0 z-10 rounded-lg blur-2xl"
-          :style="{
-            backgroundColor: 'rgba(255,255,255,0.95)'
-          }"
           v-if="
             !githubIntegration ||
             !benchmarkWidget ||
@@ -53,6 +49,10 @@
             benchmarkWidget.settings.repositories.length ===
               0
           "
+          class="absolute flex items-center justify-center flex-grow w-full inset-0 z-10 rounded-lg blur-2xl"
+          :style="{
+            backgroundColor: 'rgba(255,255,255,0.95)'
+          }"
         >
           <div
             v-if="!githubIntegration"
@@ -107,15 +107,15 @@ import CommunityMemberListTable from '@/modules/community-member/components/comm
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-community-member-list-page',
-
-  async mounted() {
-    window.analytics.page('Lookalike')
-  },
+  name: 'AppCommunityMemberListPage',
 
   components: {
     'app-community-member-list-filter': CommunityMemberListFilter,
     'app-community-member-list-table': CommunityMemberListTable
+  },
+
+  async mounted() {
+    window.analytics.page('Lookalike')
   },
 
   computed: {

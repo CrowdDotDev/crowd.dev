@@ -2,8 +2,10 @@
   <div>
     <h1 class="app-content-title">Merging Suggestions</h1>
     <app-alert type="info" class="mb-4">
-      <div slot="title">Why should I merge profiles?</div>
-      <div slot="body">
+      <template #title
+        >Why should I merge profiles?</template
+      >
+      <template #body>
         Community members come from different platforms and
         sources, so it's possible that the same person has
         multiple member profiles in Crowd.
@@ -12,18 +14,18 @@
         recommend you to look into these suggestions and
         validate if these profiles belong to the same person
         or not.
-      </div>
+      </template>
     </app-alert>
     <div class="panel">
-      <div class="-mx-6" v-if="membersToMerge.length > 0">
+      <div v-if="membersToMerge.length > 0" class="-mx-6">
         <el-table
+          ref="table"
           :border="true"
           :data="membersToMerge"
-          ref="table"
           row-key="id"
         >
           <el-table-column label="Member A" min-width="25%">
-            <template slot-scope="scope">
+            <template #default="scope">
               <router-link
                 :to="{
                   name: 'communityMemberView',
@@ -44,7 +46,7 @@
             </template>
           </el-table-column>
           <el-table-column label="Member B" min-width="25%">
-            <template slot-scope="scope">
+            <template #default="scope">
               <router-link
                 :to="{
                   name: 'communityMemberView',
@@ -65,7 +67,7 @@
             </template>
           </el-table-column>
           <el-table-column>
-            <template slot-scope="scope">
+            <template #default="scope">
               <div class="flex items-center justify-end">
                 <button
                   class="btn btn--secondary mr-4"
@@ -110,7 +112,7 @@ import { i18n } from '@/i18n'
 import { CommunityMemberService } from '../community-member-service'
 
 export default {
-  name: 'app-community-member-merge-suggestions-page',
+  name: 'AppCommunityMemberMergeSuggestionsPage',
   data() {
     return {
       membersToMerge: []

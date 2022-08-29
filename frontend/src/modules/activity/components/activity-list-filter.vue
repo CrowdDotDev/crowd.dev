@@ -2,14 +2,14 @@
   <div class="filter">
     <portal to="activity-filter-toggle">
       <app-filter-toggle
-        @click="doToggleExpanded"
-        :activeFiltersCount="activeFiltersCount"
+        :active-filters-count="activeFiltersCount"
         :expanded="expanded"
+        @click="doToggleExpanded"
       ></app-filter-toggle>
     </portal>
 
     <el-dialog
-      :visible.sync="expanded"
+      v-model:visible="expanded"
       title="Activities Filters"
       @close="expanded = false"
     >
@@ -19,12 +19,12 @@
         @remove="doRemove($event)"
       ></app-filter-preview>
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthFilter"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doFilter"
-        ref="form"
+        @submit.prevent="doFilter"
       >
         <el-row type="flex">
           <el-col :lg="12" :md="16" :sm="24">
@@ -42,8 +42,8 @@
               :prop="fields.timestampRange.name"
             >
               <el-date-picker
-                type="datetimerange"
                 v-model="model[fields.timestampRange.name]"
+                type="datetimerange"
               ></el-date-picker>
             </el-form-item>
           </el-col>
@@ -77,8 +77,8 @@
               :prop="fields.communityMember.name"
             >
               <app-autocomplete-one-input
-                :fetchFn="fields.communityMember.fetchFn"
                 v-model="model[fields.communityMember.name]"
+                :fetch-fn="fields.communityMember.fetchFn"
               ></app-autocomplete-one-input>
             </el-form-item>
           </el-col>
@@ -87,9 +87,9 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading"
-            @click="doFilter"
             icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
+            @click="doFilter"
           >
             <app-i18n
               code="common.filters.apply"
@@ -98,9 +98,9 @@
 
           <el-button
             :disabled="loading"
-            @click="doResetFilter"
             icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
+            @click="doResetFilter"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
@@ -129,7 +129,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-activity-list-filter',
+  name: 'AppActivityListFilter',
   components: {
     AppPlatformAutocompleteInput,
     AppFilterToggle
@@ -162,19 +162,6 @@ export default {
     }
   },
 
-  async mounted() {
-    this.model = filterSchema.initialValues(
-      this.rawFilter,
-      this.$route.query
-    )
-
-    const filter = filterSchema.cast(this.model)
-    return this.doFetch({
-      filter,
-      keepPagination: true
-    })
-  },
-
   watch: {
     filter: {
       deep: true,
@@ -187,6 +174,19 @@ export default {
         }
       }
     }
+  },
+
+  async mounted() {
+    this.model = filterSchema.initialValues(
+      this.rawFilter,
+      this.$route.query
+    )
+
+    const filter = filterSchema.cast(this.model)
+    return this.doFetch({
+      filter,
+      keepPagination: true
+    })
   },
 
   methods: {

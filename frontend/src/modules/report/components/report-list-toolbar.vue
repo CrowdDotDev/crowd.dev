@@ -1,7 +1,7 @@
 <template>
   <div
-    class="app-page-toolbar report-list-toolbar"
     v-if="selectedRows.length > 0"
+    class="app-page-toolbar report-list-toolbar"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
@@ -10,16 +10,16 @@
     >
 
     <el-tooltip
+      v-if="hasPermissionToDestroy"
       :content="destroyButtonTooltip"
       :disabled="!destroyButtonTooltip"
-      v-if="hasPermissionToDestroy"
     >
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          @click="doDestroyAllWithConfirm"
           icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
+          @click="doDestroyAllWithConfirm"
         >
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
@@ -34,7 +34,7 @@ import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-report-list-toolbar',
+  name: 'AppReportListToolbar',
 
   computed: {
     ...mapGetters({

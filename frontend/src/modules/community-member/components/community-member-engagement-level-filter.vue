@@ -17,16 +17,16 @@ import { CommunityMemberModel } from '@/modules/community-member/community-membe
 const { fields } = CommunityMemberModel
 
 export default {
-  name: 'app-community-member-engagement-level-filter',
+  name: 'AppCommunityMemberEngagementLevelFilter',
   props: ['value'],
-  computed: {
-    fields() {
-      return fields
-    }
-  },
   data() {
     return {
       model: this.value ? this.value.join('-') : null
+    }
+  },
+  computed: {
+    fields() {
+      return fields
     }
   },
   watch: {

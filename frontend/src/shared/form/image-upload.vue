@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-upload
+      ref="files"
       :accept="accept"
       :class="{
         'image-upload-hide-upload': isFull || loading
@@ -13,12 +14,11 @@
       :on-success="onSuccess"
       action
       list-type="picture-card"
-      ref="files"
     >
       <i class="el-icon-plus"></i>
     </el-upload>
 
-    <el-dialog :visible.sync="dialogVisible">
+    <el-dialog v-model:visible="dialogVisible">
       <img :src="dialogImageUrl" alt width="100%" />
     </el-dialog>
   </div>
@@ -29,7 +29,7 @@ import { FileUploader } from '@/shared/file-upload/file-uploader'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-image-upload',
+  name: 'AppImageUpload',
   props: ['storage', 'value', 'max'],
 
   data() {

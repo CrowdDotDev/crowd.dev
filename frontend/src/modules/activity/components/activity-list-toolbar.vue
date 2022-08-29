@@ -7,9 +7,9 @@
       <span>
         <el-button
           :disabled="exportButtonDisabled"
-          @click="doExport()"
           icon="ri-lg ri-file-excel-2-line"
           class="btn btn--secondary mr-2"
+          @click="doExport()"
         >
           <app-i18n code="common.export"></app-i18n>
         </el-button>
@@ -25,7 +25,7 @@ import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-activity-list-toolbar',
+  name: 'AppActivityListToolbar',
 
   computed: {
     ...mapGetters({

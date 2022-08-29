@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <div class="flex items-center -mx-2">
         <el-form-item
@@ -18,10 +18,10 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <app-community-member-autocomplete-input
-            :fetchFn="fields.communityMember.fetchFn"
-            :mapperFn="fields.communityMember.mapperFn"
-            :showCreate="false"
             v-model="model[fields.communityMember.name]"
+            :fetch-fn="fields.communityMember.fetchFn"
+            :mapper-fn="fields.communityMember.mapperFn"
+            :show-create="false"
             :placeholder="
               fields.communityMember.placeholder
             "
@@ -62,9 +62,9 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <el-input
+            ref="focus"
             v-model="model[fields.type.name]"
             :placeholder="fields.type.placeholder"
-            ref="focus"
           />
 
           <div
@@ -82,8 +82,8 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <el-date-picker
-            type="datetime"
             v-model="model[fields.timestamp.name]"
+            type="datetime"
             :placeholder="fields.timestamp.placeholder"
           ></el-date-picker>
 
@@ -127,27 +127,27 @@
       <div class="form-buttons mt-12">
         <el-button
           :disabled="saveLoading"
-          @click="doSubmit"
           icon="ri-lg ri-save-line"
           class="btn btn--primary mr-2"
+          @click="doSubmit"
         >
           <app-i18n code="common.save"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doReset"
           icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
+          @click="doReset"
         >
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doCancel"
           icon="ri-lg ri-close-line"
           class="btn btn--secondary"
+          @click="doCancel"
         >
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
@@ -173,14 +173,14 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-activity-form',
-
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  name: 'AppActivityForm',
 
   components: {
     'app-custom-attribute-input': CustomAttributeInput,
     AppPlatformAutocompleteInput
   },
+
+  props: ['isEditing', 'record', 'saveLoading', 'modal'],
 
   data() {
     return {

@@ -10,24 +10,24 @@
         @dblclick="editing = true"
       >
         <span
-          class="tag mr-2 my-1"
           v-for="tag in member.tags"
           :key="tag.id"
+          class="tag mr-2 my-1"
           >{{ tag.name }}</span
         >
         <span
-          class="text-black opacity-50 italic"
           v-if="member.tags.length === 0"
+          class="text-black opacity-50 italic"
           >No tags added</span
         >
       </div>
     </el-tooltip>
     <app-tag-popover
+      v-model="model[fields.tags.name]"
       :visible="editing"
       :loading="loading"
       @cancel="editing = false"
       @submit="doSubmit"
-      v-model="model[fields.tags.name]"
     />
   </div>
 </template>
@@ -50,12 +50,20 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-tags',
+  name: 'AppTags',
   components: { AppTagPopover },
   props: {
     member: {
       type: Object,
       default: () => {}
+    }
+  },
+  data() {
+    return {
+      rules: formSchema.rules(),
+      model: null,
+      editing: false,
+      loading: false
     }
   },
   computed: {
@@ -71,14 +79,6 @@ export default {
         )
       },
       deep: true
-    }
-  },
-  data() {
-    return {
-      rules: formSchema.rules(),
-      model: null,
-      editing: false,
-      loading: false
     }
   },
   methods: {

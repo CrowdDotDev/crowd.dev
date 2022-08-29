@@ -1,7 +1,7 @@
 <template>
   <div
-    class="app-page-toolbar user-list-toolbar"
     v-if="selectedRows.length > 0"
+    class="app-page-toolbar user-list-toolbar"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
@@ -10,16 +10,16 @@
     >
 
     <el-tooltip
+      v-if="hasPermissionToDestroy"
       :content="destroyButtonTooltip"
       :disabled="!destroyButtonTooltip"
-      v-if="hasPermissionToDestroy"
     >
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          @click="doDestroyAllWithConfirm()"
           icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
+          @click="doDestroyAllWithConfirm()"
         >
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
@@ -33,9 +33,9 @@
       <span>
         <el-button
           :disabled="exportButtonDisabled"
-          @click="doExport()"
           icon="ri-lg ri-file-excel-2-line"
           class="btn btn--secondary mr-2"
+          @click="doExport()"
         >
           <app-i18n code="common.export"></app-i18n>
         </el-button>
@@ -51,7 +51,7 @@ import { UserPermissions } from '@/premium/user/user-permissions'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-user-list-toolbar',
+  name: 'AppUserListToolbar',
 
   computed: {
     ...mapGetters({

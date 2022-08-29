@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <el-form-item
         :label="fields.tenantName.label"
@@ -24,14 +24,14 @@
       </el-form-item>
 
       <el-form-item
+        v-if="tenantSubdomain.isEnabled"
         :label="fields.tenantUrl.label"
         :prop="fields.tenantUrl.name"
         :required="fields.tenantUrl.required"
-        v-if="tenantSubdomain.isEnabled"
       >
         <el-col :lg="11" :md="16" :sm="24">
           <el-input v-model="model[fields.tenantUrl.name]">
-            <template slot="append">{{
+            <template #append>{{
               frontendUrlHost
             }}</template>
           </el-input>
@@ -42,25 +42,25 @@
         <div class="form-buttons">
           <el-button
             :disabled="saveLoading"
-            @click="doSubmit"
             icon="ri-lg ri-save-line"
             class="btn btn--primary"
+            @click="doSubmit"
           >
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            @click="doReset"
             icon="ri-lg ri-arrow-go-back-line"
+            @click="doReset"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            @click="doCancel"
             icon="ri-close-line"
+            @click="doCancel"
           >
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
@@ -86,7 +86,7 @@ const formSchema = new FormSchema(
 )
 
 export default {
-  name: 'app-tenant-form',
+  name: 'AppTenantForm',
 
   props: ['isEditing', 'record', 'saveLoading'],
 

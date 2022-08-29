@@ -1,31 +1,31 @@
 <template>
   <div class="community-member-engagement-level-wrapper">
-    <div class="" v-if="member.crowdInfo.team">
+    <div v-if="member.crowdInfo.team" class="">
       <div class="font-semibold text-gray-400">
         Team member
       </div>
     </div>
     <div v-else>
       <div
-        class="inline-flex items-center justify-center tag"
         v-if="computedEngagementLevel.value === -1"
+        class="inline-flex items-center justify-center tag"
       >
         <span
           class="block mr-2 text-xs font-semibold text-gray-400"
           >Computing</span
         >
         <div
-          class="app-page-spinner h-6 w-6"
           v-loading="true"
+          class="app-page-spinner h-6 w-6"
         ></div>
       </div>
       <div v-else-if="member.type === 'lookalike'">
         {{ Math.round(computedEngagementLevel.value) }}
       </div>
       <div
+        v-else
         class="tag community-member-engagement-level"
         :class="`community-member-engagement-level--${computedEngagementLevel.label.toLowerCase()}`"
-        v-else
       >
         <span
           class="community-member-engagement-level-label"
@@ -45,7 +45,7 @@
 
 <script>
 export default {
-  name: 'app-community-engagement-level',
+  name: 'AppCommunityEngagementLevel',
   props: {
     member: {
       type: Object,

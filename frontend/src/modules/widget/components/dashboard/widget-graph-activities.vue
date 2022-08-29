@@ -21,11 +21,11 @@
 import WidgetCubeRenderer from '../cube/widget-cube-renderer'
 
 export default {
-  name: 'app-widget-graph-activities',
-  props: ['date'],
+  name: 'AppWidgetGraphActivities',
   components: {
     'app-widget-cube-renderer': WidgetCubeRenderer
   },
+  props: ['date'],
   computed: {
     widget() {
       return {

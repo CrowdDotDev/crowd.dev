@@ -10,9 +10,9 @@
           (o) => o.value === timeDimensions[0].dateRange
         ).label
       "
-      @change="changeHandler"
       filterable
       value-key="label"
+      @change="changeHandler"
     >
       <el-option
         v-for="item in dateRangeItems"

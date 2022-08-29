@@ -1,21 +1,21 @@
 <template>
   <div>
     <el-dropdown
+      v-if="!isReadOnly"
       trigger="click"
       @command="handleCommand"
-      v-if="!isReadOnly"
     >
       <span class="el-dropdown-link">
         <i class="text-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <el-dropdown-menu>
         <el-dropdown-item
+          v-if="showViewMember"
           icon="ri-eye-line"
           :command="{
             action: 'communityMemberView',
             communityMember: member
           }"
-          v-if="showViewMember"
           >View Member</el-dropdown-item
         >
         <el-dropdown-item
@@ -35,12 +35,12 @@
           >Merge With Another Member</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="!member.crowdInfo.team"
           icon="ri-user-follow-line"
           :command="{
             action: 'communityMemberMarkAsTeamMember',
             communityMember: member
           }"
-          v-if="!member.crowdInfo.team"
           >Mark as Team Member</el-dropdown-item
         >
         <el-dropdown-item
@@ -55,12 +55,12 @@
     </el-dropdown>
 
     <el-dialog
-      :visible.sync="editing"
+      v-model:visible="editing"
       title="Edit Member"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="editing = false"
       custom-class="el-dialog--lg"
+      @close="editing = false"
     >
       <app-community-member-form-page
         :id="member.id"
@@ -91,7 +91,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-community-member-dropdown',
+  name: 'AppCommunityMemberDropdown',
   components: { AppCommunityMemberFormPage },
   props: {
     member: {

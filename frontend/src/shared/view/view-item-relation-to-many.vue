@@ -1,10 +1,10 @@
 <template>
-  <el-form-item :label="label" v-if="!isBlank">
+  <el-form-item v-if="!isBlank" :label="label">
     <el-col :lg="11" :md="16" :sm="24">
-      <div :key="item.id" v-for="item of value">
+      <div v-for="item of value" :key="item.id">
         <router-link
-          :to="urlWithId(item)"
           v-if="hasPermissionToRead"
+          :to="urlWithId(item)"
         >
           <strong>{{ display(item) }}</strong>
         </router-link>
@@ -21,7 +21,7 @@ import { mapGetters } from 'vuex'
 import { PermissionChecker } from '@/premium/user/permission-checker'
 
 export default {
-  name: 'app-view-item-relation-to-many',
+  name: 'AppViewItemRelationToMany',
 
   props: ['label', 'value', 'url', 'permission'],
 

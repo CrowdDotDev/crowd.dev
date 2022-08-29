@@ -19,19 +19,19 @@
         <el-tab-pane
           label="Inbox"
           name="inbox"
-          labelClass="app-content-title"
+          label-class="app-content-title"
         >
         </el-tab-pane>
         <el-tab-pane
           label="Engaged"
           name="engaged"
-          labelClass="app-content-title"
+          label-class="app-content-title"
         >
         </el-tab-pane>
         <el-tab-pane
           label="Excluded"
           name="rejected"
-          labelClass="app-content-title"
+          label-class="app-content-title"
         >
         </el-tab-pane>
       </el-tabs>
@@ -42,7 +42,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 export default {
-  name: 'app-eagle-eye-header',
+  name: 'AppEagleEyeHeader',
   computed: {
     ...mapGetters({
       activeTab: 'eagleEye/activeTab'

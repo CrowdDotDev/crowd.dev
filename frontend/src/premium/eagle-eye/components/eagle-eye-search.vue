@@ -21,7 +21,7 @@ import AppEagleEyeFilter from './eagle-eye-filter'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-eagle-eye-search',
+  name: 'AppEagleEyeSearch',
   components: {
     AppEagleEyeFilter
   },

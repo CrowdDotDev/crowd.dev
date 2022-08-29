@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: 'avatar',
+  name: 'AppAvatar',
   props: {
     entity: {
       type: Object,
@@ -23,32 +23,6 @@ export default {
     size: {
       type: String,
       default: 'md'
-    }
-  },
-  computed: {
-    computedBackgroundColor() {
-      return this.backgroundColors[
-        this.entity.username.crowdUsername.length %
-          this.backgroundColors.length
-      ]
-    },
-    computedTextColor() {
-      return this.textColors[
-        this.entity.username.crowdUsername.length %
-          this.textColors.length
-      ]
-    },
-    computedStyle() {
-      return this.entity.avatar
-        ? `background-image: url(${this.entity.avatar}`
-        : {
-            backgroundColor: this.computedBackgroundColor,
-            borderColor: this.computedBackgroundColor,
-            color: this.computedTextColor
-          }
-    },
-    computedClass() {
-      return `avatar--${this.size}`
     }
   },
   data() {
@@ -75,6 +49,32 @@ export default {
         '#AD1A72',
         '#E03E3E'
       ]
+    }
+  },
+  computed: {
+    computedBackgroundColor() {
+      return this.backgroundColors[
+        this.entity.username.crowdUsername.length %
+          this.backgroundColors.length
+      ]
+    },
+    computedTextColor() {
+      return this.textColors[
+        this.entity.username.crowdUsername.length %
+          this.textColors.length
+      ]
+    },
+    computedStyle() {
+      return this.entity.avatar
+        ? `background-image: url(${this.entity.avatar}`
+        : {
+            backgroundColor: this.computedBackgroundColor,
+            borderColor: this.computedBackgroundColor,
+            color: this.computedTextColor
+          }
+    },
+    computedClass() {
+      return `avatar--${this.size}`
     }
   }
 }

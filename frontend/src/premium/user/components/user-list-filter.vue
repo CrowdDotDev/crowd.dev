@@ -2,25 +2,25 @@
   <div class="filter">
     <portal to="user-filter-toggle">
       <app-filter-toggle
-        @click="doToggleExpanded"
-        :activeFiltersCount="activeFiltersCount"
+        :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-1"
+        @click="doToggleExpanded"
       ></app-filter-toggle>
     </portal>
 
     <el-dialog
-      :visible.sync="expanded"
+      v-model:visible="expanded"
       title="Activities Filters"
       @close="expanded = false"
     >
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthFilter"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doFilter"
-        ref="form"
+        @submit.prevent="doFilter"
       >
         <app-filter-preview
           :values="model"
@@ -57,15 +57,15 @@
               :prop="fields.status.name"
             >
               <el-select
-                placeholder
                 v-model="model[fields.status.name]"
+                placeholder
               >
                 <el-option :value="undefined">--</el-option>
                 <el-option
+                  v-for="option in fields.status.options"
                   :key="option.id"
                   :label="option.label"
                   :value="option.id"
-                  v-for="option in fields.status.options"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -76,15 +76,15 @@
               :prop="fields.role.name"
             >
               <el-select
-                placeholder
                 v-model="model[fields.role.name]"
+                placeholder
               >
                 <el-option :value="undefined">--</el-option>
                 <el-option
+                  v-for="option in fields.role.options"
                   :key="option.value"
                   :label="option.label"
                   :value="option.value"
-                  v-for="option in fields.role.options"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -94,9 +94,9 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading"
-            @click="doFilter"
             icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
+            @click="doFilter"
           >
             <app-i18n
               code="common.filters.apply"
@@ -105,9 +105,9 @@
 
           <el-button
             :disabled="loading"
-            @click="doResetFilter"
             icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
+            @click="doResetFilter"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
@@ -134,7 +134,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-user-list-filter',
+  name: 'AppUserListFilter',
 
   data() {
     return {

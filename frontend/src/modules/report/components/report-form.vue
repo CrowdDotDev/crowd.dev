@@ -1,40 +1,40 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <el-form-item class="absolute top-0 right-0 mt-1">
         <div class="form-buttons">
           <el-button
             :disabled="saveLoading"
-            @click="doSubmit"
             icon="ri-lg ri-save-line"
             class="btn btn--primary ml-2"
+            @click="doSubmit"
           >
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            @click="doReset"
             icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary ml-2"
+            @click="doReset"
           >
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            @click="doCancel"
             icon="ri-lg ri-close-line"
             class="btn btn--secondary ml-2"
+            @click="doCancel"
           >
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
@@ -48,9 +48,9 @@
           class="w-full lg:w-1/3 mx-4"
         >
           <el-input
+            ref="focus"
             v-model="model[fields.name.name]"
             :placeholder="fields.name.placeholder"
-            ref="focus"
           />
 
           <div
@@ -119,13 +119,13 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-report-form',
-
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  name: 'AppReportForm',
 
   components: {
     ReportGridLayout
   },
+
+  props: ['isEditing', 'record', 'saveLoading', 'modal'],
 
   data() {
     return {

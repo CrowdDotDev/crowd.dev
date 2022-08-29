@@ -1,8 +1,8 @@
 <template>
   <div>
     <app-user-new-form
-      :saveLoading="saveLoading"
-      :invitationToken="invitationToken"
+      :save-loading="saveLoading"
+      :invitation-token="invitationToken"
       :single="true"
       @cancel="doCancel"
       @submit="doSubmit"
@@ -15,7 +15,7 @@ import { mapGetters, mapActions } from 'vuex'
 import UserNewForm from '@/premium/user/components/user-new-form.vue'
 
 export default {
-  name: 'app-user-new-page',
+  name: 'AppUserNewPage',
 
   components: {
     'app-user-new-form': UserNewForm

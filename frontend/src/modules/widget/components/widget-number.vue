@@ -4,13 +4,13 @@
     :editable="editable"
     :number="true"
     @trigger-duplicate-widget="
-      (w) => this.$emit('trigger-duplicate-widget', w)
+      (w) => $emit('trigger-duplicate-widget', w)
     "
     @trigger-edit-widget="
-      (w) => this.$emit('trigger-edit-widget', w)
+      (w) => $emit('trigger-edit-widget', w)
     "
     @trigger-delete-widget="
-      (w) => this.$emit('trigger-delete-widget', w)
+      (w) => $emit('trigger-delete-widget', w)
     "
     @open-settings-modal="modal = true"
   >
@@ -28,13 +28,13 @@
             </div>
           </el-tooltip>
           <div
+            v-if="growth.target !== null"
             class="widget--number-values-growth"
             :class="
               growth.target >= 0
                 ? 'widget--number-values-growth--positive'
                 : 'widget--number-values-growth--negative'
             "
-            v-if="growth.target !== null"
           >
             ({{ growth.target >= 0 ? '+' : '-'
             }}{{ growth.current }}%)
@@ -44,8 +44,8 @@
       </div>
     </div>
     <el-dialog
+      v-model:visible="modal"
       :title="`${config.title} Settings`"
-      :visible.sync="modal"
       @close="modal = false"
     ></el-dialog>
   </app-widget>
@@ -56,7 +56,11 @@ import Widget from './widget'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'widget-number',
+  name: 'AppWidgetNumber',
+
+  components: {
+    'app-widget': Widget
+  },
 
   props: {
     config: {
@@ -81,10 +85,6 @@ export default {
       type: Boolean,
       default: false
     }
-  },
-
-  components: {
-    'app-widget': Widget
   },
 
   computed: {

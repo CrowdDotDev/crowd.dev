@@ -13,23 +13,23 @@
       <span class="el-dropdown-link">
         <i class="text-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <el-dropdown-menu>
         <el-dropdown-item
+          v-if="report.public"
           icon="ri-link"
           :command="{
             action: 'reportPublicUrl',
             report: report
           }"
-          v-if="report.public"
           >Copy Public Url</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="showViewReport"
           icon="ri-eye-line"
           :command="{
             action: 'reportView',
             report: report
           }"
-          v-if="showViewReport"
           >View Report</el-dropdown-item
         >
         <el-dropdown-item
@@ -61,7 +61,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 
 export default {
-  name: 'app-report-dropdown',
+  name: 'AppReportDropdown',
   props: {
     report: {
       type: Object,

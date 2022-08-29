@@ -1,18 +1,18 @@
 <template>
   <div>
     <div
-      class="app-page-spinner"
       v-if="initLoading"
       v-loading="initLoading"
+      class="app-page-spinner"
     ></div>
 
     <app-activity-form
-      :isEditing="isEditing"
+      v-if="!initLoading"
+      :is-editing="isEditing"
       :record="record"
-      :saveLoading="saveLoading"
+      :save-loading="saveLoading"
       @cancel="doCancel"
       @submit="doSubmit"
-      v-if="!initLoading"
     />
   </div>
 </template>
@@ -22,13 +22,13 @@ import { mapGetters, mapActions } from 'vuex'
 import ActivityForm from '@/modules/activity/components/activity-form.vue'
 
 export default {
-  name: 'app-activity-form-page',
-
-  props: ['id'],
+  name: 'AppActivityFormPage',
 
   components: {
     'app-activity-form': ActivityForm
   },
+
+  props: ['id'],
 
   computed: {
     ...mapGetters({

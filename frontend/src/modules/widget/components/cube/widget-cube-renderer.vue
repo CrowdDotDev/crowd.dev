@@ -1,6 +1,6 @@
 <template>
   <query-renderer
-    :cubejsApi="cubejsApi"
+    :cubejs-api="cubejsApi"
     :query="widget.settings.query"
   >
     <template
@@ -25,11 +25,15 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { QueryRenderer } from '@cubejs-client/vue'
+import { QueryRenderer } from '@cubejs-client/vue3'
 import WidgetCube from './widget-cube'
 
 export default {
-  name: 'app-widget-cube-renderer',
+  name: 'AppWidgetCubeRenderer',
+  components: {
+    QueryRenderer,
+    'app-widget-cube': WidgetCube
+  },
   props: {
     widget: {
       type: Object,
@@ -51,10 +55,6 @@ export default {
       type: Object,
       default: () => {}
     }
-  },
-  components: {
-    QueryRenderer,
-    'app-widget-cube': WidgetCube
   },
   computed: {
     ...mapGetters({

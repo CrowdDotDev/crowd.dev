@@ -10,11 +10,11 @@
     </el-button>
 
     <app-tag-popover
+      v-model="bulkEditTagsModel"
       :visible="bulkEditTags"
       :loading="loading"
       @cancel="cancelBulkUpdateTags"
       @submit="doBulkUpdateTagsWithConfirm"
-      v-model="bulkEditTagsModel"
     />
   </div>
 </template>
@@ -30,7 +30,11 @@ const { fields } = CommunityMemberModel
 const formSchema = new FormSchema([fields.tags])
 
 export default {
-  name: 'app-community-member-list-bulk-update-tags',
+  name: 'AppCommunityMemberListBulkUpdateTags',
+
+  components: {
+    AppTagPopover
+  },
 
   props: {
     loading: {
@@ -43,21 +47,17 @@ export default {
     }
   },
 
-  components: {
-    AppTagPopover
-  },
-
-  computed: {
-    bulkEditTagsDisabled() {
-      return !this.selectedRows.length || this.loading
-    }
-  },
-
   data() {
     return {
       bulkEditTags: false,
       bulkEditTagsModel: [],
       bulkEditTagsInCommon: []
+    }
+  },
+
+  computed: {
+    bulkEditTagsDisabled() {
+      return !this.selectedRows.length || this.loading
     }
   },
 

@@ -6,12 +6,12 @@
       </el-breadcrumb-item>
       <el-breadcrumb-item>
         <app-i18n
-          code="tenant.edit.title"
           v-if="isEditing"
+          code="tenant.edit.title"
         ></app-i18n>
         <app-i18n
-          code="tenant.new.title"
           v-if="!isEditing"
+          code="tenant.new.title"
         ></app-i18n>
       </el-breadcrumb-item>
     </el-breadcrumb>
@@ -19,28 +19,28 @@
     <div class="app-content-page">
       <h1 class="app-content-title">
         <app-i18n
-          code="tenant.edit.title"
           v-if="isEditing"
+          code="tenant.edit.title"
         ></app-i18n>
         <app-i18n
-          code="tenant.new.title"
           v-if="!isEditing"
+          code="tenant.new.title"
         ></app-i18n>
       </h1>
 
       <div
-        class="app-page-spinner"
         v-if="initLoading"
         v-loading="initLoading"
+        class="app-page-spinner"
       ></div>
 
       <app-tenant-form
-        :isEditing="isEditing"
+        v-if="!initLoading"
+        :is-editing="isEditing"
         :record="record"
-        :saveLoading="saveLoading"
+        :save-loading="saveLoading"
         @cancel="doCancel"
         @submit="doSubmit"
-        v-if="!initLoading"
       />
     </div>
   </div>
@@ -52,13 +52,13 @@ import TenantForm from '@/modules/tenant/components/tenant-form.vue'
 import { routerAsync } from '@/router'
 
 export default {
-  name: 'app-tenant-form-page',
-
-  props: ['id'],
+  name: 'AppTenantFormPage',
 
   components: {
     'app-tenant-form': TenantForm
   },
+
+  props: ['id'],
 
   computed: {
     ...mapGetters({
