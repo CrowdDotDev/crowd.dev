@@ -331,7 +331,6 @@ class ActivityRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
       }
 
-
       if (filter.member) {
         whereAnd.push({
           memberId: SequelizeFilterUtils.uuid(filter.member),

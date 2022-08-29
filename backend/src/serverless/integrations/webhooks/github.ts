@@ -57,10 +57,7 @@ export default class GitHubWebhook {
   async issue(type: GithubActivityType, scoreGrid: gridEntry, timestamp: string): EventOutput {
     const integration = (await this.findIntegration()) as any
     const issue = this.payload.issue
-    const member: Member = await GitHubWebhook.getParsedMember(
-      issue.user.login,
-      integration.token,
-    )
+    const member: Member = await GitHubWebhook.getParsedMember(issue.user.login, integration.token)
 
     if (member) {
       return {
@@ -99,10 +96,7 @@ export default class GitHubWebhook {
   ): EventOutput {
     const integration = (await this.findIntegration()) as any
     const pull = this.payload.pull_request
-    const member: Member = await GitHubWebhook.getParsedMember(
-      pull.user.login,
-      integration.token,
-    )
+    const member: Member = await GitHubWebhook.getParsedMember(pull.user.login, integration.token)
     if (member) {
       return {
         member,

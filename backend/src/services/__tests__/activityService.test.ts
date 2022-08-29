@@ -1069,7 +1069,6 @@ describe('ActivityService tests', () => {
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
     })
 
-
     describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)

@@ -1301,22 +1301,10 @@ describe('MemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
-      const returnedMember2 = await MemberRepository.create(
-        member2,
-        mockIRepositoryOptions,
-      )
-      const returnedMember3 = await MemberRepository.create(
-        member3,
-        mockIRepositoryOptions,
-      )
-      const returnedMember4 = await MemberRepository.create(
-        member4,
-        mockIRepositoryOptions,
-      )
+      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const returnedMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
+      const returnedMember3 = await MemberRepository.create(member3, mockIRepositoryOptions)
+      const returnedMember4 = await MemberRepository.create(member4, mockIRepositoryOptions)
 
       const activity = {
         type: 'activity',
@@ -1804,18 +1792,12 @@ describe('MemberService tests', () => {
 
       await memberService.addToNoMerge(returnedMember1.id, returnedMember2.id)
 
-      returnedMember1 = await MemberRepository.findById(
-        returnedMember1.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember1 = await MemberRepository.findById(returnedMember1.id, mockIRepositoryOptions)
 
       expect(returnedMember1.toMerge).toStrictEqual([returnedMember3.id])
       expect(returnedMember1.noMerge).toStrictEqual([returnedMember2.id])
 
-      returnedMember2 = await MemberRepository.findById(
-        returnedMember2.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember2 = await MemberRepository.findById(returnedMember2.id, mockIRepositoryOptions)
 
       expect(returnedMember2.toMerge).toStrictEqual([returnedMember3.id])
       expect(returnedMember2.noMerge).toStrictEqual([returnedMember1.id])
@@ -1823,18 +1805,12 @@ describe('MemberService tests', () => {
       // call addToNoMerge once more, between member1 and member3
       await memberService.addToNoMerge(returnedMember1.id, returnedMember3.id)
 
-      returnedMember1 = await MemberRepository.findById(
-        returnedMember1.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember1 = await MemberRepository.findById(returnedMember1.id, mockIRepositoryOptions)
 
       expect(returnedMember1.toMerge).toStrictEqual([])
       expect(returnedMember1.noMerge).toStrictEqual([returnedMember2.id, returnedMember3.id])
 
-      returnedMember3 = await MemberRepository.findById(
-        returnedMember3.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember3 = await MemberRepository.findById(returnedMember3.id, mockIRepositoryOptions)
 
       expect(returnedMember3.toMerge).toStrictEqual([returnedMember2.id])
       expect(returnedMember3.noMerge).toStrictEqual([returnedMember1.id])
@@ -1842,18 +1818,12 @@ describe('MemberService tests', () => {
       // only toMerge relation (2,3) left. Testing addToNoMerge(2,3)
       await memberService.addToNoMerge(returnedMember3.id, returnedMember2.id)
 
-      returnedMember2 = await MemberRepository.findById(
-        returnedMember2.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember2 = await MemberRepository.findById(returnedMember2.id, mockIRepositoryOptions)
 
       expect(returnedMember2.toMerge).toStrictEqual([])
       expect(returnedMember2.noMerge).toStrictEqual([returnedMember1.id, returnedMember3.id])
 
-      returnedMember3 = await MemberRepository.findById(
-        returnedMember3.id,
-        mockIRepositoryOptions,
-      )
+      returnedMember3 = await MemberRepository.findById(returnedMember3.id, mockIRepositoryOptions)
 
       expect(returnedMember3.toMerge).toStrictEqual([])
       expect(returnedMember3.noMerge).toStrictEqual([returnedMember1.id, returnedMember2.id])
@@ -1877,10 +1847,7 @@ describe('MemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const { randomUUID } = require('crypto')
 
@@ -1909,10 +1876,7 @@ describe('MemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete returnedMember1.toMerge
       delete returnedMember1.noMerge
       delete returnedMember1.tags
@@ -2000,10 +1964,7 @@ describe('MemberService tests', () => {
         },
       }
 
-      const returnedMember1 = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete returnedMember1.toMerge
       delete returnedMember1.noMerge
       delete returnedMember1.tags

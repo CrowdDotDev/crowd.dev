@@ -155,14 +155,10 @@ describe('Dev.to iterator tests', () => {
       expect(member.crowdInfo[PlatformType.DEVTO].id).toEqual(123)
       expect(member.bio).toEqual('Nice profile you got there')
       expect(member.location).toEqual('Venice, Italy')
-      expect(member.crowdInfo[PlatformType.TWITTER].url).toEqual(
-        'https://twitter.com/johntwitter',
-      )
+      expect(member.crowdInfo[PlatformType.TWITTER].url).toEqual('https://twitter.com/johntwitter')
       expect(member.username[PlatformType.TWITTER]).toEqual('johntwitter')
       expect(member.crowdInfo[PlatformType.GITHUB].name).toEqual('John')
-      expect(member.crowdInfo[PlatformType.GITHUB].url).toEqual(
-        'https://github.com/johngithub',
-      )
+      expect(member.crowdInfo[PlatformType.GITHUB].url).toEqual('https://github.com/johngithub')
       expect(member.username[PlatformType.GITHUB]).toEqual('johngithub')
     })
 

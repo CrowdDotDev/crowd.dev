@@ -16,10 +16,10 @@ export default class TagService {
 
     try {
       if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(
-          data.members,
-          { ...this.options, transaction },
-        )
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
+          ...this.options,
+          transaction,
+        })
       }
 
       const record = await TagRepository.create(data, {
@@ -44,10 +44,10 @@ export default class TagService {
 
     try {
       if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(
-          data.members,
-          { ...this.options, transaction },
-        )
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
+          ...this.options,
+          transaction,
+        })
       }
 
       const record = await TagRepository.update(id, data, {

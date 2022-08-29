@@ -514,24 +514,16 @@ class MemberRepository {
 
       if (filter.organisation) {
         whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes(
-            'member',
-            'organisation',
-            filter.organisation,
-          ),
+          SequelizeFilterUtils.ilikeIncludes('member', 'organisation', filter.organisation),
         )
       }
 
       if (filter.location) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('member', 'location', filter.location),
-        )
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'location', filter.location))
       }
 
       if (filter.signals) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('member', 'signals', filter.signals),
-        )
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'signals', filter.signals))
       }
 
       if (filter.reachRange) {

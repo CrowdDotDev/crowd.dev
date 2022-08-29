@@ -30,9 +30,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'upsert_members', [member])
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
       expect(dbMembers[0].username.crowdUsername).toBe('member1')
@@ -55,9 +53,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'upsert_members', members)
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(2)
     })
@@ -68,9 +64,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'upsert_members', [])
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(0)
     })
@@ -163,9 +157,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'update_members', [{ id: memberId, update: { score: 10 } }])
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
       expect(dbMembers[0].username.crowdUsername).toBe('member1')
@@ -200,9 +192,7 @@ describe('Serverless database operations worker tests', () => {
         { id: memberIds[1], update: { score: 3 } },
       ])
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(2)
       expect(dbMembers[1].score).toBe(10)
@@ -215,9 +205,7 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'update_members', [])
 
-      const dbMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(0)
     })
@@ -415,9 +403,8 @@ describe('Serverless database operations worker tests', () => {
         [memberIds[1], memberIds[0]],
       ])
 
-      const dbMergeMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
+        .rows
 
       expect(dbMergeMembers.length).toBe(2)
       expect(dbMergeMembers[0].toMerge[0]).toStrictEqual(memberIds[0])
@@ -449,9 +436,8 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'update_members_to_merge', [])
 
-      const dbMergeMembers = (
-        await new MemberService(mockIRepositoryOptions).findAndCountAll({})
-      ).rows
+      const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
+        .rows
 
       expect(dbMergeMembers.length).toBe(2)
       expect(dbMergeMembers[0].toMerge).toStrictEqual([])

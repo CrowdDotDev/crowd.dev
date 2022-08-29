@@ -38,10 +38,10 @@ export default class ActivityService {
 
     try {
       if (data.member) {
-        data.member = await MemberRepository.filterIdInTenant(
-          data.member,
-          { ...this.options, transaction },
-        )
+        data.member = await MemberRepository.filterIdInTenant(data.member, {
+          ...this.options,
+          transaction,
+        })
       }
 
       // If a sourceParentId is sent, try to find it in our db
@@ -275,11 +275,7 @@ export default class ActivityService {
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists
-        ? await new MemberService(this.options).findById(
-            activityExists.memberId,
-            true,
-            false,
-          )
+        ? await new MemberService(this.options).findById(activityExists.memberId, true, false)
         : false
 
       const member = await new MemberService(this.options).upsert(
@@ -312,10 +308,10 @@ export default class ActivityService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      data.member = await MemberRepository.filterIdInTenant(
-        data.member,
-        { ...this.options, transaction },
-      )
+      data.member = await MemberRepository.filterIdInTenant(data.member, {
+        ...this.options,
+        transaction,
+      })
 
       if (data.parent) {
         data.parent = await ActivityRepository.filterIdInTenant(data.parent, {

@@ -55,10 +55,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(
-        member2add,
-        mockIRepositoryOptions,
-      )
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -131,11 +128,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(
-        member2add,
-        mockIRepositoryOptions,
-        false,
-      )
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions, false)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -174,10 +167,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(
-        member2add,
-        mockIRepositoryOptions,
-      )
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
@@ -254,10 +244,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(
-        member2add,
-        mockIRepositoryOptions,
-      )
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -287,10 +274,7 @@ describe('MemberRepository tests', () => {
         toMerge: [],
       }
 
-      const memberById = await MemberRepository.findById(
-        memberCreated.id,
-        mockIRepositoryOptions,
-      )
+      const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
 
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       memberById.createdAt = memberById.createdAt.toISOString().split('T')[0]
@@ -307,10 +291,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const memberCreated = await MemberRepository.create(
-        member2add,
-        mockIRepositoryOptions,
-      )
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
 
       const expectedMemberFound = {
         id: memberCreated.id,
@@ -371,14 +352,8 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
-      const member2Returned = await MemberRepository.create(
-        member2,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
+      const member2Returned = await MemberRepository.create(member2, mockIRepositoryOptions)
 
       const filterIdsReturned = await MemberRepository.filterIdsInTenant(
         [member1Returned.id, member2Returned.id],
@@ -396,10 +371,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-29T15:14:30Z',
       }
 
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const { randomUUID } = require('crypto')
 
@@ -419,10 +391,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-04-29T15:14:30Z',
       }
 
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       // create a new tenant and bind options to it
       mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -444,10 +413,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -464,10 +430,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete member1Returned.toMerge
       delete member1Returned.noMerge
       delete member1Returned.tags
@@ -490,10 +453,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const found = await MemberRepository.findOne(
         { 'username.crowdUsername': 'test1' },
@@ -514,10 +474,7 @@ describe('MemberRepository tests', () => {
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        MemberRepository.findOne(
-          { 'username.crowdUsername': 'test2' },
-          mockIRepositoryOptions,
-        ),
+        MemberRepository.findOne({ 'username.crowdUsername': 'test2' }, mockIRepositoryOptions),
       )
     })
   })
@@ -530,10 +487,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -551,10 +505,7 @@ describe('MemberRepository tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
         email: 'joan@crowd.dev',
       }
-      const member1Returned = await MemberRepository.create(
-        member1,
-        mockIRepositoryOptions,
-      )
+      const member1Returned = await MemberRepository.create(member1, mockIRepositoryOptions)
       delete member1Returned.toMerge
       delete member1Returned.noMerge
       delete member1Returned.tags
@@ -581,11 +532,7 @@ describe('MemberRepository tests', () => {
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        MemberRepository.memberExists(
-          'test1',
-          PlatformType.GITHUB,
-          mockIRepositoryOptions,
-        ),
+        MemberRepository.memberExists('test1', PlatformType.GITHUB, mockIRepositoryOptions),
       )
     })
 
@@ -1215,11 +1162,7 @@ describe('MemberRepository tests', () => {
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        MemberRepository.update(
-          randomUUID(),
-          { organisation: 'test' },
-          mockIRepositoryOptions,
-        ),
+        MemberRepository.update(randomUUID(), { organisation: 'test' }, mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
 
@@ -1238,11 +1181,7 @@ describe('MemberRepository tests', () => {
       )
 
       await expect(() =>
-        MemberRepository.update(
-          member1.id,
-          { tags: [randomUUID()] },
-          mockIRepositoryOptions,
-        ),
+        MemberRepository.update(member1.id, { tags: [randomUUID()] }, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
   })

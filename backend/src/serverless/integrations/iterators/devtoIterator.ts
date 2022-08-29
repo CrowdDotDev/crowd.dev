@@ -8,11 +8,7 @@ import Operations from '../../dbOperations/operations'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { DevtoGrid } from '../grid/devtoGrid'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
-import {
-  AddActivitiesSingle,
-  Member,
-  DevtoIntegrationMessage,
-} from '../types/messageTypes'
+import { AddActivitiesSingle, Member, DevtoIntegrationMessage } from '../types/messageTypes'
 import { Endpoint, Endpoints, State } from '../types/regularTypes'
 import { getArticleComments } from '../usecases/devto/getArticleComments'
 import sendIntegrationsMessage from '../utils/integrationSQS'
