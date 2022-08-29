@@ -274,7 +274,7 @@ describe('ActivityRepository tests', () => {
               sentiment: 'positive',
               score: 1,
             },
-            communityMember: memberCreated.id,
+            member: memberCreated.id,
             sourceId: '#sourceId1',
           },
           mockIRepositoryOptions,
@@ -295,7 +295,7 @@ describe('ActivityRepository tests', () => {
               neutral: 0,
               sentiment: 'positive',
             },
-            communityMember: memberCreated.id,
+            member: memberCreated.id,
             sourceId: '#sourceId1',
           },
           mockIRepositoryOptions,
@@ -317,7 +317,7 @@ describe('ActivityRepository tests', () => {
               score: 0.1,
               sentiment: 'smth',
             },
-            communityMember: memberCreated.id,
+            member: memberCreated.id,
             sourceId: '#sourceId1',
           },
           mockIRepositoryOptions,
@@ -331,7 +331,7 @@ describe('ActivityRepository tests', () => {
           timestamp: '2020-05-27T15:13:30Z',
           platform: PlatformType.GITHUB,
           sentiment: {},
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           sourceId: '#sourceId1',
         },
         mockIRepositoryOptions,
@@ -361,7 +361,7 @@ describe('ActivityRepository tests', () => {
         url: 'https://github.com',
         channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -371,7 +371,7 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -385,7 +385,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -425,7 +425,7 @@ describe('ActivityRepository tests', () => {
         url: 'https://github.com',
         channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -435,7 +435,7 @@ describe('ActivityRepository tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
       const expectedActivityCreated = {
         id: activityCreated.id,
         attributes: {},
@@ -449,7 +449,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -982,7 +982,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -1028,7 +1028,7 @@ describe('ActivityRepository tests', () => {
           },
           body: 'Here',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           sourceId: '#sourceId1',
         },
@@ -1077,7 +1077,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 'positive',
           score: 0.98,
         },
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         sourceId: '#sourceId1',
       }
 
@@ -1093,7 +1093,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 'neutral',
           score: 0.55,
         },
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         sourceId: '#sourceId2',
       }
 
@@ -1158,7 +1158,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 'positive',
           score: 0.98,
         },
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         sourceId: '#sourceId1',
       }
 
@@ -1174,7 +1174,7 @@ describe('ActivityRepository tests', () => {
           sentiment: 'negative',
           score: -0.54,
         },
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         sourceId: '#sourceId2',
       }
 
