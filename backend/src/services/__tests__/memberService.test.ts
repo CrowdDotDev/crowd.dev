@@ -1371,9 +1371,9 @@ describe('MemberService tests', () => {
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'communityMemberCount')
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, 'communityMemberCount')
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, 'communityMemberCount')
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'memberCount')
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, 'memberCount')
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, 'memberCount')
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 

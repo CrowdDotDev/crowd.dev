@@ -44,7 +44,7 @@ class OrganizationRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
@@ -97,7 +97,7 @@ class OrganizationRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
@@ -203,8 +203,8 @@ class OrganizationRepository {
     const whereAnd: Array<any> = []
     const include = [
       {
-        model: options.database.communityMember,
-        as: 'communityMembers',
+        model: options.database.member,
+        as: 'members',
         attributes: ['id'],
       },
     ]
@@ -305,7 +305,7 @@ class OrganizationRepository {
     if (data) {
       values = {
         ...record.get({ plain: true }),
-        communityMemberIds: data.communityMembers,
+        memberIds: data.members,
       }
     }
 
@@ -328,8 +328,8 @@ class OrganizationRepository {
     return Promise.all(
       rows.map((record) => {
         const rec = record.get({ plain: true })
-        rec.communityMemberCount = record.communityMembers?.length
-        delete rec.communityMembers
+        rec.memberCount = record.members?.length
+        delete rec.members
         return rec
       }),
     )
@@ -344,8 +344,8 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.communityMemberCount = (
-      await record.getCommunityMembers({
+    output.memberCount = (
+      await record.getMembers({
         transaction,
       })
     ).length

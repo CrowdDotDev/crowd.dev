@@ -2,7 +2,7 @@ import moment from 'moment'
 import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
-import CommunityMemberRepository from '../communityMemberRepository'
+import MemberRepository from '../memberRepository'
 
 const db = null
 
@@ -38,7 +38,7 @@ const toCreate = {
 async function createMembers(options) {
   return [
     (
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'gilfoyle' },
           joinedAt: '2020-05-27T15:13:30Z',
@@ -47,7 +47,7 @@ async function createMembers(options) {
       )
     ).id,
     (
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'dinesh' },
           joinedAt: '2020-06-27T15:13:30Z',
@@ -84,7 +84,7 @@ describe('OrganizationRepository tests', () => {
       const expectedOrganizationCreated = {
         id: organizationCreated.id,
         ...toCreate,
-        communityMemberCount: 0,
+        memberCount: 0,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -106,14 +106,14 @@ describe('OrganizationRepository tests', () => {
       ).rejects.toThrow()
     })
 
-    it('Should create an organization with community members succesfully', async () => {
+    it('Should create an organization with members succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const memberIds = await createMembers(mockIRepositoryOptions)
 
       const toCreateWithMember = {
         ...toCreate,
-        communityMembers: memberIds,
+        members: memberIds,
       }
       const organizationCreated = await OrganizationRepository.create(
         toCreateWithMember,
@@ -125,7 +125,7 @@ describe('OrganizationRepository tests', () => {
       const expectedOrganizationCreated = {
         id: organizationCreated.id,
         ...toCreate,
-        communityMemberCount: 2,
+        memberCount: 2,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -136,8 +136,8 @@ describe('OrganizationRepository tests', () => {
       }
       expect(organizationCreated).toStrictEqual(expectedOrganizationCreated)
 
-      const member1 = await CommunityMemberRepository.findById(memberIds[0], mockIRepositoryOptions)
-      const member2 = await CommunityMemberRepository.findById(memberIds[1], mockIRepositoryOptions)
+      const member1 = await MemberRepository.findById(memberIds[0], mockIRepositoryOptions)
+      const member2 = await MemberRepository.findById(memberIds[1], mockIRepositoryOptions)
       expect(member1.organizations[0].url).toStrictEqual(organizationCreated.url)
       expect(member2.organizations[0].url).toStrictEqual(organizationCreated.url)
     })
@@ -158,7 +158,7 @@ describe('OrganizationRepository tests', () => {
       const expectedOrganizationFound = {
         id: organizationCreated.id,
         ...toCreate,
-        communityMemberCount: 0,
+        memberCount: 0,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -283,7 +283,7 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test-member' },
           joinedAt: moment().toDate(),
@@ -395,7 +395,7 @@ describe('OrganizationRepository tests', () => {
       const organizationExpected = {
         id: organizationCreated.id,
         ...toCreate,
-        communityMemberCount: 0,
+        memberCount: 0,
         name: organizationUpdated.name,
         importHash: null,
         createdAt: organizationCreated.createdAt,

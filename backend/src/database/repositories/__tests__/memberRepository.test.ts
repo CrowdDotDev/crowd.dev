@@ -756,7 +756,7 @@ describe('MemberRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
       })
 
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           score: '1',
@@ -764,7 +764,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test2' },
           score: '6',
@@ -773,7 +773,7 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      await CommunityMemberRepository.create(
+      await MemberRepository.create(
         {
           username: { crowdUsername: 'test3' },
           score: '7',
@@ -782,7 +782,7 @@ describe('MemberRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const members = await CommunityMemberRepository.findAndCountAll(
+      const members = await MemberRepository.findAndCountAll(
         { filter: { organizations: [crowd.id, pp.id] } },
         mockIRepositoryOptions,
       )
@@ -1219,7 +1219,7 @@ describe('MemberRepository tests', () => {
       )
 
       // Create member with tag3
-      let member1 = await CommunityMemberRepository.create(
+      let member1 = await MemberRepository.create(
         {
           username: { crowdUsername: 'test1' },
           joinedAt: new Date(),
@@ -1230,7 +1230,7 @@ describe('MemberRepository tests', () => {
 
       // When feeding organizations attribute to update, update method will overwrite the member's organizations with new given orgs
       // member1 is expected to have [org1,org2] after update
-      member1 = await CommunityMemberRepository.update(
+      member1 = await MemberRepository.update(
         member1.id,
         { organizations: [org1.id, org2.id] },
         mockIRepositoryOptions,
@@ -1241,10 +1241,10 @@ describe('MemberRepository tests', () => {
 
       member1.organizations = member1.organizations.map((i) => i.get({ plain: true }))
 
-      // strip communitymembers field from tags created to expect.
+      // strip members field from tags created to expect.
       // we won't be returning second level relationships.
-      const { communityMemberCount: _tag1Members, ...org1Plain } = org1
-      const { communityMemberCount: _tag2Members, ...org2Plain } = org2
+      const { memberCount: _tag1Members, ...org1Plain } = org1
+      const { memberCount: _tag2Members, ...org2Plain } = org2
 
       const expectedMemberCreated = {
         id: member1.id,

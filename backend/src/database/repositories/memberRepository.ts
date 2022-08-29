@@ -511,17 +511,17 @@ class MemberRepository {
       if (filter.organizations) {
         const whereOrganizations = filter.organizations.reduce((acc, item, index) => {
           if (index === 0) {
-            return `${acc} "communityMemberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
+            return `${acc} "memberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
               item,
             )}'`
           }
-          return `${acc} OR "communityMemberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
+          return `${acc} OR "memberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
             item,
           )}'`
         }, '')
 
         const organizationFilterLiteral = Sequelize.literal(
-          `(SELECT "communityMembers".id FROM "communityMembers" INNER JOIN "communityMemberOrganizations" ON "communityMemberOrganizations"."communityMemberId" = "communityMembers".id WHERE ${whereOrganizations})`,
+          `(SELECT "members".id FROM "members" INNER JOIN "memberOrganizations" ON "memberOrganizations"."memberId" = "members".id WHERE ${whereOrganizations})`,
         )
 
         whereAnd.push({

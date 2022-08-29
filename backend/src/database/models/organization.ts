@@ -100,9 +100,9 @@ export default (sequelize) => {
   )
 
   organization.associate = (models) => {
-    models.organization.belongsToMany(models.communityMember, {
-      as: 'communityMembers',
-      through: 'communityMemberOrganizations',
+    models.organization.belongsToMany(models.member, {
+      as: 'members',
+      through: 'memberOrganizations',
       foreignKey: 'organizationId',
     })
 
