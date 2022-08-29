@@ -1,5 +1,5 @@
 <template>
-  <div class="text-gray-600 text-sm">
+  <div class="text-gray-600 text-sm" v-if="count > 0">
     {{ count }}
     {{ typeOfPostsFound }} posts
     {{

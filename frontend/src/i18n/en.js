@@ -259,7 +259,8 @@ const en = {
         'issues-close': 'closed an issue',
         'issues-closed': 'closed an issue',
         'issue-comment': 'commented on an issue',
-        'pull_request-comment': 'commented on a pull request',
+        'pull_request-comment':
+          'commented on a pull request',
         'discussion-started': 'started a discussion',
         'discussion-comment': 'commented on a discussion',
         contributed_to_community:
