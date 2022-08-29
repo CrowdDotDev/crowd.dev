@@ -16,7 +16,13 @@ module.exports = {
   devServer: {
     port: 8081,
     allowedHosts: ['.localhost'],
-    disableHostCheck: true,
-    public: process.env.VUE_APP_FRONTEND_HOST
+    client: {
+      webSocketURL: {
+        hostname: process.env.VUE_APP_FRONTEND_HOST,
+        pathname: '/ws',
+        port: 8081,
+        protocol: 'ws'
+      }
+    }
   }
 }

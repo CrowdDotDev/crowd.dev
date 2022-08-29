@@ -1,9 +1,9 @@
 import { i18n } from '@/i18n'
-import { Notification } from 'element-ui'
+import { ElNotification } from 'element-plus'
 
 export default class Message {
   static success(payload, options = {}) {
-    Notification(
+    ElNotification(
       Object.assign(
         {},
         {
@@ -28,7 +28,7 @@ export default class Message {
       message = i18n('errors.defaultErrorMessage')
     }
 
-    Notification(
+    ElNotification(
       Object.assign(
         {},
         {
