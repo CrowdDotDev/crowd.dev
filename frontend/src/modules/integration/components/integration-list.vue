@@ -197,7 +197,7 @@
             >
               <el-button
                 class="btn btn--secondary btn--sm"
-                @click="devto.modal = true"
+                @click="$refs.devtoWidget[0].toggle()"
                 v-if="
                   integrations.devto === undefined ||
                   integrations.devto.status === 'done'
@@ -208,13 +208,12 @@
                 }}
               </el-button>
               <devto-integration-widget
+                ref="devtoWidget"
                 :integration="
                   integrations.devto
                     ? integrations.devto
                     : null
                 "
-                :visible="devto.modal"
-                @close="devto.modal = false"
               />
             </div>
             <a
@@ -340,9 +339,6 @@ export default {
       twitter: {
         popover: false,
         hashtags: []
-      },
-      devto: {
-        modal: false
       }
     }
   },

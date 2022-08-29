@@ -2,7 +2,7 @@
   <el-dialog
     class="devto-integration-modal"
     :visible.sync="isVisible"
-    @close="$emit('close')"
+    @close="isVisible = false"
     append-to-body
   >
     <template v-slot:title>
@@ -17,9 +17,7 @@
             class="block text-gray-800 font-normal leading-none"
             >Integration</span
           >
-          <span class="block text-lg font-medium"
-            >DEV</span
-          >
+          <span class="block text-lg font-medium">DEV</span>
         </div>
       </div>
     </template>
@@ -106,7 +104,7 @@
         </el-button>
         <el-button
           class="btn btn--secondary"
-          @click="$emit('close')"
+          @click="isVisible = false"
         >
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
@@ -123,10 +121,6 @@ export default {
   name: 'devto-integration-widget',
 
   props: {
-    visible: {
-      type: Boolean,
-      default: false
-    },
     integration: {
       type: Object,
       default: null
@@ -193,11 +187,6 @@ export default {
     }
   },
   watch: {
-    visible: {
-      handler: function (newVal) {
-        this.$data.isVisible = newVal
-      }
-    },
     integration: {
       handler: function (newVal) {
         if (newVal) {
@@ -217,14 +206,15 @@ export default {
     this.addNewOrganization()
     this.addNewUser()
   },
-  mounted() {
-    this.isVisible = this.visible
-  },
 
   methods: {
     ...mapActions({
       doDevtoConnect: 'integration/doDevtoConnect'
     }),
+
+    toggle() {
+      this.isVisible = !this.isVisible
+    },
 
     addNewUser(username) {
       this.users.push({
@@ -362,7 +352,8 @@ export default {
             (o) => o.username
           )
         })
-        await this.$emit('close')
+
+        this.isVisible = false
       }
     }
   }
