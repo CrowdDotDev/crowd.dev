@@ -193,6 +193,11 @@ export default (sequelize) => {
       as: 'toMerge',
       through: 'memberToMerge',
     })
+
+    models.member.belongsToMany(models.organization, {
+      as: 'organizations',
+      through: 'memberOrganizations',
+    })
   }
 
   return member
