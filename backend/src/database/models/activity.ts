@@ -64,7 +64,8 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
       },
       sentiment: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.JSONB,
+        defaultValue: {},
       },
       importHash: {
         type: DataTypes.STRING(255),

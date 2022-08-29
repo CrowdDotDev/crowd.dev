@@ -42,7 +42,13 @@ describe('ActivityRepository tests', () => {
         body: 'Here',
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -63,7 +69,13 @@ describe('ActivityRepository tests', () => {
         title: 'Title',
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
@@ -121,7 +133,7 @@ describe('ActivityRepository tests', () => {
         title: null,
         url: null,
         channel: null,
-        sentiment: null,
+        sentiment: {},
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -235,6 +247,57 @@ describe('ActivityRepository tests', () => {
       ).rejects.toThrow()
     })
 
+    it('Should throw error when sentiment is incorrect', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      // Incomplete Object
+      await expect(() =>
+        ActivityRepository.create(
+          {
+            type: 'activity',
+            timestamp: '2020-05-27T15:13:30Z',
+            platform: PlatformType.GITHUB,
+            sentiment: {
+              positive: 1,
+              sentiment: 'positive',
+            },
+            communityMember: memberCreated.id,
+          },
+          mockIRepositoryOptions,
+        ),
+      ).rejects.toThrow()
+
+      // Wrong Sentiment field
+      await expect(() =>
+        ActivityRepository.create(
+          {
+            type: 'activity',
+            timestamp: '2020-05-27T15:13:30Z',
+            platform: PlatformType.GITHUB,
+            sentiment: {
+              positive: 0.3,
+              negative: 0.2,
+              neutral: 0.5,
+              mixed: 0,
+              sentiment: 'smth',
+            },
+            communityMember: memberCreated.id,
+          },
+          mockIRepositoryOptions,
+        ),
+      ).rejects.toThrow()
+    })
+
     it('Should leave allowed HTML tags in body and title', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await CommunityMemberRepository.create(
@@ -256,7 +319,6 @@ describe('ActivityRepository tests', () => {
         title: '<h1> This is some Title HTML </h1>',
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -277,7 +339,7 @@ describe('ActivityRepository tests', () => {
         title: '<h1> This is some Title HTML </h1>',
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
+        sentiment: {},
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
@@ -321,7 +383,6 @@ describe('ActivityRepository tests', () => {
         title: "<script> console.log('title gotcha')</script> <h1> Malicious title </h1>",
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
         isKeyAction: true,
         communityMember: memberCreated.id,
         score: 1,
@@ -342,7 +403,7 @@ describe('ActivityRepository tests', () => {
         title: '<h1> Malicious title </h1>',
         url: 'https://github.com',
         channel: 'channel',
-        sentiment: 0.8,
+        sentiment: {},
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
@@ -399,7 +460,7 @@ describe('ActivityRepository tests', () => {
         title: null,
         url: null,
         channel: null,
-        sentiment: null,
+        sentiment: {},
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -725,7 +786,7 @@ describe('ActivityRepository tests', () => {
         body: activityReturned.body,
         channel: null,
         title: null,
-        sentiment: null,
+        sentiment: {},
         url: null,
         attributes: activityReturned.attributes,
         type: 'activity-new',
@@ -800,7 +861,13 @@ describe('ActivityRepository tests', () => {
         title: 'Title',
         channel: 'Channel',
         url: 'https://www.google.com',
-        sentiment: 0.9,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
         communityMember: memberCreated2.id,
       }
 
@@ -939,6 +1006,147 @@ describe('ActivityRepository tests', () => {
 
       expect(updatedActivity.body).toBe('<p> Malicious </p>')
       expect(updatedActivity.title).toBe('<h1> Malicious title </h1>')
+    })
+  })
+
+  describe('filter tests', () => {
+    it('Positive sentiment filter', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity1 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
+        communityMember: memberCreated.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activity2 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.55,
+          negative: 0.0,
+          neutral: 0.45,
+          mixed: 0.0,
+          sentiment: 'neutral',
+        },
+        communityMember: memberCreated.id,
+        sourceId: '#sourceId2',
+      }
+
+      const activityCreated1 = await ActivityRepository.create(activity1, mockIRepositoryOptions)
+      await ActivityRepository.create(activity2, mockIRepositoryOptions)
+
+      // Control
+      expect(
+        (await ActivityRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)).count,
+      ).toBe(2)
+
+      // Filter by how positive activities are
+      const filteredActivities = await ActivityRepository.findAndCountAll(
+        { filter: { positiveSentimentRange: [0.6, 1] } },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
+
+      // Filter by whether activities are positive or not
+      const filteredActivities2 = await ActivityRepository.findAndCountAll(
+        { filter: { sentiment: 'positive' } },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities2.count).toBe(1)
+      expect(filteredActivities2.rows[0].id).toBe(activityCreated1.id)
+    })
+    it('Negative sentiment filter', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await CommunityMemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity1 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+        },
+        communityMember: memberCreated.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activity2 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.01,
+          negative: 0.55,
+          neutral: 0.55,
+          mixed: 0.0,
+          sentiment: 'negative',
+        },
+        communityMember: memberCreated.id,
+        sourceId: '#sourceId2',
+      }
+
+      await ActivityRepository.create(activity1, mockIRepositoryOptions)
+      const activityCreated2 = await ActivityRepository.create(activity2, mockIRepositoryOptions)
+
+      // Control
+      expect(
+        (await ActivityRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)).count,
+      ).toBe(2)
+
+      // Filter by how positive activities are
+      const filteredActivities = await ActivityRepository.findAndCountAll(
+        { filter: { negativeSentimentRange: [0.5, 1] } },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated2.id)
+
+      // Filter by whether activities are positive or not
+      const filteredActivities2 = await ActivityRepository.findAndCountAll(
+        { filter: { sentiment: 'negative' } },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities2.count).toBe(1)
+      expect(filteredActivities2.rows[0].id).toBe(activityCreated2.id)
     })
   })
 })

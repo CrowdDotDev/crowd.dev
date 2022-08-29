@@ -28,6 +28,10 @@ class ActivityRepository {
       data.title = sanitizeHtml(data.title).trim()
     }
 
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
+    }
+
     const record = await options.database.activity.create(
       {
         ...lodash.pick(data, [
@@ -63,6 +67,25 @@ class ActivityRepository {
     return this.findById(record.id, options)
   }
 
+  /**
+   * Check whether sentiment data is valid
+   * @param sentimentData Object: {positive: number, negative: number, mixed: number, neutral: number, sentiment: 'positive' | 'negative' | 'mixed' | 'neutral'}
+   */
+  static _validateSentiment(sentimentData) {
+    for (const prop of ['positive', 'negative', 'neutral', 'mixed']) {
+      if (typeof sentimentData[prop] !== 'number') {
+        throw new Error(
+          `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
+        )
+      }
+      if (typeof sentimentData.sentiment !== 'string') {
+        throw new Error(
+          `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
+        )
+      }
+    }
+  }
+
   static async update(id, data, options: IRepositoryOptions) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -88,6 +111,10 @@ class ActivityRepository {
     }
     if (data.title) {
       data.title = sanitizeHtml(data.title).trim()
+    }
+
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
     }
 
     record = await record.update(
@@ -351,23 +378,31 @@ class ActivityRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'url', filter.url))
       }
 
-      if (filter.sentimentRange) {
-        const [start, end] = filter.sentimentRange
+      if (filter.sentiment) {
+        whereAnd.push({
+          'sentiment.sentiment': filter.sentiment,
+        })
+      }
 
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            sentiment: {
-              [Op.gte]: start,
-            },
-          })
-        }
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (filter[`${mood}SentimentRange`]) {
+          const [start, end] = filter[`${mood}SentimentRange`]
 
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            sentiment: {
-              [Op.lte]: end,
-            },
-          })
+          if (start !== undefined && start !== null && start !== '') {
+            whereAnd.push({
+              [`sentiment.${mood}`]: {
+                [Op.gte]: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            whereAnd.push({
+              [`sentiment.${mood}`]: {
+                [Op.lte]: end,
+              },
+            })
+          }
         }
       }
 
@@ -419,7 +454,6 @@ class ActivityRepository {
     }
 
     const where = { [Op.and]: whereAnd }
-
     let {
       rows,
       count, // eslint-disable-line prefer-const
