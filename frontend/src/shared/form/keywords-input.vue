@@ -3,7 +3,7 @@
     <div
       class="el-select el-keywords-input-wrapper"
       @click="focusKeywordInput"
-      :class="focused ? 'el-input is-focus' : ''"
+      :class="focused ? 'is-focus' : ''"
     >
       <el-tag
         v-for="(keyword, idx) in innerKeywords"
@@ -31,9 +31,7 @@
     </div>
     <span
       class="text-xs text-gray-400"
-      :class="
-        newKeyword !== '' ? 'opacity-100' : 'opacity-0'
-      "
+      :class="focused ? 'opacity-100' : 'opacity-0'"
       >Press ENTER or comma (,) to separate keywords</span
     >
   </div>
@@ -78,8 +76,8 @@ export default {
         return
       } else {
         this.$el.querySelector('.el-keywords-input').focus()
+        this.focused = true
       }
-      this.focused = false
     },
     inputKeyword(ev) {
       this.newKeyword = ev.target.value
@@ -112,6 +110,7 @@ export default {
         this.keywordChange()
         this.newKeyword = ''
       }
+      this.focused = false
     },
     addKeyword(keyword) {
       keyword = keyword.trim()
@@ -156,6 +155,9 @@ export default {
 
   &.el-select > .el-tag {
     margin: 4px 0 4px 4px;
+  }
+  &.is-focus {
+    border: 1px solid #0068bd;
   }
 }
 
