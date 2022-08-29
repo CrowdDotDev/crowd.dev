@@ -33,7 +33,10 @@
               }"
               class="flex items-center text-black"
             >
-              <span class="font-semibold truncate" v-html="scope.row.title"/>
+              <span
+                class="font-semibold truncate"
+                v-html="scope.row.title"
+              />
             </router-link>
           </template>
         </el-table-column>

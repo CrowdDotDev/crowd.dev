@@ -145,7 +145,7 @@ describe('Dev.to iterator tests', () => {
       expect(activity.isKeyAction).toEqual(DevtoGrid.comment.isKeyAction)
 
       const activityCrowdInfo = activity.crowdInfo as any
-      expect(activityCrowdInfo.bodyHtml).toEqual('Hello world!')
+      expect(activityCrowdInfo.body).toEqual('Hello world!')
       expect(activityCrowdInfo.userUrl).toEqual('https://dev.to/johndoe')
       expect(activityCrowdInfo.commentUrl).toEqual('https://dev.to/johndoe/comment/123')
       expect(activityCrowdInfo.articleUrl).toEqual(article.url)
