@@ -103,6 +103,13 @@ export default {
     }
   },
 
+  data() {
+    return {
+      creating: false,
+      hasMembersToMerge: false
+    }
+  },
+
   computed: {
     ...mapGetters({
       currentUser: 'auth/currentUser',

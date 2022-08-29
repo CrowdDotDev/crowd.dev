@@ -114,10 +114,6 @@ export default {
     'app-community-member-list-table': CommunityMemberListTable
   },
 
-  async mounted() {
-    window.analytics.page('Lookalike')
-  },
-
   computed: {
     ...mapGetters({
       filter: 'communityMember/list/filter',
@@ -136,6 +132,20 @@ export default {
     }
   },
 
+  async created() {
+    await this.doResetFilter()
+    if (this.widgetsCount === 0) {
+      this.doFetchWidgets()
+    }
+    if (this.integrationsCount === 0) {
+      this.doFetchIntegrations()
+    }
+  },
+
+  async mounted() {
+    window.analytics.page('Lookalike')
+  },
+
   methods: {
     ...mapActions({
       doFetch: 'communityMember/list/doFetch',
@@ -145,16 +155,6 @@ export default {
       doFetchWidgets: 'widget/doFetch',
       doFetchIntegrations: 'integration/doFetch'
     })
-  },
-
-  async created() {
-    await this.doResetFilter()
-    if (this.widgetsCount === 0) {
-      this.doFetchWidgets()
-    }
-    if (this.integrationsCount === 0) {
-      this.doFetchIntegrations()
-    }
   }
 }
 </script>
