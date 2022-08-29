@@ -60,6 +60,42 @@ export default {
     'app-widget': Widget,
     'app-benchmark-settings': BenchmarkSettings
   },
+  data() {
+    return {
+      modal: false,
+      loading: true,
+      timeframeOptions: [
+        {
+          label: 'Last week',
+          value: 'last_week',
+          date: moment()
+            .subtract(7, 'days')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last two weeks',
+          value: 'last_two_weeks',
+          date: moment()
+            .subtract(14, 'days')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last month',
+          value: 'last_month',
+          date: moment()
+            .subtract(1, 'months')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last three months',
+          value: 'last_three_months',
+          date: moment()
+            .subtract(3, 'months')
+            .format('YYYY-MM-DD')
+        }
+      ]
+    }
+  },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
@@ -102,42 +138,10 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      modal: false,
-      loading: true,
-      timeframeOptions: [
-        {
-          label: 'Last week',
-          value: 'last_week',
-          date: moment()
-            .subtract(7, 'days')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last two weeks',
-          value: 'last_two_weeks',
-          date: moment()
-            .subtract(14, 'days')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last month',
-          value: 'last_month',
-          date: moment()
-            .subtract(1, 'months')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last three months',
-          value: 'last_three_months',
-          date: moment()
-            .subtract(3, 'months')
-            .format('YYYY-MM-DD')
-        }
-      ]
-    }
+  async created() {
+    await this.refreshData(this.widget.settings)
   },
+
   methods: {
     ...mapActions({
       updateWidgetSettings: 'widget/updateSettings'
@@ -199,9 +203,6 @@ export default {
       }
       this.loading = false
     }
-  },
-  async created() {
-    await this.refreshData(this.widget.settings)
   }
 }
 </script>

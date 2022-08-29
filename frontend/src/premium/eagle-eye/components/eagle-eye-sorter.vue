@@ -46,6 +46,9 @@ export default {
       }
     }
   },
+  created() {
+    this.value = this.sorter.prop
+  },
   methods: {
     ...mapActions({
       doChangeSort: 'eagleEye/doChangeSort'
@@ -57,9 +60,6 @@ export default {
         order: 'descending'
       })
     }
-  },
-  created() {
-    this.value = this.sorter.prop
   }
 }
 </script>

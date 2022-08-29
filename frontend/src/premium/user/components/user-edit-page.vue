@@ -36,8 +36,7 @@
         >
           <el-select
             v-model="model[fields.roles.name]"
-            multiple
-            placeholder
+            placeholder="Select a role"
           >
             <el-option
               v-for="option in fields.roles.options"
@@ -96,7 +95,13 @@ const formSchema = new FormSchema([
 export default {
   name: 'AppUserEditPage',
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['cancel'],
 
   data() {
     return {

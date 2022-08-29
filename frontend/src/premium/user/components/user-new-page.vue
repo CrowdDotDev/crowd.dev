@@ -20,17 +20,18 @@ export default {
   components: {
     'app-user-new-form': UserNewForm
   },
-
-  computed: {
-    ...mapGetters({
-      saveLoading: 'user/form/saveLoading'
-    })
-  },
+  emits: ['cancel'],
 
   data() {
     return {
       invitationToken: null
     }
+  },
+
+  computed: {
+    ...mapGetters({
+      saveLoading: 'user/form/saveLoading'
+    })
   },
 
   async created() {

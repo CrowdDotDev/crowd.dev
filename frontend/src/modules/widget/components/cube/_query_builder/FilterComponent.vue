@@ -107,13 +107,28 @@
 import { v4 as uuid } from 'uuid'
 export default {
   name: 'FilterComponent',
-  props: [
-    'measures',
-    'dimensions',
-    'filters',
-    'availableDimensions',
-    'setFilters'
-  ],
+  props: {
+    measures: {
+      type: Array,
+      default: () => []
+    },
+    dimensions: {
+      type: Array,
+      default: () => []
+    },
+    filters: {
+      type: Array,
+      default: () => []
+    },
+    availableDimensions: {
+      type: Array,
+      default: () => []
+    },
+    setFilters: {
+      type: Function,
+      default: () => {}
+    }
+  },
   data() {
     return {
       measureDimensionFilters: {

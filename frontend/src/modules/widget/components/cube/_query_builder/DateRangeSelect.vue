@@ -28,8 +28,12 @@
 export default {
   name: 'DateRangeSelect',
   props: {
-    timeDimensions: Array
+    timeDimensions: {
+      type: Array,
+      default: () => []
+    }
   },
+  emits: ['change'],
   data() {
     return {
       dateRangeItems: [

@@ -110,7 +110,12 @@ export default {
     'app-user-view-toolbar': UserViewToolbar
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

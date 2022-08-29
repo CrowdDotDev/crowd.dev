@@ -158,7 +158,21 @@ export default {
     'app-user-invite-autocomplete': UserInviteAutocomplete
   },
 
-  props: ['saveLoading', 'single', 'invitationToken'],
+  props: {
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    single: {
+      type: Boolean,
+      default: true
+    },
+    invitationToken: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['submit', 'cancel'],
 
   data() {
     return {

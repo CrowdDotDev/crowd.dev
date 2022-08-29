@@ -66,6 +66,7 @@ export default {
       default: () => {}
     }
   },
+  emits: ['user-destroyed'],
   data() {
     return {
       editing: false

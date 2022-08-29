@@ -79,7 +79,8 @@ export default {
       required: true
     },
     resultSet: {
-      type: ResultSet
+      type: ResultSet,
+      required: true
     },
     showSubtitle: {
       type: Boolean,
@@ -98,6 +99,7 @@ export default {
       default: () => {}
     }
   },
+  emits: ['duplicate', 'edit', 'delete'],
 
   computed: {
     loading() {

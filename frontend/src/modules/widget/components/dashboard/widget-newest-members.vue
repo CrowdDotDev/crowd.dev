@@ -183,6 +183,12 @@ export default {
   components: {
     'app-widget': Widget
   },
+  data() {
+    return {
+      rows: [],
+      loading: false
+    }
+  },
   computed: {
     ...mapGetters({
       widgetFindByType: 'widget/findByType'
@@ -213,12 +219,6 @@ export default {
         }
         return acc
       }, {})
-    }
-  },
-  data() {
-    return {
-      rows: [],
-      loading: false
     }
   },
   async created() {

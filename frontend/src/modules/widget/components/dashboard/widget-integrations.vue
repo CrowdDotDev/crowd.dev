@@ -104,6 +104,11 @@ export default {
   components: {
     'app-widget': Widget
   },
+  data() {
+    return {
+      loading: false
+    }
+  },
   computed: {
     ...mapGetters({
       widgetFindByType: 'widget/findByType',
@@ -144,11 +149,6 @@ export default {
         }
         return acc
       }, {})
-    }
-  },
-  data() {
-    return {
-      loading: false
     }
   },
   async created() {

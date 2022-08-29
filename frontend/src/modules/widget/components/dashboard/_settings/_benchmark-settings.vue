@@ -173,19 +173,7 @@ export default {
       default: () => []
     }
   },
-  computed: {
-    ...mapGetters({
-      integrations: 'integration/listByPlatform'
-    }),
-    githubIntegration() {
-      return this.integrations.github
-    },
-    githubToken() {
-      return this.githubIntegration
-        ? this.githubIntegration.token
-        : null
-    }
-  },
+  emits: ['submit', 'close'],
   data() {
     return {
       oktokit: null,
@@ -203,6 +191,22 @@ export default {
             this.timeframeOptions.length - 1
           ]
     }
+  },
+  computed: {
+    ...mapGetters({
+      integrations: 'integration/listByPlatform'
+    }),
+    githubIntegration() {
+      return this.integrations.github
+    },
+    githubToken() {
+      return this.githubIntegration
+        ? this.githubIntegration.token
+        : null
+    }
+  },
+  created() {
+    this.octokit = new Octokit({ auth: this.githubToken })
   },
   methods: {
     ...mapActions({
@@ -274,9 +278,6 @@ export default {
         timeframe: this.timeframe
       })
     }
-  },
-  created() {
-    this.octokit = new Octokit({ auth: this.githubToken })
   }
 }
 </script>

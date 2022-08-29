@@ -25,7 +25,12 @@ export default {
   components: {
     'app-widget-cube-renderer': WidgetCubeRenderer
   },
-  props: ['date'],
+  props: {
+    date: {
+      type: Array,
+      default: () => []
+    }
+  },
   computed: {
     widget() {
       return {

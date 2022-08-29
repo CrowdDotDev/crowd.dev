@@ -25,6 +25,11 @@ export default {
   components: {
     'app-widget': Widget
   },
+  data() {
+    return {
+      loading: false
+    }
+  },
   computed: {
     ...mapGetters({
       widgetFindByType: 'widget/findByType'
@@ -39,11 +44,6 @@ export default {
         title: 'Builder',
         loading: this.loading
       }
-    }
-  },
-  data() {
-    return {
-      loading: false
     }
   }
 }

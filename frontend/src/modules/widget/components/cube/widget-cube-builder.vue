@@ -254,6 +254,7 @@ export default {
       default: () => {}
     }
   },
+  emits: ['close', 'submit'],
 
   data() {
     const query = this.value.settings
@@ -293,6 +294,12 @@ export default {
     ...mapGetters({
       cubejsApi: 'widget/cubejsApi'
     })
+  },
+
+  async created() {
+    if (this.cubejsApi === null) {
+      await this.getCubeToken()
+    }
   },
 
   methods: {
@@ -342,11 +349,6 @@ export default {
           label: i18n(`widget.cubejs.${i.name}`)
         }
       })
-    }
-  },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
     }
   }
 }

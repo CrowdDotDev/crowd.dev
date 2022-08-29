@@ -39,6 +39,12 @@ export default {
     'app-activity-header': ActivityHeader,
     'app-activity-dropdown': ActivityDropdown
   },
+  data() {
+    return {
+      rows: [],
+      loading: false
+    }
+  },
   computed: {
     ...mapGetters({
       widgetFindByType: 'widget/findByType'
@@ -56,12 +62,6 @@ export default {
         link: { name: 'activity' },
         linkLabel: 'View all'
       }
-    }
-  },
-  data() {
-    return {
-      rows: [],
-      loading: false
     }
   },
   async created() {

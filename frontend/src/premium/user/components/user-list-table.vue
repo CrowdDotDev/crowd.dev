@@ -111,7 +111,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import UserListToolbar from '@/premium/user/components/user-list-toolbar.vue'
 import Roles from '@/security/roles'
-import { i18n } from '../../../i18n'
+import { i18n } from '@/i18n'
 import AppUserDropdown from './user-dropdown'
 
 const { fields } = UserModel
@@ -122,10 +122,6 @@ export default {
   components: {
     AppUserDropdown,
     'app-user-list-toolbar': UserListToolbar
-  },
-
-  mounted() {
-    this.doMountTable(this.$refs.table)
   },
 
   computed: {
@@ -158,6 +154,10 @@ export default {
     fields() {
       return fields
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

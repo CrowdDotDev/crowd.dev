@@ -49,9 +49,16 @@ export default {
       default: false
     },
     data: {
+      type: Array,
+      default: () => [],
       required: true
     }
   },
+  emits: [
+    'trigger-duplicate-widget',
+    'trigger-delete-widget',
+    'trigger-edit-widget'
+  ],
   computed: {
     items() {
       return this.data.map((key) => {

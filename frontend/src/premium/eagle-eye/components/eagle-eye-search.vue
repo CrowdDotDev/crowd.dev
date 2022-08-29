@@ -25,16 +25,16 @@ export default {
   components: {
     AppEagleEyeFilter
   },
+  data() {
+    return {
+      selectedKeywords: []
+    }
+  },
   computed: {
     ...mapGetters({
       filter: 'eagleEye/filter',
       activeTab: 'eagleEye/activeTab'
     })
-  },
-  data() {
-    return {
-      selectedKeywords: []
-    }
   },
   watch: {
     activeTab: {
@@ -43,6 +43,19 @@ export default {
           this.selectedKeywords = []
         }
       }
+    }
+  },
+  async created() {
+    const savedKeywords = localStorage.getItem(
+      'eagleEye_keywords'
+    )
+    this.selectedKeywords =
+      savedKeywords && savedKeywords !== ''
+        ? savedKeywords.split(',')
+        : []
+
+    if (savedKeywords) {
+      await this.doSearch()
     }
   },
   methods: {
@@ -59,19 +72,6 @@ export default {
         rawFilter: filtersToApply,
         filter: filtersToApply
       })
-    }
-  },
-  async created() {
-    const savedKeywords = localStorage.getItem(
-      'eagleEye_keywords'
-    )
-    this.selectedKeywords =
-      savedKeywords && savedKeywords !== ''
-        ? savedKeywords.split(',')
-        : []
-
-    if (savedKeywords) {
-      await this.doSearch()
     }
   }
 }

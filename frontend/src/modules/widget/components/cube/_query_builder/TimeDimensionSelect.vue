@@ -28,11 +28,21 @@
 import { i18n } from '@/i18n'
 export default {
   name: 'TimeDimensionSelect',
-  props: [
-    'measures',
-    'timeDimensions',
-    'availableTimeDimensions'
-  ],
+  props: {
+    measure: {
+      type: Array,
+      default: () => []
+    },
+    timeDimensions: {
+      type: Array,
+      default: () => []
+    },
+    availableTimeDimensions: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['change'],
   data() {
     return {
       measureTimeDimensions: {

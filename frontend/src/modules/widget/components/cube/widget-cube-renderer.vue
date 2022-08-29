@@ -56,21 +56,22 @@ export default {
       default: () => {}
     }
   },
+  emits: ['edit', 'duplicate', 'delete'],
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
       cubejsApi: 'widget/cubejsApi'
     })
   },
-  methods: {
-    ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
-    })
-  },
   async created() {
     if (this.cubejsApi === null) {
       await this.getCubeToken()
     }
+  },
+  methods: {
+    ...mapActions({
+      getCubeToken: 'widget/getCubeToken'
+    })
   }
 }
 </script>

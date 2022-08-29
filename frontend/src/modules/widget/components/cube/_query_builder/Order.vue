@@ -56,6 +56,7 @@ export default {
       default: false
     }
   },
+  emits: ['reorder', 'orderChange'],
   data() {
     return {
       dialog: false

@@ -86,6 +86,28 @@ export default {
       default: false
     }
   },
+  emits: [
+    'trigger-duplicate-widget',
+    'trigger-edit-widget',
+    'trigger-delete-widget'
+  ],
+
+  data() {
+    return {
+      modal: false,
+      value: {
+        current: 0,
+        target: null,
+        suffix: this.config.suffix,
+        unit: this.config.unit
+      },
+      growth: {
+        current: 0,
+        target: null
+      },
+      speed: this.config.speed ? this.config.speed : 200
+    }
+  },
 
   computed: {
     ...mapGetters({
@@ -139,23 +161,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      modal: false,
-      value: {
-        current: 0,
-        target: null,
-        suffix: this.config.suffix,
-        unit: this.config.unit
-      },
-      growth: {
-        current: 0,
-        target: null
-      },
-      speed: this.config.speed ? this.config.speed : 200
-    }
-  },
-
   watch: {
     config: {
       deep: true,
@@ -163,6 +168,10 @@ export default {
         this.setValues()
       }
     }
+  },
+
+  async created() {
+    this.setValues()
   },
 
   methods: {
@@ -218,10 +227,6 @@ export default {
         this.updateValue()
       }
     }
-  },
-
-  async created() {
-    this.setValues()
   }
 }
 </script>
