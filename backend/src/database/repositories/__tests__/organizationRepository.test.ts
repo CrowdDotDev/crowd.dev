@@ -377,10 +377,8 @@ describe('OrganizationRepository tests', () => {
     it('Should succesfully update previously created organization', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const organization1 = { name: 'test-organization' }
-
       const organizationCreated = await OrganizationRepository.create(
-        organization1,
+        toCreate,
         mockIRepositoryOptions,
       )
 
@@ -396,6 +394,8 @@ describe('OrganizationRepository tests', () => {
 
       const organizationExpected = {
         id: organizationCreated.id,
+        ...toCreate,
+        communityMemberCount: 0,
         name: organizationUpdated.name,
         importHash: null,
         createdAt: organizationCreated.createdAt,
@@ -404,7 +404,6 @@ describe('OrganizationRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        communityMembers: [],
       }
 
       expect(organizationUpdated).toStrictEqual(organizationExpected)

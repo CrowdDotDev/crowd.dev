@@ -5,7 +5,6 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import snakeCaseNames from '../../utils/snakeCaseNames'
 
 const { Op } = Sequelize
 
@@ -248,6 +247,7 @@ class OrganizationRepository {
 
     const where = { [Op.and]: whereAnd }
     try {
+      // TODO Remove
       let {
         rows,
         count, // eslint-disable-line prefer-const
