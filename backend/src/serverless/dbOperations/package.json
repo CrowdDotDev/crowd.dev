@@ -15,6 +15,7 @@
     "sls-webpack": "cp ./../../../.env . && npx serverless webpack --stage local"
   },
   "dependencies": {
+    "@aws-sdk/client-comprehend": "^3.159.0",
     "@octokit/auth-app": "^3.6.1",
     "aws-sdk": "2.814.0",
     "bcrypt": "5.0.1",

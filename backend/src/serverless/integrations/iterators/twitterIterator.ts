@@ -283,9 +283,7 @@ export default class TwitterIterator extends BaseIterator {
       ),
       // When onboarding we need a super old date. Otherwise we can place it in a 2h window
       timestamp: timestampObj.toDate(),
-      crowdInfo: {
-        url: `https://twitter.com/${record.username}`,
-      },
+      url: `https://twitter.com/${record.username}`,
       communityMember: {
         username: record.username,
         reach: { twitter: record.followersCount },
@@ -320,10 +318,9 @@ export default class TwitterIterator extends BaseIterator {
         type: endpoint === 'mentions' ? 'mention' : 'hashtag',
         sourceId: record.id,
         timestamp: moment(Date.parse(record.createdAt)).utc().toDate(),
-        crowdInfo: {
-          sourceId: record.id,
-          body: record.text ? record.text : '',
-          url: record.url ? record.url : '',
+        body: record.text ? record.text : '',
+        url: record.url ? record.url : '',
+        attributes: {
           attachments: record.attachments ? record.attachments : [],
         },
         communityMember: {
@@ -342,14 +339,14 @@ export default class TwitterIterator extends BaseIterator {
       }
 
       if (endpoint.includes('hashtag')) {
-        out.crowdInfo.hashtag = TwitterIterator.getHashtag(endpoint)
+        out.attributes.hashtag = TwitterIterator.getHashtag(endpoint)
       }
       return out
     })
   }
 
   /**
-   * Get a hashtag for crowdInfo.hashtag
+   * Get a hashtag for attributes.hashtag
    * @param endpoint The current endpoint
    * @returns The name of the hashtag
    */
@@ -361,7 +358,7 @@ export default class TwitterIterator extends BaseIterator {
 
   /**
    * Map a field of activities given a path
-   * - ([{crowdInfo: 1}, {crowdInfo: 2}], crowdInfo) => [1, 2]
+   * - ([{attributes: 1}, {attributes: 2}], attributes) => [1, 2]
    * @param activities Array of activities to be mapped
    * @param path Path to the field of the activity we want
    * @returns A list of the values of the field of the activities

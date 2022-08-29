@@ -185,11 +185,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.opened.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.opened.issue.html_url,
-          title: TestEvents.issues.opened.issue.title,
-          body: TestEvents.issues.opened.issue.body,
-          repo: TestEvents.issues.opened.repository.html_url,
+        url: TestEvents.issues.opened.issue.html_url,
+        title: TestEvents.issues.opened.issue.title,
+        body: TestEvents.issues.opened.issue.body,
+        channel: TestEvents.issues.opened.repository.html_url,
+        attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -229,11 +229,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.edited.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.edited.issue.html_url,
-          title: TestEvents.issues.edited.issue.title,
-          body: TestEvents.issues.edited.issue.body,
-          repo: TestEvents.issues.edited.repository.html_url,
+        url: TestEvents.issues.edited.issue.html_url,
+        title: TestEvents.issues.edited.issue.title,
+        body: TestEvents.issues.edited.issue.body,
+        channel: TestEvents.issues.edited.repository.html_url,
+        attributes: {
           state: TestEvents.issues.edited.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -269,11 +269,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.reopened.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.reopened.issue.html_url,
-          title: TestEvents.issues.reopened.issue.title,
-          body: TestEvents.issues.reopened.issue.body,
-          repo: TestEvents.issues.reopened.repository.html_url,
+        url: TestEvents.issues.reopened.issue.html_url,
+        title: TestEvents.issues.reopened.issue.title,
+        body: TestEvents.issues.reopened.issue.body,
+        channel: TestEvents.issues.reopened.repository.html_url,
+        attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -307,11 +307,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.issues.closed.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.closed.issue.html_url,
-          title: TestEvents.issues.closed.issue.title,
-          repo: TestEvents.issues.closed.repository.html_url,
-          body: TestEvents.issues.closed.issue.body,
+        url: TestEvents.issues.closed.issue.html_url,
+        title: TestEvents.issues.closed.issue.title,
+        channel: TestEvents.issues.closed.repository.html_url,
+        body: TestEvents.issues.closed.issue.body,
+        attributes: {
           state: TestEvents.issues.closed.issue.state,
         },
         score: GitHubGrid.issueClosed.score,
@@ -375,11 +375,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.created.discussion.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.discussion.created.discussion.html_url,
-          title: TestEvents.discussion.created.discussion.title,
-          body: TestEvents.discussion.created.discussion.body,
-          repo: TestEvents.discussion.created.repository.html_url,
+        url: TestEvents.discussion.created.discussion.html_url,
+        title: TestEvents.discussion.created.discussion.title,
+        body: TestEvents.discussion.created.discussion.body,
+        channel: TestEvents.discussion.created.repository.html_url,
+        attributes: {
           category: {
             id: TestEvents.discussion.created.discussion.category.node_id,
             isAnswerable: TestEvents.discussion.created.discussion.category.is_answerable,
@@ -420,11 +420,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.edited.discussion.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.discussion.edited.discussion.html_url,
-          title: TestEvents.discussion.edited.discussion.title,
-          body: TestEvents.discussion.edited.discussion.body,
-          repo: TestEvents.discussion.edited.repository.html_url,
+        url: TestEvents.discussion.edited.discussion.html_url,
+        title: TestEvents.discussion.edited.discussion.title,
+        body: TestEvents.discussion.edited.discussion.body,
+        channel: TestEvents.discussion.edited.repository.html_url,
+        attributes: {
           category: {
             id: TestEvents.discussion.edited.discussion.category.node_id,
             isAnswerable: TestEvents.discussion.edited.discussion.category.is_answerable,
@@ -468,10 +468,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.answered.answer.node_id,
         sourceParentId: TestEvents.discussion.answered.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussion.answered.answer.html_url,
-          body: TestEvents.discussion.answered.answer.body,
-          repo: TestEvents.discussion.answered.repository.html_url,
+        url: TestEvents.discussion.answered.answer.html_url,
+        body: TestEvents.discussion.answered.answer.body,
+        channel: TestEvents.discussion.answered.repository.html_url,
+        attributes: {
           isSelectedAnswer: true,
         },
         score: GitHubGrid.discussionOpened.score,
@@ -511,12 +511,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.opened.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.opened.pull_request.html_url,
-          repo: TestEvents.pullRequests.opened.repository.html_url,
-          title: TestEvents.pullRequests.opened.pull_request.title,
-          body: TestEvents.pullRequests.opened.pull_request.body,
-        },
+        url: TestEvents.pullRequests.opened.pull_request.html_url,
+        channel: TestEvents.pullRequests.opened.repository.html_url,
+        title: TestEvents.pullRequests.opened.pull_request.title,
+        body: TestEvents.pullRequests.opened.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -558,12 +556,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.edited.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.edited.pull_request.html_url,
-          repo: TestEvents.pullRequests.edited.repository.html_url,
-          title: TestEvents.pullRequests.edited.pull_request.title,
-          body: TestEvents.pullRequests.edited.pull_request.body,
-        },
+        url: TestEvents.pullRequests.edited.pull_request.html_url,
+        channel: TestEvents.pullRequests.edited.repository.html_url,
+        title: TestEvents.pullRequests.edited.pull_request.title,
+        body: TestEvents.pullRequests.edited.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -601,12 +597,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.reopened.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.reopened.pull_request.html_url,
-          title: TestEvents.pullRequests.reopened.pull_request.title,
-          body: TestEvents.pullRequests.reopened.pull_request.body,
-          repo: TestEvents.pullRequests.reopened.repository.html_url,
-        },
+        url: TestEvents.pullRequests.reopened.pull_request.html_url,
+        title: TestEvents.pullRequests.reopened.pull_request.title,
+        body: TestEvents.pullRequests.reopened.pull_request.body,
+        channel: TestEvents.pullRequests.reopened.repository.html_url,
+
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -642,12 +637,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.closed.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.closed.pull_request.html_url,
-          title: TestEvents.pullRequests.closed.pull_request.title,
-          body: TestEvents.pullRequests.closed.pull_request.body,
-          repo: TestEvents.pullRequests.closed.repository.html_url,
-        },
+        url: TestEvents.pullRequests.closed.pull_request.html_url,
+        title: TestEvents.pullRequests.closed.pull_request.title,
+        body: TestEvents.pullRequests.closed.pull_request.body,
+        channel: TestEvents.pullRequests.closed.repository.html_url,
         score: GitHubGrid.pullRequestClosed.score,
         isKeyAction: GitHubGrid.pullRequestClosed.isKeyAction,
       }
@@ -712,9 +705,7 @@ describe('Github webhooks tests', () => {
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.star.created.repository.html_url,
-        },
+        channel: TestEvents.star.created.repository.html_url,
         score: 2,
         isKeyAction: false,
       }
@@ -758,9 +749,7 @@ describe('Github webhooks tests', () => {
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.star.deleted.repository.html_url,
-        },
+        channel: TestEvents.star.deleted.repository.html_url,
         score: -2,
         isKeyAction: false,
       }
@@ -800,9 +789,7 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.fork.created.forkee.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.fork.created.repository.html_url,
-        },
+        channel: TestEvents.fork.created.repository.html_url,
         score: 4,
         isKeyAction: true,
       }
@@ -842,11 +829,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.issue.created.comment.node_id,
         sourceParentId: TestEvents.comment.issue.created.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.issue.created.comment.html_url,
-          body: TestEvents.comment.issue.created.comment.body,
-          repo: TestEvents.comment.issue.created.repository.html_url,
-        },
+        url: TestEvents.comment.issue.created.comment.html_url,
+        body: TestEvents.comment.issue.created.comment.body,
+        channel: TestEvents.comment.issue.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -892,11 +877,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.issue.edited.comment.node_id,
         sourceParentId: TestEvents.comment.issue.edited.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.issue.edited.comment.html_url,
-          body: TestEvents.comment.issue.edited.comment.body,
-          repo: TestEvents.comment.issue.edited.repository.html_url,
-        },
+        url: TestEvents.comment.issue.edited.comment.html_url,
+        body: TestEvents.comment.issue.edited.comment.body,
+        channel: TestEvents.comment.issue.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -942,11 +925,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.pullRequest.created.comment.node_id,
         sourceParentId: TestEvents.comment.pullRequest.created.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.pullRequest.created.comment.html_url,
-          body: TestEvents.comment.pullRequest.created.comment.body,
-          repo: TestEvents.comment.pullRequest.created.repository.html_url,
-        },
+        url: TestEvents.comment.pullRequest.created.comment.html_url,
+        body: TestEvents.comment.pullRequest.created.comment.body,
+        channel: TestEvents.comment.pullRequest.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -995,11 +976,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.pullRequest.edited.comment.node_id,
         sourceParentId: TestEvents.comment.pullRequest.edited.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.pullRequest.edited.comment.html_url,
-          body: TestEvents.comment.pullRequest.edited.comment.body,
-          repo: TestEvents.comment.pullRequest.edited.repository.html_url,
-        },
+        url: TestEvents.comment.pullRequest.edited.comment.html_url,
+        body: TestEvents.comment.pullRequest.edited.comment.body,
+        channel: TestEvents.comment.pullRequest.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -1059,11 +1038,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.discussionComment.created.comment.node_id,
         sourceParentId: TestEvents.discussionComment.created.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussionComment.created.comment.html_url,
-          body: TestEvents.discussionComment.created.comment.body,
-          repo: TestEvents.discussionComment.created.repository.html_url,
-        },
+        url: TestEvents.discussionComment.created.comment.html_url,
+        body: TestEvents.discussionComment.created.comment.body,
+        channel: TestEvents.discussionComment.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -1113,11 +1090,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.discussionComment.edited.comment.node_id,
         sourceParentId: TestEvents.discussionComment.edited.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussionComment.edited.comment.html_url,
-          body: TestEvents.discussionComment.edited.comment.body,
-          repo: TestEvents.discussionComment.edited.repository.html_url,
-        },
+        url: TestEvents.discussionComment.edited.comment.html_url,
+        body: TestEvents.discussionComment.edited.comment.body,
+        channel: TestEvents.discussionComment.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }

@@ -1,6 +1,7 @@
 import { Transaction } from 'sequelize/types'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { detectSentiment } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -9,6 +10,7 @@ import CommunityMemberService from './communityMemberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
+import { getConfig } from '../config'
 
 export default class ActivityService {
   options: IServiceOptions
@@ -72,6 +74,11 @@ export default class ActivityService {
           transaction,
         })
       } else {
+        if (!data.sentiment) {
+          const sentiment = await ActivityService.getSentiment(data)
+          data.sentiment = sentiment
+        }
+
         record = await ActivityRepository.create(data, {
           ...this.options,
           transaction,
@@ -128,6 +135,28 @@ export default class ActivityService {
   }
 
   /**
+   * Get the sentiment of an activity from its body and title.
+   * @param data Activity data. Includes body and title.
+   * @returns The sentiment of the combination of body and title. Between -1 and 1.
+   */
+  static async getSentiment(data) {
+    if (getConfig().NODE_ENV === 'test') {
+      return {
+        positive: 0.42,
+        negative: 0.42,
+        neutral: 0.42,
+        mixed: 0.42,
+        sentiment: 'positive',
+        score: 0.42,
+      }
+    }
+
+    // Concatenate title and body
+    const text = `${data.title} ${data.body}`.trim()
+    return detectSentiment(text)
+  }
+
+  /**
    * Adds an activity to a conversation.
    * If parent already has a conversation, adds child to parent's conversation
    * If parent doesn't have a conversation, and child has one,
@@ -163,7 +192,9 @@ export default class ActivityService {
 
       // if conversation is not already published, update conversation info with new parent
       if (!conversation.published) {
-        const newConversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+        const newConversationTitle = await conversationService.generateTitle(
+          parent.title || parent.body,
+        )
 
         conversation = await conversationService.update(conversation.id, {
           title: newConversationTitle,
@@ -180,7 +211,7 @@ export default class ActivityService {
       )
     } else {
       // neither child nor parent is in a conversation, create one from parent
-      const conversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+      const conversationTitle = await conversationService.generateTitle(parent.title || parent.body)
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
         this.options,
       )
