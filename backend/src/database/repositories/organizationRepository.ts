@@ -246,26 +246,22 @@ class OrganizationRepository {
     }
 
     const where = { [Op.and]: whereAnd }
-    try {
-      // TODO Remove
-      let {
-        rows,
-        count, // eslint-disable-line prefer-const
-      } = await options.database.organization.findAndCountAll({
-        where,
-        include,
-        limit: limit ? Number(limit) : undefined,
-        offset: offset ? Number(offset) : undefined,
-        order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
-        transaction: SequelizeRepository.getTransaction(options),
-      })
 
-      rows = await this._populateRelationsForRows(rows)
+    let {
+      rows,
+      count, // eslint-disable-line prefer-const
+    } = await options.database.organization.findAndCountAll({
+      where,
+      include,
+      limit: limit ? Number(limit) : undefined,
+      offset: offset ? Number(offset) : undefined,
+      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
+      transaction: SequelizeRepository.getTransaction(options),
+    })
 
-      return { rows, count }
-    } catch (error) {
-      console.log(error)
-    }
+    rows = await this._populateRelationsForRows(rows)
+
+    return { rows, count }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
