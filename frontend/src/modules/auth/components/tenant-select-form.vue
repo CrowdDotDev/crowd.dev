@@ -53,6 +53,7 @@ const { fields } = TenantModel
 
 export default {
   name: 'AppTenantSelectForm',
+  emits: ['viewToggle'],
 
   data() {
     return {
@@ -61,10 +62,6 @@ export default {
       },
       model: {}
     }
-  },
-
-  created() {
-    this.model.id = this.invitedTenants[0].id
   },
 
   computed: {
@@ -77,6 +74,10 @@ export default {
     fields() {
       return fields
     }
+  },
+
+  created() {
+    this.model.id = this.invitedTenants[0].id
   },
 
   methods: {

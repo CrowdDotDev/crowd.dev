@@ -46,10 +46,19 @@ import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 
 export default {
   name: 'AppActivityDropdown',
+  components: {
+    'app-activity-form-page': ActivityFormPage
+  },
   props: {
     activity: {
       type: Object,
       default: () => {}
+    }
+  },
+  emits: ['activity-destroyed'],
+  data() {
+    return {
+      editing: false
     }
   },
   computed: {
@@ -64,14 +73,6 @@ export default {
           this.currentUser
         ).edit === false
       )
-    }
-  },
-  components: {
-    'app-activity-form-page': ActivityFormPage
-  },
-  data() {
-    return {
-      editing: false
     }
   },
   methods: {

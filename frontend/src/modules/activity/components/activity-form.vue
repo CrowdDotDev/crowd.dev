@@ -180,17 +180,27 @@ export default {
     AppPlatformAutocompleteInput
   },
 
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: ['cancel', 'submit'],
 
   data() {
     return {
       rules: formSchema.rules(),
       model: null
     }
-  },
-
-  created() {
-    this.model = formSchema.initialValues(this.record || {})
   },
 
   computed: {
@@ -202,6 +212,10 @@ export default {
     fields() {
       return fields
     }
+  },
+
+  created() {
+    this.model = formSchema.initialValues(this.record || {})
   },
 
   methods: {

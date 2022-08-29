@@ -75,6 +75,7 @@ const formSchema = new FormSchema(
 
 export default {
   name: 'AppTenantNewForm',
+  emits: ['viewToggle', 'created'],
 
   data() {
     return {

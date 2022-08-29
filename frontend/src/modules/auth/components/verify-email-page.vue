@@ -30,16 +30,6 @@ import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'AppVerifyEmailPage',
 
-  async mounted() {
-    await this.doVerifyEmail(this.$route.query.token)
-  },
-
-  methods: {
-    ...mapActions({
-      doVerifyEmail: 'auth/doVerifyEmail'
-    })
-  },
-
   computed: {
     ...mapGetters({
       backgroundImageUrl: 'auth/backgroundImageUrl',
@@ -58,6 +48,16 @@ export default {
         backgroundPosition: 'left 100px bottom 100px'
       }
     }
+  },
+
+  async mounted() {
+    await this.doVerifyEmail(this.$route.query.token)
+  },
+
+  methods: {
+    ...mapActions({
+      doVerifyEmail: 'auth/doVerifyEmail'
+    })
   }
 }
 </script>

@@ -16,11 +16,11 @@
 
         <app-tenant-new-form
           v-if="view === 'form'"
-          @viewToggle="doToggleView()"
+          @view-toggle="doToggleView()"
         />
         <app-tenant-select-form
           v-if="view === 'select'"
-          @viewToggle="doToggleView()"
+          @view-toggle="doToggleView()"
         />
 
         <div class="other-actions">
@@ -52,12 +52,6 @@ export default {
     }
   },
 
-  created() {
-    if (this.invitedTenants.length) {
-      this.view = 'select'
-    }
-  },
-
   computed: {
     ...mapGetters({
       invitedTenants: 'auth/invitedTenants',
@@ -76,6 +70,12 @@ export default {
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'left 100px bottom 100px'
       }
+    }
+  },
+
+  created() {
+    if (this.invitedTenants.length) {
+      this.view = 'select'
     }
   },
 

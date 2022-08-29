@@ -85,7 +85,12 @@ export default {
     'app-activity-view-toolbar': ActivityViewToolbar
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

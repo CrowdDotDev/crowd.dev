@@ -116,20 +116,6 @@ export default {
     }
   },
 
-  created() {
-    const { socialErrorCode } = this.$route.query
-
-    if (socialErrorCode) {
-      if (socialErrorCode === 'generic') {
-        Message.error(i18n('errors.defaultErrorMessage'))
-      } else {
-        Message.error(
-          i18n(`auth.social.errors.${socialErrorCode}`)
-        )
-      }
-    }
-  },
-
   computed: {
     ...mapGetters({
       loading: 'auth/loading',
@@ -152,6 +138,20 @@ export default {
         backgroundSize: 'auto',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'left 100px bottom 100px'
+      }
+    }
+  },
+
+  created() {
+    const { socialErrorCode } = this.$route.query
+
+    if (socialErrorCode) {
+      if (socialErrorCode === 'generic') {
+        Message.error(i18n('errors.defaultErrorMessage'))
+      } else {
+        Message.error(
+          i18n(`auth.social.errors.${socialErrorCode}`)
+        )
       }
     }
   },

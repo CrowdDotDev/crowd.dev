@@ -57,12 +57,6 @@ export default {
     return {}
   },
 
-  created() {
-    return this.doAcceptFromAuth({
-      token: this.$route.query.token
-    })
-  },
-
   computed: {
     ...mapGetters({
       warningMessage: 'tenant/invitation/warningMessage',
@@ -87,6 +81,12 @@ export default {
     token() {
       return this.$route.query.token
     }
+  },
+
+  created() {
+    return this.doAcceptFromAuth({
+      token: this.$route.query.token
+    })
   },
 
   methods: {

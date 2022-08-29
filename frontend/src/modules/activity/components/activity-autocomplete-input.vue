@@ -41,14 +41,33 @@ export default {
   components: {
     'app-activity-form-modal': ActivityFormModal
   },
-  props: [
-    'value',
-    'mode',
-    'fetchFn',
-    'mapperFn',
-    'showCreate',
-    'placeholder'
-  ],
+  props: {
+    value: {
+      type: Object,
+      default: () => {}
+    },
+    mode: {
+      type: String,
+      default: 'single'
+    },
+    fetchFn: {
+      type: Function,
+      default: () => {}
+    },
+    mapperFn: {
+      type: Function,
+      default: () => {}
+    },
+    showCreate: {
+      type: Boolean,
+      default: false
+    },
+    placeholder: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['input'],
 
   data() {
     return {

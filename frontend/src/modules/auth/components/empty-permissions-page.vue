@@ -36,12 +36,6 @@ import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'AppEmptyPermissionsPage',
 
-  methods: {
-    ...mapActions({
-      doSignout: 'auth/doSignout'
-    })
-  },
-
   computed: {
     ...mapGetters({
       backgroundImageUrl: 'auth/backgroundImageUrl',
@@ -60,6 +54,12 @@ export default {
         backgroundPosition: 'left 100px bottom 100px'
       }
     }
+  },
+
+  methods: {
+    ...mapActions({
+      doSignout: 'auth/doSignout'
+    })
   }
 }
 </script>

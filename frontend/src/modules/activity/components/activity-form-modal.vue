@@ -29,7 +29,13 @@ export default {
     'app-activity-form': ActivityForm
   },
 
-  props: ['visible'],
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['close', 'success'],
 
   data() {
     return {

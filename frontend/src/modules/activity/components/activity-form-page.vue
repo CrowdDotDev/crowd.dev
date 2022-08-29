@@ -28,7 +28,13 @@ export default {
     'app-activity-form': ActivityForm
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['cancel'],
 
   computed: {
     ...mapGetters({
