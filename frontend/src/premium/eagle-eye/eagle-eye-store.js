@@ -319,6 +319,8 @@ export default {
       commit('ACTIVE_TAB_CHANGED', activeTab)
       commit('RESETED')
       const filtersToApply = {
+        keywords: undefined,
+        nDays: 1,
         status:
           activeTab === 'inbox' ? undefined : activeTab
       }
