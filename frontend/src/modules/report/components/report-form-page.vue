@@ -40,7 +40,12 @@ export default {
     'app-report-form': ReportForm
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

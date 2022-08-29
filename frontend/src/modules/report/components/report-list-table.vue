@@ -90,9 +90,6 @@ export default {
     'app-report-dropdown': ReportDropdown,
     'app-report-list-toolbar': ReportListDropdown
   },
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
 
   computed: {
     ...mapGetters({
@@ -128,6 +125,10 @@ export default {
     reports() {
       return [...this.rows]
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

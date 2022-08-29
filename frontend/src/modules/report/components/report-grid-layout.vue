@@ -155,6 +155,19 @@ export default {
       default: false
     }
   },
+
+  data() {
+    return {
+      model: this.value,
+      widgetModal: {
+        visible: false,
+        action: null,
+        model: {}
+      },
+      layout: []
+    }
+  },
+
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
@@ -171,17 +184,15 @@ export default {
       }, {})
     }
   },
-  data() {
-    return {
-      model: this.value,
-      widgetModal: {
-        visible: false,
-        action: null,
-        model: {}
-      },
-      layout: []
+
+  async created() {
+    if (this.cubejsApi === null) {
+      await this.getCubeToken()
     }
+    this.resetWidgetModel()
+    this.updateLayout()
   },
+
   methods: {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
@@ -304,13 +315,6 @@ export default {
         this.widgets[widget.i].settings.layout = widget
       }
     }
-  },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
-    }
-    this.resetWidgetModel()
-    this.updateLayout()
   }
 }
 </script>

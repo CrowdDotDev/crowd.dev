@@ -176,7 +176,27 @@ export default {
     'app-conversation-settings': ConversationSettings
   },
 
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: [
+    'cancel',
+    'submit',
+    'publish',
+    'unpublish',
+    'edit'
+  ],
 
   data() {
     return {
@@ -185,12 +205,6 @@ export default {
       publishModal: false,
       loading: false
     }
-  },
-
-  created() {
-    this.model = this.record
-      ? JSON.parse(JSON.stringify(this.record))
-      : {}
   },
 
   computed: {
@@ -211,6 +225,12 @@ export default {
     computedPublicUrl() {
       return `${config.conversationPublicUrl}/${this.currentTenant.url}/${this.record.slug}`
     }
+  },
+
+  created() {
+    this.model = this.record
+      ? JSON.parse(JSON.stringify(this.record))
+      : {}
   },
 
   methods: {

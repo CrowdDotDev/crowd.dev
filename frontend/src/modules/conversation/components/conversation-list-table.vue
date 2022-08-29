@@ -191,9 +191,6 @@ export default {
     'app-conversation-dropdown': ConversationDropdown,
     'app-conversation-list-toolbar': ConversationListDropdown
   },
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
 
   computed: {
     ...mapGetters({
@@ -229,6 +226,10 @@ export default {
     conversations() {
       return [...this.rows]
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

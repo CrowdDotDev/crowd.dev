@@ -41,7 +41,18 @@ export default {
     'app-activity-list-feed-item': ActivityListFeedItem
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      editing: false
+    }
+  },
 
   computed: {
     ...mapGetters({
@@ -62,12 +73,6 @@ export default {
   async created() {
     await this.doFind(this.id)
     await this.doInitForm(this.id)
-  },
-
-  data() {
-    return {
-      editing: false
-    }
   },
 
   methods: {

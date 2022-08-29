@@ -160,14 +160,6 @@ const { fields } = TenantModel
 export default {
   name: 'AppTenantListTable',
 
-  created() {
-    return this.doFetch()
-  },
-
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
-
   computed: {
     ...mapGetters({
       rows: 'tenant/list/rows',
@@ -198,6 +190,14 @@ export default {
     isPlanEnabled() {
       return config.isPlanEnabled
     }
+  },
+
+  created() {
+    return this.doFetch()
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

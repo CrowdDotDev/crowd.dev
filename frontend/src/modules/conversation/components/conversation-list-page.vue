@@ -72,6 +72,10 @@ export default {
     }
   },
 
+  async mounted() {
+    window.analytics.page('Conversations')
+  },
+
   methods: {
     ...mapActions({
       doOpenSettingsModal:
@@ -79,10 +83,6 @@ export default {
       doCloseSettingsModal:
         'conversation/doCloseSettingsModal'
     })
-  },
-
-  async mounted() {
-    window.analytics.page('Conversations')
   }
 }
 </script>

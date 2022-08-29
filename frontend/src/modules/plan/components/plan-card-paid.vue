@@ -81,7 +81,12 @@ import { PlanPermissions } from '../plan-permissions'
 export default {
   name: 'AppPlanCardPaid',
 
-  props: ['plan'],
+  props: {
+    plan: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

@@ -44,15 +44,10 @@ export default {
     Banner
   },
 
-  async mounted() {
-    identify(this.currentUser)
-    // This is an example script - don't forget to change it!
-
-    if (process.env.NODE_ENV === 'production') {
-      LogRocket.identify(this.currentUser.id, {
-        name: this.currentUser.fullName,
-        email: this.currentUser.email
-      })
+  data() {
+    return {
+      fetchIntegrationTimer: null,
+      loading: false
     }
   },
 
@@ -84,13 +79,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      fetchIntegrationTimer: null,
-      loading: false
-    }
-  },
-
   created() {
     if (this.isMobile) {
       this.collapseMenu()
@@ -99,6 +87,18 @@ export default {
       if (this.integrationsInProgress.length === 0)
         clearInterval(this.fetchIntegrationTimer)
     }, 30000)
+  },
+
+  async mounted() {
+    identify(this.currentUser)
+    // This is an example script - don't forget to change it!
+
+    if (process.env.NODE_ENV === 'production') {
+      LogRocket.identify(this.currentUser.id, {
+        name: this.currentUser.fullName,
+        email: this.currentUser.email
+      })
+    }
   },
 
   unmounted() {

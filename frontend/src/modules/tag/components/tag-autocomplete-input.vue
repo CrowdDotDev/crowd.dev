@@ -26,7 +26,10 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'AppTagAutocompleteInput',
   props: {
-    value: {},
+    value: {
+      type: Array,
+      default: () => []
+    },
     fetchFn: {
       type: Function,
       default: () => {}
@@ -40,13 +43,15 @@ export default {
       default: false
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     multiple: {
       type: Boolean,
       default: true
     }
   },
+  emits: { input: null },
 
   computed: {
     ...mapGetters({

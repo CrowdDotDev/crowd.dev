@@ -88,17 +88,27 @@ const formSchema = new FormSchema(
 export default {
   name: 'AppTenantForm',
 
-  props: ['isEditing', 'record', 'saveLoading'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['cancel', 'submit'],
 
   data() {
     return {
       rules: formSchema.rules(),
       model: null
     }
-  },
-
-  created() {
-    this.model = formSchema.initialValues(this.record || {})
   },
 
   computed: {
@@ -118,6 +128,10 @@ export default {
     tenantSubdomain() {
       return tenantSubdomain
     }
+  },
+
+  created() {
+    this.model = formSchema.initialValues(this.record || {})
   },
 
   methods: {

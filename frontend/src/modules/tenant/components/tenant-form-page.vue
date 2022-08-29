@@ -58,7 +58,12 @@ export default {
     'app-tenant-form': TenantForm
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

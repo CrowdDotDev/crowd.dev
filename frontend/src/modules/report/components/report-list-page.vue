@@ -50,12 +50,6 @@ export default {
     }
   },
 
-  methods: {
-    ...mapActions({
-      doFetch: 'report/doFetch'
-    })
-  },
-
   created() {
     this.doFetch({
       keepPagination: true
@@ -64,6 +58,12 @@ export default {
 
   async mounted() {
     window.analytics.page('Reports')
+  },
+
+  methods: {
+    ...mapActions({
+      doFetch: 'report/doFetch'
+    })
   }
 }
 </script>

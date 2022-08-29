@@ -125,19 +125,27 @@ export default {
     ReportGridLayout
   },
 
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: ['cancel', 'submit'],
 
   data() {
     return {
       rules: formSchema.rules(),
       model: null
     }
-  },
-
-  created() {
-    this.model = this.record
-      ? JSON.parse(JSON.stringify(this.record))
-      : { widgets: [] }
   },
 
   computed: {
@@ -149,6 +157,12 @@ export default {
     fields() {
       return fields
     }
+  },
+
+  created() {
+    this.model = this.record
+      ? JSON.parse(JSON.stringify(this.record))
+      : { widgets: [] }
   },
 
   methods: {

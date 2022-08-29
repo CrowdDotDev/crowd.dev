@@ -57,12 +57,6 @@ export default {
       return this.widgetsLoading
     }
   },
-  methods: {
-    ...mapActions({
-      doFetchWidgets: 'widget/doFetch',
-      getCubeToken: 'widget/getCubeToken'
-    })
-  },
   async created() {
     if (!this.cubejsApi) {
       await this.getCubeToken()
@@ -72,6 +66,12 @@ export default {
   },
   async mounted() {
     window.analytics.page('Dashboard')
+  },
+  methods: {
+    ...mapActions({
+      doFetchWidgets: 'widget/doFetch',
+      getCubeToken: 'widget/getCubeToken'
+    })
   }
 }
 </script>

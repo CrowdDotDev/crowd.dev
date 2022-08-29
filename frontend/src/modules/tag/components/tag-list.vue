@@ -58,6 +58,7 @@ export default {
       default: () => {}
     }
   },
+  emits: ['tags-updated'],
   data() {
     return {
       rules: formSchema.rules(),
@@ -81,6 +82,11 @@ export default {
       deep: true
     }
   },
+
+  created() {
+    this.model = formSchema.initialValues(this.member || {})
+  },
+
   methods: {
     ...mapActions({
       doUpdate: 'communityMember/form/doUpdate'
@@ -98,9 +104,6 @@ export default {
       )
       this.$emit('tags-updated')
     }
-  },
-  created() {
-    this.model = formSchema.initialValues(this.member || {})
   }
 }
 </script>

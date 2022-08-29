@@ -75,7 +75,16 @@ export default {
     'app-report-grid-layout': ReportGridLayout
   },
 
-  props: ['id', 'tenantId'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    },
+    tenantId: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

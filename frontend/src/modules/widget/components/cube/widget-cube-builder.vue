@@ -143,7 +143,7 @@
               :order-members="orderMembers"
               :disabled="!isQueryPresent"
               class="px-3 py-2 w-full lg:w-1/2"
-              @orderChange="updateOrder.set"
+              @order-change="updateOrder.set"
               @reorder="updateOrder.reorder"
             />
           </div>

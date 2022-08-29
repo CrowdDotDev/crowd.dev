@@ -470,6 +470,20 @@ export default {
       default: true
     }
   },
+  emits: ['close', 'open'],
+
+  data() {
+    return {
+      loading: false,
+      rules: formSchema.rules(),
+      initialModel: {},
+      model: {
+        theme: {},
+        autoPublish: {}
+      }
+    }
+  },
+
   computed: {
     ...mapGetters({
       publishedConversations: 'conversation/publishedRows',
@@ -572,17 +586,14 @@ export default {
       return shouldConfirm
     }
   },
-  data() {
-    return {
-      loading: false,
-      rules: formSchema.rules(),
-      initialModel: {},
-      model: {
-        theme: {},
-        autoPublish: {}
-      }
+
+  async created() {
+    if (!this.loadedIntegrations) {
+      await this.fetchIntegrations()
     }
+    this.setModels()
   },
+
   methods: {
     ...mapActions({
       fetchIntegrations: 'integration/doFetch',
@@ -730,12 +741,6 @@ export default {
         this.initialModel
       )
     }
-  },
-  async created() {
-    if (!this.loadedIntegrations) {
-      await this.fetchIntegrations()
-    }
-    this.setModels()
   }
 }
 </script>

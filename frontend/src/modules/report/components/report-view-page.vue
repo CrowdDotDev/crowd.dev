@@ -36,7 +36,12 @@ export default {
     'app-report-dropdown': ReportDropdown
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({
