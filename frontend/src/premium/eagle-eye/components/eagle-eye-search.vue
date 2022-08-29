@@ -38,7 +38,7 @@ export default {
   },
   watch: {
     activeTab: {
-      handler: (newValue, oldValue) => {
+      handler(newValue, oldValue) {
         if (newValue !== oldValue) {
           this.selectedKeywords = []
         }
