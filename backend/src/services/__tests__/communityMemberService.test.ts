@@ -7,6 +7,7 @@ import TagRepository from '../../database/repositories/tagRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
 import { PlatformType } from '../../utils/platforms'
+import OrganizationRepository from '../../database/repositories/organizationRepository'
 
 const db = null
 
@@ -43,7 +44,6 @@ describe('MemberService tests', () => {
           ],
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -78,7 +78,6 @@ describe('MemberService tests', () => {
         },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -105,7 +104,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -155,7 +153,6 @@ describe('MemberService tests', () => {
         },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -182,7 +179,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -226,7 +222,6 @@ describe('MemberService tests', () => {
         },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -253,7 +248,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -283,7 +277,6 @@ describe('MemberService tests', () => {
         reach: 10,
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -310,7 +303,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -339,7 +331,6 @@ describe('MemberService tests', () => {
         reach: { github: 10, twitter: 10 },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -366,7 +357,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -395,7 +385,6 @@ describe('MemberService tests', () => {
         reach: { discord: 10, twitter: 10 },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
       }
@@ -422,7 +411,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -462,7 +450,6 @@ describe('MemberService tests', () => {
           ],
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -499,7 +486,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member2.location,
         signals: member1.signals,
         importHash: null,
@@ -541,7 +527,6 @@ describe('MemberService tests', () => {
           },
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -595,7 +580,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member2.location,
         signals: member1.signals,
         importHash: null,
@@ -635,7 +619,6 @@ describe('MemberService tests', () => {
           ],
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -677,7 +660,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member2.location,
         signals: member1.signals,
         importHash: null,
@@ -717,7 +699,6 @@ describe('MemberService tests', () => {
           ],
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -768,7 +749,6 @@ describe('MemberService tests', () => {
           followers: 10,
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
         signals: 'testSignal',
@@ -868,7 +848,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member2.location,
         signals: member1.signals,
         importHash: null,
@@ -910,7 +889,6 @@ describe('MemberService tests', () => {
           followers: 10,
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
         info: {
@@ -988,7 +966,6 @@ describe('MemberService tests', () => {
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -1054,7 +1031,6 @@ describe('MemberService tests', () => {
         info: {},
         bio: null,
         location: null,
-        organisation: null,
         email: null,
       }
 
@@ -1111,7 +1087,6 @@ describe('MemberService tests', () => {
         info: {},
         bio: null,
         location: null,
-        organisation: null,
         email: null,
       }
 
@@ -1169,7 +1144,6 @@ describe('MemberService tests', () => {
         info: {},
         bio: null,
         location: null,
-        organisation: null,
         email: null,
       }
 
@@ -1227,7 +1201,6 @@ describe('MemberService tests', () => {
         info: {},
         bio: null,
         location: null,
-        organisation: null,
         email: null,
       }
 
@@ -1245,6 +1218,10 @@ describe('MemberService tests', () => {
       let t2 = await TagRepository.create({ name: 'tag2' }, mockIRepositoryOptions)
       let t3 = await TagRepository.create({ name: 'tag3' }, mockIRepositoryOptions)
 
+      let o1 = await OrganizationRepository.create({ name: 'org1' }, mockIRepositoryOptions)
+      let o2 = await OrganizationRepository.create({ name: 'org2' }, mockIRepositoryOptions)
+      let o3 = await OrganizationRepository.create({ name: 'org3' }, mockIRepositoryOptions)
+
       const member1 = {
         username: {
           crowdUsername: 'anil1',
@@ -1257,6 +1234,7 @@ describe('MemberService tests', () => {
           },
         },
         tags: [t1.id, t2.id],
+        organizations: [o1.id, o2.id],
       }
 
       const member2 = {
@@ -1274,6 +1252,7 @@ describe('MemberService tests', () => {
           },
         },
         tags: [t2.id, t3.id],
+        organizations: [o2.id, o3.id],
       }
 
       const member3 = {
@@ -1362,6 +1341,7 @@ describe('MemberService tests', () => {
       mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
 
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
+      mergedMember.organizations = mergedMember.organizations.map((i) => i.get({ plain: true }))
 
       // get the created activity again, it's member should be updated after merge
       activityCreated = await ActivityRepository.findById(
@@ -1380,10 +1360,20 @@ describe('MemberService tests', () => {
       t2 = await TagRepository.findById(t2.id, mockIRepositoryOptions)
       t3 = await TagRepository.findById(t3.id, mockIRepositoryOptions)
 
+      // get previously created organizations
+      o1 = await OrganizationRepository.findById(o1.id, mockIRepositoryOptions)
+      o2 = await OrganizationRepository.findById(o2.id, mockIRepositoryOptions)
+      o3 = await OrganizationRepository.findById(o3.id, mockIRepositoryOptions)
+
       // remove tags->member relations as well (we should be only checking 1-deep relations)
       t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
       t2 = SequelizeTestUtils.objectWithoutKey(t2, 'members')
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
+
+      // remove organizations->member relations as well (we should be only checking 1-deep relations)
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'communityMemberCount')
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, 'communityMemberCount')
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, 'communityMemberCount')
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
@@ -1404,7 +1394,6 @@ describe('MemberService tests', () => {
         email: null,
         score: -1,
         bio: null,
-        organisation: null,
         location: null,
         signals: null,
         importHash: null,
@@ -1418,6 +1407,7 @@ describe('MemberService tests', () => {
         reach: { total: -1 },
 
         tags: [t1, t2, t3],
+        organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
       }
@@ -1881,6 +1871,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
+      delete returnedMember1.organizations
 
       const existing = await memberService.memberExists(
         member1.username.crowdUsername,
@@ -1969,6 +1960,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.noMerge
       delete returnedMember1.tags
       delete returnedMember1.activities
+      delete returnedMember1.organizations
 
       const existing = await memberService.memberExists(
         { discord: 'some-other-username' },

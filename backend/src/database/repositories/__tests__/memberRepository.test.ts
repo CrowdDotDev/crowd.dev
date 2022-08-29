@@ -3,6 +3,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import TagRepository from '../tagRepository'
 import { PlatformType } from '../../../utils/platforms'
+import OrganizationRepository from '../organizationRepository'
 
 const db = null
 
@@ -49,7 +50,6 @@ describe('MemberRepository tests', () => {
           },
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
@@ -69,8 +69,8 @@ describe('MemberRepository tests', () => {
         crowdInfo: member2add.crowdInfo,
         email: member2add.email,
         score: member2add.score,
+        organizations: [],
         bio: member2add.bio,
-        organisation: member2add.organisation,
         location: member2add.location,
         signals: member2add.signals,
         importHash: null,
@@ -122,7 +122,6 @@ describe('MemberRepository tests', () => {
           },
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         location: 'Istanbul',
         signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
@@ -143,7 +142,6 @@ describe('MemberRepository tests', () => {
         email: member2add.email,
         score: member2add.score,
         bio: member2add.bio,
-        organisation: member2add.organisation,
         location: member2add.location,
         signals: member2add.signals,
         importHash: null,
@@ -177,12 +175,12 @@ describe('MemberRepository tests', () => {
         id: memberCreated.id,
         username: member2add.username,
         type: memberCreated.type,
+        organizations: [],
         info: {},
         crowdInfo: {},
         email: null,
         score: -1,
         bio: null,
-        organisation: null,
         location: null,
         signals: null,
         importHash: null,
@@ -255,10 +253,10 @@ describe('MemberRepository tests', () => {
         email: null,
         score: -1,
         bio: null,
-        organisation: null,
         location: null,
         signals: null,
         importHash: null,
+        organizations: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -302,7 +300,6 @@ describe('MemberRepository tests', () => {
         email: null,
         score: -1,
         bio: null,
-        organisation: null,
         location: null,
         signals: null,
         importHash: null,
@@ -435,6 +432,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.noMerge
       delete member1Returned.tags
       delete member1Returned.activities
+      delete member1Returned.organizations
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -510,6 +508,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.noMerge
       delete member1Returned.tags
       delete member1Returned.activities
+      delete member1Returned.organizations
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -743,6 +742,56 @@ describe('MemberRepository tests', () => {
       expect(member2.tags[1].name).toEqual('vuejs')
     })
 
+    it('is successfully finding and counting all members, and organisations [crowd.dev, pied piper]', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const crowd = await mockIRepositoryOptions.database.organization.create({
+        name: 'crowd.dev',
+        url: 'https://crowd.dev',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+      const pp = await mockIRepositoryOptions.database.organization.create({
+        name: 'pied piper',
+        url: 'https://piedpiper.com',
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+      })
+
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'test1' },
+          score: '1',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'test2' },
+          score: '6',
+          joinedAt: new Date(),
+          organizations: [crowd.id, pp.id],
+        },
+        mockIRepositoryOptions,
+      )
+      await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'test3' },
+          score: '7',
+          joinedAt: new Date(),
+        },
+        mockIRepositoryOptions,
+      )
+
+      const members = await CommunityMemberRepository.findAndCountAll(
+        { filter: { organizations: [crowd.id, pp.id] } },
+        mockIRepositoryOptions,
+      )
+      const member2 = members.rows.find((m) => m.username.crowdUsername === 'test2')
+      expect(members.rows.length).toEqual(1)
+      expect(member2.organizations[0].name).toEqual('crowd.dev')
+      expect(member2.organizations[1].name).toEqual('pied piper')
+    })
+
     it('is successfully finding and counting all members, and scoreRange is gte than 1 and less or equal to 6', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
@@ -957,7 +1006,6 @@ describe('MemberRepository tests', () => {
           },
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         joinedAt: '2021-06-27T15:14:30Z',
         location: 'Istanbul',
         signals: 'testSignal',
@@ -984,9 +1032,9 @@ describe('MemberRepository tests', () => {
         email: updateFields.email,
         score: updateFields.score,
         bio: updateFields.bio,
-        organisation: updateFields.organisation,
         location: updateFields.location,
         signals: updateFields.signals,
+        organizations: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1044,7 +1092,6 @@ describe('MemberRepository tests', () => {
           },
         },
         bio: 'Computer Science',
-        organisation: 'Crowd',
         joinedAt: '2021-06-27T15:14:30Z',
         location: 'Istanbul',
         signals: 'testSignal',
@@ -1072,7 +1119,6 @@ describe('MemberRepository tests', () => {
         email: updateFields.email,
         score: updateFields.score,
         bio: updateFields.bio,
-        organisation: updateFields.organisation,
         location: updateFields.location,
         signals: updateFields.signals,
         importHash: null,
@@ -1133,8 +1179,8 @@ describe('MemberRepository tests', () => {
         crowdInfo: member1.crowdInfo,
         email: member1.email,
         score: member1.score,
+        organizations: [],
         bio: member1.bio,
-        organisation: member1.organisation,
         location: member1.location,
         signals: member1.signals,
         importHash: null,
@@ -1156,13 +1202,87 @@ describe('MemberRepository tests', () => {
       expect(member1).toStrictEqual(expectedMemberCreated)
     })
 
+    it('Should successfully update member with given organizations', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const org1 = await OrganizationRepository.create(
+        { name: 'crowd.dev', url: 'https://crowd.dev' },
+        mockIRepositoryOptions,
+      )
+      const org2 = await OrganizationRepository.create(
+        { name: 'pied piper', url: 'https://piedpiper.com' },
+        mockIRepositoryOptions,
+      )
+      const org3 = await OrganizationRepository.create(
+        { name: 'hooli', url: 'https://hooli.com' },
+        mockIRepositoryOptions,
+      )
+
+      // Create member with tag3
+      let member1 = await CommunityMemberRepository.create(
+        {
+          username: { crowdUsername: 'test1' },
+          joinedAt: new Date(),
+          organizations: [org3.id],
+        },
+        mockIRepositoryOptions,
+      )
+
+      // When feeding organizations attribute to update, update method will overwrite the member's organizations with new given orgs
+      // member1 is expected to have [org1,org2] after update
+      member1 = await CommunityMemberRepository.update(
+        member1.id,
+        { organizations: [org1.id, org2.id] },
+        mockIRepositoryOptions,
+      )
+
+      member1.createdAt = member1.createdAt.toISOString().split('T')[0]
+      member1.updatedAt = member1.updatedAt.toISOString().split('T')[0]
+
+      member1.organizations = member1.organizations.map((i) => i.get({ plain: true }))
+
+      // strip communitymembers field from tags created to expect.
+      // we won't be returning second level relationships.
+      const { communityMemberCount: _tag1Members, ...org1Plain } = org1
+      const { communityMemberCount: _tag2Members, ...org2Plain } = org2
+
+      const expectedMemberCreated = {
+        id: member1.id,
+        username: member1.username,
+        type: member1.type,
+        info: {},
+        crowdInfo: member1.crowdInfo,
+        email: member1.email,
+        score: member1.score,
+        tags: [],
+        bio: member1.bio,
+        location: member1.location,
+        signals: member1.signals,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+        activities: [],
+        reach: { total: -1 },
+        joinedAt: new Date(member1.joinedAt),
+        organizations: [org1Plain, org2Plain],
+        noMerge: [],
+        toMerge: [],
+      }
+
+      expect(member1).toStrictEqual(expectedMemberCreated)
+    })
+
     it('Should throw 404 error when trying to update non existent member', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        MemberRepository.update(randomUUID(), { organisation: 'test' }, mockIRepositoryOptions),
+        MemberRepository.update(randomUUID(), { location: 'test' }, mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
 

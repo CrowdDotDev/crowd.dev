@@ -43,9 +43,6 @@ export default (sequelize) => {
       bio: {
         type: DataTypes.TEXT,
       },
-      organisation: {
-        type: DataTypes.TEXT,
-      },
       location: {
         type: DataTypes.TEXT,
       },
@@ -98,13 +95,6 @@ export default (sequelize) => {
           operator: 'jsonb_path_ops',
         },
         // Below are B-tree indexes for speeding up search in normal fields
-        {
-          unique: false,
-          fields: ['organisation', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
         {
           unique: false,
           fields: ['location', 'tenantId'],

@@ -34,7 +34,6 @@ class MemberRepository {
           'email',
           'score',
           'bio',
-          'organisation',
           'location',
           'signals',
           'reach',
@@ -50,11 +49,13 @@ class MemberRepository {
         transaction,
       },
     )
-
     await record.setActivities(data.activities || [], {
       transaction,
     })
     await record.setTags(data.tags || [], {
+      transaction,
+    })
+    await record.setOrganizations(data.organizations || [], {
       transaction,
     })
     await record.setNoMerge(data.noMerge || [], {
@@ -174,7 +175,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "type", "info", "crowdInfo", "email", "score", "bio", "organisation", "location", "signals", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "type", "info", "crowdInfo", "email", "score", "bio", "location", "signals", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -225,7 +226,6 @@ class MemberRepository {
           'email',
           'score',
           'bio',
-          'organisation',
           'location',
           'signals',
           'reach',
@@ -248,6 +248,12 @@ class MemberRepository {
 
     if (data.tags) {
       await record.setTags(data.tags || [], {
+        transaction,
+      })
+    }
+
+    if (data.organizations) {
+      await record.setOrganizations(data.organizations || [], {
         transaction,
       })
     }
@@ -396,6 +402,7 @@ class MemberRepository {
 
     const whereAnd: Array<any> = []
     const customOrderBy: Array<any> = []
+
     const include = [
       {
         model: options.database.activity,
@@ -414,6 +421,23 @@ class MemberRepository {
         model: options.database.member,
         as: 'noMerge',
         attributes: ['id'],
+        through: {
+          attributes: [],
+        },
+      },
+      {
+        model: options.database.organization,
+        as: 'organizations',
+        attributes: ['id'],
+        // Leaving this ready to be able to filter by organization URLs instead of IDs
+        // ...(filter.organizations && {
+        //   where: {
+        //     url: {
+        //       [Op.in]: filter.organizations.split(','),
+        //       tenantId: tenant.id,
+        //     },
+        //   },
+        // }),
         through: {
           attributes: [],
         },
@@ -484,6 +508,29 @@ class MemberRepository {
         })
       }
 
+      if (filter.organizations) {
+        const whereOrganizations = filter.organizations.reduce((acc, item, index) => {
+          if (index === 0) {
+            return `${acc} "communityMemberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
+              item,
+            )}'`
+          }
+          return `${acc} OR "communityMemberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
+            item,
+          )}'`
+        }, '')
+
+        const organizationFilterLiteral = Sequelize.literal(
+          `(SELECT "communityMembers".id FROM "communityMembers" INNER JOIN "communityMemberOrganizations" ON "communityMemberOrganizations"."communityMemberId" = "communityMembers".id WHERE ${whereOrganizations})`,
+        )
+
+        whereAnd.push({
+          id: {
+            [Op.in]: organizationFilterLiteral,
+          },
+        })
+      }
+
       if (filter.email) {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'email', filter.email))
       }
@@ -510,12 +557,6 @@ class MemberRepository {
 
       if (filter.bio) {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'bio', filter.bio))
-      }
-
-      if (filter.organisation) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('member', 'organisation', filter.organisation),
-        )
       }
 
       if (filter.location) {
@@ -704,6 +745,9 @@ class MemberRepository {
         plainRecord.tags = await record.getTags({
           joinTableAttributes: [],
         })
+        plainRecord.organizations = await record.getOrganizations({
+          joinTableAttributes: [],
+        })
         return plainRecord
       }),
     )
@@ -737,6 +781,11 @@ class MemberRepository {
     })
 
     output.tags = await record.getTags({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.organizations = await record.getOrganizations({
       transaction,
       joinTableAttributes: [],
     })
