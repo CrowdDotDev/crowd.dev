@@ -61,7 +61,12 @@ export default {
     'app-community-member-details': CommunityMemberDetails
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
 
   data() {
     return {

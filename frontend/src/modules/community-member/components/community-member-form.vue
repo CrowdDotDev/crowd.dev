@@ -184,13 +184,38 @@ export default {
     AppCommunityMemberPlatformInput
   },
 
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: ['cancel', 'submit'],
 
   data() {
     return {
       rules: formSchema.rules(),
       model: null,
       platforms: []
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      labelPosition: 'layout/labelPosition',
+      labelWidthForm: 'layout/labelWidthForm'
+    }),
+
+    fields() {
+      return fields
     }
   },
 
@@ -263,17 +288,6 @@ export default {
           url: null
         }
       ]
-    }
-  },
-
-  computed: {
-    ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm'
-    }),
-
-    fields() {
-      return fields
     }
   },
 

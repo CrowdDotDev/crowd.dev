@@ -208,9 +208,6 @@ export default {
       default: false
     }
   },
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
 
   computed: {
     ...mapGetters({
@@ -258,6 +255,10 @@ export default {
     members() {
       return [...this.rows]
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

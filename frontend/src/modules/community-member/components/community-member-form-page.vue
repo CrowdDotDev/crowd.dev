@@ -28,7 +28,13 @@ export default {
     'app-community-member-form': CommunityMemberForm
   },
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['cancel'],
 
   computed: {
     ...mapGetters({

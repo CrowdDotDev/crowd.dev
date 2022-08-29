@@ -186,6 +186,17 @@ export default {
     }
   },
 
+  data() {
+    return {
+      memberToMerge: null,
+      fromSuggestion: false,
+      loadingMemberToMerge: false,
+      loadingSubmit: false,
+      maxActivitiesMemberToKeep: 5,
+      maxActivitiesMemberToMerge: 5
+    }
+  },
+
   computed: {
     ...mapGetters({
       record: 'communityMember/view/record',
@@ -252,17 +263,6 @@ export default {
         this.memberToMerge.activities.length >
         this.maxActivitiesMemberToMerge
       )
-    }
-  },
-
-  data() {
-    return {
-      memberToMerge: null,
-      fromSuggestion: false,
-      loadingMemberToMerge: false,
-      loadingSubmit: false,
-      maxActivitiesMemberToKeep: 5,
-      maxActivitiesMemberToMerge: 5
     }
   },
 

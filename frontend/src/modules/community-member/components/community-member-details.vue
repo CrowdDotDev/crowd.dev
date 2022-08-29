@@ -189,6 +189,7 @@ export default {
       default: true
     }
   },
+  emits: ['updated'],
   computed: {
     userActivities() {
       return this.member.activities.map((a) => {

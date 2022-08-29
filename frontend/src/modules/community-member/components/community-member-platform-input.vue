@@ -76,6 +76,7 @@ export default {
       default: () => []
     }
   },
+  emits: ['input'],
   data() {
     return {
       platforms: [].concat(this.value)

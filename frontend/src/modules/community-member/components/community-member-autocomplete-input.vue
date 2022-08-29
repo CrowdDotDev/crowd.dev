@@ -45,15 +45,38 @@ export default {
   components: {
     'app-community-member-form-modal': CommunityMemberFormModal
   },
-  props: [
-    'value',
-    'mode',
-    'fetchFn',
-    'mapperFn',
-    'showCreate',
-    'placeholder',
-    'inputClass'
-  ],
+  props: {
+    value: {
+      type: Object,
+      default: () => {}
+    },
+    mode: {
+      type: String,
+      default: 'single'
+    },
+    fetchFn: {
+      type: Function,
+      default: () => {}
+    },
+    mapperFn: {
+      type: Function,
+      default: () => {}
+    },
+    showCreate: {
+      type: Boolean,
+      default: false
+    },
+    placeholder: {
+      type: String,
+      default: null
+    },
+    inputClass: {
+      type: String,
+      default: null
+    }
+  },
+
+  emits: ['input'],
 
   data() {
     return {

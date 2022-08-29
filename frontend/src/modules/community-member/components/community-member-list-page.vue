@@ -99,6 +99,13 @@ export default {
     'app-community-member-platform-tabs': CommunityMemberPlatformTabs
   },
 
+  data() {
+    return {
+      creating: false,
+      hasMembersToMerge: false
+    }
+  },
+
   computed: {
     ...mapGetters({
       currentUser: 'auth/currentUser',
@@ -125,19 +132,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      creating: false,
-      hasMembersToMerge: false
-    }
-  },
-
-  methods: {
-    ...mapActions({
-      doFetchWidgets: 'widget/doFetch'
-    })
-  },
-
   async created() {
     if (this.widgetsCount === 0) {
       await this.doFetchWidgets()
@@ -149,6 +143,12 @@ export default {
 
   async mounted() {
     window.analytics.page('Members')
+  },
+
+  methods: {
+    ...mapActions({
+      doFetchWidgets: 'widget/doFetch'
+    })
   }
 }
 </script>

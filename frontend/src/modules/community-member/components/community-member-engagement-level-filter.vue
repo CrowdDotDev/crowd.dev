@@ -18,7 +18,13 @@ const { fields } = CommunityMemberModel
 
 export default {
   name: 'AppCommunityMemberEngagementLevelFilter',
-  props: ['value'],
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['input'],
   data() {
     return {
       model: this.value ? this.value.join('-') : null
