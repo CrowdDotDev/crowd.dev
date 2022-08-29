@@ -24,7 +24,13 @@
 export default {
   name: 'AppNumberRangeInput',
 
-  props: ['value'],
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['input'],
 
   computed: {
     startValue() {

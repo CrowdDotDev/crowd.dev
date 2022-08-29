@@ -10,7 +10,16 @@
 export default {
   name: 'AppViewItemCustom',
 
-  props: ['label', 'value'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

@@ -41,10 +41,12 @@ export default {
 
   props: {
     value: {
-      type: Object
+      type: Object,
+      default: () => {}
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     options: {
       type: Array,
@@ -79,6 +81,7 @@ export default {
       default: false
     }
   },
+  emits: ['input'],
 
   data() {
     return {

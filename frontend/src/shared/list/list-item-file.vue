@@ -17,7 +17,12 @@ import truncate from 'lodash/truncate'
 export default {
   name: 'AppListItemFile',
 
-  props: ['value'],
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
 
   computed: {
     isBlank() {

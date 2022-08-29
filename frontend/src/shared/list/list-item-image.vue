@@ -11,7 +11,12 @@
 export default {
   name: 'AppListItemImage',
 
-  props: ['value'],
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
 
   computed: {
     isBlank() {

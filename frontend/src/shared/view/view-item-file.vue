@@ -19,7 +19,16 @@
 export default {
   name: 'AppViewItemFile',
 
-  props: ['label', 'value'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

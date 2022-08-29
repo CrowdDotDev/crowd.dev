@@ -23,7 +23,24 @@ import { PermissionChecker } from '@/premium/user/permission-checker'
 export default {
   name: 'AppViewItemRelationToMany',
 
-  props: ['label', 'value', 'url', 'permission'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    },
+    url: {
+      type: String,
+      default: null
+    },
+    permission: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

@@ -28,6 +28,7 @@ export default {
       default: null
     }
   },
+  emits: ['input'],
   data() {
     return {
       model: null

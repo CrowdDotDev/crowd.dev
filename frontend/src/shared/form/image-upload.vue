@@ -30,7 +30,21 @@ import Errors from '@/shared/error/errors'
 
 export default {
   name: 'AppImageUpload',
-  props: ['storage', 'value', 'max'],
+  props: {
+    storage: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: Array,
+      default: () => []
+    },
+    max: {
+      type: Number,
+      default: null
+    }
+  },
+  emits: ['input'],
 
   data() {
     return {

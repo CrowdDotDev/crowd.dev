@@ -55,6 +55,7 @@ export default {
       default: null
     }
   },
+  emits: ['hide'],
   data() {
     return {
       isVisible: this.visible

@@ -14,7 +14,20 @@
 export default {
   name: 'AppListItemRelationToMany',
 
-  props: ['value', 'url', 'permission'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    url: {
+      type: String,
+      default: null
+    },
+    permission: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

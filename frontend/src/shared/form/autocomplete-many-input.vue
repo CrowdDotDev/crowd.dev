@@ -50,10 +50,12 @@ export default {
 
   props: {
     value: {
-      type: Array
+      type: Array,
+      default: () => []
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     fetchFn: {
       type: Function,
@@ -96,7 +98,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['remove-tag'],
+  emits: ['remove-tag', 'input'],
   data() {
     return {
       loading: false,

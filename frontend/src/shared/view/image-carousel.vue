@@ -32,7 +32,10 @@ export default {
   name: 'AppImageCarousel',
 
   props: {
-    value: Array
+    value: {
+      type: Array,
+      default: () => []
+    }
   }
 }
 </script>

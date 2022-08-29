@@ -27,6 +27,7 @@ export default {
       default: null
     }
   },
+  emits: ['click'],
 
   methods: {
     onClick() {

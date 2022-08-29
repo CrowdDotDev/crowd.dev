@@ -53,8 +53,12 @@ export default {
       type: Boolean,
       default: false
     },
-    placeholder: String
+    placeholder: {
+      type: String,
+      default: null
+    }
   },
+  emits: ['input'],
   data() {
     return {
       newKeyword: '',

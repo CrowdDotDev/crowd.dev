@@ -13,7 +13,20 @@
 export default {
   name: 'AppViewItemText',
 
-  props: ['label', 'value', 'prefix'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    },
+    prefix: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

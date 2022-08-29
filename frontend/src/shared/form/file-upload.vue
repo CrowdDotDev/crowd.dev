@@ -33,19 +33,26 @@ export default {
 
   props: {
     text: {
+      type: String,
       required: false,
       default: 'Upload'
     },
     storage: {
+      type: String,
       required: true
     },
     value: {
+      type: Array,
+      default: () => [],
       required: false
     },
     formats: {
+      type: String,
+      default: null,
       required: false
     },
     max: {
+      type: Number,
       required: true
     },
     btnClass: {
@@ -53,6 +60,7 @@ export default {
       default: null
     }
   },
+  emits: ['input'],
 
   data() {
     return {

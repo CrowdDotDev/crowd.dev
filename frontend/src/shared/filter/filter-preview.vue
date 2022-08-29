@@ -18,7 +18,21 @@
 <script>
 export default {
   name: 'AppFilterPreview',
-  props: ['values', 'fields', 'expanded'],
+  props: {
+    values: {
+      type: Object,
+      default: () => {}
+    },
+    fields: {
+      type: Object,
+      default: () => {}
+    },
+    expanded: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['remove'],
 
   computed: {
     items() {
