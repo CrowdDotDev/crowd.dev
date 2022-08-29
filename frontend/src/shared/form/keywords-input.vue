@@ -1,32 +1,41 @@
 <template>
-  <div
-    class="el-select el-keywords-input-wrapper"
-    @click="focusKeywordInput"
-    :class="focused ? 'el-input is-focus' : ''"
-  >
-    <el-tag
-      v-for="(keyword, idx) in innerKeywords"
-      v-bind="$attrs"
-      :key="keyword"
-      size="small"
-      type="info"
-      effect="light"
-      :disable-transitions="true"
-      :closable="!readOnly"
-      @close="remove(idx)"
+  <div>
+    <div
+      class="el-select el-keywords-input-wrapper"
+      @click="focusKeywordInput"
+      :class="focused ? 'el-input is-focus' : ''"
     >
-      {{ keyword }}
-    </el-tag>
-    <input
-      v-if="!readOnly"
-      class="el-keywords-input"
-      :placeholder="placeholder"
-      @input="inputKeyword"
-      :value="newKeyword"
-      @keydown.delete.stop="removeLastKeyword"
-      @keydown="addNew"
-      @blur="addNew"
-    />
+      <el-tag
+        v-for="(keyword, idx) in innerKeywords"
+        v-bind="$attrs"
+        :key="keyword"
+        size="small"
+        type="info"
+        effect="light"
+        :disable-transitions="true"
+        :closable="!readOnly"
+        @close="remove(idx)"
+      >
+        {{ keyword }}
+      </el-tag>
+      <input
+        v-if="!readOnly"
+        class="el-keywords-input"
+        :placeholder="placeholder"
+        @input="inputKeyword"
+        :value="newKeyword"
+        @keydown.delete.stop="removeLastKeyword"
+        @keydown="addNew"
+        @blur="addNew"
+      />
+    </div>
+    <span
+      class="text-xs text-gray-400"
+      :class="
+        newKeyword !== '' ? 'opacity-100' : 'opacity-0'
+      "
+      >Press ENTER or comma (,) to separate keywords</span
+    >
   </div>
 </template>
 

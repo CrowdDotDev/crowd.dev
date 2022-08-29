@@ -5,9 +5,6 @@
         v-model="selectedKeywords"
         placeholder="Enter keywords, or topics..."
       />
-      <span class="text-xs text-gray-400"
-        >Press ENTER or comma (,) to separate keywords</span
-      >
     </div>
     <app-eagle-eye-filter />
     <el-button
@@ -46,8 +43,7 @@ export default {
     async doSearch() {
       const filtersToApply = {
         ...this.filter,
-        keywords: this.selectedKeywords
-          .join(',')
+        keywords: this.selectedKeywords.join(',')
       }
       await this.doFetch({
         rawFilter: filtersToApply,
