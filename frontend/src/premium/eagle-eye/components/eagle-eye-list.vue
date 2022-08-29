@@ -1,5 +1,5 @@
 <template>
-  <div class="py-6">
+  <div class="pt-2 pb-6">
     <div class="eagle-eye-list">
       <div v-if="count > 0">
         <transition-group name="fade" mode="out-in">
