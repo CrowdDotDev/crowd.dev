@@ -19,11 +19,11 @@ class ActivityRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    if (data.crowdInfo.body) {
+    if (data.crowdInfo && data.crowdInfo.body) {
       data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
     }
 
-    if (data.crowdInfo.title) {
+    if (data.crowdInfo && data.crowdInfo.title) {
       data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
     }
 
@@ -77,11 +77,11 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    if (data.crowdInfo.body) {
+    if (data.crowdInfo && data.crowdInfo.body) {
       data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
     }
 
-    if (data.crowdInfo.title) {
+    if (data.crowdInfo && data.crowdInfo.title) {
       data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
     }
 
