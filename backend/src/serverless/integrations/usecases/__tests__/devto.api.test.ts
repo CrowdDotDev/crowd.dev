@@ -1,7 +1,7 @@
 import { getOrganizationArticles } from '../devto/getOrganizationArticles'
 import { getArticleComments } from '../devto/getArticleComments'
 import { getUserArticles } from '../devto/getUserArticles'
-import { getUser } from '../devto/getUser'
+import { getUserById } from '../devto/getUser'
 
 function expectDefinedNumber(val: any) {
   expect(val).toBeDefined()
@@ -90,7 +90,7 @@ describe('Devto API tests', () => {
   })
 
   it('Should return the correct required properties when fetching a user', async () => {
-    const user = await getUser(userId)
+    const user = await getUserById(userId)
 
     expectDefinedNumber(user.id)
     expectDefinedString(user.name)
