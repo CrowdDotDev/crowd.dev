@@ -1,12 +1,12 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import ProgressBar from '@/shared/progress-bar/progress-bar'
+import {
+  createRouter as createVueRouter,
+  createWebHistory
+} from 'vue-router'
 
+import { createStore } from '@/store'
 import authGuards from '@/middleware/auth'
 import modules from '@/modules'
-import { storeAsync } from '@/store'
-
-Vue.use(Router)
+import ProgressBar from '@/shared/progress-bar/progress-bar'
 
 /**
  * Loads all the routes from src/modules/ folders, and adds the catch-all rule to handle 404s
@@ -34,12 +34,12 @@ let router
  * Creates/Sets VueRouter instance
  * @returns {{x: number, y: number}|VueRouter}
  */
-const routerAsync = () => {
-  const store = storeAsync()
+const createRouter = () => {
+  const store = createStore()
 
   if (!router) {
-    router = new Router({
-      mode: 'history',
+    router = createVueRouter({
+      history: createWebHistory(),
       routes,
       scrollBehavior() {
         return { x: 0, y: 0 }
@@ -56,16 +56,15 @@ const routerAsync = () => {
         })
     }
 
-    router.beforeEach((to, from, next) => {
+    router.beforeEach(async (to, from) => {
       if (to.name) {
         ProgressBar.start()
       }
-
       const matchedRoute = to.matched.find(
         (m) => m.meta.middleware
       )
       if (matchedRoute !== undefined) {
-        const middleware = Array.isArray(
+        const middlewareArray = Array.isArray(
           matchedRoute.meta.middleware
         )
           ? matchedRoute.meta.middleware
@@ -73,24 +72,15 @@ const routerAsync = () => {
 
         const context = {
           from,
-          next,
           router,
           to,
           store
         }
-        const nextMiddleware = nextFactory(
-          context,
-          middleware,
-          1
-        )
 
-        return middleware[0]({
-          ...context,
-          next: nextMiddleware
-        })
+        for (const middleware of middlewareArray) {
+          return await middleware(context)
+        }
       }
-
-      return next()
     })
 
     router.afterEach(() => {
@@ -101,33 +91,4 @@ const routerAsync = () => {
   return router
 }
 
-/**
- * Creates a `nextMiddleware()` function which not only
- * runs the default `next()` callback but also triggers
- * the subsequent Middleware function.
- *
- * @param context
- * @param middleware
- * @param index
- * @returns {(function(): void)|*}
- */
-function nextFactory(context, middleware, index) {
-  const subsequentMiddleware = middleware[index]
-  // If no subsequent Middleware exists,
-  // the default `next()` callback is returned.
-  if (!subsequentMiddleware) return context.next
-
-  return () => {
-    const nextMiddleware = nextFactory(
-      context,
-      middleware,
-      index + 1
-    )
-    subsequentMiddleware({
-      ...context,
-      next: nextMiddleware
-    })
-  }
-}
-
-export { routerAsync }
+export { createRouter }
