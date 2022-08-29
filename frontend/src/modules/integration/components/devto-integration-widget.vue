@@ -23,9 +23,12 @@
     </template>
     <el-form class="form devto-integration-widget">
       <div class="flex flex-col mx-2">
-        <span class="text-sm font-semibold mb-2"
+        <span class="text-sm font-semibold"
           >Track organization articles</span
         >
+        <span class="text-sm font-light mb-2">
+          Monitor all articles from organization accounts
+        </span>
         <el-form-item
           v-for="org in organizations"
           :key="org.id"
@@ -39,6 +42,7 @@
               v-model="org.username"
               class="text-green-500"
               spellcheck="false"
+              placeholder="Enter organization slug"
             >
               <template v-slot:prepend>dev.to/</template>
               <template v-slot:suffix v-if="org.validating">
@@ -56,9 +60,13 @@
           @click="addNewOrganization"
           >+ Add organization link</a
         >
-        <span class="text-sm font-semibold mb-2 mt-6"
+        <span class="text-sm font-semibold mt-6"
           >Track user articles</span
         >
+        <span class="text-sm font-light mb-2">
+          Monitor articles from individual users, such as
+          team members or community advocates
+        </span>
         <el-form-item
           v-for="user in users"
           :key="user.id"
@@ -71,6 +79,7 @@
             <el-input
               v-model="user.username"
               spellcheck="false"
+              placeholder="Enter user slug"
             >
               <template v-slot:prepend>dev.to/</template>
               <template
