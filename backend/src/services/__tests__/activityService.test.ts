@@ -288,7 +288,7 @@ describe('ActivityService tests', () => {
         url: null,
         body: activity2.body,
         channel: null,
-        member: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,

@@ -251,7 +251,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should throw error when sentiment is incorrect', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -341,7 +341,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should leave allowed HTML tags in body and title', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -405,7 +405,7 @@ describe('ActivityRepository tests', () => {
 
     it('Should remove script tags in body and title', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -961,7 +961,7 @@ describe('ActivityRepository tests', () => {
     it('Should update body and title with allowed HTML tags', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -1007,7 +1007,7 @@ describe('ActivityRepository tests', () => {
     it('Should sanitize body and title from non-allowed HTML tags', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -1054,7 +1054,7 @@ describe('ActivityRepository tests', () => {
   describe('filter tests', () => {
     it('Positive sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
@@ -1135,7 +1135,7 @@ describe('ActivityRepository tests', () => {
     })
     it('Negative sentiment filter', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
             crowdUsername: 'test',
