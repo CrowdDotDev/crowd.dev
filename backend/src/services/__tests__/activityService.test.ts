@@ -1397,8 +1397,8 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
           crowdUsername: 'anil',
           github: 'anil_github',
         })
@@ -1500,8 +1500,8 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
           crowdUsername: 'anil',
           github: 'anil_github',
         })
@@ -1603,8 +1603,8 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
-        expect(member.username).toStrictEqual({
+        expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
+        expect(memberFound.username).toStrictEqual({
           crowdUsername: 'anil',
           github: 'anil_github',
         })
@@ -1706,8 +1706,8 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
           crowdUsername: 'anil',
           github: 'anil_github',
         })
