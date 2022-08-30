@@ -95,7 +95,14 @@ export default {
           i18n('entities.activity.destroyAll.success')
         )
 
+<<<<<<< HEAD
         if (router.currentRoute.name === 'activityView') {
+=======
+        if (
+          createRouter().currentRoute.name ===
+          'activityView'
+        ) {
+>>>>>>> 1a50d0d (Fix router and store)
           router.push('/activities')
         }
 
