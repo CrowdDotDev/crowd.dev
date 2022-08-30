@@ -58,6 +58,8 @@ function models() {
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
     require('./organization').default,
+    require('./task').default,
+    require('./note').default,
   ]
 
   for (const notInitmodel of modelClasses) {
