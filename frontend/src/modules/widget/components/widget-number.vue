@@ -44,7 +44,7 @@
       </div>
     </div>
     <el-dialog
-      v-model:visible="modal"
+      v-model="modal"
       :title="`${config.title} Settings`"
       @close="modal = false"
     ></el-dialog>

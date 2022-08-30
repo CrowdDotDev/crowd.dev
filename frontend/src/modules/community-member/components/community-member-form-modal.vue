@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dialog
-      v-model:visible="dialogVisible"
+      v-model="dialogVisible"
       :title="title"
       width="80%"
     >

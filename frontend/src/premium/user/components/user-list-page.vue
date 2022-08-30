@@ -13,7 +13,7 @@
     </div>
 
     <el-dialog
-      v-model:visible="inviting"
+      v-model="inviting"
       title="Invite User"
       :append-to-body="true"
       :destroy-on-close="true"

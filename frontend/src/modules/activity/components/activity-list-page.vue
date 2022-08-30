@@ -21,7 +21,7 @@
     </div>
 
     <el-dialog
-      v-model:visible="creating"
+      v-model="creating"
       title="New Activity"
       :append-to-body="true"
       :destroy-on-close="true"

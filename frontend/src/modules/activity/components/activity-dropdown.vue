@@ -20,7 +20,7 @@
       </template>
     </el-dropdown>
     <el-dialog
-      v-model:visible="editing"
+      v-model="editing"
       title="Edit Activity"
       :append-to-body="true"
       :destroy-on-close="true"

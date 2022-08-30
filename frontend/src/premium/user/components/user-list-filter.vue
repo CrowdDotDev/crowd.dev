@@ -10,7 +10,7 @@
     </app-teleport>
 
     <el-dialog
-      v-model:visible="expanded"
+      v-model="expanded"
       title="Users Filters"
       @close="expanded = false"
     >

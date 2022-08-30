@@ -1,82 +1,75 @@
 <template>
   <div class="community-member-list-page">
+    <h1 class="app-content-title">
+      <app-i18n
+        code="entities.communityMember.list.title"
+      ></app-i18n>
+    </h1>
     <div
-      v-if="widgetsLoading"
-      v-loading="widgetsLoading"
-      class="app-page-spinner"
-    ></div>
-    <div v-else>
-      <h1 class="app-content-title">
-        <app-i18n
-          code="entities.communityMember.list.title"
-        ></app-i18n>
-      </h1>
-      <div
-        v-if="hasMembersToMerge"
-        class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
-      >
-        <div class="flex items-start">
-          <i
-            class="ri-information-fill mr-4 ri-xl flex items-center pt-1 text-secondary-900"
-          ></i>
-          <div class="text-sm">
-            <div class="font-semibold mb-1">
-              Suggestion: Merge community members
-            </div>
-            <div>
-              We've found some community members that seem
-              to be the same person, which should be merged
-              into a single profile.
-              <br />
-              Click
-              <router-link
-                :to="{
-                  name: 'communityMemberMergeSuggestions'
-                }"
-                class="font-semibold"
-                >here</router-link
-              >
-              to look into these suggestions.
-            </div>
+      v-if="hasMembersToMerge"
+      class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
+    >
+      <div class="flex items-start">
+        <i
+          class="ri-information-fill mr-4 ri-xl flex items-center pt-1 text-secondary-900"
+        ></i>
+        <div class="text-sm">
+          <div class="font-semibold mb-1">
+            Suggestion: Merge community members
+          </div>
+          <div>
+            We've found some community members that seem to
+            be the same person, which should be merged into
+            a single profile.
+            <br />
+            Click
+            <router-link
+              :to="{
+                name: 'communityMemberMergeSuggestions'
+              }"
+              class="font-semibold"
+              >here</router-link
+            >
+            to look into these suggestions.
           </div>
         </div>
       </div>
-
-      <div class="flex items-center justify-between mb-4">
-        <app-community-member-platform-tabs />
-        <div class="flex items-center justify-end">
-          <div
-            id="teleport-community-member-filter-toggle"
-          ></div>
-
-          <el-button
-            v-if="hasPermissionToCreate"
-            class="btn btn--primary ml-2"
-            @click.prevent="creating = true"
-          >
-            <i class="ri-lg ri-add-line mr-1" />
-            <app-i18n code="common.new"></app-i18n>
-          </el-button>
-        </div>
-      </div>
-
-      <el-dialog
-        v-model:visible="creating"
-        title="New Member"
-        :append-to-body="true"
-        :destroy-on-close="true"
-        custom-class="el-dialog--lg"
-        @close="creating = false"
-      >
-        <app-community-member-form-page
-          @cancel="creating = false"
-        >
-        </app-community-member-form-page>
-      </el-dialog>
-
-      <app-community-member-list-filter></app-community-member-list-filter>
-      <app-community-member-list-table></app-community-member-list-table>
     </div>
+
+    <div class="flex items-center justify-between mb-4">
+      <app-community-member-platform-tabs />
+      <div class="flex items-center justify-end">
+        <div
+          id="teleport-community-member-filter-toggle"
+        ></div>
+
+        <el-button
+          v-if="hasPermissionToCreate"
+          class="btn btn--primary ml-2"
+          @click.prevent="creating = true"
+        >
+          <i class="ri-lg ri-add-line mr-1" />
+          <app-i18n code="common.new"></app-i18n>
+        </el-button>
+      </div>
+    </div>
+
+    <el-dialog
+      v-model="creating"
+      title="New Member"
+      :append-to-body="true"
+      :destroy-on-close="true"
+      custom-class="el-dialog--lg"
+      @close="creating = false"
+    >
+      <app-community-member-form-page
+        @cancel="creating = false"
+      >
+      </app-community-member-form-page>
+    </el-dialog>
+
+    <app-community-member-list-filter></app-community-member-list-filter>
+    <app-community-member-list-table></app-community-member-list-table>
   </div>
 </template>
 
@@ -110,19 +103,8 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      widgetFindByType: 'widget/findByType',
-      widgetsCount: 'widget/count',
-      widgetsLoading: 'widget/loadingFetch',
       integrations: 'integration/listByPlatform'
     }),
-
-    githubIntegration() {
-      return this.integrations.github
-    },
-
-    benchmarkWidget() {
-      return this.widgetFindByType('benchmark')
-    },
 
     hasPermissionToCreate() {
       return new CommunityMemberPermissions(
@@ -133,10 +115,6 @@ export default {
   },
 
   async created() {
-    if (this.widgetsCount === 0) {
-      await this.doFetchWidgets()
-    }
-
     const mergeSuggestions = await CommunityMemberService.fetchMergeSuggestions()
     this.hasMembersToMerge = mergeSuggestions.length > 0
   },

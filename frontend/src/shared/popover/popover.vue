@@ -5,7 +5,7 @@
       :trigger="trigger"
       :title="title"
       :placement="placement"
-      :visible-arrow="visibleArrow"
+      :show-arrow="visibleArrow"
       popper-class="app-popover"
       @show="isVisible = true"
       @hide="isVisible = false"

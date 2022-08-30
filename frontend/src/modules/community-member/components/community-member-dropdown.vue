@@ -55,7 +55,7 @@
     </el-dropdown>
 
     <el-dialog
-      v-model:visible="editing"
+      v-model="editing"
       title="Edit Member"
       :append-to-body="true"
       :destroy-on-close="true"

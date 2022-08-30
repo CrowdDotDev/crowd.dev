@@ -119,7 +119,7 @@
         </el-form-item>
       </div>
       <el-dialog
-        v-model:visible="publishModal"
+        v-model="publishModal"
         title="Publish Conversation"
       >
         <el-form-item label="Slug" :required="true">
