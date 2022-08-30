@@ -280,8 +280,9 @@ export default {
 
     rowClass({ row }) {
       const isSelected =
+        this.selectedRows &&
         this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
+          undefined
       return isSelected ? 'is-selected' : ''
     },
     date(timestamp) {
