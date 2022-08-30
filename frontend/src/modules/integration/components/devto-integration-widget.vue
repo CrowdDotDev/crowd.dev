@@ -156,10 +156,13 @@ export default {
         (o) => !!o.username
       )
 
-      return (
-        validUsers.length + validOrgs.length === 0 ||
-        (validUsers.length ===
-          this.integration.settings.users.length &&
+      const empty =
+        validUsers.length + validOrgs.length === 0
+
+      if (this.integration && !empty) {
+        return (
+          validUsers.length ===
+            this.integration.settings.users.length &&
           validUsers.every((u) =>
             this.integration.settings.users.includes(
               u.username
@@ -172,8 +175,11 @@ export default {
             this.integration.settings.organizations.includes(
               o.username
             )
-          ))
-      )
+          )
+        )
+      }
+
+      return empty
     },
     isLastOrganization() {
       return this.organizations.length === 1

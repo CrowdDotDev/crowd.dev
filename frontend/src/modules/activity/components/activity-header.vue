@@ -158,7 +158,7 @@
           :content="
             activity.platform === 'apis'
               ? 'API'
-              : capitalize(activity.platform)
+              : computedPlatformName
           "
           placement="top"
         >
@@ -245,6 +245,11 @@ export default {
       return integrationsJsonArray.find(
         (p) => p.platform === this.activity.platform
       ).image
+    },
+    computedPlatformName() {
+      return integrationsJsonArray.find(
+        (p) => p.platform === this.activity.platform
+      ).name
     },
     computedActivityClass() {
       return this.activity.crowdInfo.url
