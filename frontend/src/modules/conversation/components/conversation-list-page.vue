@@ -23,9 +23,7 @@
         <app-conversation-platform-tabs class="ml-4" />
       </div>
       <div class="flex items-center justify-end">
-        <portal-target
-          name="conversation-filter-toggle"
-        ></portal-target>
+        <div id="teleport-conversation-filter-toggle"></div>
         <app-conversation-settings
           :visible="hasConversationsSettingsVisible"
           @open="doOpenSettingsModal"

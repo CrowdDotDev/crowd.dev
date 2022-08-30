@@ -22,6 +22,7 @@ import {
   Filler
 } from 'chart.js'
 import 'chartjs-adapter-moment'
+import { h } from 'vue'
 
 /**
  * This plugin is responsible for doing a couple of different things:
@@ -213,20 +214,18 @@ let createComponent = function (app, tagName, chartType) {
         }
       }
     },
-    render: function (createElement) {
+    render: function () {
       // check if undefined so works with empty string
       let loading =
         this.chartOptions.loading !== undefined
           ? this.chartOptions.loading
           : 'Loading...'
 
-      // createElement() accepts VNodes,
-      // but limit to string since it may be used by Chartkick.js
       if (typeof loading !== 'string') {
         throw new Error('loading must be a string')
       }
 
-      return createElement(
+      return h(
         'div',
         {
           attrs: {

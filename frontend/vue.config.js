@@ -17,12 +17,7 @@ module.exports = {
     port: 8081,
     allowedHosts: ['.localhost'],
     client: {
-      webSocketURL: {
-        hostname: process.env.VUE_APP_FRONTEND_HOST,
-        pathname: '/ws',
-        port: 8081,
-        protocol: 'ws'
-      }
+      webSocketURL: 'auto://0.0.0.0:0/ws'
     }
   }
 }

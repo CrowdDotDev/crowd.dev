@@ -1,9 +1,7 @@
 <template>
   <div>
     <div class="flex items-center justify-end mb-4">
-      <portal-target
-        name="user-filter-toggle"
-      ></portal-target>
+      <div id="teleport-user-filter-toggle"></div>
 
       <el-button
         icon="ri-lg ri-mail-line"

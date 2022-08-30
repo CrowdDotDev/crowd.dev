@@ -33,9 +33,9 @@
       </div>
 
       <div class="flex justify-end items-center mb-4">
-        <portal-target
-          name="community-member-filter-toggle"
-        ></portal-target>
+        <div
+          id="teleport-community-member-filter-toggle"
+        ></div>
       </div>
       <app-community-member-list-filter
         :lookalike="true"

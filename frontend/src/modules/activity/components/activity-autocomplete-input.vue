@@ -19,14 +19,14 @@
       class="btn btn--primary"
       @click="doOpenModal()"
     ></el-button>
-    <portal to="modal">
+    <Teleport to="#teleport-modal">
       <app-activity-form-modal
         v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
       ></app-activity-form-modal>
-    </portal>
+    </Teleport>
   </div>
 </template>
 

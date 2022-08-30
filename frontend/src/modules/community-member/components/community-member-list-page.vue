@@ -45,9 +45,9 @@
       <div class="flex items-center justify-between mb-4">
         <app-community-member-platform-tabs />
         <div class="flex items-center justify-end">
-          <portal-target
-            name="community-member-filter-toggle"
-          ></portal-target>
+          <div
+            id="teleport-community-member-filter-toggle"
+          ></div>
 
           <el-button
             v-if="hasPermissionToCreate"

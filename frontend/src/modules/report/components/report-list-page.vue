@@ -4,9 +4,7 @@
       <app-i18n code="entities.report.name"></app-i18n>
     </h1>
     <div class="flex items-center justify-end mb-4">
-      <portal-target
-        name="report-filter-toggle"
-      ></portal-target>
+      <div id="teleport-report-filter-toggle"></div>
 
       <router-link
         v-if="hasPermissionToCreate"

@@ -1,10 +1,12 @@
 <template>
   <div v-if="!loadingInit" id="app">
-    <transition mode="out-in" name="fade">
-      <router-view />
-    </transition>
+    <router-view v-slot="{ Component }">
+      <transition>
+        <component :is="Component" />
+      </transition>
+    </router-view>
 
-    <portal-target name="modal"></portal-target>
+    <div id="modal-teleport"></div>
   </div>
 </template>
 

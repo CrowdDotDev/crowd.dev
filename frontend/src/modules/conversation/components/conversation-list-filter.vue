@@ -1,13 +1,13 @@
 <template>
   <div class="filter">
-    <portal to="conversation-filter-toggle">
+    <Teleport to="#teleport-conversation-filter-toggle">
       <app-filter-toggle
         :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-3"
         @click="doToggleExpanded"
       ></app-filter-toggle>
-    </portal>
+    </Teleport>
 
     <el-dialog
       v-model:visible="expanded"

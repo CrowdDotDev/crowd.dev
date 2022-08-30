@@ -23,14 +23,14 @@
       class="btn btn--secondary btn--secondary--orange"
       @click="doOpenModal()"
     ></el-button>
-    <portal to="modal">
+    <Teleport to="#teleport-modal">
       <app-community-member-form-modal
         v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
       ></app-community-member-form-modal>
-    </portal>
+    </Teleport>
   </div>
 </template>
 

@@ -3,7 +3,6 @@ import { createRouter } from '@/router'
 import { createStore } from '@/store'
 import plugins from '@/plugins'
 import modules from '@/modules'
-import { setupComponentsFiltersDirectivesAndMixins } from '@/app-module'
 
 import {
   init as i18nInit,
@@ -16,7 +15,6 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
-import { SettingsService } from '@/modules/settings/settings-service'
 
 import App from '@/app.vue'
 
@@ -31,9 +29,6 @@ import App from '@/app.vue'
 
   AuthToken.applyFromLocationUrlIfExists()
   await TenantService.fetchAndApply()
-  SettingsService.applyThemeFromTenant()
-
-  setupComponentsFiltersDirectivesAndMixins(app)
 
   app.use(ElementPlus, { locale: getElementUILanguage() })
   app.config.productionTip =

@@ -8,9 +8,7 @@
     <div class="flex items-center justify-between mb-4">
       <app-activity-platform-tabs />
       <div class="flex items-center justify-end">
-        <portal-target
-          name="activity-filter-toggle"
-        ></portal-target>
+        <div id="teleport-activity-filter-toggle"></div>
         <el-button
           v-if="hasPermissionToCreate"
           icon="ri-lg ri-add-line"
