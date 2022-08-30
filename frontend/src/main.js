@@ -16,12 +16,12 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 
 import App from '@/app.vue'
 
+i18nInit()
 /**
  * We're using Immediately Invoked Function Expressions (IIFE) here because of the async/awaits
  * (We should probably revisit/refactor this later to be less confusing)
  */
 ;(async function () {
-  await i18nInit()
   const app = createApp(App)
   const router = await createRouter()
   const store = await createStore()
