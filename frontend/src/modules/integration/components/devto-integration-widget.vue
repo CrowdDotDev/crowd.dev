@@ -235,6 +235,10 @@ export default {
     }
   },
 
+  mounted() {
+    this.syncData()
+  },
+
   methods: {
     ...mapActions({
       doDevtoConnect: 'integration/doDevtoConnect'
@@ -246,17 +250,20 @@ export default {
 
     syncData() {
       this.users = []
-      this.integration.settings.users.forEach((u) =>
-        this.addNewUser(u)
-      )
+      this.organizations = []
+
+      if (this.integration) {
+        this.integration.settings.users.forEach((u) =>
+          this.addNewUser(u)
+        )
+        this.integration.settings.organizations.forEach(
+          (o) => this.addNewOrganization(o)
+        )
+      }
+
       if (this.users.length === 0) {
         this.addNewUser()
       }
-
-      this.organizations = []
-      this.integration.settings.organizations.forEach((o) =>
-        this.addNewOrganization(o)
-      )
       if (this.organizations.length === 0) {
         this.addNewOrganization()
       }
@@ -417,7 +424,7 @@ export default {
   }
 
   .el-input-group__prepend {
-    @apply p-3;
+    @apply px-3;
   }
 }
 </style>
