@@ -99,7 +99,9 @@ export default {
     },
 
     selectedRows: (state) => {
-      return state.table ? state.table.selection : []
+      return state.table
+        ? state.table.getSelectionRows()
+        : []
     },
 
     form: (state) => state.form
