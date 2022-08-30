@@ -5,7 +5,11 @@
       :trigger="trigger"
       :title="title"
       :placement="placement"
+<<<<<<< HEAD
       :show-arrow="showArrow"
+=======
+      :show-arrow="visibleArrow"
+>>>>>>> 51cb858 (Fix dialog errors)
       popper-class="app-popover"
       width="352px"
       :persistent="false"
