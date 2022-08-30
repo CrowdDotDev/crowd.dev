@@ -78,16 +78,16 @@
       <div class="flex items-center justify-end mt-12">
         <el-button
           class="btn btn--primary mr-3"
-          icon="ri-lg ri-check-line"
           @click="handleApplyClick"
         >
+          <i class="ri-lg ri-check-line mr-1" />
           Apply filters
         </el-button>
         <el-button
           class="btn btn--secondary"
-          icon="ri-lg ri-arrow-go-back-line"
           @click="handleResetClick"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Reset
         </el-button>
       </div>

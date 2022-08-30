@@ -77,26 +77,24 @@
           <div class="form-buttons">
             <el-button
               :disabled="saveLoading"
-              icon="ri-lg ri-save-line"
               class="btn btn--primary"
               @click="doSubmit"
             >
+              <i class="ri-lg ri-save-line mr-1" />
               <app-i18n code="common.save"></app-i18n>
             </el-button>
 
             <el-button
               :disabled="saveLoading"
-              icon="ri-lg ri-arrow-go-back-line"
               @click="doReset"
             >
+              <i class="ri-lg ri-arrow-go-back-line mr-1" />
               <app-i18n code="common.reset"></app-i18n>
             </el-button>
 
             <router-link :to="{ path: '/' }">
-              <el-button
-                :disabled="saveLoading"
-                icon="ri-close-line"
-              >
+              <el-button :disabled="saveLoading">
+                <i class="ri-close-line mr-1" />
                 <app-i18n code="common.cancel"></app-i18n>
               </el-button>
             </router-link>

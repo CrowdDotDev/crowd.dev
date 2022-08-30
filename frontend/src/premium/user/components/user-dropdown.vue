@@ -7,23 +7,19 @@
       <el-dropdown-menu>
         <el-dropdown-item
           v-if="user.status === 'invited'"
-          icon="ri-link"
           command="userInviteTokenClipboard"
-          >Copy Invite Link</el-dropdown-item
+          ><i class="ri-link mr-1" />Copy Invite
+          Link</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="userEdit"
-          >{{
+        <el-dropdown-item command="userEdit">
+          <i class="ri-pencil-line mr-1" />{{
             user.status === 'invited'
               ? 'Edit Invite'
               : 'Edit User'
           }}</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="userDelete"
-          >{{
+        <el-dropdown-item command="userDelete"
+          ><i class="ri-delete-bin-line mr-1" />{{
             user.status === 'invited'
               ? 'Delete Invite'
               : 'Delete User'

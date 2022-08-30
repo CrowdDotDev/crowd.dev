@@ -11,10 +11,10 @@
         <div id="teleport-activity-filter-toggle"></div>
         <el-button
           v-if="hasPermissionToCreate"
-          icon="ri-lg ri-add-line"
           class="btn btn--primary ml-2"
           @click.prevent="creating = true"
         >
+          <i class="ri-lg ri-add-line mr-1" />
           <app-i18n code="common.new"></app-i18n>
         </el-button>
       </div>

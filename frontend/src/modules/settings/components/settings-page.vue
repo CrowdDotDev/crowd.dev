@@ -66,9 +66,10 @@
                   placement="top"
                 >
                   <el-button
-                    icon="ri-clipboard-line"
                     @click="copyToClipboard('tenantId')"
-                  ></el-button>
+                  >
+                    <i class="ri-clipboard-line"></i>
+                  </el-button>
                 </el-tooltip>
               </el-input>
             </el-form-item>
@@ -86,10 +87,9 @@
                   content="Show Auth Token"
                   placement="top"
                 >
-                  <el-button
-                    icon="ri-eye-line"
-                    @click="showToken = true"
-                  ></el-button>
+                  <el-button @click="showToken = true">
+                    <i class="ri-eye-line"></i>
+                  </el-button>
                 </el-tooltip>
                 <el-tooltip
                   v-else
@@ -97,9 +97,10 @@
                   placement="top"
                 >
                   <el-button
-                    icon="ri-clipboard-line"
                     @click="copyToClipboard('token')"
-                  ></el-button>
+                  >
+                    <i class="ri-clipboard-line"></i>
+                  </el-button>
                 </el-tooltip>
               </el-input>
             </el-form-item>

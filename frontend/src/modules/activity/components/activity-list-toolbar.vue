@@ -7,10 +7,10 @@
       <span>
         <el-button
           :disabled="exportButtonDisabled"
-          icon="ri-lg ri-file-excel-2-line"
           class="btn btn--secondary mr-2"
           @click="doExport()"
         >
+          <i class="ri-lg ri-file-excel-2-line mr-1" />
           <app-i18n code="common.export"></app-i18n>
         </el-button>
       </span>

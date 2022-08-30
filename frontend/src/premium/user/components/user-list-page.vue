@@ -4,10 +4,10 @@
       <div id="teleport-user-filter-toggle"></div>
 
       <el-button
-        icon="ri-lg ri-mail-line"
         class="btn btn--primary ml-2"
         @click.prevent="inviting = true"
       >
+        <i class="ri-lg ri-mail-line mr-1" />
         Invite
       </el-button>
     </div>

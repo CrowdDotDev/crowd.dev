@@ -9,15 +9,13 @@
         <i class="ri-xl ri-more-line"></i>
       </span>
       <el-dropdown-menu>
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="activityEdit"
-          >Edit Activity</el-dropdown-item
+        <el-dropdown-item command="activityEdit">
+          <i class="ri-pencil-line mr1" />
+          Edit Activity</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="activityDelete"
-          >Delete Activity</el-dropdown-item
+        <el-dropdown-item command="activityDelete"
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Activity</el-dropdown-item
         >
       </el-dropdown-menu>
     </el-dropdown>

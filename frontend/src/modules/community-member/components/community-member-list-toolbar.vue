@@ -10,19 +10,19 @@
     >
     <el-button
       :disabled="markAsTeamMemberButtonDisabled"
-      icon="ri-lg ri-user-follow-line"
       class="btn btn--secondary mr-2"
       @click="doMarkAsTeamMember()"
     >
+      <i class="ri-lg ri-user-follow-line mr-1" />
       Mark as Team Member
     </el-button>
 
     <el-button
       :disabled="exportButtonDisabled"
-      icon="ri-lg ri-file-text-line"
       class="btn btn--secondary mr-2"
       @click="doExport()"
     >
+      <i class="ri-lg ri-file-text-line mr-1" />
       Export to CSV
     </el-button>
 
@@ -33,10 +33,10 @@
 
     <el-button
       :disabled="destroyButtonDisabled"
-      icon="ri-lg ri-delete-bin-line"
       class="btn btn--secondary mr-2"
       @click="doDestroyAllWithConfirm"
     >
+      <i class="ri-lg ri-delete-bin-line mr-1" />
       <app-i18n code="common.destroy"></app-i18n>
     </el-button>
   </div>

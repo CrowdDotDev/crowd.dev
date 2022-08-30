@@ -7,7 +7,6 @@
       <span>
         <el-button
           :disabled="exportButtonDisabled"
-          icon="el-icon-fa-file-excel-o"
           @click="doExport"
         >
           <app-i18n code="common.export"></app-i18n>

@@ -14,28 +14,28 @@
         <div class="form-buttons">
           <el-button
             :disabled="saveLoading"
-            icon="ri-lg ri-save-line"
             class="btn btn--primary ml-2"
             @click="doSubmit"
           >
+            <i class="ri-lg ri-save-line mr-1" />
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary ml-2"
             @click="doReset"
           >
+            <i class="ri-lg ri-save-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
-            icon="ri-lg ri-close-line"
             class="btn btn--secondary ml-2"
             @click="doCancel"
           >
+            <i class="ri-lg ri-close-line mr-1"></i>
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>

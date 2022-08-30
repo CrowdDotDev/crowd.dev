@@ -6,47 +6,47 @@
     <el-dropdown-menu>
       <el-dropdown-item
         v-if="conversation.published"
-        icon="ri-link"
         :command="{
           action: 'conversationPublicUrl',
           conversation: conversation
         }"
-        >Copy Public Url</el-dropdown-item
+        ><i class="ri-link mr-1" />Copy Public
+        Url</el-dropdown-item
       >
       <el-dropdown-item
         v-if="showViewConversation"
-        icon="ri-eye-line"
         :command="{
           action: 'conversationView',
           conversation: conversation
         }"
-        >View Conversation</el-dropdown-item
+        ><i class="ri-eye-line mr-1" />View
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
         v-if="!conversation.published"
-        icon="ri-upload-cloud-2-line"
         :command="{
           action: 'conversationPublish',
           conversation: conversation
         }"
-        >Publish Conversation</el-dropdown-item
+        ><i class="ri-upload-cloud-2-line mr-1" />Publish
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
         v-else
-        icon="ri-arrow-go-back-line"
         :command="{
           action: 'conversationUnpublish',
           conversation: conversation
         }"
-        >Unpublish Conversation</el-dropdown-item
+        ><i class="ri-arrow-go-back-line mr-1" />Unpublish
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
-        icon="ri-delete-bin-line"
         :command="{
           action: 'conversationDelete',
           conversation: conversation
         }"
-        >Delete Conversation</el-dropdown-item
+        ><i class="ri-delete-bin-line mr-1" />Delete
+        Conversation</el-dropdown-item
       >
     </el-dropdown-menu>
   </el-dropdown>

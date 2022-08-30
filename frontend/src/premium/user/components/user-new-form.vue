@@ -79,9 +79,8 @@
               content="Copy to Clipboard"
               placement="top"
             >
-              <el-button
-                icon="ri-clipboard-line"
-                @click="copyToClipboard('token')"
+              <el-button @click="copyToClipboard('token')"
+                ><i class="ri-clipboard-line"></i
               ></el-button>
             </el-tooltip>
           </el-input>
@@ -94,28 +93,28 @@
       >
         <el-button
           :disabled="saveLoading"
-          icon="ri-lg ri-mail-send-line"
           class="btn btn--primary mr-2"
           @click="doSubmit"
         >
+          <i class="ri-lg ri-mail-send-line mr-1" />
           Invite
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
           @click="doReset"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          icon="ri-lg ri-close-line"
           class="btn btn--secondary"
           @click="doCancel"
         >
+          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
       </div>

@@ -1,10 +1,10 @@
 <template>
   <div v-if="isReadOnly">
     <el-button
-      icon="ri-lg ri-clipboard-line"
       class="btn btn--secondary"
       @click="copyToClipboard(report.id)"
     >
+      <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
     </el-button>
   </div>
@@ -16,37 +16,37 @@
       <el-dropdown-menu>
         <el-dropdown-item
           v-if="report.public"
-          icon="ri-link"
           :command="{
             action: 'reportPublicUrl',
             report: report
           }"
-          >Copy Public Url</el-dropdown-item
+          ><i class="ri-link mr-1"></i>Copy Public
+          Url</el-dropdown-item
         >
         <el-dropdown-item
           v-if="showViewReport"
-          icon="ri-eye-line"
           :command="{
             action: 'reportView',
             report: report
           }"
-          >View Report</el-dropdown-item
+          ><i class="ri-eye-line mr-1" />View
+          Report</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-pencil-line"
           :command="{
             action: 'reportEdit',
             report: report
           }"
-          >Edit Report</el-dropdown-item
+          ><i class="ri-pencil-line mr-1" />Edit
+          Report</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-delete-bin-line"
           :command="{
             action: 'reportDelete',
             report: report
           }"
-          >Delete Report</el-dropdown-item
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Report</el-dropdown-item
         >
       </el-dropdown-menu>
     </el-dropdown>

@@ -87,10 +87,10 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading"
-            icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
             @click="doFilter"
           >
+            <i class="ri-lg ri-check-line mr-1" />
             <app-i18n
               code="common.filters.apply"
             ></app-i18n>
@@ -98,10 +98,10 @@
 
           <el-button
             :disabled="loading"
-            icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
             @click="doResetFilter"
           >
+            <i class="ri-lg ri-arrow-go-back-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
         </div>

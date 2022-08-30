@@ -11,45 +11,45 @@
       <el-dropdown-menu>
         <el-dropdown-item
           v-if="showViewMember"
-          icon="ri-eye-line"
           :command="{
             action: 'communityMemberView',
             communityMember: member
           }"
-          >View Member</el-dropdown-item
+          ><i class="ri-eye-line mr-1" />View
+          Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-pencil-line"
           :command="{
             action: 'communityMemberEdit',
             communityMember: member
           }"
-          >Edit Member</el-dropdown-item
+          ><i class="ri-pencil-line mr-1" />Edit
+          Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-group-line"
           :command="{
             action: 'communityMemberMerge',
             communityMember: member
           }"
-          >Merge With Another Member</el-dropdown-item
+          ><i class="ri-group-line mr-1" />Merge With
+          Another Member</el-dropdown-item
         >
         <el-dropdown-item
           v-if="!member.crowdInfo.team"
-          icon="ri-user-follow-line"
           :command="{
             action: 'communityMemberMarkAsTeamMember',
             communityMember: member
           }"
-          >Mark as Team Member</el-dropdown-item
+          ><i class="ri-user-follow-line mr-1" />Mark as
+          Team Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-delete-bin-line"
           :command="{
             action: 'communityMemberDelete',
             communityMember: member
           }"
-          >Delete Member</el-dropdown-item
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Member</el-dropdown-item
         >
       </el-dropdown-menu>
     </el-dropdown>

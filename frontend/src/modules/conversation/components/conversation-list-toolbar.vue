@@ -17,10 +17,10 @@
       <span>
         <el-button
           :disabled="publishButtonDisabled"
-          icon="ri-lg ri-upload-cloud-2-line"
           class="btn btn--secondary btn--secondary--orange mr-2"
           @click="doPublishAllWithConfirm"
         >
+          <i class="ri-lg ri-upload-cloud-2-line mr-1" />
           Publish Conversations
         </el-button>
       </span>
@@ -33,10 +33,10 @@
       <span>
         <el-button
           :disabled="publishButtonDisabled"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
           @click="doUnpublishAllWithConfirm"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Unpublish Conversations
         </el-button>
       </span>
@@ -49,10 +49,10 @@
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
           @click="doDestroyAllWithConfirm"
         >
+          <i class="ri-lg ri-delete-bin-line mr-1" />
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
       </span>

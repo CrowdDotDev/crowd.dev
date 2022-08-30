@@ -46,27 +46,29 @@
       <el-dropdown-menu>
         <el-dropdown-item
           v-if="!editable"
-          icon="ri-lg ri-settings-2-line"
           command="open-settings-modal"
-          >Settings</el-dropdown-item
+          ><i
+            class="ri-lg ri-settings-2-line mr-1"
+          />Settings</el-dropdown-item
         >
         <el-dropdown-item
           v-if="editable"
-          icon="ri-lg ri-file-copy-line"
           command="trigger-duplicate-widget"
-          >Duplicate Widget</el-dropdown-item
+          ><i
+            class="ri-lg ri-file-copy-line mr-1"
+          />Duplicate Widget</el-dropdown-item
         >
         <el-dropdown-item
           v-if="editable"
-          icon="ri-lg ri-pencil-line"
           command="trigger-edit-widget"
-          >Edit Widget</el-dropdown-item
+          ><i class="ri-lg ri-pencil-line mr-1" />Edit
+          Widget</el-dropdown-item
         >
         <el-dropdown-item
           v-if="editable"
-          icon="ri-lg ri-delete-bin-line"
           command="trigger-delete-widget"
-          >Delete Widget</el-dropdown-item
+          ><i class="ri-lg ri-delete-bin-line mr-1" />Delete
+          Widget</el-dropdown-item
         >
       </el-dropdown-menu>
     </el-dropdown>

@@ -189,7 +189,6 @@
         </div>
         <div class="flex items-center justify-end mt-12">
           <el-button
-            icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
             @click="
               handleSubmit({
@@ -198,14 +197,15 @@
               })
             "
           >
+            <i class="ri-lg ri-check-line mr-1" />
             Save Widget
           </el-button>
           <el-button
             type="button"
-            icon="ri-lg ri-close-line"
             class="btn btn--secondary"
             @click="$emit('close')"
           >
+            <i class="ri-lg ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>

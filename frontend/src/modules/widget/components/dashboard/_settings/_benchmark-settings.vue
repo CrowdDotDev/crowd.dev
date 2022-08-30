@@ -98,22 +98,24 @@
             </span>
             <el-dropdown-menu>
               <el-dropdown-item
-                icon="ri-pencil-line"
                 :command="{
                   action: 'rename',
                   repo: repo,
                   index: index
                 }"
-                >Rename</el-dropdown-item
+                ><i
+                  class="ri-pencil-line mr-1"
+                />Rename</el-dropdown-item
               >
               <el-dropdown-item
-                icon="ri-delete-bin-line"
                 :command="{
                   action: 'delete',
                   repo: repo,
                   index: index
                 }"
-                >Delete</el-dropdown-item
+                ><i
+                  class="ri-delete-bin-line mr-1"
+                />Delete</el-dropdown-item
               >
             </el-dropdown-menu>
           </el-dropdown>
@@ -137,17 +139,17 @@
       <hr class="my-4" />
       <div class="flex items-center justify-end mt-8">
         <el-button
-          icon="ri-lg ri-save-line"
           class="btn btn--primary mr-2"
           @click="handleSubmit"
         >
+          <i class="ri-lg ri-save-line mr-1" />
           <app-i18n code="common.save"></app-i18n>
         </el-button>
         <el-button
-          icon="ri-lg ri-close-line"
           class="btn btn--secondary"
           @click="$emit('close')"
         >
+          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
       </div>

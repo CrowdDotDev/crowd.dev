@@ -79,18 +79,18 @@
       <div class="filter-buttons">
         <el-button
           :disabled="loading"
-          icon="ri-search-line"
           class="btn btn--primary"
           @click="doFilter"
         >
+          <i class="ri-search-line mr-1" />
           <app-i18n code="common.filters.apply"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="loading"
-          icon="ri-lg ri-arrow-go-back-line"
           @click="doResetFilter"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
       </div>

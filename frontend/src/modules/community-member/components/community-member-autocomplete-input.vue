@@ -18,7 +18,6 @@
     ></app-autocomplete-many-input>
     <el-button
       v-if="hasPermissionToCreate && showCreate"
-      icon="el-icon-plus"
       style="margin-left: 16px"
       class="btn btn--secondary btn--secondary--orange"
       @click="doOpenModal()"

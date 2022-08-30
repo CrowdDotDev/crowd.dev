@@ -2,10 +2,10 @@
   <div class="relative inline-flex">
     <el-button
       :disabled="bulkEditTagsDisabled"
-      icon="ri-lg ri-price-tag-3-line"
       class="btn btn--secondary mr-2"
       @click="prepareBulkUpdateTags"
     >
+      <i class="ri-lg ri-price-tag-3-line mr-1" />
       Edit Tags
     </el-button>
 

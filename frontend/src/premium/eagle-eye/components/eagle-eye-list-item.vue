@@ -37,19 +37,19 @@
           placement="top"
         >
           <el-button
-            icon="ri-eye-off-line"
             class="btn btn--secondary"
             @click="handleExcludeClick"
           >
+            <i class="ri-eye-off-line mr-1" />
             Exclude
           </el-button>
         </el-tooltip>
         <el-button
           v-else-if="record.status === 'rejected'"
-          icon="ri-arrow-go-back-line"
           class="btn btn--secondary"
           @click="handleRevertExcludeClick"
         >
+          <i class="ri-arrow-go-back-line mr-1" />
           Remove from excluded
         </el-button>
         <span v-else></span>

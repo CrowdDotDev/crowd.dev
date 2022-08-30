@@ -17,10 +17,10 @@
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
           @click="doDestroyAllWithConfirm"
         >
+          <i class="ri-lg ri-delete-bin-line mr-1" />
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
       </span>

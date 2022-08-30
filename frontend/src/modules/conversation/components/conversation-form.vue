@@ -54,19 +54,19 @@
             <div class="flex items-center">
               <el-button
                 :disabled="saveLoading"
-                icon="ri-lg ri-save-line"
                 class="btn btn--secondary btn--secondary--orange ml-2"
                 @click="doSubmit"
               >
+                <i class="ri-lg ri-save-line mr-1" />
                 <app-i18n code="common.save"></app-i18n>
               </el-button>
 
               <el-button
                 :disabled="saveLoading"
-                icon="ri-lg ri-close-line"
                 class="btn btn--secondary ml-2"
                 @click="doCancel"
               >
+                <i class="ri-lg ri-close-line mr-1" />
                 <app-i18n code="common.cancel"></app-i18n>
               </el-button>
             </div>
@@ -94,19 +94,23 @@
                 <el-button
                   v-if="!record.published"
                   :disabled="saveLoading || isEditing"
-                  icon="ri-lg ri-upload-cloud-2-line"
                   class="btn btn--primary ml-2"
                   @click="triggerPublishModal"
                 >
+                  <i
+                    class="ri-lg ri-upload-cloud-2-line mr-1"
+                  />
                   Publish
                 </el-button>
                 <el-button
                   v-else
                   :disabled="saveLoading || isEditing"
-                  icon="ri-lg ri-arrow-go-back-line"
                   class="btn btn--secondary btn--secondary--red ml-2"
                   @click="doUnpublish"
                 >
+                  <i
+                    class="ri-lg ri-arrow-go-back-line mr-1"
+                  />
                   Unpublish
                 </el-button>
               </div>
@@ -128,19 +132,19 @@
         <div class="form-buttons mt-12">
           <el-button
             :disabled="loading"
-            icon="ri-lg ri-upload-cloud-2-line"
             class="btn btn--primary mr-2"
             @click="doPublish"
           >
+            <i class="ri-lg ri-upload-cloud-2-line mr-1" />
             Publish
           </el-button>
 
           <el-button
             :disabled="loading"
-            icon="ri-lg ri-close-line"
             class="btn btn--secondary"
             @click="publishModal = false"
           >
+            <i class="ri-lg ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>
