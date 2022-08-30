@@ -1,9 +1,5 @@
 import { createStore as createVuexStore } from 'vuex'
 import modules from '@/modules'
-import LogRocket from 'logrocket'
-import createPlugin from 'logrocket-vuex'
-
-const logrocketPlugin = createPlugin(LogRocket)
 let store
 
 /**
@@ -12,11 +8,7 @@ let store
 const createStore = () => {
   if (!store) {
     store = createVuexStore({
-      modules: buildStores(),
-      plugins:
-        process.env.NODE_ENV === 'production'
-          ? [logrocketPlugin]
-          : []
+      modules: buildStores()
     })
   }
   return store
@@ -68,4 +60,4 @@ const buildInitialState = () => {
   }, {})
 }
 
-export { createStore, buildInitialState }
+export { createStore, buildInitialState, store }

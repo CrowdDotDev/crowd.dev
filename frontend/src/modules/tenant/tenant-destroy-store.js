@@ -1,6 +1,6 @@
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { PermissionChecker } from '@/premium/user/permission-checker'
@@ -8,8 +8,10 @@ import { PermissionChecker } from '@/premium/user/permission-checker'
 export default {
   namespaced: true,
 
-  state: {
-    loading: false
+  state: () => {
+    return {
+      loading: false
+    }
   },
 
   getters: {
@@ -71,7 +73,7 @@ export default {
         )
 
         if (permissionChecker.isEmptyTenant) {
-          routerAsync().push('/auth/tenant')
+          router.push('/auth/tenant')
         }
       } catch (error) {
         Errors.handle(error)
@@ -114,7 +116,7 @@ export default {
         )
 
         if (permissionChecker.isEmptyTenant) {
-          routerAsync().push('/auth/tenant')
+          router.push('/auth/tenant')
         }
       } catch (error) {
         Errors.handle(error)

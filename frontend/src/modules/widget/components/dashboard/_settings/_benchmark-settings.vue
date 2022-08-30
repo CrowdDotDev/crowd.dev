@@ -159,7 +159,6 @@
 import { mapGetters, mapActions } from 'vuex'
 import { Octokit } from '@octokit/core'
 import { i18n } from '@/i18n'
-import Vue from 'vue'
 
 export default {
   name: 'AppGraphBenchmarkSettings',
@@ -244,7 +243,7 @@ export default {
       if (index === -1) {
         this.repositories.push(repository)
       } else {
-        Vue.set(this.repositories, index, repository)
+        this.repositories.index = repository
       }
       window.analytics.track('Add Repository Benchmark')
     },

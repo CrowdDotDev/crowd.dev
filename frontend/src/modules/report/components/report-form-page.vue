@@ -31,7 +31,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ReportForm from '@/modules/report/components/report-form.vue'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 
 export default {
   name: 'AppReportFormPage',
@@ -70,7 +70,7 @@ export default {
     }),
 
     doCancel() {
-      routerAsync().push('/reports')
+      router.push('/reports')
     },
 
     async doSubmit(payload) {

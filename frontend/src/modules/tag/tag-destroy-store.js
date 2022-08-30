@@ -1,14 +1,16 @@
 import { TagService } from '@/modules/tag/tag-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
   namespaced: true,
 
-  state: {
-    loading: false
+  state: () => {
+    return {
+      loading: false
+    }
   },
 
   getters: {
@@ -54,7 +56,7 @@ export default {
           i18n('entities.tag.destroy.success')
         )
 
-        routerAsync().push('/tag')
+        router.push('/tag')
 
         dispatch(
           `tag/list/doFetch`,
@@ -88,7 +90,7 @@ export default {
           i18n('entities.tag.destroyAll.success')
         )
 
-        routerAsync().push('/tag')
+        router.push('/tag')
 
         dispatch(
           `tag/list/doFetch`,

@@ -3,7 +3,7 @@ import {
   createWebHistory
 } from 'vue-router'
 
-import { createStore } from '@/store'
+import { store } from '@/store'
 import authGuards from '@/middleware/auth'
 import modules from '@/modules'
 import ProgressBar from '@/shared/progress-bar/progress-bar'
@@ -31,12 +31,10 @@ const routes = [
 let router
 
 /**
- * Creates/Sets VueRouter instance
- * @returns {{x: number, y: number}|VueRouter}
+ * Creates/Sets Router
+ * @returns {Router|{x: number, y: number}}
  */
 const createRouter = () => {
-  const store = createStore()
-
   if (!router) {
     router = createVueRouter({
       history: createWebHistory(),
@@ -91,4 +89,4 @@ const createRouter = () => {
   return router
 }
 
-export { createRouter }
+export { createRouter, router }

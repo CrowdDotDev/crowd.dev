@@ -1,9 +1,8 @@
-import Vue from 'vue'
 import { CommunityMemberService } from '@/modules/community-member/community-member-service'
 import communityMemberListExporterFields from '@/modules/community-member/community-member-list-exporter-fields'
 import Errors from '@/shared/error/errors'
 import Exporter from '@/shared/exporter/exporter'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { CommunityMemberModel } from './community-member-model'
@@ -14,19 +13,21 @@ const INITIAL_PAGE_SIZE = 20
 export default {
   namespaced: true,
 
-  state: {
-    rows: [],
-    count: 0,
-    loading: false,
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {
-      prop: 'score',
-      order: 'descending'
-    },
-    table: null,
-    mergeLoading: false
+  state: () => {
+    return {
+      rows: [],
+      count: 0,
+      loading: false,
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {
+        prop: 'score',
+        order: 'descending'
+      },
+      table: null,
+      mergeLoading: false
+    }
   },
 
   getters: {
@@ -224,7 +225,7 @@ export default {
         const index = state.rows.findIndex(
           (r) => r.id === member.id
         )
-        Vue.set(state.rows, index, member)
+        state.rows[index] = member
       }
       state.loading = false
     },
@@ -386,7 +387,7 @@ export default {
         })
 
         filter.type =
-          routerAsync().currentRoute.name ===
+          createRouter().currentRoute.name ===
           'communityMemberLookalike'
             ? 'lookalike'
             : 'member'
@@ -430,7 +431,7 @@ export default {
         Message.success(
           i18n('entities.communityMember.merge.success')
         )
-        routerAsync().push(`/members/${memberToKeep.id}`)
+        router.push(`/members/${memberToKeep.id}`)
       } catch (error) {
         Errors.handle(error)
         commit('MERGE_ERROR')

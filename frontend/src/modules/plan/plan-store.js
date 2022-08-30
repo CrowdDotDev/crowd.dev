@@ -6,8 +6,10 @@ import Plans from '@/security/plans'
 export default {
   namespaced: true,
 
-  state: {
-    loading: false
+  state: () => {
+    return {
+      loading: false
+    }
   },
 
   getters: {

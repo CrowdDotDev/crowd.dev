@@ -1,29 +1,30 @@
 import { ReportService } from '@/modules/report/report-service'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Errors from '@/shared/error/errors'
-import Vue from 'vue'
 
 const INITIAL_PAGE_SIZE = 20
 
 export default {
   namespaced: true,
 
-  state: {
-    records: {},
-    rows: [],
-    count: 0,
-    loading: {
-      table: false,
-      view: false,
-      form: false,
-      submit: false
-    },
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {},
-    table: null,
-    form: null
+  state: () => {
+    return {
+      records: {},
+      rows: [],
+      count: 0,
+      loading: {
+        table: false,
+        view: false,
+        form: false,
+        submit: false
+      },
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {},
+      table: null,
+      form: null
+    }
   },
 
   getters: {
@@ -179,7 +180,7 @@ export default {
     FETCH_SUCCESS(state, payload) {
       state.loading.table = false
       for (let report of payload.rows) {
-        Vue.set(state.records, report.id, report)
+        state.records[report.id] = report
         if (state.rows.indexOf(report.id) === -1) {
           state.rows.push(report.id)
         }
@@ -199,7 +200,7 @@ export default {
 
     FIND_SUCCESS(state, record) {
       state.loading.view = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
     },
 
     FIND_ERROR(state) {
@@ -227,7 +228,7 @@ export default {
 
     CREATE_SUCCESS(state, record) {
       state.loading.submit = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
       if (state.rows.indexOf(record.id) === -1) {
         state.rows.push(record.id)
       }
@@ -244,7 +245,7 @@ export default {
 
     UPDATE_SUCCESS(state, record) {
       state.loading.submit = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
     },
 
     UPDATE_ERROR(state) {
@@ -259,7 +260,7 @@ export default {
       state.loading.submit = false
       const index = state.rows.indexOf(reportId)
       state.rows.splice(index, 1)
-      Vue.delete(state.records, reportId)
+      delete state.records[reportId]
     },
 
     DESTROY_ERROR(state) {
@@ -276,7 +277,7 @@ export default {
       for (const reportId of reportIds) {
         const index = state.rows.indexOf(reportId)
         state.rows.splice(index, 1)
-        Vue.delete(state.records, reportId)
+        delete state.records[reportId]
       }
     },
 
@@ -395,7 +396,7 @@ export default {
         const response = await ReportService.create(report)
 
         commit('CREATE_SUCCESS', response)
-        routerAsync().push('/reports')
+        router.push('/reports')
       } catch (error) {
         Errors.handle(error)
         commit('FETCH_ERROR')
@@ -413,7 +414,7 @@ export default {
 
         commit('DESTROY_SUCCESS', reportId)
 
-        routerAsync().push('/reports')
+        router.push('/reports')
 
         dispatch(
           `report/doFetch`,
@@ -439,7 +440,7 @@ export default {
 
         commit('DESTROY_ALL_SUCCESS', reportIds)
 
-        routerAsync().push('/reports')
+        router.push('/reports')
 
         dispatch(
           `report/doFetch`,
@@ -504,7 +505,7 @@ export default {
           values
         )
         commit('UPDATE_SUCCESS', record)
-        routerAsync().push('/reports')
+        router.push('/reports')
       } catch (error) {
         Errors.handle(error)
         commit('UPDATE_ERROR', id)

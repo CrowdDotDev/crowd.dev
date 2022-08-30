@@ -8,17 +8,19 @@ const INITIAL_PAGE_SIZE = 20
 export default {
   namespaced: true,
 
-  state: {
-    rows: [],
-    count: 0,
-    loading: false,
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {},
-    bulkActive: false,
+  state: () => {
+    return {
+      rows: [],
+      count: 0,
+      loading: false,
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {},
+      bulkActive: false,
 
-    table: null
+      table: null
+    }
   },
 
   getters: {

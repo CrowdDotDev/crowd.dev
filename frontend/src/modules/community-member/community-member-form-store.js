@@ -1,16 +1,18 @@
 import { CommunityMemberService } from '@/modules/community-member/community-member-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
   namespaced: true,
 
-  state: {
-    initLoading: false,
-    saveLoading: false,
-    record: null
+  state: () => {
+    return {
+      initLoading: false,
+      saveLoading: false,
+      record: null
+    }
   },
 
   getters: {
@@ -81,7 +83,7 @@ export default {
       } catch (error) {
         Errors.handle(error)
         commit('INIT_ERROR')
-        routerAsync().push('/members')
+        router.push('/members')
       }
     },
 
@@ -124,7 +126,7 @@ export default {
           i18n('entities.communityMember.update.success')
         )
         if (
-          routerAsync().currentRoute.name ===
+          createRouter().currentRoute.name ===
           'communityMember'
         ) {
           dispatch(

@@ -1,14 +1,16 @@
 import { ActivityService } from '@/modules/activity/activity-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
   namespaced: true,
 
-  state: {
-    loading: false
+  state: () => {
+    return {
+      loading: false
+    }
   },
 
   getters: {
@@ -55,15 +57,15 @@ export default {
         )
 
         if (
-          routerAsync().currentRoute.name.includes(
+          createRouter().currentRoute.name.includes(
             'activity'
           )
         ) {
           if (
-            routerAsync().currentRoute.name ===
+            createRouter().currentRoute.name ===
             'activityView'
           ) {
-            routerAsync().push('/activities')
+            router.push('/activities')
           }
           dispatch(
             `activity/list/doFetch`,
@@ -101,9 +103,10 @@ export default {
         )
 
         if (
-          routerAsync().currentRoute.name === 'activityView'
+          createRouter().currentRoute.name ===
+          'activityView'
         ) {
-          routerAsync().push('/activities')
+          router.push('/activities')
         }
 
         dispatch(

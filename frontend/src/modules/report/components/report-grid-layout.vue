@@ -129,7 +129,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
 import VueGridLayout from 'vue-grid-layout'
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
@@ -244,7 +243,7 @@ export default {
         const index = this.model.widgets.findIndex(
           (w) => w.id === widget.id
         )
-        Vue.set(this.model.widgets, index, widget)
+        this.model.widgets[index] = widget
         this.resetWidgetModel()
       }
 

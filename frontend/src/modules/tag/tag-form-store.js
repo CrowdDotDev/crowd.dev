@@ -1,16 +1,18 @@
 import { TagService } from '@/modules/tag/tag-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
   namespaced: true,
 
-  state: {
-    initLoading: false,
-    saveLoading: false,
-    record: null
+  state: () => {
+    return {
+      initLoading: false,
+      saveLoading: false,
+      record: null
+    }
   },
 
   getters: {
@@ -93,7 +95,7 @@ export default {
       } catch (error) {
         Errors.handle(error)
         commit('INIT_ERROR')
-        routerAsync().push('/tag')
+        router.push('/tag')
       }
     },
 
@@ -103,7 +105,7 @@ export default {
         await TagService.create(values)
         commit('CREATE_SUCCESS')
         Message.success(i18n('entities.tag.create.success'))
-        routerAsync().push('/tag')
+        router.push('/tag')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -130,7 +132,7 @@ export default {
 
         commit('UPDATE_SUCCESS')
         Message.success(i18n('entities.tag.update.success'))
-        routerAsync().push('/tag')
+        router.push('/tag')
       } catch (error) {
         Errors.handle(error)
         commit('UPDATE_ERROR')

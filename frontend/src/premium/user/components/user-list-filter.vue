@@ -118,7 +118,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { i18n } from '@/i18n'
@@ -188,7 +187,7 @@ export default {
     },
 
     doRemove(field) {
-      Vue.delete(this.model, field)
+      delete this.model[field]
     },
 
     async doResetFilter() {

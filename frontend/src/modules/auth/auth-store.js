@@ -2,7 +2,7 @@ import { AuthService } from '@/modules/auth/auth-service'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import ProgressBar from '@/shared/progress-bar/progress-bar'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
@@ -14,17 +14,19 @@ import { TenantService } from '../tenant/tenant-service'
 export default {
   namespaced: true,
 
-  state: {
-    currentUser: null,
-    currentTenant: null,
-    loadingInit: true,
-    loadingEmailConfirmation: false,
-    loadingPasswordResetEmail: false,
-    loadingVerifyEmail: false,
-    loadingPasswordReset: false,
-    loadingPasswordChange: false,
-    loadingUpdateProfile: false,
-    loading: false
+  state: () => {
+    return {
+      currentUser: null,
+      currentTenant: null,
+      loadingInit: true,
+      loadingEmailConfirmation: false,
+      loadingPasswordResetEmail: false,
+      loadingVerifyEmail: false,
+      loadingPasswordReset: false,
+      loadingPasswordChange: false,
+      loadingUpdateProfile: false,
+      loading: false
+    }
   },
 
   getters: {
@@ -393,7 +395,7 @@ export default {
           currentUser
         })
 
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         await AuthService.signout()
         Errors.handle(error)
@@ -422,7 +424,7 @@ export default {
           currentUser
         })
 
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         await AuthService.signout()
         Errors.handle(error)
@@ -439,7 +441,7 @@ export default {
           currentUser: null
         })
 
-        routerAsync().push('/auth/signin')
+        router.push('/auth/signin')
       } catch (error) {
         Errors.handle(error)
         commit('AUTH_ERROR')
@@ -475,7 +477,7 @@ export default {
         commit('UPDATE_PROFILE_SUCCESS')
         await dispatch('doRefreshCurrentUser')
         Message.success(i18n('auth.profile.success'))
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('UPDATE_PROFILE_ERROR')
@@ -495,7 +497,7 @@ export default {
         commit('PASSWORD_CHANGE_SUCCESS')
         await dispatch('doRefreshCurrentUser')
         Message.success(i18n('auth.passwordChange.success'))
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('PASSWORD_CHANGE_ERROR')
@@ -509,7 +511,7 @@ export default {
         Message.success(i18n('auth.verifyEmail.success'))
         await dispatch('doRefreshCurrentUser')
         commit('EMAIL_VERIFY_SUCCESS')
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('EMAIL_VERIFY_ERROR')
@@ -526,7 +528,7 @@ export default {
         await AuthService.passwordReset(token, password)
         Message.success(i18n('auth.passwordResetSuccess'))
         commit('PASSWORD_RESET_SUCCESS')
-        routerAsync().push('/')
+        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('PASSWORD_RESET_ERROR')
@@ -553,7 +555,7 @@ export default {
       AuthCurrentTenant.set(tenant)
       await dispatch('doRefreshCurrentUser')
       SettingsService.applyThemeFromTenant()
-      routerAsync().push('/')
+      router.push('/')
     },
 
     async doFinishOnboard({ dispatch, getters }) {
@@ -563,7 +565,7 @@ export default {
 
       await dispatch('doRefreshCurrentUser')
 
-      routerAsync().push('/')
+      router.push('/')
     }
   }
 }
