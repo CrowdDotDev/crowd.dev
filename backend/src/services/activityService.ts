@@ -1,5 +1,5 @@
-import { PlatformType } from './../utils/platforms'
 import { Transaction } from 'sequelize/types'
+import { PlatformType } from '../utils/platforms'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
