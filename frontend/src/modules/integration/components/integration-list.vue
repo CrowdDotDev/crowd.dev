@@ -149,45 +149,47 @@
                 :visible="twitter.popover"
                 @hide="twitter.popover = false"
               >
-                <el-form class="form">
-                  <span
-                    class="flex items-center font-semibold text-base"
-                    ><i class="ri-twitter-fill mr-1"></i
-                    >Pick the hashtag you want to
-                    follow</span
-                  >
-                  <el-form-item>
-                    <app-autocomplete-one-input
-                      :fetch-fn="() => []"
-                      :create-fn="createTwitterHashtag"
-                      :value="twitter.hashtags[0]"
-                      :allow-create="true"
-                      class="mt-2"
-                      placeholder="Type to select hashtag"
-                      @input="handleTwitterHashtagsInput"
-                    ></app-autocomplete-one-input>
-
-                    <div
-                      class="app-form-hint leading-tight mt-1"
+                <div>
+                  <el-form class="form">
+                    <span
+                      class="flex items-center font-semibold text-base"
+                      ><i class="ri-twitter-fill mr-1"></i
+                      >Pick the hashtag you want to
+                      follow</span
                     >
-                      Tip: Choose a hashtag that's specific
-                      to your company/community for better
-                      data
-                    </div>
-                  </el-form-item>
-                </el-form>
-                <a
-                  class="btn btn--primary btn--sm mr-2"
-                  :href="twitterConnectUrl"
-                >
-                  Update
-                </a>
-                <button
-                  class="btn btn--secondary"
-                  @click="twitter.popover = false"
-                >
-                  Close
-                </button>
+                    <el-form-item>
+                      <app-autocomplete-one-input
+                        :fetch-fn="() => []"
+                        :create-fn="createTwitterHashtag"
+                        :value="twitter.hashtags[0]"
+                        :allow-create="true"
+                        class="mt-2"
+                        placeholder="Type to select hashtag"
+                        @input="handleTwitterHashtagsInput"
+                      ></app-autocomplete-one-input>
+
+                      <div
+                        class="app-form-hint leading-tight mt-1"
+                      >
+                        Tip: Choose a hashtag that's
+                        specific to your company/community
+                        for better data
+                      </div>
+                    </el-form-item>
+                  </el-form>
+                  <a
+                    class="btn btn--primary btn--sm mr-2"
+                    :href="twitterConnectUrl"
+                  >
+                    Update
+                  </a>
+                  <button
+                    class="btn btn--secondary"
+                    @click="twitter.popover = false"
+                  >
+                    Close
+                  </button>
+                </div>
               </app-popover>
             </div>
             <div

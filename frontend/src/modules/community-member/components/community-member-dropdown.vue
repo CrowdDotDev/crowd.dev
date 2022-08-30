@@ -55,6 +55,7 @@
     </el-dropdown>
 
     <el-dialog
+      v-if="editing"
       v-model="editing"
       title="Edit Member"
       :append-to-body="true"

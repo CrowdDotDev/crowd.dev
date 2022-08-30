@@ -42,6 +42,7 @@ import ActivityListFilter from '@/modules/activity/components/activity-list-filt
 import ActivityListFeed from '@/modules/activity/components/activity-list-feed.vue'
 import ActivityFormPage from '@/modules/activity/components/activity-form-page.vue'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'AppActivityListPage',
@@ -59,6 +60,10 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser'
+    }),
     hasPermissionToCreate() {
       return new ActivityPermissions(
         this.currentTenant,

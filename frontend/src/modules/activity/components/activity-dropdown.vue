@@ -20,6 +20,7 @@
       </template>
     </el-dropdown>
     <el-dialog
+      v-if="editing"
       v-model="editing"
       title="Edit Activity"
       :append-to-body="true"

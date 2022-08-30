@@ -1,12 +1,14 @@
 <template>
   <div class="popover-wrapper">
     <el-popover
-      v-model="isVisible"
+      :visible="isVisible"
       :trigger="trigger"
       :title="title"
       :placement="placement"
-      :show-arrow="visibleArrow"
+      :show-arrow="showArrow"
       popper-class="app-popover"
+      width="352px"
+      :persistent="false"
       @show="isVisible = true"
       @hide="isVisible = false"
     >
@@ -46,9 +48,9 @@ export default {
       type: Boolean,
       default: false
     },
-    visibleArrow: {
+    showArrow: {
       type: Boolean,
-      default: true
+      default: false
     },
     customClass: {
       type: String,
@@ -70,18 +72,24 @@ export default {
     isVisible: {
       handler(newValue) {
         if (newValue) {
-          const el = this.$el.querySelector('.app-popover')
+          setTimeout(() => {
+            const el = document.querySelector(
+              '.app-popover'
+            )
 
-          const offsetTop =
-            this.$el.getBoundingClientRect().top +
-            window.pageYOffset
-          const offsetLeft =
-            this.$el.getBoundingClientRect().left +
-            window.pageXOffset
+            const offsetTop =
+              this.$el.getBoundingClientRect().top +
+              window.pageYOffset
+            const offsetLeft =
+              this.$el.getBoundingClientRect().left +
+              window.pageXOffset
 
-          el.style.top = offsetTop - 100 + 'px'
-          el.style.left =
-            offsetLeft - (offsetLeft < 242 ? 0 : 242) + 'px'
+            el.style.top = offsetTop - 100 + 'px'
+            el.style.left =
+              offsetLeft -
+              (offsetLeft < 242 ? 0 : 242) +
+              'px'
+          }, 100)
         }
       }
     }
@@ -91,6 +99,6 @@ export default {
 
 <style lang="scss">
 .app-popover {
-  @apply z-20 border border-gray-300 rounded-lg shadow-none p-3 fixed w-88;
+  @apply z-20 border border-gray-300 rounded-lg shadow-none p-3 fixed;
 }
 </style>
