@@ -2,7 +2,7 @@
   <el-dialog
     class="devto-integration-modal"
     :visible.sync="isVisible"
-    @close="isVisible = false"
+    @close="cancel"
     append-to-body
   >
     <template v-slot:title>
@@ -14,7 +14,7 @@
         />
         <div class="pt-1">
           <span
-            class="block text-gray-800 font-normal leading-none"
+            class="block text-gray-800 text-xs font-normal leading-none"
             >Integration</span
           >
           <span class="block text-lg font-medium">DEV</span>
@@ -22,8 +22,8 @@
       </div>
     </template>
     <el-form class="form devto-integration-widget">
-      <div class="flex flex-col mx-2">
-        <span class="text-sm font-semibold"
+      <div class="flex flex-col">
+        <span class="text-sm font-medium"
           >Track organization articles</span
         >
         <span class="text-sm font-light mb-2">
@@ -50,6 +50,7 @@
               </template>
             </el-input>
             <i
+              v-if="!isLastOrganization"
               class="cursor-pointer ml-3 ri-delete-bin-line text-gray-700 text-2xl hover:text-gray-400"
               @click="removeOrganization(org.id)"
             />
@@ -60,7 +61,7 @@
           @click="addNewOrganization"
           >+ Add organization link</a
         >
-        <span class="text-sm font-semibold mt-6"
+        <span class="text-sm font-medium mt-6"
           >Track user articles</span
         >
         <span class="text-sm font-light mb-2">
@@ -90,6 +91,7 @@
               </template>
             </el-input>
             <i
+              v-if="!isLastUser"
               class="cursor-pointer ml-3 ri-delete-bin-line text-gray-700 text-2xl hover:text-gray-400"
               @click="removeUser(user.id)"
             />
@@ -113,7 +115,7 @@
         </el-button>
         <el-button
           class="btn btn--secondary"
-          @click="isVisible = false"
+          @click="cancel"
         >
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
@@ -147,9 +149,37 @@ export default {
   },
   computed: {
     connectDisabled() {
-      return (
-        this.users.length + this.organizations.length === 0
+      const validUsers = this.users.filter(
+        (u) => !!u.username
       )
+      const validOrgs = this.organizations.filter(
+        (o) => !!o.username
+      )
+
+      return (
+        validUsers.length + validOrgs.length === 0 ||
+        (validUsers.length ===
+          this.integration.settings.users.length &&
+          validUsers.every((u) =>
+            this.integration.settings.users.includes(
+              u.username
+            )
+          ) &&
+          validOrgs.length ===
+            this.integration.settings.organizations
+              .length &&
+          validOrgs.every((o) =>
+            this.integration.settings.organizations.includes(
+              o.username
+            )
+          ))
+      )
+    },
+    isLastOrganization() {
+      return this.organizations.length === 1
+    },
+    isLastUser() {
+      return this.users.length === 1
     },
     isValid() {
       const relevantUsers = this.users.filter(
@@ -199,21 +229,10 @@ export default {
     integration: {
       handler: function (newVal) {
         if (newVal) {
-          this.$data.users = []
-          newVal.settings.users.forEach((u) =>
-            this.addNewUser(u)
-          )
-          this.$data.organizations = []
-          newVal.settings.organizations.forEach((o) =>
-            this.addNewOrganization(o)
-          )
+          this.syncData()
         }
       }
     }
-  },
-  created() {
-    this.addNewOrganization()
-    this.addNewUser()
   },
 
   methods: {
@@ -223,6 +242,24 @@ export default {
 
     toggle() {
       this.isVisible = !this.isVisible
+    },
+
+    syncData() {
+      this.users = []
+      this.integration.settings.users.forEach((u) =>
+        this.addNewUser(u)
+      )
+      if (this.users.length === 0) {
+        this.addNewUser()
+      }
+
+      this.organizations = []
+      this.integration.settings.organizations.forEach((o) =>
+        this.addNewOrganization(o)
+      )
+      if (this.organizations.length === 0) {
+        this.addNewOrganization()
+      }
     },
 
     addNewUser(username) {
@@ -333,6 +370,11 @@ export default {
       }
     },
 
+    cancel() {
+      this.isVisible = false
+      this.syncData()
+    },
+
     async save() {
       const relevantOrganizations = this.organizations.filter(
         (o) => !!o.username
@@ -372,6 +414,10 @@ export default {
 .devto-integration-widget {
   .el-form-item {
     @apply mb-2;
+  }
+
+  .el-input-group__prepend {
+    @apply p-3;
   }
 }
 </style>
