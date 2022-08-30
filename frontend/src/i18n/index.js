@@ -1,16 +1,6 @@
 import _get from 'lodash/get'
 import moment from 'moment'
 import { setLocale as setYupLocale } from 'yup'
-import momentLocaleEs from 'moment/locale/es'
-import momentLocalePt from 'moment/locale/pt'
-
-import elementPlusEs from 'element-plus/lib/locale/lang/es'
-import elementPlusEn from 'element-plus/lib/locale/lang/en'
-import elementPlusPt from 'element-plus/lib/locale/lang/pt'
-
-import i18nEs from '@/i18n/es'
-import i18nEn from '@/i18n/en'
-import i18nPt from '@/i18n/pt-BR'
 
 let currentLanguageCode = ''
 
@@ -38,32 +28,35 @@ const languages = {
   }
 }
 
-export function init() {
+export async function init() {
   currentLanguageCode =
     localStorage.getItem('language') || 'en'
   setLanguageCode(currentLanguageCode)
 
   if (currentLanguageCode === 'en') {
-    initEn()
+    await initEn()
   }
 
   if (currentLanguageCode === 'pt-BR') {
-    initPt()
+    await initPtBr()
   }
 
   if (currentLanguageCode === 'es') {
-    initEs()
+    await initEs()
   }
 }
 
-function initEs() {
+async function initEs() {
   const language = languages['es']
 
-  const momentLocale = momentLocaleEs
+  const momentLocale = (await import('moment/locale/es'))
+    .default
 
-  language.elementUI = elementPlusEs
+  language.elementUI = (
+    await import('element-plus/lib/locale/lang/es')
+  ).default
 
-  language.dictionary = i18nEs
+  language.dictionary = (await import('@/i18n/es')).default
 
   moment.locale('es', momentLocale)
 
@@ -74,16 +67,21 @@ function initEs() {
   return language
 }
 
-function initPt() {
-  const language = languages['pt']
+async function initPtBr() {
+  const language = languages['pt-BR']
 
-  const momentLocale = momentLocalePt
+  const momentLocale = (await import('moment/locale/pt-br'))
+    .default
 
-  language.elementUI = elementPlusPt
+  language.elementUI = (
+    await import('element-plus/lib/locale/lang/pt-br')
+  ).default
 
-  language.dictionary = i18nPt
+  language.dictionary = (
+    await import('@/i18n/pt-BR')
+  ).default
 
-  moment.locale('pt', momentLocale)
+  moment.locale('pt-BR', momentLocale)
 
   if (language.dictionary.validation) {
     setYupLocale(language.dictionary.validation)
@@ -92,14 +90,14 @@ function initPt() {
   return language
 }
 
-export function initEn() {
+async function initEn() {
   const language = languages['en']
 
-  language.elementUI = elementPlusEn
+  language.dictionary = (await import('@/i18n/en')).default
 
-  language.dictionary = i18nEn
-
-  moment.locale('en')
+  language.elementUI = (
+    await import('element-plus/lib/locale/lang/en')
+  ).default
 
   if (language.dictionary.validation) {
     setYupLocale(language.dictionary.validation)

@@ -22,6 +22,7 @@ i18nInit()
  * (We should probably revisit/refactor this later to be less confusing)
  */
 ;(async function () {
+  await i18nInit()
   const app = createApp(App)
   const router = await createRouter()
   const store = await createStore()
