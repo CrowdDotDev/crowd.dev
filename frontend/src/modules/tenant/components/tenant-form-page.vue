@@ -49,7 +49,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import TenantForm from '@/modules/tenant/components/tenant-form.vue'
-import { router } from '@/router'
 
 export default {
   name: 'AppTenantFormPage',
@@ -89,7 +88,7 @@ export default {
     }),
 
     doCancel() {
-      router.push('/tenant')
+      this.$router.push('/tenant')
     },
 
     async doSubmit(payload) {

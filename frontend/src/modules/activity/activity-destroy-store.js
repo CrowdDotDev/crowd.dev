@@ -56,15 +56,8 @@ export default {
           i18n('entities.activity.destroy.success')
         )
 
-        if (
-          createRouter().currentRoute.name.includes(
-            'activity'
-          )
-        ) {
-          if (
-            createRouter().currentRoute.name ===
-            'activityView'
-          ) {
+        if (router.currentRoute.name.includes('activity')) {
+          if (router.currentRoute.name === 'activityView') {
             router.push('/activities')
           }
           dispatch(
@@ -102,10 +95,7 @@ export default {
           i18n('entities.activity.destroyAll.success')
         )
 
-        if (
-          createRouter().currentRoute.name ===
-          'activityView'
-        ) {
+        if (router.currentRoute.name === 'activityView') {
           router.push('/activities')
         }
 

@@ -34,7 +34,6 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
-import LogRocket from 'logrocket'
 import { i18n } from '@/i18n'
 
 export default {
@@ -91,14 +90,6 @@ export default {
 
   async mounted() {
     identify(this.currentUser)
-    // This is an example script - don't forget to change it!
-
-    if (process.env.NODE_ENV === 'production') {
-      LogRocket.identify(this.currentUser.id, {
-        name: this.currentUser.fullName,
-        email: this.currentUser.email
-      })
-    }
   },
 
   unmounted() {

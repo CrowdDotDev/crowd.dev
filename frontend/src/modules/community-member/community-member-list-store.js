@@ -387,7 +387,7 @@ export default {
         })
 
         filter.type =
-          createRouter().currentRoute.name ===
+          router.currentRoute.name ===
           'communityMemberLookalike'
             ? 'lookalike'
             : 'member'

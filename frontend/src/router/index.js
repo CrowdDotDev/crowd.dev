@@ -26,7 +26,7 @@ const routes = [
       })
     )
     .reduce((a, b) => a.concat(b), []),
-  { path: '*', redirect: '/404' }
+  { path: '/:catchAll(.*)', redirect: '/404' }
 ]
 let router
 

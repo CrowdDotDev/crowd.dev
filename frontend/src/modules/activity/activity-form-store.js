@@ -125,9 +125,7 @@ export default {
           i18n('entities.activity.update.success')
         )
 
-        if (
-          createRouter().currentRoute.name === 'activity'
-        ) {
+        if (router.currentRoute.name === 'activity') {
           dispatch(
             'activity/list/doFetch',
             {

@@ -1,6 +1,3 @@
-import formatDateFilter from '@/shared/filters/format-date-filter'
-import formatDatetimeFilter from '@/shared/filters/format-datetime-filter'
-import AutofocusMixin from '@/shared/mixins/autofocus-mixin'
 import I18n from '@/shared/i18n/i18n.vue'
 import I18nFlags from '@/shared/i18n/i18n-flags.vue'
 import I18nSelect from '@/shared/i18n/i18n-select.vue'
@@ -55,9 +52,5 @@ export default {
     'app-avatar': Avatar,
     'app-alert': Alert,
     'app-keywords-input': KeywordsInput
-  },
-
-  filters: [formatDateFilter, formatDatetimeFilter],
-
-  mixins: [AutofocusMixin]
+  }
 }

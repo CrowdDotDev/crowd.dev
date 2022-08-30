@@ -126,8 +126,7 @@ export default {
           i18n('entities.communityMember.update.success')
         )
         if (
-          createRouter().currentRoute.name ===
-          'communityMember'
+          router.currentRoute.name === 'communityMember'
         ) {
           dispatch(
             'communityMember/list/doFetch',
