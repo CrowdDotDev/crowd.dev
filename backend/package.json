@@ -48,6 +48,7 @@
     "express-rate-limit": "6.5.1",
     "formidable-serverless": "1.1.1",
     "helmet": "4.1.1",
+    "html-to-text": "^8.2.1",
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.21",
     "meilisearch": "^0.26.0",
@@ -76,6 +77,7 @@
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.18.10",
     "@babel/preset-env": "^7.16.10",
+    "@types/html-to-text": "^8.1.1",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.21",
     "@types/sanitize-html": "^2.6.2",

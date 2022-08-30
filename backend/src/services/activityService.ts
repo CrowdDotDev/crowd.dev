@@ -1,3 +1,4 @@
+import { PlatformType } from './../utils/platforms'
 import { Transaction } from 'sequelize/types'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -163,7 +164,10 @@ export default class ActivityService {
 
       // if conversation is not already published, update conversation info with new parent
       if (!conversation.published) {
-        const newConversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+        const newConversationTitle = await conversationService.generateTitle(
+          parent.crowdInfo.body,
+          ActivityService.hasHtmlActivities(parent.platform),
+        )
 
         conversation = await conversationService.update(conversation.id, {
           title: newConversationTitle,
@@ -180,7 +184,10 @@ export default class ActivityService {
       )
     } else {
       // neither child nor parent is in a conversation, create one from parent
-      const conversationTitle = await conversationService.generateTitle(parent.crowdInfo.body)
+      const conversationTitle = await conversationService.generateTitle(
+        parent.crowdInfo.body,
+        ActivityService.hasHtmlActivities(parent.platform),
+      )
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
         this.options,
       )
@@ -366,5 +373,14 @@ export default class ActivityService {
     )
 
     return count > 0
+  }
+
+  static hasHtmlActivities(platform: PlatformType): boolean {
+    switch (platform) {
+      case PlatformType.DEVTO:
+        return true
+      default:
+        return false
+    }
   }
 }

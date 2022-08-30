@@ -2,6 +2,7 @@ import moment from 'moment'
 import { Transaction } from 'sequelize/types'
 import emoji from 'emoji-dictionary'
 import fetch from 'node-fetch'
+import { convert as convertHtmlToText } from 'html-to-text'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationRepository from '../database/repositories/conversationRepository'
@@ -485,12 +486,21 @@ export default class ConversationService {
   /**
    * Generates a clean title from given string
    * @param title string used to generate a cleaned title
+   * @param isHtml whether the title param is html or plain text
    * @returns cleaned title
    */
-  async generateTitle(title: String): Promise<String> {
+  async generateTitle(title: string, isHtml: boolean = false): Promise<string> {
     if (!title || ConversationService.getCleanString(title) === '') {
       return `conversation-${await ConversationRepository.count({}, this.options)}`
     }
+
+    if (isHtml) {
+      // convert html to text
+      const plainText = convertHtmlToText(title)
+      // and remove new lines
+      return plainText.replace(/\n/g, ' ')
+    }
+
     return title
   }
 

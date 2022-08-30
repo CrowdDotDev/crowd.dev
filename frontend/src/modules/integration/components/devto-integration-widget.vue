@@ -26,7 +26,7 @@
         <span class="text-sm font-medium"
           >Track organization articles</span
         >
-        <span class="text-sm font-light mb-2">
+        <span class="text-sm font-light mb-2 text-gray-600">
           Monitor all articles from organization accounts
         </span>
         <el-form-item
@@ -64,7 +64,7 @@
         <span class="text-sm font-medium mt-6"
           >Track user articles</span
         >
-        <span class="text-sm font-light mb-2">
+        <span class="text-sm font-light mb-2 text-gray-600">
           Monitor articles from individual users, such as
           team members or community advocates
         </span>

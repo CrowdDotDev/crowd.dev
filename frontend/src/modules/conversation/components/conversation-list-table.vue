@@ -33,10 +33,9 @@
               }"
               class="flex items-center text-black"
             >
-              <div
-                class="conversation-list-table--title"
-                v-html="scope.row.title"
-              />
+              <div class="font-semibold truncate">
+                {{ scope.row.title }}
+              </div>
             </router-link>
           </template>
         </el-table-column>
@@ -293,15 +292,6 @@ export default {
 
   &--platform-icon {
     @apply w-4 h-4;
-  }
-
-  &--title {
-    @apply font-semibold truncate;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 </style>
