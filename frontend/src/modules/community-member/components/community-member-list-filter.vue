@@ -1,13 +1,15 @@
 <template>
   <div class="filter">
-    <Teleport to="#teleport-community-member-filter-toggle">
+    <app-teleport
+      to="#teleport-community-member-filter-toggle"
+    >
       <app-filter-toggle
         :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-1"
         @click="doToggleExpanded"
       ></app-filter-toggle>
-    </Teleport>
+    </app-teleport>
     <el-dialog
       v-model:visible="expanded"
       title="Members Filters"

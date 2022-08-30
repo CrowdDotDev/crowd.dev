@@ -1,17 +1,17 @@
 <template>
   <div class="filter">
-    <Teleport to="#teleport-user-filter-toggle">
+    <app-teleport to="#teleport-user-filter-toggle">
       <app-filter-toggle
         :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-1"
         @click="doToggleExpanded"
       ></app-filter-toggle>
-    </Teleport>
+    </app-teleport>
 
     <el-dialog
       v-model:visible="expanded"
-      title="Activities Filters"
+      title="Users Filters"
       @close="expanded = false"
     >
       <el-form
@@ -122,6 +122,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { i18n } from '@/i18n'
 import { UserModel } from '@/premium/user/user-model'
+import AppTeleport from '@/shared/teleport/teleport'
 
 const { fields } = UserModel
 
@@ -134,7 +135,7 @@ const filterSchema = new FilterSchema([
 
 export default {
   name: 'AppUserListFilter',
-
+  components: { AppTeleport },
   data() {
     return {
       rules: filterSchema.rules(),

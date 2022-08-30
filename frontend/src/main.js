@@ -9,8 +9,6 @@ import {
   getElementUILanguage
 } from '@/i18n'
 
-i18nInit()
-
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { AuthToken } from '@/modules/auth/auth-token'
@@ -19,10 +17,11 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 import App from '@/app.vue'
 
 /**
- * We're using Immediately Invoked Function Expressions (IIFE) here because of the async/await for TenantService.fetchAndApply()
+ * We're using Immediately Invoked Function Expressions (IIFE) here because of the async/awaits
  * (We should probably revisit/refactor this later to be less confusing)
  */
 ;(async function () {
+  await i18nInit()
   const app = createApp(App)
   const router = await createRouter()
   const store = await createStore()

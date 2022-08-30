@@ -22,6 +22,7 @@ import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
+import Teleport from '@/shared/teleport/teleport.vue'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -51,6 +52,7 @@ export default {
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
     'app-alert': Alert,
-    'app-keywords-input': KeywordsInput
+    'app-keywords-input': KeywordsInput,
+    'app-teleport': Teleport
   }
 }
