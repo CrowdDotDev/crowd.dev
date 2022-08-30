@@ -96,7 +96,7 @@
             <span class="el-dropdown-link">
               <i class="ri-xl ri-more-line"></i>
             </span>
-            <el-dropdown-menu>
+            <template #dropdown>
               <el-dropdown-item
                 :command="{
                   action: 'rename',
@@ -117,7 +117,7 @@
                   class="ri-delete-bin-line mr-1"
                 />Delete</el-dropdown-item
               >
-            </el-dropdown-menu>
+            </template>
           </el-dropdown>
         </div>
       </div>

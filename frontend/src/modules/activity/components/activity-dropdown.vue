@@ -8,7 +8,7 @@
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu>
+      <template #dropdown>
         <el-dropdown-item command="activityEdit">
           <i class="ri-pencil-line mr1" />
           Edit Activity</el-dropdown-item
@@ -17,7 +17,7 @@
           ><i class="ri-delete-bin-line mr-1" />Delete
           Activity</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
     <el-dialog
       v-model:visible="editing"

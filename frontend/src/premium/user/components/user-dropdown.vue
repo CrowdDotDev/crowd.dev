@@ -4,7 +4,7 @@
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu>
+      <template #dropdown>
         <el-dropdown-item
           v-if="user.status === 'invited'"
           command="userInviteTokenClipboard"
@@ -25,7 +25,7 @@
               : 'Delete User'
           }}</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
     <el-dialog
       v-model:visible="editing"

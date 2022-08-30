@@ -43,7 +43,7 @@
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu>
+      <template #dropdown>
         <el-dropdown-item
           v-if="!editable"
           command="open-settings-modal"
@@ -70,7 +70,7 @@
           ><i class="ri-lg ri-delete-bin-line mr-1" />Delete
           Widget</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
   </div>
 </template>

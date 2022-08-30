@@ -23,7 +23,7 @@
         </div>
       </div>
     </div>
-    <el-dropdown-menu>
+    <template #dropdown>
       <div
         v-if="currentTenant && currentTenant.onboardedAt"
       >
@@ -60,7 +60,7 @@
       <el-dropdown-item command="doSignout">
         <app-i18n code="auth.signout"></app-i18n>
       </el-dropdown-item>
-    </el-dropdown-menu>
+    </template>
   </el-dropdown>
 </template>
 

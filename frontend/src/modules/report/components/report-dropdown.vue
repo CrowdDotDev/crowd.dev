@@ -13,7 +13,7 @@
       <span class="el-dropdown-link">
         <i class="text-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu>
+      <template #dropdown>
         <el-dropdown-item
           v-if="report.public"
           :command="{
@@ -48,7 +48,7 @@
           ><i class="ri-delete-bin-line mr-1" />Delete
           Report</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
   </div>
 </template>
