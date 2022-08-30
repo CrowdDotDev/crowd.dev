@@ -123,9 +123,10 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
           userContext,
         )
       }
+    } else {
+      console.log(`We have no Devto articles to process for tenant ${tenant}!`)
+      await IntegrationRepository.update(integrationId, { status: 'done' }, userContext)
     }
-
-    console.log(`We have no Devto articles to process for tenant ${tenant}!`)
   } catch (err) {
     console.log('Error in Devto worker, ', err)
     throw err
