@@ -2,7 +2,6 @@
   <el-dialog
     v-model="isVisible"
     class="devto-integration-modal"
-    append-to-body
     @close="cancel"
   >
     <template #title>

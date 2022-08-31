@@ -61,16 +61,18 @@
               class="w-full lg:w-1/2 mx-3"
             >
               <el-input :value="tenantId" :readonly="true">
-                <el-tooltip
-                  content="Copy to Clipboard"
-                  placement="top"
-                >
-                  <el-button
-                    @click="copyToClipboard('tenantId')"
+                <template #append>
+                  <el-tooltip
+                    content="Copy to Clipboard"
+                    placement="top"
                   >
-                    <i class="ri-clipboard-line"></i>
-                  </el-button>
-                </el-tooltip>
+                    <el-button
+                      @click="copyToClipboard('tenantId')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
             <el-form-item
@@ -82,26 +84,28 @@
                 :disabled="!showToken"
                 :readonly="showToken"
               >
-                <el-tooltip
-                  v-if="!showToken"
-                  content="Show Auth Token"
-                  placement="top"
-                >
-                  <el-button @click="showToken = true">
-                    <i class="ri-eye-line"></i>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip
-                  v-else
-                  content="Copy to Clipboard"
-                  placement="top"
-                >
-                  <el-button
-                    @click="copyToClipboard('token')"
+                <template #append>
+                  <el-tooltip
+                    v-if="!showToken"
+                    content="Show Auth Token"
+                    placement="top"
                   >
-                    <i class="ri-clipboard-line"></i>
-                  </el-button>
-                </el-tooltip>
+                    <el-button @click="showToken = true">
+                      <i class="ri-eye-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-else
+                    content="Copy to Clipboard"
+                    placement="top"
+                  >
+                    <el-button
+                      @click="copyToClipboard('token')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
           </el-form>

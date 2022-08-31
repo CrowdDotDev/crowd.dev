@@ -27,9 +27,9 @@
 
     .el-input {
       .el-input__wrapper {
-        @apply w-full;
+        @apply w-full px-0;
         .el-input__inner {
-          @apply border-none px-0;
+          @apply border-none px-2;
         }
       }
     }
