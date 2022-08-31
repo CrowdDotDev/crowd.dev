@@ -47,16 +47,6 @@
 
           <el-col :md="12" :sm="24">
             <el-form-item
-              v-if="lookalike"
-              label="Score Range"
-              :prop="fields.scoreRange.name"
-            >
-              <app-number-range-input
-                v-model="model[fields.scoreRange.name]"
-              />
-            </el-form-item>
-            <el-form-item
-              v-else
               label="Engagement Level"
               label-width="150"
             >
@@ -77,7 +67,7 @@
             </el-form-item>
           </el-col>
 
-          <el-col v-if="!lookalike" :sm="24">
+          <el-col :sm="24">
             <el-form-item
               label="# of Activities"
               :prop="fields.activitiesCountRange.name"
@@ -156,12 +146,6 @@ export default {
     AppNumberRangeInput,
     AppTagAutocompleteInput,
     AppCommunityMemberEngagementLevelFilter
-  },
-  props: {
-    lookalike: {
-      type: Boolean,
-      default: false
-    }
   },
   data() {
     return {

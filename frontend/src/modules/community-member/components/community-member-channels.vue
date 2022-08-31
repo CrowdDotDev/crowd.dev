@@ -125,14 +125,9 @@ export default {
   },
   methods: {
     trackClick(channel) {
-      window.analytics.track(
-        this.member.type === 'lookalike'
-          ? 'Click Lookalike Contact'
-          : 'Click Member Contact',
-        {
-          channel
-        }
-      )
+      window.analytics.track('Click Member Contact', {
+        channel
+      })
     },
 
     findIcon(platform) {

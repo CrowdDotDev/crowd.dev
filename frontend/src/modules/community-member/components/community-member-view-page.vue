@@ -117,11 +117,7 @@ export default {
 
   mounted() {
     if (this.record) {
-      window.analytics.page(
-        this.record.type === 'lookalike'
-          ? 'Lookalike — View'
-          : 'Members — View'
-      )
+      window.analytics.page('Members — View')
     }
   },
 

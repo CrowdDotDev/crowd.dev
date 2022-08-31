@@ -151,17 +151,6 @@ export default {
       await this.refreshData(settings)
       if (this.widget.settings.repositories.length > 0) {
         window.analytics.track('Set Benchmark')
-        try {
-          await authAxios.post(
-            `/tenant/${this.currentTenant.id}/microservices`,
-            {
-              init: true,
-              type: 'github_lookalike'
-            }
-          )
-        } catch (error) {
-          console.log(error)
-        }
       }
     },
     async refreshData(settings) {

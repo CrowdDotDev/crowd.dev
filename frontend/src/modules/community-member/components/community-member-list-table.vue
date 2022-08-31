@@ -20,7 +20,7 @@
         ></el-table-column>
 
         <el-table-column
-          :label="lookalike ? 'Lookalike Member' : 'Member'"
+          label="Member"
           prop="username.crowdUsername"
           width="220"
           sortable="custom"
@@ -46,11 +46,7 @@
         </el-table-column>
 
         <el-table-column
-          :label="
-            lookalike
-              ? 'Lookalike Score'
-              : 'Engagement Level'
-          "
+          label="Engagement Level"
           prop="score"
           width="180"
           sortable="custom"
@@ -63,7 +59,6 @@
         </el-table-column>
 
         <el-table-column
-          v-if="!lookalike"
           label="Joined At"
           prop="joinedAt"
           sortable="custom"
@@ -82,7 +77,6 @@
         </el-table-column>
 
         <el-table-column
-          v-if="!lookalike"
           :label="
             translate(
               'entities.communityMember.fields.numberActivities'

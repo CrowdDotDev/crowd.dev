@@ -188,12 +188,6 @@ export default {
       state.count = 0
     },
 
-    FIND_LOOKALIKE_STARTED(state) {
-      state.loading = true
-    },
-    FIND_LOOKALIKE_SUCCESS() {},
-    FIND_LOOKALIKE_ERROR() {},
-
     EXPORT_STARTED(state) {
       state.exportLoading = true
     },
@@ -387,12 +381,6 @@ export default {
           rawFilter,
           keepPagination
         })
-
-        filter.type =
-          router.currentRoute.name ===
-          'communityMemberLookalike'
-            ? 'lookalike'
-            : 'member'
 
         const response = await CommunityMemberService.list(
           filter,

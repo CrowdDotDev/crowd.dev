@@ -19,9 +19,6 @@
           class="app-page-spinner h-6 w-6"
         ></div>
       </div>
-      <div v-else-if="member.type === 'lookalike'">
-        {{ Math.round(computedEngagementLevel.value) }}
-      </div>
       <div
         v-else
         class="tag community-member-engagement-level"
