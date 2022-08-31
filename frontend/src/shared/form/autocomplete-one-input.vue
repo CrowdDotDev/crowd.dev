@@ -11,7 +11,7 @@
     filterable
     remote
     :allow-create="allowCreate"
-    reserve-keyword
+    :reserve-keyword="false"
     value-key="id"
     :class="inputClass"
   >
