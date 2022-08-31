@@ -187,28 +187,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.settings {
-  .el-tabs {
-    &__header {
-      @apply m-0 border-b;
-    }
-    &__active-bar {
-      @apply bg-primary-900;
-    }
-    &__item {
-      @apply font-semibold;
-      &.is-active {
-        @apply text-black;
-      }
-      &:focus.is-active.is-focus:not(:active) {
-        box-shadow: none;
-      }
-    }
-    &__content {
-      @apply rounded border-0;
-    }
-  }
-}
-</style>

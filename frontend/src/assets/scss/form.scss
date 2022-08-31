@@ -92,7 +92,7 @@
 }
 
 .el-radio.is-bordered {
-  @apply m-0 px-4;
+  @apply m-0 px-4 mr-2;
 
   .el-radio__input {
     @apply hidden;

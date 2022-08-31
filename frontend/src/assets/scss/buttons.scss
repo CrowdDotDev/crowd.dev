@@ -142,4 +142,8 @@
   &--email, &--twitter:hover, &--github:hover &--linkedin:hover {
     @apply opacity-80;
   }
+
+  &.el-button+&.el-button {
+    @apply m-0;
+  }
 }

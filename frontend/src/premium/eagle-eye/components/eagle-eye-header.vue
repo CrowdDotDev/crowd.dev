@@ -74,30 +74,6 @@ export default {
 
   &-tabs {
     @apply mt-8;
-
-    .el-tabs {
-      &__header {
-        @apply m-0 border-none;
-      }
-      &__active-bar {
-        @apply bg-primary-900;
-      }
-      &__item {
-        @apply font-normal px-4;
-        &.is-active {
-          @apply text-primary-900 font-medium;
-        }
-        &:hover {
-          @apply text-primary-900;
-        }
-        &:focus.is-active.is-focus:not(:active) {
-          box-shadow: none;
-        }
-      }
-      &__nav-wrap::after {
-        @apply hidden;
-      }
-    }
   }
 }
 </style>

@@ -4,7 +4,7 @@
     class="devto-integration-modal"
     @close="cancel"
   >
-    <template #title>
+    <template #header>
       <div class="flex flex-row">
         <img
           :src="logoUrl"
