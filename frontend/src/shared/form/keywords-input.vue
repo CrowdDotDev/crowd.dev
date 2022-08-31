@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      class="el-select el-keywords-input-wrapper"
+      class="el-keywords-input-wrapper"
       :class="focused ? 'is-focus' : ''"
       @click="focusKeywordInput"
     >
@@ -157,7 +157,7 @@ export default {
     cubic-bezier(0.645, 0.045, 0.355, 1);
   min-height: 38px;
 
-  &.el-select > .el-tag {
+  .el-tag {
     margin: 4px 0 4px 4px;
   }
   &.is-focus {
