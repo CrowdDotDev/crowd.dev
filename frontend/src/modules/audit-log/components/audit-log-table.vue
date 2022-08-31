@@ -74,6 +74,7 @@
         :disabled="loading"
         :layout="paginationLayout"
         :total="count"
+        :page-size="20"
         :page-sizes="[20, 50, 100, 200]"
         @current-change="doChangePaginationCurrentPage"
         @size-change="doChangePaginationPageSize"

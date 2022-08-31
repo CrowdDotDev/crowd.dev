@@ -51,7 +51,7 @@ export default {
       default: true
     }
   },
-  emits: { input: null },
+  emits: ['update:modelValue'],
 
   computed: {
     ...mapGetters({
