@@ -72,16 +72,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      fileList: (this.value || []).map((item) => ({
-        ...item,
-        url: item.downloadUrl
-      })),
-      loading: false
-    }
-  },
-
   computed: {
     isFull() {
       const hasInputReference = Boolean(this.$refs.files)

@@ -98,11 +98,7 @@ export default {
       default: () => []
     }
   },
-<<<<<<< HEAD
   emits: ['remove-tag', 'update:modelValue'],
-=======
-  emits: ['remove-tag', 'input'],
->>>>>>> a061b75 (Fix warnings from shared modules)
   data() {
     return {
       loading: false,
