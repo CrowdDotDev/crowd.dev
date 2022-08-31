@@ -144,7 +144,7 @@ let createComponent = function (app, tagName, chartType) {
         return acc
       }, {})
     },
-    data: function () {
+    data() {
       return {
         chartId: null
       }
@@ -221,6 +221,8 @@ let createComponent = function (app, tagName, chartType) {
           ? this.chartOptions.loading
           : 'Loading...'
 
+      // h() accepts VNodes,
+      // but limit to string since it may be used by Chartkick.js
       if (typeof loading !== 'string') {
         throw new Error('loading must be a string')
       }
@@ -228,9 +230,7 @@ let createComponent = function (app, tagName, chartType) {
       return h(
         'div',
         {
-          attrs: {
-            id: this.chartId
-          },
+          id: this.chartId,
           style: this.chartStyle
         },
         [loading]
@@ -239,24 +239,24 @@ let createComponent = function (app, tagName, chartType) {
   })
 }
 
-Chartkick.install = function (Vue) {
+Chartkick.install = function (app) {
   Chartkick.addAdapter(Chart)
-  createComponent(Vue, 'line-chart', Chartkick.LineChart)
-  createComponent(Vue, 'pie-chart', Chartkick.PieChart)
+  createComponent(app, 'line-chart', Chartkick.LineChart)
+  createComponent(app, 'pie-chart', Chartkick.PieChart)
   createComponent(
-    Vue,
+    app,
     'column-chart',
     Chartkick.ColumnChart
   )
-  createComponent(Vue, 'bar-chart', Chartkick.BarChart)
-  createComponent(Vue, 'area-chart', Chartkick.AreaChart)
+  createComponent(app, 'bar-chart', Chartkick.BarChart)
+  createComponent(app, 'area-chart', Chartkick.AreaChart)
   createComponent(
-    Vue,
+    app,
     'scatter-chart',
     Chartkick.ScatterChart
   )
-  createComponent(Vue, 'geo-chart', Chartkick.GeoChart)
-  createComponent(Vue, 'timeline', Chartkick.Timeline)
+  createComponent(app, 'geo-chart', Chartkick.GeoChart)
+  createComponent(app, 'timeline', Chartkick.Timeline)
 }
 
 export default Chartkick

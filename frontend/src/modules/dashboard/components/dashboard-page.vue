@@ -3,14 +3,14 @@
     <div v-if="widgetsCount > 0">
       <app-dashboard-datetime-based-widgets />
       <app-dashboard-recent-updates-widgets />
-      <el-row :gutter="16" class="mt-8 mb-2 flex">
+      <el-row :gutter="16" class="mt-8 mb-2">
         <el-col :lg="12" :md="12" :sm="24">
           <div class="font-light text-xl">
             Other resources
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="16" class="flex mb-4">
+      <el-row :gutter="16" class="mb-4">
         <el-col :lg="12" :md="12" :sm="24">
           <app-widget-benchmark />
         </el-col>
