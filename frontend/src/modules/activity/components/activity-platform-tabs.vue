@@ -56,6 +56,7 @@ function createFilterEntry(platform) {
 
 export default {
   name: 'AppActivityPlatformTabs',
+  emits: ['change'],
   data() {
     return {
       platforms: [

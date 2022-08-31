@@ -314,9 +314,7 @@ export default {
           }
         )
 
-        routerAsync().push(
-          '/settings?activeTab=integrations'
-        )
+        router.push('/settings?activeTab=integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')

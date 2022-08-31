@@ -1,5 +1,4 @@
 import { i18n, init as i18nInit } from '@/i18n'
-import EnumeratorField from '@/shared/fields/enumerator-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import Storage from '@/security/storage'
 import ImagesField from '@/shared/fields/images-field'
