@@ -19,7 +19,7 @@ describe('NoteRepository tests', () => {
     it('Should create the given note succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note2add = { name: 'test-note' }
+      const note2add = { body: 'test-note' }
 
       const noteCreated = await NoteRepository.create(note2add, mockIRepositoryOptions)
 
@@ -28,7 +28,7 @@ describe('NoteRepository tests', () => {
 
       const expectedNoteCreated = {
         id: noteCreated.id,
-        name: note2add.name,
+        body: note2add.body,
         members: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -41,7 +41,7 @@ describe('NoteRepository tests', () => {
       expect(noteCreated).toStrictEqual(expectedNoteCreated)
     })
 
-    it('Should throw sequelize not null error -- name field is required', async () => {
+    it('Should throw sequelize not null error -- body field is required', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const note2add = {}
@@ -54,7 +54,7 @@ describe('NoteRepository tests', () => {
     it('Should successfully find created note by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note2add = { name: 'test-note' }
+      const note2add = { body: 'test-note' }
 
       const noteCreated = await NoteRepository.create(note2add, mockIRepositoryOptions)
 
@@ -63,7 +63,7 @@ describe('NoteRepository tests', () => {
 
       const expectedNoteFound = {
         id: noteCreated.id,
-        name: note2add.name,
+        body: note2add.body,
         members: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -95,8 +95,8 @@ describe('NoteRepository tests', () => {
     it('Should return the given ids of previously created note entities', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note1 = { name: 'test1' }
-      const note2 = { name: 'test2' }
+      const note1 = { body: 'test1' }
+      const note2 = { body: 'test2' }
 
       const note1Created = await NoteRepository.create(note1, mockIRepositoryOptions)
       const note2Created = await NoteRepository.create(note2, mockIRepositoryOptions)
@@ -112,7 +112,7 @@ describe('NoteRepository tests', () => {
     it('Should only return the ids of previously created notes and filter random uuids out', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note = { name: 'test1' }
+      const note = { body: 'test1' }
 
       const noteCreated = await NoteRepository.create(note, mockIRepositoryOptions)
 
@@ -129,7 +129,7 @@ describe('NoteRepository tests', () => {
     it('Should return an empty array for an irrelevant tenant', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note = { name: 'test' }
+      const note = { body: 'test' }
 
       const noteCreated = await NoteRepository.create(note, mockIRepositoryOptions)
 
@@ -149,9 +149,9 @@ describe('NoteRepository tests', () => {
     it('Should find and count all notes, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note1 = { name: 'test-note' }
-      const note2 = { name: 'test-note-2' }
-      const note3 = { name: 'another-note' }
+      const note1 = { body: 'test-note' }
+      const note2 = { body: 'test-note-2' }
+      const note3 = { body: 'another-note' }
 
       const note1Created = await NoteRepository.create(note1, mockIRepositoryOptions)
       await new Promise((resolve) => {
@@ -165,10 +165,10 @@ describe('NoteRepository tests', () => {
 
       const note3Created = await NoteRepository.create(note3, mockIRepositoryOptions)
 
-      // Test filter by name
+      // Test filter by body
       // Current findAndCountAll uses wildcarded like statement so it matches both notes
       let notes = await NoteRepository.findAndCountAll(
-        { filter: { name: 'test-note' } },
+        { filter: { body: 'test-note' } },
         mockIRepositoryOptions,
       )
 
@@ -227,13 +227,13 @@ describe('NoteRepository tests', () => {
     it('Should succesfully update previously created note', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note1 = { name: 'test-note' }
+      const note1 = { body: 'test-note' }
 
       const noteCreated = await NoteRepository.create(note1, mockIRepositoryOptions)
 
       const noteUpdated = await NoteRepository.update(
         noteCreated.id,
-        { name: 'updated-note-name' },
+        { body: 'updated-note-body' },
         mockIRepositoryOptions,
       )
 
@@ -241,7 +241,7 @@ describe('NoteRepository tests', () => {
 
       const noteExpected = {
         id: noteCreated.id,
-        name: noteUpdated.name,
+        body: noteUpdated.body,
         importHash: null,
         createdAt: noteCreated.createdAt,
         updatedAt: noteUpdated.updatedAt,
@@ -261,7 +261,7 @@ describe('NoteRepository tests', () => {
       const { randomUUID } = require('crypto')
 
       await expect(() =>
-        NoteRepository.update(randomUUID(), { name: 'non-existent' }, mockIRepositoryOptions),
+        NoteRepository.update(randomUUID(), { body: 'non-existent' }, mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
     })
   })
@@ -270,7 +270,7 @@ describe('NoteRepository tests', () => {
     it('Should succesfully destroy previously created note', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const note = { name: 'test-note' }
+      const note = { body: 'test-note' }
 
       const returnedNote = await NoteRepository.create(note, mockIRepositoryOptions)
 
