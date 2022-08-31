@@ -16,7 +16,7 @@
         <div v-if="!isEditing" class="flex w-2/3">
           <el-tooltip
             content="Click to edit"
-            placement="top"
+            placement="right"
           >
             <button
               class="app-content-title flex items-center mx-2 hover:text-gray-500 cursor-pointer truncate"
@@ -54,7 +54,7 @@
             <div class="flex items-center">
               <el-button
                 :disabled="saveLoading"
-                class="btn btn--secondary btn--secondary--orange ml-2"
+                class="btn btn--secondary btn--secondary--orange mx-2"
                 @click="doSubmit"
               >
                 <i class="ri-lg ri-save-line mr-1" />
@@ -63,7 +63,7 @@
 
               <el-button
                 :disabled="saveLoading"
-                class="btn btn--secondary ml-2"
+                class="btn btn--secondary mr-2"
                 @click="doCancel"
               >
                 <i class="ri-lg ri-close-line mr-1" />

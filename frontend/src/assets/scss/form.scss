@@ -49,6 +49,10 @@
   }
 }
 
+.el-input__inner {
+  @apply h-10;
+}
+
 .el-date-editor--daterange.el-input,
 .el-date-editor--daterange.el-input__inner,
 .el-date-editor--timerange.el-input,

@@ -10,7 +10,6 @@ import {
 } from '@/i18n'
 
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
 
