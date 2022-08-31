@@ -8,6 +8,8 @@ import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
 import { PlatformType } from '../../utils/platforms'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
+import TaskRepository from '../../database/repositories/taskRepository'
+import NoteRepository from '../../database/repositories/noteRepository'
 
 const db = null
 
@@ -1222,6 +1224,14 @@ describe('MemberService tests', () => {
       let o2 = await OrganizationRepository.create({ name: 'org2' }, mockIRepositoryOptions)
       let o3 = await OrganizationRepository.create({ name: 'org3' }, mockIRepositoryOptions)
 
+      let task1 = await TaskRepository.create({ name: 'task1' }, mockIRepositoryOptions)
+      let task2 = await TaskRepository.create({ name: 'task2' }, mockIRepositoryOptions)
+      let task3 = await TaskRepository.create({ name: 'task3' }, mockIRepositoryOptions)
+
+      let note1 = await NoteRepository.create({ body: 'note1' }, mockIRepositoryOptions)
+      let note2 = await NoteRepository.create({ body: 'note2' }, mockIRepositoryOptions)
+      let note3 = await NoteRepository.create({ body: 'note3' }, mockIRepositoryOptions)
+
       const member1 = {
         username: {
           crowdUsername: 'anil1',
@@ -1235,6 +1245,8 @@ describe('MemberService tests', () => {
         },
         tags: [t1.id, t2.id],
         organizations: [o1.id, o2.id],
+        tasks: [task1.id, task2.id],
+        notes: [note1.id, note2.id],
       }
 
       const member2 = {
@@ -1253,6 +1265,8 @@ describe('MemberService tests', () => {
         },
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
+        tasks: [task2.id, task3.id],
+        notes: [note2.id, note3.id],
       }
 
       const member3 = {
@@ -1339,9 +1353,10 @@ describe('MemberService tests', () => {
 
       // Sequelize returns associations as array of models, we need to get plain objects
       mergedMember.activities = mergedMember.activities.map((i) => i.get({ plain: true }))
-
       mergedMember.tags = mergedMember.tags.map((i) => i.get({ plain: true }))
       mergedMember.organizations = mergedMember.organizations.map((i) => i.get({ plain: true }))
+      mergedMember.tasks = mergedMember.tasks.map((i) => i.get({ plain: true }))
+      mergedMember.notes = mergedMember.notes.map((i) => i.get({ plain: true }))
 
       // get the created activity again, it's member should be updated after merge
       activityCreated = await ActivityRepository.findById(
@@ -1355,6 +1370,9 @@ describe('MemberService tests', () => {
       // we don't need activity.parent because it is 2 level deep (member->activity->parent)
       activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'parent')
 
+      // we don't need activity.tasks because it is 2 level deep (member->activity->tasks)
+      activityCreated = SequelizeTestUtils.objectWithoutKey(activityCreated, 'tasks')
+
       // get previously created tags
       t1 = await TagRepository.findById(t1.id, mockIRepositoryOptions)
       t2 = await TagRepository.findById(t2.id, mockIRepositoryOptions)
@@ -1365,6 +1383,16 @@ describe('MemberService tests', () => {
       o2 = await OrganizationRepository.findById(o2.id, mockIRepositoryOptions)
       o3 = await OrganizationRepository.findById(o3.id, mockIRepositoryOptions)
 
+      // get previously created tasks
+      task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
+      task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
+      task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
+
+      // get previously created notes
+      note1 = await NoteRepository.findById(note1.id, mockIRepositoryOptions)
+      note2 = await NoteRepository.findById(note2.id, mockIRepositoryOptions)
+      note3 = await NoteRepository.findById(note3.id, mockIRepositoryOptions)
+
       // remove tags->member relations as well (we should be only checking 1-deep relations)
       t1 = SequelizeTestUtils.objectWithoutKey(t1, 'members')
       t2 = SequelizeTestUtils.objectWithoutKey(t2, 'members')
@@ -1374,6 +1402,19 @@ describe('MemberService tests', () => {
       o1 = SequelizeTestUtils.objectWithoutKey(o1, 'memberCount')
       o2 = SequelizeTestUtils.objectWithoutKey(o2, 'memberCount')
       o3 = SequelizeTestUtils.objectWithoutKey(o3, 'memberCount')
+
+      // remove tasks->member and tasks->activity relations as well (we should be only checking 1-deep relations)
+      task1 = SequelizeTestUtils.objectWithoutKey(task1, 'members')
+      task1 = SequelizeTestUtils.objectWithoutKey(task1, 'activities')
+      task2 = SequelizeTestUtils.objectWithoutKey(task2, 'members')
+      task2 = SequelizeTestUtils.objectWithoutKey(task2, 'activities')
+      task3 = SequelizeTestUtils.objectWithoutKey(task3, 'members')
+      task3 = SequelizeTestUtils.objectWithoutKey(task3, 'activities')
+
+      // remove notes->member relations as well (we should be only checking 1-deep relations)
+      note1 = SequelizeTestUtils.objectWithoutKey(note1, 'members')
+      note2 = SequelizeTestUtils.objectWithoutKey(note2, 'members')
+      note3 = SequelizeTestUtils.objectWithoutKey(note3, 'members')
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
@@ -1405,8 +1446,9 @@ describe('MemberService tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         joinedAt: new Date(member1.joinedAt),
         reach: { total: -1 },
-
         tags: [t1, t2, t3],
+        tasks: [task1, task2, task3],
+        notes: [note1, note2, note3],
         organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
@@ -1872,6 +1914,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.tags
       delete returnedMember1.activities
       delete returnedMember1.organizations
+      delete returnedMember1.tasks
+      delete returnedMember1.notes
 
       const existing = await memberService.memberExists(
         member1.username.crowdUsername,
@@ -1961,6 +2005,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.tags
       delete returnedMember1.activities
       delete returnedMember1.organizations
+      delete returnedMember1.tasks
+      delete returnedMember1.notes
 
       const existing = await memberService.memberExists(
         { discord: 'some-other-username' },
