@@ -201,12 +201,6 @@ export default {
     'app-community-member-engagement-level': CommunityMemberEngagementLevel,
     'app-community-member-reach': CommunityMemberReach
   },
-  props: {
-    lookalike: {
-      type: Boolean,
-      default: false
-    }
-  },
 
   computed: {
     ...mapGetters({
