@@ -1,6 +1,6 @@
 <template>
   <div class="eagle-eye-search">
-    <div class="flex-grow mx-3">
+    <div class="grow mx-3">
       <app-keywords-input
         v-model="selectedKeywords"
         placeholder="Enter keywords, or topics..."

@@ -4,7 +4,7 @@
       class="banner"
       :class="variant ? `banner--${variant}` : ''"
     >
-      <div class="flex items-center flex-grow">
+      <div class="flex items-center grow">
         <div v-if="spinner" class="banner-spinner">
           <div
             v-loading="true"

@@ -49,7 +49,7 @@
             benchmarkWidget.settings.repositories.length ===
               0
           "
-          class="absolute flex items-center justify-center flex-grow w-full inset-0 z-10 rounded-lg blur-2xl"
+          class="absolute flex items-center justify-center grow w-full inset-0 z-10 rounded-lg blur-2xl"
           :style="{
             backgroundColor: 'rgba(255,255,255,0.95)'
           }"

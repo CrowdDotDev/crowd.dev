@@ -210,7 +210,7 @@ export default {
 <style lang="scss">
 .widget-benchmark {
   .empty-placeholder {
-    @apply flex items-center justify-center flex-grow;
+    @apply flex items-center justify-center grow;
     min-height: 300px;
   }
 }

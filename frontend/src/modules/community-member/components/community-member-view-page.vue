@@ -7,7 +7,7 @@
     ></div>
     <div v-else class="flex flex-wrap lg:flex-nowrap -mx-3">
       <div
-        class="w-full lg:max-w-sm px-3 community-member-view flex-shrink-0"
+        class="w-full lg:max-w-sm px-3 community-member-view shrink-0"
       >
         <h1 class="app-content-title">View Member</h1>
         <app-community-member-details
@@ -15,7 +15,7 @@
           @updated="doRefresh"
         />
       </div>
-      <div class="flex-grow px-3 pt-12">
+      <div class="grow px-3 pt-12">
         <app-activity-platform-tabs
           :is-member="true"
           class="inline-block mb-4"

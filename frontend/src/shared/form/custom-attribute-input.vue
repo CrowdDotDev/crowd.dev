@@ -7,13 +7,13 @@
       <el-input
         v-model="attribute.name"
         placeholder="Name"
-        class="flex-grow block mx-2"
+        class="grow block mx-2"
       >
       </el-input>
       <el-input
         v-model="attribute.value"
         placeholder="Value"
-        class="flex-grow block mx-2"
+        class="grow block mx-2"
       >
       </el-input>
       <el-tooltip content="Click to delete" placement="top">

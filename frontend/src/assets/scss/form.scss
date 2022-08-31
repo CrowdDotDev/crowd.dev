@@ -20,6 +20,18 @@
 }
 
 .el-form.form {
+  .el-form-item {
+    @apply block;
+
+    .el-input {
+      .el-input__wrapper {
+        @apply w-full;
+        .el-input__inner {
+          @apply border-none px-0;
+        }
+      }
+    }
+  }
   .el-form-item__label {
     @apply font-semibold text-black;
     float: none;

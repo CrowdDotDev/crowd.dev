@@ -9,7 +9,7 @@
             variant="alert"
           >
             <div
-              class="flex items-center justify-center flex-grow"
+              class="flex items-center justify-center grow"
             >
               This workspace is using sample data, before
               adding real data please

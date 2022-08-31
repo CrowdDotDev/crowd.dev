@@ -71,8 +71,8 @@
 
   &--menu-cta {
     @apply text-white border-white bg-transparent;
-    &:focus, &:hover {
-      @apply text-primary-900 border-primary-900 bg-transparent;
+    &:focus, &:hover, &[disabled] {
+      @apply text-white border-white bg-transparent;
     }
   }
 
@@ -98,7 +98,7 @@
   }
 
   &--circle {
-    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base flex-shrink-0;
+    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base shrink-0;
     i {
       @apply m-0;
     }

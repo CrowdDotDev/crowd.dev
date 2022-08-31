@@ -2,7 +2,7 @@
   <div class="relative">
     <div
       v-if="loading"
-      class="absolute flex items-center justify-center flex-grow flex-col w-full inset-0 z-10 rounded-lg blur-2xl mt-4"
+      class="absolute flex items-center justify-center grow flex-col w-full inset-0 z-10 rounded-lg blur-2xl mt-4"
       :style="{
         backgroundColor: 'rgba(255,255,255,1)'
       }"

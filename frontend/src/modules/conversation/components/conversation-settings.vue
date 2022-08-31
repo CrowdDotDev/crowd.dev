@@ -9,8 +9,8 @@
       Settings
     </el-button>
     <el-dialog
+      v-model="computedVisible"
       title="Community Help Center Settings"
-      :visible="visible"
       width="100%"
       @close="$emit('close')"
     >
@@ -87,7 +87,7 @@
           Community links
         </div>
         <hr class="pb-2" />
-        <div class="flex items-start -mx-2">
+        <div class="flex items-start flex-wrap -mx-2">
           <el-form-item
             label="Website"
             prop="website"
@@ -498,6 +498,18 @@ export default {
       rawFilter: 'conversation/rawFilter',
       filter: 'conversation/filter'
     }),
+    computedVisible: {
+      get() {
+        return this.visible
+      },
+      set(value) {
+        if (value) {
+          this.$emit('open')
+        } else {
+          this.$emit('close')
+        }
+      }
+    },
     activeIntegrations() {
       return Object.keys(this.activeIntegrationsList)
     },

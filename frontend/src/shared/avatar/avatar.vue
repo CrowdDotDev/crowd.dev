@@ -82,7 +82,7 @@ export default {
 
 <style lang="scss">
 .avatar {
-  @apply rounded-full h-12 w-12 flex-shrink-0 flex justify-center items-center;
+  @apply rounded-full h-12 w-12 shrink-0 flex justify-center items-center;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
