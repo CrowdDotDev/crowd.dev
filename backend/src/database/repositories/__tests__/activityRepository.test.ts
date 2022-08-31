@@ -3,6 +3,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
 import { PlatformType } from '../../../utils/platforms'
+import TaskRepository from '../taskRepository'
 
 const db = null
 
@@ -87,6 +88,7 @@ describe('ActivityRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        tasks: [],
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
@@ -142,6 +144,7 @@ describe('ActivityRepository tests', () => {
         isKeyAction: false,
         score: 2,
         memberId: memberCreated.id,
+        tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -385,6 +388,7 @@ describe('ActivityRepository tests', () => {
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
+        tasks: [],
         memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -445,6 +449,7 @@ describe('ActivityRepository tests', () => {
         url: 'https://github.com',
         channel: 'channel',
         sentiment: {},
+        tasks: [],
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
@@ -465,6 +470,65 @@ describe('ActivityRepository tests', () => {
       }
 
       expect(activityCreated).toStrictEqual(expectedActivityCreated)
+    })
+
+    it('Should create an activity with tasks succesfully', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await MemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const tasks1 = await TaskRepository.create(
+        {
+          name: 'task1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const task2 = await TaskRepository.create(
+        {
+          name: 'task2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        attributes: {
+          replies: 12,
+        },
+        title: 'Title',
+        body: 'Here',
+        url: 'https://github.com',
+        channel: 'channel',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 'positive',
+          score: 0.98,
+        },
+        isKeyAction: true,
+        member: memberCreated.id,
+        score: 1,
+        tasks: [tasks1.id, task2.id],
+        sourceId: '#sourceId1',
+      }
+
+      const activityCreated = await ActivityRepository.create(activity, mockIRepositoryOptions)
+
+      // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
+      expect(activityCreated.tasks.length).toBe(2)
     })
   })
 
@@ -508,6 +572,7 @@ describe('ActivityRepository tests', () => {
         isKeyAction: true,
         score: 1,
         memberId: memberCreated.id,
+        tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -843,6 +908,7 @@ describe('ActivityRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
+        tasks: [],
         parent: null,
         parentId: null,
         sourceId: activityReturned.sourceId,
@@ -937,6 +1003,7 @@ describe('ActivityRepository tests', () => {
         url: updateFields.url,
         type: 'activity-new',
         timestamp: new Date('2020-05-27T15:13:30Z'),
+        tasks: [],
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
@@ -956,6 +1023,66 @@ describe('ActivityRepository tests', () => {
       }
 
       expect(updatedActivity).toStrictEqual(expectedActivityUpdated)
+    })
+
+    it('Should succesfully update tasks of an activity', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const memberCreated = await MemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: 'test',
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activityReturned = await ActivityRepository.create(
+        {
+          type: 'activity',
+          timestamp: '2020-05-27T15:13:30Z',
+          platform: PlatformType.GITHUB,
+          attributes: {
+            replies: 12,
+          },
+          body: 'Here',
+          isKeyAction: true,
+          member: memberCreated.id,
+          score: 1,
+          sourceId: '#sourceId1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const tasks1 = await TaskRepository.create(
+        {
+          name: 'task1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const task2 = await TaskRepository.create(
+        {
+          name: 'task2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const updateFields = {
+        tasks: [tasks1.id, task2.id],
+      }
+
+      const updatedActivity = await ActivityRepository.update(
+        activityReturned.id,
+        updateFields,
+        mockIRepositoryOptions,
+      )
+
+      expect(updatedActivity.tasks).toHaveLength(2)
+      expect(updatedActivity.tasks[0].id).toBe(tasks1.id)
+      expect(updatedActivity.tasks[1].id).toBe(task2.id)
     })
 
     it('Should update body and title with allowed HTML tags', async () => {

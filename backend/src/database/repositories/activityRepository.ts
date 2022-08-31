@@ -62,6 +62,10 @@ class ActivityRepository {
       },
     )
 
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -104,6 +108,10 @@ class ActivityRepository {
         id,
         tenantId: currentTenant.id,
       },
+      transaction,
+    })
+
+    await record.setTasks(data.tasks || [], {
       transaction,
     })
 
