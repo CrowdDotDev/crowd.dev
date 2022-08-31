@@ -50,7 +50,6 @@
 import Widget from '../widget'
 import BenchmarkSettings from './_settings/_benchmark-settings'
 import GithubGetStarHistory from '@/utils/github-get-star-history'
-import authAxios from '@/shared/axios/auth-axios'
 import { mapGetters, mapActions } from 'vuex'
 import moment from 'moment'
 

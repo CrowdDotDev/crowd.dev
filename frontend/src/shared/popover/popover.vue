@@ -1,5 +1,5 @@
 <template>
-  <div class="popover-wrapper">
+  <div v-if="isVisible" class="popover-wrapper">
     <el-popover
       :visible="isVisible"
       :trigger="trigger"
@@ -12,19 +12,22 @@
       @show="isVisible = true"
       @hide="isVisible = false"
     >
-      <slot v-if="isVisible"></slot>
+      <div>
+        <slot></slot>
+      </div>
     </el-popover>
-    <transition name="fade">
-      <div
-        v-if="isVisible"
-        class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
-        @click="
-          trigger === 'manual'
-            ? $emit('hide')
-            : (isVisible = false)
-        "
-      ></div>
-    </transition>
+    <app-teleport v-if="isVisible" to="#teleport-modal">
+      <transition name="fade">
+        <div
+          class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
+          @click="
+            trigger === 'manual'
+              ? $emit('hide')
+              : (isVisible = false)
+          "
+        ></div>
+      </transition>
+    </app-teleport>
   </div>
 </template>
 

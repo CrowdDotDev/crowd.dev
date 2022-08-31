@@ -6,7 +6,7 @@
       </transition>
     </router-view>
 
-    <div id="modal-teleport"></div>
+    <div id="teleport-modal"></div>
   </div>
 </template>
 

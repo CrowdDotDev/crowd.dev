@@ -1,8 +1,11 @@
 <template>
   <div class="flex items-center flex-wrap">
-    <el-tooltip content="Send email" placement="top">
+    <el-tooltip
+      v-if="member.email"
+      content="Send email"
+      placement="top"
+    >
       <a
-        v-if="member.email"
         :href="`mailto:${member.email}`"
         class="btn btn--circle btn--email"
         :class="member.crowdInfo ? 'mr-2' : ''"
@@ -12,11 +15,11 @@
     </el-tooltip>
     <div v-if="member.crowdInfo" class="flex items-center">
       <el-tooltip
+        v-if="member.crowdInfo.twitter"
         content="View Twitter Profile"
         placement="top"
       >
         <a
-          v-if="member.crowdInfo.twitter"
           :href="member.crowdInfo.twitter.url"
           target="_blank"
           class="btn btn--circle btn--twitter mr-2"
@@ -30,11 +33,11 @@
         </a>
       </el-tooltip>
       <el-tooltip
+        v-if="member.crowdInfo.github"
         content="View GitHub Profile"
         placement="top"
       >
         <a
-          v-if="member.crowdInfo.github"
           :href="member.crowdInfo.github.url"
           target="_blank"
           class="btn btn--circle btn--github mr-2"
@@ -48,11 +51,11 @@
         </a>
       </el-tooltip>
       <el-tooltip
+        v-if="member.crowdInfo.linkedin"
         content="View LinkedIn Profile"
         placement="top"
       >
         <a
-          v-if="member.crowdInfo.linkedin"
           href="https://linkedin.com"
           target="_blank"
           class="btn btn--circle btn--linkedin mr-2"

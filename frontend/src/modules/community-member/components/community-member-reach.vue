@@ -6,33 +6,37 @@
       :disabled="member.reach.total === -1"
     >
       <template #content>
-        <div v-if="member.reach.github !== undefined">
-          Github:
-          <span class="font-semibold"
-            >{{ member.reach.github }}
-            {{
-              member.reach.github === 1
-                ? 'follower'
-                : 'followers'
-            }}</span
-          >
-        </div>
-        <div v-if="member.reach.twitter !== undefined">
-          Twitter:
-          <span class="font-semibold"
-            >{{ member.reach.twitter }}
-            {{
-              member.reach.twitter === 1
-                ? 'follower'
-                : 'followers'
-            }}</span
-          >
+        <div>
+          <div v-if="member.reach.github !== undefined">
+            Github:
+            <span class="font-semibold"
+              >{{ member.reach.github }}
+              {{
+                member.reach.github === 1
+                  ? 'follower'
+                  : 'followers'
+              }}</span
+            >
+          </div>
+          <div v-if="member.reach.twitter !== undefined">
+            Twitter:
+            <span class="font-semibold"
+              >{{ member.reach.twitter }}
+              {{
+                member.reach.twitter === 1
+                  ? 'follower'
+                  : 'followers'
+              }}</span
+            >
+          </div>
         </div>
       </template>
-      <span v-if="member.reach.total !== -1">{{
-        member.reach.total
-      }}</span>
-      <span v-else></span>
+      <div>
+        <span v-if="member.reach.total !== -1">{{
+          member.reach.total
+        }}</span>
+        <span v-else></span>
+      </div>
     </el-tooltip>
   </div>
 </template>
