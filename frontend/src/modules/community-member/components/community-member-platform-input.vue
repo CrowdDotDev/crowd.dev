@@ -76,7 +76,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       platforms: [].concat(this.value)
@@ -86,7 +86,7 @@ export default {
     platforms: {
       handler(newValue) {
         return this.$emit(
-          'input',
+          'update:modelValue',
           newValue.reduce((acc, item) => {
             if (
               item.name &&

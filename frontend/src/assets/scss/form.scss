@@ -50,7 +50,7 @@
 }
 
 .el-input__inner {
-  @apply h-10;
+  @apply h-10 leading-10;
 }
 
 .el-date-editor--daterange.el-input,

@@ -30,7 +30,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
 
   computed: {
     startValue() {
@@ -48,14 +48,14 @@ export default {
 
   methods: {
     handleInputStart(value) {
-      this.$emit('input', [
+      this.$emit('update:modelValue', [
         Number.isNaN(value) ? Number(value) : value,
         this.endValue
       ])
     },
 
     handleInputEnd(value) {
-      this.$emit('input', [
+      this.$emit('update:modelValue', [
         this.startValue ? this.startValue : '0',
         Number.isNaN(value) ? Number(value) : value
       ])

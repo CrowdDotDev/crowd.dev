@@ -81,7 +81,7 @@ export default {
       default: false
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -132,9 +132,9 @@ export default {
         // If value is a string, convert it to a db object
         const newItem = await this.createFn(value)
         this.inMemoryDataSource.push(newItem)
-        this.$emit('input', newItem)
+        this.$emit('update:modelValue', newItem)
       } else {
-        this.$emit('input', value || null)
+        this.$emit('update:modelValue', value || null)
       }
     },
 

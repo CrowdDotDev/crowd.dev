@@ -47,7 +47,7 @@ export default {
       default: () => {}
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       attributes: this.value
@@ -64,7 +64,7 @@ export default {
     attributes: {
       handler(newValue) {
         return this.$emit(
-          'input',
+          'update:modelValue',
           newValue.reduce((acc, item) => {
             if (
               item.name &&

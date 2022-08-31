@@ -28,7 +28,7 @@ export default {
       default: null
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       model: null
@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     handleInput() {
-      this.$emit('input', this.model)
+      this.$emit('update:modelValue', this.model)
     }
   }
 }

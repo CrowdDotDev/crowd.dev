@@ -24,7 +24,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       model: this.value ? this.value.join('-') : null
@@ -38,7 +38,7 @@ export default {
   watch: {
     model: {
       handler(newValue) {
-        this.$emit('input', newValue.split('-'))
+        this.$emit('update:modelValue', newValue.split('-'))
       }
     }
   }

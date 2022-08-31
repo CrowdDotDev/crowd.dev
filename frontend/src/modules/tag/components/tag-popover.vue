@@ -42,7 +42,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['submit', 'cancel', 'input'],
+  emits: ['submit', 'cancel', 'update:modelValue'],
 
   data() {
     return {
@@ -68,7 +68,7 @@ export default {
     handleInput(value) {
       this.model = value
       this.changed = true
-      this.$emit('input', this.model)
+      this.$emit('update:modelValue', this.model)
     }
   }
 }

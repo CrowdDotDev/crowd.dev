@@ -1,15 +1,17 @@
 <template>
-  <div v-if="count > 0" class="text-gray-600 text-sm">
-    {{ count }}
-    {{ typeOfPostsFound }} posts
-    {{
-      filter.keywords && filter.keywords.length > 0
-        ? 'found'
-        : ''
-    }}
-    <span v-if="activeTab === 'inbox'"
-      >・ {{ timeframe }}</span
-    >
+  <div>
+    <div v-if="count > 0" class="text-gray-600 text-sm">
+      {{ count }}
+      {{ typeOfPostsFound }} posts
+      {{
+        filter.keywords && filter.keywords.length > 0
+          ? 'found'
+          : ''
+      }}
+      <span v-if="activeTab === 'inbox'"
+        >・ {{ timeframe }}</span
+      >
+    </div>
   </div>
 </template>
 

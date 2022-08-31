@@ -98,7 +98,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['remove-tag', 'input'],
+  emits: ['remove-tag', 'update:modelValue'],
   data() {
     return {
       loading: false,
@@ -155,7 +155,7 @@ export default {
   methods: {
     async onChange(value) {
       if (value.length === 0) {
-        this.$emit('input', [])
+        this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
         if (
@@ -173,7 +173,7 @@ export default {
         }
       })
       Promise.all(promises).then((values) => {
-        this.$emit('input', values)
+        this.$emit('update:modelValue', values)
       })
     },
 

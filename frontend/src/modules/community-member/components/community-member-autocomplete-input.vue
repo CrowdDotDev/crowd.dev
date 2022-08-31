@@ -75,7 +75,7 @@ export default {
     }
   },
 
-  emits: ['input'],
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -95,7 +95,7 @@ export default {
       },
 
       set: function (value) {
-        this.$emit('input', value)
+        this.$emit('update:modelValue', value)
       }
     },
 

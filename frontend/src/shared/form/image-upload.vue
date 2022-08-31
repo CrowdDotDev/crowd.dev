@@ -44,7 +44,7 @@ export default {
       default: null
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -94,7 +94,10 @@ export default {
         return
       }
 
-      this.$emit('input', [...(this.value || []), file])
+      this.$emit('update:modelValue', [
+        ...(this.value || []),
+        file
+      ])
       this.loading = false
     },
 
@@ -111,7 +114,7 @@ export default {
       const id = file.response ? file.response.id : file.id
 
       this.$emit(
-        'input',
+        'update:modelValue',
         (this.value || []).filter((item) => item.id !== id)
       )
     },

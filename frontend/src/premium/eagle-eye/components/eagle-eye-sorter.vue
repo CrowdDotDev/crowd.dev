@@ -4,10 +4,9 @@
     :style="computedWidth"
   >
     <el-select
-      :value="value"
+      v-model="computedValue"
       popper-class="eagle-eye-popper-class"
       prefix="sort"
-      @change="handleChange"
     >
       <template #prefix>Sort:</template>
       <el-option
@@ -41,8 +40,16 @@ export default {
       return {
         width:
           this.value === 'similarityScore'
-            ? '140px'
-            : '116px'
+            ? '160px'
+            : '135px'
+      }
+    },
+    computedValue: {
+      get() {
+        return this.sorter.prop
+      },
+      set(v) {
+        this.handleChange(v)
       }
     }
   },
@@ -72,12 +79,25 @@ export default {
   }
 }
 .eagle-eye-sorter {
-  .el-input {
-    &__inner {
-      @apply bg-transparent border-none text-left pr-8 pl-10;
+  .el-select {
+    &:hover,
+    &:focus {
+      @apply shadow-none;
     }
-    &__prefix {
-      @apply flex items-center mr-2 text-gray-400;
+
+    .el-input {
+      &__wrapper {
+        @apply bg-transparent border-none text-left shadow-none;
+        &:hover {
+          @apply shadow-none;
+        }
+      }
+      &.is-focus .el-input__wrapper {
+        box-shadow: none !important;
+      }
+      &__prefix {
+        @apply flex items-center mr-2 text-gray-400;
+      }
     }
   }
 }

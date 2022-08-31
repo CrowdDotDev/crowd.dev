@@ -144,7 +144,9 @@ export default {
     },
     'filter.platforms': {
       handler(newValue) {
-        this.platforms = [...newValue]
+        if (Array.isArray(newValue)) {
+          this.platforms = [...newValue]
+        }
       },
       deep: true
     }

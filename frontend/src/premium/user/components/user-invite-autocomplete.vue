@@ -20,7 +20,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       model: []
@@ -30,7 +30,7 @@ export default {
     model: {
       deep: true,
       handler(newValue) {
-        this.$emit('input', newValue)
+        this.$emit('update:modelValue', newValue)
       }
     },
     value: {

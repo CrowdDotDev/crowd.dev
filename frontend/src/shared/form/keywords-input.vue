@@ -41,7 +41,7 @@
 export default {
   name: 'AppKeywordsInput',
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     },
@@ -58,17 +58,17 @@ export default {
       default: null
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   data() {
     return {
       newKeyword: '',
-      innerKeywords: [...this.value],
+      innerKeywords: [...this.modelValue],
       focused: false
     }
   },
   watch: {
-    value() {
-      this.innerKeywords = [...this.value]
+    modelValue() {
+      this.innerKeywords = [...this.modelValue]
     }
   },
   methods: {
@@ -139,7 +139,7 @@ export default {
       this.keywordChange()
     },
     keywordChange() {
-      this.$emit('input', this.innerKeywords)
+      this.$emit('update:modelValue', this.innerKeywords)
     }
   }
 }

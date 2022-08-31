@@ -60,7 +60,7 @@ export default {
       default: null
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -109,7 +109,10 @@ export default {
         return
       }
 
-      this.$emit('input', [...(this.value || []), file])
+      this.$emit('update:modelValue', [
+        ...(this.value || []),
+        file
+      ])
       this.loading = false
     },
 
@@ -120,7 +123,7 @@ export default {
 
     onRemove(file, files) {
       this.$emit(
-        'input',
+        'update:modelValue',
         (this.value || []).filter((item) =>
           files.some((file) =>
             file.response
