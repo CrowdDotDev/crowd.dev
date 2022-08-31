@@ -63,11 +63,11 @@ export default (sequelize) => {
       foreignKey: 'taskId',
     })
 
-    // models.task.belongsToMany(models.activity, {
-    //   as: 'activities',
-    //   through: 'activityTasks',
-    //   foreignKey: 'taskId',
-    // })
+    models.task.belongsToMany(models.activity, {
+      as: 'activities',
+      through: 'activityTasks',
+      foreignKey: 'taskId',
+    })
 
     models.task.belongsTo(models.tenant, {
       as: 'tenant',

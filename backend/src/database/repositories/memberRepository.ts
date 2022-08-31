@@ -790,6 +790,16 @@ class MemberRepository {
       joinTableAttributes: [],
     })
 
+    output.tasks = await record.getTasks({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.notes = await record.getNotes({
+      transaction,
+      joinTableAttributes: [],
+    })
+
     output.noMerge = (
       await record.getNoMerge({
         transaction,

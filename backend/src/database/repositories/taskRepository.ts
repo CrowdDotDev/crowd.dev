@@ -20,6 +20,7 @@ class TaskRepository {
       {
         ...lodash.pick(data, ['name', 'body', 'status', 'dueDate', 'importHash']),
 
+        assignedToId: data.assignedTo ? data.assignedTo : null,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -32,7 +33,9 @@ class TaskRepository {
     await record.setMembers(data.members || [], {
       transaction,
     })
-
+    await record.setActivities(data.activities || [], {
+      transaction,
+    })
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -60,7 +63,7 @@ class TaskRepository {
     record = await record.update(
       {
         ...lodash.pick(data, ['name', 'body', 'status', 'dueDate', 'importHash']),
-
+        assignedToId: data.assignedTo ? data.assignedTo : null,
         updatedById: currentUser.id,
       },
       {
@@ -69,6 +72,10 @@ class TaskRepository {
     )
 
     await record.setMembers(data.members || [], {
+      transaction,
+    })
+
+    await record.setActivities(data.activities || [], {
       transaction,
     })
 
@@ -199,6 +206,62 @@ class TaskRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('task', 'name', filter.name))
       }
 
+      if (filter.body) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('task', 'body', filter.body))
+      }
+
+      if (filter.status) {
+        whereAnd.push({
+          status: filter.status,
+        })
+      }
+
+      if (filter.dueDateRange) {
+        const [start, end] = filter.dueDateRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          whereAnd.push({
+            dueDate: {
+              [Op.gte]: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          whereAnd.push({
+            dueDate: {
+              [Op.lte]: end,
+            },
+          })
+        }
+      }
+
+      if (filter.assignedTo) {
+        whereAnd.push({
+          assignedToId: SequelizeFilterUtils.uuid(filter.assignedTo),
+        })
+      }
+
+      if (filter.member) {
+        include.push({
+          model: options.database.member,
+          as: 'members',
+          where: {
+            id: SequelizeFilterUtils.uuid(filter.member),
+          },
+        })
+      }
+
+      if (filter.activity) {
+        include.push({
+          model: options.database.activity,
+          as: 'activities',
+          where: {
+            id: SequelizeFilterUtils.uuid(filter.activity),
+          },
+        })
+      }
+
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
@@ -313,6 +376,11 @@ class TaskRepository {
     const transaction = SequelizeRepository.getTransaction(options)
 
     output.members = await record.getMembers({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.activities = await record.getActivities({
       transaction,
       joinTableAttributes: [],
     })

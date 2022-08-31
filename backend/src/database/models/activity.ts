@@ -159,6 +159,11 @@ export default (sequelize) => {
       // constraints: false,
     })
 
+    models.activity.belongsToMany(models.task, {
+      as: 'tasks',
+      through: 'activityTasks',
+    })
+
     models.activity.belongsTo(models.tenant, {
       as: 'tenant',
       foreignKey: {

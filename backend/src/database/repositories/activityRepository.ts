@@ -209,7 +209,7 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   /**
@@ -231,7 +231,7 @@ class ActivityRepository {
       transaction,
     })
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -482,7 +482,7 @@ class ActivityRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows)
+    rows = await this._populateRelationsForRows(rows, options)
 
     return { rows, count }
   }
@@ -539,20 +539,26 @@ class ActivityRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows) {
+  static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record)))
+    return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
+    const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
+
+    output.tasks = await record.getTasks({
+      transaction,
+      joinTableAttributes: [],
+    })
 
     return output
   }
