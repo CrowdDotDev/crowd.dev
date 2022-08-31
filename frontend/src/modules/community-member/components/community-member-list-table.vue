@@ -59,7 +59,6 @@
         </el-table-column>
 
         <el-table-column
-          v-if="!lookalike"
           label="Joined At"
           prop="joinedAt"
           sortable="custom"
@@ -78,7 +77,6 @@
         </el-table-column>
 
         <el-table-column
-          v-if="!lookalike"
           :label="
             translate(
               'entities.communityMember.fields.numberActivities'
