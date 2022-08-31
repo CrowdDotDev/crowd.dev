@@ -24,6 +24,11 @@
     "https://cdn-icons-png.flaticon.com/512/733/733579.png"
   },
   {
+    "platform": "devto",
+    "name": "DEV",
+    "image": "https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
+  },
+  {
     "platform": "discourse",
     "name": "Discourse",
     "image":

@@ -97,6 +97,22 @@ export class IntegrationService {
     return response.data
   }
 
+  static async devtoConnect(users, organizations) {
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get()
+
+    // Calling connect devto function in the backend.
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/devto-connect`,
+      {
+        users,
+        organizations
+      }
+    )
+
+    return response.data
+  }
+
   static async githubConnect(code, installId, setupAction) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
@@ -121,6 +137,36 @@ export class IntegrationService {
     const response = await authAxios.put(
       `/discord-authenticate/${tenantId}/${guild_id}`
     )
+    return response.data
+  }
+
+  static async devtoValidateUser(username) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/devto-validate`,
+      {
+        params: {
+          username
+        }
+      }
+    )
+
+    return response.data
+  }
+
+  static async devtoValidateOrganization(organization) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/devto-validate`,
+      {
+        params: {
+          organization
+        }
+      }
+    )
+
     return response.data
   }
 }

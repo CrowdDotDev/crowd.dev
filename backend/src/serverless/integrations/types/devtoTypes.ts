@@ -4,8 +4,7 @@ export interface DevtoArticleSettings {
 }
 
 export interface DevtoIntegrationSettings {
-  organization: string | null
-  user: string | null
-
+  organizations: string[]
+  users: string[]
   articles: DevtoArticleSettings[]
 }

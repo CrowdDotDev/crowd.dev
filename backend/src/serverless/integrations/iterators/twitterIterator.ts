@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import moment from 'moment'
 import { parseOutput, IntegrationResponse, BaseOutput, TwitterOutput } from '../types/iteratorTypes'
@@ -322,7 +323,7 @@ export default class TwitterIterator extends BaseIterator {
         timestamp: moment(Date.parse(record.createdAt)).utc().toDate(),
         crowdInfo: {
           sourceId: record.id,
-          body: record.text ? record.text : '',
+          body: record.text ? sanitizeHtml(record.text) : '',
           url: record.url ? record.url : '',
           attachments: record.attachments ? record.attachments : [],
         },

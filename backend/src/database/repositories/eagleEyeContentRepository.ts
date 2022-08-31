@@ -211,9 +211,10 @@ export default class EagleEyeContentRepository {
       }
 
       if (filter.keywords) {
+        // Overlap will take a post where any keyword matches any of the filter keywords
         whereAnd.push({
           keywords: {
-            [Op.contains]: filter.keywords.split(','),
+            [Op.overlap]: filter.keywords.split(','),
           },
         })
       }

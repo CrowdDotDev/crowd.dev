@@ -3,11 +3,11 @@ import { timeout } from '../../../../utils/timing'
 import { DevtoUser } from './types'
 
 /**
- * Performs a lookup of a Dev.to user
+ * Performs a lookup of a Dev.to user by user id
  * @param userId
- * @returns {DevtoUser}
+ * @returns {DevtoUser} or null if no user found
  */
-export const getUser = async (userId: number): Promise<DevtoUser> => {
+export const getUserById = async (userId: number): Promise<DevtoUser | null> => {
   try {
     const result = await axios.get(`https://dev.to/api/users/${userId}`)
     return result.data
@@ -19,9 +19,43 @@ export const getUser = async (userId: number): Promise<DevtoUser> => {
         const retryAfterSeconds = parseInt(retryAfter, 10)
         if (retryAfterSeconds <= 2) {
           await timeout(1000 * retryAfterSeconds)
-          return getUser(userId)
+          return getUserById(userId)
         }
       }
+    } else if (err.response.status === 404) {
+      return null
+    }
+
+    throw err
+  }
+}
+
+/**
+ * Performs a lookup of a Dev.to user by username
+ * @param username
+ * @returns {DevtoUser} or null if no user found
+ */
+export const getUserByUsername = async (username: string): Promise<DevtoUser | null> => {
+  try {
+    const result = await axios.get('https://dev.to/api/users/by_username', {
+      params: {
+        url: username,
+      },
+    })
+    return result.data
+  } catch (err: any) {
+    // rate limit?
+    if (err.response.status === 429) {
+      const retryAfter = err.response.headers['retry-after']
+      if (retryAfter) {
+        const retryAfterSeconds = parseInt(retryAfter, 10)
+        if (retryAfterSeconds <= 2) {
+          await timeout(1000 * retryAfterSeconds)
+          return getUserByUsername(username)
+        }
+      }
+    } else if (err.response.status === 404) {
+      return null
     }
 
     throw err

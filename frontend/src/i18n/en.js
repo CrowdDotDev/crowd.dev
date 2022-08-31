@@ -20,6 +20,7 @@ const en = {
     destroy: 'Delete',
     mustSelectARow: 'Must select a row',
     confirm: 'Confirm',
+    connect: 'Connect',
     filters: {
       active: 'Active Filters',
       hide: 'Hide Filters',
@@ -301,6 +302,10 @@ const en = {
         reaction_added: 'reacted to a message',
         channel_joined: 'joined channel',
         left_channel: 'left channel'
+      },
+      devto: {
+        commented: 'commented',
+        post: 'post'
       },
       fallback: 'created an activity'
     },
@@ -733,8 +738,8 @@ const en = {
       notOneOf:
         '${path} must not be one of the following values: ${values}',
       notType: ({ path, type, value, originalValue }) => {
-        return `${path} must be a ${type}`;
-      },
+        return `${path} must be a ${type}`
+      }
     },
     string: {
       length:
@@ -748,7 +753,7 @@ const en = {
       trim: '${path} must be a trimmed string',
       lowercase: '${path} must be a lowercase string',
       uppercase: '${path} must be a upper case string',
-      selected: '${path} must be selected',
+      selected: '${path} must be selected'
     },
     number: {
       min:
@@ -760,38 +765,38 @@ const en = {
       positive: '${path} must be a positive number',
       negative: '${path} must be a negative number',
       integer: '${path} must be an integer',
-      invalid: '${path} must be a number',
+      invalid: '${path} must be a number'
     },
     date: {
       min: '${path} field must be later than ${min}',
-      max: '${path} field must be at earlier than ${max}',
+      max: '${path} field must be at earlier than ${max}'
     },
     boolean: {},
     object: {
       noUnknown:
-        '${path} field cannot have keys not specified in the object shape',
+        '${path} field cannot have keys not specified in the object shape'
     },
     array: {
       min: '${path} field must have at least ${min} items',
       max:
-        '${path} field must have less than or equal to ${max} items',
-    },
+        '${path} field must have less than or equal to ${max} items'
+    }
   },
   /* eslint-disable */
   fileUploader: {
     upload: 'Upload',
     image: 'You must upload an image',
     size: 'File is too big. Max allowed size is {0}',
-    formats: `Invalid format. Must be one of: {0}.`,
+    formats: `Invalid format. Must be one of: {0}.`
   },
 
   autocomplete: {
-    loading: 'Loading...',
+    loading: 'Loading...'
   },
 
   imagesViewer: {
-    noImage: 'No image',
-  },
-};
+    noImage: 'No image'
+  }
+}
 
-export default en;
+export default en
