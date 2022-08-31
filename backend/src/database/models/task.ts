@@ -57,11 +57,17 @@ export default (sequelize) => {
   )
 
   task.associate = (models) => {
-    models.task.belongsToMany(models.communityMember, {
-      as: 'communityMembers',
-      through: 'communityMemberTasks',
+    models.task.belongsToMany(models.member, {
+      as: 'members',
+      through: 'memberTasks',
       foreignKey: 'taskId',
     })
+
+    // models.task.belongsToMany(models.activity, {
+    //   as: 'activities',
+    //   through: 'activityTasks',
+    //   foreignKey: 'taskId',
+    // })
 
     models.task.belongsTo(models.tenant, {
       as: 'tenant',

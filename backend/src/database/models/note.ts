@@ -29,9 +29,9 @@ export default (sequelize) => {
   )
 
   note.associate = (models) => {
-    models.note.belongsToMany(models.communityMember, {
-      as: 'communityMembers',
-      through: 'communityMemberNotes',
+    models.note.belongsToMany(models.member, {
+      as: 'members',
+      through: 'memberNotes',
       foreignKey: 'noteId',
     })
 
