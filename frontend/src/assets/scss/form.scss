@@ -21,7 +21,9 @@
 
 .el-form.form {
   .el-form-item {
-    @apply block;
+    &, &__content {
+      @apply block;
+    }
 
     .el-input {
       .el-input__wrapper {
@@ -32,6 +34,7 @@
       }
     }
   }
+
   .el-form-item__label {
     @apply font-semibold text-black;
     float: none;
