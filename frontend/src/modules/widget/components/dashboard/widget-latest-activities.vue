@@ -3,7 +3,6 @@
     <div class="widget-latest-activities">
       <el-table
         ref="table"
-        :border="true"
         :data="rows"
         row-key="id"
         :show-header="false"

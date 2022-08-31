@@ -20,7 +20,6 @@
       <div v-if="membersToMerge.length > 0" class="-mx-6">
         <el-table
           ref="table"
-          :border="true"
           :data="membersToMerge"
           row-key="id"
         >

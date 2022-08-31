@@ -2,7 +2,6 @@
   <div>
     <el-table
       v-loading="loading"
-      :border="true"
       :data="rows"
       row-key="id"
       @sort-change="doChangeSort"

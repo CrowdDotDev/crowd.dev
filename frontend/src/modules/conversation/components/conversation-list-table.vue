@@ -5,7 +5,6 @@
       <el-table
         ref="table"
         v-loading="loading('table')"
-        :border="true"
         :data="conversations"
         row-key="id"
         :default-sort="{

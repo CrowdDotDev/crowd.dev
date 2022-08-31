@@ -5,7 +5,6 @@
       <el-table
         ref="table"
         v-loading="loading"
-        :border="true"
         :data="members"
         :default-sort="{
           prop: 'score',

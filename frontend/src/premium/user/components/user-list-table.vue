@@ -5,7 +5,6 @@
       <el-table
         ref="table"
         v-loading="loading"
-        :border="true"
         :data="rows"
         row-key="id"
         :row-class-name="rowClass"
