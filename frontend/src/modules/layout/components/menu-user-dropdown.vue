@@ -27,7 +27,9 @@
       <div
         v-if="currentTenant && currentTenant.onboardedAt"
       >
-        <span class="el-dropdown-title">Workspace</span>
+        <span class="el-dropdown-title pt-2"
+          >Workspace</span
+        >
         <div class="flex items-center text-sm px-5 mb-1">
           <div
             class="h-2 w-2 flex justify-center items-center bg-primary-900 rounded-full mr-2"

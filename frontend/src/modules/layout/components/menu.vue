@@ -438,10 +438,15 @@ export default {
 .button-toggle-menu {
   @apply fixed top-0 h-12 w-3 text-white z-10 opacity-50 rounded-r-md p-0;
   top: 200px;
-  background-color: #140505;
 
   &:hover {
     @apply opacity-75;
+  }
+
+  &,
+  &:hover,
+  &:focus {
+    background-color: #140505;
   }
 }
 </style>
