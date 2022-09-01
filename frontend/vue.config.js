@@ -17,5 +17,9 @@ module.exports = {
     client: {
       webSocketURL: 'auto://0.0.0.0:0/ws'
     }
-  }
+  },
+  transpileDependencies: [
+    '@cubejs-client/core',
+    '@cubejs-client/vue3'
+  ]
 }

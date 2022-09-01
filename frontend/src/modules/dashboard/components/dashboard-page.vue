@@ -52,9 +52,6 @@ export default {
       widgetFindByType: 'widget/findByType',
       cubejsApi: 'widget/cubejsApi'
     }),
-    isLocalhost() {
-      return process.env.NODE_ENV === 'localhost'
-    },
     loading() {
       return this.widgetsLoading
     }
