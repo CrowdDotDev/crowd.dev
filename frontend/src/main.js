@@ -49,6 +49,10 @@ i18nInit()
   app.use(store).use(router).mount('#app')
 
   if (window.Cypress) {
-    window.app = app
+    window.app = {
+      ...app,
+      $store: store,
+      $router: router
+    }
   }
 })()
