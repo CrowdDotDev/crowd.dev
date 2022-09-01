@@ -4,6 +4,7 @@
       ref="table"
       v-loading="loading"
       :data="rows"
+      border
       row-key="id"
       @sort-change="doChangeSort"
     >

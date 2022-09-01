@@ -7,6 +7,7 @@
         v-loading="loading"
         :data="rows"
         row-key="id"
+        :bordered="true"
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
       >

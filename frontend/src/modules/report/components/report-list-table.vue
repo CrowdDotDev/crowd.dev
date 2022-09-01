@@ -7,6 +7,7 @@
         v-loading="loading('table')"
         :data="reports"
         row-key="id"
+        border
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
       >

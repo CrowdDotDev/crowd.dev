@@ -11,6 +11,7 @@
           order: 'descending'
         }"
         row-key="id"
+        border
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
       >

@@ -7,6 +7,7 @@
         v-loading="loading('table')"
         :data="conversations"
         row-key="id"
+        border
         :default-sort="{
           prop: 'lastActive',
           order: 'descending'
