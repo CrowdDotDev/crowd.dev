@@ -147,7 +147,7 @@
             {{ scope.row.channel }}
           </template>
         </el-table-column>
-        <el-table-column label="" width="120">
+        <el-table-column label="" width="70">
           <template #default="scope">
             <div class="table-actions">
               <app-conversation-dropdown
