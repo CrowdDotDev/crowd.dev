@@ -33,9 +33,9 @@
               }"
               class="flex items-center text-black"
             >
-              <span class="font-semibold truncate">{{
-                scope.row.title
-              }}</span>
+              <div class="font-semibold truncate">
+                {{ scope.row.title }}
+              </div>
             </router-link>
           </template>
         </el-table-column>
@@ -92,18 +92,36 @@
             <span
               v-if="scope.row.platform === 'github'"
               class="btn btn--circle btn--github mr-2"
-              ><i class="ri-github-fill"></i
-            ></span>
+              ><img
+                :src="findIcon('github')"
+                alt="Github"
+                class="conversation-list-table--platform-icon"
+              />
+            </span>
             <span
               v-else-if="scope.row.platform === 'discord'"
               class="btn btn--circle btn--discord mr-2"
-              ><i class="ri-discord-fill"></i
-            ></span>
+              ><img
+                :src="findIcon('discord')"
+                alt="Discord"
+                class="conversation-list-table--platform-icon"
+            /></span>
             <span
               v-else-if="scope.row.platform === 'slack'"
               class="btn btn--circle btn--slack mr-2"
-              ><i class="ri-slack-fill"></i
-            ></span>
+              ><img
+                :src="findIcon('slack')"
+                alt="Slack"
+                class="conversation-list-table--platform-icon"
+            /></span>
+            <span
+              v-else-if="scope.row.platform === 'devto'"
+              class="btn btn--circle btn--devto mr-2"
+              ><img
+                :src="findIcon('devto')"
+                alt="DEV"
+                class="conversation-list-table--platform-icon"
+            /></span>
           </template>
         </el-table-column>
         <el-table-column
@@ -163,6 +181,7 @@ import { i18n } from '@/i18n'
 import ConversationDropdown from './conversation-dropdown'
 import ConversationListDropdown from './conversation-list-toolbar'
 import computedTimeAgo from '@/utils/time-ago'
+import integrationsJsonArray from '@/jsons/integrations.json'
 
 const { fields } = ConversationModel
 
@@ -243,6 +262,12 @@ export default {
     },
     timeAgo(date) {
       return computedTimeAgo(date)
+    },
+
+    findIcon(platform) {
+      return integrationsJsonArray.find(
+        (i) => i.platform === platform
+      ).image
     }
   }
 }
@@ -263,6 +288,10 @@ export default {
         @apply p-0 pl-4;
       }
     }
+  }
+
+  &--platform-icon {
+    @apply w-4 h-4;
   }
 }
 </style>

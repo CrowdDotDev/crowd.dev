@@ -152,7 +152,6 @@ describe('Dev.to iterator tests', () => {
 
       const member = activity.member
       expect(member.username[PlatformType.DEVTO]).toEqual('johndoe')
-      expect(member.crowdInfo[PlatformType.DEVTO].id).toEqual(123)
       expect(member.bio).toEqual('Nice profile you got there')
       expect(member.location).toEqual('Venice, Italy')
       expect(member.crowdInfo[PlatformType.TWITTER].url).toEqual('https://twitter.com/johntwitter')

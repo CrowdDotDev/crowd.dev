@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import moment from 'moment'
 import { parseOutput, IntegrationResponse, BaseOutput, TwitterOutput } from '../types/iteratorTypes'

@@ -138,6 +138,15 @@ describe('ConversationService tests', () => {
 
       expect(await conversationService.generateTitle('!@#$%^&*( ')).toStrictEqual('conversation-1')
     })
+
+    it('Should return plain text title string if html value is passed', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const conversationService = new ConversationService(mockIServiceOptions)
+
+      expect(
+        await conversationService.generateTitle('<p>some title,<br />with a second line</p>', true),
+      ).toStrictEqual('some title, with a second line')
+    })
   })
 
   describe('sanitizeChannel method', () => {
