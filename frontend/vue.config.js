@@ -7,9 +7,7 @@ module.exports = {
   configureWebpack: {
     plugins: [
       new webpack.DefinePlugin({
-        'process.env.NODE_ENV': {
-          PACKAGE_VERSION: '"' + version + '"'
-        }
+        'process.env.PACKAGE_VERSION': '"' + version + '"'
       })
     ]
   },

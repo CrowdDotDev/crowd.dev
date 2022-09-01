@@ -657,18 +657,18 @@ export default {
               theme: this.model.theme || undefined,
               autoPublish: {
                 status: this.model.autoPublish.status,
-                channelsByPlatform: this.model.autoPublish.channels.reduce(
-                  (acc, item) => {
-                    const [platform, channel] = item.split(
-                      '.'
-                    )
-                    acc[platform] = acc[platform]
-                      ? [...acc[platform], channel]
-                      : [channel]
-                    return acc
-                  },
-                  {}
-                )
+                channelsByPlatform:
+                  this.model.autoPublish.channels.reduce(
+                    (acc, item) => {
+                      const [platform, channel] =
+                        item.split('.')
+                      acc[platform] = acc[platform]
+                        ? [...acc[platform], channel]
+                        : [channel]
+                      return acc
+                    },
+                    {}
+                  )
               }
             }
           }
@@ -714,12 +714,12 @@ export default {
         customUrl: this.conversationSettings.customUrl,
         logoUrl: this.conversationSettings.logoUrl,
         faviconUrl: this.conversationSettings.faviconUrl,
-        discordInviteLink: this.discordIntegration.settings
-          .inviteLink,
-        slackInviteLink: this.slackIntegration.settings
-          .inviteLink,
-        githubInviteLink: this.githubIntegration.settings
-          .inviteLink,
+        discordInviteLink:
+          this.discordIntegration.settings.inviteLink,
+        slackInviteLink:
+          this.slackIntegration.settings.inviteLink,
+        githubInviteLink:
+          this.githubIntegration.settings.inviteLink,
         autoPublish: !this.conversationSettings.autoPublish
           ? {
               status: 'all',
@@ -727,8 +727,9 @@ export default {
               channelsByPlatform: {}
             }
           : {
-              status: this.conversationSettings.autoPublish
-                .status,
+              status:
+                this.conversationSettings.autoPublish
+                  .status,
               channels: Object.keys(
                 this.conversationSettings.autoPublish
                   .channelsByPlatform
@@ -742,8 +743,9 @@ export default {
                 )
                 return acc
               }, []),
-              channelsByPlatform: this.conversationSettings
-                .autoPublish.channelsByPlatform
+              channelsByPlatform:
+                this.conversationSettings.autoPublish
+                  .channelsByPlatform
             }
       }
       this.model = { ...this.initialModel }

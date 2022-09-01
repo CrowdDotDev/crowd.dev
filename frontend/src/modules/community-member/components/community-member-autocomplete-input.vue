@@ -42,7 +42,8 @@ export default {
   name: 'AppCommunityMemberAutocompleteInput',
 
   components: {
-    'app-community-member-form-modal': CommunityMemberFormModal
+    'app-community-member-form-modal':
+      CommunityMemberFormModal
   },
   props: {
     value: {

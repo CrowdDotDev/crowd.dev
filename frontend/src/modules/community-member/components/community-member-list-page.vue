@@ -86,10 +86,14 @@ export default {
   name: 'AppCommunityMemberListPage',
 
   components: {
-    'app-community-member-list-filter': CommunityMemberListFilter,
-    'app-community-member-list-table': CommunityMemberListTable,
-    'app-community-member-form-page': CommunityMemberFormPage,
-    'app-community-member-platform-tabs': CommunityMemberPlatformTabs
+    'app-community-member-list-filter':
+      CommunityMemberListFilter,
+    'app-community-member-list-table':
+      CommunityMemberListTable,
+    'app-community-member-form-page':
+      CommunityMemberFormPage,
+    'app-community-member-platform-tabs':
+      CommunityMemberPlatformTabs
   },
 
   data() {
@@ -115,7 +119,8 @@ export default {
   },
 
   async created() {
-    const mergeSuggestions = await CommunityMemberService.fetchMergeSuggestions()
+    const mergeSuggestions =
+      await CommunityMemberService.fetchMergeSuggestions()
     this.hasMembersToMerge = mergeSuggestions.length > 0
   },
 

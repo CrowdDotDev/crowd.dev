@@ -46,9 +46,11 @@ export default {
     'app-autocomplete-one-input': AutocompleteOneInput,
     'app-autocomplete-many-input': AutocompleteManyInput,
     'app-view-item-relation-to-one': ViewItemRelationToOne,
-    'app-view-item-relation-to-many': ViewItemRelationToMany,
+    'app-view-item-relation-to-many':
+      ViewItemRelationToMany,
     'app-list-item-relation-to-one': ListItemRelationToOne,
-    'app-list-item-relation-to-many': ListItemRelationToMany,
+    'app-list-item-relation-to-many':
+      ListItemRelationToMany,
     'app-filter-preview': FilterPreview,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,

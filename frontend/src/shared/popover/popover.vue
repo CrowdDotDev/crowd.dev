@@ -76,9 +76,8 @@ export default {
       handler(newValue) {
         if (newValue) {
           setTimeout(() => {
-            const el = document.querySelector(
-              '.app-popover'
-            )
+            const el =
+              document.querySelector('.app-popover')
 
             const offsetTop =
               this.$el.getBoundingClientRect().top +

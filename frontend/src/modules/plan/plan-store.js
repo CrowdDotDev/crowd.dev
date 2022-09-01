@@ -72,9 +72,8 @@ export default {
       try {
         commit('CHECKOUT_STARTED')
 
-        const sessionId = await PlanService.fetchCheckoutSessionId(
-          plan
-        )
+        const sessionId =
+          await PlanService.fetchCheckoutSessionId(plan)
 
         const stripe = window.Stripe(
           config.stripePublishableKey

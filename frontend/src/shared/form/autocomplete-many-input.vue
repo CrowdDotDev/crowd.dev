@@ -205,12 +205,12 @@ export default {
       }
 
       if (this.fullDataSource) {
-        this.inMemoryDataSource = this.fullDataSource.filter(
-          (item) =>
+        this.inMemoryDataSource =
+          this.fullDataSource.filter((item) =>
             String(item.label || '')
               .toLowerCase()
               .includes(String(value || '').toLowerCase())
-        )
+          )
       }
 
       this.loading = false

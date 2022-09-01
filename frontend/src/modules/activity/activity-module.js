@@ -4,7 +4,8 @@ import ActivityAutocompleteInput from '@/modules/activity/components/activity-au
 
 export default {
   components: {
-    'app-activity-autocomplete-input': ActivityAutocompleteInput
+    'app-activity-autocomplete-input':
+      ActivityAutocompleteInput
   },
   routes,
   store

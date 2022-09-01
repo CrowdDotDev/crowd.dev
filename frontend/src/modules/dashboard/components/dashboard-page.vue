@@ -37,8 +37,10 @@ import WidgetIntegrations from '@/modules/widget/components/dashboard/widget-int
 export default {
   name: 'AppDashboardPage',
   components: {
-    'app-dashboard-datetime-based-widgets': DashboardDatetimeBasedWidgets,
-    'app-dashboard-recent-updates-widgets': DashboardRecentUpdatesWidgets,
+    'app-dashboard-datetime-based-widgets':
+      DashboardDatetimeBasedWidgets,
+    'app-dashboard-recent-updates-widgets':
+      DashboardRecentUpdatesWidgets,
     'app-widget-benchmark': WidgetBenchmark,
     'app-widget-integrations': WidgetIntegrations
   },

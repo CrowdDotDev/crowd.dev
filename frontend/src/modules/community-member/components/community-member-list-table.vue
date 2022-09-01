@@ -189,11 +189,15 @@ const { fields } = CommunityMemberModel
 export default {
   name: 'AppCommunityMemberListTable',
   components: {
-    'app-community-member-list-toolbar': CommunityMemberListToolbar,
-    'app-community-member-dropdown': CommunityMemberDropdown,
-    'app-community-member-channels': CommunityMemberChannels,
+    'app-community-member-list-toolbar':
+      CommunityMemberListToolbar,
+    'app-community-member-dropdown':
+      CommunityMemberDropdown,
+    'app-community-member-channels':
+      CommunityMemberChannels,
     'app-tag-list': TagList,
-    'app-community-member-engagement-level': CommunityMemberEngagementLevel,
+    'app-community-member-engagement-level':
+      CommunityMemberEngagementLevel,
     'app-community-member-reach': CommunityMemberReach
   },
 

@@ -118,7 +118,8 @@ export default {
     }
   },
   async created() {
-    this.membersToMerge = await CommunityMemberService.fetchMergeSuggestions()
+    this.membersToMerge =
+      await CommunityMemberService.fetchMergeSuggestions()
   },
   methods: {
     async handleMergeClick(members) {
@@ -166,10 +167,11 @@ export default {
           }
         )
 
-        const response = await CommunityMemberService.addToNoMerge(
-          members[0],
-          members[1]
-        )
+        const response =
+          await CommunityMemberService.addToNoMerge(
+            members[0],
+            members[1]
+          )
 
         const index = this.membersToMerge.findIndex(
           (membersToMerge) => {

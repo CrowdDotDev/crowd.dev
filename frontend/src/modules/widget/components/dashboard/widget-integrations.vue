@@ -17,10 +17,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in activeIntegrationsByStatus[
-              'in-progress'
-            ]"
+            v-for="(
+              integration, index
+            ) in activeIntegrationsByStatus['in-progress']"
             :key="index"
           >
             <div class="my-2">
@@ -48,8 +47,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in activeIntegrationsByStatus.done"
+            v-for="(
+              integration, index
+            ) in activeIntegrationsByStatus.done"
             :key="index"
           >
             <div class="my-2">
@@ -72,8 +72,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in inactiveIntegrations"
+            v-for="(
+              integration, index
+            ) in inactiveIntegrations"
             :key="index"
           >
             <div class="my-2">

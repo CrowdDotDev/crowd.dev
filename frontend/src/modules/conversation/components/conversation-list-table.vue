@@ -189,7 +189,8 @@ export default {
   name: 'AppConversationListTable',
   components: {
     'app-conversation-dropdown': ConversationDropdown,
-    'app-conversation-list-toolbar': ConversationListDropdown
+    'app-conversation-list-toolbar':
+      ConversationListDropdown
   },
 
   computed: {

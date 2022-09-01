@@ -109,7 +109,8 @@
               <span
                 class="inline-flex items-center leading-none mt-5 text-secondary-900 cursor-pointer hover:opacity-80"
                 @click="
-                  additionalSettingsVisible = !additionalSettingsVisible
+                  additionalSettingsVisible =
+                    !additionalSettingsVisible
                 "
               >
                 <i
@@ -307,9 +308,8 @@ export default {
       getCubeToken: 'widget/getCubeToken'
     }),
     handleSubmit(query) {
-      const widgetEl = this.$el.querySelector(
-        '.widget-cube'
-      )
+      const widgetEl =
+        this.$el.querySelector('.widget-cube')
       const widget = {
         id: this.value.id ? this.value.id : undefined,
         title: this.model.title,

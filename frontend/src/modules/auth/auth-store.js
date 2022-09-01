@@ -199,9 +199,10 @@ export default {
   mutations: {
     CURRENT_USER_REFRESH_SUCCESS(state, payload) {
       state.currentUser = payload.currentUser || null
-      state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+      state.currentTenant =
+        AuthCurrentTenant.selectAndSaveOnStorageFor(
+          payload.currentUser
+        )
     },
 
     AUTH_START(state) {
@@ -210,9 +211,10 @@ export default {
 
     AUTH_SUCCESS(state, payload) {
       state.currentUser = payload.currentUser || null
-      state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+      state.currentTenant =
+        AuthCurrentTenant.selectAndSaveOnStorageFor(
+          payload.currentUser
+        )
       state.loading = false
     },
 
@@ -296,9 +298,10 @@ export default {
 
     AUTH_INIT_SUCCESS(state, payload) {
       state.currentUser = payload.currentUser || null
-      state.currentTenant = AuthCurrentTenant.selectAndSaveOnStorageFor(
-        payload.currentUser
-      )
+      state.currentTenant =
+        AuthCurrentTenant.selectAndSaveOnStorageFor(
+          payload.currentUser
+        )
       state.loadingInit = false
     },
 
@@ -382,10 +385,11 @@ export default {
       try {
         commit('AUTH_START')
 
-        const token = await AuthService.registerWithEmailAndPassword(
-          email,
-          password
-        )
+        const token =
+          await AuthService.registerWithEmailAndPassword(
+            email,
+            password
+          )
 
         AuthToken.set(token, true)
 
@@ -412,10 +416,11 @@ export default {
 
         let currentUser = null
 
-        const token = await AuthService.signinWithEmailAndPassword(
-          email,
-          password
-        )
+        const token =
+          await AuthService.signinWithEmailAndPassword(
+            email,
+            password
+          )
 
         AuthToken.set(token, rememberMe)
         currentUser = await AuthService.fetchMe()

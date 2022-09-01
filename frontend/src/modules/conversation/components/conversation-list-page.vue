@@ -52,8 +52,10 @@ export default {
   components: {
     'app-conversation-list-table': ConversationListTable,
     'app-conversation-list-filter': ConversationListFilter,
-    'app-conversation-published-tabs': ConversationPublishedTabs,
-    'app-conversation-platform-tabs': ConversationPlatformTabs,
+    'app-conversation-published-tabs':
+      ConversationPublishedTabs,
+    'app-conversation-platform-tabs':
+      ConversationPlatformTabs,
     'app-conversation-settings': ConversationSettings
   },
 

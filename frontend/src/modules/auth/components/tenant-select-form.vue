@@ -92,10 +92,11 @@ export default {
         return
       }
 
-      const tenantUserInvitation = this.currentUser.tenants.find(
-        (tenantUser) =>
-          tenantUser.tenant.id === this.model.id
-      )
+      const tenantUserInvitation =
+        this.currentUser.tenants.find(
+          (tenantUser) =>
+            tenantUser.tenant.id === this.model.id
+        )
 
       await this.doAccept(
         tenantUserInvitation.invitationToken

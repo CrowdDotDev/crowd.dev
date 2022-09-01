@@ -173,10 +173,13 @@ import integrationsJson from '@/jsons/integrations'
 export default {
   name: 'AppCommunityMemberDetails',
   components: {
-    'app-community-member-dropdown': CommunityMemberDropdown,
-    'app-community-member-channels': CommunityMemberChannels,
+    'app-community-member-dropdown':
+      CommunityMemberDropdown,
+    'app-community-member-channels':
+      CommunityMemberChannels,
     'app-tag-list': TagList,
-    'app-community-member-engagement-level': CommunityMemberEngagementLevel,
+    'app-community-member-engagement-level':
+      CommunityMemberEngagementLevel,
     'app-community-member-reach': CommunityMemberReach
   },
   props: {

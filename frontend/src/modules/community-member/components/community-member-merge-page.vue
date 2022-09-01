@@ -175,7 +175,8 @@ export default {
 
   components: {
     'app-community-member-details': CommunityMemberDetails,
-    'app-community-member-autocomplete-input': CommunityMemberAutocompleteInput,
+    'app-community-member-autocomplete-input':
+      CommunityMemberAutocompleteInput,
     'app-activity-list-feed-item': ActivityListFeedItem
   },
 
@@ -213,9 +214,8 @@ export default {
       },
       async set(value) {
         this.loadingMemberToMerge = true
-        this.memberToMerge = await CommunityMemberService.find(
-          value.id
-        )
+        this.memberToMerge =
+          await CommunityMemberService.find(value.id)
         await this.$router.push({
           name: 'communityMemberMerge',
           query: { idToMerge: value ? value.id : undefined }
@@ -282,9 +282,10 @@ export default {
 
     if (params['idToMerge']) {
       this.loadingMemberToMerge = true
-      this.memberToMerge = await CommunityMemberService.find(
-        params['idToMerge']
-      )
+      this.memberToMerge =
+        await CommunityMemberService.find(
+          params['idToMerge']
+        )
       this.loadingMemberToMerge = false
     }
   },
@@ -296,10 +297,11 @@ export default {
     }),
 
     async fetchFn(query, limit) {
-      const options = await CommunityMemberService.listAutocomplete(
-        query,
-        limit
-      )
+      const options =
+        await CommunityMemberService.listAutocomplete(
+          query,
+          limit
+        )
       return options.filter((m) => {
         return m.id !== this.id
       })

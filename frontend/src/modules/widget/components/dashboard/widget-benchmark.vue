@@ -181,9 +181,8 @@ export default {
           data: {
             settings: {
               repositories,
-              last_updated_at: moment().format(
-                'YYYY-MM-DD'
-              ),
+              last_updated_at:
+                moment().format('YYYY-MM-DD'),
               timeframe: timeframe
             }
           }

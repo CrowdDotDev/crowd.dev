@@ -599,8 +599,7 @@ const en = {
     },
     select: 'Select Workspace',
     validation: {
-      url:
-        'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
+      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
     }
   },
 

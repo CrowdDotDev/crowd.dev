@@ -1,8 +1,9 @@
 <template>
   <el-select v-model="model" placeholder="Select an option">
     <el-option
-      v-for="(item,
-      index) in fields.scoreRange.dropdownOptions()"
+      v-for="(
+        item, index
+      ) in fields.scoreRange.dropdownOptions()"
       :key="index"
       :label="item.label"
       :value="item.value"

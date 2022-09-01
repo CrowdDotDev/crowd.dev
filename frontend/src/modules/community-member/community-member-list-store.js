@@ -469,9 +469,8 @@ export default {
           )
           return acc
         }, [])
-        const updatedMembers = await CommunityMemberService.updateBulk(
-          payload
-        )
+        const updatedMembers =
+          await CommunityMemberService.updateBulk(payload)
         commit(
           'BULK_UPDATE_MEMBERS_TAGS_SUCCESS',
           updatedMembers

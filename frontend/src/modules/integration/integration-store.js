@@ -200,9 +200,10 @@ export default {
       try {
         commit('DESTROY_STARTED')
 
-        const response = await IntegrationService.destroyAll(
-          [integrationId]
-        )
+        const response =
+          await IntegrationService.destroyAll([
+            integrationId
+          ])
 
         commit('DESTROY_SUCCESS', response)
       } catch (error) {
@@ -215,9 +216,10 @@ export default {
       try {
         commit('DESTROY_ALL_STARTED')
 
-        const response = await IntegrationService.destroyAll(
-          integrationIds
-        )
+        const response =
+          await IntegrationService.destroyAll(
+            integrationIds
+          )
 
         commit('DESTROY_ALL_SUCCESS', response)
       } catch (error) {
@@ -245,11 +247,12 @@ export default {
       try {
         commit('CREATE_STARTED')
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.githubConnect(
-          code,
-          install_id,
-          setupAction
-        )
+        const integration =
+          await IntegrationService.githubConnect(
+            code,
+            install_id,
+            setupAction
+          )
 
         commit('CREATE_SUCCESS', integration)
         Message.success(
@@ -271,9 +274,8 @@ export default {
       try {
         commit('CREATE_STARTED')
 
-        const integration = await IntegrationService.discordConnect(
-          guildId
-        )
+        const integration =
+          await IntegrationService.discordConnect(guildId)
 
         commit('CREATE_SUCCESS', integration)
         Message.success(
@@ -300,10 +302,11 @@ export default {
       try {
         commit('CREATE_STARTED')
 
-        const integration = await IntegrationService.devtoConnect(
-          users,
-          organizations
-        )
+        const integration =
+          await IntegrationService.devtoConnect(
+            users,
+            organizations
+          )
 
         commit('CREATE_SUCCESS', integration)
 

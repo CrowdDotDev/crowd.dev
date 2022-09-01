@@ -191,9 +191,8 @@ export default {
         if (!user.valid) return false
       }
 
-      const relevantOrganizations = this.organizations.filter(
-        (o) => !!o.username
-      )
+      const relevantOrganizations =
+        this.organizations.filter((o) => !!o.username)
       for (const org of relevantOrganizations) {
         if (!org.valid) return false
       }
@@ -328,9 +327,10 @@ export default {
         ) {
           user.valid = false
         } else {
-          const result = await IntegrationService.devtoValidateUser(
-            user.username
-          )
+          const result =
+            await IntegrationService.devtoValidateUser(
+              user.username
+            )
 
           user.valid = !!result
         }
@@ -365,9 +365,10 @@ export default {
         ) {
           organization.valid = false
         } else {
-          const result = await IntegrationService.devtoValidateOrganization(
-            organization.username
-          )
+          const result =
+            await IntegrationService.devtoValidateOrganization(
+              organization.username
+            )
           organization.valid = !!result
         }
       } catch (e) {
@@ -385,9 +386,8 @@ export default {
     },
 
     async save() {
-      const relevantOrganizations = this.organizations.filter(
-        (o) => !!o.username
-      )
+      const relevantOrganizations =
+        this.organizations.filter((o) => !!o.username)
       const relevantUsers = this.users.filter(
         (u) => !!u.username
       )

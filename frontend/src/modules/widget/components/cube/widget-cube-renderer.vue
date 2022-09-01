@@ -3,11 +3,7 @@
     :cubejs-api="cubejsApi"
     :query="widget.settings.query"
   >
-    <template
-      #default="{
-        resultSet
-      }"
-    >
+    <template #default="{ resultSet }">
       <app-widget-cube
         :result-set="resultSet"
         :show-subtitle="showSubtitle"
