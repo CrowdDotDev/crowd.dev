@@ -23,6 +23,10 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.taskEdit)
 
+    if (req.params.userEmail === 'null') {
+      req.params.userEmail = null
+    }
+
     const payload = await new TaskService(req).assignToByEmail(req.params.id, req.params.userEmail)
 
     await ApiResponseHandler.success(req, res, payload)

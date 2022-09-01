@@ -44,7 +44,6 @@ export default (sequelize) => {
           },
         },
         {
-          unique: true,
           fields: ['name', 'tenantId'],
           where: {
             deletedAt: null,
