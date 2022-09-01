@@ -250,7 +250,7 @@ export default {
   },
 
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     }
@@ -258,8 +258,8 @@ export default {
   emits: ['close', 'submit'],
 
   data() {
-    const query = this.value.settings
-      ? this.value.settings.query
+    const query = this.modelValue.settings
+      ? this.modelValue.settings.query
       : {
           measures: ['Activities.count'],
           timeDimensions: [
@@ -272,7 +272,7 @@ export default {
         }
 
     return {
-      model: JSON.parse(JSON.stringify(this.value)),
+      model: JSON.parse(JSON.stringify(this.modelValue)),
       chartTypes: [
         'line',
         'area',
@@ -283,8 +283,8 @@ export default {
       ],
       vizState: {
         query,
-        chartType: this.value.settings
-          ? this.value.settings.chartType
+        chartType: this.modelValue.settings
+          ? this.modelValue.settings.chartType
           : 'line'
       },
       additionalSettingsVisible: false
@@ -311,13 +311,15 @@ export default {
       const widgetEl =
         this.$el.querySelector('.widget-cube')
       const widget = {
-        id: this.value.id ? this.value.id : undefined,
+        id: this.modelValue.id
+          ? this.modelValue.id
+          : undefined,
         title: this.model.title,
-        type: this.value.type,
-        reportId: this.value.reportId,
+        type: this.modelValue.type,
+        reportId: this.modelValue.reportId,
         settings: Object.assign(
           {},
-          this.value.settings,
+          this.modelValue.settings,
           query
         )
       }

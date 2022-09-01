@@ -10,6 +10,7 @@ import {
 } from '@/i18n'
 
 import ElementPlus from 'element-plus'
+import VueGridLayout from 'vue-grid-layout'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
 
@@ -29,6 +30,7 @@ i18nInit()
   await TenantService.fetchAndApply()
 
   app.use(ElementPlus, { locale: getElementUILanguage() })
+  app.use(VueGridLayout)
   app.config.productionTip =
     process.env.NODE_ENV === 'production'
 

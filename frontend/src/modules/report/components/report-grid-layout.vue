@@ -51,7 +51,7 @@
           v-else
           :to="{
             name: 'reportEdit',
-            params: { id: value.id }
+            params: { id: modelValue.id }
           }"
           class="btn btn--secondary mt-1"
         >
@@ -63,7 +63,7 @@
       </div>
       <div v-else>
         <grid-layout
-          :layout="layout"
+          v-model:layout="layout"
           :col-num="12"
           :row-height="8"
           :is-draggable="editable"
@@ -130,7 +130,6 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import VueGridLayout from 'vue-grid-layout'
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder'
 import { WidgetService } from '@/modules/widget/widget-service'
@@ -139,13 +138,11 @@ import { i18n } from '@/i18n'
 export default {
   name: 'ReportGridLayout',
   components: {
-    GridLayout: VueGridLayout.GridLayout,
-    GridItem: VueGridLayout.GridItem,
     'app-widget-cube-builder': WidgetCubeBuilder,
     'app-widget-cube-renderer': WidgetCubeRenderer
   },
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },
@@ -157,7 +154,7 @@ export default {
 
   data() {
     return {
-      model: this.value,
+      model: { ...this.modelValue },
       widgetModal: {
         visible: false,
         action: null,
@@ -204,8 +201,8 @@ export default {
           JSON.stringify({
             title: 'Untitled',
             type: 'cubejs',
-            reportId: this.value.id
-              ? this.value.id
+            reportId: this.modelValue.id
+              ? this.modelValue.id
               : undefined
           })
         )
@@ -300,7 +297,9 @@ export default {
       this.widgetModal.model = {
         title: 'Untitled',
         type: 'cubejs',
-        reportId: this.value.id ? this.value.id : undefined
+        reportId: this.modelValue.id
+          ? this.modelValue.id
+          : undefined
       }
     },
     updateLayout() {

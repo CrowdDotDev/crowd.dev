@@ -63,7 +63,6 @@ import WidgetTable from '../widget-table'
 import WidgetNumber from '../widget-number'
 import Widget from '@/modules/widget/components/widget'
 import { i18n } from '@/i18n'
-import { ResultSet } from '@cubejs-client/core'
 
 export default {
   name: 'WidgetCube',
@@ -79,7 +78,7 @@ export default {
       required: true
     },
     resultSet: {
-      type: ResultSet,
+      type: null,
       required: true
     },
     showSubtitle: {

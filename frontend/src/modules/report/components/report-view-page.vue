@@ -1,20 +1,20 @@
 <template>
   <div class="report-view-page">
-    <div class="flex items-start justify-between">
-      <h1 class="app-content-title">
-        {{ report.name }}
-      </h1>
-      <app-report-dropdown
-        :report="report"
-        :show-view-report="false"
-      ></app-report-dropdown>
-    </div>
     <div
       v-if="loading('view')"
       v-loading="loading('view')"
       class="app-page-spinner"
     ></div>
     <div v-else>
+      <div class="flex items-start justify-between">
+        <h1 class="app-content-title">
+          {{ report.name }}
+        </h1>
+        <app-report-dropdown
+          :report="report"
+          :show-view-report="false"
+        ></app-report-dropdown>
+      </div>
       <app-report-grid-layout
         v-model="report"
         class="-mx-4"

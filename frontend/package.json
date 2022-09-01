@@ -40,9 +40,9 @@
     "remixicon": "^2.5.0",
     "uuid": "8.3.0",
     "vue": "^3.2.29",
-    "vue-grid-layout": "^2.3.12",
+    "vue-grid-layout": "3.0.0-beta1",
     "vue-router": "^4.0.12",
-    "vuedraggable": "^4.1.0",
+    "vuedraggable": "^2.24.3",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",
     "yup": "^0.32.11"
