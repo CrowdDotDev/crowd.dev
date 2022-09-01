@@ -6,6 +6,7 @@ export default (app) => {
     `/tenant/:tenantId/task/:id/user/email/:userEmail`,
     require('./taskAssignToByEmail').default,
   )
+  app.put(`/tenant/:tenantId/task/:id/status/:status`, require('./taskUpdateStatus').default)
   app.put(`/tenant/:tenantId/task/:id`, require('./taskUpdate').default)
   app.post(`/tenant/:tenantId/task/import`, require('./taskImport').default)
   app.delete(`/tenant/:tenantId/task`, require('./taskDestroy').default)
