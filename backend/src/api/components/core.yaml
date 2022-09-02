@@ -225,3 +225,46 @@ components:
 
       xml:
         name: Conversation
+
+    # defines automation type enum
+    AutomationType:
+      description: Automation type
+      type: string
+      enum: ['webhook']
+
+    # defines automation state enum
+    AutomationState:
+      description: Automation state
+      type: string
+      enum: ['active', 'disabled']
+
+    # defines automation triggers
+    AutomationTrigger:
+      description: What will trigger an automation
+      type: string
+      enum: [ 'new_activity', 'new_member' ]
+
+    # defines automation execution state
+    AutomationExecutionState:
+      description: What was the state of the automation execution
+      type: string
+      enum: ['success', 'error']
+
+    # defines automation settings object
+    AutomationSettings:
+      description: Settings based on automation type
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/WebhookAutomationSettings'
+
+    # defines webhook automation settings
+    WebhookAutomationSettings:
+      description: Settings used by automation with type webhook
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: URL to POST webhook data to
+          type: string
+          format: uri
