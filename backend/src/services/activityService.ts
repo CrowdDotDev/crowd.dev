@@ -309,7 +309,7 @@ export default class ActivityService {
     }
   }
 
-  async update(id, data) {
+  async   update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {

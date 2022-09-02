@@ -279,7 +279,7 @@ export default class TwitterIterator extends BaseIterator {
       sourceId: BaseIterator.generateSourceIdHash(
         record.username,
         'follow',
-        timestampObj.unix().toString(),
+        '1970-01-01T00:00:00+00:00',
         PlatformType.TWITTER,
       ),
       // When onboarding we need a super old date. Otherwise we can place it in a 2h window
