@@ -393,7 +393,6 @@ export default class IntegrationService {
       integrationIdentifier: profileId,
       token,
       refreshToken,
-      status: 'in-progress',
 
     })
 
@@ -435,6 +434,7 @@ export default class IntegrationService {
       limitCount: integration.limitCount,
       limitLastResetAt: integration.limitLastResetAt,
       settings: integration.settings,
+      status: 'in-progress',
     })
   }
 }
