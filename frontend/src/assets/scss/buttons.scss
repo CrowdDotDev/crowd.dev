@@ -34,6 +34,10 @@
     &:hover, &:focus {
       @apply bg-primary-900 border border-primary-900 text-white opacity-90;
     }
+
+    &[disabled] {
+      @apply bg-primary-900 border border-primary-900 text-white;
+    }
   }
 
   &--secondary {
