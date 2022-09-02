@@ -14,7 +14,7 @@ import ApiResponseHandler from '../apiResponseHandler'
  * @bodyContent {AutomationCreateInput} application/json
  * @response 200 - Ok
  * @responseContent {Automation} 200.application/json
- * @responseExample {AutomationCreateUpdate} 200.application/json.Automation
+ * @responseExample {Automation} 200.application/json.Automation
  * @response 401 - Unauthorized
  * @response 429 - Too many requests
  */
