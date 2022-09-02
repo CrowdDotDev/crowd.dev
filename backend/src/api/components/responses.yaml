@@ -101,3 +101,45 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Conversation'
+
+    Automation:
+      type: object
+      required:
+        - id
+        - type
+        - tenantId
+        - trigger
+        - settings
+        - state
+        - createdAt
+      properties:
+        id:
+          description: Automation unique ID
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AutomationType'
+        tenantId:
+          description: Automation tenant unique ID
+          type: string
+          format: uuid
+        trigger:
+          $ref: '#/components/schemas/AutomationTrigger'
+        settings:
+          $ref: '#/components/schemas/AutomationSettings'
+        state:
+          $ref: '#/components/schemas/AutomationState'
+        createdAt:
+          description: When was automation created
+          type: string
+          format: date-time
+        lastExecutionAt:
+          description: When was automation last executed
+          type: string
+          format: date-time
+        lastExecutionState:
+          description: State of the last automation execution
+          $ref: '#/components/schemas/AutomationExecutionState'
+        lastExecutionError:
+          description: Error information if last automation execution failed
+          type: object

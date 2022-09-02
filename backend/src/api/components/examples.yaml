@@ -426,3 +426,13 @@ components:
         rows:
           - $ref: '#/components/examples/Tag'
           - $ref: '#/components/examples/Tag2'
+
+    AutomationCreateUpdate:
+      value:
+        id: b3297f3b-6924-4e92-80e7-ef2e0d87a120
+        type: 'webhook'
+        tenantId: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        trigger: 'new_activity'
+        settings:
+          url: 'https://webhook.url/new_activities'
+        createdAt: '2022-03-29T09:22:31.989Z'
