@@ -10,7 +10,7 @@
             class="btn btn--primary"
             @click="createModal = true"
           >
-            <i class="ri-lg ri-add-line mr1"></i>
+            <i class="ri-lg ri-add-line mr-1"></i>
             New webhook
           </el-button>
         </div>
@@ -37,7 +37,7 @@
         class="btn btn--primary mt-10"
         @click="createModal = true"
       >
-        <i class="ri-lg ri-add-line mr1"></i>
+        <i class="ri-lg ri-add-line mr-1"></i>
         New webhook
       </el-button>
     </div>
