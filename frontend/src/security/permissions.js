@@ -440,6 +440,68 @@ class Permissions {
           plans.premium,
           plans.enterprise
         ]
+      },
+      automationImport: {
+        id: 'automationImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      automationCreate: {
+        id: 'automationCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      automationEdit: {
+        id: 'automationEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      automationDestroy: {
+        id: 'automationDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      automationRead: {
+        id: 'automationRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      automationCustomize: {
+        id: 'automationCustomize',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.premium, plans.enterprise]
+      },
+      automationAutocomplete: {
+        id: 'automationAutocomplete',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
       }
     }
   }

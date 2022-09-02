@@ -13,7 +13,10 @@
         <app-user-list-page class="pt-4" />
       </el-tab-pane>
       <el-tab-pane label="Integrations" name="integrations">
-        <app-integrations-list-page />
+        <app-integration-list-page />
+      </el-tab-pane>
+      <el-tab-pane label="Automations" name="automations">
+        <app-automation-list-page />
       </el-tab-pane>
       <el-tab-pane label="API Keys" name="api-keys">
         <div class="panel mt-4">
@@ -118,6 +121,7 @@
 <script>
 import UserListPage from '@/premium/user/components/user-list-page'
 import IntegrationListPage from '@/modules/integration/components/integration-list-page'
+import AutomationListPage from '@/modules/automation/components/automation-list-page'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import Message from '@/shared/message/message'
@@ -129,7 +133,8 @@ export default {
 
   components: {
     'app-user-list-page': UserListPage,
-    'app-integrations-list-page': IntegrationListPage
+    'app-integration-list-page': IntegrationListPage,
+    'app-automation-list-page': AutomationListPage
   },
 
   data() {
@@ -187,3 +192,14 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.el-tabs {
+  &__item {
+    @apply font-normal text-black;
+    &.is-active {
+      @apply text-black;
+    }
+  }
+}
+</style>

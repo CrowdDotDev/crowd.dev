@@ -74,6 +74,10 @@ export default {
 
   &-tabs {
     @apply mt-8;
+
+    .el-tabs__nav-wrap::after {
+      @apply hidden;
+    }
   }
 }
 </style>
