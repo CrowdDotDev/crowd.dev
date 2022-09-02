@@ -24,7 +24,7 @@ import {
  */
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.automationDestroy)
+    new PermissionChecker(req).validateHas(Permissions.values.automationRead)
 
     const criteria: AutomationCriteria = {
       type: req.query.type ? (req.query.type as AutomationType) : undefined,

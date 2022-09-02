@@ -49,7 +49,7 @@ export default (sequelize) => {
           },
         },
       ],
-      timestampts: true,
+      timestamps: true,
       paranoid: true,
     },
   )

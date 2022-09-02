@@ -84,3 +84,16 @@ export interface AutomationCriteria {
   trigger?: AutomationTrigger
   state?: AutomationState
 }
+
+/**
+ * Data about specific automation execution that was processed when a trigger was detected
+ */
+export interface AutomationExecution {
+  id: string
+  automationId: string
+  state: AutomationExecutionState
+  error: any | null
+  executedAt: string
+  eventId: string
+  payload: any
+}

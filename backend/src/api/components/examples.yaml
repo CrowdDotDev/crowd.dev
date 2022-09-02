@@ -441,3 +441,20 @@ components:
       value:
         rows:
           - $ref: '#/components/examples/Automation'
+
+    AutomationExecutionPage:
+      value:
+        total: 1
+        page: 1
+        perPage: 10
+        data:
+          - id: 'b3297f3b-6924-4e92-80e7-ef2e0d87a120'
+            automationId: 'a3297f3b-6924-4e92-80e7-ef2e0d87a120'
+            state: success
+            executedAt: '2022-03-29T09:22:31.989Z'
+            eventId: 'a3297f3b-6924-4e92-80e7-ef2e0d87a121'
+            payload:
+              - id: 'a3297f3b-6924-4e92-80e7-ef2e0d87a121'
+                type: 'comment'
+                timestamp: '2022-03-29T09:22:31.989Z'
+                platform: 'twitter'

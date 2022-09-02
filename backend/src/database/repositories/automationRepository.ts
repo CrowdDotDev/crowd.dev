@@ -117,6 +117,25 @@ export default class AutomationRepository {
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
+  static async findById(id: string, options: IRepositoryOptions): Promise<AutomationData> {
+    const results = await this.find(
+      {
+        id,
+      },
+      options,
+    )
+
+    if (results.length === 1) {
+      return results[0]
+    }
+
+    if (results.length === 0) {
+      throw new Error404()
+    }
+
+    throw new Error('More than one row returned when fetching by automation unique ID!')
+  }
+
   static async find(
     criteria: AutomationCriteria,
     options: IRepositoryOptions,
@@ -194,7 +213,7 @@ export default class AutomationRepository {
 
       await AuditLogRepository.log(
         {
-          entityName: 'activity',
+          entityName: 'automation',
           entityId: record.id,
           action,
           values,
