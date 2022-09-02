@@ -143,3 +143,8 @@ components:
         lastExecutionError:
           description: Error information if last automation execution failed
           type: object
+
+    AutomationList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Automation'
