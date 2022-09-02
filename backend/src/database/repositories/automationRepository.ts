@@ -1,4 +1,4 @@
-import { QueryTypes } from 'sequelize/types'
+import { QueryTypes } from 'sequelize'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import SequelizeRepository from './sequelizeRepository'

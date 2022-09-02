@@ -37,9 +37,26 @@ export interface WebhookSettings {
 }
 
 /**
+ * Settings for new activity trigger based automations
+ */
+export interface NewActivitySettings {
+  types: string[]
+  platforms: string[]
+  keywords: string[]
+  teamMemberActivities: boolean
+}
+
+/**
+ * Settings for new member trigger based automations
+ */
+export interface NewMemberSettings {
+  platforms: string[]
+}
+
+/**
  * Union type to contain all different types of settings
  */
-export type AutomationSettings = WebhookSettings
+export type AutomationSettings = WebhookSettings | NewActivitySettings | NewMemberSettings
 
 /**
  * This data is used by the frontend to display automations settings page
