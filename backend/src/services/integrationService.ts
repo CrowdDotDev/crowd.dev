@@ -393,7 +393,6 @@ export default class IntegrationService {
       integrationIdentifier: profileId,
       token,
       refreshToken,
-
     })
 
     if (!integration.limitCount) {
