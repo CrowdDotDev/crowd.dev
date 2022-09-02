@@ -178,7 +178,7 @@ export default class AutomationRepository {
     -- common table expression (CTE) to prepare the last execution information for each automationId
       with latest_executions as (select distinct on ("automationId") "automationId", "executedAt", state, error
                                 from "automationExecutionHistories"
-                                order by "executedAt" desc)
+                                order by "automationId", "executedAt" desc)
       select a.id,
             a.type,
             a."tenantId",

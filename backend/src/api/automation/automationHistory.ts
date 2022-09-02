@@ -23,10 +23,19 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.automationRead)
 
+    let page = 1
+    if (req.query.page) {
+      page = parseInt(req.query.page, 10)
+    }
+    let perPage = 10
+    if (req.query.perPage) {
+      perPage = parseInt(req.query.perPage, 10)
+    }
+
     const payload = await new AutomationService(req).listExecutions(
       req.params.automationId,
-      parseInt(req.query.page, 10),
-      parseInt(req.query.perPage, 10),
+      page,
+      perPage,
     )
 
     await ApiResponseHandler.success(req, res, payload)
