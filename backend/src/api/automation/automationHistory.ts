@@ -11,8 +11,8 @@ import ApiResponseHandler from '../apiResponseHandler'
  * @description Get all automation execution history for tenant and automation
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} automationId - Your workspace/tenant ID
- * @queryParam {integer} page - Which page are you listing
- * @queryParam {integer} perPage - How many elements would you like to list per page
+ * @queryParam {integer} [page=1] - Which page are you listing
+ * @queryParam {integer} [perPage=10] - How many elements would you like to list per page
  * @response 200 - Ok
  * @responseContent {AutomationExecutionPage} 200.application/json
  * @responseExample {AutomationExecutionPage} 200.application/json.AutomationExecutionPage
