@@ -7,131 +7,134 @@
     class="form"
     @submit.prevent="doSubmit"
   >
-    <div class="flex items-center pb-2">
-      <span
-        class="font-semibold text-primary-900 leading-relaxed"
-        >Trigger</span
-      >
-      <span
-        class="text-gray-600 text-xs ml-2 leading-relaxed"
-        >Define the event that triggers your webhook</span
-      >
-    </div>
-    <hr class="mb-6" />
-    <el-form-item
-      :label="fields.trigger.label"
-      :prop="fields.trigger.name"
-      :required="fields.trigger.required"
-      class="w-full"
-    >
-      <el-select
-        v-model="model.trigger"
-        placeholder="Select option"
-      >
-        <el-option key="new_activity" value="new_activity">
-          <app-i18n
-            code="entities.automation.triggers.new_activity"
-          />
-        </el-option>
-        <el-option key="new_member" value="new_member">
-          <app-i18n
-            code="entities.automation.triggers.new_member"
-          />
-        </el-option>
-      </el-select>
-    </el-form-item>
-    <div class="flex -mx-2">
+    <div
+      v-if="loadingIntegrations"
+      v-loading="loadingIntegrations"
+      class="app-page-spinner"
+    ></div>
+    <div v-else>
+      <div class="flex items-center pb-2">
+        <span
+          class="font-semibold text-primary-900 leading-relaxed"
+          >Trigger</span
+        >
+        <span
+          class="text-gray-600 text-xs ml-2 leading-relaxed"
+          >Define the event that triggers your webhook</span
+        >
+      </div>
+      <hr class="mb-6" />
       <el-form-item
-        label="Matching activity platform(s)"
-        :prop="fields.settings.activityPlatforms"
-        class="w-full lg:w-1/2 mx-2"
+        :label="fields.trigger.label"
+        :prop="fields.trigger.name"
+        :required="fields.trigger.required"
+        class="w-full"
       >
         <el-select
-          v-model="model.settings.activityPlatforms"
+          v-model="model.trigger"
           placeholder="Select option"
         >
           <el-option
             key="new_activity"
             value="new_activity"
-          >
-            <app-i18n
-              code="entities.automation.triggers.new_activity"
-            />
-          </el-option>
-          <el-option key="new_member" value="new_member">
-            <app-i18n
-              code="entities.automation.triggers.new_member"
-            />
-          </el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item
-        label="Matching activity type(s)"
-        :prop="fields.settings.activityTypes"
-        class="w-full lg:w-1/2 mx-2"
-      >
-        <el-select
-          v-model="model.settings.activityTypes"
-          placeholder="Select option"
-        >
+            :label="
+              translate(
+                'entities.automation.triggers.new_activity'
+              )
+            "
+          />
           <el-option
-            key="new_activity"
-            value="new_activity"
-          >
-            <app-i18n
-              code="entities.automation.triggers.new_activity"
-            />
-          </el-option>
-          <el-option key="new_member" value="new_member">
-            <app-i18n
-              code="entities.automation.triggers.new_member"
-            />
-          </el-option>
+            key="new_member"
+            value="new_member"
+            :label="
+              translate(
+                'entities.automation.triggers.new_member'
+              )
+            "
+          />
         </el-select>
       </el-form-item>
-    </div>
-    <el-form-item label="Including keyword(s)">
-      <app-keywords-input
-        v-model="model.settings.keywords"
-      />
-    </el-form-item>
+      <div class="flex -mx-2">
+        <el-form-item
+          label="Matching activity platform(s)"
+          :prop="fields.settings.activityPlatforms"
+          class="w-full lg:w-1/2 mx-2"
+        >
+          <el-select
+            v-model="model.settings.activityPlatforms"
+            multiple
+            placeholder="Select option"
+          >
+            <el-option
+              v-for="platform of computedPlatformOptions"
+              :key="platform.value"
+              :value="platform.value"
+              :label="platform.label"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          label="Matching activity type(s)"
+          :prop="fields.settings.activityTypes"
+          class="w-full lg:w-1/2 mx-2"
+        >
+          <el-select
+            v-model="model.settings.activityTypes"
+            multiple
+            placeholder="Select option"
+          >
+            <el-option
+              v-for="platform of computedActivityTypeOptions"
+              :key="platform.value"
+              :value="platform.value"
+              :label="platform.label"
+            />
+          </el-select>
+        </el-form-item>
+      </div>
+      <el-form-item label="Including keyword(s)">
+        <app-keywords-input
+          v-model="model.settings.keywords"
+        />
+      </el-form-item>
 
-    <div class="flex items-center pb-2">
-      <span
-        class="font-semibold text-primary-900 leading-relaxed"
-        >Action</span
-      >
-      <span
-        class="text-gray-600 text-xs ml-2 leading-relaxed"
-        >Define the endpoint where the webhook payload
-        should be sent to</span
-      >
-    </div>
-    <hr class="mb-6" />
-    <el-form-item label="Webhook URL" :required="true">
-      <el-input
-        v-model="model.settings.webhookUrl"
-        type="text"
-        placholder="https://somewebhook.url"
-      ></el-input>
-    </el-form-item>
+      <div class="flex items-center pb-2">
+        <span
+          class="font-semibold text-primary-900 leading-relaxed"
+          >Action</span
+        >
+        <span
+          class="text-gray-600 text-xs ml-2 leading-relaxed"
+          >Define the endpoint where the webhook payload
+          should be sent to</span
+        >
+      </div>
+      <hr class="mb-6" />
+      <el-form-item label="Webhook URL" :required="true">
+        <el-input
+          v-model="model.settings.webhookUrl"
+          type="text"
+          placholder="https://somewebhook.url"
+        ></el-input>
+      </el-form-item>
 
-    <div class="form-buttons mt-8">
-      <el-button
-        :disabled="saveLoading || !isFilled"
-        class="btn btn--primary mr-2"
-        @click="doSubmit"
-      >
-        {{ isEditing ? 'Update' : 'Save' }} webhook
-      </el-button>
+      <div class="form-buttons mt-8">
+        <el-button
+          :disabled="saveLoading || !isFilled"
+          class="btn btn--primary mr-2"
+          @click="doSubmit"
+        >
+          {{ isEditing ? 'Update' : 'Save' }} webhook
+        </el-button>
 
-      <el-button
-        :disabled="saveLoading"
-        class="btn btn--secondary"
-        @click="doCancel"
-      >
-        <app-i18n code="common.cancel"></app-i18n>
-      </el-button>
+        <el-button
+          :disabled="saveLoading"
+          class="btn btn--secondary"
+          @click="doCancel"
+        >
+          <app-i18n code="common.cancel"></app-i18n>
+        </el-button>
+      </div>
     </div>
   </el-form>
 </template>
@@ -140,6 +143,8 @@
 import { mapGetters, mapActions } from 'vuex'
 import { AutomationModel } from '@/modules/automation/automation-model'
 import { FormSchema } from '@/shared/form/form-schema'
+import { i18n } from '@/i18n'
+import integrationsJson from '@/jsons/integrations.json'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
@@ -163,12 +168,15 @@ export default {
       rules: formSchema.rules(),
       model: {
         ...this.modelValue
-      }
+      },
+      loadingIntegrations: false
     }
   },
   computed: {
     ...mapGetters({
-      loading: 'automation/loading'
+      loading: 'automation/loading',
+      integrationsActive: 'integration/active',
+      integrationsCount: 'integration/count'
     }),
     fields() {
       return fields
@@ -181,15 +189,41 @@ export default {
     },
     isFilled() {
       return (
-        this.model.trigger && this.model.settings.action
+        this.model.trigger && this.model.settings.webhookUrl
       )
+    },
+    computedPlatformOptions() {
+      return this.integrationsActive.map((item) => {
+        return {
+          value: item.platform,
+          label: integrationsJson.find(
+            (i) => i.platform === item.platform
+          ).name
+        }
+      })
+    },
+    computedActivityTypeOptions() {
+      return []
     }
   },
+
+  async created() {
+    if (this.integrationsCount === 0) {
+      this.loadingIntegrations = true
+      await this.doFetchIntegrations()
+      this.loadingIntegrations = false
+    }
+  },
+
   methods: {
     ...mapActions({
+      doFetchIntegrations: 'integration/doFetch',
       doUpdate: 'automation/doUpdate',
       doCreate: 'automation/doCreate'
     }),
+    translate(key) {
+      return i18n(key)
+    },
     async doSubmit() {
       try {
         await this.$refs.form.validate()
