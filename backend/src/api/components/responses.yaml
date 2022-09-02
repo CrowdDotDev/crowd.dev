@@ -148,3 +148,62 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/Automation'
+
+    AutomationExecution:
+      type: object
+      required:
+        - id
+        - automationId
+        - state
+        - executedAt
+        - eventId
+        - payload
+      properties:
+        id:
+          description: Automation execution unique ID
+          type: string
+          format: uuid
+        automationId:
+          description: Automation unique ID
+          type: string
+          format: uuid
+        state:
+          description: Automation execution state
+          $ref: '#/components/schemas/AutomationExecutionState'
+        error:
+          description: If execution was not successful this object will contain error information
+          type: object
+        executedAt:
+          description: Automation execution timestamp
+          type: string
+          format: date-time
+        eventId:
+          description: Unique ID of the event that triggered this automation execution.
+          type: string
+        payload:
+          description: Payload that was sent when this execution was processed
+          type: object
+
+    AutomationExecutionPage:
+      type: object
+      required:
+        - data
+        - total
+        - page
+        - perPage
+      properties:
+        data:
+          description: Automation Execution List
+          type: array
+          items:
+            $ref: '#/components/schemas/AutomationExecution'
+        total:
+          description: How many items are there in total not just the current page
+          type: integer
+        page:
+          description: Which page are we showing
+          type: integer
+        perPage:
+          description: How many items per page are we showing
+          type: integer
+

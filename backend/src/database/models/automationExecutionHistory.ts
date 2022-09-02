@@ -65,7 +65,7 @@ export default (sequelize) => {
           fields: ['automationId'],
         },
       ],
-      timestampts: false,
+      timestamps: false,
       paranoid: false,
     },
   )

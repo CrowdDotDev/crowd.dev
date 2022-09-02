@@ -1,4 +1,5 @@
 import {
+  AutomationExecutionState,
   AutomationSettings,
   AutomationState,
   AutomationTrigger,
@@ -16,4 +17,16 @@ export interface DbAutomationUpdateData {
   trigger: AutomationTrigger
   settings: AutomationSettings
   state: AutomationState
+}
+
+export interface DbAutomationExecutionInsertData {
+  automationId: string
+  type: AutomationType
+  tenantId: string
+  trigger: AutomationTrigger
+  state: AutomationExecutionState
+  error: any | null
+  executedAt: string
+  eventId: string
+  payload: any
 }

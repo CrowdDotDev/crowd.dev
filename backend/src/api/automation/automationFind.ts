@@ -19,7 +19,7 @@ import ApiResponseHandler from '../apiResponseHandler'
  */
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.automationDestroy)
+    new PermissionChecker(req).validateHas(Permissions.values.automationRead)
     const payload = await new AutomationService(req).findById(req.params.automationId)
 
     await ApiResponseHandler.success(req, res, payload)

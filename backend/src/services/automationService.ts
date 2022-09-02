@@ -1,6 +1,8 @@
 import {
   AutomationCriteria,
   AutomationData,
+  AutomationExecution,
+  AutomationExecutionState,
   AutomationState,
   CreateAutomationRequest,
   UpdateAutomationRequest,
@@ -8,7 +10,8 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
-import Error404 from '../errors/Error404'
+import AutomationExecutionHistoryRepository from '../database/repositories/automationExecutionHistoryRepository'
+import { PageData } from '../types/common'
 
 export default class AutomationService {
   options: IServiceOptions
@@ -99,17 +102,63 @@ export default class AutomationService {
    * @returns {AutomationData}
    */
   async findById(id: string): Promise<AutomationData> {
-    const results = await AutomationRepository.find(
-      {
-        id,
-      },
+    return AutomationRepository.findById(id, this.options)
+  }
+
+  /**
+   * Method used to fetch all automation executions.
+   * @param automationId automation unique ID to fetch executions for
+   * @param page which page to list
+   * @param perPage how many items per page you want to display
+   */
+  async listExecutions(
+    automationId: string,
+    page: number,
+    perPage: number,
+  ): Promise<PageData<AutomationExecution>> {
+    return AutomationExecutionHistoryRepository.listForAutomationId(
+      automationId,
+      page,
+      perPage,
       this.options,
     )
+  }
 
-    if (results.length !== 1) {
-      throw new Error404()
+  /**
+   * Method used by service that is processing automations as they are triggered
+   * @param automation {AutomationData} which automation was triggered
+   * @param eventId id of the event that triggered this automation (activity.id or member.id for example)
+   * @param payload payload that was sent using this automation
+   * @param state whether the execution was successful or not
+   * @param error if execution was not successful this will contain information about what happened
+   */
+  async logExecution(
+    automation: AutomationData,
+    eventId: string,
+    payload: any,
+    state: AutomationExecutionState,
+    error?: any,
+  ) {
+    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+
+    try {
+      await AutomationExecutionHistoryRepository.create(
+        {
+          automationId: automation.id,
+          type: automation.type,
+          tenantId: automation.tenantId,
+          trigger: automation.trigger,
+          error: error !== undefined ? error : null,
+          executedAt: new Date().toISOString(),
+          state,
+          eventId,
+          payload,
+        },
+        this.options,
+      )
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
     }
-
-    return results[0]
   }
 }
