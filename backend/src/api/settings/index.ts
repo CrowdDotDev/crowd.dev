@@ -1,4 +1,11 @@
 export default (app) => {
   app.put(`/tenant/:tenantId/settings`, require('./settingsSave').default)
   app.get(`/tenant/:tenantId/settings`, require('./settingsFind').default)
+
+  app.post('/tenant/:tenantId/settings/members/attributes', require('./memberAttributeCreate').default)
+  app.delete(`/tenant/:tenantId/settings/members/attributes`, require('./memberAttributeDestroy').default)
+  app.put(`/tenant/:tenantId/settings/members/attributes/:name`, require('./memberAttributeUpdate').default)
+  // app.get(`/tenant/:tenantId/activity`, require('./activityList').default)
+  // app.get(`/tenant/:tenantId/activity/:id`, require('./activityFind').default)
+
 }

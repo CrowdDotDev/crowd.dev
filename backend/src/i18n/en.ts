@@ -7,6 +7,19 @@ const en = {
     title: 'crowd.dev',
   },
 
+  settings: {
+    memberAttributes: {
+      errors: {
+        wrongType: `Member attribute {0} should have type {1} but has type {2}.`,
+        alreadyExists: `Attribute with name '{0}' already exists.`,
+        typesNotMatching: `Attribute types cannot be changed after creation.`,
+        canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
+        requiredFields: `Type and label fields are required when creating member attributes.`,
+        notFound: `Member attribute not found.`
+      },
+    },
+  },
+
   auth: {
     userNotFound: `Sorry, this email does not match any record in our database`,
     wrongPassword: `Wrong password`,
