@@ -22,6 +22,8 @@ export default (app) => {
     `/discord-authenticate/:tenantId/:guild_id`,
     require('./helpers/discordAuthenticate').default,
   )
+  app.get('/tenant/:tenantId/devto-validate', require('./helpers/devtoValidators').default)
+  app.post('/tenant/:tenantId/devto-connect', require('./helpers/devtoCreateOrUpdate').default)
 
   if (getConfig().AUTH_SOCIAL_TWITTER_CLIENT_ID) {
     passport.use(getTwitterStrategy())

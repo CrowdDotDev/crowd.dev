@@ -2,7 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 /* eslint prefer-const: 0 */
 import moment from 'moment'
-
+import sanitizeHtml from 'sanitize-html'
 import { Repo, Repos, Endpoint, Endpoints, State } from '../types/regularTypes'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import BaseIterator from './baseIterator'
@@ -403,7 +403,7 @@ export default class GithubIterator extends BaseIterator {
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           url: record.url ? record.url : '',
           repo: this.getRepoByName(repo).url,
           title: record.title,
@@ -444,7 +444,7 @@ export default class GithubIterator extends BaseIterator {
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           url: record.url ? record.url : '',
           repo: this.getRepoByName(repo).url,
           state: record.state.toLowerCase(),
@@ -509,7 +509,7 @@ export default class GithubIterator extends BaseIterator {
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           url: record.url ? record.url : '',
           repo: this.getRepoByName(repo).url,
           state: record.state.toLowerCase(),
@@ -549,7 +549,7 @@ export default class GithubIterator extends BaseIterator {
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
           url: record.url,
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           repo: this.getRepoByName(repo).url,
           isAnswer: record.isAnswer ?? undefined,
         },
@@ -571,7 +571,7 @@ export default class GithubIterator extends BaseIterator {
           timestamp: moment(reply.createdAt).utc().toDate(),
           crowdInfo: {
             url: reply.url,
-            body: reply.bodyText,
+            body: sanitizeHtml(reply.bodyText),
             repo: this.getRepoByName(repo).url,
           },
           communityMember: this.parseMember(reply.author),
@@ -609,7 +609,7 @@ export default class GithubIterator extends BaseIterator {
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
           url: record.url,
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           repo: this.getRepoByName(repo).url,
         },
         communityMember: this.parseMember(record.author),
@@ -642,7 +642,7 @@ export default class GithubIterator extends BaseIterator {
         timestamp: moment(record.createdAt).utc().toDate(),
         crowdInfo: {
           url: record.url,
-          body: record.bodyText,
+          body: sanitizeHtml(record.bodyText),
           repo: this.getRepoByName(repo).url,
         },
         communityMember: this.parseMember(record.author),

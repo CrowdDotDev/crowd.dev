@@ -3,16 +3,17 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import lodash from 'lodash'
+import {
+  DevtoIntegrationMessage,
+  DiscordIntegrationMessage,
+  IntegrationsMessage,
+} from '../serverless/integrations/types/messageTypes'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import { getConfig } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
-import {
-  DiscordIntegrationMessage,
-  IntegrationsMessage,
-} from '../serverless/integrations/types/messageTypes'
 import send from '../serverless/integrations/utils/integrationSQS'
 import track from '../segment/track'
 import { PlatformType } from '../utils/platforms'
@@ -311,6 +312,37 @@ export default class IntegrationService {
       settings: { channels },
       status: 'in-progress',
     })
+  }
+
+  /**
+   * Adds/updates Dev.to integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async devtoConnectOrUpdate(integrationData) {
+    const integration = await this.createOrUpdate({
+      platform: PlatformType.DEVTO,
+      settings: {
+        users: integrationData.users,
+        organizations: integrationData.organizations,
+        articles: [],
+      },
+      status: 'in-progress',
+    })
+
+    const mqMessage: DevtoIntegrationMessage = {
+      integration: PlatformType.DEVTO,
+      sleep: 0,
+      integrationId: integration.id,
+      tenant: integration.tenantId.toString(),
+      onboarding: true,
+      state: { endpoint: '', page: '' },
+      args: {},
+    }
+
+    await send(mqMessage)
+
+    return integration
   }
 
   /**

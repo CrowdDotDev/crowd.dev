@@ -16,17 +16,18 @@
         v-for="platform in platforms"
         :key="platform.name"
         class="community-member-platform-tabs-item"
-        :class="
-          active === platform.name
-            ? 'community-member-platform-tabs-item--active'
-            : ''
-        "
-        @click="handleClick(platform.name)"
+        @click="handleClick(platform.platform)"
       >
-        <i
-          class="ri-lg flex items-center"
-          :class="platform.icon"
-        ></i>
+        <img
+          :src="platform.icon"
+          class="w-5 h-5"
+          :class="
+            active === platform.platform
+              ? ''
+              : 'community-member-platform-tabs-item--filter-inactive'
+          "
+          :alt="platform.name"
+        />
       </button>
     </div>
   </div>
@@ -36,10 +37,22 @@
 import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
+import integrationsJsonArray from '@/jsons/integrations.json'
 
 const { fields } = CommunityMemberModel
 
 const filterSchema = new FilterSchema([fields.platform])
+
+function createFilterEntry(platform) {
+  const integration = integrationsJsonArray.find(
+    (i) => i.platform === platform
+  )
+  return {
+    platform,
+    icon: integration.image,
+    name: integration.name
+  }
+}
 
 export default {
   name: 'app-community-member-platform-tabs',
@@ -52,10 +65,11 @@ export default {
   data() {
     return {
       platforms: [
-        { name: 'slack', icon: 'ri-slack-fill' },
-        { name: 'github', icon: 'ri-github-fill' },
-        { name: 'twitter', icon: 'ri-twitter-fill' },
-        { name: 'discord', icon: 'ri-discord-fill' }
+        createFilterEntry('slack'),
+        createFilterEntry('github'),
+        createFilterEntry('twitter'),
+        createFilterEntry('discord'),
+        createFilterEntry('devto')
       ],
       memberPlatform: null
     }
@@ -108,6 +122,15 @@ export default {
 
     &--active {
       @apply relative text-primary-900;
+    }
+
+    &--filter-inactive {
+      @apply opacity-40;
+      filter: grayscale(100%);
+
+      &:hover {
+        @apply opacity-80;
+      }
     }
   }
 }

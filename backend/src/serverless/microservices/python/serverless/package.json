@@ -10,6 +10,7 @@
     "sls-deploy-local": "cp ./../../../../../.env . && serverless deploy --stage local && rm .env",
     "sls-deploy-prod": "export CROWD_VERSION=$(git describe --tags --abbrev=0) && cp ./../../../../../.env.prod . && serverless deploy --stage prod && rm .env.prod",
     "invoke-local": "cp ./../../../../../.env . && npx serverless invoke local",
+    "invoke-localstack": "cp ./../../../../../.env . && npx serverless invoke --stage local",
     "invoke": "cp ./../../../../../.env.staging . && npx serverless invoke",
     "invoke-prod": "cp ./../../../../../.env.prod . && npx serverless invoke --stage prod",
     "sls-webpack": "cp ./../../../../../.env . && npx serverless webpack --stage local"
