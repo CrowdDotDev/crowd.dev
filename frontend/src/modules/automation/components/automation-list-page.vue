@@ -8,7 +8,7 @@
         <div>
           <el-button
             class="btn btn--primary"
-            @click="createModal = true"
+            @click="newAutomationModal = true"
           >
             <i class="ri-lg ri-add-line mr-1"></i>
             New webhook
@@ -35,20 +35,20 @@
       </div>
       <el-button
         class="btn btn--primary mt-10"
-        @click="createModal = true"
+        @click="newAutomationModal = true"
       >
         <i class="ri-lg ri-add-line mr-1"></i>
         New webhook
       </el-button>
     </div>
     <el-dialog
-      v-model="createModal"
+      v-model="newAutomationModal"
       title="New webhook"
       :destroy-on-close="true"
       custom-class="el-dialog--lg"
-      @close="createModal = false"
+      @close="newAutomationModal = false"
     >
-      <app-automation-form />
+      <app-automation-form v-model="newAutomation" />
     </el-dialog>
   </div>
 </template>
@@ -56,7 +56,7 @@
 <script>
 import AppAutomationListTable from './automation-list-table'
 import AppAutomationForm from './automation-form'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'AppAutomationListPage',
@@ -64,15 +64,26 @@ export default {
     AppAutomationListTable,
     AppAutomationForm
   },
+  data() {
+    return {
+      newAutomation: {
+        type: 'webhook'
+      },
+      newAutomationModal: false
+    }
+  },
   computed: {
     ...mapGetters({
       count: 'automation/count'
     })
   },
-  data() {
-    return {
-      createModal: false
-    }
+  async created() {
+    await this.doFetch()
+  },
+  methods: {
+    ...mapActions({
+      doFetch: 'automation/doFetch'
+    })
   }
 }
 </script>

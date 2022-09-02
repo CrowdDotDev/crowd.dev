@@ -3,7 +3,7 @@ import IdField from '@/shared/fields/id-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
-import BooleanField from '@/shared/fields/boolean-field'
+import JsonField from '@/shared/fields/json-field'
 
 function label(name) {
   return i18n(`entities.automation.fields.${name}`)
@@ -13,12 +13,14 @@ i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),
-  name: new StringField('name', label('name'), {
+  type: new StringField('type', label('type')),
+  trigger: new StringField('trigger', label('trigger'), {
     required: true
   }),
-  active: new BooleanField('active', label('active'), {
+  status: new StringField('status', label('status'), {
     required: true
   }),
+  settings: new JsonField('settings', label('settings')),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')
