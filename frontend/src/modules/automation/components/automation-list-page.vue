@@ -48,7 +48,10 @@
       custom-class="el-dialog--lg"
       @close="newAutomationModal = false"
     >
-      <app-automation-form v-model="newAutomation" />
+      <app-automation-form
+        v-model="newAutomation"
+        @cancel="newAutomationModal = false"
+      />
     </el-dialog>
   </div>
 </template>
@@ -67,7 +70,8 @@ export default {
   data() {
     return {
       newAutomation: {
-        type: 'webhook'
+        type: 'webhook',
+        settings: {}
       },
       newAutomationModal: false
     }
