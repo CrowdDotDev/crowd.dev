@@ -9,6 +9,11 @@ import { getAllOrganizationArticles } from '../usecases/devto/getOrganizationArt
 import { getAllUserArticles } from '../usecases/devto/getUserArticles'
 import { DevtoArticle } from '../usecases/devto/types'
 import { singleOrDefault } from '../../../utils/arrays'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { DevtoMemberAttributes } from '../../../database/attributes/member/devto'
+import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
+import { MemberAttributes } from '../../../database/attributes/member/enums'
+import { GithubMemberAttributes } from '../../../database/attributes/member/github'
 
 /**
  * Devto worker that is responsible for consuming the devto integration messages
@@ -28,6 +33,15 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
+
+    const memberAttributesService = new MemberAttributeSettingsService(userContext)
+
+    await memberAttributesService.createPredefined(DevtoMemberAttributes)
+
+    await memberAttributesService.createPredefined(TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name))
+
+    await memberAttributesService.createPredefined(GithubMemberAttributes.filter((a) => a.name === MemberAttributes.NAME.name || a.name === MemberAttributes.URL.name))
+
 
     const integration = await IntegrationRepository.findById(integrationId, userContext)
     const settings: DevtoIntegrationSettings = integration.settings

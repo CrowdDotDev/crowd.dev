@@ -8,6 +8,8 @@ import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import BaseIterator from '../iterators/baseIterator'
 import { PlatformType } from '../../../utils/platforms'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { DiscordMemberAttributes } from '../../../database/attributes/member/discord'
 
 /**
  * Discord worker that is responsible for consuming the discord integration messages
@@ -51,6 +53,8 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
 
+    await new MemberAttributeSettingsService(userContext).createPredefined(DiscordMemberAttributes)
+    
     // We already have the tenant filter in userContext
     // because of getCurrentTenant function in the repo layer.
     // Therefore we can feed an empty query object as first arg

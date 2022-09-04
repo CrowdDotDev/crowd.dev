@@ -1,9 +1,15 @@
+/* eslint @typescript-eslint/no-unused-vars: 0 */
+
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import Error400 from '../../errors/Error400'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { GithubMemberAttributes } from '../../database/attributes/member/github'
+import { DiscordMemberAttributes } from '../../database/attributes/member/discord'
+import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
+import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
+import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 
 const db = null
-
 describe('MemberAttributeSettingService tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
@@ -14,6 +20,317 @@ describe('MemberAttributeSettingService tests', () => {
     await SequelizeTestUtils.closeConnection(db)
   })
 
+  describe('createPredefined tests', () => {
+    it('Should create predefined github attributes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = (await as.createPredefined(GithubMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      const [nameCreated, isHireableCreated, urlCreated] = attributes
+
+      const [name, isHireable, url] = GithubMemberAttributes
+
+      const expected = [
+        {
+          id: nameCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: name.show,
+          type: name.type,
+          canDelete: name.canDelete,
+          name: name.name,
+          label: name.label,
+        },
+        {
+          id: isHireableCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: isHireable.show,
+          type: isHireable.type,
+          canDelete: isHireable.canDelete,
+          name: isHireable.name,
+          label: isHireable.label,
+        },
+        {
+          id: urlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: url.show,
+          type: url.type,
+          canDelete: url.canDelete,
+          name: url.name,
+          label: url.label,
+        },
+      ]
+
+      expect(attributes).toEqual(expected)
+    })
+    it('Should create predefined discord attributes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = (await as.createPredefined(DiscordMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      const [idCreated] = attributes
+
+      const [id] = DiscordMemberAttributes
+
+      const expected = [
+        {
+          id: idCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: id.show,
+          type: id.type,
+          canDelete: id.canDelete,
+          name: id.name,
+          label: id.label,
+        },
+      ]
+
+      expect(attributes).toEqual(expected)
+    })
+    it('Should create predefined devto attributes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      const [idCreated, urlCreated, nameCreated] = attributes
+
+      const [id, url, name] = DevtoMemberAttributes
+
+      const expected = [
+        {
+          id: idCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: id.show,
+          type: id.type,
+          canDelete: id.canDelete,
+          name: id.name,
+          label: id.label,
+        },
+        {
+          id: urlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: url.show,
+          type: url.type,
+          canDelete: url.canDelete,
+          name: url.name,
+          label: url.label,
+        },
+        {
+          id: nameCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: name.show,
+          type: name.type,
+          canDelete: name.canDelete,
+          name: name.name,
+          label: name.label,
+        },
+      ]
+
+      expect(attributes).toEqual(expected)
+    })
+    it('Should create predefined twitter attributes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = (await as.createPredefined(TwitterMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      const [idCreated, imageUrlCreated, urlCreated] = attributes
+
+      const [id, imageUrl, url] = TwitterMemberAttributes
+
+      const expected = [
+        {
+          id: idCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: id.show,
+          type: id.type,
+          canDelete: id.canDelete,
+          name: id.name,
+          label: id.label,
+        },
+        {
+          id: imageUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: imageUrl.show,
+          type: imageUrl.type,
+          canDelete: imageUrl.canDelete,
+          name: imageUrl.name,
+          label: imageUrl.label,
+        },
+        {
+          id: urlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: url.show,
+          type: url.type,
+          canDelete: url.canDelete,
+          name: url.name,
+          label: url.label,
+        },
+      ]
+
+      expect(attributes).toEqual(expected)
+    })
+    it('Should create predefined slack attributes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = (await as.createPredefined(SlackMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      const [idCreated] = attributes
+
+      const [id] = SlackMemberAttributes
+
+      const expected = [
+        {
+          id: idCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: id.show,
+          type: id.type,
+          canDelete: id.canDelete,
+          name: id.name,
+          label: id.label,
+        },
+      ]
+
+      expect(attributes).toEqual(expected)
+    })
+    it('Should accept duplicate attributes from different platforms without an exception', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attributes = await as.createPredefined(TwitterMemberAttributes)
+
+      const attributes2 = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
+        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
+        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        return attribute
+      })
+
+      // create predefined method should still return shared attributes `url` and `id`
+      const [idCreatedTwitter, _imageUrlCreated, urlCreatedTwitter] = attributes
+
+      const [_idCreatedDevTo, _urlCreatedDevTo, nameCreatedDevTo] = attributes2
+
+      const [id, url, name] = DevtoMemberAttributes
+
+      const expected = [
+        {
+          id: idCreatedTwitter.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: id.show,
+          type: id.type,
+          canDelete: id.canDelete,
+          name: id.name,
+          label: id.label,
+        },
+        {
+          id: urlCreatedTwitter.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: url.show,
+          type: url.type,
+          canDelete: url.canDelete,
+          name: url.name,
+          label: url.label,
+        },
+        {
+          id: nameCreatedDevTo.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: name.show,
+          type: name.type,
+          canDelete: name.canDelete,
+          name: name.name,
+          label: name.label,
+        },
+      ]
+
+      expect(attributes2).toEqual(expected)
+
+      // find all attributes: url, name, id, imgUrl should be present
+      const allAttributes = await as.findAndCountAll({})
+
+      expect(allAttributes.count).toBe(4)
+      allAttributes.rows = allAttributes.rows.map((attribute) => attribute.name)
+
+      expect(allAttributes.rows).toEqual(['name', 'url', 'imageUrl', 'id'])
+    })
+  })
   describe('create tests', () => {
     it('Should add single attribute to member attributes - all fields', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -162,16 +479,12 @@ describe('MemberAttributeSettingService tests', () => {
         show: true,
       })
 
-
       await expect(() =>
-        as.update(
-          attribute.id,
-          {
-            name: attribute.name,
-            label: 'some other label',
-            type: 'string',
-          },
-        ),
+        as.update(attribute.id, {
+          name: attribute.name,
+          label: 'some other label',
+          type: 'string',
+        }),
       ).rejects.toThrowError(
         new Error400('en', 'settings.memberAttributes.errors.typesNotMatching', attribute.name),
       )
@@ -181,7 +494,7 @@ describe('MemberAttributeSettingService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
-      const attribute =  await as.create({
+      const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
         type: 'boolean',
@@ -190,13 +503,10 @@ describe('MemberAttributeSettingService tests', () => {
       })
 
       await expect(() =>
-        as.update(
-          attribute.id,
-          {
-            canDelete: false,
-            show: true,
-          },
-        ),
+        as.update(attribute.id, {
+          canDelete: false,
+          show: true,
+        }),
       ).rejects.toThrowError(
         new Error400('en', 'settings.memberAttributes.errors.canDeleteReadonly', attribute.name),
       )
@@ -205,7 +515,7 @@ describe('MemberAttributeSettingService tests', () => {
     it(`Should should update other cases successfully`, async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
-      
+
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
@@ -222,10 +532,7 @@ describe('MemberAttributeSettingService tests', () => {
         show: false,
       }
 
-      const updatedAttribute = await as.update(
-        attribute.id,
-        attribute1Update,
-      )
+      const updatedAttribute = await as.update(attribute.id, attribute1Update)
 
       const expectedAttribute = {
         ...updatedAttribute,

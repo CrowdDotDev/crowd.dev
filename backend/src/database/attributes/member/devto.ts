@@ -13,7 +13,7 @@ export const DevtoMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes.URL.name,
     label: MemberAttributes.URL.label,
-    type: AttributeType.BOOLEAN,
+    type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },

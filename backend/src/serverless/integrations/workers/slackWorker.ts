@@ -6,6 +6,9 @@ import getChannels from '../usecases/chat/getChannels'
 import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import { PlatformType } from '../../../utils/platforms'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { SlackMemberAttributes } from '../../../database/attributes/member/slack'
+
 
 /**
  * Slack worker that is responsible for consuming the slack integration messages
@@ -35,6 +38,8 @@ async function slackWorker(body: SlackIntegrationMessage) {
 
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
+
+    await new MemberAttributeSettingsService(userContext).createPredefined(SlackMemberAttributes)
 
     // We already have the tenant filter in userContext
     // because of getCurrentTenant function in the repo layer.

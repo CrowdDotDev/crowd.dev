@@ -13,7 +13,7 @@ export const TwitterMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes.IMAGE_URL.name,
     label: MemberAttributes.IMAGE_URL.label,
-    type: AttributeType.BOOLEAN,
+    type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
