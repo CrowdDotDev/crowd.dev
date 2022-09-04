@@ -4,11 +4,11 @@ export default (name) => {
     .toLowerCase()
     .replace(/[^a-z0-9 ]/gi, '')
     .split(' ')
-  let pascalCaseName = ''
+  let camelCaseName = ''
 
   for (const word of split) {
-    pascalCaseName += word.charAt(0).toUpperCase() + word.slice(1)
+    camelCaseName += word.charAt(0).toUpperCase() + word.slice(1)
   }
 
-  return pascalCaseName.charAt(0).toLowerCase() + pascalCaseName.slice(1)
+  return camelCaseName.charAt(0).toLowerCase() + camelCaseName.slice(1)
 }
