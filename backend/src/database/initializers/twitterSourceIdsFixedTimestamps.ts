@@ -52,7 +52,7 @@ async function twitterFollowsFixSourceIdsWithTimestamp() {
           '1970-01-01T00:00:00+00:00',
           'twitter',
         )
-        const update = await actService.update(activity.id, { sourceId: sourceIdRegenerated })
+        await actService.update(activity.id, { sourceId: sourceIdRegenerated })
       }
     }
   }
