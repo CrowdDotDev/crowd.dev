@@ -39,10 +39,15 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
     await memberAttributesService.createPredefined(DevtoMemberAttributes)
 
-    await memberAttributesService.createPredefined(TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name))
+    await memberAttributesService.createPredefined(
+      TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name),
+    )
 
-    await memberAttributesService.createPredefined(GithubMemberAttributes.filter((a) => a.name === MemberAttributes.NAME.name || a.name === MemberAttributes.URL.name))
-
+    await memberAttributesService.createPredefined(
+      GithubMemberAttributes.filter(
+        (a) => a.name === MemberAttributes.NAME.name || a.name === MemberAttributes.URL.name,
+      ),
+    )
 
     const integration = await IntegrationRepository.findById(integrationId, userContext)
 
