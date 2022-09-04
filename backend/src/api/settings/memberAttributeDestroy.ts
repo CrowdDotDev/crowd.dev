@@ -1,13 +1,13 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import SettingsService from '../../services/settingsService'
+import MemberAttributeSettingsService from '../../services/memberAttributeSettingsService'
 
 export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.memberAttributesDestroy)
 
-    await SettingsService.removeMemberAttributes(req.query.names, req)
+    await new MemberAttributeSettingsService(req).destroyAll(req.query.ids)
 
     const payload = true
 

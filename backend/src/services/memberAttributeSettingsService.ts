@@ -154,4 +154,8 @@ export default class MemberAttributeSettingsService {
   async findAndCountAll(args) {
     return MemberAttributeSettingsRepository.findAndCountAll(args, this.options)
   }
+
+  async findById(id) {
+    return MemberAttributeSettingsRepository.findById(id, this.options)
+  }
 }

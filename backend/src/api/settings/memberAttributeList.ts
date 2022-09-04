@@ -5,9 +5,9 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.memberAttributesCreate)
+    new PermissionChecker(req).validateHas(Permissions.values.memberAttributesRead)
 
-    const payload = await new MemberAttributeSettingsService(req).create(req.body.data)
+    const payload = await new MemberAttributeSettingsService(req).findAndCountAll(req.query)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {
