@@ -54,7 +54,7 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
     const userContext = await getUserContext(tenant)
 
     await new MemberAttributeSettingsService(userContext).createPredefined(DiscordMemberAttributes)
-    
+
     // We already have the tenant filter in userContext
     // because of getCurrentTenant function in the repo layer.
     // Therefore we can feed an empty query object as first arg

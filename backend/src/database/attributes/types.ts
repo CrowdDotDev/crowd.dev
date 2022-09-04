@@ -4,5 +4,5 @@ export enum AttributeType {
   EMAIL = 'email',
   STRING = 'string',
   URL = 'url',
-  DATE = 'date' 
+  DATE = 'date',
 }

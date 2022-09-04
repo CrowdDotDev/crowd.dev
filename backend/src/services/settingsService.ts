@@ -17,7 +17,6 @@ class SettingsService {
 
     return settings
   }
-
 }
 
 export default SettingsService

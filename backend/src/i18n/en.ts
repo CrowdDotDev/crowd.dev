@@ -15,7 +15,7 @@ const en = {
         typesNotMatching: `Attribute types cannot be changed after creation.`,
         canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
         requiredFields: `Type and label fields are required when creating member attributes.`,
-        notFound: `Member attribute not found.`
+        notFound: `Member attribute not found.`,
       },
     },
   },

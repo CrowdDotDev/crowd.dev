@@ -9,7 +9,6 @@ import { PlatformType } from '../../../utils/platforms'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
 
-
 const sdk = TwitterIterator.initSuperfaceClient()
 
 async function refreshToken(userContext) {

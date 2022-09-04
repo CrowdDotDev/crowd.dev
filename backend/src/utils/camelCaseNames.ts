@@ -1,7 +1,9 @@
 export default (name) => {
-
   // remove all characters other than [space, a-z, 0-9]
-  const split = name.toLowerCase().replace(/[^a-z0-9 ]/gi, '').split(" ")
+  const split = name
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/gi, '')
+    .split(' ')
   let pascalCaseName = ''
 
   for (const word of split) {

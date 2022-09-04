@@ -7,7 +7,10 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.memberAttributesEdit)
 
-    const payload = await new MemberAttributeSettingsService(req).update(req.params.id, req.body.data)
+    const payload = await new MemberAttributeSettingsService(req).update(
+      req.params.id,
+      req.body.data,
+    )
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

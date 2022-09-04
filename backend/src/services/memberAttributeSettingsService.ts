@@ -61,7 +61,7 @@ export default class MemberAttributeSettingsService {
           created.push(existing.rows[0])
         }
       }
-      
+
       await SequelizeRepository.commitTransaction(transaction)
 
       return created

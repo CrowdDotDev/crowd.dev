@@ -113,14 +113,12 @@ class MemberAttributeSettingsRepository {
       throw new Error404()
     }
 
-    if (record.canDelete){
+    if (record.canDelete) {
       await record.destroy({
         transaction,
       })
     }
-
   }
-
 
   static async findAndCountAll(
     { filter, limit = 0, offset = 0, orderBy = '' },
@@ -181,8 +179,6 @@ class MemberAttributeSettingsRepository {
           name: filter.name,
         })
       }
-
-
 
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange

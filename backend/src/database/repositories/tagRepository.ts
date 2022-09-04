@@ -25,7 +25,6 @@ class TagRepository {
         updatedById: currentUser.id,
       },
       {
-        
         transaction,
       },
     )

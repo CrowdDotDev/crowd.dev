@@ -9,7 +9,6 @@ import { PlatformType } from '../../../utils/platforms'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../database/attributes/member/slack'
 
-
 /**
  * Slack worker that is responsible for consuming the slack integration messages
  * that were pushed to the message queue. Each message contains information about
