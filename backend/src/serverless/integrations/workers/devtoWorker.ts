@@ -35,6 +35,15 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
 
+    const memberAttributesService = new MemberAttributeSettingsService(userContext)
+
+    await memberAttributesService.createPredefined(DevtoMemberAttributes)
+
+    await memberAttributesService.createPredefined(TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name))
+
+    await memberAttributesService.createPredefined(GithubMemberAttributes.filter((a) => a.name === MemberAttributes.NAME.name || a.name === MemberAttributes.URL.name))
+
+
     const integration = await IntegrationRepository.findById(integrationId, userContext)
 
     if (integration.settings.updateMemberAttributes) {

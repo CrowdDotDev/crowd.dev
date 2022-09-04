@@ -16,10 +16,6 @@ export default (sequelize, DataTypes) => {
       logoUrl: {
         type: DataTypes.STRING(1024),
       },
-      memberAttributes: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
     },
     {
       timestamps: true,
