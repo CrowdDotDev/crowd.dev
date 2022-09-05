@@ -188,7 +188,7 @@
 </template>
 
 <script>
-import Markdown from '@nuxt/markdown'
+import { MarkdownFile, toHTML } from '@dimerapp/markdown'
 import {
   FireIcon,
   ChevronRightIcon,
@@ -258,7 +258,11 @@ export default defineComponent({
         : this.conversation.activities;
     },
     async markdown(body) {
-      return await md.toMarkup(body)
+      const md = new MarkdownFile(body)
+      await md.process()
+      const { contents } = toHTML(md)
+
+      return contents
     }
   },
 
