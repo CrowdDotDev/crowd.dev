@@ -61,7 +61,6 @@ function models() {
     require('./memberAttributeSettings').default,
     require('./task').default,
     require('./note').default,
-
   ]
 
   for (const notInitmodel of modelClasses) {
