@@ -2,10 +2,7 @@ import { defineNuxtConfig } from "nuxt";
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  buildModules: ["@nuxtjs/tailwindcss", '@nuxtjs/markdownit', 'vue-plausible'],
-  markdownit: {
-    runtime: true // Support `$md()`
-  },
+  buildModules: ["@nuxtjs/tailwindcss", 'vue-plausible'],
   plausible: {
     domain: 'open.crowd.dev'
   },

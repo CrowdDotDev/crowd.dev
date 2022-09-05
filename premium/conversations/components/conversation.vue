@@ -120,7 +120,7 @@
                 >
                   <div>
                     <p
-                      v-html="$md.render(activity.body)"
+                      v-html="markdown(activity.body)"
                       class="myem text-sm"
                       :style="colors('color:text')"
                     />
@@ -188,6 +188,7 @@
 </template>
 
 <script>
+import Markdown from '@nuxt/markdown'
 import {
   FireIcon,
   ChevronRightIcon,
@@ -200,6 +201,8 @@ import PlatformIcon from "./platformIcon.vue";
 import ConversationWrapper from "./conversationWrapper.vue";
 import { defineComponent } from "@vue/composition-api";
 import makeStyles from "~~/helpers/makeStyles";
+
+const md = new Markdown({ toc: false, sanitize: false })
 
 export default defineComponent({
   components: {
@@ -254,6 +257,9 @@ export default defineComponent({
         ? this.conversation.activities.slice(0, this.maxContributors)
         : this.conversation.activities;
     },
+    async markdown(body) {
+      return await md.toMarkup(body)
+    }
   },
 
   computed: {
