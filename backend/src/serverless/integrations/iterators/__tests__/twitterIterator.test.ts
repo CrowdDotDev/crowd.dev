@@ -378,7 +378,7 @@ describe('Integrations worker static tests', () => {
           sourceId: BaseIterator.generateSourceIdHash(
             'michael_scott',
             'follow',
-            moment(activities[0].timestamp).unix().toString(),
+            '0',
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
@@ -405,7 +405,7 @@ describe('Integrations worker static tests', () => {
           sourceId: BaseIterator.generateSourceIdHash(
             'dwight_schrute',
             'follow',
-            moment(activities[1].timestamp).unix().toString(),
+            '0',
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
@@ -456,7 +456,7 @@ describe('Integrations worker static tests', () => {
           sourceId: BaseIterator.generateSourceIdHash(
             'michael_scott',
             'follow',
-            moment(activities[0].timestamp).unix().toString(),
+            '0',
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
@@ -523,7 +523,7 @@ describe('Integrations worker static tests', () => {
           sourceId: BaseIterator.generateSourceIdHash(
             'michael_scott',
             'follow',
-            moment(activities[0].timestamp).unix().toString(),
+            '0',
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
@@ -550,7 +550,7 @@ describe('Integrations worker static tests', () => {
           sourceId: BaseIterator.generateSourceIdHash(
             'dwight_schrute',
             'follow',
-            moment(activities[1].timestamp).unix().toString(),
+            '0',
             PlatformType.TWITTER,
           ),
           timestamp: moment('1970-01-01T00:00:00+00:00').utc().toDate(),
