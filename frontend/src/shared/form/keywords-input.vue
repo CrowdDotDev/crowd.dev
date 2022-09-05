@@ -23,11 +23,8 @@
         class="el-keywords-input"
         :placeholder="placeholder"
         :value="newKeyword"
-<<<<<<< Updated upstream
-=======
         autocomplete="off"
         data-lpignore="true"
->>>>>>> Stashed changes
         @input="inputKeyword"
         @keydown.delete.stop="removeLastKeyword"
         @keydown="addNew"
