@@ -188,7 +188,6 @@
 </template>
 
 <script>
-import { parseMarkdown } from '~/helpers/parseMarkdown'
 import {
   FireIcon,
   ChevronRightIcon,
