@@ -144,7 +144,7 @@ class organizationCacheRepository {
     })
 
     if (!record) {
-      throw new Error404()
+      return undefined
     }
 
     return record.get({ plain: true })
