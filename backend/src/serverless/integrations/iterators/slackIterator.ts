@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
 import {
   BaseOutput,
@@ -426,7 +427,7 @@ export default class SlackIterator extends BaseIterator {
           sourceParentId: '',
           timestamp: moment(record.createdAt).utc().toDate(),
           crowdInfo: {
-            body,
+            body: sanitizeHtml(body),
             url: record.url ? record.url : '',
             channel: channelsInfo[endpoint].name,
             thread: false,
@@ -471,11 +472,11 @@ export default class SlackIterator extends BaseIterator {
           sourceParentId: threadInfo.threadId,
           timestamp: moment.unix(record.createdAt).utc().toDate(),
           crowdInfo: {
-            body,
+            body: sanitizeHtml(body),
             url: record.url ? record.url : '',
             channel: threadInfo.channel,
             thread: {
-              body: threadInfo.placeholder,
+              body: sanitizeHtml(threadInfo.placeholder),
               id: threadInfo.threadId,
             },
             reactions: record.reactions ? record.reactions : [],

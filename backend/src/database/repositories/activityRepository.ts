@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
@@ -17,6 +18,14 @@ class ActivityRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    if (data.crowdInfo && data.crowdInfo.body) {
+      data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
+    }
+
+    if (data.crowdInfo && data.crowdInfo.title) {
+      data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
+    }
 
     const record = await options.database.activity.create(
       {
@@ -66,6 +75,14 @@ class ActivityRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    if (data.crowdInfo && data.crowdInfo.body) {
+      data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
+    }
+
+    if (data.crowdInfo && data.crowdInfo.title) {
+      data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
     }
 
     record = await record.update(

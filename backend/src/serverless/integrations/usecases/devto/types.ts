@@ -45,3 +45,18 @@ export interface DevtoUser {
   joined_at: string
   profile_image: string
 }
+
+export interface DevtoOrganization {
+  username: string
+  name: string
+  summary: string | null
+  twitter_username: string | null
+  github_username: string | null
+  url: string
+  location: string | null
+  tech_stack: string | null
+  tag_line: string | null
+  story: string | null
+  joined_at: string
+  profile_image: string
+}

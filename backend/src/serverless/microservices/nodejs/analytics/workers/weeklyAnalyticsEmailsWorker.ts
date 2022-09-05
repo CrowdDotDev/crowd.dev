@@ -24,7 +24,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
   const userContext = await getUserContext(tenantId)
 
-  if (userContext.currentUser && userContext.currentUser.emailVerified) {
+  if (userContext.currentUser) {
     const cjs = new CubeJsService()
     // tokens should be set for each tenant
     await cjs.setTenant(tenantId)

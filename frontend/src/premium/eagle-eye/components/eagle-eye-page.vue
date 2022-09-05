@@ -5,7 +5,7 @@
       <app-eagle-eye-search />
       <div
         v-if="shouldRenderEmptyState"
-        class="flex flex-col items-center justify-center w-full py-14"
+        class="flex flex-col items-center justify-center w-full py-10"
       >
         <img
           src="/images/eagle-eye-empty-state.svg"
@@ -25,7 +25,7 @@
         v-loading="loading"
       ></div>
       <div v-else>
-        <div class="flex justify-between items-center pt-8">
+        <div class="flex justify-between items-center pt-4">
           <app-eagle-eye-counter />
           <app-eagle-eye-sorter
             v-if="activeTab === 'inbox'"

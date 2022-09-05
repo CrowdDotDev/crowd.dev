@@ -89,7 +89,7 @@ Our goal is to build the most powerful platform for building developer communiti
 - [ ] Tasks module to receive recommendations for actions and collaborate with colleagues
 - [ ] Open marketplace for community building apps
 
-You can find more features on our [public roadmap](crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.
+You can find more features on our [public roadmap](https://crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.
 
 ## ✍️ Contribution
 There are many ways you can contribute to crowd.dev! Here are a few options:
