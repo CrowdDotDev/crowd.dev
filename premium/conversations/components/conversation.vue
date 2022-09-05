@@ -202,8 +202,6 @@ import ConversationWrapper from "./conversationWrapper.vue";
 import { defineComponent } from "@vue/composition-api";
 import makeStyles from "~~/helpers/makeStyles";
 
-const md = new Markdown({ toc: false, sanitize: false })
-
 export default defineComponent({
   components: {
     FireIcon,
