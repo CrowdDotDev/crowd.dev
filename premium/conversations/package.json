@@ -8,12 +8,11 @@
     "preview": "nuxt preview"
   },
   "devDependencies": {
-    "@dimerapp/markdown": "^3.2.2",
     "@nuxtjs/tailwindcss": "^5.0.0-4",
     "@tailwindcss/forms": "^0.5.0",
     "autoprefixer": "^10.4.4",
     "css-loader": "^6.7.1",
-    "nuxt": "3.0.0-rc.1",
+    "nuxt": "3.0.0-rc.9",
     "postcss": "^8.4.12",
     "style-loader": "^3.3.1",
     "tailwindcss": "^3.0.24"
@@ -30,6 +29,7 @@
     "lorem-ipsum": "^2.0.4",
     "meilisearch": "^0.25.1",
     "moment": "^2.29.4",
+    "showdown": "^2.1.0",
     "typesense": "^1.2.2",
     "typesense-instantsearch-adapter": "^2.4.0",
     "vue-instantsearch": "^4.3.3",

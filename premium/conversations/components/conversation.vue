@@ -188,18 +188,12 @@
 </template>
 
 <script>
-import { MarkdownFile, toHTML } from '@dimerapp/markdown'
-import {
-  FireIcon,
-  ChevronRightIcon,
-  ReplyIcon,
-  ExternalLinkIcon,
-  EyeIcon,
-} from "@heroicons/vue/solid";
+import Showdown from 'showdown'
+import {ChevronRightIcon, ExternalLinkIcon, EyeIcon, FireIcon, ReplyIcon,} from "@heroicons/vue/solid";
 import Avatar from "./avatar.vue";
 import PlatformIcon from "./platformIcon.vue";
 import ConversationWrapper from "./conversationWrapper.vue";
-import { defineComponent } from "@vue/composition-api";
+import {defineComponent} from "@vue/composition-api";
 import makeStyles from "~~/helpers/makeStyles";
 
 export default defineComponent({
@@ -255,12 +249,9 @@ export default defineComponent({
         ? this.conversation.activities.slice(0, this.maxContributors)
         : this.conversation.activities;
     },
-    async markdown(body) {
-      const md = new MarkdownFile(body)
-      await md.process()
-      const { contents } = toHTML(md)
-
-      return contents
+    markdown(body) {
+      const converter = new Showdown.Converter()
+      return converter.makeHtml(body)
     }
   },
 
