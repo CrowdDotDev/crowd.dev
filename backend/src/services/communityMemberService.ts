@@ -8,6 +8,7 @@ import CommunityMemberRepository from '../database/repositories/communityMemberR
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+import { sendNewMemberNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class CommunityMemberService {
   options: IServiceOptions
@@ -116,6 +117,12 @@ export default class CommunityMemberService {
           },
           fillRelations,
         )
+
+        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New member automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new member automation - ${record.id}!`, err),
+          )
 
         telemetryTrack(
           'Member created',

@@ -26,7 +26,7 @@ export interface DbAutomationExecutionInsertData {
   trigger: AutomationTrigger
   state: AutomationExecutionState
   error: any | null
-  executedAt: string
+  executedAt: Date
   eventId: string
   payload: any
 }
