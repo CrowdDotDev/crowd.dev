@@ -120,7 +120,7 @@
                 >
                   <div>
                     <p
-                      v-html="activity.body"
+                      v-html="$md.render(activity.body)"
                       class="myem text-sm"
                       :style="colors('color:text')"
                     />
@@ -188,6 +188,7 @@
 </template>
 
 <script>
+import { parseMarkdown } from '~/helpers/parseMarkdown'
 import {
   FireIcon,
   ChevronRightIcon,
