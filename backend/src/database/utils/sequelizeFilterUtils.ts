@@ -30,7 +30,7 @@ export default class SequelizeFilterUtils {
    */
   static ilikeIncludes(model, column, value) {
     return Sequelize.where(Sequelize.col(`${model}.${column}`), {
-      [Sequelize.Op.like]: `%${value}%`.toLowerCase(),
+      [Sequelize.Op.iLike]: `%${value}%`.toLowerCase(),
     })
   }
 

@@ -384,6 +384,72 @@ class Permissions {
         allowedRoles: [roles.admin],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
+      taskImport: {
+        id: 'taskImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      taskCreate: {
+        id: 'taskCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskEdit: {
+        id: 'taskEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskDestroy: {
+        id: 'taskDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskRead: {
+        id: 'taskRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      taskAutocomplete: {
+        id: 'taskAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteImport: {
+        id: 'noteImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteCreate: {
+        id: 'noteCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteEdit: {
+        id: 'noteEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteDestroy: {
+        id: 'noteDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteRead: {
+        id: 'noteRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteAutocomplete: {
+        id: 'noteAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
     }
   }
 

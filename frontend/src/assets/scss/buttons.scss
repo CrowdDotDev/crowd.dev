@@ -119,6 +119,11 @@
     color: #000;
   }
 
+  &--devto, &--devto:hover {
+    background-color: rgba(89, 89, 89, 0.1);
+    color: #000;
+  }
+
   &--linkedin, &--linkedin:hover {
     background-color: rgba(2, 116, 179, 0.1);
     color: #0274B3;

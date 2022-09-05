@@ -59,6 +59,9 @@ function models() {
     require('./eagleEyeContent').default,
     require('./organization').default,
     require('./memberAttributeSettings').default,
+    require('./task').default,
+    require('./note').default,
+
   ]
 
   for (const notInitmodel of modelClasses) {

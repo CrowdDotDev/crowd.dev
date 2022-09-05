@@ -138,6 +138,15 @@ describe('ConversationService tests', () => {
 
       expect(await conversationService.generateTitle('!@#$%^&*( ')).toStrictEqual('conversation-1')
     })
+
+    it('Should return plain text title string if html value is passed', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const conversationService = new ConversationService(mockIServiceOptions)
+
+      expect(
+        await conversationService.generateTitle('<p>some title,<br />with a second line</p>', true),
+      ).toStrictEqual('some title, with a second line')
+    })
   })
 
   describe('sanitizeChannel method', () => {
@@ -278,6 +287,11 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
+      // Delete because we only care about 1st level relations
+      delete activity1Created.tasks
+      delete activity2Created.tasks
+      delete activity3Created.tasks
+
       let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
@@ -347,6 +361,9 @@ describe('ConversationService tests', () => {
 
       activity4Created = getConversationStyleActivity(activity4Created)
 
+      // Delete because we only care about 1st level relations
+      delete activity4Created.tasks
+
       // activity information and lastActive should be changed
       expectedConversationDocument = {
         id: conversationCreated.id,
@@ -411,6 +428,12 @@ describe('ConversationService tests', () => {
       )
 
       activity5Created = getConversationStyleActivity(activity5Created)
+
+      delete activity1Created.tasks
+      delete activity2Created.tasks
+      delete activity3Created.tasks
+      delete activity4Created.tasks
+      delete activity5Created.tasks
 
       // activity information and lastActive should be changed
       expectedConversationDocument = {
@@ -551,6 +574,10 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
+      // Delete because we only care about 1st level relations
+      delete activityParentCreated.tasks
+      delete activityChildCreated.tasks
+
       const transaction = await SequelizeRepository.createTransaction(
         mockIRepositoryOptions.database,
       )
@@ -588,6 +615,9 @@ describe('ConversationService tests', () => {
       const conversationDocument = await conversationSearchEngineRepository.findById(
         conversationCreated.id,
       )
+
+      delete activityParentCreated.tasks
+      delete activityChildCreated.tasks
 
       const expectedConversationDocument = {
         id: conversationCreated.id,
@@ -790,6 +820,9 @@ describe('ConversationService tests', () => {
 
       activity1Created = getConversationStyleActivity(activity1Created)
       activity1Created.conversationStarter = true
+
+      // Delete because we only care about 1st level relations
+      delete activity1Created.tasks
 
       const expectedConversationDocument = {
         id: conversationCreated.id,
@@ -1205,6 +1238,10 @@ describe('ConversationService tests', () => {
 
       // first activity should be marked as conversationStarter:true because activities are sorted ascending by timestamp
       githubActivityParentCreated.conversationStarter = true
+
+      // We only care about 1st order relations
+      delete githubActivityParentCreated.tasks
+      delete githubActivityChildCreated.tasks
 
       const conversationDocument = await conversationSearchEngineRepository.findById(
         githubConversationCreated.id,

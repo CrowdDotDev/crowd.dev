@@ -1,6 +1,6 @@
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
-import sanitizeHtml from 'sanitize-html'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -62,6 +62,10 @@ class ActivityRepository {
       },
     )
 
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -104,6 +108,10 @@ class ActivityRepository {
         id,
         tenantId: currentTenant.id,
       },
+      transaction,
+    })
+
+    await record.setTasks(data.tasks || [], {
       transaction,
     })
 
@@ -209,7 +217,7 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   /**
@@ -231,7 +239,7 @@ class ActivityRepository {
       transaction,
     })
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -482,7 +490,7 @@ class ActivityRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows)
+    rows = await this._populateRelationsForRows(rows, options)
 
     return { rows, count }
   }
@@ -539,20 +547,26 @@ class ActivityRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows) {
+  static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record)))
+    return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
+    const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
+
+    output.tasks = await record.getTasks({
+      transaction,
+      joinTableAttributes: [],
+    })
 
     return output
   }

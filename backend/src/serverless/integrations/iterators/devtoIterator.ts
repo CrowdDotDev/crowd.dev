@@ -1,7 +1,8 @@
 import lodash from 'lodash'
+import sanitizeHtml from 'sanitize-html'
 import { DevtoArticle, DevtoComment, DevtoUser } from '../usecases/devto/types'
 import { single } from '../../../utils/arrays'
-import { getUser } from '../usecases/devto/getUser'
+import { getUserById } from '../usecases/devto/getUser'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import Operations from '../../dbOperations/operations'
@@ -92,8 +93,10 @@ export default class DevtoIterator extends BaseIterator {
     // does not contain all the user information we can get full profile and set it to comments
     const userIds: number[] = DevtoIterator.getUserIdsFromComments(comments)
     for (const userId of userIds) {
-      const fullUser = await getUser(userId)
-      DevtoIterator.setFullUser(comments, fullUser)
+      const fullUser = await getUserById(userId)
+      if (fullUser !== null) {
+        DevtoIterator.setFullUser(comments, fullUser)
+      }
     }
 
     return {
@@ -191,30 +194,33 @@ export default class DevtoIterator extends BaseIterator {
 
     const member: Member = {
       username: {
-        [PlatformType.DEVTO]: comment.fullUser.username,
+        [PlatformType.DEVTO]: comment.user.username,
       },
       crowdInfo: {
         [PlatformType.DEVTO]: {
-          id: comment.fullUser.id,
+          url: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         },
       },
-      bio: comment.fullUser?.summary || '',
-      location: comment.fullUser?.location || '',
     }
 
-    if (comment.fullUser.twitter_username) {
+    if (comment.user.twitter_username) {
       member.crowdInfo.twitter = {
-        url: `https://twitter.com/${comment.fullUser.twitter_username}`,
+        url: `https://twitter.com/${comment.user.twitter_username}`,
       }
-      member.username.twitter = comment.fullUser.twitter_username
+      member.username.twitter = comment.user.twitter_username
     }
 
-    if (comment.fullUser.github_username) {
+    if (comment.user.github_username) {
       member.crowdInfo.github = {
-        name: comment.fullUser.name,
-        url: `https://github.com/${comment.fullUser.github_username}`,
+        name: comment.user.name,
+        url: `https://github.com/${comment.user.github_username}`,
       }
-      member.username.github = comment.fullUser.github_username
+      member.username.github = comment.user.github_username
+    }
+
+    if (comment.fullUser) {
+      member.bio = comment.fullUser?.summary || ''
+      member.location = comment.fullUser?.location || ''
     }
 
     activities.push({
@@ -224,13 +230,15 @@ export default class DevtoIterator extends BaseIterator {
       timestamp: new Date(comment.created_at),
       sourceId: comment.id_code,
       sourceParentId: parentCommentId,
-      body: comment.body_html,
+      body: sanitizeHtml(comment.body_html),
       url: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}/comment/${
         comment.id_code
       }`,
       attributes: {
+        thread: parentCommentId !== undefined,
         userUrl: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         articleUrl: article.url,
+        articleTitle: article.title,
       },
       member,
       score: DevtoGrid.comment.score,

@@ -4,6 +4,8 @@ import Error404 from '../../../errors/Error404'
 import TagRepository from '../tagRepository'
 import { PlatformType } from '../../../utils/platforms'
 import OrganizationRepository from '../organizationRepository'
+import TaskRepository from '../taskRepository'
+import NoteRepository from '../noteRepository'
 
 const db = null
 
@@ -70,6 +72,8 @@ describe('MemberRepository tests', () => {
         email: member2add.email,
         score: member2add.score,
         organizations: [],
+        notes: [],
+        tasks: [],
         bio: member2add.bio,
         location: member2add.location,
         signals: member2add.signals,
@@ -193,7 +197,8 @@ describe('MemberRepository tests', () => {
         activities: [],
         reach: { total: -1 },
         joinedAt: new Date('2020-05-27T15:13:30Z'),
-
+        notes: [],
+        tasks: [],
         tags: [],
         noMerge: [],
         toMerge: [],
@@ -231,6 +236,64 @@ describe('MemberRepository tests', () => {
         MemberRepository.create(member2add, mockIRepositoryOptions),
       ).rejects.toThrow()
     })
+
+    it('Should succesfully create member with notes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const notes1 = await NoteRepository.create(
+        {
+          body: 'note1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const notes2 = await NoteRepository.create(
+        {
+          body: 'note2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: { crowdUsername: 'anil' },
+        joinedAt: '2020-05-27T15:13:30Z',
+        notes: [notes1.id, notes2.id],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.notes).toHaveLength(2)
+      expect(memberCreated.notes[0].id).toEqual(notes1.id)
+      expect(memberCreated.notes[1].id).toEqual(notes2.id)
+    })
+
+    it('Should succesfully create member with tasks', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const tasks1 = await TaskRepository.create(
+        {
+          name: 'task1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const task2 = await TaskRepository.create(
+        {
+          name: 'task2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: { crowdUsername: 'anil' },
+        joinedAt: '2020-05-27T15:13:30Z',
+        tasks: [tasks1.id, task2.id],
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.tasks).toHaveLength(2)
+      expect(memberCreated.tasks[0].id).toEqual(tasks1.id)
+      expect(memberCreated.tasks[1].id).toEqual(task2.id)
+    })
   })
 
   describe('findById method', () => {
@@ -265,7 +328,8 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         reach: { total: -1 },
-
+        notes: [],
+        tasks: [],
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         tags: [],
         noMerge: [],
@@ -433,6 +497,8 @@ describe('MemberRepository tests', () => {
       delete member1Returned.tags
       delete member1Returned.activities
       delete member1Returned.organizations
+      delete member1Returned.tasks
+      delete member1Returned.notes
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -509,6 +575,8 @@ describe('MemberRepository tests', () => {
       delete member1Returned.tags
       delete member1Returned.activities
       delete member1Returned.organizations
+      delete member1Returned.notes
+      delete member1Returned.tasks
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1044,7 +1112,8 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         reach: { total: -1 },
-
+        notes: [],
+        tasks: [],
         joinedAt: new Date(updateFields.joinedAt),
         tags: [],
         noMerge: [],
@@ -1192,7 +1261,8 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         reach: { total: -1 },
-
+        notes: [],
+        tasks: [],
         joinedAt: new Date(member1.joinedAt),
         tags: [tag1Plain, tag2Plain],
         noMerge: [],
@@ -1271,9 +1341,80 @@ describe('MemberRepository tests', () => {
         organizations: [org1Plain, org2Plain],
         noMerge: [],
         toMerge: [],
+        notes: [],
+        tasks: [],
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
+    })
+
+    it('Should succesfully update member with notes', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const notes1 = await NoteRepository.create(
+        {
+          body: 'note1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const notes2 = await NoteRepository.create(
+        {
+          body: 'note2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: { crowdUsername: 'anil' },
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      const memberUpdated = await MemberRepository.update(
+        memberCreated.id,
+        { notes: [notes1.id, notes2.id] },
+        mockIRepositoryOptions,
+      )
+      expect(memberCreated.notes).toHaveLength(0)
+      expect(memberUpdated.notes).toHaveLength(2)
+      expect(memberUpdated.notes[0].id).toEqual(notes1.id)
+      expect(memberUpdated.notes[1].id).toEqual(notes2.id)
+    })
+
+    it('Should succesfully create member with tasks', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const tasks1 = await TaskRepository.create(
+        {
+          name: 'task1',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const task2 = await TaskRepository.create(
+        {
+          name: 'task2',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const member2add = {
+        username: { crowdUsername: 'anil' },
+        joinedAt: '2020-05-27T15:13:30Z',
+      }
+
+      const memberCreated = await MemberRepository.create(member2add, mockIRepositoryOptions)
+      expect(memberCreated.tasks).toHaveLength(0)
+
+      const memberUpdated = await MemberRepository.update(
+        memberCreated.id,
+        { tasks: [tasks1.id, task2.id] },
+        mockIRepositoryOptions,
+      )
+      expect(memberUpdated.tasks).toHaveLength(2)
+      expect(memberUpdated.tasks[0].id).toEqual(tasks1.id)
+      expect(memberUpdated.tasks[1].id).toEqual(task2.id)
     })
 
     it('Should throw 404 error when trying to update non existent member', async () => {

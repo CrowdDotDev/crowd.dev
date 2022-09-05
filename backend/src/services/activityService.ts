@@ -1,4 +1,5 @@
 import { Transaction } from 'sequelize/types'
+import { PlatformType } from '../utils/platforms'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { detectSentiment } from './aws'
@@ -194,6 +195,7 @@ export default class ActivityService {
       if (!conversation.published) {
         const newConversationTitle = await conversationService.generateTitle(
           parent.title || parent.body,
+          ActivityService.hasHtmlActivities(parent.platform),
         )
 
         conversation = await conversationService.update(conversation.id, {
@@ -211,7 +213,10 @@ export default class ActivityService {
       )
     } else {
       // neither child nor parent is in a conversation, create one from parent
-      const conversationTitle = await conversationService.generateTitle(parent.title || parent.body)
+      const conversationTitle = await conversationService.generateTitle(
+        parent.title || parent.body,
+        ActivityService.hasHtmlActivities(parent.platform),
+      )
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
         this.options,
       )
@@ -393,5 +398,14 @@ export default class ActivityService {
     )
 
     return count > 0
+  }
+
+  static hasHtmlActivities(platform: PlatformType): boolean {
+    switch (platform) {
+      case PlatformType.DEVTO:
+        return true
+      default:
+        return false
+    }
   }
 }

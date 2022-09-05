@@ -2,7 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 /* eslint prefer-const: 0 */
 import moment from 'moment'
-
+import sanitizeHtml from 'sanitize-html'
 import { Repo, Repos, Endpoint, Endpoints, State } from '../types/regularTypes'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import BaseIterator from './baseIterator'

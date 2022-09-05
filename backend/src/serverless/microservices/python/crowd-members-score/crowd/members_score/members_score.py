@@ -24,11 +24,6 @@ class MembersScore:
             self.repository = repository
 
         self.fetch_scores()
-        # print([
-        #     member.id for member in self.repository.find_all(Tenant, query={})
-        # ])
-
-        print(self.tenants.fetchall())
         self.team_members = [
             member.id for member in self.repository.find_all(Member, query={"crowdInfo.team": True})
         ]
@@ -73,14 +68,10 @@ class MembersScore:
                 ) FullDates \
                 left join (select "memberId" as cm_id, count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
                 from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
-                group by "memberId", date("timestamp")) T on T."cm_id"=FullDates."memberId" and T."timestamp" = FullDates.MyJoinDate\
-                group by FullDates."memberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
-                ) Daily group by "memberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
-            )
-
-            self.tenants = con.execute(
-                'select count(*), "tenantId" from "members" cm group by "tenantId" order by count(*) ASC'
-            )
+                group by "communityMemberId", date("timestamp")) T on T."cm_id"=FullDates."communityMemberId" and T."timestamp" = FullDates.MyJoinDate\
+                group by FullDates."communityMemberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
+                ) Daily group by "communityMemberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
+            ).fetchall()
 
     def _calculate_months(self, date):
         """
@@ -140,9 +131,7 @@ class MembersScore:
         to the score of the member.
         """
 
-        id = self.repository.tenant_id
-
-        mean_scores = self.mean_scores.fetchall()
+        mean_scores = self.mean_scores
 
         scores = {}
         for i, row in enumerate(mean_scores):
@@ -217,6 +206,10 @@ class MembersScore:
         logger.info("Calculating member raw scores...")
         self.scores = self._member_scores_(members)
         logger.info("Done")
+
+        # Take care of case where tenant doesn't have activities
+        if len(self.scores) == 0:
+            return {}
 
         logger.info("Normalising scores...")
         scores_to_update = self.normalise(self.scores)

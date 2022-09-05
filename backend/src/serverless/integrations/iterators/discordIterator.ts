@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
 import { BaseOutput, DiscordOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import { Channels, Endpoint, Endpoints, State } from '../types/regularTypes'

@@ -58,6 +58,15 @@ class MemberRepository {
     await record.setOrganizations(data.organizations || [], {
       transaction,
     })
+
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
+    await record.setNotes(data.notes || [], {
+      transaction,
+    })
+
     await record.setNoMerge(data.noMerge || [], {
       transaction,
     })
@@ -251,6 +260,14 @@ class MemberRepository {
         transaction,
       })
     }
+
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
+    await record.setNotes(data.notes || [], {
+      transaction,
+    })
 
     if (data.organizations) {
       await record.setOrganizations(data.organizations || [], {
@@ -786,6 +803,16 @@ class MemberRepository {
     })
 
     output.organizations = await record.getOrganizations({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.tasks = await record.getTasks({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.notes = await record.getNotes({
       transaction,
       joinTableAttributes: [],
     })
