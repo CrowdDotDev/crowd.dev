@@ -13,7 +13,7 @@
       <div class="flex flex-wrap mb-10">
         <div
           class="w-full sm:w-1/2 md:w-1/3 my-6 md:my-10"
-          v-for="tenant in filteredData"
+          v-for="tenant in data"
           :key="tenant.tenantSlug"
         >
           <nuxt-link
@@ -85,11 +85,6 @@ export default defineComponent({
     };
   },
   components: { topHeader, mainSection, MainCta },
-  computed: {
-    filteredData() {
-      return data
-    }
-  },
   methods: {
     getBgColor,
     getTextColor,
