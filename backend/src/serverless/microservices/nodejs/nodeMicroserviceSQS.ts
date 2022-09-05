@@ -2,6 +2,7 @@ import moment from 'moment'
 import { NodeMicroserviceMessage } from './messageTypes'
 import { getConfig } from '../../../config'
 import { sqs } from '../../../services/aws'
+import { AutomationTrigger } from '../../../types/automationTypes'
 
 /**
  * Send a message to the node microservice queue
@@ -15,8 +16,8 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
   const messageGroupId = body.tenant ? `${body.service}-${body.tenant}` : `${body.service}`
   const messageDeduplicationId = body.tenant
-    ? `${body.service}-${body.tenant}-${moment().unix()}`
-    : `${body.service}-${moment().unix()}`
+    ? `${body.service}-${body.tenant}-${moment().valueOf()}`
+    : `${body.service}-${moment().valueOf()}`
 
   await sqs
     .sendMessage({
@@ -35,6 +36,30 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
       message,
     }),
   }
+}
+
+export const sendNewActivityNodeSQSMessage = async (
+  tenant: string,
+  activityId: string,
+): Promise<void> => {
+  await sendNodeMicroserviceMessage({
+    tenant,
+    activityId,
+    trigger: AutomationTrigger.NEW_ACTIVITY,
+    service: 'automation',
+  })
+}
+
+export const sendNewMemberNodeSQSMessage = async (
+  tenant: string,
+  memberId: string,
+): Promise<void> => {
+  await sendNodeMicroserviceMessage({
+    tenant,
+    memberId,
+    trigger: AutomationTrigger.NEW_MEMBER,
+    service: 'automation',
+  })
 }
 
 export default sendNodeMicroserviceMessage

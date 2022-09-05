@@ -10,6 +10,7 @@ import CommunityMemberService from './communityMemberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
+import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
   options: IServiceOptions
@@ -77,6 +78,12 @@ export default class ActivityService {
           ...this.options,
           transaction,
         })
+
+        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new activity automation - ${record.id}!`, err),
+          )
 
         // Only track activity's platform and timestamp and communityMemberId. It is completely annonymous.
         telemetryTrack(
