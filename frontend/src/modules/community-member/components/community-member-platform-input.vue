@@ -21,36 +21,41 @@
       </div>
       <div v-if="platforms.length > 1" class="w-8"></div>
     </div>
-    <el-form-item
+    <div
       v-for="(platform, index) in platforms"
       :key="index"
+      class="flex -mx-2"
     >
-      <app-platform-autocomplete-input
-        v-model="platform.name"
-        placeholder="Github"
-        class="block mx-2 flex flex-1"
-      />
-      <el-input
-        v-model="platform.username"
-        placeholder="johndoe"
-        class="block mx-2 flex flex-1"
-      />
-      <el-input
-        v-model="platform.url"
-        placeholder="https://github.com/johndoe"
-        class="block mx-2 flex flex-1"
-      />
+      <el-form-item class="flex flex-grow mx-2">
+        <app-platform-autocomplete-input
+          v-model="platform.name"
+          placeholder="Github"
+          class="flex flex-1"
+        />
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="platform.username"
+          placeholder="johndoe"
+        />
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="platform.url"
+          placeholder="https://github.com/johndoe"
+        />
+      </el-form-item>
       <el-tooltip content="Click to delete" placement="top">
         <button
           v-if="platforms.length > 1"
-          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
+          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8 h-10"
           type="button"
           @click="deletePlatform(index)"
         >
           <i class="ri-delete-bin-line ri-lg"></i>
         </button>
       </el-tooltip>
-    </el-form-item>
+    </div>
     <button
       class="btn btn--link"
       type="button"
@@ -131,20 +136,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.app-community-member-platform-input {
-  .el-form-item {
-    &.el-form-item {
-      @apply mb-2;
-    }
-    &__content {
-      @apply flex flex-1 items-center -mx-2;
-      & > .el-input,
-      & > .block > .el-select {
-        @apply w-auto;
-      }
-    }
-  }
-}
-</style>

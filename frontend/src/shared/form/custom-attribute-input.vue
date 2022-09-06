@@ -1,31 +1,34 @@
 <template>
   <div class="app-custom-attribute-input">
-    <el-form-item
+    <div
       v-for="(attribute, index) in attributes"
       :key="index"
+      class="flex -mx-2"
     >
-      <el-input
-        v-model="attribute.name"
-        placeholder="Name"
-        class="grow block mx-2"
-      >
-      </el-input>
-      <el-input
-        v-model="attribute.value"
-        placeholder="Value"
-        class="grow block mx-2"
-      >
-      </el-input>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="attribute.name"
+          placeholder="Name"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="attribute.value"
+          placeholder="Value"
+        >
+        </el-input>
+      </el-form-item>
       <el-tooltip content="Click to delete" placement="top">
         <button
-          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
+          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8 h-10"
           type="button"
           @click="deleteAttribute(index)"
         >
           <i class="ri-delete-bin-line ri-lg"></i>
         </button>
       </el-tooltip>
-    </el-form-item>
+    </div>
     <button
       class="btn btn--link"
       type="button"
@@ -105,19 +108,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.app-custom-attribute-input {
-  .el-form-item {
-    &.el-form-item {
-      @apply mb-2;
-    }
-    &__content {
-      @apply flex items-center -mx-2;
-      & > .el-input {
-        @apply w-auto;
-      }
-    }
-  }
-}
-</style>

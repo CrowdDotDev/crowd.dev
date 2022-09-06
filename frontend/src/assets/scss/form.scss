@@ -21,8 +21,9 @@
 
 .el-form.form {
   .el-form-item {
-    &, &__content {
-      @apply block;
+    @apply block;
+    &__content {
+      @apply block mb-4;
     }
 
     .el-input {
@@ -35,7 +36,7 @@
   }
 
   .el-form-item__label {
-    @apply font-semibold text-black;
+    @apply font-semibold text-black h-6 leading-6;
     float: none;
   }
   .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before {
@@ -48,8 +49,8 @@
   }
 }
 
-.el-input {
-  @apply h-10 leading-10;
+.el-input, .el-date-editor.el-input, .el-date-editor.el-input__wrapper {
+  @apply h-10 leading-10 w-full;
 }
 
 .el-date-editor--daterange.el-input,
