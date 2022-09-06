@@ -4,69 +4,73 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
   const transaction = await queryInterface.sequelize.transaction()
 
   try {
-    await queryInterface.createTable('automations', {
-      id: {
-        allowNull: false,
-        primaryKey: true,
-        type: sequelize.UUID,
-      },
-      type: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
+    await queryInterface.createTable(
+      'automations',
+      {
+        id: {
+          allowNull: false,
+          primaryKey: true,
+          type: sequelize.UUID,
+        },
+        type: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+        tenantId: {
+          allowNull: false,
+          type: sequelize.UUID,
+        },
+        trigger: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+        settings: {
+          allowNull: false,
+          type: sequelize.JSONB,
+        },
+        state: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+
+        // metadata
+        createdAt: {
+          allowNull: false,
+          type: sequelize.DATE,
+        },
+
+        createdById: {
+          allowNull: false,
+          type: sequelize.UUID,
+        },
+
+        updatedAt: {
+          allowNull: false,
+          type: sequelize.DATE,
+        },
+        updatedById: {
+          type: sequelize.UUID,
+        },
+
+        deletedAt: {
+          type: sequelize.DATE,
+          allowNull: true,
+        },
+        deletedById: {
+          type: sequelize.UUID,
         },
       },
-      tenantId: {
-        allowNull: false,
-        type: sequelize.UUID,
-      },
-      trigger: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
-        },
-      },
-      settings: {
-        allowNull: false,
-        type: sequelize.JSONB,
-      },
-      state: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
-        },
-      },
-
-      // metadata
-      createdAt: {
-        allowNull: false,
-        type: sequelize.DATE,
-      },
-
-      createdById: {
-        allowNull: false,
-        type: sequelize.UUID,
-      },
-
-      updatedAt: {
-        allowNull: false,
-        type: sequelize.DATE,
-      },
-      updatedById: {
-        type: sequelize.UUID,
-      },
-
-      deletedAt: {
-        type: sequelize.DATE,
-        allowNull: true,
-      },
-      deletedById: {
-        type: sequelize.UUID,
-      },
-    })
+      { transaction },
+    )
     await queryInterface.addConstraint('automations', {
       type: 'foreign key',
       fields: ['tenantId'],
@@ -106,69 +110,76 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
 
     await queryInterface.sequelize.query(
       'create index "automations_tenantId" on automations ("tenantId")',
+      { transaction },
     )
     await queryInterface.sequelize.query(
       'create index "automations_type_tenantId_trigger_state" on automations (type, "tenantId", trigger, state)',
+      { transaction },
     )
 
-    await queryInterface.createTable('automationExecutionHistories', {
-      id: {
-        allowNull: false,
-        primaryKey: true,
-        type: sequelize.UUID,
-      },
-      automationId: {
-        allowNull: false,
-        type: sequelize.UUID,
-      },
-      type: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
+    await queryInterface.createTable(
+      'automationExecutionHistories',
+      {
+        id: {
+          allowNull: false,
+          primaryKey: true,
+          type: sequelize.UUID,
+        },
+        automationId: {
+          allowNull: false,
+          type: sequelize.UUID,
+        },
+        type: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+        tenantId: {
+          allowNull: false,
+          type: sequelize.UUID,
+        },
+        trigger: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+        state: {
+          allowNull: false,
+          type: sequelize.STRING(80),
+          validate: {
+            notEmpty: true,
+          },
+        },
+        error: {
+          allowNull: true,
+          type: sequelize.JSON,
+        },
+        executedAt: {
+          type: sequelize.DATE,
+          allowNull: false,
+        },
+        eventId: {
+          type: sequelize.STRING(255),
+          allowNull: false,
+          validate: {
+            notEmpty: true,
+          },
+        },
+        payload: {
+          type: sequelize.JSON,
+          allowNull: false,
         },
       },
-      tenantId: {
-        allowNull: false,
-        type: sequelize.UUID,
-      },
-      trigger: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
-        },
-      },
-      state: {
-        allowNull: false,
-        type: sequelize.STRING(80),
-        validate: {
-          notEmpty: true,
-        },
-      },
-      error: {
-        allowNull: true,
-        type: sequelize.JSON,
-      },
-      executedAt: {
-        type: sequelize.DATE,
-        allowNull: false,
-      },
-      eventId: {
-        type: sequelize.STRING(255),
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-        },
-      },
-      payload: {
-        type: sequelize.JSON,
-        allowNull: false,
-      },
-    })
+      { transaction },
+    )
 
     await queryInterface.sequelize.query(
       'create index "automationExecutionHistories_automationId" on "automationExecutionHistories" ("automationId")',
+      { transaction },
     )
     await queryInterface.addConstraint('automationExecutionHistories', {
       type: 'foreign key',

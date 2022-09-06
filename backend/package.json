@@ -20,6 +20,8 @@
     "db:publish": "bash ./util/publish-db.sh",
     "docs": "bash ./util/publish-docs.sh",
     "sequelize-cli:source": "npm run build:setenv:dev && npm run build && ./node_modules/.bin/sequelize --config src/database/sequelize-cli-config.ts --migrations-source-path src/database/migrations",
+    "sequelize:migrate:staging": "npm run build:setenv:staging && npm run build && ./node_modules/.bin/sequelize --config src/database/sequelize-cli-config.ts --migrations-source-path src/database/migrations db:migrate",
+    "sequelize:migrate:prod": "npm run build:setenv:prod && npm run build && ./node_modules/.bin/sequelize --config src/database/sequelize-cli-config.ts --migrations-source-path src/database/migrations db:migrate",
     "sequelize-cli:build": "./node_modules/.bin/sequelize --config database/sequelize-cli-config.js --migrations-compiled-path database/migrations",
     "stripe:login": "stripe login",
     "stripe:start": "stripe listen --forward-to localhost:8080/api/plan/stripe/webhook",
