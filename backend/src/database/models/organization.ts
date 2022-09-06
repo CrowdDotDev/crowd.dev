@@ -93,6 +93,13 @@ export default (sequelize) => {
             url: { [Op.ne]: null },
           },
         },
+        {
+          fields: ['name', 'tenantId'],
+          unique: true,
+          where: {
+            deletedAt: null,
+          },
+        },
       ],
       timestamps: true,
       paranoid: true,

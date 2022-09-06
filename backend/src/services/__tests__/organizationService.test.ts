@@ -46,6 +46,18 @@ describe('OrganizationService tests', () => {
 
   describe('Create method', () => {
     it('Should add without enriching when enrichP is false', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const service = new OrganizationService(mockIServiceOptions)
+
+      const toAdd = {
+        name: 'crowd.dev',
+      }
+
+      const added = await service.findOrCreate(toAdd, false)
+      expect(added.url).toEqual(null)
+    })
+
+    it('Should add without enriching when tenant is not premium', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const service = new OrganizationService(mockIServiceOptions)
 
@@ -53,18 +65,19 @@ describe('OrganizationService tests', () => {
         name: 'crowd.dev',
       }
 
-      const added = await service.create(toAdd, false)
+      const added = await service.findOrCreate(toAdd, true)
       expect(added.url).toEqual(null)
     })
+
     it('Should enrich and add an organization by URL', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
         url: 'crowd.dev',
       }
 
-      const added = await service.create(toAdd)
+      const added = await service.findOrCreate(toAdd)
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(expectedEnriched.name)
       expect(added.description).toEqual(expectedEnriched.description)
@@ -103,14 +116,14 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should enrich and add an organization by name', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
         name: 'crowd.dev',
       }
 
-      const added = await service.create(toAdd)
+      const added = await service.findOrCreate(toAdd)
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(expectedEnriched.name)
       expect(added.description).toEqual(expectedEnriched.description)
@@ -149,8 +162,8 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should not re-enrich when the record is already in the cache table. By URL', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const mockIServiceOptions2 = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions2 = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
 
       const service = new OrganizationService(mockIServiceOptions)
       const service2 = new OrganizationService(mockIServiceOptions2)
@@ -159,7 +172,7 @@ describe('OrganizationService tests', () => {
         url: 'https://crowd.dev',
       }
 
-      const added = await service.create(toAdd)
+      const added = await service.findOrCreate(toAdd)
       expect(added.url).toEqual('crowd.dev')
       expect(added.name).toEqual(expectedEnriched.name)
       expect(added.description).toEqual(expectedEnriched.description)
@@ -196,7 +209,7 @@ describe('OrganizationService tests', () => {
       expect(foundCache.employees).toEqual(expectedEnriched.employees)
       expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
-      const added2 = await service2.create(toAdd)
+      const added2 = await service2.findOrCreate(toAdd)
       expect(added2.url).toEqual('crowd.dev')
       expect(added2.name).toEqual(expectedEnriched.name)
       expect(added2.description).toEqual(expectedEnriched.description)
@@ -223,14 +236,43 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should throw an error when name and URL are not sent', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {}
 
-      await expect(service.create(toAdd)).rejects.toThrowError(
+      await expect(service.findOrCreate(toAdd)).rejects.toThrowError(
         'Organization Name or Url is required',
       )
+    })
+
+    it('Should not re-create when existing: enrich and name', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const service = new OrganizationService(mockIServiceOptions)
+
+      const toAdd = {
+        url: 'crowd.dev',
+      }
+
+      await service.findOrCreate(toAdd)
+
+      const added = await service.findOrCreate(toAdd)
+      expect(added.url).toEqual('crowd.dev')
+      expect(added.name).toEqual(expectedEnriched.name)
+      expect(added.description).toEqual(expectedEnriched.description)
+      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
+      expect(added.emails).toEqual(expectedEnriched.emails)
+      expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
+      expect(added.logo).toEqual(expectedEnriched.logo)
+      expect(added.tags).toStrictEqual(expectedEnriched.tags)
+      expect(added.twitter).toStrictEqual(expectedEnriched.twitter)
+      expect(added.linkedin).toStrictEqual(expectedEnriched.linkedin)
+      expect(added.crunchbase).toStrictEqual(expectedEnriched.crunchbase)
+      expect(added.employees).toEqual(expectedEnriched.employees)
+      expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
+
+      const foundAll = await service.findAndCountAll({ filter: {} })
+      expect(foundAll.count).toBe(1)
     })
   })
 })

@@ -14,21 +14,43 @@ export default class OrganizationService {
     this.options = options
   }
 
-  static async shouldEnrich(enrichP) {
-    const isPremium = true
+  async shouldEnrich(enrichP) {
+    const isPremium = this.options.currentTenant.plan === 'premium'
     if (!isPremium) {
       return false
     }
     return enrichP && (getConfig().CLEARBIT_API_KEY || getConfig().NODE_ENV === 'test')
   }
 
-  async create(data, enrichP = true) {
+  async findOrCreate(data, enrichP = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
       let wasEnriched = false
       let wasExisting = false
-      if (await OrganizationService.shouldEnrich(enrichP)) {
+      const shouldDoEnrich = await this.shouldEnrich(enrichP)
+
+      const existingByName = data.name
+        ? await OrganizationRepository.findByName(data.name, {
+            ...this.options,
+            transaction,
+          })
+        : null
+      if (existingByName) {
+        return existingByName
+      }
+
+      const existingByUrl = data.url
+        ? await OrganizationRepository.findByName(data.url, {
+            ...this.options,
+            transaction,
+          })
+        : null
+      if (existingByName) {
+        return existingByUrl
+      }
+
+      if (shouldDoEnrich) {
         if (!data.name && !data.url) {
           throw new Error400(this.options.language, 'errors.OrganizationNameOrUrlRequired.message')
         }
@@ -41,14 +63,14 @@ export default class OrganizationService {
         }
         if (data.url) {
           data.url = data.url.toLowerCase().replace('https://', '').replace('http://', '')
-          const existing = await organizationCacheRepository.findByUrl(data.url, {
+          const cacheExistig = await organizationCacheRepository.findByUrl(data.url, {
             ...this.options,
             transaction,
           })
-          if (existing) {
+          if (cacheExistig) {
             data = {
               ...data,
-              ...existing,
+              ...cacheExistig,
             }
             wasExisting = true
           } else {
@@ -183,7 +205,7 @@ export default class OrganizationService {
       importHash,
     }
 
-    return this.create(dataToCreate)
+    return this.findOrCreate(dataToCreate)
   }
 
   async _isImportHashExistent(importHash) {
