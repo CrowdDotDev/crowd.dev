@@ -23,7 +23,7 @@
   .el-form-item {
     @apply block;
     &__content {
-      @apply block mb-4;
+      @apply block mb-4 w-full;
     }
 
     .el-input {
