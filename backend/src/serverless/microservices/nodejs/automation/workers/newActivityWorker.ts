@@ -2,12 +2,72 @@ import getUserContext from '../../../../../database/utils/getUserContext'
 import ActivityRepository from '../../../../../database/repositories/activityRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import {
+  AutomationData,
   AutomationState,
   AutomationTrigger,
   AutomationType,
   NewActivitySettings,
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
+
+/**
+ * Helper function to check whether a single activity should be processed by automation
+ * @param activityData Activity data
+ * @param automation {AutomationData} Automation data
+ */
+export const shouldProcessActivity = (activityData, automation: AutomationData): boolean => {
+  const settings = automation.settings as NewActivitySettings
+
+  let process = true
+
+  // check whether activity type matches
+  if (settings.types.length > 0) {
+    if (!settings.types.includes(activityData.type)) {
+      console.log(
+        `Ignoring automation ${automation.id} - Activity ${activityData.id} type '${
+          activityData.type
+        }' does not match automation setting types: [${settings.types.join(', ')}]`,
+      )
+      process = false
+    }
+  }
+
+  // check whether activity platform matches
+  if (process && settings.platforms.length > 0) {
+    if (!settings.platforms.includes(activityData.platform)) {
+      console.log(
+        `Ignoring automation ${automation.id} - Activity ${activityData.id} platform '${
+          activityData.platform
+        }' does not match automation setting platforms: [${settings.platforms.join(', ')}]`,
+      )
+      process = false
+    }
+  }
+
+  // check whether activity content contains any of the keywords
+  if (process && settings.keywords.length > 0) {
+    const body = (activityData.crowdInfo.body as string).toLowerCase()
+    if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
+      console.log(
+        `Ignoring automation ${automation.id} - Activity ${
+          activityData.id
+        } content does not match automation setting keywords: [${settings.keywords.join(', ')}]`,
+      )
+      process = false
+    }
+  }
+
+  if (process && !settings.teamMemberActivities) {
+    if (activityData.crowdInfo.teamMember) {
+      console.log(
+        `Ignoring automation ${automation.id} - Activity ${activityData.id} belongs to a team member!`,
+      )
+      process = false
+    }
+  }
+
+  return process
+}
 
 /**
  * Check whether this activity matches any automations for tenant.
@@ -36,59 +96,7 @@ export default async (tenantId: string, activityId: string): Promise<void> => {
       const activityData = await ActivityRepository.findById(activityId, userContext)
 
       for (const automation of automations) {
-        const settings = automation.settings as NewActivitySettings
-
-        let process = true
-
-        // check whether activity type matches
-        if (settings.types.length > 0) {
-          if (!settings.types.includes(activityData.type)) {
-            console.log(
-              `Ignoring automation ${automation.id} - Activity ${activityId} type '${
-                activityData.type
-              }' does not match automation setting types: [${settings.types.join(', ')}]`,
-            )
-            process = false
-          }
-        }
-
-        // check whether activity platform matches
-        if (process && settings.platforms.length > 0) {
-          if (!settings.platforms.includes(activityData.platform)) {
-            console.log(
-              `Ignoring automation ${automation.id} - Activity ${activityId} platform '${
-                activityData.platform
-              }' does not match automation setting platforms: [${settings.platforms.join(', ')}]`,
-            )
-            process = false
-          }
-        }
-
-        // check whether activity content contains any of the keywords
-        if (process && settings.keywords.length > 0) {
-          const body = (activityData.crowdInfo.body as string).toLowerCase()
-          if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
-            console.log(
-              `Ignoring automation ${
-                automation.id
-              } - Activity ${activityId} content does not match automation setting keywords: [${settings.keywords.join(
-                ', ',
-              )}]`,
-            )
-            process = false
-          }
-        }
-
-        if (process && !settings.teamMemberActivities) {
-          if (activityData.crowdInfo.teamMember) {
-            console.log(
-              `Ignoring automation ${automation.id} - Activity ${activityId} belongs to a team member!`,
-            )
-            process = false
-          }
-        }
-
-        if (process) {
+        if (shouldProcessActivity(activityData, automation)) {
           console.log(`Activity ${activityId} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {

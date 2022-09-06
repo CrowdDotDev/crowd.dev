@@ -149,7 +149,7 @@ export default class AutomationService {
           tenantId: automation.tenantId,
           trigger: automation.trigger,
           error: error !== undefined ? error : null,
-          executedAt: new Date().toISOString(),
+          executedAt: new Date(),
           state,
           eventId,
           payload,

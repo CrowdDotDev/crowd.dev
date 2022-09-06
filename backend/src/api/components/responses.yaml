@@ -206,4 +206,3 @@ components:
         perPage:
           description: How many items per page are we showing
           type: integer
-

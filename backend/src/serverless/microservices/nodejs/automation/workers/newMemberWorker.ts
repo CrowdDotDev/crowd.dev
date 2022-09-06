@@ -1,6 +1,7 @@
 import getUserContext from '../../../../../database/utils/getUserContext'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import {
+  AutomationData,
   AutomationState,
   AutomationTrigger,
   AutomationType,
@@ -8,6 +9,34 @@ import {
 } from '../../../../../types/automationTypes'
 import CommunityMemberRepository from '../../../../../database/repositories/communityMemberRepository'
 import { sendWebhookProcessRequest } from './util'
+
+/**
+ * Helper function to check whether a single member should be processed by automation
+ * @param member Member data
+ * @param automation {AutomationData} Automation data
+ */
+export const shouldProcessMember = (member, automation: AutomationData): boolean => {
+  const settings = automation.settings as NewMemberSettings
+
+  let process = true
+
+  // check whether member platforms matches
+  if (settings.platforms.length > 0) {
+    const platforms = Object.keys(member.username)
+    if (!platforms.some((platform) => settings.platforms.includes(platform))) {
+      console.log(
+        `Ignoring automation ${automation.id} - Member ${
+          member.id
+        } platforms do not include any of automation setting platforms: [${settings.platforms.join(
+          ', ',
+        )}]`,
+      )
+      process = false
+    }
+  }
+
+  return process
+}
 
 /**
  * Check whether this member matches any automations for tenant.
@@ -36,26 +65,7 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
       const member = await CommunityMemberRepository.findById(memberId, userContext, true, false)
 
       for (const automation of automations) {
-        const settings = automation.settings as NewMemberSettings
-
-        let process = true
-
-        // check whether member platforms matches
-        if (settings.platforms.length > 0) {
-          const platforms = Object.keys(member.username)
-          if (!platforms.some((platform) => settings.platforms.includes(platform))) {
-            console.log(
-              `Ignoring automation ${
-                automation.id
-              } - Member ${memberId} platforms do not include any of automation setting platforms: [${settings.platforms.join(
-                ', ',
-              )}]`,
-            )
-            process = false
-          }
-        }
-
-        if (process) {
+        if (shouldProcessMember(member, automation)) {
           console.log(`Member ${memberId} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
