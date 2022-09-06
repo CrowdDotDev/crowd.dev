@@ -14,6 +14,16 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
   console.log('SQS Message body: ', body)
 
+  const config = getConfig()
+  if (config.NODE_ENV === 'test') {
+    return {
+      status: statusCode,
+      msg: JSON.stringify({
+        body,
+      }),
+    }
+  }
+
   const messageGroupId = body.tenant ? `${body.service}-${body.tenant}` : `${body.service}`
   const messageDeduplicationId = body.tenant
     ? `${body.service}-${body.tenant}-${moment().valueOf()}`
@@ -21,7 +31,7 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
   await sqs
     .sendMessage({
-      QueueUrl: getConfig().NODE_MICROSERVICES_SQS_URL,
+      QueueUrl: config.NODE_MICROSERVICES_SQS_URL,
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
       MessageBody: JSON.stringify(body),
