@@ -355,15 +355,12 @@
         </div>
         <hr class="pb-2" />
         <div class="relative">
-          <div
-            v-if="!hasPermissionToCustomize"
-            class="absolute w-full inset-0 z-10 blur-2xl"
-            :style="{
-              backgroundColor: 'rgba(255,255,255,0.95)'
-            }"
-          >
+          <div v-if="!hasPermissionToCustomize">
             <div
-              class="flex items-center justify-center flex-col pt-16"
+              class="absolute w-full inset-0 z-10 -mx-4 bg-white"
+            ></div>
+            <div
+              class="absolute inset-0 flex items-center justify-center flex-col pt-8 z-20"
             >
               <span class="text-gray-600 text-center">
                 If you want to customize the URL of your
