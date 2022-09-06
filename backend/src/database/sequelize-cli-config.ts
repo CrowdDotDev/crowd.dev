@@ -6,6 +6,7 @@ const dbEnvVars = {
   database: process.env.DATABASE_DATABASE,
   host: process.env.DATABASE_HOST_WRITE,
   dialect: process.env.DATABASE_DIALECT,
+  logging: true,
 }
 
 let currentEnvironmentVariables = {}
