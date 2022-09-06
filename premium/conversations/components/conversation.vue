@@ -119,7 +119,7 @@
                   class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
                 >
                   <div>
-                    <p
+                    <div
                       v-html="markdown(activity.body)"
                       class="myem text-sm"
                       :style="colors('color:text')"
@@ -250,7 +250,7 @@ export default defineComponent({
         : this.conversation.activities;
     },
     markdown(body) {
-      const converter = new Showdown.Converter()
+      const converter = new Showdown.Converter({ simpleLineBreaks: true })
       return converter.makeHtml(body)
     }
   },
