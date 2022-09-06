@@ -17,6 +17,7 @@ class MembersScore:
     def __init__(self, tenant_id, repository=False, test=False, send=True):
 
         self.tenant_id = tenant_id
+        logger.info(tenant_id)
 
         if not repository:
             self.repository = Repository(tenant_id=self.tenant_id, test=test)
