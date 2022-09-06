@@ -26,6 +26,8 @@ export default class OrganizationService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
+      let wasEnriched = false
+      let wasExisting = false
       if (await OrganizationService.shouldEnrich(enrichP)) {
         if (!data.name && !data.url) {
           throw new Error400(this.options.language, 'errors.OrganizationNameOrUrlRequired.message')
@@ -38,15 +40,21 @@ export default class OrganizationService {
           }
         }
         if (data.url) {
-          const existing = await organizationCacheRepository.findByUrl(data.url, this.options)
+          data.url = data.url.toLowerCase().replace('https://', '').replace('http://', '')
+          const existing = await organizationCacheRepository.findByUrl(data.url, {
+            ...this.options,
+            transaction,
+          })
           if (existing) {
             data = {
               ...data,
               ...existing,
             }
+            wasExisting = true
           } else {
             try {
               const enrichedData = await enrichOrganization(data.url)
+              wasEnriched = true
               data = {
                 ...data,
                 ...enrichedData,
@@ -69,6 +77,23 @@ export default class OrganizationService {
         ...this.options,
         transaction,
       })
+
+      if (wasEnriched) {
+        await organizationCacheRepository.create(
+          { ...record, organizationsSeeded: [record.id] },
+          {
+            ...this.options,
+            transaction,
+          },
+        )
+      }
+
+      if (wasExisting) {
+        await organizationCacheRepository.addOrganizationsSeeded(record.url, [record.id], {
+          ...this.options,
+          transaction,
+        })
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 
