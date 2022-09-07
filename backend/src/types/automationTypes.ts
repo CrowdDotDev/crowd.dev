@@ -1,6 +1,8 @@
 /**
  * all automation types that we are currently supporting
  */
+import { SearchCriteria } from './common'
+
 export enum AutomationType {
   WEBHOOK = 'webhook',
 }
@@ -95,11 +97,19 @@ export interface UpdateAutomationRequest {
 /**
  * What filters we have available to list all automations
  */
-export interface AutomationCriteria {
+export interface AutomationCriteria extends SearchCriteria {
   id?: string
   type?: AutomationType
   trigger?: AutomationTrigger
   state?: AutomationState
+}
+
+export interface CreateAutomationExecutionRequest {
+  automation: AutomationData
+  eventId: string
+  payload: any
+  state: AutomationExecutionState
+  error?: any
 }
 
 /**
@@ -113,4 +123,11 @@ export interface AutomationExecution {
   executedAt: string
   eventId: string
   payload: any
+}
+
+/**
+ * What filters we have available to list all automations
+ */
+export interface AutomationExecutionCriteria extends SearchCriteria {
+  automationId: string
 }

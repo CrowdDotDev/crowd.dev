@@ -72,13 +72,10 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
   try {
     // check if relevant automation exists in this tenant
-    const automations = await AutomationRepository.find(
-      {
-        trigger: AutomationTrigger.NEW_MEMBER,
-        state: AutomationState.ACTIVE,
-      },
-      userContext,
-    )
+    const automations = await new AutomationRepository(userContext).findAll({
+      trigger: AutomationTrigger.NEW_MEMBER,
+      state: AutomationState.ACTIVE,
+    })
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)

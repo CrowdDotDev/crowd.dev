@@ -1,26 +1,31 @@
 import { QueryTypes } from 'sequelize'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import SequelizeRepository from './sequelizeRepository'
 import Error404 from '../../errors/Error404'
 import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
 import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
 import { PageData } from '../../types/common'
+import { RepositoryBase } from './repositoryBase'
 
-const log: boolean = false
+export default class AutomationRepository extends RepositoryBase<
+  AutomationData,
+  string,
+  DbAutomationInsertData,
+  DbAutomationUpdateData,
+  AutomationCriteria
+> {
+  public constructor(options: IRepositoryOptions) {
+    super(options, true)
+  }
 
-export default class AutomationRepository {
-  static async create(
-    data: DbAutomationInsertData,
-    options: IRepositoryOptions,
-  ): Promise<AutomationData> {
-    const currentUser = SequelizeRepository.getCurrentUser(options)
+  override async create(data: DbAutomationInsertData): Promise<AutomationData> {
+    const currentUser = this.currentUser
 
-    const tenant = SequelizeRepository.getCurrentTenant(options)
+    const tenant = this.currentTenant
 
-    const transaction = SequelizeRepository.getTransaction(options)
+    const transaction = this.transaction
 
-    const record = await options.database.automation.create(
+    const record = await this.database.automation.create(
       {
         type: data.type,
         trigger: data.trigger,
@@ -35,32 +40,19 @@ export default class AutomationRepository {
       },
     )
 
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
+    await this.createAuditLog('automation', AuditLogRepository.CREATE, record, data)
 
-    const results = await this.find(
-      {
-        id: record.id,
-      },
-      0,
-      1,
-      options,
-    )
-
-    return results.rows[0]
+    return this.findById(record.id)
   }
 
-  static async update(
-    id,
-    data: DbAutomationUpdateData,
-    options: IRepositoryOptions,
-  ): Promise<AutomationData> {
-    const currentUser = SequelizeRepository.getCurrentUser(options)
+  override async update(id, data: DbAutomationUpdateData): Promise<AutomationData> {
+    const currentUser = this.currentUser
 
-    const transaction = SequelizeRepository.getTransaction(options)
+    const currentTenant = this.currentTenant
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const transaction = this.transaction
 
-    let record = await options.database.automation.findOne({
+    let record = await this.database.automation.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -84,26 +76,17 @@ export default class AutomationRepository {
       },
     )
 
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
+    await this.createAuditLog('automation', AuditLogRepository.UPDATE, record, data)
 
-    const results = await this.find(
-      {
-        id: record.id,
-      },
-      0,
-      1,
-      options,
-    )
-
-    return results.rows[0]
+    return this.findById(record.id)
   }
 
-  static async destroy(id, options: IRepositoryOptions): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
+  override async destroy(id: string): Promise<void> {
+    const transaction = this.transaction
 
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const currentTenant = this.currentTenant
 
-    const record = await options.database.automation.findOne({
+    const record = await this.database.automation.findOne({
       where: {
         id,
         tenantId: currentTenant.id,
@@ -119,18 +102,17 @@ export default class AutomationRepository {
       transaction,
     })
 
-    await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
+    await this.createAuditLog('automation', AuditLogRepository.DELETE, record, record)
   }
 
-  static async findById(id: string, options: IRepositoryOptions): Promise<AutomationData> {
-    const results = await this.find(
-      {
-        id,
-      },
-      0,
-      1,
-      options,
-    )
+  override async findById(id: string): Promise<AutomationData> {
+    const results = await this.findAndCountAll({
+      id,
+      offset: 0,
+      limit: 1,
+    })
+
+    console.log('findById', id, results)
 
     if (results.count === 1) {
       return results.rows[0]
@@ -143,17 +125,12 @@ export default class AutomationRepository {
     throw new Error('More than one row returned when fetching by automation unique ID!')
   }
 
-  static async find(
-    criteria: AutomationCriteria,
-    offset: number,
-    limit: number,
-    options: IRepositoryOptions,
-  ): Promise<PageData<AutomationData>> {
+  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
     // get current tenant that was used to make a request
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const currentTenant = this.currentTenant
 
     // get plain sequelize object to use with a raw query
-    const seq = SequelizeRepository.getSequelize(options)
+    const seq = this.seq
 
     // build a where condition based on tenant and other criteria passed as parameter
     const conditions = ['a."deletedAt" is null', 'a."tenantId" = :tenantId']
@@ -202,7 +179,7 @@ export default class AutomationRepository {
       from automations a
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
-      limit ${limit} offset ${offset}
+      limit ${criteria.limit} offset ${criteria.offset}
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available
@@ -215,12 +192,12 @@ export default class AutomationRepository {
       return {
         rows: [],
         count: 0,
-        offset,
-        limit,
+        offset: criteria.offset,
+        limit: criteria.limit,
       }
     }
 
-    const count = (results[0] as any).paginatedItemsCount as number
+    const count = parseInt((results[0] as any).paginatedItemsCount, 10)
     const rows: AutomationData[] = results.map((r) => {
       const d = r as any
       return {
@@ -240,30 +217,8 @@ export default class AutomationRepository {
     return {
       rows,
       count,
-      limit,
-      offset,
-    }
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions): Promise<void> {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'automation',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
+      offset: criteria.offset,
+      limit: criteria.limit,
     }
   }
 }
