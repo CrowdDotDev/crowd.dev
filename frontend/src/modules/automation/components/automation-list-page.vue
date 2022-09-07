@@ -78,11 +78,15 @@ export default {
   },
   computed: {
     ...mapGetters({
+      filter: 'automation/filter',
       count: 'automation/count'
     })
   },
   async created() {
-    await this.doFetch()
+    await this.doFetch({
+      filter: { ...this.filter },
+      rawFilter: { ...this.filter }
+    })
   },
   methods: {
     ...mapActions({
