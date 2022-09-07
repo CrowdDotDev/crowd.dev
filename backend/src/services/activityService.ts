@@ -185,7 +185,7 @@ export default class ActivityService {
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
-        parent.crowdInfo.body,
+        parent.crowdInfo.title ? parent.crowdInfo.title : parent.crowdInfo.body,
         ActivityService.hasHtmlActivities(parent.platform),
       )
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
