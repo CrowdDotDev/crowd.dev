@@ -10,7 +10,7 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
-import AutomationExecutionHistoryRepository from '../database/repositories/automationExecutionHistoryRepository'
+import AutomationExecutionRepository from '../database/repositories/automationExecutionRepository'
 import { PageData } from '../types/common'
 
 export default class AutomationService {
@@ -90,10 +90,16 @@ export default class AutomationService {
   /**
    * Method used to fetch all tenants automation with filters available in the criteria parameter
    * @param criteria {AutomationCriteria} filters to be used when returning automations
+   * @param offset how many items from start to skip
+   * @param limit how many items you want to fetch
    * @returns {AutomationData[]}
    */
-  async list(criteria: AutomationCriteria): Promise<AutomationData[]> {
-    return AutomationRepository.find(criteria, this.options)
+  async list(
+    criteria: AutomationCriteria,
+    offset: number,
+    limit: number,
+  ): Promise<PageData<AutomationData>> {
+    return AutomationRepository.find(criteria, offset, limit, this.options)
   }
 
   /**
@@ -108,18 +114,18 @@ export default class AutomationService {
   /**
    * Method used to fetch all automation executions.
    * @param automationId automation unique ID to fetch executions for
-   * @param page which page to list
-   * @param perPage how many items per page you want to display
+   * @param offset how many items from start to skip
+   * @param limit how many items you want to fetch
    */
   async listExecutions(
     automationId: string,
-    page: number,
-    perPage: number,
+    offset: number,
+    limit: number,
   ): Promise<PageData<AutomationExecution>> {
-    return AutomationExecutionHistoryRepository.listForAutomationId(
+    return AutomationExecutionRepository.listForAutomationId(
       automationId,
-      page,
-      perPage,
+      offset,
+      limit,
       this.options,
     )
   }
@@ -142,7 +148,7 @@ export default class AutomationService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      await AutomationExecutionHistoryRepository.create(
+      await AutomationExecutionRepository.create(
         {
           automationId: automation.id,
           type: automation.type,

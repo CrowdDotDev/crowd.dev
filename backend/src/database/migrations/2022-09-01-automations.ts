@@ -118,7 +118,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
     )
 
     await queryInterface.createTable(
-      'automationExecutionHistories',
+      'automationExecutions',
       {
         id: {
           allowNull: false,
@@ -178,13 +178,13 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
     )
 
     await queryInterface.sequelize.query(
-      'create index "automationExecutionHistories_automationId" on "automationExecutionHistories" ("automationId")',
+      'create index "automationExecutions_automationId" on "automationExecutions" ("automationId")',
       { transaction },
     )
-    await queryInterface.addConstraint('automationExecutionHistories', {
+    await queryInterface.addConstraint('automationExecutions', {
       type: 'foreign key',
       fields: ['tenantId'],
-      name: 'automationExecutionHistories_tenantId_fkey',
+      name: 'automationExecutions_tenantId_fkey',
       references: {
         table: 'tenants',
         field: 'id',
@@ -193,10 +193,10 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
       onUpdate: 'CASCADE',
       transaction,
     })
-    await queryInterface.addConstraint('automationExecutionHistories', {
+    await queryInterface.addConstraint('automationExecutions', {
       type: 'foreign key',
       fields: ['automationId'],
-      name: 'automationExecutionHistories_automationId_fkey',
+      name: 'automationExecutions_automationId_fkey',
       references: {
         table: 'automations',
         field: 'id',
@@ -216,23 +216,8 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
 export const down = async (queryInterface: QueryInterface) => {
   const transaction = await queryInterface.sequelize.transaction()
   try {
-    await queryInterface.sequelize.query('drop index "automationExecutionHistories_automationId"')
-    await queryInterface.removeConstraint(
-      'automationExecutionHistories',
-      'automationExecutionHistories_tenantId_fkey',
-    )
-    await queryInterface.removeConstraint(
-      'automationExecutionHistories',
-      'automationExecutionHistories_automationId_fkey',
-    )
-    await queryInterface.dropTable('automationExecutionHistories')
-    await queryInterface.sequelize.query('drop index "automations_tenantId"')
-    await queryInterface.sequelize.query('drop index "automations_type_tenantId_trigger_state"')
-    await queryInterface.removeConstraint('automations', 'automations_deletedById_fkey')
-    await queryInterface.removeConstraint('automations', 'automations_updatedById_fkey')
-    await queryInterface.removeConstraint('automations', 'automations_createdById_fkey')
-    await queryInterface.removeConstraint('automations', 'automations_tenantId_fkey')
-    await queryInterface.dropTable('automations')
+    await queryInterface.dropTable('automationExecutions', { transaction })
+    await queryInterface.dropTable('automations', { transaction })
     await transaction.commit()
   } catch (error) {
     await transaction.rollback()

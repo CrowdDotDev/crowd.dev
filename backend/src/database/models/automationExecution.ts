@@ -1,8 +1,8 @@
 import { DataTypes } from 'sequelize'
 
 export default (sequelize) => {
-  const automationExecutionHistory = sequelize.define(
-    'automationExecutionHistory',
+  const automationExecution = sequelize.define(
+    'automationExecution',
     {
       id: {
         type: DataTypes.UUID,
@@ -70,15 +70,15 @@ export default (sequelize) => {
     },
   )
 
-  automationExecutionHistory.associate = (models) => {
-    models.automationExecutionHistory.belongsTo(models.tenant, {
+  automationExecution.associate = (models) => {
+    models.automationExecution.belongsTo(models.tenant, {
       as: 'tenant',
       foreignKey: {
         allowNull: false,
       },
     })
 
-    models.automationExecutionHistory.belongsTo(models.automation, {
+    models.automationExecution.belongsTo(models.automation, {
       as: 'automation',
       foreignKey: {
         allowNull: false,
@@ -86,5 +86,5 @@ export default (sequelize) => {
     })
   }
 
-  return automationExecutionHistory
+  return automationExecution
 }

@@ -5,6 +5,7 @@ import SequelizeRepository from './sequelizeRepository'
 import Error404 from '../../errors/Error404'
 import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
 import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
+import { PageData } from '../../types/common'
 
 const log: boolean = false
 
@@ -40,10 +41,12 @@ export default class AutomationRepository {
       {
         id: record.id,
       },
+      0,
+      1,
       options,
     )
 
-    return results[0]
+    return results.rows[0]
   }
 
   static async update(
@@ -87,10 +90,12 @@ export default class AutomationRepository {
       {
         id: record.id,
       },
+      0,
+      1,
       options,
     )
 
-    return results[0]
+    return results.rows[0]
   }
 
   static async destroy(id, options: IRepositoryOptions): Promise<void> {
@@ -122,14 +127,16 @@ export default class AutomationRepository {
       {
         id,
       },
+      0,
+      1,
       options,
     )
 
-    if (results.length === 1) {
-      return results[0]
+    if (results.count === 1) {
+      return results.rows[0]
     }
 
-    if (results.length === 0) {
+    if (results.count === 0) {
       throw new Error404()
     }
 
@@ -138,8 +145,10 @@ export default class AutomationRepository {
 
   static async find(
     criteria: AutomationCriteria,
+    offset: number,
+    limit: number,
     options: IRepositoryOptions,
-  ): Promise<AutomationData[]> {
+  ): Promise<PageData<AutomationData>> {
     // get current tenant that was used to make a request
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
@@ -177,7 +186,7 @@ export default class AutomationRepository {
     const query = `
     -- common table expression (CTE) to prepare the last execution information for each automationId
       with latest_executions as (select distinct on ("automationId") "automationId", "executedAt", state, error
-                                from "automationExecutionHistories"
+                                from "automationExecutions"
                                 order by "automationId", "executedAt" desc)
       select a.id,
             a.type,
@@ -188,17 +197,52 @@ export default class AutomationRepository {
             a."createdAt",
             le."executedAt" as "lastExecutionAt",
             le.state        as "lastExecutionState",
-            le.error        as "lastExecutionError"
+            le.error        as "lastExecutionError",
+            count(*) over () as "paginatedItemsCount"
       from automations a
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
+      limit ${limit} offset ${offset}
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available
-    return seq.query(query, {
+    const results = await seq.query(query, {
       replacements: parameters,
       type: QueryTypes.SELECT,
     })
+
+    if (results.length === 0) {
+      return {
+        rows: [],
+        count: 0,
+        offset,
+        limit,
+      }
+    }
+
+    const count = (results[0] as any).paginatedItemsCount as number
+    const rows: AutomationData[] = results.map((r) => {
+      const d = r as any
+      return {
+        id: d.id,
+        type: d.type,
+        tenantId: d.tenantId,
+        trigger: d.trigger,
+        settings: d.settings,
+        state: d.state,
+        createdAt: d.createdAt,
+        lastExecutionAt: d.lastExecutionAt,
+        lastExecutionState: d.lastExecutionState,
+        lastExecutionError: d.lastExecutionError,
+      }
+    })
+
+    return {
+      rows,
+      count,
+      limit,
+      offset,
+    }
   }
 
   static async _createAuditLog(action, record, data, options: IRepositoryOptions): Promise<void> {

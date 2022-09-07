@@ -8,14 +8,14 @@ import { PageData } from '../../types/common'
 
 const log: boolean = false
 
-export default class AutomationExecutionHistoryRepository {
+export default class AutomationExecutionRepository {
   static async create(
     data: DbAutomationExecutionInsertData,
     options: IRepositoryOptions,
   ): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const record = await options.database.automationExecutionHistory.create(
+    const record = await options.database.automationExecution.create(
       {
         automationId: data.automationId,
         type: data.type,
@@ -35,8 +35,8 @@ export default class AutomationExecutionHistoryRepository {
 
   static async listForAutomationId(
     automationId: string,
-    page: number,
-    perPage: number,
+    offset: number,
+    limit: number,
     options: IRepositoryOptions,
   ): Promise<PageData<AutomationExecution>> {
     // get current tenant that was used to make a request
@@ -55,10 +55,10 @@ export default class AutomationExecutionHistoryRepository {
              "eventId",
              payload,
              count(*) over () as "paginatedItemsCount"
-      from "automationExecutionHistories"
+      from "automationExecutions"
       where "tenantId" = :tenantId
         and "automationId" = :automationId
-      limit ${perPage} offset ${(page - 1) * perPage}
+      limit ${limit} offset ${offset}
     `
 
     const results = await seq.query(query, {
@@ -71,15 +71,15 @@ export default class AutomationExecutionHistoryRepository {
 
     if (results.length === 0) {
       return {
-        data: [],
-        page,
-        perPage,
-        total: 0,
+        rows: [],
+        count: 0,
+        limit,
+        offset,
       }
     }
 
-    const total = (results[0] as any).paginatedItemsCount as number
-    const data: AutomationExecution[] = results.map((r) => {
+    const count = (results[0] as any).paginatedItemsCount as number
+    const rows: AutomationExecution[] = results.map((r) => {
       const d = r as any
       return {
         id: d.id,
@@ -93,10 +93,10 @@ export default class AutomationExecutionHistoryRepository {
     })
 
     return {
-      data,
-      page,
-      perPage,
-      total,
+      rows,
+      count,
+      limit,
+      offset,
     }
   }
 
@@ -112,7 +112,7 @@ export default class AutomationExecutionHistoryRepository {
 
       await AuditLogRepository.log(
         {
-          entityName: 'automationExecutionHistory',
+          entityName: 'automationExecution',
           entityId: record.id,
           action,
           values,
