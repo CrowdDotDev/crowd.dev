@@ -39,6 +39,26 @@ export const shouldProcessMember = (member, automation: AutomationData): boolean
 }
 
 /**
+ * Return a cleaned up copy of the member that contains only data that is relevant for automation.
+ *
+ * @param member Member data as it came from the repository layer
+ * @returns a cleaned up payload to use with automation
+ */
+export const prepareMemberPayload = (member: any): any => {
+  const copy = { ...member }
+
+  delete copy.importHash
+  delete copy.signals
+  delete copy.type
+  delete copy.score
+  delete copy.updatedAt
+  delete copy.updatedById
+  delete copy.deletedAt
+
+  return copy
+}
+
+/**
  * Check whether this member matches any automations for tenant.
  * If so emit automation process messages to NodeJS microservices SQS queue.
  *
@@ -70,7 +90,12 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
-              await sendWebhookProcessRequest(tenantId, automation.id, member.id, member)
+              await sendWebhookProcessRequest(
+                tenantId,
+                automation.id,
+                member.id,
+                prepareMemberPayload(member),
+              )
               break
             default:
               console.log(`ERROR: Automation type '${automation.type}' is not supported!`)

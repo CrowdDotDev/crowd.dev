@@ -9,6 +9,7 @@ import {
   NewActivitySettings,
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
+import { prepareMemberPayload } from './newMemberWorker'
 
 /**
  * Helper function to check whether a single activity should be processed by automation
@@ -70,6 +71,29 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
 }
 
 /**
+ * Return a cleaned up copy of the activity that contains only data that is relevant for automation.
+ *
+ * @param activity Activity data as it came from the repository layer
+ * @returns a cleaned up payload to use with automation
+ */
+export const prepareActivityPayload = (activity: any): any => {
+  const copy = { ...activity }
+
+  delete copy.importHash
+  delete copy.updatedAt
+  delete copy.updatedById
+  delete copy.deletedAt
+  if (copy.communityMember) {
+    copy.communityMember = prepareMemberPayload(copy.communityMember)
+  }
+  if (copy.parent) {
+    copy.parent = prepareActivityPayload(copy.parent)
+  }
+
+  return copy
+}
+
+/**
  * Check whether this activity matches any automations for tenant.
  * If so emit automation process messages to NodeJS microservices SQS queue.
  *
@@ -105,7 +129,7 @@ export default async (tenantId: string, activityId: string): Promise<void> => {
                 tenantId,
                 automation.id,
                 activityData.id,
-                activityData,
+                prepareActivityPayload(activityData),
               )
               break
             default:
