@@ -11,8 +11,6 @@ class MemberAttributeSettingsRepository {
   static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
-
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const record = await options.database.memberAttributeSettings.findOne({
@@ -20,7 +18,6 @@ class MemberAttributeSettingsRepository {
         id,
         tenantId: currentTenant.id,
       },
-      include,
       transaction,
     })
 
@@ -127,7 +124,6 @@ class MemberAttributeSettingsRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const whereAnd: Array<any> = []
-    const include = []
 
     whereAnd.push({
       tenantId: tenant.id,
@@ -206,7 +202,6 @@ class MemberAttributeSettingsRepository {
     // eslint-disable-next-line prefer-const
     let { rows, count } = await options.database.memberAttributeSettings.findAndCountAll({
       where,
-      include,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
       order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],

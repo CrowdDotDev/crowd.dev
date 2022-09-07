@@ -53,8 +53,6 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
 
-    await new MemberAttributeSettingsService(userContext).createPredefined(DiscordMemberAttributes)
-
     // We already have the tenant filter in userContext
     // because of getCurrentTenant function in the repo layer.
     // Therefore we can feed an empty query object as first arg
@@ -62,6 +60,20 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
       PlatformType.DISCORD,
       userContext,
     )
+
+    if (integration.settings.updateMemberAttributes) {
+      await new MemberAttributeSettingsService(userContext).createPredefined(
+        DiscordMemberAttributes,
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const channels = integration.settings.channels ? integration.settings.channels : []
 

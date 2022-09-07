@@ -8,6 +8,14 @@ components:
         id:
           description: The unique identifier for a member of your community.
 
+    MemberAttributeSettings:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MemberAttributeSettingsNoId'
+      properties:
+        id:
+          description: The unique identifier for a member attribute of your community.
+
     # We need this helper to add the member as well
     ActivityHelper:
       type: object

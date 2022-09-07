@@ -80,7 +80,24 @@ async function twitterWorker(body: TwitterIntegrationMessage): Promise<TwitterOu
 
     const followersSet: Set<string> = new Set(integrationUpdated.settings.followers)
 
-    await new MemberAttributeSettingsService(userContext).createPredefined(TwitterMemberAttributes)
+    const integration = await IntegrationRepository.findByPlatform(
+      PlatformType.TWITTER,
+      userContext,
+    )
+
+    if (integration.settings.updateMemberAttributes) {
+      await new MemberAttributeSettingsService(userContext).createPredefined(
+        TwitterMemberAttributes,
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const twitterIterator = new TwitterIterator(
       tenant,

@@ -35,21 +35,35 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
 
-    const memberAttributesService = new MemberAttributeSettingsService(userContext)
-
-    await memberAttributesService.createPredefined(DevtoMemberAttributes)
-
-    await memberAttributesService.createPredefined(
-      TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name),
-    )
-
-    await memberAttributesService.createPredefined(
-      GithubMemberAttributes.filter(
-        (a) => a.name === MemberAttributes.NAME.name || a.name === MemberAttributes.URL.name,
-      ),
-    )
-
     const integration = await IntegrationRepository.findById(integrationId, userContext)
+
+    if (integration.settings.updateMemberAttributes) {
+      const memberAttributesService = new MemberAttributeSettingsService(userContext)
+
+      await memberAttributesService.createPredefined(DevtoMemberAttributes)
+
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributes.URL.name],
+          TwitterMemberAttributes,
+        ),
+      )
+
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributes.URL.name, MemberAttributes.NAME.name],
+          GithubMemberAttributes,
+        ),
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
     const settings: DevtoIntegrationSettings = integration.settings
 
     const articles = settings.articles ? settings.articles : []

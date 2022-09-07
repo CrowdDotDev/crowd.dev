@@ -38,12 +38,22 @@ async function slackWorker(body: SlackIntegrationMessage) {
     // Inject user and tenant to IRepositoryOptions
     const userContext = await getUserContext(tenant)
 
-    await new MemberAttributeSettingsService(userContext).createPredefined(SlackMemberAttributes)
-
     // We already have the tenant filter in userContext
     // because of getCurrentTenant function in the repo layer.
     // Therefore we can feed an empty query object as first arg
     const integration = await IntegrationRepository.findByPlatform(PlatformType.SLACK, userContext)
+
+    if (integration.settings.updateMemberAttributes) {
+      await new MemberAttributeSettingsService(userContext).createPredefined(SlackMemberAttributes)
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     // This will get all channels that we have acceess to (private or public)
     let channelsFromSlackAPI: Channels = await getChannels(

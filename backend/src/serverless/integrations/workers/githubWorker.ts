@@ -17,15 +17,28 @@ async function githubWorker(body: IntegrationsMessage) {
 
     const integration = await IntegrationRepository.findByPlatform(PlatformType.GITHUB, userContext)
 
-    const memberAttributesService = new MemberAttributeSettingsService(userContext)
+    if (integration.settings.updateMemberAttributes) {
+      const memberAttributesService = new MemberAttributeSettingsService(userContext)
 
-    // ensure memberAttribute settings for possible github member attributes
-    await memberAttributesService.createPredefined(GithubMemberAttributes)
+      // ensure memberAttribute settings for possible github member attributes
+      await memberAttributesService.createPredefined(GithubMemberAttributes)
 
-    // attribute.url may come from twitter
-    await memberAttributesService.createPredefined(
-      TwitterMemberAttributes.filter((a) => a.name === MemberAttributes.URL.name),
-    )
+      // attribute.url may come from twitter
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributes.URL.name],
+          TwitterMemberAttributes,
+        ),
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const githubIterator = new GithubIterator(
       tenant,

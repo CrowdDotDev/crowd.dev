@@ -12,6 +12,16 @@ export default class MemberAttributeSettingsService {
     this.options = options
   }
 
+  /**
+   * Cherry picks attributes from predefined integration attributes.
+   * @param names array of names to cherry pick
+   * @param attributes list of attributes to cherry pick from
+   * @returns
+   */
+  static pickAttributes(names: string[], attributes: Attribute[]): Attribute[] {
+    return attributes.filter((i) => names.includes(i.name))
+  }
+
   async create(data) {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
