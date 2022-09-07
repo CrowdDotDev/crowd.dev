@@ -22,7 +22,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.automationUpdate)
-    const payload = await new AutomationService(req).update(req.params.automationId, req.body)
+    const payload = await new AutomationService(req).update(req.params.automationId, req.body.data)
 
     track('Automation Updated', { ...payload }, { ...req })
 

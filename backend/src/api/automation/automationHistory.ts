@@ -11,8 +11,8 @@ import ApiResponseHandler from '../apiResponseHandler'
  * @description Get all automation execution history for tenant and automation
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} automationId - Your workspace/tenant ID
- * @queryParam {integer} [page=1] - Which page are you listing
- * @queryParam {integer} [perPage=10] - How many elements would you like to list per page
+ * @queryParam {integer} [offset=0] - How many elements from the beginning would you like to skip
+ * @queryParam {integer} [limit=10] - How many elements would you like to fetch
  * @response 200 - Ok
  * @responseContent {AutomationExecutionPage} 200.application/json
  * @responseExample {AutomationExecutionPage} 200.application/json.AutomationExecutionPage
@@ -23,19 +23,19 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.automationRead)
 
-    let page = 1
-    if (req.query.page) {
-      page = parseInt(req.query.page, 10)
+    let offset = 0
+    if (req.query.offset) {
+      offset = parseInt(req.query.offset, 10)
     }
-    let perPage = 10
-    if (req.query.perPage) {
-      perPage = parseInt(req.query.perPage, 10)
+    let limit = 10
+    if (req.query.limit) {
+      limit = parseInt(req.query.limit, 10)
     }
 
     const payload = await new AutomationService(req).listExecutions(
       req.params.automationId,
-      page,
-      perPage,
+      offset,
+      limit,
     )
 
     await ApiResponseHandler.success(req, res, payload)

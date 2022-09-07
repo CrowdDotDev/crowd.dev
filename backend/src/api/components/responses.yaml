@@ -144,10 +144,28 @@ components:
           description: Error information if last automation execution failed
           type: object
 
-    AutomationList:
-      type: array
-      items:
-        $ref: '#/components/schemas/Automation'
+    AutomationPage:
+      type: object
+      required:
+        - rows
+        - count
+        - offset
+        - limit
+      properties:
+        rows:
+          description: Array of automations that were fetched
+          type: array
+          items:
+            $ref: '#/components/schemas/Automation'
+        count:
+          description: How many total automations there are
+          type: integer
+        offset:
+          description: What offset was used when preparing this response
+          type: integer
+        limit:
+          description: What limit was used when preparing this response
+          type: integer
 
     AutomationExecution:
       type: object
@@ -187,22 +205,22 @@ components:
     AutomationExecutionPage:
       type: object
       required:
-        - data
-        - total
-        - page
-        - perPage
+        - rows
+        - count
+        - offset
+        - limit
       properties:
-        data:
+        rows:
           description: Automation Execution List
           type: array
           items:
             $ref: '#/components/schemas/AutomationExecution'
-        total:
-          description: How many items are there in total not just the current page
+        count:
+          description: How many items are there in total
           type: integer
-        page:
-          description: Which page are we showing
+        offset:
+          description: What offset was used when preparing this response
           type: integer
-        perPage:
-          description: How many items per page are we showing
+        limit:
+          description: What limit was used when preparing this response
           type: integer

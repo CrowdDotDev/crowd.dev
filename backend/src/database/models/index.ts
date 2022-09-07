@@ -58,7 +58,7 @@ function models() {
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
     require('./automation').default,
-    require('./automationExecutionHistory').default,
+    require('./automationExecution').default,
   ]
 
   for (const notInitmodel of modelClasses) {

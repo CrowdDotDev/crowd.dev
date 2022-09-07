@@ -1,6 +1,6 @@
 export interface PageData<T> {
-  data: T[]
-  total: number
-  page: number
-  perPage: number
+  rows: T[]
+  count: number
+  limit: number
+  offset: number
 }

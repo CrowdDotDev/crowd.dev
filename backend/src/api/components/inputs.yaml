@@ -44,29 +44,39 @@ components:
       description: >-
         Data to create a new automation.
       required:
-        - type
-        - trigger
-        - settings
+        - data
       properties:
-        type:
-          $ref: '#/components/schemas/AutomationType'
-        trigger:
-          $ref: '#/components/schemas/AutomationTrigger'
-        settings:
-          $ref: '#/components/schemas/AutomationSettings'
+        data:
+          type: object
+          required:
+            - type
+            - trigger
+            - settings
+          properties:
+            type:
+              $ref: '#/components/schemas/AutomationType'
+            trigger:
+              $ref: '#/components/schemas/AutomationTrigger'
+            settings:
+              $ref: '#/components/schemas/AutomationSettings'
 
     AutomationUpdateInput:
       type: object
       description: >-
         Data to update an existing automation.
       required:
-        - trigger
-        - settings
-        - state
+        - data
       properties:
-        trigger:
-          $ref: '#/components/schemas/AutomationTrigger'
-        settings:
-          $ref: '#/components/schemas/AutomationSettings'
-        state:
-          $ref: '#/components/schemas/AutomationState'
+        data:
+          type: object
+          required:
+            - trigger
+            - settings
+            - state
+          properties:
+            trigger:
+              $ref: '#/components/schemas/AutomationTrigger'
+            settings:
+              $ref: '#/components/schemas/AutomationSettings'
+            state:
+              $ref: '#/components/schemas/AutomationState'
