@@ -4,7 +4,7 @@
     ref="form"
     :model="model"
     :rules="rules"
-    class="form"
+    class="form automation-form"
     @submit.prevent="doSubmit"
   >
     <div
@@ -54,49 +54,100 @@
           />
         </el-select>
       </el-form-item>
-      <div class="flex -mx-2">
-        <el-form-item
-          label="Matching activity platform(s)"
-          :prop="fields.settings.activityPlatforms"
-          class="w-full lg:w-1/2 mx-2"
+      <el-collapse
+        v-if="model.trigger === 'new_activity'"
+        v-model="newActivityFilters"
+      >
+        <el-collapse-item
+          title="Filter options"
+          name="activityFilters"
         >
-          <el-select
-            v-model="model.settings.activityPlatforms"
-            multiple
-            placeholder="Select option"
-          >
-            <el-option
-              v-for="platform of computedPlatformOptions"
-              :key="platform.value"
-              :value="platform.value"
-              :label="platform.label"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          label="Matching activity type(s)"
-          :prop="fields.settings.activityTypes"
-          class="w-full lg:w-1/2 mx-2"
+          <div class="flex -mx-2">
+            <el-form-item
+              label="Matching activity platform(s)"
+              :prop="fields.settings.activityPlatforms"
+              class="w-full lg:w-1/2 mx-2"
+            >
+              <el-select
+                v-model="model.settings.activityPlatforms"
+                multiple
+                placeholder="Select option"
+              >
+                <el-option
+                  v-for="platform of computedPlatformOptions"
+                  :key="platform.value"
+                  :value="platform.value"
+                  :label="platform.label"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item
+              label="Matching activity type(s)"
+              :prop="fields.settings.activityTypes"
+              class="w-full lg:w-1/2 mx-2"
+            >
+              <el-select
+                v-model="model.settings.activityTypes"
+                multiple
+                placeholder="Select option"
+                :disabled="
+                  model.settings.activityPlatforms
+                    .length === 0
+                "
+              >
+                <el-option
+                  v-for="platform of computedActivityTypeOptions"
+                  :key="platform.value"
+                  :value="platform.value"
+                  :label="platform.label"
+                />
+              </el-select>
+            </el-form-item>
+          </div>
+          <el-form-item label="Including keyword(s)">
+            <div class="-mb-4">
+              <app-keywords-input
+                v-model="model.settings.keywords"
+              />
+            </div>
+          </el-form-item>
+          <el-checkbox
+            v-model="
+              model.settings.includeTeamMemberActivities
+            "
+            label="Include activities from team members"
+          ></el-checkbox>
+        </el-collapse-item>
+      </el-collapse>
+
+      <el-collapse
+        v-if="model.trigger === 'new_member'"
+        v-model="newMemberFilters"
+      >
+        <el-collapse-item
+          title="Filter options"
+          name="memberFilters"
         >
-          <el-select
-            v-model="model.settings.activityTypes"
-            multiple
-            placeholder="Select option"
+          <el-form-item
+            label="Matching member platform(s)"
+            :prop="fields.settings.memberPlatforms"
+            class="w-full"
           >
-            <el-option
-              v-for="platform of computedActivityTypeOptions"
-              :key="platform.value"
-              :value="platform.value"
-              :label="platform.label"
-            />
-          </el-select>
-        </el-form-item>
-      </div>
-      <el-form-item label="Including keyword(s)">
-        <app-keywords-input
-          v-model="model.settings.keywords"
-        />
-      </el-form-item>
+            <el-select
+              v-model="model.settings.memberPlatforms"
+              multiple
+              placeholder="Select option"
+            >
+              <el-option
+                v-for="platform of computedPlatformOptions"
+                :key="platform.value"
+                :value="platform.value"
+                :label="platform.label"
+              />
+            </el-select>
+          </el-form-item>
+        </el-collapse-item>
+      </el-collapse>
 
       <div class="flex items-center pb-2">
         <span
@@ -167,8 +218,11 @@ export default {
     return {
       rules: formSchema.rules(),
       model: {
+        trigger: 'new_activity',
         ...this.modelValue
       },
+      newActivityFilters: 'activityFilters',
+      newMemberFilters: 'memberFilters',
       loadingIntegrations: false
     }
   },
@@ -251,3 +305,32 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.automation-form {
+  .el-collapse {
+    @apply border border-gray-100 rounded p-4 mb-10;
+    background-color: #f3f4f6;
+    overflow: unset;
+
+    .el-collapse-item__header {
+      @apply text-primary-900 text-sm flex flex-row-reverse justify-end leading-tight h-6 font-medium;
+      background-color: #f3f4f6;
+      .el-collapse-item__arrow {
+        margin: 0 8px 0 0;
+      }
+    }
+    .el-collapse-item__content {
+      @apply pb-0 pt-6 leading-none;
+    }
+    .el-collapse-item__wrap {
+      @apply border-none leading-none;
+      background-color: #f3f4f6;
+    }
+
+    .el-form-item {
+      @apply mb-0;
+    }
+  }
+}
+</style>

@@ -36,8 +36,7 @@
   }
 
   .el-form-item__label {
-    @apply font-semibold text-black h-6 leading-6;
-    float: none;
+    @apply font-medium text-black h-7 leading-6;
   }
   .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before {
     display: none;
@@ -62,7 +61,7 @@
 
 .el-checkbox {
   &__label {
-    @apply text-black;
+    @apply text-black font-normal;
   }
 
   &__input {
