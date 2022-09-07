@@ -2,7 +2,7 @@ import request from 'superagent'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import { AutomationExecutionState, WebhookSettings } from '../../../../../types/automationTypes'
-import AutomationService from '../../../../../services/automationService'
+import AutomationExecutionService from '../../../../../services/automationExecutionService'
 
 /**
  * Actually fire the webhook with the relevant payload
@@ -19,9 +19,9 @@ export default async (
   payload: any,
 ): Promise<void> => {
   const userContext = await getUserContext(tenantId)
-  const automationService = new AutomationService(userContext)
+  const automationExecutionService = new AutomationExecutionService(userContext)
 
-  const automation = await AutomationRepository.findById(automationId, userContext)
+  const automation = await new AutomationRepository(userContext).findById(automationId)
   const settings = automation.settings as WebhookSettings
 
   const now = new Date()
@@ -41,24 +41,24 @@ export default async (
       .set('X-CrowdDotDev-Event-ID', eventId)
 
     console.log(`Webhook response code ${result.statusCode}!`)
-    await automationService.logExecution(
+    await automationExecutionService.create({
       automation,
       eventId,
-      eventPayload,
-      AutomationExecutionState.SUCCESS,
-    )
+      payload: eventPayload,
+      state: AutomationExecutionState.SUCCESS,
+    })
   } catch (error) {
     console.log(
       `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
       error,
     )
-    await automationService.logExecution(
+    await automationExecutionService.create({
       automation,
       eventId,
-      eventPayload,
-      AutomationExecutionState.ERROR,
+      payload: eventPayload,
+      state: AutomationExecutionState.ERROR,
       error,
-    )
+    })
 
     throw error
   }

@@ -1,7 +1,7 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
-import AutomationService from '../../services/automationService'
 import ApiResponseHandler from '../apiResponseHandler'
+import AutomationExecutionService from '../../services/automationExecutionService'
 
 /**
  * GET /tenant/{tenantId}/automation/{automationId}/history
@@ -32,11 +32,11 @@ export default async (req, res) => {
       limit = parseInt(req.query.limit, 10)
     }
 
-    const payload = await new AutomationService(req).listExecutions(
-      req.params.automationId,
+    const payload = await new AutomationExecutionService(req).findAndCountAll({
+      automationId: req.params.automationId,
       offset,
       limit,
-    )
+    })
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

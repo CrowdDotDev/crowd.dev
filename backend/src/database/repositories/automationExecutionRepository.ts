@@ -1,21 +1,25 @@
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { DbAutomationExecutionInsertData } from './types/automationTypes'
-import SequelizeRepository from './sequelizeRepository'
-import AuditLogRepository from './auditLogRepository'
-import { AutomationExecution } from '../../types/automationTypes'
+import { AutomationExecution, AutomationExecutionCriteria } from '../../types/automationTypes'
 import { PageData } from '../../types/common'
+import { RepositoryBase } from './repositoryBase'
 
-const log: boolean = false
+export default class AutomationExecutionRepository extends RepositoryBase<
+  AutomationExecution,
+  string,
+  DbAutomationExecutionInsertData,
+  unknown,
+  AutomationExecutionCriteria
+> {
+  public constructor(options: IRepositoryOptions) {
+    super(options, false)
+  }
 
-export default class AutomationExecutionRepository {
-  static async create(
-    data: DbAutomationExecutionInsertData,
-    options: IRepositoryOptions,
-  ): Promise<void> {
-    const transaction = SequelizeRepository.getTransaction(options)
+  override async create(data: DbAutomationExecutionInsertData): Promise<AutomationExecution> {
+    const transaction = this.transaction
 
-    const record = await options.database.automationExecution.create(
+    return this.database.automationExecution.create(
       {
         automationId: data.automationId,
         type: data.type,
@@ -29,21 +33,16 @@ export default class AutomationExecutionRepository {
       },
       { transaction },
     )
-
-    await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
   }
 
-  static async listForAutomationId(
-    automationId: string,
-    offset: number,
-    limit: number,
-    options: IRepositoryOptions,
+  override async findAndCountAll(
+    criteria: AutomationExecutionCriteria,
   ): Promise<PageData<AutomationExecution>> {
     // get current tenant that was used to make a request
-    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+    const currentTenant = this.currentTenant
 
     // get plain sequelize object to use with a raw query
-    const seq = SequelizeRepository.getSequelize(options)
+    const seq = this.seq
 
     // construct a query with pagination
     const query = `
@@ -58,13 +57,13 @@ export default class AutomationExecutionRepository {
       from "automationExecutions"
       where "tenantId" = :tenantId
         and "automationId" = :automationId
-      limit ${limit} offset ${offset}
+      limit ${criteria.limit} offset ${criteria.offset}
     `
 
     const results = await seq.query(query, {
       replacements: {
         tenantId: currentTenant.id,
-        automationId,
+        automationId: criteria.automationId,
       },
       type: QueryTypes.SELECT,
     })
@@ -73,12 +72,12 @@ export default class AutomationExecutionRepository {
       return {
         rows: [],
         count: 0,
-        limit,
-        offset,
+        offset: criteria.offset,
+        limit: criteria.limit,
       }
     }
 
-    const count = (results[0] as any).paginatedItemsCount as number
+    const count = parseInt((results[0] as any).paginatedItemsCount, 10)
     const rows: AutomationExecution[] = results.map((r) => {
       const d = r as any
       return {
@@ -95,30 +94,8 @@ export default class AutomationExecutionRepository {
     return {
       rows,
       count,
-      limit,
-      offset,
-    }
-  }
-
-  static async _createAuditLog(action, record, data, options: IRepositoryOptions): Promise<void> {
-    if (log) {
-      let values = {}
-
-      if (data) {
-        values = {
-          ...record.get({ plain: true }),
-        }
-      }
-
-      await AuditLogRepository.log(
-        {
-          entityName: 'automationExecution',
-          entityId: record.id,
-          action,
-          values,
-        },
-        options,
-      )
+      offset: criteria.offset,
+      limit: criteria.limit,
     }
   }
 }

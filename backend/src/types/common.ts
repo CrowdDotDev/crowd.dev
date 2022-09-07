@@ -4,3 +4,8 @@ export interface PageData<T> {
   limit: number
   offset: number
 }
+
+export interface SearchCriteria {
+  limit?: number
+  offset?: number
+}

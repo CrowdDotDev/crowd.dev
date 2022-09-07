@@ -1,8 +1,6 @@
 import {
   AutomationCriteria,
   AutomationData,
-  AutomationExecution,
-  AutomationExecutionState,
   AutomationState,
   CreateAutomationRequest,
   UpdateAutomationRequest,
@@ -10,14 +8,18 @@ import {
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import AutomationRepository from '../database/repositories/automationRepository'
-import AutomationExecutionRepository from '../database/repositories/automationExecutionRepository'
 import { PageData } from '../types/common'
+import { ServiceBase } from './serviceBase'
 
-export default class AutomationService {
-  options: IServiceOptions
-
-  constructor(options) {
-    this.options = options
+export default class AutomationService extends ServiceBase<
+  AutomationData,
+  string,
+  CreateAutomationRequest,
+  UpdateAutomationRequest,
+  AutomationCriteria
+> {
+  public constructor(options: IServiceOptions) {
+    super(options)
   }
 
   /**
@@ -25,18 +27,15 @@ export default class AutomationService {
    * @param req {CreateAutomationRequest} data used to create a new automation
    * @returns {AutomationData} object for frontend to use
    */
-  async create(req: CreateAutomationRequest): Promise<AutomationData> {
+  override async create(req: CreateAutomationRequest): Promise<AutomationData> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
       // create an active automation
-      const result = await AutomationRepository.create(
-        {
-          ...req,
-          state: AutomationState.ACTIVE,
-        },
-        this.options,
-      )
+      const result = await new AutomationRepository(this.options).create({
+        ...req,
+        state: AutomationState.ACTIVE,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -56,12 +55,12 @@ export default class AutomationService {
    * @param req {UpdateAutomationRequest} data used to update an existing automation
    * @returns {AutomationData} object for frontend to use
    */
-  async update(id: string, req: UpdateAutomationRequest): Promise<AutomationData> {
+  override async update(id: string, req: UpdateAutomationRequest): Promise<AutomationData> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
       // update an existing automation including its state
-      const result = await AutomationRepository.update(id, req, this.options)
+      const result = await new AutomationRepository(this.options).update(id, req)
       await SequelizeRepository.commitTransaction(transaction)
       return result
     } catch (error) {
@@ -74,11 +73,11 @@ export default class AutomationService {
    * Deletes an existing automation
    * @param id automation id to be deleted
    */
-  async destroy(id: string): Promise<void> {
+  override async destroy(id: string): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      const result = await AutomationRepository.destroy(id, this.options)
+      const result = await new AutomationRepository(this.options).destroy(id)
       await SequelizeRepository.commitTransaction(transaction)
       return result
     } catch (error) {
@@ -90,16 +89,10 @@ export default class AutomationService {
   /**
    * Method used to fetch all tenants automation with filters available in the criteria parameter
    * @param criteria {AutomationCriteria} filters to be used when returning automations
-   * @param offset how many items from start to skip
-   * @param limit how many items you want to fetch
-   * @returns {AutomationData[]}
+   * @returns {PageData<AutomationData>>}
    */
-  async list(
-    criteria: AutomationCriteria,
-    offset: number,
-    limit: number,
-  ): Promise<PageData<AutomationData>> {
-    return AutomationRepository.find(criteria, offset, limit, this.options)
+  override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
+    return new AutomationRepository(this.options).findAndCountAll(criteria)
   }
 
   /**
@@ -107,64 +100,7 @@ export default class AutomationService {
    * @param id automation id
    * @returns {AutomationData}
    */
-  async findById(id: string): Promise<AutomationData> {
-    return AutomationRepository.findById(id, this.options)
-  }
-
-  /**
-   * Method used to fetch all automation executions.
-   * @param automationId automation unique ID to fetch executions for
-   * @param offset how many items from start to skip
-   * @param limit how many items you want to fetch
-   */
-  async listExecutions(
-    automationId: string,
-    offset: number,
-    limit: number,
-  ): Promise<PageData<AutomationExecution>> {
-    return AutomationExecutionRepository.listForAutomationId(
-      automationId,
-      offset,
-      limit,
-      this.options,
-    )
-  }
-
-  /**
-   * Method used by service that is processing automations as they are triggered
-   * @param automation {AutomationData} which automation was triggered
-   * @param eventId id of the event that triggered this automation (activity.id or member.id for example)
-   * @param payload payload that was sent using this automation
-   * @param state whether the execution was successful or not
-   * @param error if execution was not successful this will contain information about what happened
-   */
-  async logExecution(
-    automation: AutomationData,
-    eventId: string,
-    payload: any,
-    state: AutomationExecutionState,
-    error?: any,
-  ) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
-
-    try {
-      await AutomationExecutionRepository.create(
-        {
-          automationId: automation.id,
-          type: automation.type,
-          tenantId: automation.tenantId,
-          trigger: automation.trigger,
-          error: error !== undefined ? error : null,
-          executedAt: new Date(),
-          state,
-          eventId,
-          payload,
-        },
-        this.options,
-      )
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
-    }
+  override async findById(id: string): Promise<AutomationData> {
+    return new AutomationRepository(this.options).findById(id)
   }
 }
