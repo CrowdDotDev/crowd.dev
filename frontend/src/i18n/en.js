@@ -249,8 +249,8 @@ const en = {
       },
       github: {
         fork: 'forked',
-        star: 'stared',
-        unstar: 'unstared',
+        star: 'starred',
+        unstar: 'unstarred',
         'pull_request-open': 'opened a new pull request',
         'pull_request-opened': 'opened a new pull request',
         'pull_request-close': 'closed a pull request',
