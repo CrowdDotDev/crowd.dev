@@ -41,11 +41,11 @@ export default async (req, res) => {
     }
 
     const criteria: AutomationCriteria = {
-      type: req.query.filter.type ? (req.query.filter.type as AutomationType) : undefined,
-      trigger: req.query.filter.trigger
-        ? (req.query.filter.trigger as AutomationTrigger)
+      type: req.query.filter?.type ? (req.query.filter.type as AutomationType) : undefined,
+      trigger: req.query.filter?.trigger
+        ? (req.query.filter?.trigger as AutomationTrigger)
         : undefined,
-      state: req.query.filter.state ? (req.query.filter.state as AutomationState) : undefined,
+      state: req.query.filter?.state ? (req.query.filter.state as AutomationState) : undefined,
       limit,
       offset,
     }
