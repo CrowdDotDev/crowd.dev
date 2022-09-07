@@ -164,6 +164,9 @@ class MembersScore:
 
         active_members_raw_scores = [active_members_scores[x] for x in active_members_scores.keys()]
 
+        if len(active_members_scores) == 0:
+            return active_members_scores
+
         # Initialize the k means cluster
         if len(active_members_raw_scores) < 10:
             k = len(active_members_raw_scores)
