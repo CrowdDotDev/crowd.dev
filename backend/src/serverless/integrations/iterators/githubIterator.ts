@@ -95,7 +95,7 @@ export default class GithubIterator extends BaseIterator {
         const stargazersQuery = new StargazersQuery(this.getRepoByName(repoName), this.accessToken)
         result = await stargazersQuery.getSinglePage(page)
 
-        result.data = result.data.filter((i) => (i as any).node.login)
+        result.data = result.data.filter((i) => (i as any).node?.login)
         break
       }
       case 'pulls': {
@@ -106,7 +106,7 @@ export default class GithubIterator extends BaseIterator {
         result = await pullRequestsQuery.getSinglePage(page)
 
         // filter out activities without authors (such as bots)
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
 
         // add each PR as separate endpoint for comments as form repoName|pull-comments|id
         result.data.map((pr) =>
@@ -127,7 +127,7 @@ export default class GithubIterator extends BaseIterator {
 
         result = await pullRequestCommentsQuery.getSinglePage(page)
 
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
         break
       }
       case 'issue-comments': {
@@ -139,7 +139,7 @@ export default class GithubIterator extends BaseIterator {
         )
         result = await issueCommentsQuery.getSinglePage(page)
 
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
         break
       }
       case 'issues': {
@@ -147,7 +147,7 @@ export default class GithubIterator extends BaseIterator {
         result = await issuesQuery.getSinglePage(page)
 
         // filter out activities without authors (such as bots)
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
 
         // add each issue as separate endpoint for comments as form repoName|issue-comments|id
         result.data.map((issue) =>
@@ -163,7 +163,7 @@ export default class GithubIterator extends BaseIterator {
         result = await forksQuery.getSinglePage(page)
 
         // filter out activities without authors (such as bots) -- may not the case for forks, but filter out anyways
-        result.data = result.data.filter((i) => (i as any).owner.login)
+        result.data = result.data.filter((i) => (i as any).owner?.login)
         break
       }
 
@@ -174,7 +174,7 @@ export default class GithubIterator extends BaseIterator {
         )
         result = await discussionsQuery.getSinglePage(page)
 
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
 
         for (const discussion of result.data) {
           if ((discussion as any).comments.totalCount > 0) {
@@ -195,7 +195,7 @@ export default class GithubIterator extends BaseIterator {
         )
         result = await discussionCommentsQuery.getSinglePage(page)
 
-        result.data = result.data.filter((i) => (i as any).author.login)
+        result.data = result.data.filter((i) => (i as any).author?.login)
         break
       }
 
