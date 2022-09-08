@@ -326,9 +326,9 @@ describe('MemberAttributeSettingService tests', () => {
       const allAttributes = await as.findAndCountAll({})
 
       expect(allAttributes.count).toBe(4)
-      allAttributes.rows = allAttributes.rows.map((attribute) => attribute.name)
+      const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributes.rows).toEqual(['name', 'url', 'imageUrl', 'id'])
+      expect(allAttributeNames).toEqual(['name', 'url', 'imageUrl', 'id'])
     })
   })
   describe('create tests', () => {

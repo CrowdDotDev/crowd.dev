@@ -4,11 +4,13 @@ import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import Error404 from '../../errors/Error404'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import { AttributeData } from '../attributes/attribute'
+import { MemberAttributeSettingsCreateData, MemberAttributeSettingsUpdateData, MemberAttributeSettingsCriteria, MemberAttributeSettingsCriteriaResult } from './types/memberAttributeSettingsTypes'
 
 const Op = Sequelize.Op
 
 class MemberAttributeSettingsRepository {
-  static async findById(id, options: IRepositoryOptions) {
+  static async findById(id: string, options: IRepositoryOptions): Promise<AttributeData> {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -37,7 +39,7 @@ class MemberAttributeSettingsRepository {
     return output
   }
 
-  static async create(data, options: IRepositoryOptions) {
+  static async create(data: MemberAttributeSettingsCreateData, options: IRepositoryOptions): Promise<AttributeData> {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -46,8 +48,11 @@ class MemberAttributeSettingsRepository {
 
     const record = await options.database.memberAttributeSettings.create(
       {
-        ...lodash.pick(data, ['type', 'name', 'label', 'canDelete', 'show']),
-
+        type: data.type,
+        name: data.name,
+        label: data.label,
+        canDelete: data.canDelete,
+        show: data.show,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -60,7 +65,7 @@ class MemberAttributeSettingsRepository {
     return this.findById(record.id, options)
   }
 
-  static async update(id, data, options: IRepositoryOptions) {
+  static async update(id:string, data:MemberAttributeSettingsUpdateData, options: IRepositoryOptions): Promise<AttributeData> {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -81,8 +86,7 @@ class MemberAttributeSettingsRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['type', 'name', 'label', 'canDelete', 'show']),
-
+        ...data,
         updatedById: currentUser.id,
       },
       {
@@ -93,7 +97,7 @@ class MemberAttributeSettingsRepository {
     return this.findById(record.id, options)
   }
 
-  static async destroy(id, options: IRepositoryOptions) {
+  static async destroy(id:string, options: IRepositoryOptions): Promise<void> {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -118,9 +122,9 @@ class MemberAttributeSettingsRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter, limit = 0, offset = 0, orderBy = '' }:MemberAttributeSettingsCriteria,
     options: IRepositoryOptions,
-  ) {
+  ):Promise<MemberAttributeSettingsCriteriaResult> {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const whereAnd: Array<any> = []
@@ -138,23 +142,19 @@ class MemberAttributeSettingsRepository {
 
       if (
         filter.canDelete === true ||
-        filter.canDelete === 'true' ||
-        filter.canDelete === false ||
-        filter.canDelete === 'false'
+        filter.canDelete === false
       ) {
         whereAnd.push({
-          canDelete: filter.canDelete === true || filter.canDelete === 'true',
+          canDelete: filter.canDelete === true,
         })
       }
 
       if (
         filter.show === true ||
-        filter.show === 'true' ||
-        filter.show === false ||
-        filter.show === 'false'
+        filter.show === false
       ) {
         whereAnd.push({
-          show: filter.show === true || filter.show === 'true',
+          show: filter.show === true ,
         })
       }
 

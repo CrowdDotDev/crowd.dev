@@ -7,3 +7,9 @@ export interface Attribute {
   label: string
   name: string
 }
+
+export interface AttributeData extends Attribute {
+  id: string
+  createdAt: string
+  updatedAt: string
+}
