@@ -73,8 +73,8 @@ export default {
         await AutomationService.listAutomationExecutions(
           props.webhook.id,
           'createdAt_DESC',
-          limit,
-          offset
+          limit.value,
+          offset.value
         )
       loading.value = false
       if (response.count < limit.value) {

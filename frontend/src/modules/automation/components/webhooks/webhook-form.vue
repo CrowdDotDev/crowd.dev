@@ -169,7 +169,7 @@
           class="btn btn--primary mr-2"
           @click="doSubmit"
         >
-          {{ isEditing ? 'Update' : 'Save' }} webhook
+          {{ isEditing ? 'Update' : 'Add' }} webhook
         </el-button>
 
         <el-button

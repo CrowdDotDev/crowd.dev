@@ -129,7 +129,7 @@ export class AutomationService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/automation/${automationId}/`,
+      `/tenant/${tenantId}/automation/${automationId}/history`,
       {
         params
       }

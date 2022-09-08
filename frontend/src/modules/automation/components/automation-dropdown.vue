@@ -51,6 +51,7 @@
     </el-dialog>
     <el-drawer
       v-model="executionsDrawer"
+      :destroy-on-close="true"
       title="Webhook executions"
       custom-class="webhook-executions-drawer"
     >
