@@ -21,7 +21,7 @@ export const shouldProcessMember = (member, automation: AutomationData): boolean
   let process = true
 
   // check whether member platforms matches
-  if (settings.platforms.length > 0) {
+  if (settings.platforms && settings.platforms.length > 0) {
     const platforms = Object.keys(member.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
       console.log(

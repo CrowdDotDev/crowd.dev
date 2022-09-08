@@ -22,7 +22,7 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
   let process = true
 
   // check whether activity type matches
-  if (settings.types.length > 0) {
+  if (settings.types && settings.types.length > 0) {
     if (!settings.types.includes(activityData.type)) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${activityData.id} type '${
@@ -34,7 +34,7 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
   }
 
   // check whether activity platform matches
-  if (process && settings.platforms.length > 0) {
+  if (process && settings.platforms && settings.platforms.length > 0) {
     if (!settings.platforms.includes(activityData.platform)) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${activityData.id} platform '${
@@ -46,7 +46,7 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
   }
 
   // check whether activity content contains any of the keywords
-  if (process && settings.keywords.length > 0) {
+  if (process && settings.keywords && settings.keywords.length > 0) {
     const body = (activityData.crowdInfo.body as string).toLowerCase()
     if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
       console.log(
