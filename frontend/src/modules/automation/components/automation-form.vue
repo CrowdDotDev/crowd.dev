@@ -65,11 +65,10 @@
           <div class="flex -mx-2">
             <el-form-item
               label="Matching activity platform(s)"
-              :prop="fields.settings.activityPlatforms"
               class="w-full lg:w-1/2 mx-2"
             >
               <el-select
-                v-model="model.settings.activityPlatforms"
+                v-model="model.settings.platforms"
                 multiple
                 placeholder="Select option"
               >
@@ -83,16 +82,14 @@
             </el-form-item>
             <el-form-item
               label="Matching activity type(s)"
-              :prop="fields.settings.activityTypes"
               class="w-full lg:w-1/2 mx-2"
             >
               <el-select
-                v-model="model.settings.activityTypes"
+                v-model="model.settings.types"
                 multiple
                 placeholder="Select option"
                 :disabled="
-                  model.settings.activityPlatforms
-                    .length === 0
+                  model.settings.platforms.length === 0
                 "
               >
                 <el-option
@@ -112,9 +109,7 @@
             </div>
           </el-form-item>
           <el-checkbox
-            v-model="
-              model.settings.includeTeamMemberActivities
-            "
+            v-model="model.settings.teamMemberActivities"
             label="Include activities from team members"
           ></el-checkbox>
         </el-collapse-item>
@@ -130,11 +125,10 @@
         >
           <el-form-item
             label="Matching member platform(s)"
-            :prop="fields.settings.memberPlatforms"
             class="w-full"
           >
             <el-select
-              v-model="model.settings.memberPlatforms"
+              v-model="model.settings.platforms"
               multiple
               placeholder="Select option"
             >
@@ -163,7 +157,7 @@
       <hr class="mb-6" />
       <el-form-item label="Webhook URL" :required="true">
         <el-input
-          v-model="model.settings.webhookUrl"
+          v-model="model.settings.url"
           type="text"
           placholder="https://somewebhook.url"
         ></el-input>
@@ -242,9 +236,7 @@ export default {
       return this.loading('submit')
     },
     isFilled() {
-      return (
-        this.model.trigger && this.model.settings.webhookUrl
-      )
+      return this.model.trigger && this.model.settings.url
     },
     computedPlatformOptions() {
       return this.integrationsActive.map((item) => {

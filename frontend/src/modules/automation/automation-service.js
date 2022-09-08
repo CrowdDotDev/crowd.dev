@@ -42,7 +42,7 @@ export class AutomationService {
       const body = {
         id,
         data: {
-          published: true
+          state: true
         }
       }
       await authAxios.put(
@@ -59,7 +59,7 @@ export class AutomationService {
       const body = {
         id,
         data: {
-          published: false
+          state: false
         }
       }
       await authAxios.put(

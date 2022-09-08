@@ -1,5 +1,4 @@
 import { AutomationService } from '@/modules/automation/automation-service'
-import { router } from '@/router'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
 
@@ -435,7 +434,7 @@ export default {
         )
 
         commit('CREATE_SUCCESS', response)
-        router.push('/automations')
+        Message.success('Automation created successfully')
       } catch (error) {
         Errors.handle(error)
         commit('FETCH_ERROR')
@@ -453,8 +452,6 @@ export default {
 
         commit('DESTROY_SUCCESS', automationId)
 
-        router.push('/automations')
-
         dispatch(
           `automation/doFetch`,
           rootGetters[`automation/filter`],
@@ -462,6 +459,7 @@ export default {
             root: true
           }
         )
+        Message.success('Automation deleted successfully')
       } catch (error) {
         Errors.handle(error)
         commit('DESTROY_ERROR')
@@ -479,14 +477,17 @@ export default {
 
         commit('DESTROY_ALL_SUCCESS', automationIds)
 
-        router.push('/automations')
-
         dispatch(
           `automation/doFetch`,
           rootGetters[`automation/filter`],
           {
             root: true
           }
+        )
+        Message.success(
+          `Automation${
+            automationIds.length > 1 ? 's' : ''
+          } deleted successfully`
         )
       } catch (error) {
         Errors.handle(error)
@@ -505,15 +506,17 @@ export default {
 
         commit('PUBLISH_ALL_SUCCESS', automationIds)
 
-        Message.success(
-          'Automations published successfully'
-        )
         dispatch(
           `automation/doFetch`,
           rootGetters[`automation/filter`],
           {
             root: true
           }
+        )
+        Message.success(
+          `Automation${
+            automationIds.length > 1 ? 's' : ''
+          } published successfully`
         )
       } catch (error) {
         Errors.handle(error)
@@ -541,6 +544,11 @@ export default {
           {
             root: true
           }
+        )
+        Message.success(
+          `Automation${
+            automationIds.length > 1 ? 's' : ''
+          } unpublished successfully`
         )
       } catch (error) {
         Errors.handle(error)
@@ -602,7 +610,7 @@ export default {
       try {
         commit('UPDATE_STARTED', id)
         const record = await AutomationService.update(id, {
-          published: true
+          state: 'active'
         })
         dispatch('doFetch', {
           filter: getters.filter,
@@ -623,7 +631,7 @@ export default {
       try {
         commit('UPDATE_STARTED', id)
         const record = await AutomationService.update(id, {
-          published: false
+          state: 'disabled'
         })
         dispatch('doFetch', {
           filter: getters.filter,

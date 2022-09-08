@@ -1,7 +1,7 @@
 import Permissions from '@/security/permissions'
 import { PermissionChecker } from '@/premium/user/permission-checker'
 
-export class ConversationPermissions {
+export class AutomationPermissions {
   constructor(currentTenant, currentUser) {
     const permissionChecker = new PermissionChecker(
       currentTenant,

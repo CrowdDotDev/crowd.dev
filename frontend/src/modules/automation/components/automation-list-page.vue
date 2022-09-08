@@ -1,6 +1,11 @@
 <template>
   <div>
-    <div v-if="count > 0">
+    <div
+      v-if="loading('table')"
+      v-loading="loading('table')"
+      class="app-page-spinner"
+    ></div>
+    <div v-else-if="count > 0">
       <div class="flex items-center justify-between mt-6">
         <div class="text-gray-600 text-sm">
           {{ count }} webhooks
@@ -15,7 +20,7 @@
           </el-button>
         </div>
       </div>
-      <app-automation-list-table />
+      <app-automation-list-table class="mt-6" />
     </div>
     <div
       v-else
@@ -78,6 +83,7 @@ export default {
   },
   computed: {
     ...mapGetters({
+      loading: 'automation/loading',
       filter: 'automation/filter',
       count: 'automation/count'
     })

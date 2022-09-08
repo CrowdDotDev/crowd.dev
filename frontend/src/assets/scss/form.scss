@@ -118,13 +118,6 @@
   @apply border-secondary-900;
 }
 
-.el-switch__label.is-active {
-  @apply text-secondary-900;
-}
-.el-switch.is-checked .el-switch__core {
-  @apply bg-secondary-900 border-secondary-900;
-}
-
 .el-form-item.is-error .el-input__inner,
 .el-form-item.is-error .el-input__inner:focus,
 .el-form-item.is-error .el-textarea__inner,

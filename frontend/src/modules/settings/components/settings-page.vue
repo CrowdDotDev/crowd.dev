@@ -10,16 +10,26 @@
         name="users"
         label-class="app-content-title"
       >
-        <app-user-list-page class="pt-4" />
+        <app-user-list-page
+          v-if="activeTab === 'users'"
+          class="pt-4"
+        />
       </el-tab-pane>
       <el-tab-pane label="Integrations" name="integrations">
-        <app-integration-list-page />
+        <app-integration-list-page
+          v-if="activeTab === 'integrations'"
+        />
       </el-tab-pane>
       <el-tab-pane label="Automations" name="automations">
-        <app-automation-list-page />
+        <app-automation-list-page
+          v-if="activeTab === 'automations'"
+        />
       </el-tab-pane>
       <el-tab-pane label="API Keys" name="api-keys">
-        <div class="panel mt-4">
+        <div
+          v-if="activeTab === 'api-keys'"
+          class="panel mt-4"
+        >
           <div
             class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
           >
