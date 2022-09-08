@@ -3,7 +3,7 @@
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
+    :model-value="modelValue"
     clearable
     default-first-option
     filterable
@@ -49,7 +49,7 @@ export default {
   name: 'AppAutocompleteManyInput',
 
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     },

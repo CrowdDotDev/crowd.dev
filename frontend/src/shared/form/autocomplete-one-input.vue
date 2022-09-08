@@ -3,7 +3,7 @@
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
+    :model-value="modelValue"
     :placeholder="placeholder || ''"
     clearable
     default-first-option
@@ -40,7 +40,7 @@ export default {
   name: 'AppAutocompleteOneInput',
 
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },

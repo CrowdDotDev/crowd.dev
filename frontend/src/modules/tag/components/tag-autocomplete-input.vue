@@ -26,7 +26,7 @@ import { mapGetters, mapActions } from 'vuex'
 export default {
   name: 'AppTagAutocompleteInput',
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     },
@@ -61,7 +61,7 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {

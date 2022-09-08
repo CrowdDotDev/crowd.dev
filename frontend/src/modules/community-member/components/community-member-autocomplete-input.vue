@@ -46,7 +46,7 @@ export default {
       CommunityMemberFormModal
   },
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },
@@ -92,7 +92,7 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {
