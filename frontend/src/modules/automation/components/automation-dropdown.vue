@@ -55,7 +55,7 @@
       title="Webhook executions"
       custom-class="webhook-executions-drawer"
     >
-      <app-webhook-executions :webhook="automation" />
+      <app-webhook-execution-list :webhook="automation" />
     </el-drawer>
   </app-teleport>
 </template>
@@ -64,14 +64,14 @@
 import { mapGetters, mapActions } from 'vuex'
 import { AutomationPermissions } from '@/modules/automation/automation-permissions'
 import AppWebhookForm from './webhooks/webhook-form'
-import AppWebhookExecutions from './webhooks/webhook-executions'
+import AppWebhookExecutionList from './webhooks/webhook-execution-list'
 import { i18n } from '@/i18n'
 
 export default {
   name: 'AppAutomationDropdown',
   components: {
     'app-webhook-form': AppWebhookForm,
-    'app-webhook-executions': AppWebhookExecutions
+    'app-webhook-execution-list': AppWebhookExecutionList
   },
   props: {
     automation: {
