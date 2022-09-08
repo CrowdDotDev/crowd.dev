@@ -1,6 +1,7 @@
-import { Attribute } from '../database/attributes/attribute'
+import { Attribute, AttributeData } from '../database/attributes/attribute'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { MemberAttributeSettingsCreateData, MemberAttributeSettingsUpdateData, MemberAttributeSettingsCriteria, MemberAttributeSettingsCriteriaResult } from '../database/repositories/types/memberAttributeSettingsTypes'
 import Error400 from '../errors/Error400'
 import camelCaseNames from '../utils/camelCaseNames'
 import { IServiceOptions } from './IServiceOptions'
@@ -22,7 +23,7 @@ export default class MemberAttributeSettingsService {
     return attributes.filter((i) => names.includes(i.name))
   }
 
-  async create(data) {
+  async create(data: MemberAttributeSettingsCreateData): Promise<AttributeData> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
@@ -49,7 +50,7 @@ export default class MemberAttributeSettingsService {
     }
   }
 
-  async createPredefined(attributes: Attribute[]) {
+  async createPredefined(attributes: Attribute[]): Promise<AttributeData[]> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
@@ -88,7 +89,7 @@ export default class MemberAttributeSettingsService {
     }
   }
 
-  async destroyAll(ids) {
+  async destroyAll(ids: string[]): Promise<void> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
@@ -106,7 +107,7 @@ export default class MemberAttributeSettingsService {
     }
   }
 
-  async update(id, data) {
+  async update(id:string, data:MemberAttributeSettingsUpdateData):Promise<AttributeData> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
@@ -126,9 +127,7 @@ export default class MemberAttributeSettingsService {
       // readonly canDelete field can't be updated to some other value
       if (
         (data.canDelete === true ||
-          data.canDelete === 'true' ||
-          data.canDelete === false ||
-          data.canDelete === 'false') &&
+          data.canDelete === false) &&
         attribute.canDelete !== data.canDelete
       ) {
         throw new Error400(
@@ -161,11 +160,11 @@ export default class MemberAttributeSettingsService {
     }
   }
 
-  async findAndCountAll(args) {
+  async findAndCountAll(args:MemberAttributeSettingsCriteria): Promise<MemberAttributeSettingsCriteriaResult> {
     return MemberAttributeSettingsRepository.findAndCountAll(args, this.options)
   }
 
-  async findById(id) {
+  async findById(id: string): Promise<AttributeData> {
     return MemberAttributeSettingsRepository.findById(id, this.options)
   }
 }
