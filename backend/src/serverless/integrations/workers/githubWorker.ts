@@ -5,7 +5,7 @@ import { PlatformType } from '../../../utils/platforms'
 import { IntegrationsMessage } from '../types/messageTypes'
 import { GithubMemberAttributes } from '../../../database/attributes/member/github'
 import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
-import { MemberAttributes } from '../../../database/attributes/member/enums'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 
 async function githubWorker(body: IntegrationsMessage) {
@@ -26,7 +26,7 @@ async function githubWorker(body: IntegrationsMessage) {
       // attribute.url may come from twitter
       await memberAttributesService.createPredefined(
         MemberAttributeSettingsService.pickAttributes(
-          [MemberAttributes.URL.name],
+          [MemberAttributeName.URL],
           TwitterMemberAttributes,
         ),
       )

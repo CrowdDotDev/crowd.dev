@@ -13,7 +13,7 @@ import { singleOrDefault } from '../../../utils/arrays'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DevtoMemberAttributes } from '../../../database/attributes/member/devto'
 import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
-import { MemberAttributes } from '../../../database/attributes/member/enums'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import { GithubMemberAttributes } from '../../../database/attributes/member/github'
 
 /**
@@ -44,14 +44,14 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
       await memberAttributesService.createPredefined(
         MemberAttributeSettingsService.pickAttributes(
-          [MemberAttributes.URL.name],
+          [MemberAttributeName.URL],
           TwitterMemberAttributes,
         ),
       )
 
       await memberAttributesService.createPredefined(
         MemberAttributeSettingsService.pickAttributes(
-          [MemberAttributes.URL.name, MemberAttributes.NAME.name],
+          [MemberAttributeName.URL, MemberAttributeName.NAME],
           GithubMemberAttributes,
         ),
       )
