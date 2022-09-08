@@ -1,25 +1,25 @@
 import { Attribute } from '../attribute'
 import { AttributeType } from '../types'
-import { MemberAttributes } from './enums'
+import { MemberAttributes, MemberAttributeName } from './enums'
 
 export const TwitterMemberAttributes: Attribute[] = [
   {
-    name: MemberAttributes.ID.name,
-    label: MemberAttributes.ID.label,
+    name: MemberAttributes[MemberAttributeName.ID].name,
+    label: MemberAttributes[MemberAttributeName.ID].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.IMAGE_URL.name,
-    label: MemberAttributes.IMAGE_URL.label,
+    name: MemberAttributes[MemberAttributeName.IMAGE_URL].name,
+    label: MemberAttributes[MemberAttributeName.IMAGE_URL].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.URL.name,
-    label: MemberAttributes.URL.label,
+    name: MemberAttributes[MemberAttributeName.URL].name,
+    label: MemberAttributes[MemberAttributeName.URL].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,

@@ -1,25 +1,25 @@
 import { Attribute } from '../attribute'
 import { AttributeType } from '../types'
-import { MemberAttributes } from './enums'
+import { MemberAttributes, MemberAttributeName } from './enums'
 
 export const DevtoMemberAttributes: Attribute[] = [
   {
-    name: MemberAttributes.ID.name,
-    label: MemberAttributes.ID.label,
+    name: MemberAttributes[MemberAttributeName.ID].name,
+    label: MemberAttributes[MemberAttributeName.ID].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.URL.name,
-    label: MemberAttributes.URL.label,
+    name: MemberAttributes[MemberAttributeName.URL].name,
+    label: MemberAttributes[MemberAttributeName.URL].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.NAME.name,
-    label: MemberAttributes.NAME.label,
+    name: MemberAttributes[MemberAttributeName.NAME].name,
+    label: MemberAttributes[MemberAttributeName.NAME].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,

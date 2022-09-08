@@ -1,25 +1,25 @@
 import { Attribute } from '../attribute'
 import { AttributeType } from '../types'
-import { MemberAttributes } from './enums'
+import { MemberAttributes, MemberAttributeName } from './enums'
 
 export const GithubMemberAttributes: Attribute[] = [
   {
-    name: MemberAttributes.NAME.name,
-    label: MemberAttributes.NAME.label,
+    name: MemberAttributes[MemberAttributeName.NAME].name,
+    label: MemberAttributes[MemberAttributeName.NAME].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.IS_HIREABLE.name,
-    label: MemberAttributes.IS_HIREABLE.label,
+    name: MemberAttributes[MemberAttributeName.IS_HIREABLE].name,
+    label: MemberAttributes[MemberAttributeName.IS_HIREABLE].label,
     type: AttributeType.BOOLEAN,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes.URL.name,
-    label: MemberAttributes.URL.label,
+    name: MemberAttributes[MemberAttributeName.URL].name,
+    label: MemberAttributes[MemberAttributeName.URL].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,

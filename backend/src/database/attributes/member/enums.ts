@@ -1,26 +1,35 @@
+export enum MemberAttributeName {
+  ORGANISATION = 'organisation',
+  ID = 'id',
+  IS_HIREABLE = 'isHireable',
+  URL = 'url',
+  NAME = 'name',
+  IMAGE_URL = 'imageUrl',
+}
+
 export const MemberAttributes = {
-  ORGANISATION: {
-    name: 'organisation',
+  [MemberAttributeName.ORGANISATION]: {
+    name: MemberAttributeName.ORGANISATION,
     label: 'Organisation',
   },
-  ID: {
-    name: 'id',
+  [MemberAttributeName.ID]: {
+    name: MemberAttributeName.ID,
     label: 'Id',
   },
-  IS_HIREABLE: {
-    name: 'isHireable',
+  [MemberAttributeName.IS_HIREABLE]: {
+    name: MemberAttributeName.IS_HIREABLE,
     label: 'is Hireable',
   },
-  URL: {
-    name: 'url',
+  [MemberAttributeName.URL]: {
+    name: MemberAttributeName.URL,
     label: 'Url',
   },
-  NAME: {
-    name: 'name',
+  [MemberAttributeName.NAME]: {
+    name: MemberAttributeName.NAME,
     label: 'Name',
   },
-  IMAGE_URL: {
-    name: 'imageUrl',
+  [MemberAttributeName.IMAGE_URL]: {
+    name: MemberAttributeName.IMAGE_URL,
     label: 'Image url',
   },
 }
