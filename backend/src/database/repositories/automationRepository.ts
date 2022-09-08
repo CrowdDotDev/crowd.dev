@@ -1,4 +1,4 @@
-import { QueryTypes } from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import Error404 from '../../errors/Error404'
@@ -6,6 +6,8 @@ import { AutomationCriteria, AutomationData } from '../../types/automationTypes'
 import { DbAutomationInsertData, DbAutomationUpdateData } from './types/automationTypes'
 import { PageData } from '../../types/common'
 import { RepositoryBase } from './repositoryBase'
+
+const { Op } = Sequelize
 
 export default class AutomationRepository extends RepositoryBase<
   AutomationData,
@@ -81,28 +83,31 @@ export default class AutomationRepository extends RepositoryBase<
     return this.findById(record.id)
   }
 
-  override async destroy(id: string): Promise<void> {
+  override async destroyAll(ids: string[]): Promise<void> {
     const transaction = this.transaction
 
     const currentTenant = this.currentTenant
 
-    const record = await this.database.automation.findOne({
+    const records = await this.database.automation.findAll({
       where: {
-        id,
+        id: {
+          [Op.in]: ids,
+        },
         tenantId: currentTenant.id,
       },
       transaction,
     })
 
-    if (!record) {
+    if (ids.some((id) => records.find((r) => r.id === id) === undefined)) {
       throw new Error404()
     }
 
-    await record.destroy({
-      transaction,
-    })
-
-    await this.createAuditLog('automation', AuditLogRepository.DELETE, record, record)
+    await Promise.all(
+      records.flatMap((r) => [
+        r.destroy({ transaction }),
+        this.createAuditLog('automation', AuditLogRepository.DELETE, r, r),
+      ]),
+    )
   }
 
   override async findById(id: string): Promise<AutomationData> {
@@ -179,7 +184,7 @@ export default class AutomationRepository extends RepositoryBase<
       from automations a
               left join latest_executions le on a.id = le."automationId"
       where ${conditionsString}
-      limit ${criteria.limit} offset ${criteria.offset}
+      ${this.getPaginationString(criteria)}
     `
     // fetch all automations for a tenant
     // and include the latest execution data if available

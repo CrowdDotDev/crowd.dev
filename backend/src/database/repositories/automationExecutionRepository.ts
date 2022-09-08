@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { DbAutomationExecutionInsertData } from './types/automationTypes'
@@ -97,5 +99,21 @@ export default class AutomationExecutionRepository extends RepositoryBase<
       offset: criteria.offset,
       limit: criteria.limit,
     }
+  }
+
+  override async update(id: string, data: unknown): Promise<AutomationExecution> {
+    throw new Error('Method not implemented.')
+  }
+
+  override async destroy(id: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  override async destroyAll(ids: string[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  override async findById(id: string): Promise<AutomationExecution> {
+    throw new Error('Method not implemented.')
   }
 }

@@ -70,23 +70,6 @@ export default class AutomationService extends ServiceBase<
   }
 
   /**
-   * Deletes an existing automation
-   * @param id automation id to be deleted
-   */
-  override async destroy(id: string): Promise<void> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
-
-    try {
-      const result = await new AutomationRepository(this.options).destroy(id)
-      await SequelizeRepository.commitTransaction(transaction)
-      return result
-    } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
-      throw error
-    }
-  }
-
-  /**
    * Method used to fetch all tenants automation with filters available in the criteria parameter
    * @param criteria {AutomationCriteria} filters to be used when returning automations
    * @returns {PageData<AutomationData>>}
@@ -102,5 +85,22 @@ export default class AutomationService extends ServiceBase<
    */
   override async findById(id: string): Promise<AutomationData> {
     return new AutomationRepository(this.options).findById(id)
+  }
+
+  /**
+   * Deletes existing automations by id
+   * @param ids automation unique IDs to be deleted
+   */
+  override async destroyAll(ids: string[]): Promise<void> {
+    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+
+    try {
+      const result = await new AutomationRepository(this.options).destroyAll(ids)
+      await SequelizeRepository.commitTransaction(transaction)
+      return result
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
   }
 }
