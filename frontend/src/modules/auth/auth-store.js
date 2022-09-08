@@ -7,7 +7,6 @@ import ProgressBar from '@/shared/progress-bar/progress-bar'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
-import { SettingsService } from '@/modules/settings/settings-service'
 import _get from 'lodash/get'
 import { TenantService } from '../tenant/tenant-service'
 
@@ -559,7 +558,6 @@ export default {
 
       AuthCurrentTenant.set(tenant)
       await dispatch('doRefreshCurrentUser')
-      SettingsService.applyThemeFromTenant()
       router.push('/')
     },
 

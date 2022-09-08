@@ -1,5 +1,5 @@
 <template>
-  <Suspense>
+  <div>
     <div class="webhook-header">
       <div class="font-medium">
         {{
@@ -41,7 +41,7 @@
         class="app-page-spinner"
       ></div>
     </div>
-  </Suspense>
+  </div>
 </template>
 
 <script>
@@ -57,7 +57,7 @@ export default {
       default: () => {}
     }
   },
-  async setup(props) {
+  setup(props) {
     const limit = ref(20)
     const offset = ref(0)
     const loading = ref(false)
@@ -84,8 +84,6 @@ export default {
       }
     }
 
-    await fetchExecutions()
-
     return {
       loading,
       noMore,
@@ -93,6 +91,9 @@ export default {
       executions,
       fetchExecutions
     }
+  },
+  async created() {
+    await this.fetchExecutions()
   },
   methods: {
     translate(key) {
