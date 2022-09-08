@@ -1,4 +1,3 @@
-import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
