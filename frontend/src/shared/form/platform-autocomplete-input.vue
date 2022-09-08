@@ -4,7 +4,6 @@
       v-model="computedModel"
       :options="platforms"
       :placeholder="placeholder"
-      @input="handleInput"
     />
   </div>
 </template>
@@ -19,7 +18,7 @@ export default {
     AppAutocompleteOneInput
   },
   props: {
-    value: {
+    modelValue: {
       type: String,
       default: null
     },
@@ -29,11 +28,6 @@ export default {
     }
   },
   emits: ['update:modelValue'],
-  data() {
-    return {
-      model: null
-    }
-  },
   computed: {
     platforms() {
       return integrationsJson
@@ -49,31 +43,16 @@ export default {
     computedModel: {
       set(value) {
         if (typeof value === 'object' && value) {
-          this.model = value.id
+          this.$emit('update:modelValue', value.id)
         } else {
-          this.model = value
+          this.$emit('update:modelValue', this.model)
         }
       },
       get() {
         return this.platforms.find(
-          (i) => i.id === this.model
+          (i) => i.id === this.modelValue
         )
       }
-    }
-  },
-  watch: {
-    value: {
-      handler(newValue, oldValue) {
-        if (newValue !== oldValue) {
-          this.model = newValue
-        }
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    handleInput() {
-      this.$emit('update:modelValue', this.model)
     }
   }
 }
