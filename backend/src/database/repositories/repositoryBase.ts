@@ -37,45 +37,27 @@ export abstract class RepositoryBase<
     return this.options.database
   }
 
-  create(data: TCreate): Promise<TData> {
-    throw new Error('create is not implemented!')
+  abstract create(data: TCreate): Promise<TData>
+
+  abstract update(id: TId, data: TUpdate): Promise<TData>
+
+  async destroy(id: TId): Promise<void> {
+    return this.destroyAll([id])
   }
 
-  update(id: TId, data: TUpdate): Promise<TData> {
-    throw new Error('update is not implemented')
-  }
+  abstract destroyAll(ids: TId[]): Promise<void>
 
-  destroy(id: TId): Promise<void> {
-    throw new Error('destroy is not implemented')
-  }
+  abstract findById(id: TId): Promise<TData>
 
-  findById(id: TId): Promise<TData> {
-    throw new Error('findById is not implemented')
-  }
-
-  findAndCountAll(criteria: TCriteria): Promise<PageData<TData>> {
-    throw new Error('findAndCountAll is not implemented!')
-  }
+  abstract findAndCountAll(criteria: TCriteria): Promise<PageData<TData>>
 
   async findAll(criteria: TCriteria): Promise<TData[]> {
     const copy = { ...criteria }
 
     // let's initially load just the first row in the db to see how many elements there are in total
-    copy.offset = 0
-    copy.limit = 1
-    let page = await this.findAndCountAll(criteria)
-
-    // check the count and load that many rows with the same criteria and offset=0
-    let count = page.count
-    copy.limit = count
-    page = await this.findAndCountAll(criteria)
-
-    // just in case count has changed between the first and the second findAndCountAll execution
-    while (page.count !== count) {
-      count = page.count
-      copy.limit = count
-      page = await this.findAndCountAll(criteria)
-    }
+    copy.offset = undefined
+    copy.limit = undefined
+    const page = await this.findAndCountAll(criteria)
 
     return page.rows
   }
@@ -115,5 +97,21 @@ export abstract class RepositoryBase<
     if (!record) return record
 
     return record.get({ plain: true })
+  }
+
+  protected isPaginationValid(criteria: SearchCriteria): boolean {
+    if (criteria.limit && criteria.offset) {
+      return criteria.limit > 0 && criteria.offset >= 0
+    }
+
+    return false
+  }
+
+  protected getPaginationString(criteria: SearchCriteria): string {
+    if (this.isPaginationValid(criteria)) {
+      return `limit ${criteria.limit} offset ${criteria.offset}`
+    }
+
+    return ''
   }
 }

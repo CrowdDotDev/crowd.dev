@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable class-methods-use-this */
 import { ServiceBase } from './serviceBase'
 import {
   AutomationExecution,
@@ -57,5 +59,17 @@ export default class AutomationExecutionService extends ServiceBase<
     criteria: AutomationExecutionCriteria,
   ): Promise<PageData<AutomationExecution>> {
     return new AutomationExecutionRepository(this.options).findAndCountAll(criteria)
+  }
+
+  override async update(id: string, data: unknown): Promise<AutomationExecution> {
+    throw new Error('Method not implemented.')
+  }
+
+  override async destroyAll(ids: string[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  override async findById(id: string): Promise<AutomationExecution> {
+    throw new Error('Method not implemented.')
   }
 }
