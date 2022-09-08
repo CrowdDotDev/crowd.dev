@@ -114,6 +114,30 @@ export class AutomationService {
     return response.data
   }
 
+  static async listAutomationExecutions(
+    automationId,
+    orderBy,
+    limit,
+    offset
+  ) {
+    const params = {
+      orderBy,
+      limit,
+      offset
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/automation/${automationId}/`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
   static async listAutocomplete(query, limit) {
     const params = {
       query,

@@ -21,7 +21,11 @@
         <el-table-column label="Webhook">
           <template #default="scope">
             <div class="font-medium text-black">
-              {{ translate(scope.row.trigger) }}
+              {{
+                translate(
+                  `entities.automation.triggers.${scope.row.trigger}`
+                )
+              }}
             </div>
             <div class="text-gray-600">
               {{ scope.row.settings.url }}

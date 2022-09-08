@@ -33,33 +33,44 @@
       >
     </template>
   </el-dropdown>
-  <el-dialog
-    v-if="editing"
-    v-model="editing"
-    title="Edit Member"
-    :append-to-body="true"
-    :destroy-on-close="true"
-    custom-class="el-dialog--lg"
-    @close="editing = false"
-  >
-    <app-automation-form
-      v-model="model"
-      @cancel="editing = false"
+  <app-teleport to="#teleport-modal">
+    <el-dialog
+      v-if="editModal"
+      v-model="editModal"
+      title="Edit Member"
+      :append-to-body="true"
+      :destroy-on-close="true"
+      custom-class="el-dialog--lg"
+      @close="editModal = false"
     >
-    </app-automation-form>
-  </el-dialog>
+      <app-webhook-form
+        v-model="model"
+        @cancel="editModal = false"
+      >
+      </app-webhook-form>
+    </el-dialog>
+    <el-drawer
+      v-model="executionsDrawer"
+      title="Webhook executions"
+      custom-class="webhook-executions-drawer"
+    >
+      <app-webhook-executions :webhook="automation" />
+    </el-drawer>
+  </app-teleport>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { AutomationPermissions } from '@/modules/automation/automation-permissions'
-import AutomationForm from './automation-form'
+import AppWebhookForm from './webhooks/webhook-form'
+import AppWebhookExecutions from './webhooks/webhook-executions'
 import { i18n } from '@/i18n'
 
 export default {
   name: 'AppAutomationDropdown',
   components: {
-    'app-automation-form': AutomationForm
+    'app-webhook-form': AppWebhookForm,
+    'app-webhook-executions': AppWebhookExecutions
   },
   props: {
     automation: {
@@ -70,8 +81,8 @@ export default {
   data() {
     return {
       model: { ...this.automation },
-      editing: false,
-      executions: false
+      editModal: false,
+      executionsDrawer: false
     }
   },
   computed: {
@@ -115,11 +126,12 @@ export default {
           command.automation.id
         )
       } else if (command.action === 'automationEdit') {
-        this.editing = true
+        this.editModal = true
       } else if (
         command.action === 'automationExecutions'
       ) {
-        this.executions = false
+        document.querySelector('body').click()
+        this.executionsDrawer = true
       }
     }
   }

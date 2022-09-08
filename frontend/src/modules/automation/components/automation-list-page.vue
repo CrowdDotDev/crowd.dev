@@ -53,7 +53,7 @@
       custom-class="el-dialog--lg"
       @close="newAutomationModal = false"
     >
-      <app-automation-form
+      <app-webhook-form
         v-model="newAutomation"
         @cancel="newAutomationModal = false"
       />
@@ -63,14 +63,14 @@
 
 <script>
 import AppAutomationListTable from './automation-list-table'
-import AppAutomationForm from './automation-form'
+import AppWebhookForm from './webhooks/webhook-form'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'AppAutomationListPage',
   components: {
     AppAutomationListTable,
-    AppAutomationForm
+    AppWebhookForm
   },
   data() {
     return {

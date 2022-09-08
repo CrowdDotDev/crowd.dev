@@ -200,7 +200,7 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'AppAutomationForm',
+  name: 'AppWebhookForm',
   props: {
     modelValue: {
       type: Object,
