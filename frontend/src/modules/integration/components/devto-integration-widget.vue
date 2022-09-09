@@ -1,11 +1,10 @@
 <template>
   <el-dialog
+    v-model="isVisible"
     class="devto-integration-modal"
-    :visible.sync="isVisible"
     @close="cancel"
-    append-to-body
   >
-    <template v-slot:title>
+    <template #header>
       <div class="flex flex-row">
         <img
           :src="logoUrl"
@@ -44,8 +43,8 @@
               spellcheck="false"
               placeholder="Enter organization slug"
             >
-              <template v-slot:prepend>dev.to/</template>
-              <template v-slot:suffix v-if="org.validating">
+              <template #prepend>dev.to/</template>
+              <template v-if="org.validating" #suffix>
                 <i class="el-input__icon el-icon-loading" />
               </template>
             </el-input>
@@ -82,11 +81,8 @@
               spellcheck="false"
               placeholder="Enter user slug"
             >
-              <template v-slot:prepend>dev.to/</template>
-              <template
-                v-slot:suffix
-                v-if="user.validating"
-              >
+              <template #prepend>dev.to/</template>
+              <template v-if="user.validating" #suffix>
                 <i class="el-input__icon el-icon-loading" />
               </template>
             </el-input>
@@ -104,12 +100,12 @@
         >
       </div>
     </el-form>
-    <template v-slot:footer>
+    <template #footer>
       <div>
         <el-button
           class="btn btn--primary mr-2"
-          @click="save"
           :disabled="connectDisabled"
+          @click="save"
         >
           <app-i18n code="common.connect"></app-i18n>
         </el-button>
@@ -129,7 +125,7 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 import { IntegrationService } from '@/modules/integration/integration-service'
 
 export default {
-  name: 'devto-integration-widget',
+  name: 'DevtoIntegrationWidget',
 
   props: {
     integration: {
@@ -195,9 +191,8 @@ export default {
         if (!user.valid) return false
       }
 
-      const relevantOrganizations = this.organizations.filter(
-        (o) => !!o.username
-      )
+      const relevantOrganizations =
+        this.organizations.filter((o) => !!o.username)
       for (const org of relevantOrganizations) {
         if (!org.valid) return false
       }
@@ -332,9 +327,10 @@ export default {
         ) {
           user.valid = false
         } else {
-          const result = await IntegrationService.devtoValidateUser(
-            user.username
-          )
+          const result =
+            await IntegrationService.devtoValidateUser(
+              user.username
+            )
 
           user.valid = !!result
         }
@@ -369,9 +365,10 @@ export default {
         ) {
           organization.valid = false
         } else {
-          const result = await IntegrationService.devtoValidateOrganization(
-            organization.username
-          )
+          const result =
+            await IntegrationService.devtoValidateOrganization(
+              organization.username
+            )
           organization.valid = !!result
         }
       } catch (e) {
@@ -389,9 +386,8 @@ export default {
     },
 
     async save() {
-      const relevantOrganizations = this.organizations.filter(
-        (o) => !!o.username
-      )
+      const relevantOrganizations =
+        this.organizations.filter((o) => !!o.username)
       const relevantUsers = this.users.filter(
         (u) => !!u.username
       )

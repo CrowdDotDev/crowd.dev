@@ -1,26 +1,24 @@
 <template>
   <div>
     <div class="flex items-center justify-end mb-4">
-      <portal-target
-        name="user-filter-toggle"
-      ></portal-target>
+      <div id="teleport-user-filter-toggle"></div>
 
       <el-button
-        icon="ri-lg ri-mail-line"
         class="btn btn--primary ml-2"
         @click.prevent="inviting = true"
       >
+        <i class="ri-lg ri-mail-line mr-1" />
         Invite
       </el-button>
     </div>
 
     <el-dialog
-      :visible.sync="inviting"
+      v-model="inviting"
       title="Invite User"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="inviting = false"
       custom-class="el-dialog--lg"
+      @close="inviting = false"
     >
       <app-user-new-page @cancel="inviting = false">
       </app-user-new-page>
@@ -38,7 +36,7 @@ import UserNewPage from '@/premium/user/components/user-new-page.vue'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {
-  name: 'app-user-list-page',
+  name: 'AppUserListPage',
 
   components: {
     'app-user-list-filter': UserListFilter,

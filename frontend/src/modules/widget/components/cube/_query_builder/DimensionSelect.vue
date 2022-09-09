@@ -14,8 +14,8 @@
         :value="
           translatedOptions(dimensions).map((i) => i.label)
         "
-        @change="(d) => setDimensions([d])"
         :disabled="measures.length === 0"
+        @change="(d) => setDimensions([d])"
       >
         <el-option
           v-for="item in translatedOptions(

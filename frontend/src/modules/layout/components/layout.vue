@@ -5,18 +5,18 @@
       <el-container :style="elMainStyle">
         <el-main class="relative">
           <banner
-            variant="alert"
             v-if="currentTenant.hasSampleData"
+            variant="alert"
           >
             <div
-              class="flex items-center justify-center flex-grow"
+              class="flex items-center justify-center grow"
             >
               This workspace is using sample data, before
               adding real data please
               <el-button
                 class="btn btn--xs btn--primary ml-4"
-                @click="handleDeleteSampleDataClick"
                 :loading="loading"
+                @click="handleDeleteSampleDataClick"
               >
                 Delete Sample Data
               </el-button>
@@ -34,25 +34,19 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
-import LogRocket from 'logrocket'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-layout',
+  name: 'AppLayout',
 
   components: {
     Banner
   },
 
-  async mounted() {
-    identify(this.currentUser)
-    // This is an example script - don't forget to change it!
-
-    if (process.env.NODE_ENV === 'production') {
-      LogRocket.identify(this.currentUser.id, {
-        name: this.currentUser.fullName,
-        email: this.currentUser.email
-      })
+  data() {
+    return {
+      fetchIntegrationTimer: null,
+      loading: false
     }
   },
 
@@ -84,13 +78,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      fetchIntegrationTimer: null,
-      loading: false
-    }
-  },
-
   created() {
     if (this.isMobile) {
       this.collapseMenu()
@@ -101,7 +88,11 @@ export default {
     }, 30000)
   },
 
-  destroyed() {
+  async mounted() {
+    identify(this.currentUser)
+  },
+
+  unmounted() {
     clearInterval(this.fetchIntegrationTimer)
   },
 

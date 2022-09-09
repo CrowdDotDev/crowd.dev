@@ -9,10 +9,6 @@ export default {
     'app-layout': Layout
   },
 
-  filters: [],
-
-  mixins: [],
-
   store,
 
   routes

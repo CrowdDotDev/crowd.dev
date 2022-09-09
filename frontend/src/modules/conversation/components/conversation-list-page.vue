@@ -23,9 +23,7 @@
         <app-conversation-platform-tabs class="ml-4" />
       </div>
       <div class="flex items-center justify-end">
-        <portal-target
-          name="conversation-filter-toggle"
-        ></portal-target>
+        <div id="teleport-conversation-filter-toggle"></div>
         <app-conversation-settings
           :visible="hasConversationsSettingsVisible"
           @open="doOpenSettingsModal"
@@ -49,13 +47,15 @@ import ConversationSettings from '@/modules/conversation/components/conversation
 import config from '@/config'
 
 export default {
-  name: 'app-conversation-list-page',
+  name: 'AppConversationListPage',
 
   components: {
     'app-conversation-list-table': ConversationListTable,
     'app-conversation-list-filter': ConversationListFilter,
-    'app-conversation-published-tabs': ConversationPublishedTabs,
-    'app-conversation-platform-tabs': ConversationPlatformTabs,
+    'app-conversation-published-tabs':
+      ConversationPublishedTabs,
+    'app-conversation-platform-tabs':
+      ConversationPlatformTabs,
     'app-conversation-settings': ConversationSettings
   },
 
@@ -72,6 +72,10 @@ export default {
     }
   },
 
+  async mounted() {
+    window.analytics.page('Conversations')
+  },
+
   methods: {
     ...mapActions({
       doOpenSettingsModal:
@@ -79,10 +83,6 @@ export default {
       doCloseSettingsModal:
         'conversation/doCloseSettingsModal'
     })
-  },
-
-  async mounted() {
-    window.analytics.page('Conversations')
   }
 }
 </script>

@@ -8,7 +8,6 @@
         <el-button
           :disabled="exportButtonDisabled"
           @click="doExport"
-          icon="el-icon-fa-file-excel-o"
         >
           <app-i18n code="common.export"></app-i18n>
         </el-button>
@@ -22,7 +21,7 @@ import { i18n } from '@/i18n'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-audit-log-toolbar',
+  name: 'AppAuditLogToolbar',
 
   computed: {
     ...mapGetters({

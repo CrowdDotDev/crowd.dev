@@ -20,8 +20,23 @@
 }
 
 .el-form.form {
+  .el-form-item {
+    @apply block;
+    &__content {
+      @apply block mb-4 w-full;
+    }
+
+    .el-input {
+      .el-input__wrapper {
+        .el-input__inner {
+          @apply border-none;
+        }
+      }
+    }
+  }
+
   .el-form-item__label {
-    @apply font-semibold text-black;
+    @apply font-semibold text-black h-6 leading-6;
     float: none;
   }
   .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before {
@@ -32,6 +47,10 @@
     content: '*';
     margin-left: 4px;
   }
+}
+
+.el-input, .el-date-editor.el-input, .el-date-editor.el-input__wrapper {
+  @apply h-10 leading-10 w-full;
 }
 
 .el-date-editor--daterange.el-input,
@@ -77,7 +96,7 @@
 }
 
 .el-radio.is-bordered {
-  @apply m-0 px-4;
+  @apply m-0 px-4 mr-2;
 
   .el-radio__input {
     @apply hidden;

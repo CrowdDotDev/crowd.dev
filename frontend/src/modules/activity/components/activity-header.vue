@@ -8,7 +8,7 @@
       target="_blank"
     >
       <app-avatar
-        :entity="this.activity.communityMember"
+        :entity="activity.communityMember"
         :size="size"
         class="mr-2"
       />
@@ -26,7 +26,7 @@
         {{ computedUsername }}
       </router-link>
       <div class="text-sm text-gray-500 flex items-center">
-        <div class="flex items-center" v-if="showMessage">
+        <div v-if="showMessage" class="flex items-center">
           <template
             v-if="
               ['discord', 'slack'].includes(
@@ -118,12 +118,12 @@
             </a>
             <div class="flex items-center">
               <span
-                class="ml-1"
                 v-if="
                   !['fork', 'star', 'unstar'].includes(
                     activity.type
                   )
                 "
+                class="ml-1"
                 >in</span
               >
               <a
@@ -186,7 +186,7 @@ import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'app-activity-header',
+  name: 'AppActivityHeader',
   components: {
     AppI18n
   },

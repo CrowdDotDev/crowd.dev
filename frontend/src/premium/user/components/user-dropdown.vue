@@ -4,40 +4,36 @@
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <template #dropdown>
         <el-dropdown-item
-          icon="ri-link"
-          command="userInviteTokenClipboard"
           v-if="user.status === 'invited'"
-          >Copy Invite Link</el-dropdown-item
+          command="userInviteTokenClipboard"
+          ><i class="ri-link mr-1" />Copy Invite
+          Link</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="userEdit"
-          >{{
+        <el-dropdown-item command="userEdit">
+          <i class="ri-pencil-line mr-1" />{{
             user.status === 'invited'
               ? 'Edit Invite'
               : 'Edit User'
           }}</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="userDelete"
-          >{{
+        <el-dropdown-item command="userDelete"
+          ><i class="ri-delete-bin-line mr-1" />{{
             user.status === 'invited'
               ? 'Delete Invite'
               : 'Delete User'
           }}</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
     <el-dialog
-      :visible.sync="editing"
+      v-model="editing"
       title="Edit User"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="editing = false"
       custom-class="el-dialog--lg"
+      @close="editing = false"
     >
       <app-user-form-page
         :id="user.id"
@@ -56,24 +52,25 @@ import config from '@/config'
 import Message from '@/shared/message/message'
 
 export default {
-  name: 'app-user-dropdown',
+  name: 'AppUserDropdown',
+  components: {
+    'app-user-form-page': UserEditPage
+  },
   props: {
     user: {
       type: Object,
       default: () => {}
     }
   },
-  components: {
-    'app-user-form-page': UserEditPage
+  emits: ['user-destroyed'],
+  data() {
+    return {
+      editing: false
+    }
   },
   computed: {
     computedInviteLink() {
       return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.user.invitationToken}`
-    }
-  },
-  data() {
-    return {
-      editing: false
     }
   },
   methods: {

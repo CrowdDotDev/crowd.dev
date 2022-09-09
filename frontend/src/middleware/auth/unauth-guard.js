@@ -6,19 +6,12 @@
  * It checks if currentUser is undefined (if not, redirects to /)
  *
  * @param to
- * @param next
  * @param store
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({
-  to,
-  next,
-  store,
-  router
-}) {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.unauth) {
-    next()
     return
   }
 
@@ -26,7 +19,5 @@ export default async function ({
 
   if (store.getters['auth/signedIn']) {
     return router.push('/')
-  } else {
-    next()
   }
 }

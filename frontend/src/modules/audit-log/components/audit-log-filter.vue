@@ -8,13 +8,13 @@
       @remove="doRemove($event)"
     ></app-filter-preview>
     <el-form
+      v-if="expanded"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthFilter"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doFilter"
-      ref="form"
-      v-if="expanded"
+      @submit.prevent="doFilter"
     >
       <el-row type="flex">
         <el-col :lg="12" :md="16" :sm="24">
@@ -23,8 +23,8 @@
             :prop="fields.timestampRange.name"
           >
             <el-date-picker
-              type="datetimerange"
               v-model="model[fields.timestampRange.name]"
+              type="datetimerange"
             ></el-date-picker>
           </el-form-item>
         </el-col>
@@ -34,6 +34,7 @@
             :prop="fields.entityNames.name"
           >
             <el-select
+              v-model="model[fields.entityNames.name]"
               :no-data-text="
                 i18n('auditLog.entityNamesHint')
               "
@@ -42,7 +43,6 @@
               filterable
               multiple
               placeholder
-              v-model="model[fields.entityNames.name]"
             ></el-select>
           </el-form-item>
         </el-col>
@@ -79,18 +79,18 @@
       <div class="filter-buttons">
         <el-button
           :disabled="loading"
-          @click="doFilter"
-          icon="ri-search-line"
           class="btn btn--primary"
+          @click="doFilter"
         >
+          <i class="ri-search-line mr-1" />
           <app-i18n code="common.filters.apply"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="loading"
           @click="doResetFilter"
-          icon="ri-lg ri-arrow-go-back-line"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
       </div>
@@ -115,7 +115,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-audit-log-filter',
+  name: 'AppAuditLogFilter',
 
   data() {
     return {

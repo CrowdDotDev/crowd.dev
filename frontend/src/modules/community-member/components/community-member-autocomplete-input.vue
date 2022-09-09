@@ -1,36 +1,35 @@
 <template>
   <div style="display: flex">
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
       v-if="mode !== 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
-      :inputClass="inputClass"
-      :inMemoryFilter="false"
+      :input-class="inputClass"
+      :in-memory-filter="false"
     ></app-autocomplete-one-input>
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
       v-if="mode === 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
-      :inputClass="inputClass"
-      :inMemoryFilter="false"
+      :input-class="inputClass"
+      :in-memory-filter="false"
     ></app-autocomplete-many-input>
     <el-button
-      @click="doOpenModal()"
-      icon="el-icon-plus"
+      v-if="hasPermissionToCreate && showCreate"
       style="margin-left: 16px"
       class="btn btn--secondary btn--secondary--orange"
-      v-if="hasPermissionToCreate && showCreate"
+      @click="doOpenModal()"
     ></el-button>
-    <portal to="modal">
+    <app-teleport to="#teleport-modal">
       <app-community-member-form-modal
+        v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
-        v-if="dialogVisible"
       ></app-community-member-form-modal>
-    </portal>
+    </app-teleport>
   </div>
 </template>
 
@@ -40,20 +39,44 @@ import { CommunityMemberPermissions } from '@/modules/community-member/community
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-community-member-autocomplete-input',
-  props: [
-    'value',
-    'mode',
-    'fetchFn',
-    'mapperFn',
-    'showCreate',
-    'placeholder',
-    'inputClass'
-  ],
+  name: 'AppCommunityMemberAutocompleteInput',
 
   components: {
-    'app-community-member-form-modal': CommunityMemberFormModal
+    'app-community-member-form-modal':
+      CommunityMemberFormModal
   },
+  props: {
+    modelValue: {
+      type: Object,
+      default: () => {}
+    },
+    mode: {
+      type: String,
+      default: 'single'
+    },
+    fetchFn: {
+      type: Function,
+      default: () => {}
+    },
+    mapperFn: {
+      type: Function,
+      default: () => {}
+    },
+    showCreate: {
+      type: Boolean,
+      default: false
+    },
+    placeholder: {
+      type: String,
+      default: null
+    },
+    inputClass: {
+      type: String,
+      default: null
+    }
+  },
+
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -69,11 +92,11 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {
-        this.$emit('input', value)
+        this.$emit('update:modelValue', value)
       }
     },
 

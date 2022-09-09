@@ -10,15 +10,15 @@
       <transition-group name="fade" mode="in-out">
         <img
           v-if="collapsed"
+          key="icon"
           src="/images/icon.png"
           alt="crowd.dev icon"
-          key="icon"
         />
         <img
           v-else
+          key="logo"
           src="/images/logo.png"
           alt="crowd.dev logo"
-          key="logo"
         />
       </transition-group>
     </router-link>
@@ -34,131 +34,131 @@
       @select="collapseMenuIfMobile()"
     >
       <el-menu-item
+        id="menu-dashboard"
         :class="classFor('/', true)"
         :route="{ path: '/' }"
         index="/"
-        id="menu-dashboard"
       >
         <i
           class="ri-lg ri-home-4-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n code="dashboard.menu"></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
 
       <el-menu-item
-        :class="classFor('/members')"
-        :route="{ path: '/members' }"
-        index="/members"
         v-if="
           hasPermissionToCommunityMember ||
           communityMemberLocked
         "
-        :disabled="communityMemberLocked"
         id="menu-members"
+        :class="classFor('/members')"
+        :route="{ path: '/members' }"
+        index="/members"
+        :disabled="communityMemberLocked"
       >
         <i
           class="ri-lg ri-user-star-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n
             code="entities.communityMember.menu"
           ></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
 
       <el-menu-item
+        v-if="hasPermissionToActivity || activityLocked"
+        id="menu-activities"
         :class="classFor('/activities')"
         :route="{ path: '/activities' }"
         index="/activities"
-        v-if="hasPermissionToActivity || activityLocked"
         :disabled="activityLocked"
-        id="menu-activities"
       >
         <i
           class="ri-lg ri-radar-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n
             code="entities.activity.menu"
           ></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
 
       <el-menu-item
+        id="menu-conversations"
         :class="classFor('/conversations')"
         :route="{ path: '/conversations' }"
         index="/conversations"
-        id="menu-conversations"
       >
         <i
           class="ri-question-answer-line ri-lg"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">Conversations </span>
+        <template #title>Conversations </template>
       </el-menu-item>
 
       <el-menu-item
+        v-if="hasPermissionToEagleEye || eagleEyeLocked"
+        id="menu-eagle-eye"
         :class="classFor('/eagle-eye')"
         :route="{ path: '/eagle-eye' }"
         index="/eagle-eye"
-        v-if="hasPermissionToEagleEye || eagleEyeLocked"
         :disabled="eagleEyeLocked"
-        id="menu-eagle-eye"
       >
         <i
           class="ri-lg ri-search-eye-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n
             code="entities.eagleEye.menu"
           ></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
       <el-menu-item
+        v-if="hasPermissionToReport || reportLocked"
+        id="menu-reports"
         :class="classFor('/reports')"
         :route="{ path: '/reports' }"
         index="/reports"
-        v-if="hasPermissionToReport || reportLocked"
         :disabled="reportLocked"
-        id="menu-reports"
       >
         <i
           class="ri-lg ri-bar-chart-grouped-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n code="entities.report.menu"></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
       <div
-        class="h-px w-100 my-2 bg-white opacity-10"
         v-if="hasPermissionToSettings || settingsLocked"
+        class="h-px w-100 my-2 bg-white opacity-10"
       ></div>
       <el-menu-item
+        v-if="hasPermissionToSettings || settingsLocked"
+        id="menu-settings"
         :class="classFor('/settings')"
         :route="{ path: '/settings' }"
         index="/settings"
-        v-if="hasPermissionToSettings || settingsLocked"
         :disabled="settingsLocked"
-        id="menu-settings"
       >
         <i
           class="ri-lg ri-settings-2-line"
           :class="collapsed ? '' : 'mr-2'"
         ></i>
-        <span slot="title">
+        <template #title>
           <app-i18n code="settings.menu"></app-i18n>
-        </span>
+        </template>
       </el-menu-item>
     </el-menu>
     <ul class="relative flex flex-col">
-      <li role="menuitem" id="menu-docs">
+      <li id="menu-docs" role="menuitem">
         <el-tooltip
           :disabled="!collapsed"
           effect="dark"
@@ -178,7 +178,7 @@
           </a>
         </el-tooltip>
       </li>
-      <li role="menuitem" id="menu-discord">
+      <li id="menu-discord" role="menuitem">
         <el-tooltip
           :disabled="!collapsed"
           effect="dark"
@@ -235,7 +235,7 @@
             :disabled="true"
           >
             <i class="ri-star-fill"></i>
-            <span class="ml-1" v-if="!collapsed"
+            <span v-if="!collapsed" class="ml-1"
               >Free Beta Plan</span
             >
           </el-button>
@@ -276,7 +276,7 @@ import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppMenuUserDropdown from './menu-user-dropdown'
 
 export default {
-  name: 'app-menu',
+  name: 'AppMenu',
   components: { AppMenuUserDropdown },
   computed: {
     ...mapGetters({
@@ -438,10 +438,15 @@ export default {
 .button-toggle-menu {
   @apply fixed top-0 h-12 w-3 text-white z-10 opacity-50 rounded-r-md p-0;
   top: 200px;
-  background-color: #140505;
 
   &:hover {
     @apply opacity-75;
+  }
+
+  &,
+  &:hover,
+  &:focus {
+    background-color: #140505;
   }
 }
 </style>

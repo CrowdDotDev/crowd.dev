@@ -5,13 +5,13 @@
     </h1>
     <div class="panel">
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthForm"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doSubmit"
         class="form"
-        ref="form"
+        @submit.prevent="doSubmit"
       >
         <el-form-item
           :label="fields.email.label"
@@ -55,19 +55,19 @@
           <div class="form-buttons">
             <el-button
               :disabled="saveLoading"
-              @click="doSubmit"
-              icon="ri-lg ri-save-line"
               class="btn btn--primary mr-2"
+              @click="doSubmit"
             >
+              <i class="ri-lg ri-save-line mr-1" />
               <app-i18n code="common.save"></app-i18n>
             </el-button>
 
             <el-button
               :disabled="saveLoading"
-              @click="doReset"
-              icon="ri-lg ri-arrow-go-back-line"
               class="btn btn--secondary mr-2"
+              @click="doReset"
             >
+              <i class="ri-lg ri-arrow-go-back-line mr-1" />
               <app-i18n code="common.reset"></app-i18n>
             </el-button>
 
@@ -77,9 +77,9 @@
             >
               <el-button
                 :disabled="saveLoading"
-                icon="ri-lg ri-close-line"
                 class="btn btn--secondary"
               >
+                <i class="ri-lg ri-close-line mr-1" />
                 <app-i18n code="common.cancel"></app-i18n>
               </el-button>
             </router-link>
@@ -104,7 +104,7 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-profile-form-page',
+  name: 'AppProfileFormPage',
 
   data() {
     return {

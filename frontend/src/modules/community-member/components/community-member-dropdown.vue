@@ -1,66 +1,67 @@
 <template>
   <div>
     <el-dropdown
+      v-if="!isReadOnly"
       trigger="click"
       @command="handleCommand"
-      v-if="!isReadOnly"
     >
       <span class="el-dropdown-link">
         <i class="text-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <template #dropdown>
         <el-dropdown-item
-          icon="ri-eye-line"
+          v-if="showViewMember"
           :command="{
             action: 'communityMemberView',
             communityMember: member
           }"
-          v-if="showViewMember"
-          >View Member</el-dropdown-item
+          ><i class="ri-eye-line mr-1" />View
+          Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-pencil-line"
           :command="{
             action: 'communityMemberEdit',
             communityMember: member
           }"
-          >Edit Member</el-dropdown-item
+          ><i class="ri-pencil-line mr-1" />Edit
+          Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-group-line"
           :command="{
             action: 'communityMemberMerge',
             communityMember: member
           }"
-          >Merge With Another Member</el-dropdown-item
+          ><i class="ri-group-line mr-1" />Merge With
+          Another Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-user-follow-line"
+          v-if="!member.crowdInfo.team"
           :command="{
             action: 'communityMemberMarkAsTeamMember',
             communityMember: member
           }"
-          v-if="!member.crowdInfo.team"
-          >Mark as Team Member</el-dropdown-item
+          ><i class="ri-user-follow-line mr-1" />Mark as
+          Team Member</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-delete-bin-line"
           :command="{
             action: 'communityMemberDelete',
             communityMember: member
           }"
-          >Delete Member</el-dropdown-item
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Member</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
 
     <el-dialog
-      :visible.sync="editing"
+      v-if="editing"
+      v-model="editing"
       title="Edit Member"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="editing = false"
       custom-class="el-dialog--lg"
+      @close="editing = false"
     >
       <app-community-member-form-page
         :id="member.id"
@@ -91,7 +92,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-community-member-dropdown',
+  name: 'AppCommunityMemberDropdown',
   components: { AppCommunityMemberFormPage },
   props: {
     member: {

@@ -20,7 +20,7 @@
 
 <script>
 export default {
-  name: 'alert',
+  name: 'AppAlert',
   props: {
     title: {
       type: String,

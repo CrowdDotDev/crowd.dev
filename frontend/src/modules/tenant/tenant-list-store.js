@@ -6,16 +6,18 @@ const INITIAL_PAGE_SIZE = 20
 export default {
   namespaced: true,
 
-  state: {
-    rows: [],
-    count: 0,
-    loading: false,
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {},
+  state: () => {
+    return {
+      rows: [],
+      count: 0,
+      loading: false,
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {},
 
-    table: null
+      table: null
+    }
   },
 
   getters: {
@@ -78,7 +80,9 @@ export default {
     },
 
     selectedRows: (state) => {
-      return state.table ? state.table.selection : []
+      return state.table
+        ? state.table.getSelectionRows()
+        : []
     }
   },
 

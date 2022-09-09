@@ -1,5 +1,5 @@
 <template>
-  <app-widget :config="config" v-if="widget">
+  <app-widget v-if="widget" :config="config">
     <div class="widget-newest-members">
       <div v-if="rows.length > 0">
         <div
@@ -15,11 +15,11 @@
           >
           <div class="flex flex-wrap items-center relative">
             <div
-              class="member"
               v-for="member in Object.values(
                 membersByDate[date]
               )"
               :key="member.id"
+              class="member"
             >
               <router-link
                 :to="{
@@ -51,8 +51,8 @@
                   class="flex leading-none text-base pt-1"
                 >
                   <el-tooltip
-                    content="GitHub"
                     v-if="member.crowdInfo.github"
+                    content="GitHub"
                     placement="top"
                   >
                     <a
@@ -69,8 +69,8 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="Twitter"
                     v-if="member.crowdInfo.twitter"
+                    content="Twitter"
                     placement="top"
                   >
                     <a
@@ -86,11 +86,12 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="Discord"
                     v-if="member.crowdInfo.discord"
+                    content="Discord"
                     placement="top"
                   >
                     <a
+                      v-if="member.crowdInfo.discord"
                       :href="
                         member.crowdInfo.discord.html_url
                       "
@@ -105,11 +106,12 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="Slack"
                     v-if="member.crowdInfo.slack"
+                    content="Slack"
                     placement="top"
                   >
                     <a
+                      v-if="member.crowdInfo.slack"
                       :href="
                         member.crowdInfo.slack.html_url
                       "
@@ -124,8 +126,8 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="DEV"
                     v-if="member.crowdInfo.devto"
+                    content="DEV"
                     placement="top"
                   >
                     <a
@@ -141,8 +143,8 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    content="API"
                     v-if="member.crowdInfo.apis"
+                    content="API"
                     placement="top"
                   >
                     <div
@@ -177,9 +179,15 @@ import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'app-widget-newest-members',
+  name: 'AppWidgetNewestMembers',
   components: {
     'app-widget': Widget
+  },
+  data() {
+    return {
+      rows: [],
+      loading: false
+    }
   },
   computed: {
     ...mapGetters({
@@ -213,22 +221,6 @@ export default {
       }, {})
     }
   },
-  data() {
-    return {
-      rows: [],
-      loading: false
-    }
-  },
-  methods: {
-    timeAgo(date) {
-      return computedTimeAgo(date)
-    },
-    findIcon(platform) {
-      return integrationsJsonArray.find(
-        (p) => p.platform === platform
-      ).image
-    }
-  },
   async created() {
     this.loading = true
     const response = await CommunityMemberService.list(
@@ -239,6 +231,16 @@ export default {
     )
     this.rows = response.rows
     this.loading = false
+  },
+  methods: {
+    timeAgo(date) {
+      return computedTimeAgo(date)
+    },
+    findIcon(platform) {
+      return integrationsJsonArray.find(
+        (p) => p.platform === platform
+      ).image
+    }
   }
 }
 </script>

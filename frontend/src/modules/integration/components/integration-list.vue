@@ -1,16 +1,16 @@
 <template>
   <div class="relative">
     <div
-      class="absolute flex items-center justify-center flex-grow flex-col w-full inset-0 z-10 rounded-lg blur-2xl mt-4"
+      v-if="loading"
+      class="absolute flex items-center justify-center grow flex-col w-full inset-0 z-10 rounded-lg blur-2xl mt-4"
       :style="{
         backgroundColor: 'rgba(255,255,255,1)'
       }"
-      v-if="loading"
     >
       <div
-        class="app-page-spinner w-20"
         v-if="loading"
         v-loading="loading"
+        class="app-page-spinner w-20"
       ></div>
       <span>
         Finishing the integration setup, please don't reload
@@ -40,16 +40,16 @@
                 >{{ integrationJson.name }}</span
               >
               <div
-                class="flex items-center mt-1 text-sm"
                 v-if="integrationJson.platform !== 'other'"
+                class="flex items-center mt-1 text-sm"
               >
                 <div
-                  class="font-semibold flex items-center"
                   v-if="
                     integrations.hasOwnProperty(
                       integrationJson.platform
                     )
                   "
+                  class="font-semibold flex items-center"
                   :class="
                     integrations[integrationJson.platform]
                       .status === 'done'
@@ -64,12 +64,12 @@
                     )
                   }}</span>
                   <span
-                    class="block ml-2 font-light italic text-gray-400"
                     v-if="
                       integrationJson.platform ===
                         'twitter' &&
                       integrations.twitter.status !== 'done'
                     "
+                    class="block ml-2 font-light italic text-gray-400"
                   >
                     Fetching the first activities from this
                     integration may take a few minutes
@@ -122,15 +122,15 @@
               Connect
             </a>
             <div
-              class="relative"
               v-else-if="
                 integrationJson.platform === 'twitter'
               "
+              class="relative"
             >
               <el-button
+                v-if="integrations.twitter"
                 class="btn btn--secondary btn--sm"
                 @click="twitter.popover = true"
-                v-if="integrations.twitter"
               >
                 {{
                   hasTwitterHashtags
@@ -139,9 +139,9 @@
                 }}
               </el-button>
               <a
+                v-else
                 class="btn btn--secondary btn--sm"
                 :href="twitterConnectUrl"
-                v-else
               >
                 Connect
               </a>
@@ -149,45 +149,47 @@
                 :visible="twitter.popover"
                 @hide="twitter.popover = false"
               >
-                <el-form class="form">
-                  <span
-                    class="flex items-center font-semibold text-base"
-                    ><i class="ri-twitter-fill mr-1"></i
-                    >Pick the hashtag you want to
-                    follow</span
-                  >
-                  <el-form-item>
-                    <app-autocomplete-one-input
-                      :fetchFn="() => []"
-                      :createFn="createTwitterHashtag"
-                      :value="twitter.hashtags[0]"
-                      @input="handleTwitterHashtagsInput"
-                      :allow-create="true"
-                      class="mt-2"
-                      placeholder="Type to select hashtag"
-                    ></app-autocomplete-one-input>
-
-                    <div
-                      class="app-form-hint leading-tight mt-1"
+                <div>
+                  <el-form class="form">
+                    <span
+                      class="flex items-center font-semibold text-base"
+                      ><i class="ri-twitter-fill mr-1"></i
+                      >Pick the hashtag you want to
+                      follow</span
                     >
-                      Tip: Choose a hashtag that's specific
-                      to your company/community for better
-                      data
-                    </div>
-                  </el-form-item>
-                </el-form>
-                <a
-                  class="btn btn--primary btn--sm mr-2"
-                  :href="twitterConnectUrl"
-                >
-                  Update
-                </a>
-                <button
-                  class="btn btn--secondary"
-                  @click="twitter.popover = false"
-                >
-                  Close
-                </button>
+                    <el-form-item>
+                      <app-autocomplete-one-input
+                        :fetch-fn="() => []"
+                        :create-fn="createTwitterHashtag"
+                        :value="twitter.hashtags[0]"
+                        :allow-create="true"
+                        class="mt-2"
+                        placeholder="Type to select hashtag"
+                        @input="handleTwitterHashtagsInput"
+                      ></app-autocomplete-one-input>
+
+                      <div
+                        class="app-form-hint leading-tight mt-1"
+                      >
+                        Tip: Choose a hashtag that's
+                        specific to your company/community
+                        for better data
+                      </div>
+                    </el-form-item>
+                  </el-form>
+                  <a
+                    class="btn btn--primary btn--sm mr-2"
+                    :href="twitterConnectUrl"
+                  >
+                    Update
+                  </a>
+                  <button
+                    class="btn btn--secondary"
+                    @click="twitter.popover = false"
+                  >
+                    Close
+                  </button>
+                </div>
               </app-popover>
             </div>
             <div
@@ -196,12 +198,12 @@
               "
             >
               <el-button
-                class="btn btn--secondary btn--sm"
-                @click="$refs.devtoWidget[0].toggle()"
                 v-if="
                   integrations.devto === undefined ||
                   integrations.devto.status === 'done'
                 "
+                class="btn btn--secondary btn--sm"
+                @click="$refs.devtoWidget[0].toggle()"
               >
                 {{
                   integrations.devto ? 'Edit' : 'Connect'
@@ -217,12 +219,12 @@
               />
             </div>
             <a
-              class="btn btn--secondary btn--sm"
-              target="_blank"
-              href="https://8vcqnrnp5it.typeform.com/to/EvtXce0q"
               v-else-if="
                 integrationJson.platform === 'other'
               "
+              class="btn btn--secondary btn--sm"
+              target="_blank"
+              href="https://8vcqnrnp5it.typeform.com/to/EvtXce0q"
             >
               Tell us
             </a>
@@ -248,7 +250,8 @@ import config from '@/config'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'app-integrations-list',
+  name: 'AppIntegrationsList',
+  components: { AppPopover, DevtoIntegrationWidget },
 
   props: {
     onboard: {
@@ -257,7 +260,28 @@ export default {
     }
   },
 
-  components: { AppPopover, DevtoIntegrationWidget },
+  data() {
+    return {
+      loading: false,
+      user: '',
+      repositories: [],
+      integrationsJsonArray: this.onboard
+        ? integrationsJsonArray.filter((i) =>
+            [
+              'github',
+              'slack',
+              'discord',
+              'twitter',
+              'devto'
+            ].includes(i.platform)
+          )
+        : integrationsJsonArray,
+      twitter: {
+        popover: false,
+        hashtags: []
+      }
+    }
+  },
 
   computed: {
     ...mapGetters({
@@ -317,29 +341,6 @@ export default {
         this.integrations.twitter.settings.hashtags.length >
           0
       )
-    }
-  },
-
-  data() {
-    return {
-      loading: false,
-      user: '',
-      repositories: [],
-      integrationsJsonArray: this.onboard
-        ? integrationsJsonArray.filter((i) =>
-            [
-              'github',
-              'slack',
-              'discord',
-              'twitter',
-              'devto'
-            ].includes(i.platform)
-          )
-        : integrationsJsonArray,
-      twitter: {
-        popover: false,
-        hashtags: []
-      }
     }
   },
 

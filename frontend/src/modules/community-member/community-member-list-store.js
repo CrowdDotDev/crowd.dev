@@ -1,9 +1,8 @@
-import Vue from 'vue'
 import { CommunityMemberService } from '@/modules/community-member/community-member-service'
 import communityMemberListExporterFields from '@/modules/community-member/community-member-list-exporter-fields'
 import Errors from '@/shared/error/errors'
 import Exporter from '@/shared/exporter/exporter'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { CommunityMemberModel } from './community-member-model'
@@ -14,19 +13,21 @@ const INITIAL_PAGE_SIZE = 20
 export default {
   namespaced: true,
 
-  state: {
-    rows: [],
-    count: 0,
-    loading: false,
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {
-      prop: 'score',
-      order: 'descending'
-    },
-    table: null,
-    mergeLoading: false
+  state: () => {
+    return {
+      rows: [],
+      count: 0,
+      loading: false,
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {
+        prop: 'score',
+        order: 'descending'
+      },
+      table: null,
+      mergeLoading: false
+    }
   },
 
   getters: {
@@ -94,7 +95,9 @@ export default {
     },
 
     selectedRows: (state) => {
-      return state.table ? state.table.selection : []
+      return state.table
+        ? state.table.getSelectionRows()
+        : []
     }
   },
 
@@ -185,12 +188,6 @@ export default {
       state.count = 0
     },
 
-    FIND_LOOKALIKE_STARTED(state) {
-      state.loading = true
-    },
-    FIND_LOOKALIKE_SUCCESS() {},
-    FIND_LOOKALIKE_ERROR() {},
-
     EXPORT_STARTED(state) {
       state.exportLoading = true
     },
@@ -224,7 +221,7 @@ export default {
         const index = state.rows.findIndex(
           (r) => r.id === member.id
         )
-        Vue.set(state.rows, index, member)
+        state.rows[index] = member
       }
       state.loading = false
     },
@@ -385,12 +382,6 @@ export default {
           keepPagination
         })
 
-        filter.type =
-          routerAsync().currentRoute.name ===
-          'communityMemberLookalike'
-            ? 'lookalike'
-            : 'member'
-
         const response = await CommunityMemberService.list(
           filter,
           getters.orderBy,
@@ -430,7 +421,7 @@ export default {
         Message.success(
           i18n('entities.communityMember.merge.success')
         )
-        routerAsync().push(`/members/${memberToKeep.id}`)
+        router.push(`/members/${memberToKeep.id}`)
       } catch (error) {
         Errors.handle(error)
         commit('MERGE_ERROR')
@@ -478,9 +469,8 @@ export default {
           )
           return acc
         }, [])
-        const updatedMembers = await CommunityMemberService.updateBulk(
-          payload
-        )
+        const updatedMembers =
+          await CommunityMemberService.updateBulk(payload)
         commit(
           'BULK_UPDATE_MEMBERS_TAGS_SUCCESS',
           updatedMembers

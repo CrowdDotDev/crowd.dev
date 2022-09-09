@@ -2,8 +2,8 @@
   <div>
     <label class="block leading-none mb-1">Order</label>
     <draggable
-      class="list-group"
       v-model="list"
+      class="list-group"
       @end="handleDragEnd"
     >
       <div
@@ -42,7 +42,7 @@
 import draggable from 'vuedraggable'
 
 export default {
-  name: 'Order',
+  name: 'AppQueryBuilderOrder',
   components: {
     draggable
   },
@@ -56,6 +56,12 @@ export default {
       default: false
     }
   },
+  emits: ['reorder', 'orderChange'],
+  data() {
+    return {
+      dialog: false
+    }
+  },
   computed: {
     list: {
       get() {
@@ -64,11 +70,6 @@ export default {
       set(value) {
         return value
       }
-    }
-  },
-  data() {
-    return {
-      dialog: false
     }
   },
   methods: {

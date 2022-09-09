@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { GRANULARITIES } from '@cubejs-client/vue'
+import { GRANULARITIES } from '@cubejs-client/vue3'
 export default {
   name: 'GranularitySelect',
   props: {
@@ -55,9 +55,8 @@ export default {
     handleChange(value) {
       this.setTimeDimensions([
         {
-          dimension: this.timeDimensions[0]['dimension'][
-            'name'
-          ],
+          dimension:
+            this.timeDimensions[0]['dimension']['name'],
           granularity: value !== '' ? value : undefined,
           dateRange: this.timeDimensions[0]['dateRange']
         }

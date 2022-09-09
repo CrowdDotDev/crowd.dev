@@ -1,18 +1,18 @@
 <template>
   <div>
     <div
-      class="app-page-spinner"
       v-if="initLoading"
       v-loading="initLoading"
+      class="app-page-spinner"
     ></div>
 
     <app-community-member-form
-      :isEditing="isEditing"
+      v-if="!initLoading"
+      :is-editing="isEditing"
       :record="record"
-      :saveLoading="saveLoading"
+      :save-loading="saveLoading"
       @cancel="doCancel"
       @submit="doSubmit"
-      v-if="!initLoading"
     />
   </div>
 </template>
@@ -22,13 +22,19 @@ import { mapGetters, mapActions } from 'vuex'
 import CommunityMemberForm from '@/modules/community-member/components/community-member-form.vue'
 
 export default {
-  name: 'app-community-member-form-page',
-
-  props: ['id'],
+  name: 'AppCommunityMemberFormPage',
 
   components: {
     'app-community-member-form': CommunityMemberForm
   },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['cancel'],
 
   computed: {
     ...mapGetters({

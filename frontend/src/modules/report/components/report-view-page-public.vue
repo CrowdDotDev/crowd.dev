@@ -2,9 +2,9 @@
   <div class="report-view-public">
     <div class="report-view-public-content">
       <div
-        class="app-page-spinner"
         v-if="loading('view') || !report"
         v-loading="loading('view') || !report"
+        class="app-page-spinner"
       ></div>
       <div v-else>
         <h1 class="app-content-title">
@@ -69,12 +69,21 @@ import ReportGridLayout from './report-grid-layout'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export default {
-  name: 'app-report-view-page-public',
-
-  props: ['id', 'tenantId'],
+  name: 'AppReportViewPagePublic',
 
   components: {
     'app-report-grid-layout': ReportGridLayout
+  },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    },
+    tenantId: {
+      type: String,
+      default: null
+    }
   },
 
   computed: {

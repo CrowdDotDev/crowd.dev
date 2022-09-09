@@ -1,6 +1,6 @@
 <template>
   <transition name="fade" mode="out-in">
-    <div class="panel" v-if="showPicker">
+    <div v-if="showPicker" class="panel">
       <span class="text-gray-800 block mb-6"
         >Please select one of the following options:</span
       >
@@ -26,12 +26,12 @@
         </div>
         <div
           class="data-type-option"
-          @click="selectedDataType = 'real'"
           :class="
             selectedDataType === 'real'
               ? 'border-primary-900'
               : 'border-gray-50 hover:border-gray-400'
           "
+          @click="selectedDataType = 'real'"
         >
           <img
             src="/images/real-data.svg"
@@ -56,7 +56,7 @@
         }}</el-button
       >
     </div>
-    <div class="content panel" v-else>
+    <div v-else class="content panel">
       <button
         class="text-gray-400 hover:text-black flex items-center"
         @click="showPicker = true"
@@ -84,7 +84,7 @@ import AppIntegrationList from '../../integration/components/integration-list'
 import { TenantService } from '../../tenant/tenant-service'
 
 export default {
-  name: 'onboard-populate-data',
+  name: 'OnboardPopulateData',
   components: { AppIntegrationList },
   data() {
     return {

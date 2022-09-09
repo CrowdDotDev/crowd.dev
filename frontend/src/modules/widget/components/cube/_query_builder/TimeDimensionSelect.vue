@@ -8,9 +8,9 @@
         timeDimensions[0] &&
         timeDimensions[0].dimension.name
       "
-      @change="handleTimeChange"
       clearable
       filterable
+      @change="handleTimeChange"
     >
       <el-option
         v-for="item in translatedOptions(
@@ -27,12 +27,22 @@
 <script>
 import { i18n } from '@/i18n'
 export default {
-  props: [
-    'measures',
-    'timeDimensions',
-    'availableTimeDimensions'
-  ],
   name: 'TimeDimensionSelect',
+  props: {
+    measure: {
+      type: Array,
+      default: () => []
+    },
+    timeDimensions: {
+      type: Array,
+      default: () => []
+    },
+    availableTimeDimensions: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['change'],
   data() {
     return {
       measureTimeDimensions: {

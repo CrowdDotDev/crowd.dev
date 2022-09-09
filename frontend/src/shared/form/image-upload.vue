@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-upload
+      ref="files"
       :accept="accept"
       :class="{
         'image-upload-hide-upload': isFull || loading
@@ -13,12 +14,11 @@
       :on-success="onSuccess"
       action
       list-type="picture-card"
-      ref="files"
     >
       <i class="el-icon-plus"></i>
     </el-upload>
 
-    <el-dialog :visible.sync="dialogVisible">
+    <el-dialog v-model="dialogVisible">
       <img :src="dialogImageUrl" alt width="100%" />
     </el-dialog>
   </div>
@@ -29,8 +29,22 @@ import { FileUploader } from '@/shared/file-upload/file-uploader'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-image-upload',
-  props: ['storage', 'value', 'max'],
+  name: 'AppImageUpload',
+  props: {
+    storage: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: Array,
+      default: () => []
+    },
+    max: {
+      type: Number,
+      default: null
+    }
+  },
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -80,7 +94,10 @@ export default {
         return
       }
 
-      this.$emit('input', [...(this.value || []), file])
+      this.$emit('update:modelValue', [
+        ...(this.value || []),
+        file
+      ])
       this.loading = false
     },
 
@@ -97,7 +114,7 @@ export default {
       const id = file.response ? file.response.id : file.id
 
       this.$emit(
-        'input',
+        'update:modelValue',
         (this.value || []).filter((item) => item.id !== id)
       )
     },

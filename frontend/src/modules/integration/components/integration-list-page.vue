@@ -6,7 +6,7 @@
         integrations.github.status === 'waiting-approval'
       "
     >
-      <div slot="body">
+      <template #body>
         Please invite your GitHub admin to Crowd.dev and ask
         them to set up the integration. <br />
         Read more about this in the following
@@ -15,7 +15,7 @@
           class="font-semibold"
           >documentation</a
         >.
-      </div>
+      </template>
     </app-alert>
     <app-alert
       v-if="
@@ -23,7 +23,7 @@
         integrations.slack.status === 'in-progress'
       "
     >
-      <div slot="body">
+      <template #body>
         Add Slack Bot to channels. <br />
         Read more about this in the following
         <a
@@ -31,7 +31,7 @@
           class="font-semibold"
           >documentation</a
         >.
-      </div>
+      </template>
     </app-alert>
     <app-alert
       v-if="
@@ -39,7 +39,7 @@
         integrations.discord.status === 'in-progress'
       "
     >
-      <div slot="body">
+      <template #body>
         Add Discord Bot to the private channels you need it
         to have access to. <br />
         Read more about this in the following
@@ -48,7 +48,7 @@
           class="font-semibold"
           >documentation</a
         >.
-      </div>
+      </template>
     </app-alert>
     <app-integration-list />
   </div>
@@ -59,7 +59,7 @@ import { mapGetters } from 'vuex'
 import AppIntegrationList from './integration-list'
 
 export default {
-  name: 'app-integration-list-page',
+  name: 'AppIntegrationListPage',
 
   components: { AppIntegrationList },
 

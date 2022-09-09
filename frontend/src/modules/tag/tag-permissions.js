@@ -26,8 +26,9 @@ export class TagPermissions {
     this.destroy = permissionChecker.match(
       Permissions.values.tagDestroy
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.tagRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.tagRead
+      )
   }
 }

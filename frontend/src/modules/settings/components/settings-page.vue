@@ -5,10 +5,10 @@
     </h1>
     <el-tabs v-model="activeTab" class="mt-8">
       <el-tab-pane
+        v-if="hasUsersModule"
         label="Users & Permissions"
         name="users"
-        labelClass="app-content-title"
-        v-if="hasUsersModule"
+        label-class="app-content-title"
       >
         <app-user-list-page class="pt-4" />
       </el-tab-pane>
@@ -61,16 +61,18 @@
               class="w-full lg:w-1/2 mx-3"
             >
               <el-input :value="tenantId" :readonly="true">
-                <el-tooltip
-                  content="Copy to Clipboard"
-                  placement="top"
-                  slot="append"
-                >
-                  <el-button
-                    icon="ri-clipboard-line"
-                    @click="copyToClipboard('tenantId')"
-                  ></el-button>
-                </el-tooltip>
+                <template #append>
+                  <el-tooltip
+                    content="Copy to Clipboard"
+                    placement="top"
+                  >
+                    <el-button
+                      @click="copyToClipboard('tenantId')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
             <el-form-item
@@ -82,28 +84,28 @@
                 :disabled="!showToken"
                 :readonly="showToken"
               >
-                <el-tooltip
-                  content="Show Auth Token"
-                  placement="top"
-                  slot="append"
-                  v-if="!showToken"
-                >
-                  <el-button
-                    icon="ri-eye-line"
-                    @click="showToken = true"
-                  ></el-button>
-                </el-tooltip>
-                <el-tooltip
-                  content="Copy to Clipboard"
-                  placement="top"
-                  slot="append"
-                  v-else
-                >
-                  <el-button
-                    icon="ri-clipboard-line"
-                    @click="copyToClipboard('token')"
-                  ></el-button>
-                </el-tooltip>
+                <template #append>
+                  <el-tooltip
+                    v-if="!showToken"
+                    content="Show Auth Token"
+                    placement="top"
+                  >
+                    <el-button @click="showToken = true">
+                      <i class="ri-eye-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-else
+                    content="Copy to Clipboard"
+                    placement="top"
+                  >
+                    <el-button
+                      @click="copyToClipboard('token')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
           </el-form>
@@ -123,11 +125,18 @@ import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {
-  name: 'app-settings-page',
+  name: 'AppSettingsPage',
 
   components: {
     'app-user-list-page': UserListPage,
     'app-integrations-list-page': IntegrationListPage
+  },
+
+  data() {
+    return {
+      activeTab: null,
+      showToken: false
+    }
   },
 
   computed: {
@@ -148,13 +157,6 @@ export default {
       } else if (config.edition === 'crowd-hosted') {
         return true
       } else return config.communityPremium === 'true'
-    }
-  },
-
-  data() {
-    return {
-      activeTab: null,
-      showToken: false
     }
   },
 
@@ -185,28 +187,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.settings {
-  .el-tabs {
-    &__header {
-      @apply m-0 border-b;
-    }
-    &__active-bar {
-      @apply bg-primary-900;
-    }
-    &__item {
-      @apply font-semibold;
-      &.is-active {
-        @apply text-black;
-      }
-      &:focus.is-active.is-focus:not(:active) {
-        box-shadow: none;
-      }
-    }
-    &__content {
-      @apply rounded border-0;
-    }
-  }
-}
-</style>

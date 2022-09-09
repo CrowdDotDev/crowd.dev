@@ -1,7 +1,7 @@
 import StringArrayField from '@/shared/fields/string-array-field'
 import * as yup from 'yup'
 import Roles from '@/security/roles'
-import { i18n } from '@/i18n'
+import { i18n, init as i18nInit } from '@/i18n'
 import IdField from '@/shared/fields/id-field'
 import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
@@ -12,6 +12,8 @@ import GenericField from '@/shared/fields/generic-field'
 import EnumeratorField from '@/shared/fields/enumerator-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import Storage from '@/security/storage'
+
+i18nInit()
 
 class RolesField extends StringArrayField {
   constructor(name, label, config = {}) {
