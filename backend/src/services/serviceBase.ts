@@ -5,8 +5,7 @@ import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 export abstract class ServiceBase<TData, TId, TCreate, TUpdate, TCriteria extends SearchCriteria> {
-  protected constructor(public readonly options: IServiceOptions) {
-  }
+  protected constructor(public readonly options: IServiceOptions) {}
 
   abstract create(data: TCreate): Promise<TData>
 
