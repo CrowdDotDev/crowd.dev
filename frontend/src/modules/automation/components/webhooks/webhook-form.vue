@@ -155,7 +155,11 @@
         >
       </div>
       <hr class="mb-6" />
-      <el-form-item label="Webhook URL" :required="true">
+      <el-form-item
+        label="Webhook URL"
+        prop="settings.url"
+        :required="true"
+      >
         <el-input
           v-model="model.settings.url"
           type="text"
