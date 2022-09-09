@@ -30,11 +30,25 @@
         {{ formattedDate(execution.executedAt) }}
       </div>
     </div>
-    <vue-json-pretty
-      :data="execution.payload"
-      :show-double-quotes="false"
-      :show-line="false"
-    />
+    <div
+      class="vue-json-wrapper"
+      :class="execution.state === 'error' ? 'is-error' : ''"
+    >
+      <vue-json-pretty
+        v-if="execution"
+        :data="execution.error.body"
+        :show-double-quotes="false"
+        :show-line="false"
+      />
+    </div>
+
+    <div class="vue-json-wrapper">
+      <vue-json-pretty
+        :data="execution.payload"
+        :show-double-quotes="false"
+        :show-line="false"
+      />
+    </div>
   </div>
 </template>
 
@@ -64,14 +78,26 @@ export default {
 
 <style lang="scss">
 .webhook-execution {
-  .vjs-tree {
+  .vjs-tree-wrapper {
     @apply p-4 rounded mt-6 overflow-auto;
     background: #f1f5f9;
     height: 430px;
 
-    &.is-highlight,
-    .vjs-tree-node:hover {
-      background: #f8fafc;
+    &.is-error {
+      background: #f9f1f1;
+      .vjs-tree {
+        &.is-highlight,
+        .vjs-tree-node:hover {
+          @apply bg-red-50;
+        }
+      }
+    }
+
+    .vjs-tree {
+      &.is-highlight,
+      .vjs-tree-node:hover {
+        background: #f8fafc;
+      }
     }
   }
 }

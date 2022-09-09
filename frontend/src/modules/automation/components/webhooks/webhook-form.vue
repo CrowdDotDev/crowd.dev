@@ -194,6 +194,7 @@ import { AutomationModel } from '@/modules/automation/automation-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { i18n } from '@/i18n'
 import integrationsJson from '@/jsons/integrations.json'
+import activityTypesJson from '@/jsons/activity-types.json'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
@@ -211,7 +212,7 @@ export default {
       default: () => {}
     }
   },
-  emits: ['cancel'],
+  emits: ['cancel', 'success'],
   data() {
     return {
       rules: formSchema.rules(),
@@ -253,7 +254,31 @@ export default {
       })
     },
     computedActivityTypeOptions() {
-      return []
+      if (
+        !this.model.settings.platforms ||
+        this.model.settings.platforms.length === 0
+      ) {
+        return []
+      }
+
+      return this.model.settings.platforms.reduce(
+        (acc, platform) => {
+          const platformActivityTypes =
+            activityTypesJson[platform]
+          acc.push(
+            ...platformActivityTypes.map((activityType) => {
+              return {
+                value: activityType,
+                label: i18n(
+                  `entities.activity.${platform}.${activityType}`
+                )
+              }
+            })
+          )
+          return acc
+        },
+        []
+      )
     }
   },
 
@@ -283,13 +308,15 @@ export default {
       }
 
       if (this.isEditing) {
-        return this.doUpdate({
+        await this.doUpdate({
           id: this.model.id,
           values: formSchema.cast(this.model)
         })
       } else {
-        return this.doCreate(formSchema.cast(this.model))
+        await this.doCreate(formSchema.cast(this.model))
       }
+
+      this.$emit('success')
     },
     doReset() {
       this.model = formSchema.initialValues(this.modelValue)

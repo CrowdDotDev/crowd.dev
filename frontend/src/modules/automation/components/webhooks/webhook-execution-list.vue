@@ -60,16 +60,16 @@
           <div class="flex justify-end flex-grow j">
             <el-button
               class="btn btn--text"
-              @click="payloadModals[execution.id] = true"
-              >Payload</el-button
+              @click="modals[execution.id] = true"
+              >View log</el-button
             >
           </div>
 
           <el-dialog
-            v-model="payloadModals[execution.id]"
-            title="Payload"
+            v-model="modals[execution.id]"
+            title="Execution log"
             :destroy-on-close="true"
-            @close="payloadModals[execution.id] = false"
+            @close="modals[execution.id] = false"
           >
             <app-webhook-execution :execution="execution" />
           </el-dialog>
@@ -144,7 +144,7 @@ export default {
   },
   data() {
     return {
-      payloadModals: this.executions.reduce((acc, item) => {
+      modals: this.executions.reduce((acc, item) => {
         acc[item.id] = false
         return acc
       }, {})

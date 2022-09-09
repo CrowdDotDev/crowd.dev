@@ -55,6 +55,7 @@
     >
       <app-webhook-form
         v-model="newAutomation"
+        @success="handleSuccess"
         @cancel="newAutomationModal = false"
       />
     </el-dialog>
@@ -97,7 +98,14 @@ export default {
   methods: {
     ...mapActions({
       doFetch: 'automation/doFetch'
-    })
+    }),
+    handleSuccess() {
+      this.newAutomation = {
+        type: 'webhook',
+        settings: {}
+      }
+      this.newAutomationModal = false
+    }
   }
 }
 </script>
