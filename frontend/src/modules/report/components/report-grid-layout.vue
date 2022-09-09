@@ -7,6 +7,7 @@
   >
     <el-dialog
       v-model="widgetModal.visible"
+      :close-on-click-modal="false"
       :title="
         widgetModal.action === 'add'
           ? 'Add Widget'

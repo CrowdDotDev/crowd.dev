@@ -5,7 +5,11 @@
       :expanded="expanded"
       @click="expanded = true"
     ></app-filter-toggle>
-    <el-dialog v-model="expanded" title="Filters">
+    <el-dialog
+      v-model="expanded"
+      title="Filters"
+      :close-on-click-modal="false"
+    >
       <el-form class="form">
         <el-form-item label="Platform">
           <el-checkbox-group v-model="platforms">

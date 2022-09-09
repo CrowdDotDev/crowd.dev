@@ -37,7 +37,8 @@
     <el-dialog
       v-if="editModal"
       v-model="editModal"
-      title="Edit Member"
+      :close-on-click-modal="false"
+      title="Edit webhook"
       :append-to-body="true"
       :destroy-on-close="true"
       custom-class="el-dialog--lg"
@@ -52,6 +53,7 @@
     <el-drawer
       v-model="executionsDrawer"
       :destroy-on-close="true"
+      :close-on-click-modal="false"
       title="Webhook executions"
       custom-class="webhook-executions-drawer"
     >

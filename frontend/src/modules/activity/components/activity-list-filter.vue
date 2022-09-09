@@ -11,6 +11,7 @@
     <el-dialog
       v-model="expanded"
       title="Activities Filters"
+      :close-on-click-modal="false"
       @close="expanded = false"
     >
       <app-filter-preview

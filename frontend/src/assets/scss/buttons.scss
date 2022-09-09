@@ -36,7 +36,9 @@
     }
 
     &[disabled] {
-      @apply bg-primary-900 border border-primary-900 text-white;
+      @apply border text-white opacity-100;
+      border: 1px solid #F6B9AB;
+      background: #F6B9AB;
     }
   }
 

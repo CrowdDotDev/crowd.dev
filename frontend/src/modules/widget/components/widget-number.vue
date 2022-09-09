@@ -46,6 +46,7 @@
     <el-dialog
       v-model="modal"
       :title="`${config.title} Settings`"
+      :close-on-click-modal="false"
       @close="modal = false"
     ></el-dialog>
   </app-widget>

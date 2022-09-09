@@ -3,7 +3,7 @@
     <h1 class="app-content-title">
       <app-i18n code="settings.title"></app-i18n>
     </h1>
-    <el-tabs v-model="activeTab" class="mt-8">
+    <el-tabs v-model="computedActiveTab" class="mt-8">
       <el-tab-pane
         v-if="hasUsersModule"
         label="Users & Permissions"
@@ -172,6 +172,18 @@ export default {
       } else if (config.edition === 'crowd-hosted') {
         return true
       } else return config.communityPremium === 'true'
+    },
+    computedActiveTab: {
+      get() {
+        return this.activeTab
+      },
+      set(value) {
+        this.$router.push({
+          name: 'settings',
+          query: { activeTab: value }
+        })
+        this.activeTab = value
+      }
     }
   },
 

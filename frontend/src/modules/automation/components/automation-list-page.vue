@@ -1,14 +1,14 @@
 <template>
   <div>
     <div
-      v-if="loading('table')"
+      v-if="loading('table') && count === 0"
       v-loading="loading('table')"
       class="app-page-spinner"
     ></div>
     <div v-else-if="count > 0">
       <div class="flex items-center justify-between mt-6">
         <div class="text-gray-600 text-sm">
-          {{ count }} webhooks
+          {{ count }} webhook{{ count === 1 ? '' : 's' }}
         </div>
         <div>
           <el-button
@@ -49,6 +49,7 @@
     <el-dialog
       v-model="newAutomationModal"
       title="New webhook"
+      :close-on-click-modal="false"
       :destroy-on-close="true"
       custom-class="el-dialog--lg"
       @close="newAutomationModal = false"

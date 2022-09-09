@@ -32,10 +32,10 @@
     </div>
     <div
       v-if="execution.state === 'error'"
-      class="vjs-tree-wrapper vjs-tree-wrapper--error"
+      class="vjs-tree-wrapper vjs-tree-wrapper--error mt-6"
     >
       <span
-        class="font-semibold block text-sm text-red-900"
+        class="font-semibold block text-sm text-red-900 mb-4"
       >
         {{ execution.error.message }}
       </span>
@@ -47,10 +47,10 @@
       />
     </div>
 
+    <span class="font-semibold block text-sm mb-1 mt-6"
+      >Payload</span
+    >
     <div class="vjs-tree-wrapper">
-      <span class="font-semibold block text-sm mb-4"
-        >Payload</span
-      >
       <vue-json-pretty
         :data="execution.payload"
         :show-double-quotes="false"
@@ -87,7 +87,7 @@ export default {
 <style lang="scss">
 .webhook-execution {
   .vjs-tree-wrapper {
-    @apply p-4 rounded mt-6 overflow-auto;
+    @apply p-4 rounded overflow-auto;
     background: #f1f5f9;
     height: 430px;
 
@@ -104,8 +104,6 @@ export default {
     }
 
     .vjs-tree {
-      @apply mt-4;
-
       &.is-highlight,
       .vjs-tree-node:hover {
         background: #f8fafc;

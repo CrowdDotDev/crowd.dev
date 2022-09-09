@@ -143,7 +143,7 @@
         </el-collapse-item>
       </el-collapse>
 
-      <div class="flex items-center pb-2">
+      <div class="flex items-center pb-2 mt-10">
         <span
           class="font-semibold text-primary-900 leading-relaxed"
           >Action</span
@@ -195,13 +195,15 @@ import { FormSchema } from '@/shared/form/form-schema'
 import { i18n } from '@/i18n'
 import integrationsJson from '@/jsons/integrations.json'
 import activityTypesJson from '@/jsons/activity-types.json'
+import UrlField from '@/shared/fields/url-field'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
   fields.type,
   fields.trigger,
   fields.status,
-  fields.settings
+  fields.settings,
+  new UrlField('settings.url', 'Webhook URL')
 ])
 
 export default {
@@ -217,7 +219,6 @@ export default {
     return {
       rules: formSchema.rules(),
       model: {
-        trigger: 'new_activity',
         ...this.modelValue
       },
       newActivityFilters: 'activityFilters',
@@ -332,7 +333,7 @@ export default {
 <style lang="scss">
 .automation-form {
   .el-collapse {
-    @apply border border-gray-100 rounded p-4 mb-10;
+    @apply border border-gray-100 rounded p-4;
     background-color: #f3f4f6;
     overflow: unset;
 

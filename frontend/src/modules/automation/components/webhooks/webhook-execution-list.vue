@@ -33,48 +33,54 @@
           Timestamp
         </div>
       </div>
-      <ul
+      <div
         v-infinite-scroll="fetchExecutions"
         :infinite-scroll-disabled="disabled"
         class="webhook-execution-list"
         style="overflow: auto"
       >
-        <li
-          v-for="execution of executions"
-          :key="execution.id"
-          class="webhook-execution-list-item"
-        >
-          <div class="w-20">
-            <i
-              class="text-base"
-              :class="
-                execution.state === 'success'
-                  ? 'ri-checkbox-circle-line text-green-900'
-                  : 'ri-close-circle-line text-red-900'
-              "
-            />
-          </div>
-          <div>
-            {{ formattedDate(execution.executedAt) }}
-          </div>
-          <div class="flex justify-end flex-grow j">
-            <el-button
-              class="btn btn--text"
-              @click="modals[execution.id] = true"
-              >View log</el-button
-            >
-          </div>
-
-          <el-dialog
-            v-model="modals[execution.id]"
-            title="Execution log"
-            :destroy-on-close="true"
-            @close="modals[execution.id] = false"
+        <ul v-if="executions && executions.length > 0">
+          <li
+            v-for="execution of executions"
+            :key="execution.id"
+            class="webhook-execution-list-item"
           >
-            <app-webhook-execution :execution="execution" />
-          </el-dialog>
-        </li>
-      </ul>
+            <div class="w-20">
+              <i
+                class="text-base"
+                :class="
+                  execution.state === 'success'
+                    ? 'ri-checkbox-circle-line text-green-900'
+                    : 'ri-close-circle-line text-red-900'
+                "
+              />
+            </div>
+            <div>
+              {{ formattedDate(execution.executedAt) }}
+            </div>
+            <div class="flex justify-end flex-grow j">
+              <el-button
+                class="btn btn--text"
+                @click="modals[execution.id] = true"
+                >View log</el-button
+              >
+            </div>
+
+            <el-dialog
+              v-model="modals[execution.id]"
+              title="Execution log"
+              :destroy-on-close="true"
+              :close-on-click-modal="false"
+              @close="modals[execution.id] = false"
+            >
+              <app-webhook-execution
+                :execution="execution"
+              />
+            </el-dialog>
+          </li>
+        </ul>
+        <div v-else>No executions yet</div>
+      </div>
       <div
         v-if="loading"
         v-loading="loading"

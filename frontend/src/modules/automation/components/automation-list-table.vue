@@ -3,7 +3,7 @@
     <div class="-mx-6 -mt-4">
       <el-table
         ref="table"
-        v-loading="loading('table')"
+        :loading="loading('table')"
         :data="rows"
         row-key="id"
         border
@@ -32,7 +32,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Created on">
+        <el-table-column label="Created on" width="150">
           <template #default="scope">
             <el-tooltip
               :content="formattedDate(scope.row.createdAt)"
@@ -42,7 +42,7 @@
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="Last execution">
+        <el-table-column label="Last execution" width="150">
           <template #default="scope">
             <el-tooltip
               v-if="scope.row.lastExecutionAt"
@@ -55,7 +55,7 @@
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="Status">
+        <el-table-column label="Status" width="100">
           <template #default="scope"
             ><app-automation-toggle :automation="scope.row"
           /></template>

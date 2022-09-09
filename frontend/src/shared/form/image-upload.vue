@@ -18,7 +18,10 @@
       <i class="el-icon-plus"></i>
     </el-upload>
 
-    <el-dialog v-model="dialogVisible">
+    <el-dialog
+      v-model="dialogVisible"
+      :close-on-click-modal="false"
+    >
       <img :src="dialogImageUrl" alt width="100%" />
     </el-dialog>
   </div>

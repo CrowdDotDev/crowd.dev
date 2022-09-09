@@ -3,6 +3,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="title"
+      :close-on-click-modal="false"
       width="80%"
     >
       <app-activity-form
