@@ -1,9 +1,12 @@
 /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars */
 import { IServiceOptions } from './IServiceOptions'
 import { PageData, SearchCriteria } from '../types/common'
+import { IRepositoryOptions } from '../database/repositories/IRepositoryOptions'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 export abstract class ServiceBase<TData, TId, TCreate, TUpdate, TCriteria extends SearchCriteria> {
-  protected constructor(public readonly options: IServiceOptions) {}
+  protected constructor(public readonly options: IServiceOptions) {
+  }
 
   abstract create(data: TCreate): Promise<TData>
 
@@ -18,4 +21,12 @@ export abstract class ServiceBase<TData, TId, TCreate, TUpdate, TCriteria extend
   abstract findById(id: TId): Promise<TData>
 
   abstract findAndCountAll(criteria: TCriteria): Promise<PageData<TData>>
+
+  protected async getTxRepositoryOptions(): Promise<IRepositoryOptions> {
+    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const options: IRepositoryOptions = { ...this.options }
+    options.transaction = transaction
+
+    return options
+  }
 }
