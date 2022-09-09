@@ -139,7 +139,7 @@ export default class AutomationRepository extends RepositoryBase<
     const seq = this.seq
 
     // build a where condition based on tenant and other criteria passed as parameter
-    const conditions = ['a."deletedAt" is null', 'a."tenantId" = :tenantId']
+    const conditions = ['a."tenantId" = :tenantId']
     const parameters: any = {
       tenantId: currentTenant.id,
     }
@@ -206,18 +206,18 @@ export default class AutomationRepository extends RepositoryBase<
 
     const count = parseInt((results[0] as any).paginatedItemsCount, 10)
     const rows: AutomationData[] = results.map((r) => {
-      const d = r as any
+      const row = r as any
       return {
-        id: d.id,
-        type: d.type,
-        tenantId: d.tenantId,
-        trigger: d.trigger,
-        settings: d.settings,
-        state: d.state,
-        createdAt: d.createdAt,
-        lastExecutionAt: d.lastExecutionAt,
-        lastExecutionState: d.lastExecutionState,
-        lastExecutionError: d.lastExecutionError,
+        id: row.id,
+        type: row.type,
+        tenantId: row.tenantId,
+        trigger: row.trigger,
+        settings: row.settings,
+        state: row.state,
+        createdAt: row.createdAt,
+        lastExecutionAt: row.lastExecutionAt,
+        lastExecutionState: row.lastExecutionState,
+        lastExecutionError: row.lastExecutionError,
       }
     })
 

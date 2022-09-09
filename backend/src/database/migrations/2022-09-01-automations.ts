@@ -60,14 +60,6 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         updatedById: {
           type: sequelize.UUID,
         },
-
-        deletedAt: {
-          type: sequelize.DATE,
-          allowNull: true,
-        },
-        deletedById: {
-          type: sequelize.UUID,
-        },
       },
       { transaction },
     )
@@ -80,7 +72,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         field: 'id',
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      onUpdate: 'NO ACTION',
       transaction,
     })
     await queryInterface.addConstraint('automations', {
@@ -92,7 +84,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         field: 'id',
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      onUpdate: 'NO ACTION',
       transaction,
     })
     await queryInterface.addConstraint('automations', {
@@ -104,7 +96,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         field: 'id',
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      onUpdate: 'NO ACTION',
       transaction,
     })
 
@@ -190,7 +182,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         field: 'id',
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      onUpdate: 'NO ACTION',
       transaction,
     })
     await queryInterface.addConstraint('automationExecutions', {
@@ -202,7 +194,7 @@ export const up = async (queryInterface: QueryInterface, sequelize) => {
         field: 'id',
       },
       onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
+      onUpdate: 'NO ACTION',
       transaction,
     })
 

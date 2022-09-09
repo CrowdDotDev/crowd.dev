@@ -79,12 +79,6 @@ export default class ActivityService {
           transaction,
         })
 
-        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
-          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
-          .catch((err) =>
-            console.log(`Error triggering new activity automation - ${record.id}!`, err),
-          )
-
         // Only track activity's platform and timestamp and communityMemberId. It is completely annonymous.
         telemetryTrack(
           'Activity created',
@@ -124,6 +118,14 @@ export default class ActivityService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (!existing) {
+        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new activity automation - ${record.id}!`, err),
+          )
+      }
 
       return record
     } catch (error) {

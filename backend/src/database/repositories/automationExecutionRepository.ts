@@ -81,15 +81,15 @@ export default class AutomationExecutionRepository extends RepositoryBase<
 
     const count = parseInt((results[0] as any).paginatedItemsCount, 10)
     const rows: AutomationExecution[] = results.map((r) => {
-      const d = r as any
+      const row = r as any
       return {
-        id: d.id,
-        automationId: d.automationId,
-        executedAt: d.executedAt,
-        eventId: d.eventId,
-        payload: d.payload,
-        error: d.error,
-        state: d.state,
+        id: row.id,
+        automationId: row.automationId,
+        executedAt: row.executedAt,
+        eventId: row.eventId,
+        payload: row.payload,
+        error: row.error,
+        state: row.state,
       }
     })
 
