@@ -118,12 +118,6 @@ export default class CommunityMemberService {
           fillRelations,
         )
 
-        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
-          .then(() => console.log(`New member automation triggered - ${record.id}!`))
-          .catch((err) =>
-            console.log(`Error triggering new member automation - ${record.id}!`, err),
-          )
-
         telemetryTrack(
           'Member created',
           {
@@ -135,6 +129,14 @@ export default class CommunityMemberService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (!existing) {
+        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New member automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new member automation - ${record.id}!`, err),
+          )
+      }
 
       return record
     } catch (error) {
