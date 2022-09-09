@@ -44,9 +44,6 @@ export default (sequelize) => {
       indexes: [
         {
           fields: ['type', 'tenantId', 'trigger', 'state'],
-          where: {
-            deletedAt: null,
-          },
         },
       ],
       timestamps: true,
