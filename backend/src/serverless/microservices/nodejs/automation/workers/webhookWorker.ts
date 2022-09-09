@@ -55,19 +55,19 @@ export default async (
     if (err.syscall && err.code) {
       error = {
         type: 'network',
-        message: `Could not access ${settings.url}!`
+        message: `Could not access ${settings.url}!`,
       }
     } else if (err.status) {
       error = {
         type: 'http_status',
         message: `POST @ ${settings.url} returned ${err.statusCode} - ${err.statusMessage}!`,
-        body: err.res.body
+        body: err.res.body,
       }
     } else {
       error = {
         type: 'unknown',
         message: err.message,
-        errorObject: err
+        errorObject: err,
       }
     }
 
@@ -78,7 +78,6 @@ export default async (
       state: AutomationExecutionState.ERROR,
       error,
     })
-
 
     throw err
   }
