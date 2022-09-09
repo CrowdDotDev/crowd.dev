@@ -36,10 +36,12 @@ export default class DevtoIterator extends BaseIterator {
     articles: DevtoArticle[],
     userContext: IRepositoryOptions,
     integrationId: string,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
   ) {
     const endpoints: Endpoints = articles.map((a) => a.id.toString())
+
+    state.endpoints = endpoints
 
     super(tenant, endpoints, state, onboarding, DevtoIterator.globalLimit)
 

@@ -27,6 +27,7 @@ import { PlatformType } from '../../../utils/platforms'
 
 export default class SlackIterator extends BaseIterator {
   static limitReachedState: State = {
+    endpoints: [],
     endpoint: '__limit',
     page: '__limit',
   }
@@ -72,13 +73,17 @@ export default class SlackIterator extends BaseIterator {
     members: Object,
     integrationId: string,
     userContext: IRepositoryOptions,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: []},
     onboarding: boolean = false,
   ) {
+    let endpoints: Endpoints = state.endpoints
     // Endpoints are the fixed endpoints plus the channels
-    const endpoints: Endpoints = SlackIterator.fixedEndpoints.concat(
-      channels.map((channel) => channel.id),
-    )
+    if (state.endpoints.length === 0){
+      endpoints = SlackIterator.fixedEndpoints.concat(
+        channels.map((channel) => channel.id),
+      )
+      state.endpoints = endpoints
+    }
 
     super(tenant, endpoints, state, onboarding, SlackIterator.globalLimit)
 

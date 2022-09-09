@@ -15,7 +15,7 @@ async function twitterReachCoordinator(): Promise<void> {
       sleep: 0,
       tenant: microservice.tenantId.toString(),
       onboarding: false,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints:[] },
       args: {
         profileId: microservice.microserviceIdentifier,
       },
