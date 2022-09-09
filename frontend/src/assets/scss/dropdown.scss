@@ -1,13 +1,13 @@
 .el-dropdown-menu__item, .el-dropdown-menu__item a {
-  @apply flex items-center text-gray-900;
+  @apply flex items-center text-gray-900 px-4 py-3;
 
   i {
     @apply mr-2;
   }
 
   &:focus, &:not(.is-disabled):hover, &:not(.is-disabled):focus {
-    @apply text-gray-900;
-    background-color: #fffbf8;
+    @apply text-gray-900 font-medium;
+    background: #F8FAFC;
   }
 }
 

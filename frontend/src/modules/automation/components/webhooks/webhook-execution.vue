@@ -68,6 +68,11 @@ export default {
     @apply p-4 rounded mt-6 overflow-auto;
     background: #f1f5f9;
     height: 430px;
+
+    &.is-highlight,
+    .vjs-tree-node:hover {
+      background: #f8fafc;
+    }
   }
 }
 </style>
