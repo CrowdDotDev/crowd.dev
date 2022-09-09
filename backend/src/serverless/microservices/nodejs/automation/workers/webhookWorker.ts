@@ -32,6 +32,8 @@ export default async (
     eventExecutedAt: now.toISOString(),
     eventPayload: payload,
   }
+
+  let success = false
   try {
     const result = await request
       .post(settings.url)
@@ -40,18 +42,35 @@ export default async (
       .set('X-CrowdDotDev-Event-Type', automation.trigger)
       .set('X-CrowdDotDev-Event-ID', eventId)
 
+    success = true
     console.log(`Webhook response code ${result.statusCode}!`)
-    await automationExecutionService.create({
-      automation,
-      eventId,
-      payload: eventPayload,
-      state: AutomationExecutionState.SUCCESS,
-    })
-  } catch (error) {
+  } catch (err) {
     console.log(
       `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
-      error,
+      err,
     )
+
+    let error: any
+
+    if (err.syscall && err.code) {
+      error = {
+        type: 'network',
+        message: `Could not access ${settings.url}!`
+      }
+    } else if (err.status) {
+      error = {
+        type: 'http_status',
+        message: `POST @ ${settings.url} returned ${err.statusCode} - ${err.statusMessage}!`,
+        body: err.res.body
+      }
+    } else {
+      error = {
+        type: 'unknown',
+        message: err.message,
+        errorObject: err
+      }
+    }
+
     await automationExecutionService.create({
       automation,
       eventId,
@@ -60,6 +79,16 @@ export default async (
       error,
     })
 
-    throw error
+
+    throw err
+  }
+
+  if (success) {
+    await automationExecutionService.create({
+      automation,
+      eventId,
+      payload: eventPayload,
+      state: AutomationExecutionState.SUCCESS,
+    })
   }
 }
