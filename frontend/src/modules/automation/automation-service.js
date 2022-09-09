@@ -18,6 +18,16 @@ export class AutomationService {
     return response.data
   }
 
+  static async destroy(id) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.delete(
+      `/tenant/${tenantId}/automation/${id}`
+    )
+
+    return response.data
+  }
+
   static async destroyAll(ids) {
     const params = {
       ids

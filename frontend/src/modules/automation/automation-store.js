@@ -448,7 +448,7 @@ export default {
       try {
         commit('DESTROY_STARTED')
 
-        await AutomationService.destroyAll([automationId])
+        await AutomationService.destroy(automationId)
 
         commit('DESTROY_SUCCESS', automationId)
 
