@@ -3,8 +3,8 @@ export default (app) => {
   app.put('/tenant/:tenantId/automation/:automationId', require('./automationUpdate').default)
   app.delete('/tenant/:tenantId/automation/:automationId', require('./automationDestroy').default)
   app.get(
-    '/tenant/:tenantId/automation/:automationId/history',
-    require('./automationHistory').default,
+    '/tenant/:tenantId/automation/:automationId/executions',
+    require('./automationExecutionFind').default,
   )
   app.get('/tenant/:tenantId/automation/:automationId', require('./automationFind').default)
   app.get('/tenant/:tenantId/automation', require('./automationList').default)
