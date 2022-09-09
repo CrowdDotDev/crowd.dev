@@ -31,18 +31,26 @@
       </div>
     </div>
     <div
-      class="vue-json-wrapper"
-      :class="execution.state === 'error' ? 'is-error' : ''"
+      v-if="execution.state === 'error'"
+      class="vjs-tree-wrapper vjs-tree-wrapper--error"
     >
+      <span
+        class="font-semibold block text-sm text-red-900"
+      >
+        {{ execution.error.message }}
+      </span>
       <vue-json-pretty
-        v-if="execution"
+        v-if="execution.error.body"
         :data="execution.error.body"
         :show-double-quotes="false"
         :show-line="false"
       />
     </div>
 
-    <div class="vue-json-wrapper">
+    <div class="vjs-tree-wrapper">
+      <span class="font-semibold block text-sm mb-4"
+        >Payload</span
+      >
       <vue-json-pretty
         :data="execution.payload"
         :show-double-quotes="false"
@@ -83,8 +91,10 @@ export default {
     background: #f1f5f9;
     height: 430px;
 
-    &.is-error {
+    &--error {
       background: #f9f1f1;
+      height: auto;
+      max-height: 150px;
       .vjs-tree {
         &.is-highlight,
         .vjs-tree-node:hover {
@@ -94,6 +104,8 @@ export default {
     }
 
     .vjs-tree {
+      @apply mt-4;
+
       &.is-highlight,
       .vjs-tree-node:hover {
         background: #f8fafc;
