@@ -4,7 +4,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 import AutomationExecutionService from '../../services/automationExecutionService'
 
 /**
- * GET /tenant/{tenantId}/automation/{automationId}/history
+ * GET /tenant/{tenantId}/automation/{automationId}/executions
  * @summary Get all automation execution history for tenant and automation
  * @tag Automations
  * @security Bearer

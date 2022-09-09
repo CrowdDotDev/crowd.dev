@@ -10,7 +10,7 @@ import ApiResponseHandler from '../apiResponseHandler'
  * @security Bearer
  * @description Get an existing automation data in the tenant.
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @pathParam {string} automationId - Automation ID that you want to update
+ * @pathParam {string} automationId - Automation ID that you want to find
  * @response 200 - Ok
  * @responseContent {Automation} 200.application/json
  * @responseExample {Automation} 200.application/json.Automation
