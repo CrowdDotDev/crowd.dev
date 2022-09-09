@@ -117,8 +117,6 @@ export default class AutomationRepository extends RepositoryBase<
       limit: 1,
     })
 
-    console.log('findById', id, results)
-
     if (results.count === 1) {
       return results.rows[0]
     }
@@ -133,6 +131,9 @@ export default class AutomationRepository extends RepositoryBase<
   override async findAndCountAll(criteria: AutomationCriteria): Promise<PageData<AutomationData>> {
     // get current tenant that was used to make a request
     const currentTenant = this.currentTenant
+
+    // we need transaction if there is one set because some records were perhaps created/updated in the same transaction
+    const transaction = this.transaction
 
     // get plain sequelize object to use with a raw query
     const seq = this.seq
@@ -191,6 +192,7 @@ export default class AutomationRepository extends RepositoryBase<
     const results = await seq.query(query, {
       replacements: parameters,
       type: QueryTypes.SELECT,
+      transaction,
     })
 
     if (results.length === 0) {

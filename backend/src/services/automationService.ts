@@ -28,20 +28,20 @@ export default class AutomationService extends ServiceBase<
    * @returns {AutomationData} object for frontend to use
    */
   override async create(req: CreateAutomationRequest): Promise<AutomationData> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const txOptions = await this.getTxRepositoryOptions()
 
     try {
       // create an active automation
-      const result = await new AutomationRepository(this.options).create({
+      const result = await new AutomationRepository(txOptions).create({
         ...req,
         state: AutomationState.ACTIVE,
       })
 
-      await SequelizeRepository.commitTransaction(transaction)
+      await SequelizeRepository.commitTransaction(txOptions.transaction)
 
       return result
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      await SequelizeRepository.rollbackTransaction(txOptions.transaction)
       throw error
     }
   }
@@ -56,15 +56,15 @@ export default class AutomationService extends ServiceBase<
    * @returns {AutomationData} object for frontend to use
    */
   override async update(id: string, req: UpdateAutomationRequest): Promise<AutomationData> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const txOptions = await this.getTxRepositoryOptions()
 
     try {
       // update an existing automation including its state
-      const result = await new AutomationRepository(this.options).update(id, req)
-      await SequelizeRepository.commitTransaction(transaction)
+      const result = await new AutomationRepository(txOptions).update(id, req)
+      await SequelizeRepository.commitTransaction(txOptions.transaction)
       return result
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      await SequelizeRepository.rollbackTransaction(txOptions.transaction)
       throw error
     }
   }
@@ -92,14 +92,14 @@ export default class AutomationService extends ServiceBase<
    * @param ids automation unique IDs to be deleted
    */
   override async destroyAll(ids: string[]): Promise<void> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const txOptions = await this.getTxRepositoryOptions()
 
     try {
-      const result = await new AutomationRepository(this.options).destroyAll(ids)
-      await SequelizeRepository.commitTransaction(transaction)
+      const result = await new AutomationRepository(txOptions).destroyAll(ids)
+      await SequelizeRepository.commitTransaction(txOptions.transaction)
       return result
     } catch (error) {
-      await SequelizeRepository.rollbackTransaction(transaction)
+      await SequelizeRepository.rollbackTransaction(txOptions.transaction)
       throw error
     }
   }
