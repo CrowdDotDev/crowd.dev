@@ -67,8 +67,6 @@ export default class TwitterIterator extends BaseIterator {
       (hashtags || []).map((hashtag) => `hashtag/${hashtag}`),
     )
 
-    state.endpoints = endpoints
-
     let globalLimit = Number(process.env.TWITTER_GLOBAL_LIMIT || 10000)
 
     globalLimit = onboarding ? globalLimit * 0.7 : globalLimit

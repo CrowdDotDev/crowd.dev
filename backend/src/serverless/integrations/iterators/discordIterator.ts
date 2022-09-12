@@ -65,8 +65,6 @@ export default class DiscordIterator extends BaseIterator {
       channels.map((channel) => channel.id),
     )
 
-    state.endpoints = endpoints
-
     super(tenant, endpoints, state, onboarding, DiscordIterator.globalLimit)
     this.guildId = guildId
     this.botToken = botToken
