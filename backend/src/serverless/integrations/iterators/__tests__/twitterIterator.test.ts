@@ -47,14 +47,14 @@ describe('Integrations worker static tests', () => {
     it('It should return the proper message', async () => {
       const iter = new TwitterIterator('tenant12345', 'profile12345', 'token', ['#1', '#2'])
       const message: TwitterIntegrationMessage = iter.getSQSBody(
-        { endpoint: 'hashtag/#1', page: '1' },
+        { endpoint: 'hashtag/#1', page: '1', endpoints: [] },
         42,
       )
       expect(message).toStrictEqual({
         tenant: 'tenant12345',
         integration: PlatformType.TWITTER,
         onboarding: false,
-        state: { endpoint: 'hashtag/#1', page: '1' },
+        state: { endpoint: 'hashtag/#1', page: '1', endpoints: [] },
         sleep: 42,
         args: {
           profileId: 'profile12345',
@@ -653,7 +653,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
       )
       const { activities } = iter.parseActivities(followers, 'followers')
@@ -947,7 +947,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         10,
         existingFollowers,
@@ -1000,7 +1000,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         10,
         existingFollowers,
@@ -1058,7 +1058,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         10,
         existingFollowers,
@@ -1098,7 +1098,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         10,
         existingFollowers,
@@ -1134,7 +1134,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         10,
         existingFollowers,
@@ -1154,7 +1154,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         10,
         existingFollowers,
@@ -1171,7 +1171,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         10,
         existingFollowers,
@@ -1220,7 +1220,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         10,
         existingFollowers,
@@ -1250,7 +1250,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         10,
         existingFollowers,
@@ -1278,7 +1278,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         10,
         existingFollowers,
@@ -1308,7 +1308,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         initialCount,
       )
@@ -1361,7 +1361,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         initialCount,
       )
@@ -1414,7 +1414,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         true,
         initialCount,
       )
@@ -1431,7 +1431,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         initialCount,
       )
@@ -1443,6 +1443,7 @@ describe('Integrations worker static tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'followers',
         page: 'p124',
+        endpoints: ['followers', 'mentions', 'hashtag/#1', 'hashtag/#2']
       })
     })
 
@@ -1453,7 +1454,7 @@ describe('Integrations worker static tests', () => {
         'profile12345',
         'token',
         ['#1', '#2'],
-        { endpoint: '', page: '' },
+        { endpoint: '', page: '', endpoints: [] },
         false,
         initialCount,
       )
@@ -1471,6 +1472,7 @@ describe('Integrations worker static tests', () => {
       const iter = new TwitterIterator('tenant12345', 'profile12345', 'token', ['#1', '#2'], {
         endpoint: '',
         page: '',
+        endpoints: []
       })
       const date = iter.getAfterDate()
       expect(moment(date).unix()).toBeCloseTo(

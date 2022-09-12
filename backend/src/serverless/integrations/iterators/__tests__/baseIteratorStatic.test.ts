@@ -5,35 +5,35 @@ describe('Integrations worker static tests', () => {
   const endpoints = ['endpoint1', 'endpoint2', 'endpoint3']
   describe('Get iterator tests', () => {
     it('Should return the endpoints to iterate for a standard state', async () => {
-      const state = { endpoint: 'endpoint2', page: 'here' }
+      const state = { endpoint: 'endpoint2', page: 'here', endpoints: [] }
       const iterator = BaseIterator.getEndPointsIterator(endpoints, state)
 
       expect(iterator).toStrictEqual(['endpoint2', 'endpoint3'])
     })
 
     it('Should return the endpoints to iterate for a state with no page', async () => {
-      const state = { endpoint: 'endpoint2', page: '' }
+      const state = { endpoint: 'endpoint2', page: '', endpoints: [] }
       const iterator = BaseIterator.getEndPointsIterator(endpoints, state)
 
       expect(iterator).toStrictEqual(['endpoint2', 'endpoint3'])
     })
 
     it('Should return the whole endpoints when the state is in the first endpoint with a page', async () => {
-      const state = { endpoint: 'endpoint1', page: 'here' }
+      const state = { endpoint: 'endpoint1', page: 'here', endpoints: [] }
       const iterator = BaseIterator.getEndPointsIterator(endpoints, state)
 
       expect(iterator).toStrictEqual(endpoints)
     })
 
     it('Should return the last endpoint when the state is in the last endpoint', async () => {
-      const state = { endpoint: 'endpoint3', page: '' }
+      const state = { endpoint: 'endpoint3', page: '', endpoints: [] }
       const iterator = BaseIterator.getEndPointsIterator(endpoints, state)
 
       expect(iterator).toStrictEqual(['endpoint3'])
     })
 
     it('Should throw an error when state.endpoint is not in endpoints', async () => {
-      const state = { endpoint: 'endpoint4', page: '' }
+      const state = { endpoint: 'endpoint4', page: '', endpoints: [] }
       try {
         BaseIterator.getEndPointsIterator(endpoints, state)
       } catch (error: any) {
@@ -48,10 +48,12 @@ describe('Integrations worker static tests', () => {
       const state = BaseIterator.initState(endpoints, {
         endpoint: '',
         page: '',
+        endpoints: []
       })
       expect(state).toStrictEqual({
         endpoint: 'endpoint1',
         page: '',
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
       })
     })
 
@@ -59,6 +61,7 @@ describe('Integrations worker static tests', () => {
       const givenState = {
         endpoint: 'endpoint2',
         page: 'here',
+        endpoints: []
       }
       const state = BaseIterator.initState(endpoints, givenState)
       expect(state).toStrictEqual(givenState)

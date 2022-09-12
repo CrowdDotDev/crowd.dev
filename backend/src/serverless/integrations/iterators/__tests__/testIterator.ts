@@ -1,11 +1,9 @@
 /* eslint @typescript-eslint/no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
 
-import { endpoint } from 'aws-sdk/clients/sns'
 import moment from 'moment'
-import { Endpoint } from 'aws-sdk'
 import { BaseOutput, parseOutput, IntegrationResponse } from '../../types/iteratorTypes'
-import { State } from '../../types/regularTypes'
+import { Endpoint, State } from '../../types/regularTypes'
 
 import BaseIterator from '../baseIterator'
 import { AddActivitiesSingle } from '../../types/messageTypes'
@@ -19,6 +17,7 @@ export default class TestIterator extends BaseIterator {
 
   static limitReachedState: State = {
     endpoint: '__limit',
+    endpoints: [],
     page: '__limit',
   }
 
@@ -33,7 +32,7 @@ export default class TestIterator extends BaseIterator {
    */
   constructor(
     transitionFn: Function,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
     limitCount: number = 0,
   ) {
@@ -137,5 +136,14 @@ export default class TestIterator extends BaseIterator {
 
   async iterate(maxTime: number = 12 * 60): Promise<BaseOutput> {
     return super.iterate(maxTime, false)
+  }
+
+  next(currentEndpoint: Endpoint, nextPage: string | undefined, parseOutput: parseOutput): State {
+    const next = super.next(currentEndpoint, nextPage, parseOutput)
+    if (this.audits.length > 0 ){
+      this.audits[this.audits.length - 1].endpoints = next.endpoints
+    }
+    return next
+
   }
 }
