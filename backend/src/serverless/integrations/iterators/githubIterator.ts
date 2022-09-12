@@ -69,8 +69,6 @@ export default class GithubIterator extends BaseIterator {
         acc.push(...repoEndpoints)
         return acc
       }, [])
-
-      state.endpoints = endpoints
     } else {
       endpoints = state.endpoints
     }

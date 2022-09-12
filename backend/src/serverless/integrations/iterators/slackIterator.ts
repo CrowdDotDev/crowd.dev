@@ -80,7 +80,6 @@ export default class SlackIterator extends BaseIterator {
     // Endpoints are the fixed endpoints plus the channels
     if (state.endpoints.length === 0) {
       endpoints = SlackIterator.fixedEndpoints.concat(channels.map((channel) => channel.id))
-      state.endpoints = endpoints
     }
 
     super(tenant, endpoints, state, onboarding, SlackIterator.globalLimit)

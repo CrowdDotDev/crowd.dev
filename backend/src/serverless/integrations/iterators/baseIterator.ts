@@ -58,11 +58,12 @@ export default abstract class BaseIterator {
   ) {
     this.tenant = tenant
 
-    if (state.endpoints.length > 0) {
+    if (state.endpoints.length > 0 && state.endpoint) {
       this.endpoints = state.endpoints
     } else {
       this.endpoints = endPoints
     }
+
     this.state = BaseIterator.initState(this.endpoints, state)
 
     this.startTimestamp = moment().utc().unix()
