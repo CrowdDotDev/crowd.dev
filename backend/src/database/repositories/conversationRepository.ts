@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import { QueryOutput } from './filters/queryTypes'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -7,6 +8,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { PlatformType } from '../../utils/platforms'
 import snakeCaseNames from '../../utils/snakeCaseNames'
+import QueryParser from './filters/queryParser'
 
 const Op = Sequelize.Op
 
@@ -159,14 +161,9 @@ class ConversationRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '', eagerLoad = [] },
+    { filter, advancedFilter = { and: [] }, limit = 0, offset = 0, orderBy = '', eagerLoad = [] },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const havingAnd: Array<any> = []
-
-    const whereAnd: Array<any> = []
     let customOrderBy: Array<any> = []
     const include = [
       {
@@ -186,9 +183,115 @@ class ConversationRepository {
       options.database.Sequelize.col('activities.timestamp'),
     )
 
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!lodash.isEmpty(advancedFilter)) {
+      // Filter by ID
+      if (filter.id) {
+        advancedFilter.and.push({ id: filter.id })
+      }
+
+      if (
+        filter.published === true ||
+        filter.published === 'true' ||
+        filter.published === false ||
+        filter.published === 'false'
+      ) {
+        advancedFilter.and.push({
+          published: filter.published === true || filter.published === 'true',
+        })
+      }
+
+      // Filter by title
+      if (filter.title) {
+        advancedFilter.and.push({
+          title: {
+            textContains: filter.title,
+          },
+        })
+      }
+
+      // Filter by slug
+      if (filter.slug) {
+        advancedFilter.and.push({
+          slug: {
+            like: filter.slug,
+          },
+        })
+      }
+
+      // Filter by createdAtRange
+      if (filter.createdAtRange) {
+        const [start, end] = filter.createdAtRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            createdAt: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            createdAt: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.platform) {
+        advancedFilter.and.push({
+          platform: filter.platform,
+        })
+      }
+
+      if (filter.channel) {
+        advancedFilter.and.push({
+          channel: { like: filter.channel },
+        })
+      }
+
+      if (filter.activityCountRange) {
+        const [start, end] = filter.activityCountRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            activityCount: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            activityCount: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.lastActiveRange) {
+        const [start, end] = filter.lastActiveRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            lastActive: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            lastActive: {
+              lte: end,
+            },
+          })
+        }
+      }
+    }
 
     // generate customOrderBy array for ordering Sequelize literals
     customOrderBy = customOrderBy.concat(
@@ -204,117 +307,26 @@ class ConversationRepository {
       SequelizeFilterUtils.customOrderByIfExists('channel', orderBy),
     )
 
-    if (filter) {
-      if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
-        })
-      }
+    const parser = new QueryParser(options, {
+      activityCount,
+      channel: Sequelize.literal(`"activities"."channel"`),
+      lastActive,
+      platform: Sequelize.literal(`"activities"."platform"`),
+    })
 
-      if (
-        filter.published === true ||
-        filter.published === 'true' ||
-        filter.published === false ||
-        filter.published === 'false'
-      ) {
-        whereAnd.push({
-          published: filter.published === true || filter.published === 'true',
-        })
-      }
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
-      if (filter.title) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('conversation', 'title', filter.title))
-      }
-
-      if (filter.slug) {
-        whereAnd.push(SequelizeFilterUtils.ilikeExact('conversation', 'slug', filter.slug))
-      }
-
-      if (filter.createdAtRange) {
-        const [start, end] = filter.createdAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.platform) {
-        whereAnd.push(SequelizeFilterUtils.ilikeExact('activities', 'platform', filter.platform))
-      }
-
-      if (filter.channel) {
-        whereAnd.push({
-          channel: Sequelize.where(Sequelize.literal(`"activities"."channel"`), {
-            [Sequelize.Op.like]: `%${filter.channel}%`,
-          }),
-        })
-      }
-
-      if (filter.activityCountRange) {
-        const [start, end] = filter.activityCountRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          havingAnd.push(
-            Sequelize.where(activityCount, {
-              [Op.gte]: start,
-            }),
-          )
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          havingAnd.push(
-            Sequelize.where(activityCount, {
-              [Op.lte]: end,
-            }),
-          )
-        }
-      }
-
-      if (filter.lastActiveRange) {
-        const [start, end] = filter.lastActiveRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          havingAnd.push(
-            Sequelize.where(lastActive, {
-              [Op.gte]: start,
-            }),
-          )
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          havingAnd.push(
-            Sequelize.where(lastActive, {
-              [Op.lte]: end,
-            }),
-          )
-        }
-      }
-    }
-
-    const having = { [Op.and]: havingAnd }
-
-    const where = { [Op.and]: whereAnd }
-
-    let order
+    let order = parsed.order
 
     if (customOrderBy.length > 0) {
       order = [customOrderBy]
     } else if (orderBy) {
       order = [orderBy.split('_')]
-    } else {
-      order = [['createdAt', 'DESC']]
     }
 
     // eslint-disable-next-line prefer-const
@@ -347,20 +359,18 @@ class ConversationRepository {
           'channel',
         ],
       ],
-      where,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
       include,
       order,
       transaction: SequelizeRepository.getTransaction(options),
       group: ['conversation.id', 'activities.platform', 'activities.channel'],
-      having,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
+      limit: parsed.limit,
+      offset: parsed.offset,
       subQuery: false,
       distinct: true,
     })
-
     rows = await this._populateRelationsForRows(rows, eagerLoad)
-
     return { rows, count: count.length }
   }
 
