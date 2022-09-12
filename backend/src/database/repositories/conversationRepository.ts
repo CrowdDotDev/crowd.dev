@@ -161,7 +161,14 @@ class ConversationRepository {
   }
 
   static async findAndCountAll(
-    { filter, advancedFilter = { and: [] }, limit = 0, offset = 0, orderBy = '', eagerLoad = [] },
+    {
+      filter = {} as any,
+      advancedFilter = null as any,
+      limit = 0,
+      offset = 0,
+      orderBy = '',
+      eagerLoad = [],
+    },
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
@@ -184,7 +191,8 @@ class ConversationRepository {
     )
 
     // If the advanced filter is empty, we construct it from the query parameter filter
-    if (!lodash.isEmpty(advancedFilter)) {
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
       // Filter by ID
       if (filter.id) {
         advancedFilter.and.push({ id: filter.id })

@@ -163,8 +163,6 @@ class QueryParser {
         const complexOp = QueryParser.complexOperators[key]
         if (complexOp) query = QueryParser.replaceKeyWithComplexOperator(query, key, complexOp)
       }
-
-      // console.debug("After Key:", key, " Query fields: ", JSON.stringify(query, null, 4))
     })
     return query
   }
@@ -225,7 +223,6 @@ class QueryParser {
   ) {
     // eslint-disable-next-line prefer-const
     let { filter, orderBy, limit, offset, include, fields } = query
-    console.debug('Request query: ', query)
 
     const dbQuery: any = {
       where: {
