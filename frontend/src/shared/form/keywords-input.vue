@@ -28,7 +28,7 @@
         @input="inputKeyword"
         @keydown.delete.stop="removeLastKeyword"
         @keydown="addNew"
-        @blur="addNew"
+        @blur="blur"
       />
     </div>
     <span
@@ -88,6 +88,10 @@ export default {
     inputKeyword(ev) {
       this.newKeyword = ev.target.value
     },
+    blur(e) {
+      this.focused = false
+      this.addNew(e)
+    },
     addNew(e) {
       if (
         e &&
@@ -116,7 +120,6 @@ export default {
         this.keywordChange()
         this.newKeyword = ''
       }
-      this.focused = false
     },
     addKeyword(keyword) {
       keyword = keyword.trim()
@@ -162,6 +165,7 @@ export default {
   .el-tag {
     margin: 4px 0 4px 4px;
   }
+
   &.is-focus {
     border: 1px solid #0068bd;
   }
