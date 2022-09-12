@@ -48,12 +48,12 @@ describe('Integrations worker static tests', () => {
       const state = BaseIterator.initState(endpoints, {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       })
       expect(state).toStrictEqual({
         endpoint: 'endpoint1',
         page: '',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
       })
     })
 
@@ -61,7 +61,7 @@ describe('Integrations worker static tests', () => {
       const givenState = {
         endpoint: 'endpoint2',
         page: 'here',
-        endpoints: []
+        endpoints: [],
       }
       const state = BaseIterator.initState(endpoints, givenState)
       expect(state).toStrictEqual(givenState)

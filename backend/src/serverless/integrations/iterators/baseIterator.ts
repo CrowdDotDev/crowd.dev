@@ -58,10 +58,9 @@ export default abstract class BaseIterator {
   ) {
     this.tenant = tenant
 
-    if (state.endpoints.length > 0 ){
+    if (state.endpoints.length > 0) {
       this.endpoints = state.endpoints
-    }
-    else{
+    } else {
       this.endpoints = endPoints
     }
     this.state = BaseIterator.initState(this.endpoints, state)
@@ -246,7 +245,7 @@ export default abstract class BaseIterator {
     return lodash.isEqual(startState, {
       endpoint: '',
       page: '',
-      endpoints: []
+      endpoints: [],
     })
       ? { endpoint: endpoints[0], page: '', endpoints }
       : startState
@@ -302,7 +301,7 @@ export default abstract class BaseIterator {
         : {
             endpoint: this.endpointsIterator[this.endpointsIterator.indexOf(currentEndpoint) + 1],
             page: '',
-            endpoints: this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1)
+            endpoints: this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1),
           }
     }
     // If we do not have a next page, return the next endpoint with an empty page and 0 for number
@@ -312,7 +311,9 @@ export default abstract class BaseIterator {
         ? currentEndpoint
         : this.endpointsIterator[this.endpointsIterator.indexOf(currentEndpoint) + 1],
       page: nextPage || '',
-      endpoints: nextPage ? this.endpoints : this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1)
+      endpoints: nextPage
+        ? this.endpoints
+        : this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1),
     }
   }
 

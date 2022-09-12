@@ -34,7 +34,7 @@ describe('BaseIterator tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'endpoint1',
         page: '123',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
       })
     })
 
@@ -47,7 +47,7 @@ describe('BaseIterator tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'endpoint2',
         page: '',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
     })
 
@@ -72,7 +72,7 @@ describe('BaseIterator tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'endpoint2',
         page: '',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
     })
 
@@ -85,7 +85,7 @@ describe('BaseIterator tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'endpoint2',
         page: '',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
     })
 
@@ -116,7 +116,7 @@ describe('BaseIterator tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'endpoint2',
         page: '',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
     })
   })
@@ -210,7 +210,7 @@ describe('BaseIterator tests', () => {
         { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '' , endpoints: ['endpoint3']},
+        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
         { endpoint: 'endpoint3', page: '', endpoints: [] },
       ])
       expect(out).toStrictEqual(success)
@@ -238,7 +238,7 @@ describe('BaseIterator tests', () => {
       expect(iter.state).toStrictEqual({
         endpoint: 'endpoint1',
         page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
       })
       expect(out).toStrictEqual(limitReached)
     })
@@ -272,7 +272,7 @@ describe('BaseIterator tests', () => {
       expect(iter.state).toStrictEqual({
         endpoint: 'endpoint1',
         page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
       })
       expect(out).toStrictEqual(limitReached)
     })
@@ -301,8 +301,8 @@ describe('BaseIterator tests', () => {
         { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '' , endpoints: ['endpoint3']},
-        { endpoint: 'endpoint3', page: '' , endpoints: []},
+        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
+        { endpoint: 'endpoint3', page: '', endpoints: [] },
       ])
       expect(iter.state).toStrictEqual(TestIterator.endState)
       expect(out).toStrictEqual(success)
@@ -335,15 +335,15 @@ describe('BaseIterator tests', () => {
         { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
         { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '' , endpoints: ['endpoint3']},
-        { endpoint: 'endpoint3', page: '' , endpoints: ['endpoint3']},
+        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
+        { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
         TestIterator.limitReachedState,
-        { endpoint: 'endpoint3', page: 'p1' ,endpoints: ['endpoint3']},
+        { endpoint: 'endpoint3', page: 'p1', endpoints: ['endpoint3'] },
       ])
       expect(iter.state).toStrictEqual({
         endpoint: 'endpoint3',
         page: 'p1',
-        endpoints: ['endpoint3']
+        endpoints: ['endpoint3'],
       })
       expect(out).toStrictEqual(limitReached)
     })
@@ -361,7 +361,7 @@ describe('BaseIterator tests', () => {
       const iter = new TestIterator(itFn, {
         endpoint: 'endpoint2',
         page: '',
-        endpoints: []
+        endpoints: [],
       })
       const out = await iter.iterate()
       expect(iter.audits).toStrictEqual([
@@ -389,12 +389,12 @@ describe('BaseIterator tests', () => {
       const iter = new TestIterator(itFn, {
         endpoint: 'endpoint2',
         page: 'p1',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
       const out = await iter.iterate()
       expect(iter.audits).toStrictEqual([
         { endpoint: 'endpoint2', page: 'p1', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: 'p2',endpoints: ['endpoint3'] },
+        { endpoint: 'endpoint2', page: 'p2', endpoints: ['endpoint3'] },
         { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
         { endpoint: 'endpoint3', page: 'p1', endpoints: [] },
       ])
@@ -419,7 +419,7 @@ describe('BaseIterator tests', () => {
       const iter = new TestIterator(itFn, {
         endpoint: 'endpoint2',
         page: 'p1',
-        endpoints: ['endpoint2', 'endpoint3']
+        endpoints: ['endpoint2', 'endpoint3'],
       })
       const out = await iter.iterate()
       expect(iter.audits).toStrictEqual([
@@ -432,7 +432,7 @@ describe('BaseIterator tests', () => {
       expect(iter.state).toStrictEqual({
         endpoint: 'endpoint3',
         page: 'p1',
-        endpoints: ['endpoint3']
+        endpoints: ['endpoint3'],
       })
       expect(out).toStrictEqual(limitReached)
     })
@@ -470,14 +470,14 @@ describe('BaseIterator tests', () => {
       expect(iter.state).toStrictEqual({
         endpoint: 'endpoint1',
         page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3']
+        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
       })
       expect(out).toStrictEqual(limitReached)
 
       const iter2 = new TestIterator(itFn2, {
         endpoint: 'endpoint1',
         page: 'p2',
-        endpoints: []
+        endpoints: [],
       })
       const out2 = await iter2.iterate()
       expect(iter2.audits).toStrictEqual([
@@ -618,24 +618,24 @@ describe('BaseIterator tests', () => {
     })
 
     it('Should start before iteration when a small limit is provided as init count', async () => {
-      const iter = new TestIterator((n) => n, { endpoint: '', page: '', endpoints: []}, true, 5)
+      const iter = new TestIterator((n) => n, { endpoint: '', page: '', endpoints: [] }, true, 5)
       const out = await iter.iterate()
       expect(out).toStrictEqual(TestIterator.success)
       expect(iter.audits).toStrictEqual([
         {
           endpoint: 'endpoint1',
           page: '',
-          endpoints: ['endpoint2', 'endpoint3']
+          endpoints: ['endpoint2', 'endpoint3'],
         },
         {
           endpoint: 'endpoint2',
           page: '',
-          endpoints: ['endpoint3']
+          endpoints: ['endpoint3'],
         },
         {
           endpoint: 'endpoint3',
           page: '',
-          endpoints: []
+          endpoints: [],
         },
       ])
     })
@@ -648,7 +648,7 @@ describe('BaseIterator tests', () => {
         {
           endpoint: 'endpoint1',
           page: '',
-          endpoints: []
+          endpoints: [],
         },
       ])
     })

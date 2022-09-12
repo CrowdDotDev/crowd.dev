@@ -1443,7 +1443,7 @@ describe('Integrations worker static tests', () => {
       expect(next).toStrictEqual({
         endpoint: 'followers',
         page: 'p124',
-        endpoints: ['followers', 'mentions', 'hashtag/#1', 'hashtag/#2']
+        endpoints: ['followers', 'mentions', 'hashtag/#1', 'hashtag/#2'],
       })
     })
 
@@ -1472,7 +1472,7 @@ describe('Integrations worker static tests', () => {
       const iter = new TwitterIterator('tenant12345', 'profile12345', 'token', ['#1', '#2'], {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       })
       const date = iter.getAfterDate()
       expect(moment(date).unix()).toBeCloseTo(

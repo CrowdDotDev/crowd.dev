@@ -262,7 +262,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -295,7 +295,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -366,7 +366,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -420,7 +420,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
-        endpoints: []
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,

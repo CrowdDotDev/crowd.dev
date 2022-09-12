@@ -73,15 +73,13 @@ export default class SlackIterator extends BaseIterator {
     members: Object,
     integrationId: string,
     userContext: IRepositoryOptions,
-    state: State = { endpoint: '', page: '', endpoints: []},
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
   ) {
     let endpoints: Endpoints = state.endpoints
     // Endpoints are the fixed endpoints plus the channels
-    if (state.endpoints.length === 0){
-      endpoints = SlackIterator.fixedEndpoints.concat(
-        channels.map((channel) => channel.id),
-      )
+    if (state.endpoints.length === 0) {
+      endpoints = SlackIterator.fixedEndpoints.concat(channels.map((channel) => channel.id))
       state.endpoints = endpoints
     }
 

@@ -140,10 +140,9 @@ export default class TestIterator extends BaseIterator {
 
   next(currentEndpoint: Endpoint, nextPage: string | undefined, parseOutput: parseOutput): State {
     const next = super.next(currentEndpoint, nextPage, parseOutput)
-    if (this.audits.length > 0 ){
+    if (this.audits.length > 0) {
       this.audits[this.audits.length - 1].endpoints = next.endpoints
     }
     return next
-
   }
 }

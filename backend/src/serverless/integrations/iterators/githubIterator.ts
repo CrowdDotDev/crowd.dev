@@ -61,7 +61,7 @@ export default class GithubIterator extends BaseIterator {
     onboarding: boolean = false,
   ) {
     let endpoints: Endpoints
-    if (state.endpoints.length === 0){
+    if (state.endpoints.length === 0) {
       endpoints = repos.reduce((acc, repo) => {
         const repoEndpoints = GithubIterator.fixedEndpoints.map(
           (endpoint) => `${repo.name}|${endpoint}`,
@@ -71,8 +71,7 @@ export default class GithubIterator extends BaseIterator {
       }, [])
 
       state.endpoints = endpoints
-    }
-    else{
+    } else {
       endpoints = state.endpoints
     }
 
