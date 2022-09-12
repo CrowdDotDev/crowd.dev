@@ -589,7 +589,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('1', recentRecord)
@@ -605,7 +605,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('4', recentRecord)
@@ -621,7 +621,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('3', recentRecord)
@@ -637,7 +637,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('1', oldRecord)
@@ -653,7 +653,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('3', oldRecord)
@@ -669,7 +669,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOver = iter.integrationSpecificIsEndpointFinished('4', oldRecord)
@@ -685,7 +685,7 @@ describe('Discord iterator tests', () => {
           'guild12345',
           'token12345',
           channels,
-          { endpoint: '', page: '' },
+          { endpoint: '', page: '', endpoints: [] },
           true,
         )
         const isOverGeneral = iter.isEndpointFinished('4', {}, [])

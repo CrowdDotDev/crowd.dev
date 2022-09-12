@@ -27,6 +27,7 @@ import Error400 from '../../../errors/Error400'
 
 export default class GithubIterator extends BaseIterator {
   static limitReachedState: State = {
+    endpoints: [],
     endpoint: '__limit',
     page: '__limit',
   }
@@ -56,16 +57,21 @@ export default class GithubIterator extends BaseIterator {
     tenant: string,
     repos: Repos,
     accessToken: string,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoints: [], endpoint: '', page: '' },
     onboarding: boolean = false,
   ) {
-    const endpoints: Endpoints = repos.reduce((acc, repo) => {
-      const repoEndpoints = GithubIterator.fixedEndpoints.map(
-        (endpoint) => `${repo.name}|${endpoint}`,
-      )
-      acc.push(...repoEndpoints)
-      return acc
-    }, [])
+    let endpoints: Endpoints
+    if (state.endpoints.length === 0) {
+      endpoints = repos.reduce((acc, repo) => {
+        const repoEndpoints = GithubIterator.fixedEndpoints.map(
+          (endpoint) => `${repo.name}|${endpoint}`,
+        )
+        acc.push(...repoEndpoints)
+        return acc
+      }, [])
+    } else {
+      endpoints = state.endpoints
+    }
 
     super(tenant, endpoints, state, onboarding, GithubIterator.globalLimit)
     this.repos = repos
