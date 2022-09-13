@@ -7,32 +7,32 @@
         </div>
 
         <el-form
+          ref="form"
           :model="model"
           :rules="rules"
-          @submit.prevent.native="doSubmit"
           class="form"
           label-position="left"
           label-width="0px"
-          ref="form"
+          @submit.prevent="doSubmit"
         >
           <el-form-item :prop="fields.email.name">
             <el-input
+              id="email"
+              ref="focus"
+              v-model="model[fields.email.name]"
               :placeholder="fields.email.label"
               auto-complete="off"
-              ref="focus"
               type="text"
-              v-model="model[fields.email.name]"
-              id="email"
             ></el-input>
           </el-form-item>
 
           <el-form-item :prop="fields.password.name">
             <el-input
+              id="password"
+              v-model="model[fields.password.name]"
               :placeholder="fields.password.label"
               auto-complete="off"
               type="password"
-              v-model="model[fields.password.name]"
-              id="password"
             ></el-input>
           </el-form-item>
 
@@ -47,8 +47,8 @@
               "
             >
               <el-checkbox
-                v-model="model[fields.rememberMe.name]"
                 id="remember-me"
+                v-model="model[fields.rememberMe.name]"
                 >{{ fields.rememberMe.label }}</el-checkbox
               >
 
@@ -66,10 +66,10 @@
 
           <el-form-item>
             <el-button
+              id="submit"
               :loading="loading"
               native-type="submit"
               class="w-100 btn btn--primary"
-              id="submit"
             >
               <app-i18n code="auth.signin"></app-i18n>
             </el-button>
@@ -101,7 +101,7 @@ import Message from '@/shared/message/message'
 import config from '@/config'
 
 export default {
-  name: 'app-signin-page',
+  name: 'AppSigninPage',
 
   data() {
     return {
@@ -112,20 +112,6 @@ export default {
       },
       model: {
         rememberMe: true
-      }
-    }
-  },
-
-  created() {
-    const { socialErrorCode } = this.$route.query
-
-    if (socialErrorCode) {
-      if (socialErrorCode === 'generic') {
-        Message.error(i18n('errors.defaultErrorMessage'))
-      } else {
-        Message.error(
-          i18n(`auth.social.errors.${socialErrorCode}`)
-        )
       }
     }
   },
@@ -152,6 +138,20 @@ export default {
         backgroundSize: 'auto',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'left 100px bottom 100px'
+      }
+    }
+  },
+
+  created() {
+    const { socialErrorCode } = this.$route.query
+
+    if (socialErrorCode) {
+      if (socialErrorCode === 'generic') {
+        Message.error(i18n('errors.defaultErrorMessage'))
+      } else {
+        Message.error(
+          i18n(`auth.social.errors.${socialErrorCode}`)
+        )
       }
     }
   },

@@ -1,16 +1,16 @@
 <template>
   <div class="conversation-form-page">
     <div
-      class="app-page-spinner"
       v-if="loading('form') || loading('view')"
       v-loading="loading('form') || loading('view')"
+      class="app-page-spinner"
     ></div>
 
     <div v-else class="relative">
       <app-conversation-form
-        :isEditing="editing && isEditing"
+        :is-editing="editing && isEditing"
         :record="conversation"
-        :saveLoading="loading('submit')"
+        :save-loading="loading('submit')"
         @edit="editing = true"
         @cancel="handleCancel"
         @submit="handleSubmit"
@@ -20,8 +20,8 @@
       <div class="font-semibold mb-2">Activities:</div>
       <app-activity-list-feed-item
         v-for="activity in conversation.activities"
-        :activity="activity"
         :key="activity.id"
+        :activity="activity"
         :belongs-to-conversation="true"
       ></app-activity-list-feed-item>
     </div>
@@ -34,13 +34,24 @@ import ConversationForm from '@/modules/conversation/components/conversation-for
 import ActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'
 
 export default {
-  name: 'app-conversation-form-page',
-
-  props: ['id'],
+  name: 'AppConversationFormPage',
 
   components: {
     'app-conversation-form': ConversationForm,
     'app-activity-list-feed-item': ActivityListFeedItem
+  },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      editing: false
+    }
   },
 
   computed: {
@@ -62,12 +73,6 @@ export default {
   async created() {
     await this.doFind(this.id)
     await this.doInitForm(this.id)
-  },
-
-  data() {
-    return {
-      editing: false
-    }
   },
 
   methods: {

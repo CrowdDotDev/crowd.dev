@@ -34,6 +34,15 @@
   @apply w-0;
 }
 
+.el-table--border {
+  .el-table__cell {
+    @apply border-none;
+  }
+  .el-table__inner-wrapper::after {
+    display: none;
+  }
+}
+
 .el-table--striped .el-table__body tr.el-table__row--striped.current-row td, .el-table__body tr.current-row > td, .el-table__body tr.hover-row.current-row > td, .el-table__body tr.hover-row.el-table__row--striped.current-row > td, .el-table__body tr.hover-row.el-table__row--striped > td, .el-table__body tr.hover-row > td {
   @apply bg-background;
 }

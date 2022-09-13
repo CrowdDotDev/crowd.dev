@@ -3,52 +3,52 @@
     <span class="el-dropdown-link">
       <i class="text-xl ri-more-line"></i>
     </span>
-    <el-dropdown-menu slot="dropdown">
+    <template #dropdown>
       <el-dropdown-item
-        icon="ri-link"
+        v-if="conversation.published"
         :command="{
           action: 'conversationPublicUrl',
           conversation: conversation
         }"
-        v-if="conversation.published"
-        >Copy Public Url</el-dropdown-item
+        ><i class="ri-link mr-1" />Copy Public
+        Url</el-dropdown-item
       >
       <el-dropdown-item
-        icon="ri-eye-line"
+        v-if="showViewConversation"
         :command="{
           action: 'conversationView',
           conversation: conversation
         }"
-        v-if="showViewConversation"
-        >View Conversation</el-dropdown-item
+        ><i class="ri-eye-line mr-1" />View
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
-        icon="ri-upload-cloud-2-line"
+        v-if="!conversation.published"
         :command="{
           action: 'conversationPublish',
           conversation: conversation
         }"
-        v-if="!conversation.published"
-        >Publish Conversation</el-dropdown-item
+        ><i class="ri-upload-cloud-2-line mr-1" />Publish
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
-        icon="ri-arrow-go-back-line"
+        v-else
         :command="{
           action: 'conversationUnpublish',
           conversation: conversation
         }"
-        v-else
-        >Unpublish Conversation</el-dropdown-item
+        ><i class="ri-arrow-go-back-line mr-1" />Unpublish
+        Conversation</el-dropdown-item
       >
       <el-dropdown-item
-        icon="ri-delete-bin-line"
         :command="{
           action: 'conversationDelete',
           conversation: conversation
         }"
-        >Delete Conversation</el-dropdown-item
+        ><i class="ri-delete-bin-line mr-1" />Delete
+        Conversation</el-dropdown-item
       >
-    </el-dropdown-menu>
+    </template>
   </el-dropdown>
 </template>
 
@@ -59,7 +59,7 @@ import Message from '@/shared/message/message'
 import config from '@/config'
 
 export default {
-  name: 'app-conversation-dropdown',
+  name: 'AppConversationDropdown',
   props: {
     conversation: {
       type: Object,

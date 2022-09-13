@@ -1,17 +1,22 @@
 <template>
   <div class="app-avatar" style="margin-right: 8px">
     <img
-      :src="value.length && value[0].downloadUrl"
       v-if="!isBlank"
+      :src="value.length && value[0].downloadUrl"
     />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app-list-item-image',
+  name: 'AppListItemImage',
 
-  props: ['value'],
+  props: {
+    value: {
+      type: Array,
+      default: () => []
+    }
+  },
 
   computed: {
     isBlank() {

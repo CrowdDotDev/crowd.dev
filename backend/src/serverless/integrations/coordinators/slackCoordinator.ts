@@ -16,7 +16,7 @@ async function slackCoordinator(): Promise<void> {
       sleep: 0,
       tenant: integration.tenantId.toString(),
       onboarding: false,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints: [] },
       args: {
         channels: integration.settings.channels || [],
       },

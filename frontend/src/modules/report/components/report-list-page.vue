@@ -4,18 +4,14 @@
       <app-i18n code="entities.report.name"></app-i18n>
     </h1>
     <div class="flex items-center justify-end mb-4">
-      <portal-target
-        name="report-filter-toggle"
-      ></portal-target>
+      <div id="teleport-report-filter-toggle"></div>
 
       <router-link
-        :to="{ path: '/reports/new' }"
         v-if="hasPermissionToCreate"
+        :to="{ path: '/reports/new' }"
       >
-        <el-button
-          icon="ri-lg ri-add-line"
-          class="btn btn--primary ml-2"
-        >
+        <el-button class="btn btn--primary ml-2">
+          <i class="ri-lg ri-add-line mr-1" />
           <app-i18n code="common.new"></app-i18n>
         </el-button>
       </router-link>
@@ -31,7 +27,7 @@ import ReportListTable from '@/modules/report/components/report-list-table.vue'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 
 export default {
-  name: 'app-report-list-page',
+  name: 'AppReportListPage',
 
   components: {
     'app-report-list-table': ReportListTable
@@ -50,12 +46,6 @@ export default {
     }
   },
 
-  methods: {
-    ...mapActions({
-      doFetch: 'report/doFetch'
-    })
-  },
-
   created() {
     this.doFetch({
       keepPagination: true
@@ -64,6 +54,12 @@ export default {
 
   async mounted() {
     window.analytics.page('Reports')
+  },
+
+  methods: {
+    ...mapActions({
+      doFetch: 'report/doFetch'
+    })
   }
 }
 </script>

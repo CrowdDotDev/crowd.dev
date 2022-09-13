@@ -370,8 +370,7 @@ const es = {
     },
     select: 'Seleccionar espacio de trabajo',
     validation: {
-      url:
-        'La URL de su espacio de trabajo solo puede contener letras minúsculas, números y guiones (y debe comenzar con una letra o número).'
+      url: 'La URL de su espacio de trabajo solo puede contener letras minúsculas, números y guiones (y debe comenzar con una letra o número).'
     }
   },
   roles: {

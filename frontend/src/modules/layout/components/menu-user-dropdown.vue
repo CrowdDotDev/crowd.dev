@@ -13,7 +13,7 @@
           size="sm"
           class="mr-2"
         ></app-avatar>
-        <div class="text-sm" v-if="!collapsed">
+        <div v-if="!collapsed" class="text-sm">
           <div class="text-white font-semibold">
             {{ currentUserNameOrEmailPrefix }}
           </div>
@@ -23,11 +23,13 @@
         </div>
       </div>
     </div>
-    <el-dropdown-menu slot="dropdown">
+    <template #dropdown>
       <div
         v-if="currentTenant && currentTenant.onboardedAt"
       >
-        <span class="el-dropdown-title">Workspace</span>
+        <span class="el-dropdown-title pt-2"
+          >Workspace</span
+        >
         <div class="flex items-center text-sm px-5 mb-1">
           <div
             class="h-2 w-2 flex justify-center items-center bg-primary-900 rounded-full mr-2"
@@ -37,12 +39,12 @@
           </div>
         </div>
         <el-dropdown-item
-          command="doSwitchTenants"
           v-if="
             ['multi', 'multi-with-subdomain'].includes(
               tenantMode
             ) && hasTenantModule
           "
+          command="doSwitchTenants"
         >
           Manage Workspaces
         </el-dropdown-item>
@@ -60,7 +62,7 @@
       <el-dropdown-item command="doSignout">
         <app-i18n code="auth.signout"></app-i18n>
       </el-dropdown-item>
-    </el-dropdown-menu>
+    </template>
   </el-dropdown>
 </template>
 
@@ -70,7 +72,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-menu-user-dropdown',
+  name: 'AppMenuUserDropdown',
 
   props: {
     collapsed: {

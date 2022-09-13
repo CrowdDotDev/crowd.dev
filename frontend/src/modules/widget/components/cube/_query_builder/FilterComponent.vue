@@ -21,22 +21,22 @@
     </div>
     <div v-else class="mt-2">
       <div class="flex -mx-3">
-        <div class="px-3 flex-1 flex-grow">
+        <div class="px-3 flex-1 grow">
           <label class="block leading-none mb-2"
             >Measure/Dimension</label
           >
         </div>
-        <div class="px-3 flex-1 flex-grow">
+        <div class="px-3 flex-1 grow">
           <label class="block leading-none mb-2"
             >Condition</label
           >
         </div>
-        <div class="px-3 flex-1 flex-grow">
+        <div class="px-3 flex-1 grow">
           <label class="block leading-none mb-2"
             >Value</label
           >
         </div>
-        <div class="px-3 flex-shrink">
+        <div class="px-3 shrink">
           <span class="w-1 block">&nbsp;</span>
         </div>
       </div>
@@ -45,7 +45,7 @@
         :key="filter.id"
         class="flex -mx-3 -my-2 items-center"
       >
-        <div class="px-3 py-2 flex-grow">
+        <div class="px-3 py-2 grow">
           <el-select
             v-model="filter.select"
             clearable
@@ -61,7 +61,7 @@
           </el-select>
         </div>
 
-        <div class="px-3 py-2 flex-grow">
+        <div class="px-3 py-2 grow">
           <el-select
             v-model="filter.operator"
             clearable
@@ -77,14 +77,14 @@
           </el-select>
         </div>
 
-        <div class="px-3 py-2 flex-grow">
+        <div class="px-3 py-2 grow">
           <el-input
-            type="text"
             v-model="filter.value"
+            type="text"
             @change="handleFilterChange"
           ></el-input>
         </div>
-        <div class="px-3 py-2 flex-shrink">
+        <div class="px-3 py-2 shrink">
           <el-tooltip
             content="Delete Filter"
             placement="top"
@@ -107,13 +107,28 @@
 import { v4 as uuid } from 'uuid'
 export default {
   name: 'FilterComponent',
-  props: [
-    'measures',
-    'dimensions',
-    'filters',
-    'availableDimensions',
-    'setFilters'
-  ],
+  props: {
+    measures: {
+      type: Array,
+      default: () => []
+    },
+    dimensions: {
+      type: Array,
+      default: () => []
+    },
+    filters: {
+      type: Array,
+      default: () => []
+    },
+    availableDimensions: {
+      type: Array,
+      default: () => []
+    },
+    setFilters: {
+      type: Function,
+      default: () => {}
+    }
+  },
   data() {
     return {
       measureDimensionFilters: {

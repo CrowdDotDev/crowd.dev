@@ -6,19 +6,12 @@
  * It checks if the emailVerified attribute is set within our currentUser store object (if not, redirects to /)
  *
  * @param to
- * @param next
  * @param store
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({
-  to,
-  store,
-  next,
-  router
-}) {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.emailAlreadyVerified) {
-    next()
     return
   }
 
@@ -29,7 +22,5 @@ export default async function ({
     store.getters['auth/currentUser'].emailVerified
   ) {
     return router.push('/')
-  } else {
-    next()
   }
 }

@@ -7,16 +7,19 @@ module.exports = {
   configureWebpack: {
     plugins: [
       new webpack.DefinePlugin({
-        'process.env': {
-          PACKAGE_VERSION: '"' + version + '"'
-        }
+        'process.env.PACKAGE_VERSION': '"' + version + '"'
       })
     ]
   },
   devServer: {
     port: 8081,
     allowedHosts: ['.localhost'],
-    disableHostCheck: true,
-    public: process.env.VUE_APP_FRONTEND_HOST
-  }
+    client: {
+      webSocketURL: 'auto://0.0.0.0:0/ws'
+    }
+  },
+  transpileDependencies: [
+    '@cubejs-client/core',
+    '@cubejs-client/vue3'
+  ]
 }

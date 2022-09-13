@@ -3,13 +3,13 @@
     <app-report-list-toolbar></app-report-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
-        :border="true"
-        :data="reports"
-        @sort-change="doChangeSort"
         ref="table"
-        row-key="id"
         v-loading="loading('table')"
+        :data="reports"
+        row-key="id"
+        border
         :row-class-name="rowClass"
+        @sort-change="doChangeSort"
       >
         <el-table-column
           type="selection"
@@ -21,7 +21,7 @@
           prop="name"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <router-link
               :to="{
                 name: 'reportView',
@@ -36,7 +36,7 @@
           </template>
         </el-table-column>
         <el-table-column label="Public">
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.public ? 'Yes' : 'No' }}
           </template>
         </el-table-column>
@@ -44,12 +44,12 @@
           label="# of Widgets"
           prop="widgetsCount"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.widgets.length }}
           </template>
         </el-table-column>
         <el-table-column label="" width="200">
-          <template slot-scope="scope">
+          <template #default="scope">
             <div class="table-actions">
               <app-report-dropdown
                 :report="scope.row"
@@ -65,6 +65,7 @@
           :disabled="loading('table')"
           :layout="paginationLayout"
           :total="count"
+          :page-size="pagination.pageSize"
           :page-sizes="[20, 50, 100, 200]"
           @current-change="doChangePaginationCurrentPage"
           @size-change="doChangePaginationPageSize"
@@ -85,13 +86,10 @@ import ReportListDropdown from './report-list-toolbar'
 const { fields } = ReportModel
 
 export default {
-  name: 'app-report-list-table',
+  name: 'AppReportListTable',
   components: {
     'app-report-dropdown': ReportDropdown,
     'app-report-list-toolbar': ReportListDropdown
-  },
-  mounted() {
-    this.doMountTable(this.$refs.table)
   },
 
   computed: {
@@ -128,6 +126,10 @@ export default {
     reports() {
       return [...this.rows]
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

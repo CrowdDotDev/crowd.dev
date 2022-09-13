@@ -10,9 +10,9 @@ export class FilterSchema {
     queryParams = queryParams || {}
     let record = rawFilter || {}
 
-    const hasFilterFromQuery = _values(
-      queryParams
-    ).some((filterValue) => Boolean(filterValue))
+    const hasFilterFromQuery = _values(queryParams).some(
+      (filterValue) => Boolean(filterValue)
+    )
 
     if (hasFilterFromQuery) {
       record = queryParams

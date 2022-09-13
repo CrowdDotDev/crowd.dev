@@ -1,6 +1,5 @@
 import { EagleEyeService } from '@/premium/eagle-eye/eagle-eye-service'
 import Errors from '@/shared/error/errors'
-import Vue from 'vue'
 
 const INITIAL_PAGE_SIZE = 20
 
@@ -191,11 +190,11 @@ export default {
       state.loading = false
       for (let record of payload.rows) {
         if (state.records[record.id]) {
-          Vue.set(state.records, record.id, {
+          state.records[record.id] = {
             ...record
-          })
+          }
         } else {
-          Vue.set(state.records, record.id, record)
+          state.records[record.id] = record
         }
       }
       state.rows = payload.rows.map((row) => row.id)
@@ -226,14 +225,14 @@ export default {
       if (state.records[recordId].status !== 'engaged') {
         state.count--
       }
-      Vue.set(state.records[recordId], 'status', 'engaged')
+      state.records[recordId].status = 'engaged'
     },
     ENGAGE_ERROR() {},
 
     EXCLUDE_STARTED() {},
 
     EXCLUDE_SUCCESS(state, recordId) {
-      Vue.set(state.records[recordId], 'status', 'rejected')
+      state.records[recordId].status = 'rejected'
       state.count--
     },
     EXCLUDE_ERROR() {},
@@ -241,7 +240,7 @@ export default {
     REVERT_EXCLUDE_STARTED() {},
 
     REVERT_EXCLUDE_SUCCESS(state, recordId) {
-      Vue.set(state.records[recordId], 'status', null)
+      state.records[recordId].status = null
       state.count--
     },
     REVERT_EXCLUDE_ERROR() {},

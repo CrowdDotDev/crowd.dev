@@ -1,8 +1,8 @@
 <template>
   <app-widget
+    v-if="widget"
     :config="config"
     class="custom-height"
-    v-if="widget"
   >
     <div class="widget-integrations">
       <div
@@ -17,10 +17,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in activeIntegrationsByStatus[
-              'in-progress'
-            ]"
+            v-for="(
+              integration, index
+            ) in activeIntegrationsByStatus['in-progress']"
             :key="index"
           >
             <div class="my-2">
@@ -48,8 +47,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in activeIntegrationsByStatus.done"
+            v-for="(
+              integration, index
+            ) in activeIntegrationsByStatus.done"
             :key="index"
           >
             <div class="my-2">
@@ -72,8 +72,9 @@
         </span>
         <div class="flex flex-wrap items-center relative">
           <div
-            v-for="(integration,
-            index) in inactiveIntegrations"
+            v-for="(
+              integration, index
+            ) in inactiveIntegrations"
             :key="index"
           >
             <div class="my-2">
@@ -100,9 +101,14 @@ import { mapGetters, mapActions } from 'vuex'
 import integrationsJson from '@/jsons/integrations'
 
 export default {
-  name: 'widget-integrations',
+  name: 'WidgetIntegrations',
   components: {
     'app-widget': Widget
+  },
+  data() {
+    return {
+      loading: false
+    }
   },
   computed: {
     ...mapGetters({
@@ -144,11 +150,6 @@ export default {
         }
         return acc
       }, {})
-    }
-  },
-  data() {
-    return {
-      loading: false
     }
   },
   async created() {

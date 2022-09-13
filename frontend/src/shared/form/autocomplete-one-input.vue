@@ -3,9 +3,8 @@
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
+    :model-value="modelValue"
     :placeholder="placeholder || ''"
-    @change="onChange"
     clearable
     default-first-option
     filterable
@@ -14,18 +13,19 @@
     :reserve-keyword="false"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
   >
     <el-option
+      v-if="initialOption"
       :key="initialOption.id"
       :label="initialOption.label"
       :value="initialOption"
-      v-if="initialOption"
     ></el-option>
     <el-option
+      v-for="record in dataSource"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
     ></el-option>
   </el-select>
 </template>
@@ -37,14 +37,16 @@ import isString from 'lodash/isString'
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-one-input',
+  name: 'AppAutocompleteOneInput',
 
   props: {
-    value: {
-      type: Object
+    modelValue: {
+      type: Object,
+      default: () => {}
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     options: {
       type: Array,
@@ -79,6 +81,7 @@ export default {
       default: false
     }
   },
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -91,13 +94,6 @@ export default {
         return
       }
     }
-  },
-
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
   },
 
   computed: {
@@ -123,15 +119,22 @@ export default {
     }
   },
 
+  mounted() {
+    this.debouncedSearch = debounce(
+      this.handleSearch.bind(this),
+      300
+    )
+  },
+
   methods: {
     async onChange(value) {
       if (typeof value === 'string' && value) {
         // If value is a string, convert it to a db object
         const newItem = await this.createFn(value)
         this.inMemoryDataSource.push(newItem)
-        this.$emit('input', newItem)
+        this.$emit('update:modelValue', newItem)
       } else {
-        this.$emit('input', value || null)
+        this.$emit('update:modelValue', value || null)
       }
     },
 

@@ -1,43 +1,36 @@
 <template>
   <div class="dashboard-number-widgets">
     <el-row
-      type="flex"
       :gutter="16"
       class="mt-4 mb-2 justify-between items-center"
     >
-      <el-col
-        :lg="12"
-        :md="12"
-        :sm="24"
-        class="flex items-end"
-      >
-        <div class="font-light text-xl leading-none">
-          Your community
-        </div>
-        <div
-          class="flex items-center text-sm ml-4 text-gray-500"
-        >
-          <i class="ri-information-line mr-1"></i>
-          <span class="block font-light italic"
-            >Metrics are recomputed every hour</span
+      <el-col :lg="12" :md="12" :sm="24">
+        <div class="flex items-end">
+          <div class="font-light text-xl leading-none">
+            Your community
+          </div>
+          <div
+            class="flex items-center text-sm ml-4 text-gray-500"
           >
+            <i class="ri-information-line mr-1"></i>
+            <span class="block font-light italic"
+              >Metrics are recomputed every hour</span
+            >
+          </div>
         </div>
       </el-col>
-      <el-col
-        :lg="12"
-        :md="12"
-        :sm="24"
-        class="flex justify-end items-center"
-      >
-        <el-select v-model="date" placeholder="Select">
-          <el-option
-            v-for="(item, index) in dateOptions"
-            :key="index"
-            :label="item.label"
-            :value="item.value"
-          >
-          </el-option>
-        </el-select>
+      <el-col :lg="12" :md="12" :sm="24">
+        <div class="flex justify-end items-center">
+          <el-select v-model="date" placeholder="Select">
+            <el-option
+              v-for="(item, index) in dateOptions"
+              :key="index"
+              :label="item.label"
+              :value="item.value"
+            >
+            </el-option>
+          </el-select>
+        </div>
       </el-col>
     </el-row>
     <el-row type="flex" :gutter="16">
@@ -89,7 +82,7 @@ import WidgetGraphMembers from '@/modules/widget/components/dashboard/widget-gra
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 
 export default {
-  name: 'dashboard-number-widgets',
+  name: 'DashboardNumberWidgets',
   components: {
     'app-widget-graph-members': WidgetGraphMembers,
     'app-widget-graph-activities': WidgetGraphActivities,

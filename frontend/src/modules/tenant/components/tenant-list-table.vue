@@ -1,23 +1,23 @@
 <template>
   <div>
     <el-table
-      :border="true"
-      :data="rows"
-      @sort-change="doChangeSort"
       ref="table"
-      row-key="id"
       v-loading="loading"
+      :data="rows"
+      border
+      row-key="id"
+      @sort-change="doChangeSort"
     >
       <el-table-column
         :label="fields.name.label"
         :prop="fields.name.name"
         sortable="custom"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ presenter(scope.row, 'name') }}
           <el-tag
-            type="warning"
             v-if="invitationToken(scope.row)"
+            type="warning"
           >
             <app-i18n
               code="tenant.invitation.invited"
@@ -25,12 +25,12 @@
           </el-tag>
 
           <el-button
-            @click="doSelectTenant(scope.row)"
-            class="btn btn--secondary btn--secondary--orange ml-4 block"
             v-if="
               !isCurrentTenant(scope.row) &&
               !invitationToken(scope.row)
             "
+            class="btn btn--secondary btn--secondary--orange ml-4 block"
+            @click="doSelectTenant(scope.row)"
           >
             Switch to this workspace
           </el-button>
@@ -38,25 +38,25 @@
       </el-table-column>
 
       <el-table-column
+        v-if="tenantSubdomain.isEnabled"
         :label="fields.url.label"
         :prop="fields.url.name"
         align="center"
-        v-if="tenantSubdomain.isEnabled"
         width="180"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ urlOf(scope.row) }}
         </template>
       </el-table-column>
 
       <el-table-column
+        v-if="isPlanEnabled"
         :label="fields.plan.label"
         :prop="fields.plan.name"
         align="center"
-        v-if="isPlanEnabled"
         width="180"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag
             :type="
               scope.row.plan === plans.free
@@ -73,17 +73,17 @@
         align="center"
         width="180"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <div v-if="invitationToken(scope.row)">
             <div style="margin-bottom: 8px">
               <el-button
                 :disabled="invitationLoading"
+                type="success"
                 @click="
                   doAcceptInvitation(
                     invitationToken(scope.row)
                   )
                 "
-                type="success"
               >
                 <app-i18n
                   code="tenant.invitation.accept"
@@ -93,12 +93,12 @@
             <div>
               <el-button
                 :disabled="invitationLoading"
+                type="danger"
                 @click="
                   doDeclineInvitationWithConfirm(
                     invitationToken(scope.row)
                   )
                 "
-                type="danger"
               >
                 <app-i18n
                   code="tenant.invitation.decline"
@@ -107,12 +107,12 @@
             </div>
           </div>
           <div
-            class="table-actions"
             v-if="!invitationToken(scope.row)"
+            class="table-actions"
           >
             <router-link
-              :to="`/tenant/${scope.row.id}/edit`"
               v-if="hasPermissionToEdit(scope.row)"
+              :to="`/tenant/${scope.row.id}/edit`"
             >
               <el-button type="text">
                 <app-i18n code="common.edit"></app-i18n>
@@ -138,6 +138,7 @@
         :disabled="loading"
         :layout="paginationLayout"
         :total="count"
+        :page-size="pagination.pageSize"
         :page-sizes="[20, 50, 100, 200]"
         @current-change="doChangePaginationCurrentPage"
         @size-change="doChangePaginationPageSize"
@@ -158,15 +159,7 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 const { fields } = TenantModel
 
 export default {
-  name: 'app-tenant-list-table',
-
-  created() {
-    return this.doFetch()
-  },
-
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
+  name: 'AppTenantListTable',
 
   computed: {
     ...mapGetters({
@@ -198,6 +191,14 @@ export default {
     isPlanEnabled() {
       return config.isPlanEnabled
     }
+  },
+
+  created() {
+    return this.doFetch()
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {
