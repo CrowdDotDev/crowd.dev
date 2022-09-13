@@ -122,7 +122,7 @@ export default {
     }
 
     &--active {
-      @apply relative text-primary-900;
+      @apply relative text-brand-500;
     }
 
     &--filter-inactive {

@@ -29,10 +29,10 @@
   }
 
   &--primary {
-    @apply bg-primary-900 border border-primary-900 text-white;
+    @apply bg-brand-500 border border-brand-500 text-white;
 
     &:hover, &:focus {
-      @apply bg-primary-900 border border-primary-900 text-white opacity-90;
+      @apply bg-brand-500 border border-brand-500 text-white opacity-90;
     }
 
     &[disabled] {
@@ -54,9 +54,9 @@
     }
 
     &--orange {
-      @apply text-primary-900 border-primary-900;
+      @apply text-brand-500 border-brand-500;
       &:focus, &:hover {
-        @apply text-primary-900 border-primary-900;
+        @apply text-brand-500 border-brand-500;
       }
     }
 
@@ -119,7 +119,7 @@
   }
 
   &--email, &--email:hover {
-    @apply border-0 text-primary-900;
+    @apply border-0 text-brand-500;
     background-color: rgba(219, 53, 0, 0.1);
   }
 

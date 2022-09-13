@@ -92,7 +92,7 @@
                   >Open merge page</router-link
                 >
                 <span
-                  class="block text-primary-900 hover:opacity-50 cursor-pointer"
+                  class="block text-brand-500 hover:opacity-50 cursor-pointer"
                   @click="handleNotMergeClick(scope.row)"
                 >
                   Not the same person

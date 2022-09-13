@@ -3,15 +3,15 @@
     @apply m-0 border-none;
   }
   &__active-bar {
-    @apply bg-primary-900;
+    @apply bg-brand-500;
   }
   &__item {
     @apply font-normal px-4;
     &.is-active {
-      @apply text-primary-900 font-medium;
+      @apply text-brand-500 font-medium;
     }
     &:hover {
-      @apply text-primary-900;
+      @apply text-brand-500;
     }
     &:focus.is-active.is-focus:not(:active) {
       box-shadow: none;

@@ -89,7 +89,7 @@ body {
 .el-menu.collapsed {
   .el-menu-item.active:before {
     content: ' ';
-    @apply absolute h-10 w-10 inset-0 rounded-lg m-auto bg-primary-900;
+    @apply absolute h-10 w-10 inset-0 rounded-lg m-auto bg-brand-500;
   }
 }
 
@@ -99,7 +99,7 @@ body {
 
     &::before {
       content: ' ';
-      @apply absolute left-0 inset-y-0 w-1 rounded-r-lg bg-primary-900;
+      @apply absolute left-0 inset-y-0 w-1 rounded-r-lg bg-brand-500;
     }
   }
 }

@@ -106,10 +106,10 @@
   }
 
   &.is-checked {
-    @apply border-primary-900;
+    @apply border-brand-500;
     background-color: #fff5f4;
     .el-radio__label {
-      @apply text-primary-900;
+      @apply text-brand-500;
     }
   }
 }
