@@ -30,7 +30,7 @@
         :required="fields.trigger.required"
         class="w-full"
       >
-        <el-select
+        <app-select-input
           v-model="model.trigger"
           placeholder="Select option"
         >
@@ -52,7 +52,7 @@
               )
             "
           />
-        </el-select>
+        </app-select-input>
       </el-form-item>
       <el-collapse
         v-if="model.trigger === 'new_activity'"
@@ -67,7 +67,7 @@
               label="Matching activity platform(s)"
               class="w-full lg:w-1/2 mx-2"
             >
-              <el-select
+              <app-select-input
                 v-model="model.settings.platforms"
                 multiple
                 placeholder="Select option"
@@ -78,7 +78,7 @@
                   :value="platform.value"
                   :label="platform.label"
                 />
-              </el-select>
+              </app-select-input>
             </el-form-item>
             <el-form-item
               label="Matching activity type(s)"
@@ -169,7 +169,7 @@
 
       <div class="form-buttons mt-8">
         <el-button
-          :disabled="saveLoading || !isFilled"
+          :disabled="saveLoading || !isFilled || !isDirty"
           class="btn btn--primary mr-2"
           @click="doSubmit"
         >
@@ -196,6 +196,7 @@ import { i18n } from '@/i18n'
 import integrationsJson from '@/jsons/integrations.json'
 import activityTypesJson from '@/jsons/activity-types.json'
 import UrlField from '@/shared/fields/url-field'
+import _ from 'lodash'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
@@ -219,7 +220,10 @@ export default {
     return {
       rules: formSchema.rules(),
       model: {
-        ...this.modelValue
+        ...this.modelValue,
+        settings: {
+          ...this.modelValue.settings
+        }
       },
       newActivityFilters: 'activityFilters',
       newMemberFilters: 'memberFilters',
@@ -243,6 +247,16 @@ export default {
     },
     isFilled() {
       return this.model.trigger && this.model.settings.url
+    },
+    isDirty() {
+      return (
+        this.modelValue.url !== this.model.url ||
+        this.modelValue.trigger !== this.model.trigger ||
+        !_.isEqual(
+          this.modelValue.settings,
+          this.model.settings
+        )
+      )
     },
     computedPlatformOptions() {
       return this.integrationsActive.map((item) => {
