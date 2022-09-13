@@ -252,7 +252,7 @@ export default class IntegrationService {
     const integration = await this.createOrUpdate({
       platform: PlatformType.GITHUB,
       token,
-      settings: { repos, updateMemberAttributes:true },
+      settings: { repos, updateMemberAttributes: true },
       integrationIdentifier: installId,
       status: 'in-progress',
     })
@@ -307,7 +307,7 @@ export default class IntegrationService {
     integration = await this.createOrUpdate({
       platform: PlatformType.DISCORD,
       integrationIdentifier: guildId,
-      settings: { channels, updateMemberAttributes:true},
+      settings: { channels, updateMemberAttributes: true },
       status: 'in-progress',
     })
 
@@ -328,7 +328,7 @@ export default class IntegrationService {
         users: integrationData.users,
         organizations: integrationData.organizations,
         articles: [],
-        updateMemberAttributes: true
+        updateMemberAttributes: true,
       },
       status: 'in-progress',
     })
@@ -379,7 +379,7 @@ export default class IntegrationService {
     integration = await this.createOrUpdate({
       platform: PlatformType.SLACK,
       status: 'in-progress',
-      settings: integration.settings
+      settings: integration.settings,
     })
 
     await send(integrationsMessageBody)

@@ -112,7 +112,7 @@ describe('MemberAttributeSettings tests', () => {
       // no label
       await expect(() =>
         MemberAttributeSettingsRepository.create(
-          { type: AttributeType.BOOLEAN, name: 'attribute1', label:undefined },
+          { type: AttributeType.BOOLEAN, name: 'attribute1', label: undefined },
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
@@ -324,7 +324,6 @@ describe('MemberAttributeSettings tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const { randomUUID } = require('crypto')
-        
 
       await expect(() =>
         MemberAttributeSettingsRepository.update(

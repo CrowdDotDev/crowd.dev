@@ -17,19 +17,19 @@ export interface MemberAttributeSettingsUpdateData {
   canDelete?: boolean
 }
 
-export interface MemberAttributeSettingsFilterData extends MemberAttributeSettingsUpdateData{
-    id?: string
-    createdAtRange?: string[]
+export interface MemberAttributeSettingsFilterData extends MemberAttributeSettingsUpdateData {
+  id?: string
+  createdAtRange?: string[]
 }
 
-export interface MemberAttributeSettingsCriteria{
-    filter?: MemberAttributeSettingsFilterData,
-    limit?: number
-    offset?: number
-    orderBy?: string
+export interface MemberAttributeSettingsCriteria {
+  filter?: MemberAttributeSettingsFilterData
+  limit?: number
+  offset?: number
+  orderBy?: string
 }
 
-export interface MemberAttributeSettingsCriteriaResult{
-    rows: AttributeData[],
-    count: number
+export interface MemberAttributeSettingsCriteriaResult {
+  rows: AttributeData[]
+  count: number
 }
