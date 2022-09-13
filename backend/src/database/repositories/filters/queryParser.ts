@@ -152,13 +152,18 @@ class QueryParser {
    */
   iterativeReplace(query) {
     Object.keys(query).forEach((key) => {
+      if (this.nestedFields[key]) {
+        // If the key should be replaced by a nested field we update the query and the key.
+        // This is not part of the else if since we still want to do the other checks.
+        query = this.replaceKeyWithNestedField(query, key)
+        key = this.nestedFields[key]
+      }
+
       if (this.aggregators[key]) {
         query = this.replaceKeyWithAggregator(query, key)
       } else if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
-      } else if (this.nestedFields[key]) {
-        query = this.replaceKeyWithNestedField(query, key)
       } else if (query[key] !== null && typeof query[key] === 'object') {
         // When the value of the key is an object
         // Find if the key is an operation in the operations dict

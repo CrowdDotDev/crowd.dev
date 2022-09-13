@@ -1341,5 +1341,78 @@ describe('ActivityRepository tests', () => {
         filteredActivities3.rows[1].sentiment.negative,
       )
     })
+
+    it('Overall sentiment filter and sort', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberCreated = await MemberRepository.create(
+        {
+          username: {
+            crowdUsername: 'test',
+            github: test,
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity1 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        member: memberCreated.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activity2 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.55,
+          negative: 0.0,
+          neutral: 0.45,
+          mixed: 0.0,
+          label: 'neutral',
+          sentiment: 0.55,
+        },
+        member: memberCreated.id,
+        sourceId: '#sourceId2',
+      }
+
+      const activityCreated1 = await ActivityRepository.create(activity1, mockIRepositoryOptions)
+      await ActivityRepository.create(activity2, mockIRepositoryOptions)
+
+      // Control
+      expect(
+        (await ActivityRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)).count,
+      ).toBe(2)
+
+      // Filter by how positive activities are
+      const filteredActivities = await ActivityRepository.findAndCountAll(
+        { filter: { sentimentRange: [0.6, 1] } },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
+
+      // No filter, but sorting
+      const filteredActivities3 = await ActivityRepository.findAndCountAll(
+        { filter: {}, orderBy: 'sentiment_DESC' },
+        mockIRepositoryOptions,
+      )
+      expect(filteredActivities3.count).toBe(2)
+      expect(filteredActivities3.rows[0].sentiment.positive).toBeGreaterThan(
+        filteredActivities3.rows[1].sentiment.positive,
+      )
+    })
   })
 })
