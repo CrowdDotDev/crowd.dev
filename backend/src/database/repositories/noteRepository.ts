@@ -217,7 +217,7 @@ class NoteRepository {
       }
     }
 
-    const parser = new QueryParser(options)
+    const parser = new QueryParser({}, options)
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
       orderBy: orderBy || ['createdAt_DESC'],

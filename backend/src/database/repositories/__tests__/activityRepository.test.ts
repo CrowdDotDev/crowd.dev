@@ -48,8 +48,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         isKeyAction: true,
         member: memberCreated.id,
@@ -76,8 +76,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
@@ -515,8 +515,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         isKeyAction: true,
         member: memberCreated.id,
@@ -973,8 +973,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         member: memberCreated2.id,
       }
@@ -1201,8 +1201,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         member: memberCreated.id,
         sourceId: '#sourceId1',
@@ -1217,8 +1217,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.45,
           mixed: 0.0,
-          sentiment: 'neutral',
-          score: 0.55,
+          label: 'neutral',
+          sentiment: 0.55,
         },
         member: memberCreated.id,
         sourceId: '#sourceId2',
@@ -1243,7 +1243,7 @@ describe('ActivityRepository tests', () => {
 
       // Filter by whether activities are positive or not
       const filteredActivities2 = await ActivityRepository.findAndCountAll(
-        { filter: { sentiment: 'positive' } },
+        { filter: { sentimentLabel: 'positive' } },
         mockIRepositoryOptions,
       )
 
@@ -1252,7 +1252,7 @@ describe('ActivityRepository tests', () => {
 
       // No filter, but sorting
       const filteredActivities3 = await ActivityRepository.findAndCountAll(
-        { filter: {}, orderBy: 'positiveSentiment_DESC' },
+        { filter: {}, orderBy: 'sentiment.positive_DESC' },
         mockIRepositoryOptions,
       )
       expect(filteredActivities3.count).toBe(2)
@@ -1260,7 +1260,7 @@ describe('ActivityRepository tests', () => {
         filteredActivities3.rows[1].sentiment.positive,
       )
     })
-    it('Negative sentiment filter', async () => {
+    it('Negative sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await MemberRepository.create(
         {
@@ -1282,8 +1282,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.0,
           neutral: 0.02,
           mixed: 0.0,
-          sentiment: 'positive',
-          score: 0.98,
+          label: 'positive',
+          sentiment: 0.98,
         },
         member: memberCreated.id,
         sourceId: '#sourceId1',
@@ -1298,8 +1298,8 @@ describe('ActivityRepository tests', () => {
           negative: 0.55,
           neutral: 0.55,
           mixed: 0.0,
-          sentiment: 'negative',
-          score: -0.54,
+          label: 'negative',
+          sentiment: -0.54,
         },
         member: memberCreated.id,
         sourceId: '#sourceId2',
@@ -1324,7 +1324,7 @@ describe('ActivityRepository tests', () => {
 
       // Filter by whether activities are positive or not
       const filteredActivities2 = await ActivityRepository.findAndCountAll(
-        { filter: { sentiment: 'negative' } },
+        { filter: { sentimentLabel: 'negative' } },
         mockIRepositoryOptions,
       )
 
@@ -1333,7 +1333,7 @@ describe('ActivityRepository tests', () => {
 
       // No filter, but sorting
       const filteredActivities3 = await ActivityRepository.findAndCountAll(
-        { filter: {}, orderBy: 'negativeSentiment_DESC' },
+        { filter: {}, orderBy: 'sentiment.negative_DESC' },
         mockIRepositoryOptions,
       )
       expect(filteredActivities3.count).toBe(2)

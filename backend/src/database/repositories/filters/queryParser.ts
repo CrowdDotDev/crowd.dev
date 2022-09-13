@@ -20,6 +20,8 @@ class QueryParser {
 
   private whereOrHaving: string
 
+  private nestedFields: any
+
   static maxPageSize = 200
 
   static defaultPageSize = 10
@@ -62,9 +64,10 @@ class QueryParser {
     },
   }
 
-  constructor(options: IRepositoryOptions, aggregators = {}) {
+  constructor({ aggregators = {} as any, nestedFields = {} as any }, options: IRepositoryOptions) {
     this.options = options
     this.aggregators = aggregators
+    this.nestedFields = nestedFields
     this.whereOrHaving = 'where'
   }
 
@@ -107,11 +110,28 @@ class QueryParser {
     return query
   }
 
-  static parseOrderBy(orderBy) {
+  replaceKeyWithNestedField(query: any, key: string): any {
+    const value = query[key]
+    delete query[key]
+    query[this.nestedFields[key]] = value
+    return query
+  }
+
+  parseOrderBy(orderBy) {
     if (typeof orderBy === 'string') {
       orderBy = orderBy.split(',').map((item) => item.trim())
     }
-    return orderBy.map((item) => item.split('_'))
+
+    return orderBy.map((item) => {
+      // Replace nested attributes. For example:
+      // if we had {sentiment: sentiment.score} in the nested keys,
+      // we would replace [[sentiment], [DESC]] -> [[sentiment.score], [DESC]]
+      const splitItem = item.split('_')
+      if (this.nestedFields[splitItem[0]]) {
+        splitItem[0] = this.nestedFields[splitItem[0]]
+      }
+      return splitItem
+    })
   }
 
   replaceKeyWithAggregator(query, key) {
@@ -137,6 +157,8 @@ class QueryParser {
       } else if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
+      } else if (this.nestedFields[key]) {
+        query = this.replaceKeyWithNestedField(query, key)
       } else if (query[key] !== null && typeof query[key] === 'object') {
         // When the value of the key is an object
         // Find if the key is an operation in the operations dict
@@ -258,7 +280,7 @@ class QueryParser {
     }
 
     if (orderBy) {
-      dbQuery.order = QueryParser.parseOrderBy(orderBy)
+      dbQuery.order = this.parseOrderBy(orderBy)
     }
 
     if (!lodash.isEmpty(filter)) {

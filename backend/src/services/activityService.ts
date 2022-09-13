@@ -147,8 +147,8 @@ export default class ActivityService {
         negative: 0.42,
         neutral: 0.42,
         mixed: 0.42,
-        sentiment: 'positive',
-        score: 0.42,
+        label: 'positive',
+        sentiment: 0.42,
       }
     }
 

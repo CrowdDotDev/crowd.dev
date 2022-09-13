@@ -315,12 +315,17 @@ class ConversationRepository {
       SequelizeFilterUtils.customOrderByIfExists('channel', orderBy),
     )
 
-    const parser = new QueryParser(options, {
-      activityCount,
-      channel: Sequelize.literal(`"activities"."channel"`),
-      lastActive,
-      platform: Sequelize.literal(`"activities"."platform"`),
-    })
+    const parser = new QueryParser(
+      {
+        aggregators: {
+          activityCount,
+          channel: Sequelize.literal(`"activities"."channel"`),
+          lastActive,
+          platform: Sequelize.literal(`"activities"."platform"`),
+        },
+      },
+      options,
+    )
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,

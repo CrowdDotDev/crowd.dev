@@ -11,7 +11,7 @@ export interface QueryOutput {
   ['where']?: any
   ['having']?: any
   limit: number
-  order: any[]
+  order: Array<string[]>
   offset: number
   attributes?: [string]
 }
