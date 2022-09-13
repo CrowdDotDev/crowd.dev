@@ -230,9 +230,9 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
             discord: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -526,9 +526,9 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
+        displayName: 'Member 1',
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
       })
@@ -684,9 +684,9 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
             discord: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -786,9 +786,9 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
             discord: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -1102,7 +1102,6 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: 'github',

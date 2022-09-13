@@ -95,9 +95,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: username,
           [platform]: username,
         },
+        displayName: username,
         crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
@@ -167,9 +167,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: username,
           [platform]: username,
         },
+        displayName: username,
         attributes: {},
         crowdInfo,
         email: member1.email,
@@ -232,10 +232,8 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username: {
-          crowdUsername: username,
-          ...member1.username,
-        },
+        username: member1.username,
+        displayName: member1.username[PlatformType.GITHUB],
         attributes: {},
         crowdInfo: { [platform]: crowdInfo },
         email: member1.email,
@@ -284,9 +282,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: username,
           [platform]: username,
         },
+        displayName: username,
         crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
@@ -335,9 +333,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: username,
           [platform]: username,
         },
+        displayName: username,
         crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
@@ -386,9 +384,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: username,
           [platform]: username,
         },
+        displayName: username,
         crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
@@ -458,9 +456,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         attributes: {},
         crowdInfo: { github: member1CrowdInfo },
         email: member1.email,
@@ -543,9 +541,9 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         attributes: {},
         crowdInfo: {
           github: {
@@ -625,10 +623,8 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username: {
-          crowdUsername: member1Username,
-          ...member2.username,
-        },
+        username: member2.username,
+        displayName: member1Username,
         attributes: {},
         crowdInfo: { [member1Platform]: member1CrowdInfo },
         email: member1.email,
@@ -786,9 +782,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           twitter: member1Username,
         },
+        displayName: member1Username,
         attributes: {
           level1: {
             test_metric_1: 1,
@@ -905,9 +901,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         crowdInfo: {
           [member1Platform]: {
             ...member1CrowdInfo,
@@ -977,9 +973,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         reach: { total: 10, github: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1031,9 +1027,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         reach: { total: 10, github: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1086,9 +1082,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         reach: { total: 36, github: 15, linkedin: 11, twitter: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1141,9 +1137,9 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          crowdUsername: member1Username,
           github: member1Username,
         },
+        displayName: member1Username,
         reach: { total: 50, github: 30, linkedin: 10, twitter: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1188,9 +1184,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1205,9 +1201,9 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          crowdUsername: 'anil2',
           discord: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1225,9 +1221,9 @@ describe('MemberService tests', () => {
 
       const member3 = {
         username: {
-          crowdUsername: 'anil3',
           twitter: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         crowdInfo: {
           twitter: {
@@ -1237,9 +1233,9 @@ describe('MemberService tests', () => {
       }
       const member4 = {
         username: {
-          crowdUsername: 'anil4',
           slack: 'testt',
         },
+        displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',
         crowdInfo: {
           slack: {
@@ -1375,10 +1371,10 @@ describe('MemberService tests', () => {
       const expectedMember = {
         id: returnedMember1.id,
         username: {
-          crowdUsername: member1.username.crowdUsername,
           github: member1.username.github,
           discord: member2.username.discord,
         },
+        displayName: member1.displayName,
         activities: [activityCreated],
         crowdInfo: {
           ...member1.crowdInfo,
@@ -1416,9 +1412,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1443,9 +1439,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1478,9 +1474,9 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          crowdUsername: 'anil2',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
       }
 
@@ -1542,9 +1538,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1577,9 +1573,9 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          crowdUsername: 'anil2',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
       }
 
@@ -1620,9 +1616,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1633,9 +1629,9 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          crowdUsername: 'anil2',
           discord: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1649,9 +1645,9 @@ describe('MemberService tests', () => {
 
       const member3 = {
         username: {
-          crowdUsername: 'anil3',
           twitter: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         crowdInfo: {
           twitter: {
@@ -1744,9 +1740,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1773,9 +1769,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1794,8 +1790,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.notes
 
       const existing = await memberService.memberExists(
-        member1.username.crowdUsername,
-        'crowdUsername',
+        member1.username[PlatformType.GITHUB],
+        PlatformType.GITHUB,
       )
 
       expect(existing).toStrictEqual(returnedMember1)
@@ -1808,9 +1804,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1821,7 +1817,7 @@ describe('MemberService tests', () => {
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
-      const existing = await memberService.memberExists('some-random-username', 'crowdUsername')
+      const existing = await memberService.memberExists('some-random-username', PlatformType.GITHUB)
 
       expect(existing).toBeNull()
     })
@@ -1833,9 +1829,9 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          crowdUsername: 'anil1',
           github: 'anil',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1849,7 +1845,7 @@ describe('MemberService tests', () => {
       const existing = await memberService.memberExists(
         {
           ...member1.username,
-          slack: 'some-slack-username',
+          [PlatformType.SLACK]: 'some-slack-username',
         },
         PlatformType.SLACK,
       )
@@ -1867,6 +1863,7 @@ describe('MemberService tests', () => {
           github: 'anil',
           discord: 'some-other-username',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1885,7 +1882,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.notes
 
       const existing = await memberService.memberExists(
-        { discord: 'some-other-username' },
+        { [PlatformType.DISCORD]: 'some-other-username' },
         PlatformType.DISCORD,
       )
 
@@ -1902,6 +1899,7 @@ describe('MemberService tests', () => {
           github: 'anil',
           discord: 'some-other-username',
         },
+        displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         crowdInfo: {
           github: {
@@ -1913,7 +1911,7 @@ describe('MemberService tests', () => {
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        memberService.memberExists({ discord: 'some-other-username' }, 'slack'),
+        memberService.memberExists({ [PlatformType.DISCORD]: 'some-other-username' }, PlatformType.SLACK),
       ).rejects.toThrowError(new Error400())
     })
   })

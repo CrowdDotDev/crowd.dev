@@ -33,7 +33,7 @@ describe('Serverless database operations worker tests', () => {
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
-      expect(dbMembers[0].username.crowdUsername).toBe('member1')
+      expect(dbMembers[0].username[PlatformType.GITHUB]).toBe('member1')
     })
 
     it('Should add a list of members', async () => {
@@ -160,7 +160,7 @@ describe('Serverless database operations worker tests', () => {
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
-      expect(dbMembers[0].username.crowdUsername).toBe('member1')
+      expect(dbMembers[0].username[PlatformType.GITHUB]).toBe('member1')
       expect(dbMembers[0].score).toBe(10)
     })
 

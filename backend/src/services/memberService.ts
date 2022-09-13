@@ -32,7 +32,12 @@ export default class MemberService {
     }
 
     if (!data.displayName){
-        data.displayName = Object.values(data.username[data.platform])
+      if(typeof data.username === 'string'){
+        data.displayName = data.username
+      }
+      else{
+        data.displayName = data.username[data.platform]
+      }
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options.database)

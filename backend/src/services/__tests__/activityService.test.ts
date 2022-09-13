@@ -28,7 +28,6 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -109,7 +108,6 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -198,7 +196,6 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -315,7 +312,6 @@ describe('ActivityService tests', () => {
 
       const member1Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test',
           discord: 'test',
         },
         platform: PlatformType.DISCORD,
@@ -323,7 +319,6 @@ describe('ActivityService tests', () => {
       })
       const member2Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test2',
           discord: 'test2',
         },
         platform: PlatformType.DISCORD,
@@ -465,7 +460,6 @@ describe('ActivityService tests', () => {
 
       const member1Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test',
           discord: 'test',
         },
         platform: PlatformType.DISCORD,
@@ -474,7 +468,6 @@ describe('ActivityService tests', () => {
 
       const member2Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test2',
           discord: 'test2',
         },
         platform: PlatformType.DISCORD,
@@ -671,7 +664,6 @@ describe('ActivityService tests', () => {
 
       const member = {
         username: {
-          crowdUsername: 'anil',
           github: 'anil_github',
         },
         email: 'lala@l.com',
@@ -1082,7 +1074,6 @@ describe('ActivityService tests', () => {
 
         const member = {
           username: {
-            crowdUsername: 'anil',
             github: 'anil_github',
           },
           email: 'lala@l.com',
@@ -1181,7 +1172,6 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          crowdUsername: 'anil',
           github: 'anil_github',
         })
       })
@@ -1191,9 +1181,9 @@ describe('ActivityService tests', () => {
 
         const member = {
           username: {
-            crowdUsername: 'anil',
             github: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
           crowdInfo: {
@@ -1292,7 +1282,6 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          crowdUsername: 'anil',
           github: 'anil_github',
         })
       })
@@ -1302,9 +1291,9 @@ describe('ActivityService tests', () => {
 
         const member = {
           username: {
-            crowdUsername: 'anil',
             github: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
           crowdInfo: {
@@ -1403,7 +1392,6 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
         expect(memberFound.username).toStrictEqual({
-          crowdUsername: 'anil',
           github: 'anil_github',
         })
       })
@@ -1413,9 +1401,9 @@ describe('ActivityService tests', () => {
 
         const member = {
           username: {
-            crowdUsername: 'anil',
             github: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
           crowdInfo: {
@@ -1515,7 +1503,6 @@ describe('ActivityService tests', () => {
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
         expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
         expect(memberFound.username).toStrictEqual({
-          crowdUsername: 'anil',
           github: 'anil_github',
         })
       })
@@ -1529,7 +1516,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -1603,7 +1589,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -1676,7 +1661,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -1760,7 +1744,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -1859,7 +1842,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -1952,7 +1934,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -2048,7 +2029,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
@@ -2144,7 +2124,6 @@ describe('ActivityService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
           github: 'test',
         },
         platform: PlatformType.GITHUB,
