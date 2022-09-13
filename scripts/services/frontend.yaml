@@ -1,0 +1,31 @@
+version: '3.1'
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile-frontend-dev
+    image: crowddotdev/frontend:${CROWD_VERSION}-dev
+    env_file:
+      - ../frontend/.env
+    command: npm start
+    environment:
+      - DOCKER_BUILDKIT=1
+    networks:
+      - crowd-bridge
+
+  frontend-dev:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile-frontend-dev
+    image: crowddotdev/frontend:${CROWD_VERSION}-dev
+    env_file:
+      - ../frontend/.env
+    command: npm start
+    environment:
+      - DOCKER_BUILDKIT=1
+    networks:
+      - crowd-bridge
+    hostname: frontend
+    volumes:
+      - ../frontend:/usr/crowd/frontend
