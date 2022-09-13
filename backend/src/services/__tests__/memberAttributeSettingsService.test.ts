@@ -8,6 +8,7 @@ import { DiscordMemberAttributes } from '../../database/attributes/member/discor
 import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
 import { SlackMemberAttributes } from '../../database/attributes/member/slack'
+import { AttributeType } from '../../database/attributes/types'
 
 const db = null
 describe('MemberAttributeSettingService tests', () => {
@@ -26,8 +27,8 @@ describe('MemberAttributeSettingService tests', () => {
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
       const attributes = (await as.createPredefined(GithubMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -84,8 +85,8 @@ describe('MemberAttributeSettingService tests', () => {
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
       const attributes = (await as.createPredefined(DiscordMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -116,8 +117,8 @@ describe('MemberAttributeSettingService tests', () => {
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
       const attributes = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -174,8 +175,8 @@ describe('MemberAttributeSettingService tests', () => {
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
       const attributes = (await as.createPredefined(TwitterMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -232,8 +233,8 @@ describe('MemberAttributeSettingService tests', () => {
       const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
       const attributes = (await as.createPredefined(SlackMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -266,8 +267,8 @@ describe('MemberAttributeSettingService tests', () => {
       const attributes = await as.createPredefined(TwitterMemberAttributes)
 
       const attributes2 = (await as.createPredefined(DevtoMemberAttributes)).map((attribute) => {
-        attribute.createdAt = attribute.createdAt.toISOString().split('T')[0]
-        attribute.updatedAt = attribute.updatedAt.toISOString().split('T')[0]
+        attribute.createdAt = (attribute.createdAt as any).toISOString().split('T')[0]
+        attribute.updatedAt = (attribute.updatedAt as any).toISOString().split('T')[0]
         return attribute
       })
 
@@ -339,7 +340,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = {
         name: 'att1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       }
@@ -365,7 +366,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = {
         name: 'att1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
       }
 
       const attributeCreated = await as.create(attribute1)
@@ -389,7 +390,7 @@ describe('MemberAttributeSettingService tests', () => {
 
       const attribute1 = {
         label: 'an attribute with multiple words',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
       }
 
       const attributeCreated = await as.create(attribute1)
@@ -416,7 +417,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'att1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -436,7 +437,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute1 = await as.create({
         name: 'att1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -444,7 +445,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute2 = await as.create({
         name: 'att2',
         label: 'attribute 2',
-        type: 'string',
+        type: AttributeType.STRING,
         canDelete: false,
         show: true,
       })
@@ -452,7 +453,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute3 = await as.create({
         name: 'att3',
         label: 'attribute 3',
-        type: 'email',
+        type: AttributeType.EMAIL,
         canDelete: true,
         show: false,
       })
@@ -474,7 +475,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -483,7 +484,7 @@ describe('MemberAttributeSettingService tests', () => {
         as.update(attribute.id, {
           name: attribute.name,
           label: 'some other label',
-          type: 'string',
+          type: AttributeType.STRING,
         }),
       ).rejects.toThrowError(
         new Error400('en', 'settings.memberAttributes.errors.typesNotMatching', attribute.name),
@@ -497,7 +498,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
@@ -519,7 +520,7 @@ describe('MemberAttributeSettingService tests', () => {
       const attribute = await as.create({
         name: 'attribute 1',
         label: 'attribute 1',
-        type: 'boolean',
+        type: AttributeType.BOOLEAN,
         canDelete: true,
         show: true,
       })
