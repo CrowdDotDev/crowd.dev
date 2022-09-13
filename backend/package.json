@@ -2,7 +2,7 @@
   "name": "app-backend",
   "description": "Backend",
   "scripts": {
-    "start": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/server.ts\"",
+    "start": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/server.ts\"",
     "build": "tsc && npm run build:documentation && cp package*json dist/ && cp .sequelizerc dist/.sequelizerc ",
     "build:setenv:dev": "cp .env dist/.env",
     "build:setenv:staging": "cp .env.staging dist/.env",

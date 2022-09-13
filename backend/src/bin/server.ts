@@ -10,7 +10,7 @@ import dotenvExpand from 'dotenv-expand'
 const env = dotenv.config()
 dotenvExpand.expand(env)
 
-import api from './api'
+import api from '../api'
 
 const PORT = process.env.PORT || 8080
 
