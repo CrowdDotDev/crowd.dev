@@ -3,6 +3,7 @@ import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
+import { PlatformType } from '../../../utils/platforms'
 
 const db = null
 
@@ -40,7 +41,8 @@ async function createMembers(options) {
     (
       await MemberRepository.create(
         {
-          username: { crowdUsername: 'gilfoyle' },
+          username: { [PlatformType.GITHUB]: 'gilfoyle' },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         options,
@@ -49,7 +51,8 @@ async function createMembers(options) {
     (
       await MemberRepository.create(
         {
-          username: { crowdUsername: 'dinesh' },
+          username: { [PlatformType.GITHUB]: 'dinesh' },
+          displayName: 'Member 2',
           joinedAt: '2020-06-27T15:13:30Z',
         },
         options,
@@ -285,7 +288,8 @@ describe('OrganizationRepository tests', () => {
 
       await MemberRepository.create(
         {
-          username: { crowdUsername: 'test-member' },
+          username: { [PlatformType.GITHUB]: 'test-member' },
+          displayName: 'Member 1',
           joinedAt: moment().toDate(),
           organizations: [
             organization1Created.id,

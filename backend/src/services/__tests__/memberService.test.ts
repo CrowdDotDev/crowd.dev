@@ -48,7 +48,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
       }
 
       await expect(() =>
@@ -81,7 +80,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
       }
 
       // Save some attributes since they get modified in the upsert function
@@ -100,14 +98,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           [platform]: username,
         },
-        type: memberCreated.type,
-        info: {},
         crowdInfo: { [platform]: crowdInfo },
+        attributes: {},
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -156,7 +152,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
       }
 
       // Save some attributes since they get modified in the upsert function
@@ -175,14 +170,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           [platform]: username,
         },
-        type: memberCreated.type,
-        info: {},
+        attributes: {},
         crowdInfo,
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -225,7 +218,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
       }
 
       // Save some attributes since they get modified in the upsert function
@@ -244,14 +236,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           ...member1.username,
         },
-        type: memberCreated.type,
-        info: {},
+        attributes: {},
         crowdInfo: { [platform]: crowdInfo },
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -259,7 +249,6 @@ describe('MemberService tests', () => {
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
-
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
       }
@@ -280,7 +269,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
       }
 
       // Save some attributes since they get modified in the upsert function
@@ -299,14 +287,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           [platform]: username,
         },
-        type: memberCreated.type,
-        info: {},
         crowdInfo: { [platform]: crowdInfo },
+        attributes: {},
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -334,7 +320,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
       }
 
       // Save some attributes since they get modified in the upsert function
@@ -353,14 +338,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           [platform]: username,
         },
-        type: memberCreated.type,
-        info: {},
         crowdInfo: { [platform]: crowdInfo },
+        attributes: {},
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -388,8 +371,7 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        signals: 'testSignal',
-      }
+        }
 
       // Save some attributes since they get modified in the upsert function
       const { platform } = member1
@@ -407,14 +389,12 @@ describe('MemberService tests', () => {
           crowdUsername: username,
           [platform]: username,
         },
-        type: memberCreated.type,
-        info: {},
         crowdInfo: { [platform]: crowdInfo },
+        attributes: {},
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -454,7 +434,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
       }
 
       const member1Username = member1.username
@@ -482,14 +461,12 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
-        info: {},
+        attributes: {},
         crowdInfo: { github: member1CrowdInfo },
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member2.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -531,7 +508,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
       }
 
       const member1Username = member1.username
@@ -570,8 +546,7 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
-        info: {},
+        attributes: {},
         crowdInfo: {
           github: {
             ...member1CrowdInfo.github,
@@ -583,7 +558,6 @@ describe('MemberService tests', () => {
         score: member1.score,
         bio: member1.bio,
         location: member2.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -623,7 +597,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
       }
 
       const member1Username = member1.username
@@ -656,14 +629,12 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           ...member2.username,
         },
-        type: memberCreated.type,
-        info: {},
+        attributes: {},
         crowdInfo: { [member1Platform]: member1CrowdInfo },
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member2.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -703,7 +674,6 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
       }
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
@@ -731,7 +701,6 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        type: 'member',
         platform: PlatformType.TWITTER,
         email: 'lala@l.com',
         score: 10,
@@ -753,8 +722,7 @@ describe('MemberService tests', () => {
         bio: 'Computer Science',
         location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
-        signals: 'testSignal',
-        info: {
+        attributes: {
           level1: {
             test_metric_1: 1,
             level2: {
@@ -789,7 +757,7 @@ describe('MemberService tests', () => {
           followers: 20,
           following: 10,
         },
-        info: {
+        attributes: {
           level1: {
             level2: {
               test_metric_2_2: '30',
@@ -816,13 +784,12 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        type: memberCreated.type,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
           crowdUsername: member1Username,
           twitter: member1Username,
         },
-        info: {
+        attributes: {
           level1: {
             test_metric_1: 1,
             level2: {
@@ -851,7 +818,6 @@ describe('MemberService tests', () => {
         score: member1.score,
         bio: member1.bio,
         location: member2.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -892,8 +858,7 @@ describe('MemberService tests', () => {
         },
         bio: 'Computer Science',
         location: 'Istanbul',
-        signals: 'testSignal',
-        info: {
+        attributes: {
           level1: {
             test_metric_1: 1,
             level2: {
@@ -924,7 +889,7 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         location: null,
         crowdInfo: {},
-        info: {
+        attributes: {
           level1: null,
         },
       }
@@ -943,8 +908,13 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
-        info: {
+        crowdInfo: {
+          [member1Platform]: {
+            ...member1CrowdInfo,
+            ...member2CrowdInfo,
+          },
+        },
+        attributes: {
           level1: {
             test_metric_1: 1,
             level2: {
@@ -959,17 +929,10 @@ describe('MemberService tests', () => {
             },
           },
         },
-        crowdInfo: {
-          [member1Platform]: {
-            ...member1CrowdInfo,
-            ...member2CrowdInfo,
-          },
-        },
         email: member1.email,
         score: member1.score,
         bio: member1.bio,
         location: member1.location,
-        signals: member1.signals,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -988,7 +951,6 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: 'anil',
-        type: 'member',
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-28T15:13:30Z',
       }
@@ -1018,7 +980,6 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
         reach: { total: 10, github: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1028,12 +989,11 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        signals: null,
         crowdInfo: {},
-        info: {},
         bio: null,
         location: null,
         email: null,
+        attributes: {},
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1074,7 +1034,6 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
         reach: { total: 10, github: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1084,12 +1043,11 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        signals: null,
         crowdInfo: {},
-        info: {},
         bio: null,
         location: null,
         email: null,
+        attributes: {},
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1131,7 +1089,6 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
         reach: { total: 36, github: 15, linkedin: 11, twitter: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1141,12 +1098,11 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        signals: null,
         crowdInfo: {},
-        info: {},
         bio: null,
         location: null,
         email: null,
+        attributes: {},
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1188,7 +1144,6 @@ describe('MemberService tests', () => {
           crowdUsername: member1Username,
           github: member1Username,
         },
-        type: memberCreated.type,
         reach: { total: 50, github: 30, linkedin: 10, twitter: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1198,12 +1153,11 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        signals: null,
         crowdInfo: {},
-        info: {},
         bio: null,
         location: null,
         email: null,
+        attributes: {},
       }
 
       expect(memberUpdated).toStrictEqual(memberExpected)
@@ -1425,9 +1379,7 @@ describe('MemberService tests', () => {
           github: member1.username.github,
           discord: member2.username.discord,
         },
-        type: 'member',
         activities: [activityCreated],
-        info: {},
         crowdInfo: {
           ...member1.crowdInfo,
           ...member2.crowdInfo,
@@ -1436,7 +1388,6 @@ describe('MemberService tests', () => {
         score: -1,
         bio: null,
         location: null,
-        signals: null,
         importHash: null,
         createdAt: returnedMember1.createdAt,
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1452,6 +1403,7 @@ describe('MemberService tests', () => {
         organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
+        attributes:{}
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1580,82 +1532,6 @@ describe('MemberService tests', () => {
         .sort()
 
       const expected = [aCreatedRepeated1.id, a1Created.id, a3Created.id].sort()
-      expect(foundMergedActivities).toStrictEqual(expected)
-    })
-
-    it('Duplication of activities - one matching timestamp is duplicated because type is different', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const memberService = new MemberService(mockIRepositoryOptions)
-
-      const member1 = {
-        username: {
-          crowdUsername: 'anil1',
-          github: 'anil',
-        },
-        joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
-          },
-        },
-      }
-
-      const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
-
-      const a1 = {
-        timestamp: moment(0).utc().toString(),
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId1',
-      }
-
-      const aRepeated = {
-        timestamp: '2021-06-27T15:14:30Z',
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId2',
-      }
-
-      const a1Created = await ActivityRepository.create(a1, mockIRepositoryOptions)
-
-      const aCreatedRepeated1 = await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
-
-      const member2 = {
-        username: {
-          crowdUsername: 'anil2',
-          github: 'anil',
-        },
-        joinedAt: '2021-05-27T15:14:30Z',
-      }
-
-      const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
-
-      aRepeated.member = createdMember2.id
-
-      await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
-
-      const aSameTsDifferentType = await ActivityRepository.create(
-        {
-          timestamp: moment(0).utc().toString(),
-          type: 'different',
-          member: createdMember2.id,
-          platform: PlatformType.GITHUB,
-          sourceId: '#sourceId3',
-        },
-        mockIRepositoryOptions,
-      )
-
-      // Merge
-      await memberService.merge(createdMember.id, createdMember2.id)
-
-      const foundMergedActivities = (await memberService.findById(createdMember.id)).activities
-        .map((a) => a.get({ plain: true }).id)
-        .sort()
-
-      const expected = [aCreatedRepeated1.id, a1Created.id, aSameTsDifferentType.id].sort()
       expect(foundMergedActivities).toStrictEqual(expected)
     })
 

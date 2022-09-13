@@ -67,6 +67,9 @@ describe('TenantService tests', () => {
 
       const memberToMergeSuggestions = await tenantService.findMembersToMerge()
 
+      console.log("mem sugs: ")
+      console.log(memberToMergeSuggestions)
+
       // In the DB there should be:
       // - Member 1 should have member 2 in toMerge
       // - Member 3 should have member 4 in toMerge
@@ -75,11 +78,9 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
-      expect(memberToMergeSuggestions[0][0].id).toStrictEqual(member2.id)
-      expect(memberToMergeSuggestions[0][1].id).toStrictEqual(member1.id)
+      expect(memberToMergeSuggestions[0].sort( (a,b) => a.createdAt > b.createdAt).map( m => m.id) ).toStrictEqual([member1.id, member2.id])
 
-      expect(memberToMergeSuggestions[1][0].id).toStrictEqual(member4.id)
-      expect(memberToMergeSuggestions[1][1].id).toStrictEqual(member3.id)
+      expect(memberToMergeSuggestions[1].sort( (a,b) => a.createdAt > b.createdAt).map( m => m.id)).toStrictEqual([member3.id, member4.id])
     })
   })
 

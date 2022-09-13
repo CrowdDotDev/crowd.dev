@@ -4,6 +4,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import ActivityRepository from '../activityRepository'
+import { PlatformType } from '../../../utils/platforms'
 
 const db = null
 
@@ -16,15 +17,18 @@ const toCreate = {
 
 const sampleMembers = [
   {
-    username: { crowdUsername: 'harry_potter' },
+    username: { [PlatformType.GITHUB]: 'harry_potter' },
+    displayName: 'Harry Potter',
     joinedAt: new Date(),
   },
   {
-    username: { crowdUsername: 'hermione' },
+    username: { [PlatformType.GITHUB]: 'hermione' },
+    displayName: 'Hermione Granger',
     joinedAt: new Date(),
   },
   {
-    username: { crowdUsername: 'ron_weasley' },
+    username: { [PlatformType.GITHUB]: 'ron_weasley' },
+    displayName: 'Ron Weasley',
     joinedAt: new Date(),
   },
 ]

@@ -24,9 +24,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: test,
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -107,9 +107,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -167,9 +167,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -197,9 +197,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -227,9 +227,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -257,9 +257,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -347,9 +347,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -412,9 +412,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -477,9 +477,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -538,9 +538,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -617,9 +617,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -661,9 +661,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -696,9 +696,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -734,9 +734,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -766,9 +766,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -805,9 +805,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -843,9 +843,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -925,9 +925,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: 'test',
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -936,9 +936,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated2 = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test2',
-            github: 'test2',
+            [PlatformType.GITHUB]: 'test2',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -1031,9 +1031,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: 'test',
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -1091,9 +1091,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -1137,9 +1137,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -1184,9 +1184,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,
@@ -1265,9 +1265,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: test,
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,

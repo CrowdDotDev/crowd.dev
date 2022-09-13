@@ -13,10 +13,6 @@ const log: boolean = false
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPupulateRelations = true) {
-    // If crowdUsername is not in the username dict, we need to add it
-    if (!('crowdUsername' in data.username)) {
-      data.username.crowdUsername = Object.values(data.username)[0]
-    }
 
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
@@ -28,14 +24,13 @@ class MemberRepository {
       {
         ...lodash.pick(data, [
           'username',
-          'info',
           'crowdInfo',
-          'type',
+          'displayName',
+          'attributes',
           'email',
           'score',
           'bio',
           'location',
-          'signals',
           'reach',
           'joinedAt',
           'importHash',
@@ -184,7 +179,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "type", "info", "crowdInfo", "email", "score", "bio", "location", "signals", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "crowdInfo", "attributes", "email", "score", "bio", "location", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -229,14 +224,13 @@ class MemberRepository {
       {
         ...lodash.pick(data, [
           'username',
-          'info',
           'crowdInfo',
-          'type',
+          'displayName',
+          'attributes',
           'email',
           'score',
           'bio',
           'location',
-          'signals',
           'reach',
           'joinedAt',
           'importHash',
@@ -492,18 +486,17 @@ class MemberRepository {
         )
       }
 
-      if (filter.info) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'info', filter.info))
+      if (filter.attributes) {
+        whereAnd.push({
+          attributes: filter.attributes,
+        })
       }
+
 
       if (filter.crowdInfo) {
         whereAnd.push({
           crowdInfo: filter.crowdInfo,
         })
-      }
-
-      if (filter.type) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'type', filter.type))
       }
 
       if (filter.tags) {
@@ -580,8 +573,8 @@ class MemberRepository {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'location', filter.location))
       }
 
-      if (filter.signals) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'signals', filter.signals))
+      if (filter.displayName) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'displayName', filter.displayName))
       }
 
       if (filter.reachRange) {
@@ -691,7 +684,7 @@ class MemberRepository {
       whereAnd.push({
         [Op.or]: [
           {
-            'username.crowdUsername': {
+            'displayName': {
               [Op.iLike]: `${query}%`,
             },
           },
@@ -702,15 +695,15 @@ class MemberRepository {
     const where = { [Op.and]: whereAnd }
 
     const records = await options.database.member.findAll({
-      attributes: ['id', 'username'],
+      attributes: ['id', 'displayName'],
       where,
       limit: limit ? Number(limit) : undefined,
-      order: [['username', 'ASC']],
+      order: [['displayName', 'ASC']],
     })
 
     return records.map((record) => ({
       id: record.id,
-      label: record.username.crowdUsername,
+      label: record.displayName,
     }))
   }
 

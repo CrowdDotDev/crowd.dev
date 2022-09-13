@@ -31,6 +31,10 @@ export default class MemberService {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
 
+    if (!data.displayName){
+        data.displayName = Object.values(data.username[data.platform])
+    }
+
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
@@ -74,9 +78,6 @@ export default class MemberService {
 
       delete data.platform
 
-      if (fromActivity) {
-        data.type = 'member'
-      }
 
       if (!('joinedAt' in data)) {
         data.joinedAt = moment.tz('Europe/London').toDate()
@@ -233,7 +234,7 @@ export default class MemberService {
   /**
    * Call the merge function with the special fields for members.
    * We want to always keep the earlies joinedAt date.
-   * We always want the original crowdUsername.
+   * We always want the original displayName.
    * @param originalObject Original object to merge
    * @param toMergeObject Object to merge into the original object
    * @returns The updates to be performed on the original object
@@ -255,7 +256,7 @@ export default class MemberService {
           .toDate()
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      'username.crowdUsername': (oldValue, _newValue) => oldValue,
+      displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
 
       // Get rid of activities that are the same and were in both members
@@ -267,7 +268,6 @@ export default class MemberService {
           [...oldActivities, ...newActivities],
           (act1, act2) =>
             moment(act1.timestamp).utc().unix() === moment(act2.timestamp).utc().unix() &&
-            act1.type === act2.type &&
             act1.platform === act2.platform,
         )
         return uniq.length > 0 ? uniq : null
