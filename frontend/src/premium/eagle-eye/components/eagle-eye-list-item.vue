@@ -175,6 +175,11 @@ export default {
 
     &-text {
       @apply text-sm text-gray-600;
+
+      pre,
+      code {
+        @apply whitespace-pre-wrap;
+      }
     }
   }
 }
