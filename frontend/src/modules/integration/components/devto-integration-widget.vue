@@ -57,7 +57,7 @@
           </div>
         </el-form-item>
         <a
-          class="cursor-pointer text-sm font-medium text-primary-900"
+          class="cursor-pointer text-sm font-medium text-brand-500"
           @click="addNewOrganization"
           >+ Add organization link</a
         >
@@ -95,7 +95,7 @@
           </div>
         </el-form-item>
         <a
-          class="cursor-pointer text-sm font-medium text-primary-900"
+          class="cursor-pointer text-sm font-medium text-brand-500"
           @click="addNewUser"
           >+ Add user link</a
         >

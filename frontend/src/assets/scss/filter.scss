@@ -29,11 +29,11 @@
 }
 
 .filter-toggle {
-  @apply cursor-pointer flex items-center text-primary-900;
+  @apply cursor-pointer flex items-center text-brand-500;
   transition: background-color 0.2s;
 
   &--active {
-    @apply text-primary-900;
+    @apply text-brand-500;
   }
 
   &:hover {

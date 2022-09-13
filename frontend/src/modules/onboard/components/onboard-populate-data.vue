@@ -9,7 +9,7 @@
           class="data-type-option"
           :class="
             selectedDataType === 'sample'
-              ? 'border-primary-900'
+              ? 'border-brand-500'
               : 'border-gray-50 hover:border-gray-400'
           "
           @click="selectedDataType = 'sample'"
@@ -28,7 +28,7 @@
           class="data-type-option"
           :class="
             selectedDataType === 'real'
-              ? 'border-primary-900'
+              ? 'border-brand-500'
               : 'border-gray-50 hover:border-gray-400'
           "
           @click="selectedDataType = 'real'"

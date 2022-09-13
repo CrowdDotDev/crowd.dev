@@ -4,7 +4,7 @@
       <div class="flex items-start">
         <h2 class="text-2xl font-medium">Eagle Eye</h2>
         <span
-          class="text-sm font-medium text-primary-900 ml-2"
+          class="text-sm font-medium text-brand-500 ml-2"
           >Free trial</span
         >
       </div>

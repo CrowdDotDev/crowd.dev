@@ -349,7 +349,7 @@
         >
           Custom URL
           <span
-            class="flex items-center uppercase ml-4 text-xs text-primary-900 font-semibold"
+            class="flex items-center uppercase ml-4 text-xs text-brand-500 font-semibold"
             ><i class="ri-information-line mr-1"></i>Premium
             Only</span
           >

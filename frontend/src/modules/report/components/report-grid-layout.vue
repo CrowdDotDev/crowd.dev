@@ -44,7 +44,7 @@
           class="btn btn--secondary mt-1"
           @click="handleAddWidgetClick"
         >
-          <span class="flex items-center text-primary-900">
+          <span class="flex items-center text-brand-500">
             <i class="ri-lg ri-add-line mr-1"></i>Add Widget
           </span>
         </button>
@@ -56,7 +56,7 @@
           }"
           class="btn btn--secondary mt-1"
         >
-          <span class="flex items-center text-primary-900">
+          <span class="flex items-center text-brand-500">
             <i class="ri-lg ri-pencil-line mr-1"></i>Edit
             Report
           </span>
@@ -116,9 +116,7 @@
             class="btn btn--secondary"
             @click="handleAddWidgetClick"
           >
-            <span
-              class="flex items-center text-primary-900"
-            >
+            <span class="flex items-center text-brand-500">
               <i class="ri-lg ri-add-line mr-1"></i>Add
               Widget
             </span>

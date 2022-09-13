@@ -84,7 +84,7 @@
                     >
                     <button
                       v-if="memberToMerge !== null"
-                      class="inline-flex items-center text-primary-900 text-sm"
+                      class="inline-flex items-center text-brand-500 text-sm"
                       @click="memberToMerge = null"
                     >
                       <i
