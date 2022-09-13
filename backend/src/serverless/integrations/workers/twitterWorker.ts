@@ -6,6 +6,8 @@ import TwitterReachIterator from '../iterators/twitterReachIterator'
 import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import { PlatformType } from '../../../utils/platforms'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
 
 const sdk = TwitterIterator.initSuperfaceClient()
 
@@ -77,6 +79,25 @@ async function twitterWorker(body: TwitterIntegrationMessage): Promise<TwitterOu
     const integrationUpdated = await refreshToken(userContext)
 
     const followersSet: Set<string> = new Set(integrationUpdated.settings.followers)
+
+    const integration = await IntegrationRepository.findByPlatform(
+      PlatformType.TWITTER,
+      userContext,
+    )
+
+    if (integration.settings.updateMemberAttributes) {
+      await new MemberAttributeSettingsService(userContext).createPredefined(
+        TwitterMemberAttributes,
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const twitterIterator = new TwitterIterator(
       tenant,

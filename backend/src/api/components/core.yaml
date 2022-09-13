@@ -225,3 +225,47 @@ components:
 
       xml:
         name: Conversation
+
+    # defines the settings of a member attribute, excluding the ID
+    MemberAttributeSettingsNoId:
+      type: object
+      required:
+        - label
+        - type
+
+      description: A member attribute that can be created dynamically
+      properties:
+        type:
+          description: Type of the member attribute
+          type: string
+          enum: ['boolean', 'number', 'email', 'string', 'url', 'date']
+
+        canDelete:
+          description: If set to true, member attribute can not be deleted in future requests
+          type: boolean
+          default: false
+
+        show:
+          description: Whether to show the member attribute in the web app or not.
+          type: boolean
+          default: true
+
+        name:
+          description: camelCase code friendly name of the attribute. If ommited, name will be generated from the label. Name is unique in workspaces
+          type: string
+
+        createdAt:
+          description: Date the member attribute was created
+          type: string
+          format: date-time
+        updatedAt:
+          description: Date the member attribute was last updated
+          type: string
+          format: date-time
+        tenantId:
+          description: Your workspace/tenant id
+          type: string
+          format: uuid
+
+      xml:
+        name: MemberAttributeSettings

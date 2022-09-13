@@ -21,6 +21,12 @@ components:
         - $ref: '#/components/schemas/ActivityNoId'
         - $ref: '#/components/schemas/ActivityUpsertWithMemberHelper'
 
+    MemberAttributeSettingsCreateInput:
+      description: >-
+        A member attribute.
+      allOf:
+        - $ref: '#/components/schemas/MemberAttributeSettingsNoId'
+
     ActivityUpsertWithMemberHelper:
       type: object
       required:

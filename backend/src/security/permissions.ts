@@ -76,6 +76,30 @@ class Permissions {
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [storage.settingsBackgroundImages, storage.settingsLogos],
       },
+      memberAttributesRead: {
+        id: 'memberAttributesRead',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberAttributesEdit: {
+        id: 'memberAttributesEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberAttributesDestroy: {
+        id: 'memberAttributesDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberAttributesCreate: {
+        id: 'memberAttributesCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
       memberImport: {
         id: 'memberImport',
         allowedRoles: [roles.admin],

@@ -3,6 +3,10 @@ import IntegrationRepository from '../../../database/repositories/integrationRep
 import GithubIterator from '../iterators/githubIterator'
 import { PlatformType } from '../../../utils/platforms'
 import { IntegrationsMessage } from '../types/messageTypes'
+import { GithubMemberAttributes } from '../../../database/attributes/member/github'
+import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 
 async function githubWorker(body: IntegrationsMessage) {
   try {
@@ -12,6 +16,29 @@ async function githubWorker(body: IntegrationsMessage) {
     const userContext = await getUserContext(tenant)
 
     const integration = await IntegrationRepository.findByPlatform(PlatformType.GITHUB, userContext)
+
+    if (integration.settings.updateMemberAttributes) {
+      const memberAttributesService = new MemberAttributeSettingsService(userContext)
+
+      // ensure memberAttribute settings for possible github member attributes
+      await memberAttributesService.createPredefined(GithubMemberAttributes)
+
+      // attribute.url may come from twitter
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributeName.URL],
+          TwitterMemberAttributes,
+        ),
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const githubIterator = new GithubIterator(
       tenant,

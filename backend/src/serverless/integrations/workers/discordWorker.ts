@@ -8,6 +8,8 @@ import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import BaseIterator from '../iterators/baseIterator'
 import { PlatformType } from '../../../utils/platforms'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { DiscordMemberAttributes } from '../../../database/attributes/member/discord'
 
 /**
  * Discord worker that is responsible for consuming the discord integration messages
@@ -58,6 +60,20 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
       PlatformType.DISCORD,
       userContext,
     )
+
+    if (integration.settings.updateMemberAttributes) {
+      await new MemberAttributeSettingsService(userContext).createPredefined(
+        DiscordMemberAttributes,
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
 
     const channels = integration.settings.channels ? integration.settings.channels : []
 

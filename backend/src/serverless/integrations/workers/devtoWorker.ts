@@ -10,6 +10,11 @@ import { getAllOrganizationArticles } from '../usecases/devto/getOrganizationArt
 import { getAllUserArticles } from '../usecases/devto/getUserArticles'
 import { DevtoArticle } from '../usecases/devto/types'
 import { singleOrDefault } from '../../../utils/arrays'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { DevtoMemberAttributes } from '../../../database/attributes/member/devto'
+import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import { GithubMemberAttributes } from '../../../database/attributes/member/github'
 
 /**
  * Devto worker that is responsible for consuming the devto integration messages
@@ -31,6 +36,34 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
     const userContext = await getUserContext(tenant)
 
     const integration = await IntegrationRepository.findById(integrationId, userContext)
+
+    if (integration.settings.updateMemberAttributes) {
+      const memberAttributesService = new MemberAttributeSettingsService(userContext)
+
+      await memberAttributesService.createPredefined(DevtoMemberAttributes)
+
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributeName.URL],
+          TwitterMemberAttributes,
+        ),
+      )
+
+      await memberAttributesService.createPredefined(
+        MemberAttributeSettingsService.pickAttributes(
+          [MemberAttributeName.URL, MemberAttributeName.NAME],
+          GithubMemberAttributes,
+        ),
+      )
+
+      integration.settings.updateMemberAttributes = false
+
+      await IntegrationRepository.update(
+        integration.id,
+        { settings: integration.settings },
+        userContext,
+      )
+    }
     const settings: DevtoIntegrationSettings = integration.settings
 
     const articles = settings.articles ? settings.articles : []
