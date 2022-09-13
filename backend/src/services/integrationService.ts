@@ -252,7 +252,7 @@ export default class IntegrationService {
     const integration = await this.createOrUpdate({
       platform: PlatformType.GITHUB,
       token,
-      settings: { repos },
+      settings: { repos, updateMemberAttributes:true },
       integrationIdentifier: installId,
       status: 'in-progress',
     })
@@ -280,7 +280,7 @@ export default class IntegrationService {
    * @returns integration object
    */
   async discordConnect(guildId) {
-    const integration = await this.createOrUpdate({
+    let integration = await this.createOrUpdate({
       platform: PlatformType.DISCORD,
       integrationIdentifier: guildId,
     })
@@ -304,14 +304,16 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
-
-    return this.createOrUpdate({
+    integration = await this.createOrUpdate({
       platform: PlatformType.DISCORD,
       integrationIdentifier: guildId,
-      settings: { channels },
+      settings: { channels, updateMemberAttributes:true},
       status: 'in-progress',
     })
+
+    await send(integrationsMessageBody)
+
+    return integration
   }
 
   /**
@@ -326,6 +328,7 @@ export default class IntegrationService {
         users: integrationData.users,
         organizations: integrationData.organizations,
         articles: [],
+        updateMemberAttributes: true
       },
       status: 'in-progress',
     })
@@ -351,7 +354,7 @@ export default class IntegrationService {
    * @returns integration object
    */
   async slackCallback(integrationData) {
-    const integration = await this.createOrUpdate({
+    let integration = await this.createOrUpdate({
       platform: PlatformType.SLACK,
       ...integrationData,
     })
@@ -371,12 +374,17 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(integrationsMessageBody)
+    integration.settings.updateMemberAttributes = true
 
-    return this.createOrUpdate({
+    integration = await this.createOrUpdate({
       platform: PlatformType.SLACK,
       status: 'in-progress',
+      settings: integration.settings
     })
+
+    await send(integrationsMessageBody)
+
+    return integration
   }
 
   /**
@@ -388,7 +396,7 @@ export default class IntegrationService {
     let { hashtags } = integrationData
     const { profileId, token, refreshToken } = integrationData
 
-    const integration = await this.createOrUpdate({
+    let integration = await this.createOrUpdate({
       platform: PlatformType.TWITTER,
       integrationIdentifier: profileId,
       token,
@@ -405,6 +413,7 @@ export default class IntegrationService {
     // Hashtags cannot be null, it should be an empty list if no hashtags were added
     hashtags = hashtags || []
     integration.settings.hashtags = hashtags
+    integration.settings.updateMemberAttributes = true
 
     let isOnboarding: boolean = true
     if (hashtags.length > 0 && lodash.isEqual(hashtags, integration.settings.hashtags)) {
@@ -427,13 +436,15 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
-
-    return this.update(integration.id, {
+    integration = await this.update(integration.id, {
       limitCount: integration.limitCount,
       limitLastResetAt: integration.limitLastResetAt,
       settings: integration.settings,
       status: 'in-progress',
     })
+
+    await send(integrationsMessageBody)
+
+    return integration
   }
 }
