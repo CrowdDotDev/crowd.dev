@@ -1,0 +1,7 @@
+.el-drawer {
+  --el-drawer-padding-primary: 24px;
+
+  &__header {
+    @apply mb-4;
+  }
+}

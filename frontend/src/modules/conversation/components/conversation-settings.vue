@@ -11,6 +11,7 @@
     <el-dialog
       v-model="computedVisible"
       title="Community Help Center Settings"
+      :close-on-click-modal="false"
       width="100%"
       @close="$emit('close')"
     >

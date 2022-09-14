@@ -12,6 +12,7 @@
     <el-dialog
       v-model="expanded"
       title="Conversations Filters"
+      :close-on-click-modal="false"
       @close="expanded = false"
     >
       <el-form

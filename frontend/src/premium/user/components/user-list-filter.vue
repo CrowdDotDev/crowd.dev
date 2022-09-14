@@ -11,6 +11,7 @@
 
     <el-dialog
       v-model="expanded"
+      :close-on-click-modal="false"
       title="Users Filters"
       @close="expanded = false"
     >

@@ -14,7 +14,7 @@ export default {
     ) => {
       Object.assign(options, {
         customClass: 'confirm',
-        cancelButtonClass: 'btn btn--secondary',
+        cancelButtonClass: 'btn btn--secondary mr-2',
         confirmButtonClass: 'btn btn--primary'
       })
 

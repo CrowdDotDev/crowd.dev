@@ -241,7 +241,7 @@
           </el-button>
         </el-tooltip>
       </li>
-      <app-menu-user-dropdown :collapsed="collapsed" />
+      <app-account-dropdown :collapsed="collapsed" />
     </ul>
 
     <el-tooltip
@@ -273,11 +273,11 @@ import { ReportPermissions } from '@/modules/report/report-permissions'
 import { CommunityMemberPermissions } from '@/modules/community-member/community-member-permissions'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
-import AppMenuUserDropdown from './menu-user-dropdown'
+import AppAccountDropdown from './account-dropdown'
 
 export default {
   name: 'AppMenu',
-  components: { AppMenuUserDropdown },
+  components: { AppAccountDropdown },
   computed: {
     ...mapGetters({
       collapsed: 'layout/menuCollapsed',

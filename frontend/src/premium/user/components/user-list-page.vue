@@ -14,6 +14,7 @@
 
     <el-dialog
       v-model="inviting"
+      :close-on-click-modal="false"
       title="Invite User"
       :append-to-body="true"
       :destroy-on-close="true"

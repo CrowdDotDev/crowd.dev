@@ -22,6 +22,7 @@
 
     <el-dialog
       v-model="creating"
+      :close-on-click-modal="false"
       title="New Activity"
       :append-to-body="true"
       :destroy-on-close="true"
