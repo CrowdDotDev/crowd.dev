@@ -1,6 +1,6 @@
 <template>
   <div class="eagle-eye-search">
-    <div class="flex-grow mx-3">
+    <div class="grow mx-3">
       <app-keywords-input
         v-model="selectedKeywords"
         placeholder="Enter keywords, or topics..."
@@ -21,20 +21,20 @@ import AppEagleEyeFilter from './eagle-eye-filter'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-eagle-eye-search',
+  name: 'AppEagleEyeSearch',
   components: {
     AppEagleEyeFilter
+  },
+  data() {
+    return {
+      selectedKeywords: []
+    }
   },
   computed: {
     ...mapGetters({
       filter: 'eagleEye/filter',
       activeTab: 'eagleEye/activeTab'
     })
-  },
-  data() {
-    return {
-      selectedKeywords: []
-    }
   },
   watch: {
     activeTab: {
@@ -43,6 +43,19 @@ export default {
           this.selectedKeywords = []
         }
       }
+    }
+  },
+  async created() {
+    const savedKeywords = localStorage.getItem(
+      'eagleEye_keywords'
+    )
+    this.selectedKeywords =
+      savedKeywords && savedKeywords !== ''
+        ? savedKeywords.split(',')
+        : []
+
+    if (savedKeywords) {
+      await this.doSearch()
     }
   },
   methods: {
@@ -59,19 +72,6 @@ export default {
         rawFilter: filtersToApply,
         filter: filtersToApply
       })
-    }
-  },
-  async created() {
-    const savedKeywords = localStorage.getItem(
-      'eagleEye_keywords'
-    )
-    this.selectedKeywords =
-      savedKeywords && savedKeywords !== ''
-        ? savedKeywords.split(',')
-        : []
-
-    if (savedKeywords) {
-      await this.doSearch()
     }
   }
 }

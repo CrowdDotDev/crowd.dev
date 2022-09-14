@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n'
+import { i18n, init as i18nInit } from '@/i18n'
 import IdField from '@/shared/fields/id-field'
 import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import DateTimeField from '@/shared/fields/date-time-field'
@@ -10,6 +10,8 @@ import StringArrayField from '@/shared/fields/string-array-field'
 function label(name) {
   return i18n(`auditLog.fields.${name}`)
 }
+
+i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),

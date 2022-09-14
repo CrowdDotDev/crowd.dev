@@ -1,9 +1,9 @@
 <template>
   <div>
     <div
-      class="app-page-spinner mt-16"
       v-if="loading"
       v-loading="loading"
+      class="app-page-spinner mt-16"
     ></div>
     <div v-else>
       <div class="community-member-merge">
@@ -25,8 +25,8 @@
                   @click="handleMergeSubmit"
                 >
                   <i
-                    class="ri-lg ri-group-line mr-2"
                     v-if="!loadingSubmit"
+                    class="ri-lg ri-group-line mr-2"
                   ></i>
                   <span>Merge Members</span>
                 </el-button>
@@ -56,14 +56,14 @@
             <div v-if="activitiesMemberToKeep.length > 0">
               <app-activity-list-feed-item
                 v-for="activity in activitiesMemberToKeep"
-                :activity="activity"
                 :key="activity.id"
+                :activity="activity"
               ></app-activity-list-feed-item>
               <div class="text-center">
                 <el-button
+                  v-if="hasMoreActivitiesMemberToKeep"
                   type="text"
                   @click="maxActivitiesMemberToKeep += 5"
-                  v-if="hasMoreActivitiesMemberToKeep"
                   >Show more activities</el-button
                 >
               </div>
@@ -83,8 +83,8 @@
                       >Member to merge</span
                     >
                     <button
-                      class="inline-flex items-center text-primary-900 text-sm"
                       v-if="memberToMerge !== null"
+                      class="inline-flex items-center text-primary-900 text-sm"
                       @click="memberToMerge = null"
                     >
                       <i
@@ -110,17 +110,17 @@
                   >
                     <app-activity-list-feed-item
                       v-for="activity in activitiesMemberToMerge"
-                      :activity="activity"
                       :key="activity.id"
+                      :activity="activity"
                     ></app-activity-list-feed-item>
                     <div class="text-center">
                       <el-button
+                        v-if="
+                          hasMoreActivitiesMemberToMerge
+                        "
                         type="text"
                         @click="
                           maxActivitiesMemberToMerge += 5
-                        "
-                        v-if="
-                          hasMoreActivitiesMemberToMerge
                         "
                         >Show more activities</el-button
                       >
@@ -132,8 +132,8 @@
                 </div>
                 <div v-else-if="loadingMemberToMerge">
                   <div
-                    class="app-page-spinner mt-16"
                     v-loading="loadingMemberToMerge"
+                    class="app-page-spinner mt-16"
                   ></div>
                 </div>
                 <div v-else class="pt-9">
@@ -143,10 +143,10 @@
                     want to merge.</span
                   >
                   <app-community-member-autocomplete-input
-                    :fetchFn="fetchFn"
                     v-model="computedMemberToMerge"
+                    :fetch-fn="fetchFn"
                     placeholder="Type to search member"
-                    inputClass="w-full"
+                    input-class="w-full"
                     mode="single"
                   ></app-community-member-autocomplete-input>
                 </div>
@@ -171,7 +171,14 @@ import ActivityListFeedItem from '@/modules/activity/components/activity-list-fe
 const { fields } = CommunityMemberModel
 
 export default {
-  name: 'app-community-member-merge-page',
+  name: 'AppCommunityMemberMergePage',
+
+  components: {
+    'app-community-member-details': CommunityMemberDetails,
+    'app-community-member-autocomplete-input':
+      CommunityMemberAutocompleteInput,
+    'app-activity-list-feed-item': ActivityListFeedItem
+  },
 
   props: {
     id: {
@@ -180,10 +187,15 @@ export default {
     }
   },
 
-  components: {
-    'app-community-member-details': CommunityMemberDetails,
-    'app-community-member-autocomplete-input': CommunityMemberAutocompleteInput,
-    'app-activity-list-feed-item': ActivityListFeedItem
+  data() {
+    return {
+      memberToMerge: null,
+      fromSuggestion: false,
+      loadingMemberToMerge: false,
+      loadingSubmit: false,
+      maxActivitiesMemberToKeep: 5,
+      maxActivitiesMemberToMerge: 5
+    }
   },
 
   computed: {
@@ -202,9 +214,8 @@ export default {
       },
       async set(value) {
         this.loadingMemberToMerge = true
-        this.memberToMerge = await CommunityMemberService.find(
-          value.id
-        )
+        this.memberToMerge =
+          await CommunityMemberService.find(value.id)
         await this.$router.push({
           name: 'communityMemberMerge',
           query: { idToMerge: value ? value.id : undefined }
@@ -255,17 +266,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      memberToMerge: null,
-      fromSuggestion: false,
-      loadingMemberToMerge: false,
-      loadingSubmit: false,
-      maxActivitiesMemberToKeep: 5,
-      maxActivitiesMemberToMerge: 5
-    }
-  },
-
   async created() {
     await this.doFind(this.id)
 
@@ -282,9 +282,10 @@ export default {
 
     if (params['idToMerge']) {
       this.loadingMemberToMerge = true
-      this.memberToMerge = await CommunityMemberService.find(
-        params['idToMerge']
-      )
+      this.memberToMerge =
+        await CommunityMemberService.find(
+          params['idToMerge']
+        )
       this.loadingMemberToMerge = false
     }
   },
@@ -296,10 +297,11 @@ export default {
     }),
 
     async fetchFn(query, limit) {
-      const options = await CommunityMemberService.listAutocomplete(
-        query,
-        limit
-      )
+      const options =
+        await CommunityMemberService.listAutocomplete(
+          query,
+          limit
+        )
       return options.filter((m) => {
         return m.id !== this.id
       })

@@ -1,9 +1,11 @@
 export default {
   namespaced: true,
 
-  state: {
-    menuCollapsed: false,
-    isMobile: false
+  state: () => {
+    return {
+      menuCollapsed: false,
+      isMobile: false
+    }
   },
 
   getters: {

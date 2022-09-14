@@ -1,22 +1,22 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form conversation-form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <div
         class="flex flex-1 items-center justify-between -mx-2"
       >
-        <div class="flex w-2/3" v-if="!isEditing">
+        <div v-if="!isEditing" class="flex w-2/3">
           <el-tooltip
             content="Click to edit"
-            placement="top"
+            placement="right"
           >
             <button
               class="app-content-title flex items-center mx-2 hover:text-gray-500 cursor-pointer truncate"
@@ -31,16 +31,16 @@
             </button>
           </el-tooltip>
         </div>
-        <div class="flex w-2/3" v-else>
+        <div v-else class="flex w-2/3">
           <el-form-item
             :prop="fields.title.name"
             :required="fields.title.required"
             class="mx-2 flex-1"
           >
             <el-input
+              ref="focus"
               v-model="model[fields.title.name]"
               :placeholder="fields.title.placeholder"
-              ref="focus"
             />
 
             <div
@@ -54,19 +54,19 @@
             <div class="flex items-center">
               <el-button
                 :disabled="saveLoading"
+                class="btn btn--secondary btn--secondary--orange mx-2"
                 @click="doSubmit"
-                icon="ri-lg ri-save-line"
-                class="btn btn--secondary btn--secondary--orange ml-2"
               >
+                <i class="ri-lg ri-save-line mr-1" />
                 <app-i18n code="common.save"></app-i18n>
               </el-button>
 
               <el-button
                 :disabled="saveLoading"
+                class="btn btn--secondary mr-2"
                 @click="doCancel"
-                icon="ri-lg ri-close-line"
-                class="btn btn--secondary ml-2"
               >
+                <i class="ri-lg ri-close-line mr-1" />
                 <app-i18n code="common.cancel"></app-i18n>
               </el-button>
             </div>
@@ -75,10 +75,10 @@
         <el-form-item class="w-1/3 mx-2">
           <div class="form-buttons leading-none">
             <a
+              v-if="record.published"
               target="_blank"
               :href="computedPublicUrl"
               class="btn btn--secondary"
-              v-if="record.published"
             >
               <i
                 class="ri-lg ri-external-link-line mr-2"
@@ -92,21 +92,25 @@
             >
               <div>
                 <el-button
-                  :disabled="saveLoading || isEditing"
-                  @click="triggerPublishModal"
-                  icon="ri-lg ri-upload-cloud-2-line"
-                  class="btn btn--primary ml-2"
                   v-if="!record.published"
+                  :disabled="saveLoading || isEditing"
+                  class="btn btn--primary ml-2"
+                  @click="triggerPublishModal"
                 >
+                  <i
+                    class="ri-lg ri-upload-cloud-2-line mr-1"
+                  />
                   Publish
                 </el-button>
                 <el-button
-                  :disabled="saveLoading || isEditing"
-                  @click="doUnpublish"
-                  icon="ri-lg ri-arrow-go-back-line"
-                  class="btn btn--secondary btn--secondary--red ml-2"
                   v-else
+                  :disabled="saveLoading || isEditing"
+                  class="btn btn--secondary btn--secondary--red ml-2"
+                  @click="doUnpublish"
                 >
+                  <i
+                    class="ri-lg ri-arrow-go-back-line mr-1"
+                  />
                   Unpublish
                 </el-button>
               </div>
@@ -115,8 +119,8 @@
         </el-form-item>
       </div>
       <el-dialog
+        v-model="publishModal"
         title="Publish Conversation"
-        :visible.sync="publishModal"
       >
         <el-form-item label="Slug" :required="true">
           <el-input v-model="model.slug"></el-input>
@@ -128,19 +132,19 @@
         <div class="form-buttons mt-12">
           <el-button
             :disabled="loading"
-            @click="doPublish"
-            icon="ri-lg ri-upload-cloud-2-line"
             class="btn btn--primary mr-2"
+            @click="doPublish"
           >
+            <i class="ri-lg ri-upload-cloud-2-line mr-1" />
             Publish
           </el-button>
 
           <el-button
             :disabled="loading"
-            @click="publishModal = false"
-            icon="ri-lg ri-close-line"
             class="btn btn--secondary"
+            @click="publishModal = false"
           >
+            <i class="ri-lg ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>
@@ -149,9 +153,9 @@
 
     <app-conversation-settings
       :visible="hasConversationsSettingsVisible"
+      :button-visible="false"
       @open="doOpenSettingsModal"
       @close="doCloseSettingsModal"
-      :button-visible="false"
     />
   </div>
 </template>
@@ -170,13 +174,33 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-conversation-form',
+  name: 'AppConversationForm',
 
   components: {
     'app-conversation-settings': ConversationSettings
   },
 
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: [
+    'cancel',
+    'submit',
+    'publish',
+    'unpublish',
+    'edit'
+  ],
 
   data() {
     return {
@@ -185,12 +209,6 @@ export default {
       publishModal: false,
       loading: false
     }
-  },
-
-  created() {
-    this.model = this.record
-      ? JSON.parse(JSON.stringify(this.record))
-      : {}
   },
 
   computed: {
@@ -211,6 +229,12 @@ export default {
     computedPublicUrl() {
       return `${config.conversationPublicUrl}/${this.currentTenant.url}/${this.record.slug}`
     }
+  },
+
+  created() {
+    this.model = this.record
+      ? JSON.parse(JSON.stringify(this.record))
+      : {}
   },
 
   methods: {

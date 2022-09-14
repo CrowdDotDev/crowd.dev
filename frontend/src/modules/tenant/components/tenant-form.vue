@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <el-form-item
         :label="fields.tenantName.label"
@@ -24,14 +24,14 @@
       </el-form-item>
 
       <el-form-item
+        v-if="tenantSubdomain.isEnabled"
         :label="fields.tenantUrl.label"
         :prop="fields.tenantUrl.name"
         :required="fields.tenantUrl.required"
-        v-if="tenantSubdomain.isEnabled"
       >
         <el-col :lg="11" :md="16" :sm="24">
           <el-input v-model="model[fields.tenantUrl.name]">
-            <template slot="append">{{
+            <template #append>{{
               frontendUrlHost
             }}</template>
           </el-input>
@@ -42,26 +42,26 @@
         <div class="form-buttons">
           <el-button
             :disabled="saveLoading"
-            @click="doSubmit"
-            icon="ri-lg ri-save-line"
             class="btn btn--primary"
+            @click="doSubmit"
           >
+            <i class="ri-lg ri-save-line mr-1" />
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
             @click="doReset"
-            icon="ri-lg ri-arrow-go-back-line"
           >
+            <i class="ri-lg ri-arrow-go-back-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="saveLoading"
             @click="doCancel"
-            icon="ri-close-line"
           >
+            <i class="ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>
@@ -86,19 +86,29 @@ const formSchema = new FormSchema(
 )
 
 export default {
-  name: 'app-tenant-form',
+  name: 'AppTenantForm',
 
-  props: ['isEditing', 'record', 'saveLoading'],
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['cancel', 'submit'],
 
   data() {
     return {
       rules: formSchema.rules(),
       model: null
     }
-  },
-
-  created() {
-    this.model = formSchema.initialValues(this.record || {})
   },
 
   computed: {
@@ -118,6 +128,10 @@ export default {
     tenantSubdomain() {
       return tenantSubdomain
     }
+  },
+
+  created() {
+    this.model = formSchema.initialValues(this.record || {})
   },
 
   methods: {

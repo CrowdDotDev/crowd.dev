@@ -16,8 +16,9 @@ export class PlanPermissions {
       Permissions.values.planEdit
     )
 
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.planRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.planRead
+      )
   }
 }

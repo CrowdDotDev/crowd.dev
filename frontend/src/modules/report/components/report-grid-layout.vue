@@ -6,7 +6,7 @@
     "
   >
     <el-dialog
-      :visible.sync="widgetModal.visible"
+      v-model="widgetModal.visible"
       :title="
         widgetModal.action === 'add'
           ? 'Add Widget'
@@ -15,9 +15,9 @@
       custom-class="el-dialog--xl"
     >
       <div
-        class="app-page-spinner"
         v-if="widgetModal.visible === false"
         v-loading="true"
+        class="app-page-spinner"
       ></div>
       <app-widget-cube-builder
         v-else
@@ -27,33 +27,33 @@
       />
     </el-dialog>
     <div
-      class="app-page-spinner"
       v-if="loadingCube"
       v-loading="loadingCube"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <div
-        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
         v-if="!model.widgets || model.widgets.length === 0"
+        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
       >
         No widgets were added to the report yet.
         <button
-          type="button"
-          @click="handleAddWidgetClick"
-          class="btn btn--secondary mt-1"
           v-if="editable"
+          type="button"
+          class="btn btn--secondary mt-1"
+          @click="handleAddWidgetClick"
         >
           <span class="flex items-center text-primary-900">
             <i class="ri-lg ri-add-line mr-1"></i>Add Widget
           </span>
         </button>
         <router-link
+          v-else
           :to="{
             name: 'reportEdit',
-            params: { id: value.id }
+            params: { id: modelValue.id }
           }"
           class="btn btn--secondary mt-1"
-          v-else
         >
           <span class="flex items-center text-primary-900">
             <i class="ri-lg ri-pencil-line mr-1"></i>Edit
@@ -63,7 +63,7 @@
       </div>
       <div v-else>
         <grid-layout
-          :layout="layout"
+          v-model:layout="layout"
           :col-num="12"
           :row-height="8"
           :is-draggable="editable"
@@ -75,12 +75,12 @@
         >
           <grid-item
             v-for="item in layout"
+            :key="item.i"
             :x="item.x"
             :y="item.y"
             :w="item.w"
             :h="item.h"
             :i="item.i"
-            :key="item.i"
             @move="
               (i, newX, newY) =>
                 handleWidgetMove(
@@ -109,11 +109,11 @@
             ></app-widget-cube-renderer>
           </grid-item>
         </grid-layout>
-        <div class="toolbar" v-if="editable">
+        <div v-if="editable" class="toolbar">
           <button
             type="button"
-            @click="handleAddWidgetClick"
             class="btn btn--secondary"
+            @click="handleAddWidgetClick"
           >
             <span
               class="flex items-center text-primary-900"
@@ -129,9 +129,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
-import VueGridLayout from 'vue-grid-layout'
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder'
 import { WidgetService } from '@/modules/widget/widget-service'
@@ -139,8 +137,12 @@ import { i18n } from '@/i18n'
 
 export default {
   name: 'ReportGridLayout',
+  components: {
+    'app-widget-cube-builder': WidgetCubeBuilder,
+    'app-widget-cube-renderer': WidgetCubeRenderer
+  },
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },
@@ -149,12 +151,19 @@ export default {
       default: false
     }
   },
-  components: {
-    GridLayout: VueGridLayout.GridLayout,
-    GridItem: VueGridLayout.GridItem,
-    'app-widget-cube-builder': WidgetCubeBuilder,
-    'app-widget-cube-renderer': WidgetCubeRenderer
+
+  data() {
+    return {
+      model: { ...this.modelValue },
+      widgetModal: {
+        visible: false,
+        action: null,
+        model: {}
+      },
+      layout: []
+    }
   },
+
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
@@ -171,17 +180,15 @@ export default {
       }, {})
     }
   },
-  data() {
-    return {
-      model: this.value,
-      widgetModal: {
-        visible: false,
-        action: null,
-        model: {}
-      },
-      layout: []
+
+  async created() {
+    if (this.cubejsApi === null) {
+      await this.getCubeToken()
     }
+    this.resetWidgetModel()
+    this.updateLayout()
   },
+
   methods: {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
@@ -194,8 +201,8 @@ export default {
           JSON.stringify({
             title: 'Untitled',
             type: 'cubejs',
-            reportId: this.value.id
-              ? this.value.id
+            reportId: this.modelValue.id
+              ? this.modelValue.id
               : undefined
           })
         )
@@ -233,7 +240,7 @@ export default {
         const index = this.model.widgets.findIndex(
           (w) => w.id === widget.id
         )
-        Vue.set(this.model.widgets, index, widget)
+        this.model.widgets[index] = widget
         this.resetWidgetModel()
       }
 
@@ -290,7 +297,9 @@ export default {
       this.widgetModal.model = {
         title: 'Untitled',
         type: 'cubejs',
-        reportId: this.value.id ? this.value.id : undefined
+        reportId: this.modelValue.id
+          ? this.modelValue.id
+          : undefined
       }
     },
     updateLayout() {
@@ -304,13 +313,6 @@ export default {
         this.widgets[widget.i].settings.layout = widget
       }
     }
-  },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
-    }
-    this.resetWidgetModel()
-    this.updateLayout()
   }
 }
 </script>

@@ -32,6 +32,6 @@
 
 <script>
 export default {
-  name: 'app-error-500-page'
+  name: 'AppError500Page'
 }
 </script>

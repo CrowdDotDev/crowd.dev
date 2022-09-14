@@ -1,26 +1,26 @@
 <template>
   <div class="filter">
-    <portal to="user-filter-toggle">
+    <app-teleport to="#teleport-user-filter-toggle">
       <app-filter-toggle
-        @click="doToggleExpanded"
-        :activeFiltersCount="activeFiltersCount"
+        :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-1"
+        @click="doToggleExpanded"
       ></app-filter-toggle>
-    </portal>
+    </app-teleport>
 
     <el-dialog
-      :visible.sync="expanded"
-      title="Activities Filters"
+      v-model="expanded"
+      title="Users Filters"
       @close="expanded = false"
     >
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthFilter"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doFilter"
-        ref="form"
+        @submit.prevent="doFilter"
       >
         <app-filter-preview
           :values="model"
@@ -57,15 +57,15 @@
               :prop="fields.status.name"
             >
               <el-select
-                placeholder
                 v-model="model[fields.status.name]"
+                placeholder
               >
                 <el-option :value="undefined">--</el-option>
                 <el-option
+                  v-for="option in fields.status.options"
                   :key="option.id"
                   :label="option.label"
                   :value="option.id"
-                  v-for="option in fields.status.options"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -76,15 +76,15 @@
               :prop="fields.role.name"
             >
               <el-select
-                placeholder
                 v-model="model[fields.role.name]"
+                placeholder
               >
                 <el-option :value="undefined">--</el-option>
                 <el-option
+                  v-for="option in fields.role.options"
                   :key="option.value"
                   :label="option.label"
                   :value="option.value"
-                  v-for="option in fields.role.options"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -94,10 +94,10 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading"
-            @click="doFilter"
-            icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
+            @click="doFilter"
           >
+            <i class="ri-lg ri-check-line mr-1" />
             <app-i18n
               code="common.filters.apply"
             ></app-i18n>
@@ -105,10 +105,10 @@
 
           <el-button
             :disabled="loading"
-            @click="doResetFilter"
-            icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
+            @click="doResetFilter"
           >
+            <i class="ri-lg ri-arrow-go-back-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
         </div>
@@ -118,11 +118,11 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { i18n } from '@/i18n'
 import { UserModel } from '@/premium/user/user-model'
+import AppTeleport from '@/shared/teleport/teleport'
 
 const { fields } = UserModel
 
@@ -134,8 +134,8 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-user-list-filter',
-
+  name: 'AppUserListFilter',
+  components: { AppTeleport },
   data() {
     return {
       rules: filterSchema.rules(),
@@ -188,7 +188,7 @@ export default {
     },
 
     doRemove(field) {
-      Vue.delete(this.model, field)
+      delete this.model[field]
     },
 
     async doResetFilter() {

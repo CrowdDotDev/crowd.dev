@@ -8,37 +8,37 @@
       <app-activity-dropdown :activity="activity" />
     </div>
     <div
-      class="activity-list-feed-item-content"
-      :class="activity.crowdInfo.url ? 'pb-10' : ''"
       v-if="
         activity.crowdInfo.title || activity.crowdInfo.body
       "
+      class="activity-list-feed-item-content"
+      :class="activity.crowdInfo.url ? 'pb-10' : ''"
     >
       <div
-        class="activity-list-feed-item-content-title"
         v-if="activity.crowdInfo.title"
+        class="activity-list-feed-item-content-title"
       >
         <span class="block">{{
           activity.crowdInfo.title
         }}</span>
       </div>
       <div
-        class="my-4"
         v-if="
           activity.crowdInfo.title &&
           activity.crowdInfo.body
         "
+        class="my-4"
       ></div>
       <div
-        class="activity-list-feed-item-content-body"
         v-if="
           activity.crowdInfo.body &&
           activity.platform === 'discord'
         "
+        class="activity-list-feed-item-content-body"
       >
         <blockquote
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-if="activity.parent && !belongsToConversation"
+          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-html="activity.parent.crowdInfo.body"
         />
         <span
@@ -47,11 +47,11 @@
         />
       </div>
       <div
-        class="activity-list-feed-item-content-body"
         v-else-if="
           activity.crowdInfo.body &&
           activity.platform === 'devto'
         "
+        class="activity-list-feed-item-content-body"
       >
         <div
           v-if="activity.parent && !belongsToConversation"
@@ -66,15 +66,15 @@
         <span v-html="activity.crowdInfo.body" />
       </div>
       <div
-        class="activity-list-feed-item-content-body"
         v-else-if="
           activity.crowdInfo.body &&
           activity.platform !== 'discord'
         "
+        class="activity-list-feed-item-content-body"
       >
         <blockquote
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-if="activity.crowdInfo.thread"
+          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
           v-html="activity.crowdInfo.thread.body"
         />
         <span
@@ -111,7 +111,7 @@ import AppActivityHeader from './activity-header'
 import joypixels from 'emoji-toolkit'
 
 export default {
-  name: 'activity-list-feed-item',
+  name: 'ActivityListFeedItem',
   components: { AppActivityDropdown, AppActivityHeader },
   props: {
     activity: {

@@ -9,9 +9,9 @@
   }
 
   .el-form-item {
-    @apply flex flex-col;
-    &__label { @apply block leading-none font-semibold text-left mb-2 pr-0 float-none; }
-    &__content { margin-left: 0!important; }
+    @apply block mb-4;
+    &__label { @apply block font-semibold text-left h-6 leading-6; }
+    &__content { @apply block; margin-left: 0!important; }
   }
 }
 

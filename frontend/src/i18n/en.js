@@ -249,8 +249,8 @@ const en = {
       },
       github: {
         fork: 'forked',
-        star: 'stared',
-        unstar: 'unstared',
+        star: 'starred',
+        unstar: 'unstarred',
         'pull_request-open': 'opened a new pull request',
         'pull_request-opened': 'opened a new pull request',
         'pull_request-close': 'closed a pull request',
@@ -599,8 +599,7 @@ const en = {
     },
     select: 'Select Workspace',
     validation: {
-      url:
-        'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
+      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
     }
   },
 

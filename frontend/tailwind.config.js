@@ -1,7 +1,9 @@
 module.exports = {
-  purge: [],
+  content: [
+    './index.html',
+    './src/**/*.{vue,js,ts,jsx,tsx}'
+  ],
   presets: [],
-  darkMode: false, // or 'media' or 'class'
   theme: {
     screens: {
       sm: '640px',
@@ -125,6 +127,34 @@ module.exports = {
         50: '#f1ebe6'
       }
     },
+    columns: {
+      auto: 'auto',
+      1: '1',
+      2: '2',
+      3: '3',
+      4: '4',
+      5: '5',
+      6: '6',
+      7: '7',
+      8: '8',
+      9: '9',
+      10: '10',
+      11: '11',
+      12: '12',
+      '3xs': '16rem',
+      '2xs': '18rem',
+      xs: '20rem',
+      sm: '24rem',
+      md: '28rem',
+      lg: '32rem',
+      xl: '36rem',
+      '2xl': '42rem',
+      '3xl': '48rem',
+      '4xl': '56rem',
+      '5xl': '64rem',
+      '6xl': '72rem',
+      '7xl': '80rem'
+    },
     spacing: {
       px: '1px',
       0: '0px',
@@ -172,16 +202,21 @@ module.exports = {
         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       bounce: 'bounce 1s infinite'
     },
-    backdropBlur: (theme) => theme('blur'),
-    backdropBrightness: (theme) => theme('brightness'),
-    backdropContrast: (theme) => theme('contrast'),
-    backdropGrayscale: (theme) => theme('grayscale'),
-    backdropHueRotate: (theme) => theme('hueRotate'),
-    backdropInvert: (theme) => theme('invert'),
-    backdropOpacity: (theme) => theme('opacity'),
-    backdropSaturate: (theme) => theme('saturate'),
-    backdropSepia: (theme) => theme('sepia'),
-    backgroundColor: (theme) => theme('colors'),
+    aspectRatio: {
+      auto: 'auto',
+      square: '1 / 1',
+      video: '16 / 9'
+    },
+    backdropBlur: ({ theme }) => theme('blur'),
+    backdropBrightness: ({ theme }) => theme('brightness'),
+    backdropContrast: ({ theme }) => theme('contrast'),
+    backdropGrayscale: ({ theme }) => theme('grayscale'),
+    backdropHueRotate: ({ theme }) => theme('hueRotate'),
+    backdropInvert: ({ theme }) => theme('invert'),
+    backdropOpacity: ({ theme }) => theme('opacity'),
+    backdropSaturate: ({ theme }) => theme('saturate'),
+    backdropSepia: ({ theme }) => theme('sepia'),
+    backgroundColor: ({ theme }) => theme('colors'),
     backgroundImage: {
       none: 'none',
       'gradient-to-t':
@@ -201,7 +236,7 @@ module.exports = {
       'gradient-to-tl':
         'linear-gradient(to top left, var(--tw-gradient-stops))'
     },
-    backgroundOpacity: (theme) => theme('opacity'),
+    backgroundOpacity: ({ theme }) => theme('opacity'),
     backgroundPosition: {
       bottom: 'bottom',
       center: 'center',
@@ -242,11 +277,11 @@ module.exports = {
       150: '1.5',
       200: '2'
     },
-    borderColor: (theme) => ({
+    borderColor: ({ theme }) => ({
       ...theme('colors'),
       DEFAULT: theme('colors.gray.200', 'currentColor')
     }),
-    borderOpacity: (theme) => theme('opacity'),
+    borderOpacity: ({ theme }) => theme('opacity'),
     borderRadius: {
       none: '0px',
       sm: '0.125rem',
@@ -266,20 +301,22 @@ module.exports = {
       8: '8px'
     },
     boxShadow: {
-      sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
       DEFAULT:
-        '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-      md:
-        '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      lg:
-        '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-      xl:
-        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-      '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-      inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+        '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+      md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+      lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+      xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+      '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+      inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
       none: 'none'
     },
-    caretColor: (theme) => theme('colors'),
+    boxShadowColor: ({ theme }) => theme('colors'),
+    caretColor: ({ theme }) => theme('colors'),
+    accentColor: ({ theme }) => ({
+      ...theme('colors'),
+      auto: 'auto'
+    }),
     contrast: {
       0: '0',
       50: '.5',
@@ -301,43 +338,66 @@ module.exports = {
       text: 'text',
       move: 'move',
       help: 'help',
-      'not-allowed': 'not-allowed'
+      'not-allowed': 'not-allowed',
+      none: 'none',
+      'context-menu': 'context-menu',
+      progress: 'progress',
+      cell: 'cell',
+      crosshair: 'crosshair',
+      'vertical-text': 'vertical-text',
+      alias: 'alias',
+      copy: 'copy',
+      'no-drop': 'no-drop',
+      grab: 'grab',
+      grabbing: 'grabbing',
+      'all-scroll': 'all-scroll',
+      'col-resize': 'col-resize',
+      'row-resize': 'row-resize',
+      'n-resize': 'n-resize',
+      'e-resize': 'e-resize',
+      's-resize': 's-resize',
+      'w-resize': 'w-resize',
+      'ne-resize': 'ne-resize',
+      'nw-resize': 'nw-resize',
+      'se-resize': 'se-resize',
+      'sw-resize': 'sw-resize',
+      'ew-resize': 'ew-resize',
+      'ns-resize': 'ns-resize',
+      'nesw-resize': 'nesw-resize',
+      'nwse-resize': 'nwse-resize',
+      'zoom-in': 'zoom-in',
+      'zoom-out': 'zoom-out'
     },
-    divideColor: (theme) => theme('borderColor'),
-    divideOpacity: (theme) => theme('borderOpacity'),
-    divideWidth: (theme) => theme('borderWidth'),
+    divideColor: ({ theme }) => theme('borderColor'),
+    divideOpacity: ({ theme }) => theme('borderOpacity'),
+    divideWidth: ({ theme }) => theme('borderWidth'),
     dropShadow: {
-      sm: '0 1px 1px rgba(0,0,0,0.05)',
+      sm: '0 1px 1px rgb(0 0 0 / 0.05)',
       DEFAULT: [
-        '0 1px 2px rgba(0, 0, 0, 0.1)',
-        '0 1px 1px rgba(0, 0, 0, 0.06)'
+        '0 1px 2px rgb(0 0 0 / 0.1)',
+        '0 1px 1px rgb(0 0 0 / 0.06)'
       ],
       md: [
-        '0 4px 3px rgba(0, 0, 0, 0.07)',
-        '0 2px 2px rgba(0, 0, 0, 0.06)'
+        '0 4px 3px rgb(0 0 0 / 0.07)',
+        '0 2px 2px rgb(0 0 0 / 0.06)'
       ],
       lg: [
-        '0 10px 8px rgba(0, 0, 0, 0.04)',
-        '0 4px 3px rgba(0, 0, 0, 0.1)'
+        '0 10px 8px rgb(0 0 0 / 0.04)',
+        '0 4px 3px rgb(0 0 0 / 0.1)'
       ],
       xl: [
-        '0 20px 13px rgba(0, 0, 0, 0.03)',
-        '0 8px 5px rgba(0, 0, 0, 0.08)'
+        '0 20px 13px rgb(0 0 0 / 0.03)',
+        '0 8px 5px rgb(0 0 0 / 0.08)'
       ],
-      '2xl': '0 25px 25px rgba(0, 0, 0, 0.15)',
+      '2xl': '0 25px 25px rgb(0 0 0 / 0.15)',
       none: '0 0 #0000'
     },
-    fill: { current: 'currentColor' },
+    fill: ({ theme }) => theme('colors'),
     grayscale: {
       0: '0',
       DEFAULT: '100%'
     },
     hueRotate: {
-      '-180': '-180deg',
-      '-90': '-90deg',
-      '-60': '-60deg',
-      '-30': '-30deg',
-      '-15': '-15deg',
       0: '0deg',
       15: '15deg',
       30: '30deg',
@@ -355,6 +415,37 @@ module.exports = {
       initial: '0 1 auto',
       none: 'none'
     },
+    flexBasis: ({ theme }) => ({
+      auto: 'auto',
+      ...theme('spacing'),
+      '1/2': '50%',
+      '1/3': '33.333333%',
+      '2/3': '66.666667%',
+      '1/4': '25%',
+      '2/4': '50%',
+      '3/4': '75%',
+      '1/5': '20%',
+      '2/5': '40%',
+      '3/5': '60%',
+      '4/5': '80%',
+      '1/6': '16.666667%',
+      '2/6': '33.333333%',
+      '3/6': '50%',
+      '4/6': '66.666667%',
+      '5/6': '83.333333%',
+      '1/12': '8.333333%',
+      '2/12': '16.666667%',
+      '3/12': '25%',
+      '4/12': '33.333333%',
+      '5/12': '41.666667%',
+      '6/12': '50%',
+      '7/12': '58.333333%',
+      '8/12': '66.666667%',
+      '9/12': '75%',
+      '10/12': '83.333333%',
+      '11/12': '91.666667%',
+      full: '100%'
+    }),
     flexGrow: {
       0: '0',
       DEFAULT: '1'
@@ -427,8 +518,8 @@ module.exports = {
       extrabold: '800',
       black: '900'
     },
-    gap: (theme) => theme('spacing'),
-    gradientColorStops: (theme) => theme('colors'),
+    gap: ({ theme }) => theme('spacing'),
+    gradientColorStops: ({ theme }) => theme('colors'),
     gridAutoColumns: {
       auto: 'auto',
       min: 'min-content',
@@ -543,7 +634,7 @@ module.exports = {
       5: 'repeat(5, minmax(0, 1fr))',
       6: 'repeat(6, minmax(0, 1fr))'
     },
-    height: (theme) => ({
+    height: ({ theme }) => ({
       auto: 'auto',
       ...theme('spacing'),
       '1/2': '50%',
@@ -562,26 +653,21 @@ module.exports = {
       '4/6': '66.666667%',
       '5/6': '83.333333%',
       full: '100%',
-      screen: '100vh'
+      screen: '100vh',
+      min: 'min-content',
+      max: 'max-content',
+      fit: 'fit-content'
     }),
-    inset: (theme, { negative }) => ({
+    inset: ({ theme }) => ({
       auto: 'auto',
       ...theme('spacing'),
-      ...negative(theme('spacing')),
       '1/2': '50%',
       '1/3': '33.333333%',
       '2/3': '66.666667%',
       '1/4': '25%',
       '2/4': '50%',
       '3/4': '75%',
-      full: '100%',
-      '-1/2': '-50%',
-      '-1/3': '-33.333333%',
-      '-2/3': '-66.666667%',
-      '-1/4': '-25%',
-      '-2/4': '-50%',
-      '-3/4': '-75%',
-      '-full': '-100%'
+      full: '100%'
     }),
     keyframes: {
       spin: {
@@ -640,17 +726,19 @@ module.exports = {
       disc: 'disc',
       decimal: 'decimal'
     },
-    margin: (theme, { negative }) => ({
+    margin: ({ theme }) => ({
       auto: 'auto',
-      ...theme('spacing'),
-      ...negative(theme('spacing'))
+      ...theme('spacing')
     }),
-    maxHeight: (theme) => ({
+    maxHeight: ({ theme }) => ({
       ...theme('spacing'),
       full: '100%',
-      screen: '100vh'
+      screen: '100vh',
+      min: 'min-content',
+      max: 'max-content',
+      fit: 'fit-content'
     }),
-    maxWidth: (theme, { breakpoints }) => ({
+    maxWidth: ({ theme, breakpoints }) => ({
       none: 'none',
       0: '0rem',
       xs: '20rem',
@@ -667,22 +755,26 @@ module.exports = {
       full: '100%',
       min: 'min-content',
       max: 'max-content',
+      fit: 'fit-content',
       prose: '65ch',
       ...breakpoints(theme('screens'))
     }),
-    minHeight: (theme) => ({
-      ...theme('spacing'),
+    minHeight: ({ theme }) => ({
       0: '0px',
-      full: '100%',
-      screen: '100vh'
-    }),
-    minWidth: (theme) => ({
       ...theme('spacing'),
+      full: '100%',
+      screen: '100vh',
+      min: 'min-content',
+      max: 'max-content',
+      fit: 'fit-content'
+    }),
+    minWidth: {
       0: '0px',
       full: '100%',
       min: 'min-content',
-      max: 'max-content'
-    }),
+      max: 'max-content',
+      fit: 'fit-content'
+    },
     objectPosition: {
       bottom: 'bottom',
       center: 'center',
@@ -728,19 +820,29 @@ module.exports = {
       11: '11',
       12: '12'
     },
-    outline: {
-      none: ['2px solid transparent', '2px'],
-      white: ['2px dotted white', '2px'],
-      black: ['2px dotted black', '2px']
+    padding: ({ theme }) => theme('spacing'),
+    placeholderColor: ({ theme }) => theme('colors'),
+    placeholderOpacity: ({ theme }) => theme('opacity'),
+    outlineColor: ({ theme }) => theme('colors'),
+    outlineOffset: {
+      0: '0px',
+      1: '1px',
+      2: '2px',
+      4: '4px',
+      8: '8px'
     },
-    padding: (theme) => theme('spacing'),
-    placeholderColor: (theme) => theme('colors'),
-    placeholderOpacity: (theme) => theme('opacity'),
-    ringColor: (theme) => ({
+    outlineWidth: {
+      0: '0px',
+      1: '1px',
+      2: '2px',
+      4: '4px',
+      8: '8px'
+    },
+    ringColor: ({ theme }) => ({
       DEFAULT: theme('colors.blue.500', '#3b82f6'),
       ...theme('colors')
     }),
-    ringOffsetColor: (theme) => theme('colors'),
+    ringOffsetColor: ({ theme }) => theme('colors'),
     ringOffsetWidth: {
       0: '0px',
       1: '1px',
@@ -748,7 +850,7 @@ module.exports = {
       4: '4px',
       8: '8px'
     },
-    ringOpacity: (theme) => ({
+    ringOpacity: ({ theme }) => ({
       DEFAULT: '0.5',
       ...theme('opacity')
     }),
@@ -761,14 +863,6 @@ module.exports = {
       8: '8px'
     },
     rotate: {
-      '-180': '-180deg',
-      '-90': '-90deg',
-      '-45': '-45deg',
-      '-12': '-12deg',
-      '-6': '-6deg',
-      '-3': '-3deg',
-      '-2': '-2deg',
-      '-1': '-1deg',
       0: '0deg',
       1: '1deg',
       2: '2deg',
@@ -798,16 +892,15 @@ module.exports = {
       125: '1.25',
       150: '1.5'
     },
+    scrollMargin: ({ theme }) => ({
+      ...theme('spacing')
+    }),
+    scrollPadding: ({ theme }) => theme('spacing'),
     sepia: {
       0: '0',
       DEFAULT: '100%'
     },
     skew: {
-      '-12': '-12deg',
-      '-6': '-6deg',
-      '-3': '-3deg',
-      '-2': '-2deg',
-      '-1': '-1deg',
       0: '0deg',
       1: '1deg',
       2: '2deg',
@@ -815,20 +908,38 @@ module.exports = {
       6: '6deg',
       12: '12deg'
     },
-    space: (theme, { negative }) => ({
-      ...theme('spacing'),
-      ...negative(theme('spacing'))
+    space: ({ theme }) => ({
+      ...theme('spacing')
     }),
-    stroke: {
-      current: 'currentColor'
-    },
+    stroke: ({ theme }) => theme('colors'),
     strokeWidth: {
       0: '0',
       1: '1',
       2: '2'
     },
-    textColor: (theme) => theme('colors'),
-    textOpacity: (theme) => theme('opacity'),
+    textColor: ({ theme }) => theme('colors'),
+    textDecorationColor: ({ theme }) => theme('colors'),
+    textDecorationThickness: {
+      auto: 'auto',
+      'from-font': 'from-font',
+      0: '0px',
+      1: '1px',
+      2: '2px',
+      4: '4px',
+      8: '8px'
+    },
+    textUnderlineOffset: {
+      auto: 'auto',
+      0: '0px',
+      1: '1px',
+      2: '2px',
+      4: '4px',
+      8: '8px'
+    },
+    textIndent: ({ theme }) => ({
+      ...theme('spacing')
+    }),
+    textOpacity: ({ theme }) => theme('opacity'),
     transformOrigin: {
       center: 'center',
       top: 'top',
@@ -865,9 +976,9 @@ module.exports = {
       none: 'none',
       all: 'all',
       DEFAULT:
-        'background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
+        'color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
       colors:
-        'background-color, border-color, color, fill, stroke',
+        'color, background-color, border-color, text-decoration-color, fill, stroke',
       opacity: 'opacity',
       shadow: 'box-shadow',
       transform: 'transform'
@@ -879,25 +990,17 @@ module.exports = {
       out: 'cubic-bezier(0, 0, 0.2, 1)',
       'in-out': 'cubic-bezier(0.4, 0, 0.2, 1)'
     },
-    translate: (theme, { negative }) => ({
+    translate: ({ theme }) => ({
       ...theme('spacing'),
-      ...negative(theme('spacing')),
       '1/2': '50%',
       '1/3': '33.333333%',
       '2/3': '66.666667%',
       '1/4': '25%',
       '2/4': '50%',
       '3/4': '75%',
-      full: '100%',
-      '-1/2': '-50%',
-      '-1/3': '-33.333333%',
-      '-2/3': '-66.666667%',
-      '-1/4': '-25%',
-      '-2/4': '-50%',
-      '-3/4': '-75%',
-      '-full': '-100%'
+      full: '100%'
     }),
-    width: (theme) => ({
+    width: ({ theme }) => ({
       auto: 'auto',
       ...theme('spacing'),
       '1/2': '50%',
@@ -929,8 +1032,15 @@ module.exports = {
       full: '100%',
       screen: '100vw',
       min: 'min-content',
-      max: 'max-content'
+      max: 'max-content',
+      fit: 'fit-content'
     }),
+    willChange: {
+      auto: 'auto',
+      scroll: 'scroll-position',
+      contents: 'contents',
+      transform: 'transform'
+    },
     zIndex: {
       auto: 'auto',
       0: '0',
@@ -959,234 +1069,5 @@ module.exports = {
     'active',
     'disabled'
   ],
-  variants: {
-    accessibility: ['responsive', 'focus-within', 'focus'],
-    alignContent: ['responsive'],
-    alignItems: ['responsive'],
-    alignSelf: ['responsive'],
-    animation: ['responsive'],
-    appearance: ['responsive'],
-    backdropBlur: ['responsive'],
-    backdropBrightness: ['responsive'],
-    backdropContrast: ['responsive'],
-    backdropFilter: ['responsive'],
-    backdropGrayscale: ['responsive'],
-    backdropHueRotate: ['responsive'],
-    backdropInvert: ['responsive'],
-    backdropOpacity: ['responsive'],
-    backdropSaturate: ['responsive'],
-    backdropSepia: ['responsive'],
-    backgroundAttachment: ['responsive'],
-    backgroundBlendMode: ['responsive'],
-    backgroundClip: ['responsive'],
-    backgroundColor: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    backgroundImage: ['responsive'],
-    backgroundOpacity: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    backgroundPosition: ['responsive'],
-    backgroundRepeat: ['responsive'],
-    backgroundSize: ['responsive'],
-    backgroundOrigin: ['responsive'],
-    blur: ['responsive'],
-    borderCollapse: ['responsive'],
-    borderColor: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    borderOpacity: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    borderRadius: ['responsive'],
-    borderStyle: ['responsive'],
-    borderWidth: ['responsive'],
-    boxDecorationBreak: ['responsive'],
-    boxShadow: [
-      'responsive',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    boxSizing: ['responsive'],
-    brightness: ['responsive'],
-    clear: ['responsive'],
-    container: ['responsive'],
-    contrast: ['responsive'],
-    cursor: ['responsive'],
-    display: ['responsive'],
-    divideColor: ['responsive', 'dark'],
-    divideOpacity: ['responsive', 'dark'],
-    divideStyle: ['responsive'],
-    divideWidth: ['responsive'],
-    dropShadow: ['responsive'],
-    fill: ['responsive'],
-    filter: ['responsive'],
-    flex: ['responsive'],
-    flexDirection: ['responsive'],
-    flexGrow: ['responsive'],
-    flexShrink: ['responsive'],
-    flexWrap: ['responsive'],
-    float: ['responsive'],
-    fontFamily: ['responsive'],
-    fontSize: ['responsive'],
-    fontSmoothing: ['responsive'],
-    fontStyle: ['responsive'],
-    fontVariantNumeric: ['responsive'],
-    fontWeight: ['responsive'],
-    gap: ['responsive'],
-    gradientColorStops: [
-      'responsive',
-      'dark',
-      'hover',
-      'focus'
-    ],
-    grayscale: ['responsive'],
-    gridAutoColumns: ['responsive'],
-    gridAutoFlow: ['responsive'],
-    gridAutoRows: ['responsive'],
-    gridColumn: ['responsive'],
-    gridColumnEnd: ['responsive'],
-    gridColumnStart: ['responsive'],
-    gridRow: ['responsive'],
-    gridRowEnd: ['responsive'],
-    gridRowStart: ['responsive'],
-    gridTemplateColumns: ['responsive'],
-    gridTemplateRows: ['responsive'],
-    height: ['responsive'],
-    hueRotate: ['responsive'],
-    inset: ['responsive'],
-    invert: ['responsive'],
-    isolation: ['responsive'],
-    justifyContent: ['responsive'],
-    justifyItems: ['responsive'],
-    justifySelf: ['responsive'],
-    letterSpacing: ['responsive'],
-    lineHeight: ['responsive'],
-    listStylePosition: ['responsive'],
-    listStyleType: ['responsive'],
-    margin: ['responsive'],
-    maxHeight: ['responsive'],
-    maxWidth: ['responsive'],
-    minHeight: ['responsive'],
-    minWidth: ['responsive'],
-    mixBlendMode: ['responsive'],
-    objectFit: ['responsive'],
-    objectPosition: ['responsive'],
-    opacity: [
-      'responsive',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    order: ['responsive'],
-    outline: ['responsive', 'focus-within', 'focus'],
-    overflow: ['responsive'],
-    overscrollBehavior: ['responsive'],
-    padding: ['responsive'],
-    placeContent: ['responsive'],
-    placeItems: ['responsive'],
-    placeSelf: ['responsive'],
-    placeholderColor: ['responsive', 'dark', 'focus'],
-    placeholderOpacity: ['responsive', 'dark', 'focus'],
-    pointerEvents: ['responsive'],
-    position: ['responsive'],
-    resize: ['responsive'],
-    ringColor: [
-      'responsive',
-      'dark',
-      'focus-within',
-      'focus'
-    ],
-    ringOffsetColor: [
-      'responsive',
-      'dark',
-      'focus-within',
-      'focus'
-    ],
-    ringOffsetWidth: [
-      'responsive',
-      'focus-within',
-      'focus'
-    ],
-    ringOpacity: [
-      'responsive',
-      'dark',
-      'focus-within',
-      'focus'
-    ],
-    ringWidth: ['responsive', 'focus-within', 'focus'],
-    rotate: ['responsive', 'hover', 'focus'],
-    saturate: ['responsive', 'hover', 'focus'],
-    scale: ['responsive', 'hover', 'focus'],
-    sepia: ['responsive'],
-    skew: ['responsive', 'hover', 'focus'],
-    space: ['responsive'],
-    stroke: ['responsive'],
-    strokeWidth: ['responsive'],
-    tableLayout: ['responsive'],
-    textAlign: ['responsive'],
-    textColor: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    textDecoration: [
-      'responsive',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    textOpacity: [
-      'responsive',
-      'dark',
-      'group-hover',
-      'focus-within',
-      'hover',
-      'focus'
-    ],
-    textOverflow: ['responsive'],
-    textTransform: ['responsive'],
-    transform: ['responsive'],
-    transformOrigin: ['responsive'],
-    transitionDelay: ['responsive'],
-    transitionDuration: ['responsive'],
-    transitionProperty: ['responsive'],
-    transitionTimingFunction: ['responsive'],
-    translate: ['responsive', 'hover', 'focus'],
-    userSelect: ['responsive'],
-    verticalAlign: ['responsive'],
-    visibility: ['responsive'],
-    whitespace: ['responsive'],
-    width: ['responsive'],
-    wordBreak: ['responsive'],
-    zIndex: ['responsive', 'focus-within', 'focus']
-  },
   plugins: []
 }

@@ -1,25 +1,26 @@
 <template>
   <app-autocomplete-many-input
-    :createIfNotFound="true"
-    :createFn="handleCreate"
-    createPrefix="Invite"
     v-model="model"
+    :create-if-not-found="true"
+    :create-fn="handleCreate"
+    create-prefix="Invite"
     placeholder="Type in the emails to invite"
   />
 </template>
 <script>
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 export default {
-  name: 'app-user-invite-autocomplete',
+  name: 'AppUserInviteAutocomplete',
+  components: {
+    AppAutocompleteManyInput
+  },
   props: {
     value: {
       type: Array,
       default: () => []
     }
   },
-  components: {
-    AppAutocompleteManyInput
-  },
+  emits: ['update:modelValue'],
   data() {
     return {
       model: []
@@ -29,7 +30,7 @@ export default {
     model: {
       deep: true,
       handler(newValue) {
-        this.$emit('input', newValue)
+        this.$emit('update:modelValue', newValue)
       }
     },
     value: {

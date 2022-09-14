@@ -4,13 +4,13 @@
     :editable="editable"
     :number="true"
     @trigger-duplicate-widget="
-      (w) => this.$emit('trigger-duplicate-widget', w)
+      (w) => $emit('trigger-duplicate-widget', w)
     "
     @trigger-edit-widget="
-      (w) => this.$emit('trigger-edit-widget', w)
+      (w) => $emit('trigger-edit-widget', w)
     "
     @trigger-delete-widget="
-      (w) => this.$emit('trigger-delete-widget', w)
+      (w) => $emit('trigger-delete-widget', w)
     "
     @open-settings-modal="modal = true"
   >
@@ -28,13 +28,13 @@
             </div>
           </el-tooltip>
           <div
+            v-if="growth.target !== null"
             class="widget--number-values-growth"
             :class="
               growth.target >= 0
                 ? 'widget--number-values-growth--positive'
                 : 'widget--number-values-growth--negative'
             "
-            v-if="growth.target !== null"
           >
             ({{ growth.target >= 0 ? '+' : '-'
             }}{{ growth.current }}%)
@@ -44,8 +44,8 @@
       </div>
     </div>
     <el-dialog
+      v-model="modal"
       :title="`${config.title} Settings`"
-      :visible.sync="modal"
       @close="modal = false"
     ></el-dialog>
   </app-widget>
@@ -56,7 +56,11 @@ import Widget from './widget'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'widget-number',
+  name: 'AppWidgetNumber',
+
+  components: {
+    'app-widget': Widget
+  },
 
   props: {
     config: {
@@ -82,9 +86,27 @@ export default {
       default: false
     }
   },
+  emits: [
+    'trigger-duplicate-widget',
+    'trigger-edit-widget',
+    'trigger-delete-widget'
+  ],
 
-  components: {
-    'app-widget': Widget
+  data() {
+    return {
+      modal: false,
+      value: {
+        current: 0,
+        target: null,
+        suffix: this.config.suffix,
+        unit: this.config.unit
+      },
+      growth: {
+        current: 0,
+        target: null
+      },
+      speed: this.config.speed ? this.config.speed : 200
+    }
   },
 
   computed: {
@@ -139,23 +161,6 @@ export default {
     }
   },
 
-  data() {
-    return {
-      modal: false,
-      value: {
-        current: 0,
-        target: null,
-        suffix: this.config.suffix,
-        unit: this.config.unit
-      },
-      growth: {
-        current: 0,
-        target: null
-      },
-      speed: this.config.speed ? this.config.speed : 200
-    }
-  },
-
   watch: {
     config: {
       deep: true,
@@ -163,6 +168,10 @@ export default {
         this.setValues()
       }
     }
+  },
+
+  async created() {
+    this.setValues()
   },
 
   methods: {
@@ -218,10 +227,6 @@ export default {
         this.updateValue()
       }
     }
-  },
-
-  async created() {
-    this.setValues()
   }
 }
 </script>

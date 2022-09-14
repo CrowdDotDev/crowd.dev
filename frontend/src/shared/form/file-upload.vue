@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-upload
+      ref="files"
       :accept="accept"
       :file-list="fileList"
       :http-request="uploadFromRequest"
@@ -10,7 +11,6 @@
       :on-remove="onRemove"
       :on-success="onSuccess"
       action
-      ref="files"
     >
       <el-button
         :disabled="loading || isFull"
@@ -29,7 +29,38 @@ import { FileUploader } from '@/shared/file-upload/file-uploader'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-file-upload',
+  name: 'AppFileUpload',
+
+  props: {
+    text: {
+      type: String,
+      required: false,
+      default: 'Upload'
+    },
+    storage: {
+      type: String,
+      required: true
+    },
+    value: {
+      type: Array,
+      default: () => [],
+      required: false
+    },
+    formats: {
+      type: String,
+      default: null,
+      required: false
+    },
+    max: {
+      type: Number,
+      required: true
+    },
+    btnClass: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -38,29 +69,6 @@ export default {
         url: item.downloadUrl
       })),
       loading: false
-    }
-  },
-
-  props: {
-    text: {
-      required: false,
-      default: 'Upload'
-    },
-    storage: {
-      required: true
-    },
-    value: {
-      required: false
-    },
-    formats: {
-      required: false
-    },
-    max: {
-      required: true
-    },
-    btnClass: {
-      type: String,
-      default: null
     }
   },
 
@@ -101,7 +109,10 @@ export default {
         return
       }
 
-      this.$emit('input', [...(this.value || []), file])
+      this.$emit('update:modelValue', [
+        ...(this.value || []),
+        file
+      ])
       this.loading = false
     },
 
@@ -112,7 +123,7 @@ export default {
 
     onRemove(file, files) {
       this.$emit(
-        'input',
+        'update:modelValue',
         (this.value || []).filter((item) =>
           files.some((file) =>
             file.response

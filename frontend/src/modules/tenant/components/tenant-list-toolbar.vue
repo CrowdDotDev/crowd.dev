@@ -1,10 +1,8 @@
 <template>
   <div class="app-page-toolbar">
     <router-link :to="{ path: '/tenant/new' }">
-      <el-button
-        icon="ri-lg ri-add-line"
-        class="btn btn--primary"
-      >
+      <el-button class="btn btn--primary"
+        ><i class="ri-lg ri-add-line mr-1" />
         <app-i18n code="common.new"></app-i18n>
       </el-button>
     </router-link>
@@ -13,7 +11,7 @@
 
 <script>
 export default {
-  name: 'app-tenant-list-toolbar'
+  name: 'AppTenantListToolbar'
 }
 </script>
 

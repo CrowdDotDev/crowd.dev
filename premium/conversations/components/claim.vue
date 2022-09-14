@@ -20,7 +20,7 @@
             class="rounded-lg flex items-center justify-center h-full m-6 md:m-10 border border-transparent hover:opacity-80 hover:cursor-pointer shadow-md hover:shadow-lg"
             :style="{
               backgroundColor:
-                tenant.theme && tenant.theme.bgNav !== '#140505'
+                tenant.theme && tenant.theme.bgNav && tenant.logoUrl
                   ? tenant.theme.bgNav
                   : tenant.cardColor
                   ? tenant.cardColor
@@ -49,8 +49,7 @@
 import topHeader from "~~/components/topHeader.vue";
 import mainSection from "~~/components/mainSection.vue";
 import { getBgColor, getTextColor } from "../helpers/avatarColors";
-
-import _ from "lodash";
+import makeStyles from "~~/helpers/makeStyles";
 import MainCta from "~~/components/mainCta.vue";
 
 export default defineComponent({

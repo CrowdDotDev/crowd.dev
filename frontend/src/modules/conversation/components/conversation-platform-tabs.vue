@@ -55,7 +55,7 @@ function createFilterEntry(platform) {
 }
 
 export default {
-  name: 'app-conversation-status-tabs',
+  name: 'AppConversationStatusTabs',
   data() {
     return {
       platforms: [

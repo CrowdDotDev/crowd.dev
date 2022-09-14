@@ -1,26 +1,29 @@
 <template>
   <div class="flex items-center flex-wrap">
-    <el-tooltip content="Send email" placement="top">
+    <el-tooltip
+      v-if="member.email"
+      content="Send email"
+      placement="top"
+    >
       <a
         :href="`mailto:${member.email}`"
-        v-if="member.email"
         class="btn btn--circle btn--email"
         :class="member.crowdInfo ? 'mr-2' : ''"
         @click="trackClick('Email')"
         ><i class="ri-sm ri-mail-line"></i
       ></a>
     </el-tooltip>
-    <div class="flex items-center" v-if="member.crowdInfo">
+    <div v-if="member.crowdInfo" class="flex items-center">
       <el-tooltip
+        v-if="member.crowdInfo.twitter"
         content="View Twitter Profile"
         placement="top"
       >
         <a
           :href="member.crowdInfo.twitter.url"
-          v-if="member.crowdInfo.twitter"
-          @click="trackClick('Twitter')"
           target="_blank"
           class="btn btn--circle btn--twitter mr-2"
+          @click="trackClick('Twitter')"
         >
           <img
             :src="findIcon('twitter')"
@@ -30,15 +33,15 @@
         </a>
       </el-tooltip>
       <el-tooltip
+        v-if="member.crowdInfo.github"
         content="View GitHub Profile"
         placement="top"
       >
         <a
           :href="member.crowdInfo.github.url"
-          v-if="member.crowdInfo.github"
-          @click="trackClick('GitHub')"
           target="_blank"
           class="btn btn--circle btn--github mr-2"
+          @click="trackClick('GitHub')"
         >
           <img
             :src="findIcon('github')"
@@ -48,15 +51,15 @@
         </a>
       </el-tooltip>
       <el-tooltip
+        v-if="member.crowdInfo.linkedin"
         content="View LinkedIn Profile"
         placement="top"
       >
         <a
           href="https://linkedin.com"
-          @click="trackClick('LinkedIn')"
-          v-if="member.crowdInfo.linkedin"
           target="_blank"
           class="btn btn--circle btn--linkedin mr-2"
+          @click="trackClick('LinkedIn')"
         >
           <img
             :src="findIcon('linkedin')"
@@ -66,15 +69,15 @@
         </a>
       </el-tooltip>
       <el-tooltip
+        v-if="member.crowdInfo.devto"
         content="View DEV Profile"
         placement="top"
-        v-if="member.crowdInfo.devto"
       >
         <a
           :href="member.crowdInfo.devto.url"
-          @click="trackClick('Dev.to')"
           target="_blank"
           class="btn btn--circle btn--devto mr-2"
+          @click="trackClick('Dev.to')"
         >
           <img
             :src="findIcon('devto')"
@@ -116,7 +119,7 @@
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'app-community-member-channels',
+  name: 'AppCommunityMemberChannels',
   props: {
     member: {
       type: Object,
@@ -125,14 +128,9 @@ export default {
   },
   methods: {
     trackClick(channel) {
-      window.analytics.track(
-        this.member.type === 'lookalike'
-          ? 'Click Lookalike Contact'
-          : 'Click Member Contact',
-        {
-          channel
-        }
-      )
+      window.analytics.track('Click Member Contact', {
+        channel
+      })
     },
 
     findIcon(platform) {

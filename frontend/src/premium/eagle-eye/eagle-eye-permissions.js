@@ -11,8 +11,9 @@ export class EagleEyePermissions {
     this.read = permissionChecker.match(
       Permissions.values.eagleEyeRead
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.eagleEyeRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.eagleEyeRead
+      )
   }
 }

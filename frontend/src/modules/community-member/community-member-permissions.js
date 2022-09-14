@@ -14,9 +14,10 @@ export class CommunityMemberPermissions {
     this.import = permissionChecker.match(
       Permissions.values.communityMemberImport
     )
-    this.communityMemberAutocomplete = permissionChecker.match(
-      Permissions.values.communityMemberAutocomplete
-    )
+    this.communityMemberAutocomplete =
+      permissionChecker.match(
+        Permissions.values.communityMemberAutocomplete
+      )
     this.create = permissionChecker.match(
       Permissions.values.communityMemberCreate
     )
@@ -26,8 +27,9 @@ export class CommunityMemberPermissions {
     this.destroy = permissionChecker.match(
       Permissions.values.communityMemberDestroy
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.communityMemberRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.communityMemberRead
+      )
   }
 }

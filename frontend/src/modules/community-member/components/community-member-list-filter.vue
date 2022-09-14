@@ -1,26 +1,28 @@
 <template>
   <div class="filter">
-    <portal to="community-member-filter-toggle">
+    <app-teleport
+      to="#teleport-community-member-filter-toggle"
+    >
       <app-filter-toggle
-        @click="doToggleExpanded"
-        :activeFiltersCount="activeFiltersCount"
+        :active-filters-count="activeFiltersCount"
         :expanded="expanded"
         class="mr-1"
+        @click="doToggleExpanded"
       ></app-filter-toggle>
-    </portal>
+    </app-teleport>
     <el-dialog
-      :visible.sync="expanded"
+      v-model="expanded"
       title="Members Filters"
       @close="expanded = false"
     >
       <el-form
+        v-if="expanded"
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthFilter"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doFilter"
-        ref="form"
-        v-if="expanded"
+        @submit.prevent="doFilter"
       >
         <app-filter-preview
           :values="model"
@@ -45,18 +47,8 @@
 
           <el-col :md="12" :sm="24">
             <el-form-item
-              label="Score Range"
-              :prop="fields.scoreRange.name"
-              v-if="lookalike"
-            >
-              <app-number-range-input
-                v-model="model[fields.scoreRange.name]"
-              />
-            </el-form-item>
-            <el-form-item
               label="Engagement Level"
               label-width="150"
-              v-else
             >
               <app-community-member-engagement-level-filter
                 v-model="model[fields.scoreRange.name]"
@@ -75,7 +67,7 @@
             </el-form-item>
           </el-col>
 
-          <el-col :sm="24" v-if="!lookalike">
+          <el-col :sm="24">
             <el-form-item
               label="# of Activities"
               :prop="fields.activitiesCountRange.name"
@@ -94,9 +86,9 @@
               :prop="fields.tags.name"
             >
               <app-tag-autocomplete-input
-                :fetchFn="fields.tags.fetchFn"
-                :mapperFn="fields.tags.mapperFn"
                 v-model="model[fields.tags.name]"
+                :fetch-fn="fields.tags.fetchFn"
+                :mapper-fn="fields.tags.mapperFn"
                 placeholder="Type to search/create tags"
               >
               </app-tag-autocomplete-input>
@@ -107,10 +99,10 @@
         <div class="filter-buttons">
           <el-button
             :disabled="loading"
-            @click="doFilter"
-            icon="ri-lg ri-check-line"
             class="btn btn--primary mr-2"
+            @click="doFilter"
           >
+            <i class="ri-lg ri-check-line mr-1" />
             <app-i18n
               code="common.filters.apply"
             ></app-i18n>
@@ -118,10 +110,10 @@
 
           <el-button
             :disabled="loading"
-            @click="doResetFilter"
-            icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary"
+            @click="doResetFilter"
           >
+            <i class="ri-lg ri-arrow-go-back-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
         </div>
@@ -131,7 +123,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
@@ -150,13 +141,7 @@ const filterSchema = new FilterSchema([
 ])
 
 export default {
-  name: 'app-community-member-list-filter',
-  props: {
-    lookalike: {
-      type: Boolean,
-      default: false
-    }
-  },
+  name: 'AppCommunityMemberListFilter',
   components: {
     AppNumberRangeInput,
     AppTagAutocompleteInput,
@@ -213,7 +198,7 @@ export default {
     },
 
     doRemove(field) {
-      Vue.delete(this.model, field)
+      delete this.model[field]
     },
 
     async doResetFilter() {

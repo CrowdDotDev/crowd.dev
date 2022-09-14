@@ -1,20 +1,20 @@
 <template>
   <div>
     <el-form
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
+      @submit.prevent="doSubmit"
     >
       <div class="flex items-center -mx-2">
         <el-form-item
+          v-if="!single"
           :label="fields.emails.label"
           :prop="fields.emails.name"
           :required="fields.emails.required"
-          v-if="!single"
           class="w-full lg:w-1/2 mx-2"
         >
           <app-user-invite-autocomplete
@@ -23,10 +23,10 @@
         </el-form-item>
 
         <el-form-item
+          v-if="single"
           :label="fields.email.label"
           :prop="fields.email.name"
           :required="fields.email.required"
-          v-if="single"
           class="w-full lg:w-1/2 mx-2"
         >
           <el-input
@@ -42,15 +42,15 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <el-select
+            v-model="model[fields.roles.name]"
             multiple
             placeholder="Select the roles"
-            v-model="model[fields.roles.name]"
           >
             <el-option
+              v-for="option in fields.roles.options"
               :key="option.value"
               :label="option.label"
               :value="option.value"
-              v-for="option in fields.roles.options"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -78,11 +78,9 @@
             <el-tooltip
               content="Copy to Clipboard"
               placement="top"
-              slot="append"
             >
-              <el-button
-                icon="ri-clipboard-line"
-                @click="copyToClipboard('token')"
+              <el-button @click="copyToClipboard('token')"
+                ><i class="ri-clipboard-line"></i
               ></el-button>
             </el-tooltip>
           </el-input>
@@ -90,33 +88,33 @@
       </div>
 
       <div
-        class="form-buttons mt-12"
         v-if="!invitationToken"
+        class="form-buttons mt-12"
       >
         <el-button
           :disabled="saveLoading"
-          @click="doSubmit"
-          icon="ri-lg ri-mail-send-line"
           class="btn btn--primary mr-2"
+          @click="doSubmit"
         >
+          <i class="ri-lg ri-mail-send-line mr-1" />
           Invite
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doReset"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
+          @click="doReset"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doCancel"
-          icon="ri-lg ri-close-line"
           class="btn btn--secondary"
+          @click="doCancel"
         >
+          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
       </div>
@@ -153,13 +151,27 @@ const multipleFormSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-user-new-form',
-
-  props: ['saveLoading', 'single', 'invitationToken'],
+  name: 'AppUserNewForm',
 
   components: {
     'app-user-invite-autocomplete': UserInviteAutocomplete
   },
+
+  props: {
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    single: {
+      type: Boolean,
+      default: true
+    },
+    invitationToken: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['submit', 'cancel'],
 
   data() {
     return {

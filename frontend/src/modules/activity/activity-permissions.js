@@ -26,8 +26,9 @@ export class ActivityPermissions {
     this.destroy = permissionChecker.match(
       Permissions.values.activityDestroy
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.activityRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.activityRead
+      )
   }
 }

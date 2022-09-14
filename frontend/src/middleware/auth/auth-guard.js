@@ -14,19 +14,12 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
  * - User has permissions (if not, redirects to /auth/empty-permissions)
  *
  * @param to
- * @param next
  * @param store
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({
-  to,
-  next,
-  store,
-  router
-}) {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.auth) {
-    next()
     return
   }
   await store.dispatch('auth/doWaitUntilInit')
@@ -80,8 +73,6 @@ export default async function ({
       })
     }
   }
-
-  next()
 }
 
 function _isGoingToIntegrationsPage(to) {

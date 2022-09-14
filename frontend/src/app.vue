@@ -1,10 +1,12 @@
 <template>
-  <div id="app" v-if="!loadingInit">
-    <transition mode="out-in" name="fade">
-      <router-view />
-    </transition>
+  <div v-if="!loadingInit" id="app">
+    <router-view v-slot="{ Component }">
+      <transition>
+        <component :is="Component" />
+      </transition>
+    </router-view>
 
-    <portal-target name="modal"></portal-target>
+    <div id="teleport-modal"></div>
   </div>
 </template>
 
@@ -12,7 +14,13 @@
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app',
+  name: 'App',
+
+  computed: {
+    ...mapGetters({
+      loadingInit: 'auth/loadingInit'
+    })
+  },
 
   created() {
     this.doInit()
@@ -20,7 +28,7 @@ export default {
     this.handleResize()
   },
 
-  destroyed() {
+  unmounted() {
     window.removeEventListener('resize', this.handleResize)
   },
 
@@ -36,12 +44,6 @@ export default {
         height: window.innerHeight
       })
     }
-  },
-
-  computed: {
-    ...mapGetters({
-      loadingInit: 'auth/loadingInit'
-    })
   }
 }
 </script>

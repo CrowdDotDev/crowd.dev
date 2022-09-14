@@ -1,20 +1,20 @@
 <template>
   <div>
     <div
-      class="app-page-spinner"
       v-if="initLoading"
       v-loading="initLoading"
+      class="app-page-spinner"
     ></div>
 
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <div class="flex items-center -mx-2">
         <el-form-item
@@ -23,8 +23,8 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <el-input
-            disabled
             v-model="model[fields.email.name]"
+            disabled
           />
         </el-form-item>
 
@@ -35,15 +35,14 @@
           class="w-full lg:w-1/2 mx-2"
         >
           <el-select
-            multiple
-            placeholder
             v-model="model[fields.roles.name]"
+            placeholder="Select a role"
           >
             <el-option
+              v-for="option in fields.roles.options"
               :key="option.value"
               :label="option.label"
               :value="option.value"
-              v-for="option in fields.roles.options"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -52,28 +51,28 @@
       <div class="form-buttons mt-12">
         <el-button
           :disabled="saveLoading"
-          @click="doSubmit"
-          icon="ri-lg ri-save-line"
           class="btn btn--primary mr-2"
+          @click="doSubmit"
         >
+          <i class="ri-lg ri-save-line mr-1" />
           <app-i18n code="common.save"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doReset"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
+          @click="doReset"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="$emit('cancel')"
-          icon="ri-lg ri-close-line"
           class="btn btn--secondary"
+          @click="$emit('cancel')"
         >
+          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
       </div>
@@ -94,9 +93,15 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-user-edit-page',
+  name: 'AppUserEditPage',
 
-  props: ['id'],
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['cancel'],
 
   data() {
     return {
