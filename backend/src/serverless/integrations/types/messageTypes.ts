@@ -48,6 +48,7 @@ export interface GithubIntegrationMessage extends IntegrationsMessage {}
 
 export type Member = {
   username: any
+  displayName?: string,
   crowdInfo?: any
   email?: string
   organisation?: string

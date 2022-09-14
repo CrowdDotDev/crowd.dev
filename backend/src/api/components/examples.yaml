@@ -7,7 +7,7 @@ components:
         username:
           github: smart lady
           discord: smart lady
-          crowdUsername: smart lady
+        displayName: smart lady
         type: member
         info: {}
         crowdInfo:
@@ -111,7 +111,7 @@ components:
         id: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
         username:
           discord: favorable slowboy
-          crowdUsername: favorable slowboy
+        displayName: favorable slowboy
         type: member
         info: {}
         crowdInfo:
@@ -207,7 +207,7 @@ components:
           username:
             github: gilfoyle
             discord: gilfoyle
-            crowdUsername: gilfoyle
+          displayName: gilfoyle
           type: member
           info:
             show: Silicon Valley
@@ -271,7 +271,7 @@ components:
           username:
             github: amicable tupman
             discord: amicable tupman
-            crowdUsername: amicable tupman
+          displayName: amicable tupman
           type: member
           info: {}
           crowdInfo:
@@ -336,7 +336,7 @@ components:
             username:
               github: humorous beadwood
               discord: humorous beadwood
-              crowdUsername: humorous beadwood
+            displayName: humorous beadwood
             type: member
             info: {}
             crowdInfo:

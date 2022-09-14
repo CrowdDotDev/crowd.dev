@@ -687,6 +687,7 @@ export default class GithubIterator extends BaseIterator {
   parseMember(memberFromApi: any): Member {
     const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
+      displayName: memberFromApi.name,
       crowdInfo: {
         github: {
           name: memberFromApi.name,

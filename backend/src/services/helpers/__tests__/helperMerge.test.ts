@@ -99,17 +99,17 @@ describe('Merge helper tests', () => {
       })
     })
 
-    it('Should leave crowdUsername the same when updating with a different', async () => {
+    it('Should leave displayName the same when updating with a different', async () => {
       const member1 = {
         id: '1',
-        username: { crowdUsername: 'Anil' },
+        displayName: 'Anil',
       }
       const member2 = {
         id: '1',
-        username: { crowdUsername: 'Anil2' },
+        displayName: 'Anil2',
       }
       const merged = merge(member1, member2, {
-        'username.crowdUsername': (oldUsername) => oldUsername,
+        'displayName': (oldUsername) => oldUsername,
       })
       expect(merged).toStrictEqual({})
     })

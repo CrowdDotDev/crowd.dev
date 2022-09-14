@@ -13,13 +13,12 @@ components:
         username:
           description: >-
             Usernames of the member in each platform. Exactly one for each platform in which the member is active.
-            <br/>Example: ```{ github: 'iamgilfoyle', discord: 'gilfoyle ', crowdUsername: 'gilfoyle' }```
+            <br/>Example: ```{ github: 'iamgilfoyle', discord: 'gilfoyle '}```
           type: object
-          properties:
-            crowdUsername:
-              description: The username used in the crowd.dev app. By default it will be set to the username in the first platform sent
-              type: string
           additionalProperties: true
+        displayName:
+          description: UI friendly name of the member
+          type: string
         type:
           description: Type of member. (member)
           type: string

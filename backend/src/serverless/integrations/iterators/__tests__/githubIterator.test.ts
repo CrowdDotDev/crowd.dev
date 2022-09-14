@@ -139,6 +139,7 @@ describe('Github iterator tests', () => {
           [PlatformType.GITHUB]: prWithMember.login,
           [PlatformType.TWITTER]: prWithMember.twitterUsername,
         },
+        displayName: prWithMember.name,
         crowdInfo: {
           github: {
             name: prWithMember.name,

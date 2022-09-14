@@ -28,7 +28,6 @@ describe('SampleDataService tests', () => {
       // create an ordinary member with activities
       const member = {
         username: {
-          crowdUsername: 'anil',
           github: 'anil_github',
         },
         email: 'lala@l.com',
@@ -132,7 +131,6 @@ describe('SampleDataService tests', () => {
       // create an ordinary member with activities
       const member = {
         username: {
-          crowdUsername: 'anil',
           github: 'anil_github',
         },
         email: 'lala@l.com',

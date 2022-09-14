@@ -1,7 +1,6 @@
 [
   {
     "username": {
-      "crowdUsername": "considerate snewkes",
       "discord": "considerate snewkes"
     },
     "type": "member",
@@ -63,7 +62,6 @@
   {
     "username": {
       "github": "amazing worshipper",
-      "crowdUsername": "amazing worshipper",
       "discord": "amazing worshipper"
     },
     "type": "member",
@@ -232,8 +230,7 @@
   },
   {
     "username": {
-      "github": "romantic plornish",
-      "crowdUsername": "romantic plornish"
+      "github": "romantic plornish"
     },
     "type": "member",
     "info": {},
