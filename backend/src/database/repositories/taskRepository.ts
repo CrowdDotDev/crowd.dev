@@ -5,6 +5,8 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 const { Op } = Sequelize
 
@@ -173,45 +175,39 @@ class TaskRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    // Filter
-    // status
-    // dueDateRenge
-    // assignedTo
-    // members
-    // activities
-
-    // Sort
-    // dueDate
-    // status
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = []
     const include = []
 
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.name) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('task', 'name', filter.name))
+        advancedFilter.and.push({
+          name: {
+            textContains: filter.name,
+          },
+        })
       }
 
       if (filter.body) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('task', 'body', filter.body))
+        advancedFilter.and.push({
+          body: {
+            textContains: filter.body,
+          },
+        })
       }
 
       if (filter.status) {
-        whereAnd.push({
+        advancedFilter.and.push({
           status: filter.status,
         })
       }
@@ -220,45 +216,37 @@ class TaskRepository {
         const [start, end] = filter.dueDateRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             dueDate: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             dueDate: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
 
       if (filter.assignedTo) {
-        whereAnd.push({
-          assignedToId: SequelizeFilterUtils.uuid(filter.assignedTo),
+        advancedFilter.and.push({
+          assignedToId: filter.assignedTo,
         })
       }
 
-      if (filter.member) {
-        include.push({
-          model: options.database.member,
-          as: 'members',
-          where: {
-            id: SequelizeFilterUtils.uuid(filter.member),
-          },
+      if (filter.members) {
+        advancedFilter.and.push({
+          members: filter.members,
         })
       }
 
-      if (filter.activity) {
-        include.push({
-          model: options.database.activity,
-          as: 'activities',
-          where: {
-            id: SequelizeFilterUtils.uuid(filter.activity),
-          },
+      if (filter.activities) {
+        advancedFilter.and.push({
+          activities: filter.activities,
         })
       }
 
@@ -266,34 +254,64 @@ class TaskRepository {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const parser = new QueryParser(
+      {
+        manyToMany: {
+          members: {
+            table: 'tasks',
+            relationTable: {
+              name: 'memberTasks',
+              from: 'taskId',
+              to: 'memberId',
+            },
+          },
+          activities: {
+            table: 'tasks',
+            relationTable: {
+              name: 'activityTasks',
+              from: 'taskId',
+              to: 'activityId',
+            },
+          },
+        },
+      },
+      options,
+    )
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.task.findAndCountAll({
-      where,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       include,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
       transaction: SequelizeRepository.getTransaction(options),
     })
 

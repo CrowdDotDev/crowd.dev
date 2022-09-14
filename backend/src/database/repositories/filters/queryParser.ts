@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid'
 import Sequelize from 'sequelize'
 import { IRepositoryOptions } from '../IRepositoryOptions'
 import SequelizeRepository from '../sequelizeRepository'
-import { QueryInput } from './queryTypes'
+import { QueryInput, ManyToManyType } from './queryTypes'
 
 const { Op } = Sequelize
 
@@ -21,6 +21,8 @@ class QueryParser {
   private whereOrHaving: string
 
   private nestedFields: any
+
+  private manyToMany: ManyToManyType
 
   static maxPageSize = 200
 
@@ -49,6 +51,7 @@ class QueryParser {
     in: Op.in, // IN [1, 2]
     notIn: Op.notIn, // NOT IN [1, 2]
     overlap: Op.overlap, // && [1, 2] (PG array overlap operator)
+    NULL: null,
     // contains: Op.contains,          // @> [1, 2] (PG array contains operator)
     // contained: Op.contained,        // <@ [1, 2] (PG array contained by operator)
     // col: Op.col                     // = "user"."organization_id", with dialect specific column identifiers, PG in this example
@@ -64,11 +67,46 @@ class QueryParser {
     },
   }
 
-  constructor({ aggregators = {} as any, nestedFields = {} as any }, options: IRepositoryOptions) {
+  constructor(
+    { aggregators = {} as any, nestedFields = {} as any, manyToMany = {} as ManyToManyType },
+    options: IRepositoryOptions,
+  ) {
     this.options = options
     this.aggregators = aggregators
     this.nestedFields = nestedFields
     this.whereOrHaving = 'where'
+    this.manyToMany = manyToMany
+  }
+
+  replaceWithManyToMany(query, key) {
+    const value = query[key]
+    delete query[key]
+
+    const mapping = this.manyToMany[key]
+    const items = value.reduce((acc, item, index) => {
+      if (index === 0) {
+        return `${acc} "${mapping.relationTable.name}"."${
+          mapping.relationTable.to
+        }"  = '${QueryParser.uuid(item)}'`
+      }
+      return `${acc} OR "${mapping.relationTable.name}"."${
+        mapping.relationTable.to
+      }"  = '${QueryParser.uuid(item)}'`
+    }, '')
+
+    const literal = Sequelize.literal(
+      `(SELECT "${mapping.table}".id FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}".id WHERE ${items})`,
+    )
+
+    if (query.id?.[Op.and]) {
+      query.id[Op.and].push({ [Op.in]: literal })
+    } else {
+      query.id = {
+        [Op.and]: [{ [Op.in]: literal }],
+      }
+    }
+
+    return query
   }
 
   /**
@@ -158,12 +196,15 @@ class QueryParser {
         query = this.replaceKeyWithNestedField(query, key)
         key = this.nestedFields[key]
       }
-
-      if (this.aggregators[key]) {
-        query = this.replaceKeyWithAggregator(query, key)
-      } else if (key === 'id') {
+      if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
+      } else if (this.aggregators[key]) {
+        // If the key is one of the aggregators, replace by aggregator
+        query = this.replaceKeyWithAggregator(query, key)
+      } else if (this.manyToMany[key]) {
+        // If the key is a many to many field, construct the query
+        query = this.replaceWithManyToMany(query, key)
       } else if (query[key] !== null && typeof query[key] === 'object') {
         // When the value of the key is an object
         // Find if the key is an operation in the operations dict
@@ -186,9 +227,12 @@ class QueryParser {
         query.model = this.options.database[query[key]]
       } else {
         const op = QueryParser.operators[key]
-        if (op) query = QueryParser.replaceKeyWithOperator(query, key, op)
         const complexOp = QueryParser.complexOperators[key]
-        if (complexOp) query = QueryParser.replaceKeyWithComplexOperator(query, key, complexOp)
+        if (op) query = QueryParser.replaceKeyWithOperator(query, key, op)
+        else if (complexOp) query = QueryParser.replaceKeyWithComplexOperator(query, key, complexOp)
+        // The key is not an operation, but it could be that the value is (NULL, for example)
+        else if (QueryParser.operators[query[key]] !== undefined)
+          query[key] = QueryParser.operators[query[key]]
       }
     })
     return query
@@ -296,59 +340,6 @@ class QueryParser {
     if (include) {
       dbQuery.include = this.parseIncludeFields(query.include)
     }
-
-    // // eslint-disable-next-line guard-for-in
-    // for (const key in query) {
-    //   switch (key) {
-    //     // Fields
-    //     case 'fields':
-    //       // split the field names (attributes) and assign to an array
-    //       // eslint-disable-next-line no-case-declarations
-    //       const fields = query.fields.split(',')
-    //       // assign fields array to .attributes
-    //       if (fields && fields.length > 0) dbQuery.attributes = fields
-    //       break
-
-    //     // pagination page size
-    //     case 'limit':
-    //       dbQuery.limit = Math.min(Math.max(parseInt(query.limit, 10), 1), QueryParser.maxPageSize)
-    //       // TODO: Uncomment if we end up going with page/perPage
-    //       // limit = dbQuery.limit
-    //       break
-
-    //     // pagination page offset
-    //     case 'offset':
-    //       offset = Math.max(parseInt(query.offset, 10), 0)
-    //       break
-
-    //     // orderBy field order
-    //     case 'orderBy':
-    //       dbQuery.order = QueryParser.parseFields(query.orderBy)
-    //       break
-
-    //     // JSON (nested) query
-    //     case 'query':
-    //       // eslint-disable-next-line no-case-declarations
-    //       const parsed = this.parseQueryFields(query.query)
-    //       dbQuery[whereOrHaving] = { ...dbQuery.where, ...parsed }
-    //       break
-
-    //     // include and query on associated tables
-    //     case 'include':
-    //       dbQuery.include = this.parseIncludeFields(query.include)
-    //       break
-
-    //     // Simple filter query
-    //     default:
-    //       break
-    //   }
-    // }
-
-    // dbQuery.offset = offset
-    // dbQuery.limit = dbQuery.limit || QueryParser.maxPageSize
-
-    // TODO: Switch if we end up going with page/perPage
-    // dbQuery.offset = offset * limit
 
     return dbQuery
   }

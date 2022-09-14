@@ -15,3 +15,14 @@ export interface QueryOutput {
   offset: number
   attributes?: [string]
 }
+
+export interface ManyToManyType {
+  [key: string]: {
+    table: string
+    relationTable: {
+      name: string
+      from: string
+      to: string
+    }
+  }
+}
