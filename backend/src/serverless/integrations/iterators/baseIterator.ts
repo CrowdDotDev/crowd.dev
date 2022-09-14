@@ -2,7 +2,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import crypto from 'crypto'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { IS_TEST_ENV } from '../../../config/index'
+import { IS_TEST_ENV, KUBE_MODE } from '../../../config/index'
 import { parseOutput, IntegrationResponse, BaseOutput } from '../types/iteratorTypes'
 
 import { State, Endpoint, Endpoints } from '../types/regularTypes'
@@ -156,11 +156,17 @@ export default abstract class BaseIterator {
           if (log) {
             console.log('Response limit reached')
           }
-          return this.limitReachedFunction(this.state, response.timeUntilReset)
+
+          if (KUBE_MODE) {
+            console.log(`Waiting to continue for ${response.timeUntilReset} seconds!`)
+            await BaseIterator.sleep(response.timeUntilReset)
+          } else {
+            return this.limitReachedFunction(this.state, response.timeUntilReset)
+          }
         }
         // If the time elapsed is bigger than the max time, return a limit reached state
         // with a waiting time of 0 (no waiting needed, just a fresh function)
-        if (timeSinceStart >= maxTime) {
+        if (!KUBE_MODE && timeSinceStart >= maxTime) {
           console.log('time limit reached')
           return this.limitReachedFunction(this.state, 0)
         }

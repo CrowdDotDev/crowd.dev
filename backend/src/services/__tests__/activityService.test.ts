@@ -13,6 +13,8 @@ import ConversationSettingsRepository from '../../database/repositories/conversa
 const db = null
 const searchEngine = null
 
+console.log('TEST INFO', process.env.NODE_ENV, process.env.KUBE_MODE)
+
 describe('ActivityService tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)

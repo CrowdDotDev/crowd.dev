@@ -1,5 +1,12 @@
 version: '3.1'
 
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: job-generator
+  TENANT_MODE: multi
+  KUBE_MODE: 1
+
 services:
   job-generator:
     build:
@@ -7,10 +14,7 @@ services:
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:job-generator'
     environment:
-      - DOCKER_BUILDKIT=1
-      - NODE_ENV=docker
-      - SERVICE_NAME=job-generator
-      - TENANT_MODE=multi
+      <<: *env-args
     networks:
       - crowd-bridge
 
@@ -20,10 +24,7 @@ services:
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:job-generator'
     environment:
-      - DOCKER_BUILDKIT=1
-      - NODE_ENV=docker
-      - SERVICE_NAME=job-generator
-      - TENANT_MODE=multi
+      <<: *env-args
     hostname: job-generator
     networks:
       - crowd-bridge

@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { KUBE_MODE } from '../../../../config'
 import BaseIterator from '../baseIterator'
 import TestIterator from './testIterator'
 
@@ -217,137 +218,139 @@ describe('BaseIterator tests', () => {
     })
   })
 
-  describe('limit reached  tests', () => {
-    it('Should stop when limit is reached', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
-        }
+  if (!KUBE_MODE) {
+    describe('limit reached  tests', () => {
+      it('Should stop when limit is reached', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
 
-        return { nextPage: 'p2', limit: 0 } // in endpoint 1
-      }
-
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        TestIterator.limitReachedState,
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-      ])
-      expect(iter.state).toStrictEqual({
-        endpoint: 'endpoint1',
-        page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
-      })
-      expect(out).toStrictEqual(limitReached)
-    })
-
-    it('Limit stop not depend on the iterator function (metatest)', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
-        }
-        if (n === 1) {
           return { nextPage: 'p2', limit: 0 } // in endpoint 1
         }
-        if (n === 2) {
-          return { nextPage: '', limit: 7 } // in endpoint 1
-        }
-        if (n === 3) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
 
-        return { nextPage: '', limit: 3 } // in endpoint 3
-      }
-
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        TestIterator.limitReachedState,
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-      ])
-      expect(iter.state).toStrictEqual({
-        endpoint: 'endpoint1',
-        page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          TestIterator.limitReachedState,
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+        ])
+        expect(iter.state).toStrictEqual({
+          endpoint: 'endpoint1',
+          page: 'p2',
+          endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
+        })
+        expect(out).toStrictEqual(limitReached)
       })
-      expect(out).toStrictEqual(limitReached)
-    })
 
-    it('Limit reached right after the last endpoint  is ignored', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
-        }
-        if (n === 1) {
-          return { nextPage: 'p2', limit: 8 } // in endpoint 1
-        }
-        if (n === 2) {
-          return { nextPage: '', limit: 7 } // in endpoint 1
-        }
-        if (n === 3) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
+      it('Limit stop not depend on the iterator function (metatest)', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
+          if (n === 1) {
+            return { nextPage: 'p2', limit: 0 } // in endpoint 1
+          }
+          if (n === 2) {
+            return { nextPage: '', limit: 7 } // in endpoint 1
+          }
+          if (n === 3) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
 
-        return { nextPage: '', limit: 0 } // in endpoint 3
-      }
-
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
-        { endpoint: 'endpoint3', page: '', endpoints: [] },
-      ])
-      expect(iter.state).toStrictEqual(TestIterator.endState)
-      expect(out).toStrictEqual(success)
-    })
-
-    it('Limit reached almost at the end', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
-        }
-        if (n === 1) {
-          return { nextPage: 'p2', limit: 8 } // in endpoint 1
-        }
-        if (n === 2) {
-          return { nextPage: '', limit: 7 } // in endpoint 1
-        }
-        if (n === 3) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
-        if (n === 4) {
-          return { nextPage: 'p1', limit: 0 } // in endpoint 3
+          return { nextPage: '', limit: 3 } // in endpoint 3
         }
 
-        return { nextPage: '', limit: 10 } // in endpoint 3
-      }
-
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
-        { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
-        TestIterator.limitReachedState,
-        { endpoint: 'endpoint3', page: 'p1', endpoints: ['endpoint3'] },
-      ])
-      expect(iter.state).toStrictEqual({
-        endpoint: 'endpoint3',
-        page: 'p1',
-        endpoints: ['endpoint3'],
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          TestIterator.limitReachedState,
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+        ])
+        expect(iter.state).toStrictEqual({
+          endpoint: 'endpoint1',
+          page: 'p2',
+          endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
+        })
+        expect(out).toStrictEqual(limitReached)
       })
-      expect(out).toStrictEqual(limitReached)
+
+      it('Limit reached right after the last endpoint  is ignored', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
+          if (n === 1) {
+            return { nextPage: 'p2', limit: 8 } // in endpoint 1
+          }
+          if (n === 2) {
+            return { nextPage: '', limit: 7 } // in endpoint 1
+          }
+          if (n === 3) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
+
+          return { nextPage: '', limit: 0 } // in endpoint 3
+        }
+
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
+          { endpoint: 'endpoint3', page: '', endpoints: [] },
+        ])
+        expect(iter.state).toStrictEqual(TestIterator.endState)
+        expect(out).toStrictEqual(success)
+      })
+
+      it('Limit reached almost at the end', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
+          if (n === 1) {
+            return { nextPage: 'p2', limit: 8 } // in endpoint 1
+          }
+          if (n === 2) {
+            return { nextPage: '', limit: 7 } // in endpoint 1
+          }
+          if (n === 3) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
+          if (n === 4) {
+            return { nextPage: 'p1', limit: 0 } // in endpoint 3
+          }
+
+          return { nextPage: '', limit: 10 } // in endpoint 3
+        }
+
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
+          { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
+          TestIterator.limitReachedState,
+          { endpoint: 'endpoint3', page: 'p1', endpoints: ['endpoint3'] },
+        ])
+        expect(iter.state).toStrictEqual({
+          endpoint: 'endpoint3',
+          page: 'p1',
+          endpoints: ['endpoint3'],
+        })
+        expect(out).toStrictEqual(limitReached)
+      })
     })
-  })
+  }
 
   describe('start state tests', () => {
     it('Should iterate without pagination given a start state', async () => {
@@ -401,92 +404,96 @@ describe('BaseIterator tests', () => {
       expect(out).toStrictEqual(success)
     })
 
-    it('Should iterate with start and limit reached', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p2', limit: 5 } // in endpoint 2
-        }
-        if (n === 1) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
-        if (n === 2) {
-          return { nextPage: 'p1', limit: 0 } // in endpoint 3
+    if (!KUBE_MODE) {
+      it('Should iterate with start and limit reached', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p2', limit: 5 } // in endpoint 2
+          }
+          if (n === 1) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
+          if (n === 2) {
+            return { nextPage: 'p1', limit: 0 } // in endpoint 3
+          }
+
+          return { nextPage: '', limit: 2 } // in endpoint 3
         }
 
-        return { nextPage: '', limit: 2 } // in endpoint 3
-      }
-
-      const iter = new TestIterator(itFn, {
-        endpoint: 'endpoint2',
-        page: 'p1',
-        endpoints: ['endpoint2', 'endpoint3'],
+        const iter = new TestIterator(itFn, {
+          endpoint: 'endpoint2',
+          page: 'p1',
+          endpoints: ['endpoint2', 'endpoint3'],
+        })
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint2', page: 'p1', endpoints: ['endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint2', page: 'p2', endpoints: ['endpoint3'] },
+          { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
+          TestIterator.limitReachedState,
+          { endpoint: 'endpoint3', page: 'p1', endpoints: ['endpoint3'] },
+        ])
+        expect(iter.state).toStrictEqual({
+          endpoint: 'endpoint3',
+          page: 'p1',
+          endpoints: ['endpoint3'],
+        })
+        expect(out).toStrictEqual(limitReached)
       })
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint2', page: 'p1', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: 'p2', endpoints: ['endpoint3'] },
-        { endpoint: 'endpoint3', page: '', endpoints: ['endpoint3'] },
-        TestIterator.limitReachedState,
-        { endpoint: 'endpoint3', page: 'p1', endpoints: ['endpoint3'] },
-      ])
-      expect(iter.state).toStrictEqual({
-        endpoint: 'endpoint3',
-        page: 'p1',
-        endpoints: ['endpoint3'],
-      })
-      expect(out).toStrictEqual(limitReached)
-    })
+    }
   })
 
   describe('Chain tests', () => {
-    it('Stop state should be start state', async () => {
-      const itFn = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
+    if (!KUBE_MODE) {
+      it('Stop state should be start state', async () => {
+        const itFn = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
+
+          return { nextPage: 'p2', limit: 0 } // in endpoint 1
         }
 
-        return { nextPage: 'p2', limit: 0 } // in endpoint 1
-      }
+        const itFn2 = (n: number): Object => {
+          if (n === 0) {
+            return { nextPage: '', limit: 7 } // in endpoint 1
+          }
+          if (n === 1) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
 
-      const itFn2 = (n: number): Object => {
-        if (n === 0) {
-          return { nextPage: '', limit: 7 } // in endpoint 1
+          return { nextPage: '', limit: 3 } // in endpoint 3
         }
-        if (n === 1) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
 
-        return { nextPage: '', limit: 3 } // in endpoint 3
-      }
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate()
+        expect(iter.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
+          TestIterator.limitReachedState,
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] }, // still all endpoints because next is not called
+        ])
+        expect(iter.state).toStrictEqual({
+          endpoint: 'endpoint1',
+          page: 'p2',
+          endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
+        })
+        expect(out).toStrictEqual(limitReached)
 
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate()
-      expect(iter.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: '', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint1', page: 'p1', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] },
-        TestIterator.limitReachedState,
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint1', 'endpoint2', 'endpoint3'] }, // still all endpoints because next is not called
-      ])
-      expect(iter.state).toStrictEqual({
-        endpoint: 'endpoint1',
-        page: 'p2',
-        endpoints: ['endpoint1', 'endpoint2', 'endpoint3'],
+        const iter2 = new TestIterator(itFn2, {
+          endpoint: 'endpoint1',
+          page: 'p2',
+          endpoints: [],
+        })
+        const out2 = await iter2.iterate()
+        expect(iter2.audits).toStrictEqual([
+          { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
+          { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
+          { endpoint: 'endpoint3', page: '', endpoints: [] },
+        ])
+        expect(out2).toStrictEqual(success)
       })
-      expect(out).toStrictEqual(limitReached)
-
-      const iter2 = new TestIterator(itFn2, {
-        endpoint: 'endpoint1',
-        page: 'p2',
-        endpoints: [],
-      })
-      const out2 = await iter2.iterate()
-      expect(iter2.audits).toStrictEqual([
-        { endpoint: 'endpoint1', page: 'p2', endpoints: ['endpoint2', 'endpoint3'] },
-        { endpoint: 'endpoint2', page: '', endpoints: ['endpoint3'] },
-        { endpoint: 'endpoint3', page: '', endpoints: [] },
-      ])
-      expect(out2).toStrictEqual(success)
-    })
+    }
   })
 
   describe('Skip endpoint at date tests', () => {
@@ -536,41 +543,43 @@ describe('BaseIterator tests', () => {
   })
 
   describe('Runtime limit test', () => {
-    it('Should stop early when sending 1s limit', async () => {
-      const itFn = async (n: number) => {
-        if (n === 0) {
-          await new Promise((resolve) => {
-            setTimeout(resolve, 2 * 1000)
-          })
-          return { nextPage: 'p1', limit: 8 } // in endpoint 1
-        }
-        if (n === 1) {
-          return { nextPage: 'p2', limit: 8 } // in endpoint 1
-        }
-        if (n === 2) {
-          return { nextPage: '', limit: 7 } // in endpoint 1
-        }
-        if (n === 3) {
-          return { nextPage: 'p1', limit: 6 } // in endpoint 2
-        }
-        if (n === 4) {
-          return { nextPage: 'p3', limit: 5 } // in endpoint 2
-        }
-        if (n === 5) {
-          return { nextPage: '', limit: 4 } // in endpoint 2
-        }
-        if (n === 6) {
-          return { nextPage: 'p1', limit: 3 } // in endpoint 3
+    if (!KUBE_MODE) {
+      it('Should stop early when sending 1s limit', async () => {
+        const itFn = async (n: number) => {
+          if (n === 0) {
+            await new Promise((resolve) => {
+              setTimeout(resolve, 2 * 1000)
+            })
+            return { nextPage: 'p1', limit: 8 } // in endpoint 1
+          }
+          if (n === 1) {
+            return { nextPage: 'p2', limit: 8 } // in endpoint 1
+          }
+          if (n === 2) {
+            return { nextPage: '', limit: 7 } // in endpoint 1
+          }
+          if (n === 3) {
+            return { nextPage: 'p1', limit: 6 } // in endpoint 2
+          }
+          if (n === 4) {
+            return { nextPage: 'p3', limit: 5 } // in endpoint 2
+          }
+          if (n === 5) {
+            return { nextPage: '', limit: 4 } // in endpoint 2
+          }
+          if (n === 6) {
+            return { nextPage: 'p1', limit: 3 } // in endpoint 3
+          }
+
+          return { nextPage: '', limit: 2 } // in endpoint 3
         }
 
-        return { nextPage: '', limit: 2 } // in endpoint 3
-      }
-
-      const iter = new TestIterator(itFn)
-      const out = await iter.iterate(1)
-      expect(out).toStrictEqual(limitReached)
-      expect(iter.audits.length).toBe(3)
-    })
+        const iter = new TestIterator(itFn)
+        const out = await iter.iterate(1)
+        expect(out).toStrictEqual(limitReached)
+        expect(iter.audits.length).toBe(3)
+      })
+    }
   })
 
   describe('isFinished tests', () => {

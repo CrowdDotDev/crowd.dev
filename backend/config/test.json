@@ -1,0 +1,9 @@
+{
+  "db": {
+    "port": 5433
+  },
+  "searchEngine": {
+    "host": "http://localhost:7701",
+    "apiKey": "masterKey"
+  }
+}

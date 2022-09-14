@@ -1,11 +1,11 @@
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
+import { KUBE_MODE, SERVICE } from '../../config/index'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { SERVICE, getConfig } from '../../config'
 import { ServiceType } from '../../config/configTypes'
 
 const { Op } = Sequelize
@@ -697,10 +697,10 @@ class CommunityMemberRepository {
 
     // No need for lazyloading tags for integrations or microservices
     if (
-      getConfig().SERVICE === 'integrations' ||
-      getConfig().SERVICE === 'microservices-nodejs' ||
-      SERVICE === ServiceType.NODEJS_WORKER ||
-      SERVICE === ServiceType.JOB_GENERATOR
+      (KUBE_MODE &&
+        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR)) ||
+      process.env.SERVICE === 'integrations' ||
+      process.env.SERVICE === 'microservices-nodejs'
     ) {
       return rows.map((record) => {
         const plainRecord = record.get({ plain: true })

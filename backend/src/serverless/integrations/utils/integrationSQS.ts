@@ -1,3 +1,4 @@
+import { KUBE_MODE } from '../../../config/index'
 import { BaseOutput } from '../types/iteratorTypes'
 import { IntegrationsMessage } from '../types/messageTypes'
 import { sqs } from '../../../services/aws'
@@ -7,15 +8,16 @@ import { sqs } from '../../../services/aws'
  * @param body The message body
  * @returns Success or error codes
  */
-async function sendIntegrationsMessage(
-  body: IntegrationsMessage,
-  queueUrl: string | undefined = '',
-): Promise<BaseOutput> {
+async function sendIntegrationsMessage(body: IntegrationsMessage): Promise<BaseOutput> {
+  if (KUBE_MODE) {
+    throw new Error("Can't send integrations SQS message in kube mode!")
+  }
+
   const statusCode: number = 200
 
   console.log('SQS Message body: ', body)
 
-  queueUrl = queueUrl || process.env.INTEGRATIONS_SQS_URL
+  const queueUrl = process.env.INTEGRATIONS_SQS_URL
 
   await sqs
     .sendMessage({

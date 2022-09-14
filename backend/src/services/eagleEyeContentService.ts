@@ -1,11 +1,11 @@
 import moment from 'moment'
-import { notLocalLambda } from './aws'
+import { IS_PROD_ENV, KUBE_MODE } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
-import { getConfig } from '../config'
 import Error400 from '../errors/Error403'
 import track from '../segment/track'
+import { notLocalLambda } from './aws'
 
 interface EagleEyeSearchPoint {
   vectorId: string
@@ -86,10 +86,16 @@ export default class EagleEyeContentService {
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
 
-    const lambdaArn =
-      getConfig().NODE_ENV === 'production'
-        ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
-        : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'
+    if (KUBE_MODE) {
+      // TODO replace with a REST API call to premium-server
+      return {
+        status: 'success',
+      }
+    }
+
+    const lambdaArn = IS_PROD_ENV
+      ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
+      : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'
     const params = {
       FunctionName: lambdaArn,
       Payload: JSON.stringify({ queries: keywords, ndays: nDays, filters }),

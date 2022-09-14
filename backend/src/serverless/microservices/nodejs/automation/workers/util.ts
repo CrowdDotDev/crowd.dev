@@ -1,3 +1,6 @@
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../../../../types/worketTypes'
+import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
+import { KUBE_MODE } from '../../../../../config/index'
 import sendNodeMicroserviceMessage from '../../nodeMicroserviceSQS'
 import { AutomationType } from '../../../../../types/automationTypes'
 
@@ -7,12 +10,24 @@ export const sendWebhookProcessRequest = async (
   eventId: string,
   payload: any,
 ): Promise<void> => {
-  await sendNodeMicroserviceMessage({
-    service: 'automation-process',
-    automationType: AutomationType.WEBHOOK,
-    tenant,
-    automationId,
-    eventId,
-    payload,
-  })
+  if (KUBE_MODE) {
+    const event = {
+      type: NodeWorkerMessageType.AUTOMATION_PROCESS,
+      automationType: AutomationType.WEBHOOK,
+      tenant,
+      automationId,
+      eventId,
+      payload,
+    }
+    await sendNodeWorkerMessage(tenant, event as NodeWorkerMessage)
+  } else {
+    await sendNodeMicroserviceMessage({
+      service: 'automation-process',
+      automationType: AutomationType.WEBHOOK,
+      tenant,
+      automationId,
+      eventId,
+      payload,
+    })
+  }
 }

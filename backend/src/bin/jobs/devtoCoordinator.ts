@@ -22,12 +22,12 @@ const coordinatorJob: CrowdJob = {
         integrationId: integration.id,
         tenant: integration.tenantId.toString(),
         onboarding: false,
-        state: { endpoint: '', page: '' },
+        state: { endpoint: '', page: '', endpoints: [] },
         args: {},
       }
 
       await sendNodeWorkerMessage(integration.tenantId.toString(), {
-        type: NodeWorkerMessageType.DEVTO_INTEGRATION,
+        type: NodeWorkerMessageType.INTEGRATION,
         ...sqsMessage,
       })
     }

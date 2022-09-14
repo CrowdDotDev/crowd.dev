@@ -3,6 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import lodash from 'lodash'
+import { KUBE_MODE, GITHUB_CONFIG } from '../config/index'
 import {
   DevtoIntegrationMessage,
   DiscordIntegrationMessage,
@@ -10,7 +11,6 @@ import {
 } from '../serverless/integrations/types/messageTypes'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
-import { GITHUB_CONFIG } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
@@ -18,6 +18,8 @@ import send from '../serverless/integrations/utils/integrationSQS'
 import track from '../segment/track'
 import { PlatformType } from '../utils/platforms'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -270,7 +272,15 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(integrationsMessageBody)
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return integration
   }
@@ -306,7 +316,16 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.createOrUpdate({
       platform: PlatformType.DISCORD,
@@ -342,7 +361,16 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(mqMessage)
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...mqMessage,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(mqMessage)
+    }
 
     return integration
   }
@@ -374,7 +402,15 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(integrationsMessageBody)
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.createOrUpdate({
       platform: PlatformType.SLACK,
@@ -431,7 +467,16 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.update(integration.id, {
       limitCount: integration.limitCount,

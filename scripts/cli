@@ -164,7 +164,7 @@ function scaffold_set_up_network() {
 
 function apply_db_schema() {
     say "Applying database schema!"
-    (cd $CLI_HOME/../backend && NODE_ENV=development npm run db:create:dev:source)
+    (cd $CLI_HOME/../backend && NODE_ENV=development KUBE_MODE=1 npm run db:create:dev:source)
 }
 
 function create_s3_buckets() {
