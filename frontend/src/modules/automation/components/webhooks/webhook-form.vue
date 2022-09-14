@@ -30,7 +30,7 @@
         :required="fields.trigger.required"
         class="w-full"
       >
-        <app-select-input
+        <el-select
           v-model="model.trigger"
           placeholder="Select option"
         >
@@ -52,7 +52,7 @@
               )
             "
           />
-        </app-select-input>
+        </el-select>
       </el-form-item>
       <el-collapse
         v-if="model.trigger === 'new_activity'"
@@ -67,7 +67,7 @@
               label="Matching activity platform(s)"
               class="w-full lg:w-1/2 mx-2"
             >
-              <app-select-input
+              <el-select
                 v-model="model.settings.platforms"
                 multiple
                 placeholder="Select option"
@@ -78,7 +78,7 @@
                   :value="platform.value"
                   :label="platform.label"
                 />
-              </app-select-input>
+              </el-select>
             </el-form-item>
             <el-form-item
               label="Matching activity type(s)"
