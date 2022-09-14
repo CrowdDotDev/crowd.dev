@@ -1,32 +1,33 @@
 import cronGenerator from 'cron-time-generator'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import IntegrationRepository from '../../database/repositories/integrationRepository'
-import { DevtoIntegrationMessage } from '../../serverless/integrations/types/messageTypes'
 import { CrowdJob } from '../../utils/jobTypes'
+import IntegrationRepository from '../../database/repositories/integrationRepository'
 import { PlatformType } from '../../utils/platforms'
+import { TwitterIntegrationMessage } from '../../serverless/integrations/types/messageTypes'
+import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
 
 const coordinatorJob: CrowdJob = {
-  name: 'DEV.to coordinator',
-  // every two hours
+  name: 'Twitter coordinator',
   cronTime: cronGenerator.every(2).hours(),
   onTrigger: async () => {
-    const integrations: any[] = await IntegrationRepository.findAllActive(PlatformType.DEVTO)
+    const integrations: Array<any> = await IntegrationRepository.findAllActive(PlatformType.TWITTER)
 
     for (const integration of integrations) {
-      const sqsMessage: DevtoIntegrationMessage = {
-        integration: PlatformType.DEVTO,
+      const twitterObj: TwitterIntegrationMessage = {
+        integration: PlatformType.TWITTER,
         sleep: 0,
-        integrationId: integration.id,
         tenant: integration.tenantId.toString(),
         onboarding: false,
         state: { endpoint: '', page: '', endpoints: [] },
-        args: {},
+        args: {
+          profileId: integration.integrationIdentifier,
+          hashtags: integration.settings.hashtags,
+        },
       }
 
       await sendNodeWorkerMessage(integration.tenantId.toString(), {
         type: NodeWorkerMessageType.INTEGRATION,
-        ...sqsMessage,
+        ...twitterObj,
       })
     }
   },

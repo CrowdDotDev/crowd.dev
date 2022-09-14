@@ -1,6 +1,8 @@
 {
   "sqs": {
-    "host": "sqs"
+    "host": "sqs",
+    "nodejsWorkerQueue": "http://sqs:9324/000000000000/nodejs-worker.fifo",
+    "pythonWorkerQueue": "http://sqs:9324/000000000000/python-worker.fifo"
   },
   "s3": {
     "host": "s3"

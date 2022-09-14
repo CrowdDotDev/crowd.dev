@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config/index'
+import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
 import { sqs } from '../../services/aws'
 import { NodeWorkerMessage } from '../types/worketTypes'
 

@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk'
-import { KUBE_MODE, IS_DEV_ENV, SQS_CONFIG, S3_CONFIG } from '../config/index'
+import { KUBE_MODE, IS_DEV_ENV, SQS_CONFIG, S3_CONFIG } from '../config'
 
 let sqsInstance
 let s3Instance
@@ -16,7 +16,7 @@ if (KUBE_MODE) {
 
   sqsInstance = IS_DEV_ENV
     ? new AWS.SQS({
-        endpoint: `${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
+        endpoint: `http://${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
         ...awsSqsConfig,
       })
     : new AWS.SQS(awsSqsConfig)

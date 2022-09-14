@@ -2,14 +2,14 @@
   "sqs": {
     "host": "localhost",
     "port": 9324,
-    "nodejsWorkerQueue": "nodejs-worker.fifo",
-    "pythonWorkerQueue": "python-worker.fifo",
+    "nodejsWorkerQueue": "http://localhost:9324/000000000000/nodejs-worker.fifo",
+    "pythonWorkerQueue": "http://localhost:9324/000000000000/python-worker.fifo",
 
     "aws": {
       "accountId": "000000000000",
       "accessKeyId": "x",
       "secretAccessKey": "x",
-      "region": "eu-central-1"
+      "region": "elasticmq"
     }
   },
   "s3": {

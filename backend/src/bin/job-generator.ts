@@ -16,6 +16,6 @@ for (const job of jobs) {
     true,
   )
   if (cronJob.running) {
-    console.log(`Started job: ${job.name}!`)
+    console.log(`Scheduled job: ${job.name}!`)
   }
 }
