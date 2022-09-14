@@ -26,6 +26,7 @@ import { TWITTER_CONFIG } from '../../../config'
 
 export default class TwitterIterator extends BaseIterator {
   static limitReachedState: State = {
+    endpoints: [],
     endpoint: '__limit',
     page: '__limit',
   }
@@ -58,7 +59,7 @@ export default class TwitterIterator extends BaseIterator {
     profileId: string,
     accessToken: string,
     hashtags: Array<string>,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
     tweetCount: number = 0,
     followers: Set<string> = new Set(),

@@ -19,7 +19,7 @@ async function devtoCoordinator(): Promise<void> {
       integrationId: integration.id,
       tenant: integration.tenantId.toString(),
       onboarding: false,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints: [] },
       args: {},
     }
 

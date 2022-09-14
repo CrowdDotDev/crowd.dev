@@ -23,7 +23,7 @@ import { PlatformType } from '../../../utils/platforms'
 export default class TwitterReachIterator extends BaseIterator {
   static readonly TWITTER_API_MAX_USERNAME_LENGTH = 15
 
-  static limitReachedState: State = { endpoint: '__limit', page: '__limit' }
+  static limitReachedState: State = { endpoint: '__limit', page: '__limit', endpoints: [] }
 
   static maxRetrospect: number = Number(process.env.TWITTER_MAX_RETROSPECT_IN_SECONDS || 7380)
 
@@ -48,7 +48,7 @@ export default class TwitterReachIterator extends BaseIterator {
     profileId: string,
     accessToken: string,
     members: Array<any>,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
   ) {
     super(tenant, members, state, false)
 

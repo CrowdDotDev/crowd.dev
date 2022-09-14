@@ -26,6 +26,7 @@ export default abstract class BaseIterator {
   startTimestamp: number
 
   static endState: State = {
+    endpoints: [],
     endpoint: '__finished',
     page: '__finished',
   }
@@ -50,13 +51,19 @@ export default abstract class BaseIterator {
   constructor(
     tenant: string,
     endPoints: Endpoints,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
     globalLimit: number = Infinity,
     limitCount: number = 0,
   ) {
     this.tenant = tenant
-    this.endpoints = endPoints
+
+    if (state.endpoints.length > 0 && state.endpoint) {
+      this.endpoints = state.endpoints
+    } else {
+      this.endpoints = endPoints
+    }
+
     this.state = BaseIterator.initState(this.endpoints, state)
 
     this.startTimestamp = moment().utc().unix()
@@ -107,6 +114,7 @@ export default abstract class BaseIterator {
     while (this.state !== BaseIterator.endState) {
       // Get the current endpoint and page
       const { endpoint, page } = this.state
+
       // Get the response from the API and parse it.
       // We also get the date of the latest activity
       const response: IntegrationResponse = await this.get(endpoint, page)
@@ -138,6 +146,7 @@ export default abstract class BaseIterator {
       }
       // Get the next state
       this.state = this.next(endpoint, response.nextPage, parseOutput)
+      this.endpoints = this.state.endpoints
 
       // If we are not done
       if (this.state !== BaseIterator.endState) {
@@ -237,8 +246,9 @@ export default abstract class BaseIterator {
     return lodash.isEqual(startState, {
       endpoint: '',
       page: '',
+      endpoints: [],
     })
-      ? { endpoint: endpoints[0], page: '' }
+      ? { endpoint: endpoints[0], page: '', endpoints }
       : startState
   }
 
@@ -292,6 +302,7 @@ export default abstract class BaseIterator {
         : {
             endpoint: this.endpointsIterator[this.endpointsIterator.indexOf(currentEndpoint) + 1],
             page: '',
+            endpoints: this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1),
           }
     }
     // If we do not have a next page, return the next endpoint with an empty page and 0 for number
@@ -301,6 +312,9 @@ export default abstract class BaseIterator {
         ? currentEndpoint
         : this.endpointsIterator[this.endpointsIterator.indexOf(currentEndpoint) + 1],
       page: nextPage || '',
+      endpoints: nextPage
+        ? this.endpoints
+        : this.endpoints.slice(this.endpoints.indexOf(currentEndpoint) + 1),
     }
   }
 

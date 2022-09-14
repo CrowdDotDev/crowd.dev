@@ -21,6 +21,7 @@ import { DISCORD_CONFIG } from '../../../config'
 
 export default class DiscordIterator extends BaseIterator {
   static limitReachedState: State = {
+    endpoints: [],
     endpoint: '__limit',
     page: '__limit',
   }
@@ -57,7 +58,7 @@ export default class DiscordIterator extends BaseIterator {
     guildId: string,
     botToken: string,
     channels: Channels,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
   ) {
     // Endpoints are the fixed endpoints plus the channels

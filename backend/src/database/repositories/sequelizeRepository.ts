@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import { UniqueConstraintError } from 'sequelize'
+import { Sequelize, UniqueConstraintError } from 'sequelize'
 import { IS_TEST_ENV } from '../../config/index'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
@@ -82,5 +82,9 @@ export default class SequelizeRepository {
 
     const fieldName = lodash.get(error, 'errors[0].path')
     throw new Error400(language, `entities.${entityName}.errors.unique.${fieldName}`)
+  }
+
+  static getSequelize(options: IRepositoryOptions): Sequelize {
+    return options.database.sequelize as Sequelize
   }
 }

@@ -159,9 +159,9 @@
                     >
                     <el-form-item>
                       <app-autocomplete-one-input
+                        v-model="twitter.hashtags[0]"
                         :fetch-fn="() => []"
                         :create-fn="createTwitterHashtag"
-                        :value="twitter.hashtags[0]"
                         :allow-create="true"
                         class="mt-2"
                         placeholder="Type to select hashtag"
@@ -399,12 +399,6 @@ export default {
       const value = hashtag.replace('#', '')
 
       return { id: value, label: `#${value}` }
-    },
-
-    handleTwitterHashtagsInput(hashtag) {
-      this.$nextTick(() => {
-        this.twitter.hashtags = [hashtag]
-      })
     },
 
     statusToString(status) {
