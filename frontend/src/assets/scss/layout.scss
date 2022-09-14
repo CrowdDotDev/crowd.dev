@@ -142,7 +142,7 @@ hr {
     @apply bg-transparent;
   }
   .el-loading-spinner  {
-    @apply relative flex items-center justify-center h-full;
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
     .circular {
       @apply w-10 h-10;
     }
