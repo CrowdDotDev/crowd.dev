@@ -74,7 +74,7 @@
       }
 
       &:hover {
-        @apply border-secondary-900;
+        @apply border-blue-500;
       }
     }
 
@@ -85,7 +85,7 @@
     }
 
     &.is-checked .el-checkbox__inner, &.is-indeterminate .el-checkbox__inner {
-      @apply bg-secondary-900 border-secondary-900;
+      @apply bg-blue-500 border-blue-500;
     }
 
     &.is-disabled + span.el-checkbox__label {
@@ -115,7 +115,7 @@
 }
 
 .el-input.is-active .el-input__inner, .el-input__inner:focus {
-  @apply border-secondary-900;
+  @apply border-blue-500;
 }
 
 .el-form-item.is-error .el-input__inner,
@@ -124,15 +124,15 @@
 .el-form-item.is-error .el-textarea__inner:focus,
 .el-message-box__input input.invalid,
 .el-message-box__input input.invalid:focus {
-  @apply border-red-900;
+  @apply border-red-500;
 }
 
 .el-form-item__error {
-  @apply text-red-900;
+  @apply text-red-500;
 }
 
 .el-select-dropdown__item {
-  @apply text-gray-900;
+  @apply text-gray-500;
   span.prefix {
     @apply mr-2 font-light text-gray-400;
   }
@@ -140,7 +140,7 @@
 
 .el-select-dropdown.is-multiple .el-select-dropdown__item.selected ,
 .el-select-dropdown .el-select-dropdown__item.selected {
-  @apply text-secondary-900;
+  @apply text-blue-500;
   font-weight: 700;
 }
 

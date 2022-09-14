@@ -17,9 +17,7 @@
     <div class="mt-8">
       <div class="text-sm">
         <div class="flex items-center mb-2">
-          <i
-            class="ri-map-pin-fill text-secondary-500 mr-1"
-          ></i>
+          <i class="ri-map-pin-fill text-blue-500 mr-1"></i>
           <div v-if="member.location">
             {{ member.location.split('(timezone)')[0] }}
           </div>

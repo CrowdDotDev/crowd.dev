@@ -6,7 +6,7 @@
         (optional)
       </div>
       <span
-        class="flex items-center ml-2 hover:opacity-80 text-secondary-900 cursor-pointer"
+        class="flex items-center ml-2 hover:opacity-80 text-blue-500 cursor-pointer"
       >
         <i class="flex items-center ri-add-line mr-1"></i
         ><span class="leading-none block" @click="addFilter"

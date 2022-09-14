@@ -61,16 +61,16 @@
     }
 
     &--red {
-      @apply text-red-900 border-red-900;
+      @apply text-red-500 border-red-500;
       &:focus, &:hover {
-        @apply text-red-900 border-red-900;
+        @apply text-red-500 border-red-500;
       }
     }
 
     &--green {
-      @apply text-green-900 border-green-900;
+      @apply text-green-500 border-green-500;
       &:focus, &:hover {
-        @apply text-green-900 border-green-900;
+        @apply text-green-500 border-green-500;
       }
     }
   }
@@ -83,9 +83,9 @@
   }
 
   &--link {
-    @apply bg-transparent border-0 p-0 rounded-none text-secondary-900 shadow-none;
+    @apply bg-transparent border-0 p-0 rounded-none text-blue-500 shadow-none;
     &:hover {
-      @apply bg-transparent text-secondary-900 opacity-80;
+      @apply bg-transparent text-blue-500 opacity-80;
     }
   }
 
