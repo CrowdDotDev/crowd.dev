@@ -58,7 +58,7 @@
 
       <div v-if="invitationToken">
         <div
-          class="flex items-center text-green-900 text-sm"
+          class="flex items-center text-green-500 text-sm"
         >
           <i class="ri-lg ri-check-line mr-1"></i>An invite
           has been sent to

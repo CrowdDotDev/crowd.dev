@@ -31,11 +31,11 @@
           class="panel mt-4"
         >
           <div
-            class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
+            class="border p-4 mb-4 rounded-lg border-blue-500 bg-blue-50"
           >
             <div class="flex items-start">
               <i
-                class="ri-information-fill mr-4 ri-xl flex items-center pt-1 text-secondary-900"
+                class="ri-information-fill mr-4 ri-xl flex items-center pt-1 text-blue-500"
               ></i>
               <div class="text-sm">
                 <div class="font-semibold mb-1">

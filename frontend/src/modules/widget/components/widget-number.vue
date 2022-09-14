@@ -122,17 +122,16 @@ export default {
     iconClass() {
       const widgetIcon = {
         'active-members':
-          'ri-user-follow-fill bg-green-50 text-green-900 ',
+          'ri-user-follow-fill bg-green-50 text-green-500 ',
         'new-members':
-          'ri-user-add-fill bg-secondary-50 text-secondary-900 ',
+          'ri-user-add-fill bg-blue-50 text-blue-500 ',
         'new-activities':
-          'ri-radar-fill bg-purple-50 text-purple-900 ',
+          'ri-radar-fill bg-purple-50 text-purple-500 ',
         'avg-time-to-first-interaction':
-          'ri-timer-flash-fill bg-yellow-50 text-yellow-900 ',
-        members:
-          'ri-user-fill bg-secondary-50 text-secondary-900 ',
+          'ri-timer-flash-fill bg-yellow-50 text-yellow-500 ',
+        members: 'ri-user-fill bg-blue-50 text-blue-500 ',
         activities:
-          'ri-radar-fill bg-purple-50 text-purple-900 '
+          'ri-radar-fill bg-purple-50 text-purple-500 '
       }
 
       const widgetType = this.config.title

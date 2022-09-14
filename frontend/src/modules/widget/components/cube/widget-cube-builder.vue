@@ -108,7 +108,7 @@
             >
               <button
                 type="button"
-                class="inline-flex items-center leading-none mt-5 text-secondary-900 cursor-pointer hover:opacity-80"
+                class="inline-flex items-center leading-none mt-5 text-blue-500 cursor-pointer hover:opacity-80"
                 @click="handleAdditionalSettingsClick"
               >
                 <i

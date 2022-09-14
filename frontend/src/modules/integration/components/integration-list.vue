@@ -53,8 +53,8 @@
                   :class="
                     integrations[integrationJson.platform]
                       .status === 'done'
-                      ? 'text-green-900'
-                      : 'text-yellow-900'
+                      ? 'text-green-500'
+                      : 'text-yellow-500'
                   "
                 >
                   <span class="block">{{

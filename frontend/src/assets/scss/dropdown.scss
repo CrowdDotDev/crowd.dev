@@ -1,18 +1,18 @@
 .el-dropdown-menu__item, .el-dropdown-menu__item a {
-  @apply flex items-center text-gray-900 px-4 py-3;
+  @apply flex items-center text-gray-500 px-4 py-3;
 
   i {
     @apply mr-2;
   }
 
   &:focus, &:not(.is-disabled):hover, &:not(.is-disabled):focus {
-    @apply text-gray-900 font-medium;
-    background: #F8FAFC;
+    @apply text-gray-500 font-medium;
+    background-color: #fffbf8;
   }
 }
 
 .el-dropdown-title {
-  @apply block font-bold pb-2 px-4 text-sm text-gray-900;
+  @apply block font-bold pb-2 px-4 text-sm text-gray-500;
 }
 
 .el-dropdown-separator {

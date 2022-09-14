@@ -24,7 +24,7 @@ h3 {
 }
 
 a {
-  @apply no-underline text-secondary-900;
+  @apply no-underline text-blue-500;
   transition: opacity 0.2s;
   &[href]:hover {
     @apply opacity-80;

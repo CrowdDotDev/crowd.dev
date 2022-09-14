@@ -92,42 +92,42 @@ export default {
   }
 
   &--silent {
-    @apply bg-red-50 border-red-900;
+    @apply bg-red-50 border-red-500;
 
     .community-member-engagement-level-value {
-      @apply bg-red-900 text-white;
+      @apply bg-red-500 text-white;
     }
   }
 
   &--quiet {
-    @apply bg-yellow-50 border-yellow-900;
+    @apply bg-yellow-50 border-yellow-500;
 
     .community-member-engagement-level-value {
-      @apply bg-yellow-900 text-white;
+      @apply bg-yellow-500 text-white;
     }
   }
 
   &--engaged {
-    @apply bg-green-50 border-green-900;
+    @apply bg-green-50 border-green-500;
 
     .community-member-engagement-level-value {
-      @apply bg-green-900 text-white;
+      @apply bg-green-500 text-white;
     }
   }
 
   &--fan {
-    @apply bg-teal-50 border-teal-900;
+    @apply bg-teal-50 border-teal-500;
 
     .community-member-engagement-level-value {
-      @apply bg-teal-900 text-white;
+      @apply bg-teal-500 text-white;
     }
   }
 
   &--ultra {
-    @apply bg-secondary-50 border-secondary-900;
+    @apply bg-blue-50 border-blue-500;
 
     .community-member-engagement-level-value {
-      @apply bg-secondary-900 text-white;
+      @apply bg-blue-500 text-white;
     }
     /*background: rgba(0, 165, 175, 0.1);
     border: 1px solid rgba(0, 165, 175, 0.5);
