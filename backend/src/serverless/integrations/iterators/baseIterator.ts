@@ -2,11 +2,11 @@ import lodash from 'lodash'
 import moment from 'moment'
 import crypto from 'crypto'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { IS_TEST_ENV } from '../../../config/index'
 import { parseOutput, IntegrationResponse, BaseOutput } from '../types/iteratorTypes'
 
 import { State, Endpoint, Endpoints } from '../types/regularTypes'
 import { AddActivitiesSingle } from '../types/messageTypes'
-import { getConfig } from '../../../config'
 
 export default abstract class BaseIterator {
   tenant: string
@@ -371,7 +371,7 @@ export default abstract class BaseIterator {
    * @returns The initialised client
    */
   static initSuperfaceClient(): SuperfaceClient {
-    if (getConfig().NODE_ENV === 'test') {
+    if (IS_TEST_ENV) {
       return undefined
     }
     return new SuperfaceClient()

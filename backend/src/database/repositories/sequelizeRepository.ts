@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import { UniqueConstraintError } from 'sequelize'
+import { IS_TEST_ENV } from '../../config/index'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'
@@ -14,7 +15,7 @@ export default class SequelizeRepository {
    * Cleans the database.
    */
   static async cleanDatabase(database) {
-    if (process.env.NODE_ENV !== 'test') {
+    if (!IS_TEST_ENV) {
       throw new Error('Clean database only allowed for test!')
     }
 

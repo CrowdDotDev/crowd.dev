@@ -1,0 +1,35 @@
+version: '3.1'
+
+services:
+  job-generator:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile-api-dev
+    command: 'npm run start:job-generator'
+    environment:
+      - DOCKER_BUILDKIT=1
+      - NODE_ENV=docker
+      - SERVICE_NAME=job-generator
+      - TENANT_MODE=multi
+    networks:
+      - crowd-bridge
+
+  job-generator-dev:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile-api-dev
+    command: 'npm run start:job-generator'
+    environment:
+      - DOCKER_BUILDKIT=1
+      - NODE_ENV=docker
+      - SERVICE_NAME=job-generator
+      - TENANT_MODE=multi
+    hostname: job-generator
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../backend:/usr/crowd/backend
+
+networks:
+  crowd-bridge:
+    external: true

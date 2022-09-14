@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile-frontend-dev
     image: crowddotdev/frontend:${CROWD_VERSION}-dev
     env_file:
-      - ../frontend/.env
+      - ../frontend/.env.docker
     command: npm start
     environment:
       - DOCKER_BUILDKIT=1
@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile-frontend-dev
     image: crowddotdev/frontend:${CROWD_VERSION}-dev
     env_file:
-      - ../frontend/.env
+      - ../frontend/.env.docker
     command: npm start
     environment:
       - DOCKER_BUILDKIT=1

@@ -10,7 +10,7 @@ import {
 } from '../serverless/integrations/types/messageTypes'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
-import { getConfig } from '../config'
+import { GITHUB_CONFIG } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
@@ -180,10 +180,10 @@ export default class IntegrationService {
    */
   static async getInstallToken(installId) {
     const auth = createAppAuth({
-      appId: getConfig().GITHUB_APP_ID,
-      privateKey: getConfig().GITHUB_PRIVATE_KEY,
-      clientId: getConfig().GITHUB_CLIENT_ID,
-      clientSecret: getConfig().GITHUB_CLIENT_SECRET,
+      appId: GITHUB_CONFIG.appId,
+      privateKey: GITHUB_CONFIG.privateKey,
+      clientId: GITHUB_CONFIG.clientId,
+      clientSecret: GITHUB_CONFIG.clientSecret,
     })
 
     // Retrieve installation access token
@@ -212,8 +212,8 @@ export default class IntegrationService {
 
     const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
     // Getting the GitHub client ID and secret from the .env file.
-    const CLIENT_ID = getConfig().GITHUB_CLIENT_ID
-    const CLIENT_SECRET = getConfig().GITHUB_CLIENT_SECRET
+    const CLIENT_ID = GITHUB_CONFIG.clientId
+    const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
     // Post to GitHub to get token
     const tokenResponse = await axios({
       method: 'post',

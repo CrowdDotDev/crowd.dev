@@ -1,9 +1,11 @@
+import { API_CONFIG } from '../config'
+
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
 
 export default function setupSwaggerUI(app) {
-  if (String(process.env.API_DOCUMENTATION_ENABLED) !== 'true') {
+  if (API_CONFIG.documentation) {
     return
   }
 

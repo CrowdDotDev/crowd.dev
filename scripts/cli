@@ -122,11 +122,15 @@ function service_manipulator() {
 }
 
 function start_service() {
-    docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}
+    if [[ ${DEV} ]]; then
+        docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}-dev
+    else
+        docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}
+    fi
 }
 
 function kill_containers() {
-    docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" rm -fs ${1}
+    docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" rm -fs ${1} ${1}-dev
 }
 
 function print_container_status() {
@@ -158,9 +162,28 @@ function scaffold_set_up_network() {
     fi
 }
 
+function apply_db_schema() {
+    say "Applying database schema!"
+    (cd $CLI_HOME/../backend && NODE_ENV=development npm run db:create:dev:source)
+}
+
+function create_s3_buckets() {
+    say "Creating S3 buckets!"
+
+    declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
+    for i in "${BUCKETS[@]}"
+    do
+        say "Creating s3 bucket: $i"
+        curl "http://localhost:9000/ui/$i?create"
+        curl "http://localhost:9000/ui/$i?make-public"
+    done
+}
+
 function up_scaffold() {
     scaffold_set_up_network && docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml up -d --build
     wait_for_db
+    apply_db_schema
+    create_s3_buckets
 }
 
 function down_scaffold() {
@@ -223,6 +246,9 @@ function kill_all_containers() {
         if [[ $(check_container_status ${i}) ]]; then
             docker rm -f $(get_container_id ${i})
             yell "Service $i killed."
+        elif [[ $(check_container_status ${i}-dev) ]]; then
+            docker rm -f $(get_container_id ${i}-dev)
+            yell "Service $i-dev killed."
         else
             error "Service $i not running."
         fi

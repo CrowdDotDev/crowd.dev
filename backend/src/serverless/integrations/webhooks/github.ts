@@ -1,11 +1,11 @@
 import moment from 'moment'
 import verifyGithubWebhook from 'verify-github-webhook'
+import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config/index'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { GitHubGrid } from '../grid/githubGrid'
 import ActivityService from '../../../services/activityService'
 import { AddActivitiesSingle, CommunityMember } from '../types/messageTypes'
-import { getConfig } from '../../../config'
 import getMember from '../usecases/github/graphql/members'
 import BaseIterator from '../iterators/baseIterator'
 import { PlatformType } from '../../../utils/platforms'
@@ -318,7 +318,7 @@ export default class GitHubWebhook {
    * @returns A community member object, or null
    */
   static async getParsedMember(login: string, token: string): Promise<CommunityMember | null> {
-    if (getConfig().NODE_ENV === 'test') {
+    if (IS_TEST_ENV) {
       return {
         username: {
           github: 'testMember',
@@ -490,7 +490,7 @@ export default class GitHubWebhook {
   static verify(req): void {
     try {
       const signature = req.headers['x-hub-signature']
-      const secret = getConfig().GITHUB_WEBHOOK_SECRET
+      const secret = GITHUB_CONFIG.webhookSecret
       console.log('Verifying webhook...')
       const isVerified = verifyGithubWebhook(signature, req.body, secret) // Returns true if verification succeeds; otherwise, false.
       console.log('Verification', isVerified)

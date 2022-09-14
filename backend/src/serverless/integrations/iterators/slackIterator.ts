@@ -24,6 +24,7 @@ import getMessagesThreads from '../usecases/chat/getMessagesThreads'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { SLACK_CONFIG } from '../../../config'
 
 export default class SlackIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -31,9 +32,9 @@ export default class SlackIterator extends BaseIterator {
     page: '__limit',
   }
 
-  static maxRetrospect: number = Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600)
+  static maxRetrospect: number = SLACK_CONFIG.maxRetrospectInSeconds || 3600
 
-  static globalLimit: number = Number(process.env.SLACK_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = SLACK_CONFIG.globalLimit || Infinity
 
   static fixedEndpoints: Endpoints = ['members']
 

@@ -3,26 +3,12 @@
  */
 
 import { MeiliSearch } from 'meilisearch'
-
-import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
-
-const path = require('path')
-
-const environmentArg = process.argv[2]
-
-const envFile = environmentArg === 'dev' ? '.env' : `.env-${environmentArg}`
-
-const env = dotenv.config({
-  path: path.resolve(__dirname, `../../../${envFile}`),
-})
-
-dotenvExpand.expand(env)
+import { SEARCH_ENGINE_CONFIG } from '../../config/index'
 
 async function conversationInit() {
   const client = new MeiliSearch({
-    host: process.env.SEARCH_ENGINE_HOST,
-    apiKey: process.env.SEARCH_ENGINE_API_KEY,
+    host: SEARCH_ENGINE_CONFIG.host,
+    apiKey: SEARCH_ENGINE_CONFIG.apiKey,
   })
   const docs = await client.index('conversations').search('', { limit: 1000000 })
   console.log(docs.hits.length)

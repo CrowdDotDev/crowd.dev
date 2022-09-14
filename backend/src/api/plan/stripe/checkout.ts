@@ -1,4 +1,4 @@
-import { getConfig } from '../../../config'
+import { PLANS_CONFIG } from '../../../config'
 import TenantService from '../../../services/tenantService'
 import Plans from '../../../security/plans'
 import ApiResponseHandler from '../../apiResponseHandler'
@@ -8,11 +8,11 @@ import { tenantSubdomain } from '../../../services/tenantSubdomain'
 
 export default async (req, res) => {
   try {
-    if (!getConfig().PLAN_STRIPE_SECRET_KEY) {
+    if (!PLANS_CONFIG.stripeSecretKey) {
       throw new Error400(req.language, 'tenant.stripeNotConfigured')
     }
 
-    const stripe = require('stripe')(getConfig().PLAN_STRIPE_SECRET_KEY)
+    const stripe = require('stripe')(PLANS_CONFIG.stripeSecretKey)
 
     const { currentTenant } = req
     const { currentUser } = req

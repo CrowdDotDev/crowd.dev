@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import { TENANT_MODE } from '../config/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
@@ -6,7 +7,6 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import PermissionChecker from './user/permissionChecker'
 import Permissions from '../security/permissions'
 import Error404 from '../errors/Error404'
-import { getConfig } from '../config'
 import Roles from '../security/roles'
 import SettingsService from './settingsService'
 import Plans from '../security/plans'
@@ -20,6 +20,7 @@ import ReportRepository from '../database/repositories/reportRepository'
 import WidgetRepository from '../database/repositories/widgetRepository'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import ConversationRepository from '../database/repositories/conversationRepository'
+import { TenantMode } from '../config/configTypes'
 
 export default class TenantService {
   options: IServiceOptions
@@ -160,7 +161,7 @@ export default class TenantService {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
     try {
-      if (getConfig().TENANT_MODE === 'single') {
+      if (TENANT_MODE === TenantMode.SINGLE) {
         const count = await TenantRepository.count(null, {
           ...this.options,
           transaction,

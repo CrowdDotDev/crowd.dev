@@ -5,11 +5,12 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile-api-dev
-    env_file:
-      - ../../backend/.env
-    command: 'npm start'
+    command: 'npm run start:api'
     environment:
       - DOCKER_BUILDKIT=1
+      - NODE_ENV=docker
+      - SERVICE_NAME=api
+      - TENANT_MODE=multi
     networks:
       - crowd-bridge
 
@@ -17,14 +18,15 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile-api-dev
-    env_file:
-      - ../../backend/.env
-    command: 'npm start'
+    command: 'npm run start:api'
     environment:
       - DOCKER_BUILDKIT=1
+      - NODE_ENV=docker
+      - SERVICE_NAME=api
+      - TENANT_MODE=multi
+    hostname: api
     networks:
       - crowd-bridge
-    hostname: backend
     volumes:
       - ../../backend:/usr/crowd/backend
 

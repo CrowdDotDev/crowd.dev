@@ -8,7 +8,7 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { getConfig } from '../../config'
+import { API_CONFIG } from '../../config'
 
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
@@ -108,8 +108,8 @@ export default class SequelizeTestUtils {
 
   static getUserToken(mockIRepositoryOptions) {
     const userId = mockIRepositoryOptions.currentUser.id
-    return jwt.sign({ id: userId }, getConfig().AUTH_JWT_SECRET, {
-      expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+    return jwt.sign({ id: userId }, API_CONFIG.jwtSecret, {
+      expiresIn: API_CONFIG.jwtExpiresIn,
     })
   }
 

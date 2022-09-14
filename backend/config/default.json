@@ -1,0 +1,112 @@
+{
+  "sqs": {
+    "host": "localhost",
+    "port": 9324,
+    "nodejsWorkerQueue": "nodejs-worker.fifo",
+    "pythonWorkerQueue": "python-worker.fifo",
+
+    "aws": {
+      "accountId": "000000000000",
+      "accessKeyId": "x",
+      "secretAccessKey": "x",
+      "region": "eu-central-1"
+    }
+  },
+  "s3": {
+    "host": "localhost",
+    "port": "9000",
+    "integrationsAssetsBucket": "crowd-integrations-assets",
+    "microservicesAssetsBucket": "crowd-microservices-assets",
+    "aws": {
+      "accountId": "000000000000",
+      "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+      "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "region": "eu-central-1"
+    }
+  },
+  "db": {
+    "readHost": "localhost",
+    "writeHost": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "example",
+    "dialect": "postgres",
+    "database": "crowd-web",
+    "logging": false,
+    "transactions": false
+  },
+  "searchEngine": {
+    "host": "http://localhost:7700",
+    "apiKey": "dev"
+  },
+  "segment": {
+    "writeKey": "TdX3BLaZuHpHyzN2lcDiNiRHDSH9Piyl"
+  },
+  "netlify": {
+    "apiKey": "",
+    "siteDomain": "open.localhost"
+  },
+  "api": {
+    "port": 8080,
+    "url": "https://anton.localhost/api",
+    "frontendUrl": "https://app.localhost",
+    "frontendUrlWithSubdomain": "",
+    "edition": "community",
+    "jwtSecret": "your-secret",
+    "jwtExpiresIn": "100 years",
+    "documentation": false
+  },
+  "plans": {
+    "stripePricePremium": "",
+    "stripePriceEnterprise": "",
+    "stripeSecretKey": "",
+    "stripWebhookSigningSecret": ""
+  },
+  "twitter": {
+    "clientId": "",
+    "clientSecret": "",
+    "maxRetrospectInSeconds": 7380,
+    "limitResetFrequencyDays": 30
+  },
+  "slack": {
+    "clientId": "",
+    "clientSecret": "",
+    "maxRetrospectInSeconds": 3600
+  },
+  "google": {
+    "clientId": "",
+    "clientSecret": "",
+    "callbackUrl": ""
+  },
+  "facebook": {
+    "clientId": "",
+    "clientSecret": "",
+    "callbackUrl": ""
+  },
+  "discord": {
+    "token": "",
+    "maxRetrospectInSeconds": 3600
+  },
+  "github": {
+    "appId": "",
+    "clientId": "",
+    "clientSecret": "",
+    "privateKey": "",
+    "webhookSecret": ""
+  },
+  "sendgrid": {
+    "key": "",
+    "emailFrom": "",
+    "nameFrom": "",
+    "templateEmailAddressVerification": "",
+    "templateInvitation": "",
+    "templatePasswordReset": "",
+    "templateWeeklyAnalytics": "",
+    "weeklyAnalyticsUnsubscribeGroupId": ""
+  },
+  "cubejs": {
+    "url": "http://localhost:4000",
+    "jwtSecret": "137ea167812145c6d77452a58d7dd29b",
+    "jwtExpiry": "2h"
+  }
+}

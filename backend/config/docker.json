@@ -1,0 +1,18 @@
+{
+  "sqs": {
+    "host": "sqs"
+  },
+  "s3": {
+    "host": "s3"
+  },
+  "db": {
+    "readHost": "db",
+    "writeHost": "db"
+  },
+  "searchEngine": {
+    "host": "http://search-engine:7700"
+  },
+  "cubejs": {
+    "url": "http://cubejs:4000"
+  }
+}

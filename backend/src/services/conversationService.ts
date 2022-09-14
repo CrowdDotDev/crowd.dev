@@ -3,6 +3,7 @@ import { Transaction } from 'sequelize/types'
 import emoji from 'emoji-dictionary'
 import fetch from 'node-fetch'
 import { convert as convertHtmlToText } from 'html-to-text'
+import { S3_CONFIG } from '../config/index'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationRepository from '../database/repositories/conversationRepository'
@@ -10,7 +11,6 @@ import ConversationSearchEngineRepository from '../search-engine/repositories/co
 import telemetryTrack from '../segment/telemetryTrack'
 import TenantService from './tenantService'
 import Error403 from '../errors/Error403'
-import { getConfig } from '../config'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
 import ConversationSettingsService from './conversationSettingsService'
@@ -377,7 +377,7 @@ export default class ConversationService {
                 }
 
                 console.log(
-                  `trying to get bucket ${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                  `trying to get bucket ${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                 )
 
                 const url = data.file.url_private
@@ -388,7 +388,7 @@ export default class ConversationService {
                   headers,
                 }).then(async (res) => {
                   const objectParams = {
-                    Bucket: `${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                    Bucket: `${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                     ContentType: 'image/png',
                     Body: res.body,
                     Key: `slack/${attachment.id}.png`,
