@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk'
+import AWS, { SQS } from 'aws-sdk'
 import { KUBE_MODE, IS_DEV_ENV, SQS_CONFIG, S3_CONFIG } from '../config'
 
 let sqsInstance
@@ -78,7 +78,7 @@ if (KUBE_MODE) {
       : new AWS.StepFunctions()
 }
 
-export const sqs = sqsInstance
+export const sqs: SQS = sqsInstance
 export const s3 = s3Instance
 export const lambda = lambdaInstance
 export const notLocalLambda = notLocalLambdaInstance

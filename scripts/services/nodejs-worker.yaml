@@ -1,0 +1,36 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: nodejs-worker
+  TENANT_MODE: multi
+  KUBE_MODE: 1
+
+services:
+  nodejs-worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile-api-dev
+    command: 'npm run start:nodejs-worker'
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  nodejs-worker-dev:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile-api-dev
+    command: 'npm run start:nodejs-worker'
+    environment:
+      <<: *env-args
+    hostname: nodejs-worker
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../backend:/usr/crowd/backend
+
+networks:
+  crowd-bridge:
+    external: true
