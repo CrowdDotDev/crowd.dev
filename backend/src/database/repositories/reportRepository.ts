@@ -218,14 +218,7 @@ class ReportRepository {
       }
     }
 
-    const parser = new QueryParser(
-      {
-        nestedFields: {
-          sentiment: 'sentiment.sentiment',
-        },
-      },
-      options,
-    )
+    const parser = new QueryParser({}, options)
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
