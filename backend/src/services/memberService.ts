@@ -92,7 +92,6 @@ export default class MemberService {
    * The member is returned without relations
    * Only the fields that have changed are updated.
    * @param data Data for the member
-   * @param fromActivity If member was created from activity
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
