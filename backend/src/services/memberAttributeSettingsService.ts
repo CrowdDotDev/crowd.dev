@@ -62,7 +62,7 @@ export default class MemberAttributeSettingsService {
     return false
   }
 
-  static isCorrectType(value, type: AttributeType):boolean {
+  static isCorrectType(value, type: AttributeType): boolean {
     switch (type) {
       case AttributeType.BOOLEAN:
         return MemberAttributeSettingsService.isBoolean(value)
