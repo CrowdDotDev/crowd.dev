@@ -4,6 +4,7 @@ import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import Error400 from '../../errors/Error400'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
@@ -82,20 +83,14 @@ class ActivityRepository {
       const moods = ['positive', 'negative', 'mixed', 'neutral']
       for (const prop of moods) {
         if (typeof sentimentData[prop] !== 'number') {
-          throw new Error(
-            `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
-          )
+          throw new Error400('en', 'activity.error.sentiment.mood')
         }
       }
       if (!moods.includes(sentimentData.label)) {
-        throw new Error(
-          `Invalid sentiment data. The 'label' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
-        )
+        throw new Error400('en', 'activity.error.sentiment.label')
       }
       if (typeof sentimentData.sentiment !== 'number') {
-        throw new Error(
-          `Invalid sentiment data. The 'sentiment' property must exist and be a number.`,
-        )
+        throw new Error('activity.error.sentiment.sentiment')
       }
     }
   }

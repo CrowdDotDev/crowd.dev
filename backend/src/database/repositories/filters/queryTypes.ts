@@ -8,8 +8,8 @@ export interface QueryInput {
 }
 
 export interface QueryOutput {
-  ['where']?: any
-  ['having']?: any
+  where?: any
+  having?: any
   limit: number
   order: Array<string[]>
   offset: number

@@ -729,10 +729,6 @@ describe('TaskRepository tests', () => {
         )
       ).rows
 
-      // const m0Id = members.filter(
-      //   (m) => m.username.crowdUsername === sampleMembers[0].username.crowdUsername,
-      // )[0].id
-
       const m1Id = members.filter(
         (m) => m.username.crowdUsername === sampleMembers[1].username.crowdUsername,
       )[0].id
@@ -746,7 +742,6 @@ describe('TaskRepository tests', () => {
         )
       ).rows
 
-      // const a0Id = activities.filter((a) => a.sourceId === sampleActivities[0].sourceId)[0].id
       const a1Id = activities.filter((a) => a.sourceId === sampleActivities[1].sourceId)[0].id
       const a2Id = activities.filter((a) => a.sourceId === sampleActivities[2].sourceId)[0].id
 
