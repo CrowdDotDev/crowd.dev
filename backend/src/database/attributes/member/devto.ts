@@ -13,13 +13,27 @@ export const DevtoMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
-    type: AttributeType.STRING,
+    type: AttributeType.URL,
     canDelete: false,
     show: true,
   },
   {
     name: MemberAttributes[MemberAttributeName.NAME].name,
     label: MemberAttributes[MemberAttributeName.NAME].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.LOCATION].name,
+    label: MemberAttributes[MemberAttributeName.LOCATION].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.BIO].name,
+    label: MemberAttributes[MemberAttributeName.BIO].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,

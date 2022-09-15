@@ -17,6 +17,7 @@ import IntegrationRepository from '../../../database/repositories/integrationRep
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 export default class DiscordIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -298,8 +299,10 @@ export default class DiscordIterator extends BaseIterator {
           timestamp: moment(record.joinedAt).utc().toDate(),
           member: {
             username: record.username,
-            crowdInfo: {
-              id: record.id,
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: record.id,
+              },
             },
           },
           score: DiscordGrid.join.score,
@@ -361,8 +364,10 @@ export default class DiscordIterator extends BaseIterator {
           },
           member: {
             username: record.author.username,
-            crowdInfo: {
-              id: record.author.id,
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: record.author.id,
+              },
             },
           },
           score: DiscordGrid.message.score,

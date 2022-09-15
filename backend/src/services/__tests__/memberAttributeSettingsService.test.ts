@@ -32,9 +32,17 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [nameCreated, isHireableCreated, urlCreated] = attributes
+      const [
+        nameCreated,
+        isHireableCreated,
+        urlCreated,
+        websiteUrlCreated,
+        bioCreated,
+        companyCreated,
+        locationCreated,
+      ] = attributes
 
-      const [name, isHireable, url] = GithubMemberAttributes
+      const [name, isHireable, url, websiteUrl, bio, company, location] = GithubMemberAttributes
 
       const expected = [
         {
@@ -75,6 +83,58 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: url.canDelete,
           name: url.name,
           label: url.label,
+        },
+        {
+          id: websiteUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: websiteUrl.show,
+          type: websiteUrl.type,
+          canDelete: websiteUrl.canDelete,
+          name: websiteUrl.name,
+          label: websiteUrl.label,
+        },
+        {
+          id: bioCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: bio.show,
+          type: bio.type,
+          canDelete: bio.canDelete,
+          name: bio.name,
+          label: bio.label,
+        },
+        {
+          id: companyCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: company.show,
+          type: company.type,
+          canDelete: company.canDelete,
+          name: company.name,
+          label: company.label,
+        },
+        {
+          id: locationCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: location.show,
+          type: location.type,
+          canDelete: location.canDelete,
+          name: location.name,
+          label: location.label,
         },
       ]
 
@@ -122,9 +182,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated, urlCreated, nameCreated] = attributes
+      const [idCreated, urlCreated, nameCreated, bioCreated, locationCreated] = attributes
 
-      const [id, url, name] = DevtoMemberAttributes
+      const [id, url, name, bio, location] = DevtoMemberAttributes
 
       const expected = [
         {
@@ -165,6 +225,32 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: name.canDelete,
           name: name.name,
           label: name.label,
+        },
+        {
+          id: bioCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: bio.show,
+          type: bio.type,
+          canDelete: bio.canDelete,
+          name: bio.name,
+          label: bio.label,
+        },
+        {
+          id: locationCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: location.show,
+          type: location.type,
+          canDelete: location.canDelete,
+          name: location.name,
+          label: location.label,
         },
       ]
 
@@ -275,9 +361,15 @@ describe('MemberAttributeSettingService tests', () => {
       // create predefined method should still return shared attributes `url` and `id`
       const [idCreatedTwitter, _imageUrlCreated, urlCreatedTwitter] = attributes
 
-      const [_idCreatedDevTo, _urlCreatedDevTo, nameCreatedDevTo] = attributes2
+      const [
+        _idCreatedDevTo,
+        _urlCreatedDevTo,
+        nameCreatedDevTo,
+        bioCreatedDevTo,
+        locationCreatedDevTo,
+      ] = attributes2
 
-      const [id, url, name] = DevtoMemberAttributes
+      const [id, url, name, bio, location] = DevtoMemberAttributes
 
       const expected = [
         {
@@ -319,6 +411,32 @@ describe('MemberAttributeSettingService tests', () => {
           name: name.name,
           label: name.label,
         },
+        {
+          id: bioCreatedDevTo.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: bio.show,
+          type: bio.type,
+          canDelete: bio.canDelete,
+          name: bio.name,
+          label: bio.label,
+        },
+        {
+          id: locationCreatedDevTo.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: location.show,
+          type: location.type,
+          canDelete: location.canDelete,
+          name: location.name,
+          label: location.label,
+        },
       ]
 
       expect(attributes2).toEqual(expected)
@@ -326,10 +444,10 @@ describe('MemberAttributeSettingService tests', () => {
       // find all attributes: url, name, id, imgUrl should be present
       const allAttributes = await as.findAndCountAll({})
 
-      expect(allAttributes.count).toBe(4)
+      expect(allAttributes.count).toBe(6)
       const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributeNames).toEqual(['name', 'url', 'imageUrl', 'id'])
+      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'imageUrl', 'id'])
     })
   })
   describe('create tests', () => {

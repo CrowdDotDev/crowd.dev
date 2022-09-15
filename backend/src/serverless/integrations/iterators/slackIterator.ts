@@ -24,6 +24,7 @@ import getMessagesThreads from '../usecases/chat/getMessagesThreads'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 export default class SlackIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -328,8 +329,10 @@ export default class SlackIterator extends BaseIterator {
             : moment().utc().toDate(),
           member: {
             username: record.username,
-            crowdInfo: {
-              id: record.id,
+            attributes: {
+              [PlatformType.SLACK]: {
+                [MemberAttributeName.ID]: record.id,
+              },
             },
           },
           score: SlackGrid.join.score,
@@ -435,8 +438,10 @@ export default class SlackIterator extends BaseIterator {
           },
           member: {
             username: _vm.members[record.author.id],
-            crowdInfo: {
-              id: record.author.id,
+            attributes: {
+              [PlatformType.SLACK]: {
+                [MemberAttributeName.ID]: record.author.id,
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -483,8 +488,10 @@ export default class SlackIterator extends BaseIterator {
           },
           member: {
             username: _vm.members[record.author.id],
-            crowdInfo: {
-              id: record.author.id,
+            attributes: {
+              [PlatformType.SLACK]: {
+                [MemberAttributeName.ID]: record.author.id,
+              },
             },
           },
           score: SlackGrid.message.score,

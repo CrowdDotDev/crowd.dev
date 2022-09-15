@@ -249,9 +249,9 @@ describe('ConversationRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: 'test',
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           platform: PlatformType.GITHUB,
           joinedAt: '2020-05-27T15:13:30Z',
         },

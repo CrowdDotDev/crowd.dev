@@ -22,6 +22,7 @@ import * as microserviceTypes from '../../../database/utils/keys/microserviceTyp
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 export default class TwitterIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -287,11 +288,13 @@ export default class TwitterIterator extends BaseIterator {
       url: `https://twitter.com/${record.username}`,
       member: {
         username: record.username,
-        reach: { twitter: record.followersCount },
-        crowdInfo: {
-          id: record.id,
-          imageUrl: record.imageUrl,
-          url: `https://twitter.com/${record.username}`,
+        reach: { [PlatformType.TWITTER]: record.followersCount },
+        attributes: {
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.ID]: record.id,
+            [MemberAttributeName.IMAGE_URL]: record.imageUrl,
+            [MemberAttributeName.URL]: `https://twitter.com/${record.username}`,
+          },
         },
       },
       score: TwitterGrid.follow.score,
@@ -301,7 +304,12 @@ export default class TwitterIterator extends BaseIterator {
     // It is imperative that we remove the followers we have already seen.
     // Since they come without timestamps and we have set the followers timestamp to now(),
     // this would cause repeated activities otherwise
-    out = out.filter((activity) => !this.followers.has(activity.member.crowdInfo.id))
+    out = out.filter(
+      (activity) =>
+        !this.followers.has(
+          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+        ),
+    )
 
     return out
   }
@@ -326,11 +334,13 @@ export default class TwitterIterator extends BaseIterator {
         },
         member: {
           username: record.author.username,
-          crowdInfo: {
-            id: record.author.id,
-            url: `https://twitter.com/${record.author.username}`,
+          attributes: {
+            [PlatformType.TWITTER]: {
+              [MemberAttributeName.ID]: record.author.id,
+              [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
+            },
           },
-          reach: { twitter: record.author.followersCount },
+          reach: { [PlatformType.TWITTER]: record.author.followersCount },
         },
         score: endpoint === 'mentions' ? TwitterGrid.mention.score : TwitterGrid.hashtag.score,
         isKeyAction:
@@ -388,7 +398,7 @@ export default class TwitterIterator extends BaseIterator {
       case 'followers':
         return TwitterIterator.isJoin(
           this.followers,
-          TwitterIterator.mapToPath(activities, 'member.crowdInfo.id'),
+          TwitterIterator.mapToPath(activities, 'member.attributes.twitter.id'),
         )
 
       default:

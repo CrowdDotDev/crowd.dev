@@ -8,6 +8,8 @@ import MemberRepository from '../database/repositories/memberRepository'
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
 
 export default class MemberService {
   options: IServiceOptions
@@ -16,19 +18,94 @@ export default class MemberService {
     this.options = options
   }
 
+  async getStructuredAttributes(attributes) {
+    const attributesObject = {}
+
+    // check attribute exists in memberAttributeSettings
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows.reduce((acc, attribute) => {
+      acc[attribute.name] = attribute
+      return acc
+    }, {})
+
+    for (const platform of Object.keys(attributes)) {
+      for (const attributeName of Object.keys(attributes[platform])) {
+        if (!memberAttributeSettings[attributeName]) {
+          throw new Error400(
+            this.options.language,
+            'settings.memberAttributes.notFound',
+            attributeName,
+          )
+        }
+        if (
+          !MemberAttributeSettingsService.isCorrectType(
+            attributes[platform][attributeName],
+            memberAttributeSettings[attributeName].type,
+          )
+        ) {
+          throw new Error400(
+            this.options.language,
+            'settings.memberAttributes.wrongType',
+            attributeName,
+            memberAttributeSettings[attributeName].type,
+          )
+        }
+
+        if (attributesObject[attributeName]) {
+          attributesObject[attributeName] = {
+            ...attributesObject[attributeName],
+            [platform]: attributes[platform][attributeName],
+          }
+        } else {
+          attributesObject[attributeName] = {
+            [platform]: attributes[platform][attributeName],
+          }
+        }
+      }
+    }
+
+    return attributesObject
+  }
+
+  setAttributesDefaultValues(attributes) {
+    const priorityArray = this.options.currentTenant.settings[0].get({ plain: true })
+      .attributeSettings.priorities
+    for (const attributeName of Object.keys(attributes)) {
+      const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
+        Object.keys(attributes[attributeName]),
+        priorityArray,
+      )
+      attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+    }
+
+    return attributes
+  }
+
+  static getHighestPriorityPlatformForAttributes(platforms, priorityArray) {
+    return priorityArray.filter((i) => platforms.includes(i))[0]
+  }
+
   /**
    * Upsert a member. If the member exists, it updates it. If it does not exist, it creates it.
    * The update is done with a deep merge of the original and the new member.
    * The member is returned without relations
    * Only the fields that have changed are updated.
    * @param data Data for the member
-   * @param fromActivity If member was created from activity
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, fromActivity = false, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false) {
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
+    }
+
+    if (!data.displayName) {
+      if (typeof data.username === 'string') {
+        data.displayName = data.username
+      } else {
+        data.displayName = data.username[data.platform]
+      }
     }
 
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
@@ -61,10 +138,10 @@ export default class MemberService {
 
       const { platform } = data
 
-      if (data.crowdInfo) {
-        data.crowdInfo =
-          platform in data.crowdInfo ? data.crowdInfo : { [platform]: data.crowdInfo }
+      if (data.attributes) {
+        data.attributes = await this.getStructuredAttributes(data.attributes)
       }
+
       if (data.reach) {
         data.reach = typeof data.reach === 'object' ? data.reach : { [platform]: data.reach }
         data.reach = MemberService.calculateReach(data.reach, {})
@@ -73,10 +150,6 @@ export default class MemberService {
       }
 
       delete data.platform
-
-      if (fromActivity) {
-        data.type = 'member'
-      }
 
       if (!('joinedAt' in data)) {
         data.joinedAt = moment.tz('Europe/London').toDate()
@@ -94,6 +167,11 @@ export default class MemberService {
         const { id } = existing
         delete existing.id
         const toUpdate = MemberService.membersMerge(existing, data)
+
+        if (toUpdate.attributes) {
+          toUpdate.attributes = this.setAttributesDefaultValues(toUpdate.attributes)
+        }
+
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         record = await MemberRepository.update(
@@ -108,6 +186,10 @@ export default class MemberService {
       } else {
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
+        if (data.attributes) {
+          data.attributes = this.setAttributesDefaultValues(data.attributes)
+        }
+
         record = await MemberRepository.create(
           data,
           {
@@ -233,7 +315,7 @@ export default class MemberService {
   /**
    * Call the merge function with the special fields for members.
    * We want to always keep the earlies joinedAt date.
-   * We always want the original crowdUsername.
+   * We always want the original displayName.
    * @param originalObject Original object to merge
    * @param toMergeObject Object to merge into the original object
    * @returns The updates to be performed on the original object
@@ -255,7 +337,7 @@ export default class MemberService {
           .toDate()
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      'username.crowdUsername': (oldValue, _newValue) => oldValue,
+      displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
 
       // Get rid of activities that are the same and were in both members
@@ -267,7 +349,6 @@ export default class MemberService {
           [...oldActivities, ...newActivities],
           (act1, act2) =>
             moment(act1.timestamp).utc().unix() === moment(act2.timestamp).utc().unix() &&
-            act1.type === act2.type &&
             act1.platform === act2.platform,
         )
         return uniq.length > 0 ? uniq : null

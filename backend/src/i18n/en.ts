@@ -10,12 +10,12 @@ const en = {
   settings: {
     memberAttributes: {
       errors: {
-        wrongType: `Member attribute {0} should have type {1} but has type {2}.`,
+        wrongType: `Member attribute {0} should have type {1}.`,
         alreadyExists: `Attribute with name '{0}' already exists.`,
         typesNotMatching: `Attribute types cannot be changed after creation.`,
         canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
         requiredFields: `Type and label fields are required when creating member attributes.`,
-        notFound: `Member attribute not found.`,
+        notFound: `Member attribute {0} not found in memberAttributeSettings.`,
       },
     },
   },
@@ -86,9 +86,6 @@ const en = {
     },
     validation: {
       message: 'An unexpected error occurred',
-    },
-    crowdInfo: {
-      message: 'CrowdInfo is for computed metrics only. Cannot be edited.',
     },
     noMember: {
       message: 'Member does not exist',

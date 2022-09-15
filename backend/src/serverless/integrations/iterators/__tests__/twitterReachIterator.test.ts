@@ -118,7 +118,7 @@ describe('Twitter iterator tests', () => {
           id: '123',
           update: {
             reach: {
-              twitter: 10,
+              [PlatformType.TWITTER]: 10,
               total: 10,
             },
           },
@@ -137,7 +137,7 @@ describe('Twitter iterator tests', () => {
       {
         username: 'dinesh',
         id: '456',
-        reach: { total: 20, twitter: 20 },
+        reach: { total: 20, [PlatformType.TWITTER]: 20 },
       },
     ]
     const { iter } = await init(members)
@@ -153,7 +153,7 @@ describe('Twitter iterator tests', () => {
         id: '123',
         update: {
           reach: {
-            twitter: 10,
+            [PlatformType.TWITTER]: 10,
             total: 10,
           },
         },

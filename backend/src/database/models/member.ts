@@ -16,22 +16,16 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      type: {
-        type: DataTypes.STRING(255),
+      attributes: {
+        type: DataTypes.JSONB,
+        defaultValue: {},
+      },
+      displayName: {
+        type: DataTypes.TEXT,
         allowNull: false,
         validate: {
           notEmpty: true,
-          isIn: [['member', 'lookalike']],
         },
-        defaultValue: 'member',
-      },
-      info: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
-      crowdInfo: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
       },
       email: {
         type: DataTypes.TEXT,
@@ -39,15 +33,6 @@ export default (sequelize) => {
       score: {
         type: DataTypes.INTEGER,
         defaultValue: -1,
-      },
-      bio: {
-        type: DataTypes.TEXT,
-      },
-      location: {
-        type: DataTypes.TEXT,
-      },
-      signals: {
-        type: DataTypes.TEXT,
       },
       joinedAt: {
         type: DataTypes.DATE,
@@ -97,20 +82,6 @@ export default (sequelize) => {
         // Below are B-tree indexes for speeding up search in normal fields
         {
           unique: false,
-          fields: ['location', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
-        {
-          unique: false,
-          fields: ['type', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
-        {
-          unique: false,
           fields: ['score', 'tenantId'],
           where: {
             deletedAt: null,
@@ -126,13 +97,6 @@ export default (sequelize) => {
         {
           unique: false,
           fields: ['createdAt', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
-        {
-          unique: false,
-          fields: ['signals', 'tenantId'],
           where: {
             deletedAt: null,
           },

@@ -20,6 +20,7 @@ import {
 import { GithubActivityType } from '../../../../utils/activityTypes'
 import { GitHubGrid } from '../../grid/githubGrid'
 import BaseIterator from '../baseIterator'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 const db = null
 
@@ -114,9 +115,6 @@ describe('Github iterator tests', () => {
 
       const { repo, event } = ghi.getSplitEndpointInfo(`${repos[0].name}|stargazers`)
 
-      console.log(`repo is:`)
-      console.log(repo)
-
       expect(repo).toBe(repos[0].name)
       expect(event).toBe('stargazers')
 
@@ -139,20 +137,21 @@ describe('Github iterator tests', () => {
           [PlatformType.GITHUB]: prWithMember.login,
           [PlatformType.TWITTER]: prWithMember.twitterUsername,
         },
-        crowdInfo: {
-          github: {
-            name: prWithMember.name,
-            isHireable: prWithMember.isHireable,
-            url: prWithMember.url,
+        displayName: prWithMember.name,
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: prWithMember.name,
+            [MemberAttributeName.IS_HIREABLE]: prWithMember.isHireable,
+            [MemberAttributeName.URL]: prWithMember.url,
+            [MemberAttributeName.BIO]: prWithMember.bio,
+            [MemberAttributeName.LOCATION]: prWithMember.location,
           },
-          twitter: {
-            url: `https://twitter.com/${prWithMember.twitterUsername}`,
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: `https://twitter.com/${prWithMember.twitterUsername}`,
           },
         },
         email: prWithMember.email,
-        bio: prWithMember.bio,
         organisation: prWithMember.company,
-        location: prWithMember.location,
       })
     })
   })

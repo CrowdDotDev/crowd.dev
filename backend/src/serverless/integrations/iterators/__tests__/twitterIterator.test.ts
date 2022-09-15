@@ -7,6 +7,7 @@ import BaseIterator from '../baseIterator'
 import TwitterIterator from '../twitterIterator'
 import { TwitterGrid } from '../../grid/twitterGrid'
 import { PlatformType } from '../../../../utils/platforms'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 describe('Integrations worker static tests', () => {
   describe('Init tests', () => {
@@ -129,10 +130,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 100 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 100 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -158,10 +161,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '444444',
-              url: 'https://twitter.com/gilfoyle',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '444444',
+                [MemberAttributeName.URL]: 'https://twitter.com/gilfoyle',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -218,10 +223,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 1 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 1 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -262,10 +269,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 1 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 1 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -323,10 +332,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.hashtag.isKeyAction,
@@ -380,12 +391,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/michael_scott',
+            reach: { [PlatformType.TWITTER]: 1 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/michael_scott',
+              },
             },
           },
           score: 2,
@@ -405,12 +418,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 30 },
-            crowdInfo: {
-              id: '1466796521412771841',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/dwight_schrute',
+            reach: { [PlatformType.TWITTER]: 30 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771841',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/dwight_schrute',
+              },
             },
           },
           score: 2,
@@ -454,12 +469,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/michael_scott',
+            reach: { [PlatformType.TWITTER]: 1 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/michael_scott',
+              },
             },
           },
           score: 2,
@@ -519,12 +536,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/michael_scott',
+            reach: { [PlatformType.TWITTER]: 1 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/michael_scott',
+              },
             },
           },
           score: 2,
@@ -544,12 +563,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 30 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/dwight_schrute',
+            reach: { [PlatformType.TWITTER]: 30 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/dwight_schrute',
+              },
             },
           },
           score: 2,
@@ -591,12 +612,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/michael_scott',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/michael_scott',
+              },
             },
           },
           score: 2,
@@ -616,12 +639,14 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '1466796521412771840',
-              imageUrl:
-                'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
-              url: 'https://twitter.com/dwight_schrute',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1466796521412771840',
+                [MemberAttributeName.IMAGE_URL]:
+                  'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
+                [MemberAttributeName.URL]: 'https://twitter.com/dwight_schrute',
+              },
             },
           },
           score: 2,
@@ -706,10 +731,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -735,10 +762,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '444444',
-              url: 'https://twitter.com/gilfoyle',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '444444',
+                [MemberAttributeName.URL]: 'https://twitter.com/gilfoyle',
+              },
             },
           },
           isKeyAction: TwitterGrid.mention.isKeyAction,
@@ -815,10 +844,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '3333333',
-              url: 'https://twitter.com/johndoe',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '3333333',
+                [MemberAttributeName.URL]: 'https://twitter.com/johndoe',
+              },
             },
           },
           isKeyAction: TwitterGrid.hashtag.isKeyAction,
@@ -845,10 +876,12 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
-            crowdInfo: {
-              id: '444444',
-              url: 'https://twitter.com/gilfoyle',
+            reach: { [PlatformType.TWITTER]: 10 },
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '444444',
+                [MemberAttributeName.URL]: 'https://twitter.com/gilfoyle',
+              },
             },
           },
           isKeyAction: TwitterGrid.hashtag.isKeyAction,
@@ -936,8 +969,10 @@ describe('Integrations worker static tests', () => {
           platform: 'api',
           tenant: 'tenant12345',
           member: {
-            crowdInfo: {
-              id: '5',
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '5',
+              },
             },
             username: 'johndoe',
           },
@@ -948,8 +983,10 @@ describe('Integrations worker static tests', () => {
           platform: 'api',
           tenant: 'tenant12345',
           member: {
-            crowdInfo: {
-              id: '4',
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '4',
+              },
             },
             username: 'johndoe',
           },
@@ -989,8 +1026,10 @@ describe('Integrations worker static tests', () => {
           platform: 'api',
           tenant: 'tenant12345',
           member: {
-            crowdInfo: {
-              id: '4',
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '4',
+              },
             },
             username: 'johndoe',
           },
@@ -1001,8 +1040,10 @@ describe('Integrations worker static tests', () => {
           platform: 'api',
           tenant: 'tenant12345',
           member: {
-            crowdInfo: {
-              id: '1',
+            attributes: {
+              [PlatformType.TWITTER]: {
+                [MemberAttributeName.ID]: '1',
+              },
             },
             username: 'johndoe',
           },

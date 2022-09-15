@@ -5,6 +5,7 @@ import { Channels } from '../../types/regularTypes'
 import BaseIterator from '../baseIterator'
 import DiscordIterator from '../discordIterator'
 import { PlatformType } from '../../../../utils/platforms'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 describe('Discord iterator tests', () => {
   const superfaceMock = {} as SuperfaceClient
@@ -149,8 +150,10 @@ describe('Discord iterator tests', () => {
           },
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.message.score,
@@ -204,8 +207,10 @@ describe('Discord iterator tests', () => {
           },
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.message.score,
@@ -258,8 +263,10 @@ describe('Discord iterator tests', () => {
           },
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.message.score,
@@ -311,8 +318,10 @@ describe('Discord iterator tests', () => {
           },
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.message.score,
@@ -366,8 +375,10 @@ describe('Discord iterator tests', () => {
           },
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.message.score,
@@ -414,8 +425,10 @@ describe('Discord iterator tests', () => {
           timestamp: moment(Date.parse('2020-01-01T00:00:00.000Z')).toDate(),
           member: {
             username: 'username',
-            crowdInfo: {
-              id: 'a12345',
+            attributes: {
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: 'a12345',
+              },
             },
           },
           score: DiscordGrid.join.score,

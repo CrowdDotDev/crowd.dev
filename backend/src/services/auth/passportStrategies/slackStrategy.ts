@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { getConfig } from '../../../config'
+import { PlatformType } from '../../../utils/platforms'
 
 export function getSlackStrategy() {
   const { SLACK_CLIENT_ID, SLACK_CLIENT_SECRET } = getConfig()
@@ -32,7 +33,7 @@ export function getSlackStrategy() {
 
           return done(null, {
             ...existingUser,
-            slack: {
+            [PlatformType.SLACK]: {
               botToken: accessToken,
               teamId: res.team.id,
             },
