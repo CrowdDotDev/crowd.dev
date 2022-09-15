@@ -818,7 +818,6 @@ describe('MemberService tests', () => {
       }
 
       const member1Username = member1.username
-      const member1Platform = member1.platform
       const attributes1 = member1.attributes
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)

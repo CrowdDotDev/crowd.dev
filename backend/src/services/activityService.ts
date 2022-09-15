@@ -289,7 +289,6 @@ export default class ActivityService {
           platform: data.platform,
           joinedAt: data.timestamp,
         },
-        true,
         existingMember,
       )
 

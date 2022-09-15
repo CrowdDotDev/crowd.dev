@@ -96,7 +96,7 @@ export default class MemberService {
    * @param existing If the member already exists. If it does not, false. Othwerwise, the member.
    * @returns The created member
    */
-  async upsert(data, fromActivity = false, existing: boolean | any = false) {
+  async upsert(data, existing: boolean | any = false) {
     if (!('platform' in data)) {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
