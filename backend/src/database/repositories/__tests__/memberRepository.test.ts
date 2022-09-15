@@ -26,13 +26,13 @@ describe('MemberRepository tests', () => {
 
       const member2add = {
         username: {
-          github: 'anil_github',
+          [PlatformType.GITHUB]: 'anil_github',
         },
         displayName: 'Member 1',
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          github: {
+          [PlatformType.GITHUB]: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
             url: 'https://github.com/imcvampire',
@@ -46,7 +46,7 @@ describe('MemberRepository tests', () => {
               },
             ],
           },
-          twitter: {
+          [PlatformType.TWITTER]: {
             profile_url: 'https://twitter.com/imcvampire',
             url: 'https://twitter.com/imcvampire',
           },
@@ -92,13 +92,13 @@ describe('MemberRepository tests', () => {
 
       const member2add = {
         username: {
-          github: 'anil_github',
+          [PlatformType.GITHUB]: 'anil_github',
         },
         displayName: 'Member 1',
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          github: {
+          [PlatformType.GITHUB]: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
             url: 'https://github.com/imcvampire',
@@ -112,7 +112,7 @@ describe('MemberRepository tests', () => {
               },
             ],
           },
-          twitter: {
+          [PlatformType.TWITTER]: {
             profile_url: 'https://twitter.com/imcvampire',
             url: 'https://twitter.com/imcvampire',
           },
@@ -1087,7 +1087,7 @@ describe('MemberRepository tests', () => {
               },
             ],
           },
-          twitter: {
+          [PlatformType.TWITTER]: {
             profile_url: 'https://twitter.com/imcvampire',
             url: 'https://twitter.com/imcvampire',
           },
@@ -1154,7 +1154,7 @@ describe('MemberRepository tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          github: {
+          [PlatformType.GITHUB]: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
             url: 'https://github.com/imcvampire',
@@ -1168,7 +1168,7 @@ describe('MemberRepository tests', () => {
               },
             ],
           },
-          twitter: {
+          [PlatformType.TWITTER]: {
             profile_url: 'https://twitter.com/imcvampire',
             url: 'https://twitter.com/imcvampire',
           },

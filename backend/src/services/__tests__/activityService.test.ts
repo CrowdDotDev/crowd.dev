@@ -316,14 +316,14 @@ describe('ActivityService tests', () => {
 
       const member1Created = await memberService.upsert({
         username: {
-          discord: 'test',
+          [PlatformType.DISCORD]: 'test',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
       })
       const member2Created = await memberService.upsert({
         username: {
-          discord: 'test2',
+          [PlatformType.DISCORD]: 'test2',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -464,7 +464,7 @@ describe('ActivityService tests', () => {
 
       const member1Created = await memberService.upsert({
         username: {
-          discord: 'test',
+          [PlatformType.DISCORD]: 'test',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -472,7 +472,7 @@ describe('ActivityService tests', () => {
 
       const member2Created = await memberService.upsert({
         username: {
-          discord: 'test2',
+          [PlatformType.DISCORD]: 'test2',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',

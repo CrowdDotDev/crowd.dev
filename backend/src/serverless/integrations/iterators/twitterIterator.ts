@@ -288,7 +288,7 @@ export default class TwitterIterator extends BaseIterator {
       url: `https://twitter.com/${record.username}`,
       member: {
         username: record.username,
-        reach: { twitter: record.followersCount },
+        reach: { [PlatformType.TWITTER]: record.followersCount },
         attributes: {
           [PlatformType.TWITTER]: {
             [MemberAttributeName.ID]: record.id,
@@ -340,7 +340,7 @@ export default class TwitterIterator extends BaseIterator {
               [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
             },
           },
-          reach: { twitter: record.author.followersCount },
+          reach: { [PlatformType.TWITTER]: record.author.followersCount },
         },
         score: endpoint === 'mentions' ? TwitterGrid.mention.score : TwitterGrid.hashtag.score,
         isKeyAction:

@@ -130,7 +130,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 100 },
+            reach: { [PlatformType.TWITTER]: 100 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -161,7 +161,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '444444',
@@ -223,7 +223,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 1 },
+            reach: { [PlatformType.TWITTER]: 1 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -269,7 +269,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 1 },
+            reach: { [PlatformType.TWITTER]: 1 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -332,7 +332,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -391,7 +391,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
+            reach: { [PlatformType.TWITTER]: 1 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -418,7 +418,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 30 },
+            reach: { [PlatformType.TWITTER]: 30 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771841',
@@ -469,7 +469,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
+            reach: { [PlatformType.TWITTER]: 1 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -536,7 +536,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 1 },
+            reach: { [PlatformType.TWITTER]: 1 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -563,7 +563,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 30 },
+            reach: { [PlatformType.TWITTER]: 30 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -612,7 +612,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/michael_scott',
           member: {
             username: 'michael_scott',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -639,7 +639,7 @@ describe('Integrations worker static tests', () => {
           url: 'https://twitter.com/dwight_schrute',
           member: {
             username: 'dwight_schrute',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '1466796521412771840',
@@ -731,7 +731,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -762,7 +762,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '444444',
@@ -844,7 +844,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'johndoe',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '3333333',
@@ -876,7 +876,7 @@ describe('Integrations worker static tests', () => {
           },
           member: {
             username: 'gilfoyle',
-            reach: { twitter: 10 },
+            reach: { [PlatformType.TWITTER]: 10 },
             attributes: {
               [PlatformType.TWITTER]: {
                 [MemberAttributeName.ID]: '444444',

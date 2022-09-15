@@ -230,7 +230,7 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -526,7 +526,7 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         displayName: 'Member 1',
         platform: PlatformType.GITHUB,
@@ -684,7 +684,7 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -786,7 +786,7 @@ describe('ConversationService tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
           displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
@@ -913,9 +913,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name',
         },
         inviteLinks: {
-          github: 'a-github-invite-link',
-          discord: 'a-discord-invite-link',
-          slack: 'a-slack-invite-link',
+          [PlatformType.GITHUB]: 'a-github-invite-link',
+          [PlatformType.DISCORD]: 'a-discord-invite-link',
+          [PlatformType.SLACK]: 'a-slack-invite-link',
         },
       }
 
@@ -970,9 +970,9 @@ describe('ConversationService tests', () => {
         tenantName: updateSettings.tenant.name,
         tenantSlug: updateSettings.tenant.url,
         inviteLinks: {
-          discord: updateSettings.inviteLinks.discord,
-          slack: updateSettings.inviteLinks.slack,
-          github: updateSettings.inviteLinks.github,
+          [PlatformType.DISCORD]: updateSettings.inviteLinks.discord,
+          [PlatformType.SLACK]: updateSettings.inviteLinks.slack,
+          [PlatformType.GITHUB]: updateSettings.inviteLinks.github,
         },
         website: updateSettings.website,
       }
@@ -996,9 +996,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name',
         },
         inviteLinks: {
-          github: 'a-github-invite-link',
-          discord: 'a-discord-invite-link',
-          slack: 'a-slack-invite-link',
+          [PlatformType.GITHUB]: 'a-github-invite-link',
+          [PlatformType.DISCORD]: 'a-discord-invite-link',
+          [PlatformType.SLACK]: 'a-slack-invite-link',
         },
       }
 
@@ -1016,9 +1016,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name 2',
         },
         inviteLinks: {
-          github: 'a-github-invite-link-2',
-          discord: 'a-discord-invite-link-2',
-          slack: 'a-slack-invite-link-2',
+          [PlatformType.GITHUB]: 'a-github-invite-link-2',
+          [PlatformType.DISCORD]: 'a-discord-invite-link-2',
+          [PlatformType.SLACK]: 'a-slack-invite-link-2',
         },
       }
 
@@ -1075,9 +1075,9 @@ describe('ConversationService tests', () => {
         tenantName: updateSettings2.tenant.name,
         tenantSlug: updateSettings.tenant.url,
         inviteLinks: {
-          discord: updateSettings2.inviteLinks.discord,
-          slack: updateSettings2.inviteLinks.slack,
-          github: updateSettings2.inviteLinks.github,
+          [PlatformType.DISCORD]: updateSettings2.inviteLinks.discord,
+          [PlatformType.SLACK]: updateSettings2.inviteLinks.slack,
+          [PlatformType.GITHUB]: updateSettings2.inviteLinks.github,
         },
         website: updateSettings2.website,
       }
@@ -1102,7 +1102,7 @@ describe('ConversationService tests', () => {
 
       const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: 'github',
         joinedAt: '2020-05-27T10:13:30Z',
@@ -1199,7 +1199,7 @@ describe('ConversationService tests', () => {
         autoPublish: {
           status: 'custom',
           channelsByPlatform: {
-            github: ['CrowdDevHQ/crowd-web'],
+            [PlatformType.GITHUB]: ['CrowdDevHQ/crowd-web'],
           },
         },
       })

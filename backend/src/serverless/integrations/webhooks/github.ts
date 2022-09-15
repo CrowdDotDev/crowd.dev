@@ -308,7 +308,7 @@ export default class GitHubWebhook {
     if (getConfig().NODE_ENV === 'test') {
       return {
         username: {
-          github: 'testMember',
+          [PlatformType.GITHUB]: 'testMember',
         },
       }
     }
@@ -326,7 +326,7 @@ export default class GitHubWebhook {
    */
   static parseMember(member: any): Member {
     const parsedMember: Member = {
-      username: { github: member.login },
+      username: { [PlatformType.GITHUB]: member.login },
       attributes: {
         [PlatformType.GITHUB]: {
           [MemberAttributeName.NAME]: member.name,

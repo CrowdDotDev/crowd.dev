@@ -1259,7 +1259,7 @@ describe('MemberService tests', () => {
       }
       const member4 = {
         username: {
-          slack: 'testt',
+          [PlatformType.SLACK]: 'testt',
         },
         displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',

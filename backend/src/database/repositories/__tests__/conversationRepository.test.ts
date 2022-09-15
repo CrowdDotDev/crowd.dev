@@ -249,7 +249,7 @@ describe('ConversationRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            github: 'test',
+            [PlatformType.GITHUB]: 'test',
           },
           displayName: 'Member 1',
           platform: PlatformType.GITHUB,

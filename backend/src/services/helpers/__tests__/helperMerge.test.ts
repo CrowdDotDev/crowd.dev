@@ -1,3 +1,4 @@
+import { PlatformType } from '../../../utils/platforms'
 import merge from '../merge'
 
 describe('Merge helper tests', () => {
@@ -195,7 +196,7 @@ describe('Merge helper tests', () => {
       const original = {
         id: '1',
         info: {
-          github: {
+          [PlatformType.GITHUB]: {
             username: 'Anil',
             url: 'github.com/anil',
             something: {
@@ -203,7 +204,7 @@ describe('Merge helper tests', () => {
               more: 'more',
             },
           },
-          discord: {
+          [PlatformType.DISCORD]: {
             username: 'Anil42',
           },
         },
@@ -211,7 +212,7 @@ describe('Merge helper tests', () => {
       const newObject = {
         id: '1',
         info: {
-          github: {
+          [PlatformType.GITHUB]: {
             username: null,
             url: 'github.com/anil',
             something: {
@@ -219,7 +220,7 @@ describe('Merge helper tests', () => {
               more: 'more',
             },
           },
-          discord: {
+          [PlatformType.DISCORD]: {
             username: null,
           },
         },
@@ -233,7 +234,7 @@ describe('Merge helper tests', () => {
       const original = {
         id: '1',
         info: {
-          github: {
+          [PlatformType.GITHUB]: {
             username: 'Anil',
             url: 'github.com/anil',
             something: {
@@ -241,7 +242,7 @@ describe('Merge helper tests', () => {
               more: 'more',
             },
           },
-          discord: {
+          [PlatformType.DISCORD]: {
             username: 'Anil42',
           },
         },
@@ -249,7 +250,7 @@ describe('Merge helper tests', () => {
       const newObject = {
         id: '1',
         info: {
-          github: {
+          [PlatformType.GITHUB]: {
             username: null,
             url: 'github.com/anil42',
             something: {
@@ -257,7 +258,7 @@ describe('Merge helper tests', () => {
               more: 'more',
             },
           },
-          discord: {
+          [PlatformType.DISCORD]: {
             username: null,
             url: 'discord.com/anil42',
           },
@@ -268,7 +269,7 @@ describe('Merge helper tests', () => {
       const merged = merge(original, newObject)
       expect(merged).toStrictEqual({
         info: {
-          github: {
+          [PlatformType.GITHUB]: {
             username: 'Anil',
             url: 'github.com/anil42',
             something: {
@@ -276,7 +277,7 @@ describe('Merge helper tests', () => {
               more: 'more',
             },
           },
-          discord: {
+          [PlatformType.DISCORD]: {
             username: 'Anil42',
             url: 'discord.com/anil42',
           },

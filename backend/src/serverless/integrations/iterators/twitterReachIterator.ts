@@ -151,7 +151,7 @@ export default class TwitterReachIterator extends BaseIterator {
           id: member.id,
           update: {
             reach: MemberService.calculateReach(member.reach || {}, {
-              twitter: record.followersCount,
+              [PlatformType.TWITTER]: record.followersCount,
             }),
           },
         })
