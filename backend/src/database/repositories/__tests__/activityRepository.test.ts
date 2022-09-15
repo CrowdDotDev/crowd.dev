@@ -1347,9 +1347,9 @@ describe('ActivityRepository tests', () => {
       const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
             github: test,
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIRepositoryOptions,

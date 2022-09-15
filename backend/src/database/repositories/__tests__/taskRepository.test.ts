@@ -603,13 +603,9 @@ describe('TaskRepository tests', () => {
           )
         ).rows
 
-        const m0Id = members.filter(
-          (m) => m.username.crowdUsername === sampleMembers[0].username.crowdUsername,
-        )[0].id
+        const m0Id = members.filter((m) => m.displayName === sampleMembers[0].displayName)[0].id
 
-        const m1Id = members.filter(
-          (m) => m.username.crowdUsername === sampleMembers[1].username.crowdUsername,
-        )[0].id
+        const m1Id = members.filter((m) => m.displayName === sampleMembers[1].displayName)[0].id
         const found2 = await TaskRepository.findAndCountAll(
           {
             filter: {
@@ -733,9 +729,7 @@ describe('TaskRepository tests', () => {
         )
       ).rows
 
-      const m1Id = members.filter(
-        (m) => m.username.crowdUsername === sampleMembers[1].username.crowdUsername,
-      )[0].id
+      const m1Id = members.filter((m) => m.displayName === sampleMembers[1].displayName)[0].id
 
       const activities = (
         await ActivityRepository.findAndCountAll(
