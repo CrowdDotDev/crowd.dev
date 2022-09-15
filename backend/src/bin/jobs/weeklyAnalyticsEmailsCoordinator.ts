@@ -12,8 +12,9 @@ const coordinatorJob: CrowdJob = {
 
     for (const tenant of tenants.rows) {
       await sendNodeWorkerMessage(tenant.id, {
-        type: NodeWorkerMessageType.WEEKLY_ANALYTICS_EMAILS,
+        type: NodeWorkerMessageType.NODE_MICROSERVICE,
         tenant: tenant.id,
+        service: 'weekly-analytics-emails',
       } as NodeWorkerMessage)
     }
   },

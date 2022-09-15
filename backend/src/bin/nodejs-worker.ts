@@ -2,6 +2,9 @@
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
 import { sqs } from '../services/aws'
 import { SQS_CONFIG } from '../config'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
+import { processIntegrationsMessage } from '../serverless/integrations/workDispatcher'
+import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 
 const receiveMessage = (): Promise<Message | undefined> =>
   new Promise<Message | undefined>((resolve, reject) => {
@@ -9,7 +12,7 @@ const receiveMessage = (): Promise<Message | undefined> =>
       QueueUrl: SQS_CONFIG.nodejsWorkerQueue,
       MaxNumberOfMessages: 1,
       WaitTimeSeconds: 15,
-      VisibilityTimeout: 10,
+      VisibilityTimeout: 15,
     }
 
     sqs.receiveMessage(params, (err, data) => {
@@ -39,25 +42,45 @@ const deleteMessage = (receiptHandle: string): Promise<void> =>
     })
   })
 
-const popMessage = async (): Promise<Message | undefined> => {
-  const message = await receiveMessage()
-
-  if (message) {
-    await deleteMessage(message.ReceiptHandle)
-  }
-
-  return message
-}
-
 setImmediate(async () => {
+  console.log('Listening for messages on: ', SQS_CONFIG.nodejsWorkerQueue)
+
   // noinspection InfiniteLoopJS
   while (true) {
-    const message = await popMessage()
+    const message = await receiveMessage()
 
     if (message) {
-      console.log('Received a new queue message: ', message.MessageId, message.Body)
+      const msg: NodeWorkerMessage = JSON.parse(message.Body)
+      console.log('Received a new queue message: ', message.MessageId, msg.type)
 
-      // need to process the message and dispatch it to worker functions based on type property
+      let processFunction: (msg: NodeWorkerMessage) => Promise<void>
+      let keep = false
+
+      switch (msg.type) {
+        case NodeWorkerMessageType.INTEGRATION:
+          processFunction = processIntegrationsMessage
+          break
+        case NodeWorkerMessageType.NODE_MICROSERVICE:
+          processFunction = processNodeMicroserviceMessage
+          break
+
+        default:
+          keep = true
+          console.log('Error while parsing NodeJS Worker queue message! Invalid type: ', msg.type)
+      }
+
+      if (!keep) {
+        // remove the message from the queue as it's about to be processed
+        await deleteMessage(message.ReceiptHandle)
+
+        try {
+          await processFunction(msg)
+        } catch (err) {
+          console.log('Error while processing NodeJS Worker queue message!', err)
+        }
+      } else {
+        console.log('Warning keeping the message in the queue!', message.MessageId)
+      }
     }
   }
 })

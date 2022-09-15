@@ -107,7 +107,7 @@ function service_manipulator() {
             status) print_container_status "$1"
                 exit;
             ;;
-            logs) docker container logs -f $(get_container_id "$1")
+            logs) get_logs "$1"
                 exit;
             ;;
             id) get_container_id "$1"
@@ -122,6 +122,9 @@ function service_manipulator() {
 }
 
 function start_service() {
+    export USER_ID=$(id -u)
+    export GROUP_ID=$(id -g)
+
     if [[ ${DEV} ]]; then
         docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}-dev
     else
@@ -131,6 +134,14 @@ function start_service() {
 
 function kill_containers() {
     docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" rm -fs ${1} ${1}-dev
+}
+
+function get_logs() {
+    if [[ ${DEV} ]]; then
+        docker container logs -f $(get_container_id "$1-dev")
+    else
+        docker container logs -f $(get_container_id "$1")
+    fi
 }
 
 function print_container_status() {

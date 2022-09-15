@@ -5,9 +5,8 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile-frontend-dev
-    image: crowddotdev/frontend:${CROWD_VERSION}-dev
     env_file:
-      - ../frontend/.env.docker
+      - ../../frontend/.env
     command: npm start
     environment:
       - DOCKER_BUILDKIT=1
@@ -18,14 +17,18 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile-frontend-dev
-    image: crowddotdev/frontend:${CROWD_VERSION}-dev
     env_file:
-      - ../frontend/.env.docker
+      - ../../frontend/.env
     command: npm start
+    user: '${USER_ID}:${GROUP_ID}'
     environment:
       - DOCKER_BUILDKIT=1
     networks:
       - crowd-bridge
     hostname: frontend
     volumes:
-      - ../frontend:/usr/crowd/frontend
+      - ../../frontend:/usr/crowd/frontend
+
+networks:
+  crowd-bridge:
+    external: true

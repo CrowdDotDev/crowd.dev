@@ -23,6 +23,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:nodejs-worker'
+    user: '${USER_ID}:${GROUP_ID}'
     environment:
       <<: *env-args
     hostname: nodejs-worker
@@ -30,6 +31,7 @@ services:
       - crowd-bridge
     volumes:
       - ../../backend:/usr/crowd/backend
+      - /usr/crowd/backend/node_modules
 
 networks:
   crowd-bridge:

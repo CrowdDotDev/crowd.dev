@@ -23,6 +23,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:api'
+    user: '${USER_ID}:${GROUP_ID}'
     environment:
       <<: *env-args
     hostname: api
@@ -30,6 +31,7 @@ services:
       - crowd-bridge
     volumes:
       - ../../backend:/usr/crowd/backend
+      - /usr/crowd/backend/node_modules
 
 networks:
   crowd-bridge:

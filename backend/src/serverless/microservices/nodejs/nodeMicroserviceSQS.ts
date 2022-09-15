@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { NodeWorkerMessage, NodeWorkerMessageType } from '../../types/worketTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
-import { KUBE_MODE, IS_TEST_ENV } from '../../../config/index'
+import { KUBE_MODE, IS_TEST_ENV } from '../../../config'
 import { NodeMicroserviceMessage } from './messageTypes'
 import { sqs } from '../../../services/aws'
 import { AutomationTrigger } from '../../../types/automationTypes'
@@ -58,9 +58,11 @@ export const sendNewActivityNodeSQSMessage = async (
 ): Promise<void> => {
   if (KUBE_MODE) {
     const payload = {
-      type: NodeWorkerMessageType.AUTOMATION_TRIGGER,
+      type: NodeWorkerMessageType.NODE_MICROSERVICE,
+      tenant,
       activityId,
       trigger: AutomationTrigger.NEW_ACTIVITY,
+      service: 'automation',
     }
     await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
   } else {
@@ -79,9 +81,11 @@ export const sendNewMemberNodeSQSMessage = async (
 ): Promise<void> => {
   if (KUBE_MODE) {
     const payload = {
-      type: NodeWorkerMessageType.AUTOMATION_TRIGGER,
+      type: NodeWorkerMessageType.NODE_MICROSERVICE,
+      tenant,
       memberId,
       trigger: AutomationTrigger.NEW_MEMBER,
+      service: 'automation',
     }
     await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
   } else {
