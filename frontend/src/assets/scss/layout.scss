@@ -142,9 +142,9 @@ hr {
     @apply bg-transparent;
   }
   .el-loading-spinner  {
-    @apply relative top-auto mt-auto flex items-center justify-center;
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
     .circular {
-      @apply w-5 h-5;
+      @apply w-10 h-10;
     }
   }
 }

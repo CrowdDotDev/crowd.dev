@@ -78,7 +78,7 @@
             <div style="margin-bottom: 8px">
               <el-button
                 :disabled="invitationLoading"
-                type="success"
+                class="btn btn--secondary btn--secondary--green"
                 @click="
                   doAcceptInvitation(
                     invitationToken(scope.row)
@@ -93,7 +93,7 @@
             <div>
               <el-button
                 :disabled="invitationLoading"
-                type="danger"
+                class="btn btn--secondary btn--secondary--red"
                 @click="
                   doDeclineInvitationWithConfirm(
                     invitationToken(scope.row)

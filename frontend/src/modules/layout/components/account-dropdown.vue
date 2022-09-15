@@ -27,17 +27,16 @@
       <div
         v-if="currentTenant && currentTenant.onboardedAt"
       >
-        <span class="el-dropdown-title pt-2"
-          >Workspace</span
-        >
-        <div class="flex items-center text-sm px-5 mb-1">
-          <div
-            class="h-2 w-2 flex justify-center items-center bg-primary-900 rounded-full mr-2"
-          ></div>
-          <div class="text-gray-600">
-            {{ currentTenant.name }}
-          </div>
-        </div>
+        <el-dropdown-item command="doEditProfile">
+          <i class="ri-user-line mr-1"></i>
+          <app-i18n code="auth.profile.title"></app-i18n>
+        </el-dropdown-item>
+        <el-dropdown-item command="doPasswordChange">
+          <i class="ri-lock-password-line mr-1"></i>
+          <app-i18n
+            code="auth.passwordChange.title"
+          ></app-i18n>
+        </el-dropdown-item>
         <el-dropdown-item
           v-if="
             ['multi', 'multi-with-subdomain'].includes(
@@ -46,20 +45,12 @@
           "
           command="doSwitchTenants"
         >
-          Manage Workspaces
-        </el-dropdown-item>
-        <hr class="el-dropdown-separator" />
-        <span class="el-dropdown-title">Account</span>
-        <el-dropdown-item command="doEditProfile">
-          <app-i18n code="auth.profile.title"></app-i18n>
-        </el-dropdown-item>
-        <el-dropdown-item command="doPasswordChange">
-          <app-i18n
-            code="auth.passwordChange.title"
-          ></app-i18n>
+          <i class="ri-apps-line mr-1"></i>
+          Workspaces
         </el-dropdown-item>
       </div>
       <el-dropdown-item command="doSignout">
+        <i class="ri-logout-circle-line mr-1"></i>
         <app-i18n code="auth.signout"></app-i18n>
       </el-dropdown-item>
     </template>
@@ -72,7 +63,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'AppMenuUserDropdown',
+  name: 'AppAccountDropdown',
 
   props: {
     collapsed: {

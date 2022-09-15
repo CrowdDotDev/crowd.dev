@@ -57,7 +57,6 @@
         <el-table-column
           :label="fields.status.label"
           :prop="fields.status.name"
-          sortable="custom"
         >
           <template #default="scope">
             <el-tag

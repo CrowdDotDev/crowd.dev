@@ -1,5 +1,5 @@
 .btn {
-  @apply px-4 py-3 rounded-lg shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm h-auto;
+  @apply px-4 py-3 rounded shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm h-auto;
   transition: all 0.2s;
 
   &.el-button {
@@ -36,7 +36,9 @@
     }
 
     &[disabled] {
-      @apply bg-primary-900 border border-primary-900 text-white;
+      @apply border text-white opacity-100;
+      border: 1px solid #F6B9AB;
+      background: #F6B9AB;
     }
   }
 
@@ -84,6 +86,14 @@
     @apply bg-transparent border-0 p-0 rounded-none text-secondary-900 shadow-none;
     &:hover {
       @apply bg-transparent text-secondary-900 opacity-80;
+    }
+  }
+
+  &--text {
+    @apply bg-transparent border-0 shadow-none text-primary-900;
+    &:hover, &:focus {
+      @apply text-primary-900;
+      background: #FDEDEA;
     }
   }
 

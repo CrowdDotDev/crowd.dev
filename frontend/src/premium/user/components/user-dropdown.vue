@@ -29,6 +29,7 @@
     </el-dropdown>
     <el-dialog
       v-model="editing"
+      :close-on-click-modal="false"
       title="Edit User"
       :append-to-body="true"
       :destroy-on-close="true"
