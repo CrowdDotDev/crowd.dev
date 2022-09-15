@@ -1,3 +1,4 @@
+import moment from 'moment'
 import ConversationRepository from '../conversationRepository'
 import ActivityRepository from '../activityRepository'
 import MemberRepository from '../memberRepository'
@@ -491,6 +492,48 @@ describe('ConversationRepository tests', () => {
 
       expect(conversations.count).toEqual(1)
       expect(conversations.rows).toStrictEqual([conversation2Created])
+
+      // Test orderBy
+      conversations = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+      expect(moment(conversations.rows[0].lastActive).unix()).toBeGreaterThan(
+        moment(conversations.rows[1].lastActive).unix(),
+      )
+      expect(moment(conversations.rows[1].lastActive).unix()).toBeGreaterThan(
+        moment(conversations.rows[2].lastActive).unix(),
+      )
+
+      // Test pagination
+      const conversationsP1 = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+          limit: 2,
+          offset: 0,
+        },
+        mockIRepositoryOptions,
+      )
+      expect(conversationsP1.rows.length).toEqual(2)
+      expect(conversationsP1.count).toEqual(3)
+
+      const conversationsP2 = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+          limit: 2,
+          offset: 2,
+        },
+        mockIRepositoryOptions,
+      )
+      expect(conversationsP2.rows.length).toEqual(1)
+      expect(conversationsP2.count).toEqual(3)
+      expect(conversationsP2.rows[0].id).not.toBe(conversationsP1.rows[0].id)
+      expect(conversationsP2.rows[0].id).not.toBe(conversationsP1.rows[1].id)
     })
   })
 

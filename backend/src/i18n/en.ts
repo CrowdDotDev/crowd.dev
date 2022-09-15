@@ -106,6 +106,12 @@ const en = {
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
     },
+    sentiment: {
+      mood: 'Invalid sentiment data. The {1} property must exist and be a number.',
+      label:
+        "Invalid sentiment data. The 'label' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.",
+      sentiment: "Invalid sentiment data. The 'sentiment' property must exist and be a number.",
+    },
   },
 
   email: {

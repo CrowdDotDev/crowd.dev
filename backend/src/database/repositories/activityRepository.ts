@@ -4,8 +4,11 @@ import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import Error400 from '../../errors/Error400'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 const { Op } = Sequelize
 
@@ -80,18 +83,14 @@ class ActivityRepository {
       const moods = ['positive', 'negative', 'mixed', 'neutral']
       for (const prop of moods) {
         if (typeof sentimentData[prop] !== 'number') {
-          throw new Error(
-            `Invalid sentiment data. The '${prop}' property must exist and be a number.`,
-          )
+          throw new Error400('en', 'activity.error.sentiment.mood')
         }
       }
-      if (!moods.includes(sentimentData.sentiment)) {
-        throw new Error(
-          `Invalid sentiment data. The 'sentiment' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.`,
-        )
+      if (!moods.includes(sentimentData.label)) {
+        throw new Error400('en', 'activity.error.sentiment.label')
       }
-      if (typeof sentimentData.score !== 'number') {
-        throw new Error(`Invalid sentiment data. The 'score' property must exist and be a number.`)
+      if (typeof sentimentData.sentiment !== 'number') {
+        throw new Error('activity.error.sentiment.sentiment')
       }
     }
   }
@@ -283,12 +282,215 @@ class ActivityRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    const whereAnd: Array<any> = []
+      if (filter.id) {
+        advancedFilter.and.push({
+          id: filter.id,
+        })
+      }
+
+      if (filter.type) {
+        advancedFilter.and.push({
+          type: {
+            textContains: filter.type,
+          },
+        })
+      }
+
+      if (filter.timestampRange) {
+        const [start, end] = filter.timestampRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            timestamp: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            timestamp: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.platform) {
+        advancedFilter.and.push({
+          platform: {
+            textContains: filter.platform,
+          },
+        })
+      }
+
+      if (filter.member) {
+        advancedFilter.and.push({
+          memberId: filter.member,
+        })
+      }
+
+      if (
+        filter.isKeyAction === true ||
+        filter.isKeyAction === 'true' ||
+        filter.isKeyAction === false ||
+        filter.isKeyAction === 'false'
+      ) {
+        advancedFilter.and.push({
+          isKeyAction: filter.isKeyAction === true || filter.isKeyAction === 'true',
+        })
+      }
+
+      if (filter.scoreRange) {
+        const [start, end] = filter.scoreRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            score: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            score: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.channel) {
+        advancedFilter.and.push({
+          channel: {
+            textContains: filter.channel,
+          },
+        })
+      }
+
+      if (filter.body) {
+        advancedFilter.and.push({
+          body: {
+            textContains: filter.body,
+          },
+        })
+      }
+
+      if (filter.title) {
+        advancedFilter.and.push({
+          title: {
+            textContains: filter.title,
+          },
+        })
+      }
+
+      if (filter.url) {
+        advancedFilter.and.push({
+          textContains: filter.channel,
+        })
+      }
+
+      if (filter.sentimentRange) {
+        const [start, end] = filter.sentimentRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            sentiment: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            sentiment: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.sentimentLabel) {
+        advancedFilter.and.push({
+          'sentiment.label': filter.sentimentLabel,
+        })
+      }
+
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (filter[`${mood}SentimentRange`]) {
+          const [start, end] = filter[`${mood}SentimentRange`]
+
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              [`sentiment.${mood}`]: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              [`sentiment.${mood}`]: {
+                lte: end,
+              },
+            })
+          }
+        }
+      }
+
+      if (filter.parent) {
+        advancedFilter.and.push({
+          parentId: filter.parent,
+        })
+      }
+
+      if (filter.sourceParentId) {
+        advancedFilter.and.push({
+          sourceParentId: filter.sourceParentId,
+        })
+      }
+
+      if (filter.sourceId) {
+        advancedFilter.and.push({
+          sourceId: filter.sourceId,
+        })
+
+        if (filter.conversationId) {
+          advancedFilter.and.push({
+            conversationId: filter.conversationId,
+          })
+        }
+
+        if (filter.createdAtRange) {
+          const [start, end] = filter.createdAtRange
+
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              createdAt: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              createdAt: {
+                gte: end,
+              },
+            })
+          }
+        }
+      }
+    }
+
     const include = [
       {
         model: options.database.member,
@@ -300,193 +502,32 @@ class ActivityRepository {
       },
     ]
 
-    whereAnd.push({
-      tenantId: tenant.id,
+    const parser = new QueryParser(
+      {
+        nestedFields: {
+          sentiment: 'sentiment.sentiment',
+        },
+      },
+      options,
+    )
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['timestamp_DESC'],
+      limit,
+      offset,
     })
 
-    if (filter) {
-      if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
-        })
-      }
-
-      if (filter.type) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'type', filter.type))
-      }
-
-      if (filter.timestampRange) {
-        const [start, end] = filter.timestampRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            timestamp: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            timestamp: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.platform) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
-      }
-
-      if (filter.member) {
-        whereAnd.push({
-          memberId: SequelizeFilterUtils.uuid(filter.member),
-        })
-      }
-
-      if (
-        filter.isKeyAction === true ||
-        filter.isKeyAction === 'true' ||
-        filter.isKeyAction === false ||
-        filter.isKeyAction === 'false'
-      ) {
-        whereAnd.push({
-          isKeyAction: filter.isKeyAction === true || filter.isKeyAction === 'true',
-        })
-      }
-
-      if (filter.scoreRange) {
-        const [start, end] = filter.scoreRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            score: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            score: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.channel) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'channel', filter.channel))
-      }
-
-      if (filter.body) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'body', filter.body))
-      }
-
-      if (filter.title) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'title', filter.title))
-      }
-
-      if (filter.url) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'url', filter.url))
-      }
-
-      if (filter.sentiment) {
-        whereAnd.push({
-          'sentiment.sentiment': filter.sentiment,
-        })
-      }
-
-      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
-        if (filter[`${mood}SentimentRange`]) {
-          const [start, end] = filter[`${mood}SentimentRange`]
-
-          if (start !== undefined && start !== null && start !== '') {
-            whereAnd.push({
-              [`sentiment.${mood}`]: {
-                [Op.gte]: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            whereAnd.push({
-              [`sentiment.${mood}`]: {
-                [Op.lte]: end,
-              },
-            })
-          }
-        }
-      }
-
-      if (filter.parent) {
-        whereAnd.push({
-          parentId: SequelizeFilterUtils.uuid(filter.parent),
-        })
-      }
-
-      if (filter.sourceParentId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludesCaseSensitive(
-            'activity',
-            'sourceParentId',
-            filter.sourceParentId,
-          ),
-        )
-      }
-
-      if (filter.sourceId) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'sourceId', filter.sourceId))
-      }
-
-      if (filter.conversationId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('activity', 'conversationId', filter.conversationId),
-        )
-      }
-
-      if (filter.createdAtRange) {
-        const [start, end] = filter.createdAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-    }
-
-    if (orderBy) {
-      const listOrderBy = orderBy.split('_')
-      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
-        if (listOrderBy.includes(`${mood}Sentiment`)) {
-          listOrderBy[0] = `sentiment.${mood}`
-        }
-      }
-      orderBy = listOrderBy.join('_')
-    }
-
-    const where = { [Op.and]: whereAnd }
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.activity.findAndCountAll({
-      where,
       include,
-      limit: limit ? Number(limit) : 50,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['timestamp', 'DESC']],
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       transaction: SequelizeRepository.getTransaction(options),
     })
 

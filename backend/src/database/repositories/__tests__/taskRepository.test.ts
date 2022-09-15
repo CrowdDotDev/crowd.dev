@@ -551,9 +551,8 @@ describe('TaskRepository tests', () => {
         expect(found.rows[0].name).toBe(toCreate1.name)
       })
 
-      it('by communityMember', async () => {
+      it('by members', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const options2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
         const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
           fromMembers: [sampleMembers[0]],
@@ -565,7 +564,7 @@ describe('TaskRepository tests', () => {
             status: 'in-progress',
             dueDate: moment().add(1, 'day').toDate(),
           },
-          options2,
+          mockIRepositoryOptions,
           {
             fromMembers: [sampleMembers[1], sampleMembers[2]],
             fromActivities: [],
@@ -583,23 +582,47 @@ describe('TaskRepository tests', () => {
           )
         ).rows[0]
 
-        const toFilter = member.id.toString()
+        const toFilter = [member.id.toString()]
 
         const found = await TaskRepository.findAndCountAll(
           {
             filter: {
-              member: toFilter,
+              members: toFilter,
             },
           },
           mockIRepositoryOptions,
         )
         expect(found.count).toBe(1)
-        expect(found.rows[0].members[0].id).toBe(toFilter)
+
+        const members = (
+          await MemberRepository.findAndCountAll(
+            {
+              filter: {},
+            },
+            mockIRepositoryOptions,
+          )
+        ).rows
+
+        const m0Id = members.filter(
+          (m) => m.username.crowdUsername === sampleMembers[0].username.crowdUsername,
+        )[0].id
+
+        const m1Id = members.filter(
+          (m) => m.username.crowdUsername === sampleMembers[1].username.crowdUsername,
+        )[0].id
+        const found2 = await TaskRepository.findAndCountAll(
+          {
+            filter: {
+              members: [m0Id, m1Id],
+            },
+          },
+          mockIRepositoryOptions,
+        )
+        expect(found2.count).toBe(2)
       })
 
       it('by activity', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const options2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
         const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
           fromMembers: [],
@@ -611,7 +634,7 @@ describe('TaskRepository tests', () => {
             status: 'in-progress',
             dueDate: moment().add(1, 'day').toDate(),
           },
-          options2,
+          mockIRepositoryOptions,
           {
             fromMembers: [],
             fromActivities: [sampleActivities[1], sampleActivities[2]],
@@ -629,19 +652,141 @@ describe('TaskRepository tests', () => {
           )
         ).rows[0]
 
-        const toFilter = act.id.toString()
+        const toFilter = [act.id.toString()]
 
         const found = await TaskRepository.findAndCountAll(
           {
             filter: {
-              activity: toFilter,
+              activities: toFilter,
             },
           },
           mockIRepositoryOptions,
         )
         expect(found.count).toBe(1)
-        expect(found.rows[0].activities[0].id).toBe(toFilter)
+
+        const activities = (
+          await ActivityRepository.findAndCountAll(
+            {
+              filter: {},
+            },
+            mockIRepositoryOptions,
+          )
+        ).rows
+
+        const a0Id = activities.filter((a) => a.sourceId === sampleActivities[0].sourceId)[0].id
+
+        const a1Id = activities.filter((a) => a.sourceId === sampleActivities[1].sourceId)[0].id
+
+        const found2 = await TaskRepository.findAndCountAll(
+          {
+            filter: {
+              activities: [a0Id, a1Id],
+            },
+          },
+          mockIRepositoryOptions,
+        )
+        expect(found2.count).toBe(2)
       })
+    })
+
+    it('by activities and members', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
+        fromMembers: [sampleMembers[0]],
+        fromActivities: [sampleActivities[0]],
+      })
+      const toCreate2 = await getToCreate(
+        {
+          name: 'Task',
+          status: 'in-progress',
+          dueDate: moment().add(1, 'day').toDate(),
+        },
+        mockIRepositoryOptions,
+        {
+          fromMembers: [sampleMembers[1]],
+          fromActivities: [sampleActivities[1]],
+        },
+      )
+      const toCreate3 = await getToCreate(
+        {
+          name: 'Task 3',
+          status: 'in-progress',
+          dueDate: moment().add(1, 'day').toDate(),
+        },
+        mockIRepositoryOptions,
+        {
+          fromMembers: [],
+          fromActivities: [sampleActivities[2]],
+        },
+      )
+      await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+      await TaskRepository.create(toCreate2, mockIRepositoryOptions)
+      await TaskRepository.create(toCreate3, mockIRepositoryOptions)
+
+      const members = (
+        await MemberRepository.findAndCountAll(
+          {
+            filter: {},
+          },
+          mockIRepositoryOptions,
+        )
+      ).rows
+
+      const m1Id = members.filter(
+        (m) => m.username.crowdUsername === sampleMembers[1].username.crowdUsername,
+      )[0].id
+
+      const activities = (
+        await ActivityRepository.findAndCountAll(
+          {
+            filter: {},
+          },
+          mockIRepositoryOptions,
+        )
+      ).rows
+
+      const a1Id = activities.filter((a) => a.sourceId === sampleActivities[1].sourceId)[0].id
+      const a2Id = activities.filter((a) => a.sourceId === sampleActivities[2].sourceId)[0].id
+
+      const found = await TaskRepository.findAndCountAll(
+        {
+          filter: {
+            activities: [a1Id],
+            members: [m1Id],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      expect(found.count).toBe(1)
+
+      const found2 = await TaskRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            or: [
+              {
+                activities: [a2Id],
+              },
+              {
+                members: [m1Id],
+              },
+            ],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      expect(found2.count).toBe(2)
+
+      const found3 = await TaskRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            activities: [a1Id],
+            members: [m1Id],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+      expect(found3.count).toBe(1)
     })
   })
 
