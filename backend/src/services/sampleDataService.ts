@@ -3,6 +3,11 @@ import { IServiceOptions } from './IServiceOptions'
 import ActivityService from './activityService'
 import MemberService from './memberService'
 import TenantService from './tenantService'
+import { PlatformType } from '../utils/platforms'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import { CrowdMemberAttributes } from '../database/attributes/member/crowd'
+import { GithubMemberAttributes } from '../database/attributes/member/github'
+import { DiscordMemberAttributes } from '../database/attributes/member/discord'
 
 export default class SampleDataService {
   options: IServiceOptions
@@ -13,7 +18,7 @@ export default class SampleDataService {
 
   /**
    * Generates sample data from a json file for currentTenant
-   * For imported sample activities and members crowdInfo.sample is set to true
+   * For imported sample activities and members attributes.sample.crowd is set to true
    * Sets currentTenant.hasSampleData to true
    * @param sampleMembersActivities members array included from json by require(json)
    *
@@ -21,6 +26,11 @@ export default class SampleDataService {
   async generateSampleData(sampleMembersActivities): Promise<void> {
     const activityService = new ActivityService(this.options)
     const tenantService = new TenantService(this.options)
+    const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
+
+    await memberAttributeSettingsService.createPredefined(CrowdMemberAttributes)
+    await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+    await memberAttributeSettingsService.createPredefined(DiscordMemberAttributes)
 
     // we update this field first because api runs this endpoint asynchronously
     // and frontend expects it to be true after 2 seconds
@@ -36,11 +46,13 @@ export default class SampleDataService {
     for (const member of sampleMembersActivities) {
       const { activities: _, ...memberPlain } = member
 
-      memberPlain.crowdInfo.sample = true
+      memberPlain.attributes[PlatformType.CROWD] ={
+        sample :true
+      }
 
       for (const activity of member.activities) {
         activity.member = memberPlain
-        activity.crowdInfo.sample = true
+        activity.attributes.sample = true
 
         // modify activity timestamp
         activity.timestamp = moment(activity.timestamp)
@@ -57,7 +69,7 @@ export default class SampleDataService {
 
   /**
    * Deletes sample data
-   * Sample data is defined for all members and activities where crowdInfo.sample = true
+   * Sample data is defined for all members and activities where attributes.sample = true
    * Sets currentTenant.hasSampleData to false
    */
   async deleteSampleData(): Promise<void> {
@@ -67,7 +79,7 @@ export default class SampleDataService {
 
     const memberIds = await (
       await memberService.findAndCountAll({
-        filter: { crowdInfo: { sample: true } },
+        filter: { attributes: { sample: { crowd: true } } },
       })
     ).rows.reduce((acc, item) => {
       acc.push(item.id)

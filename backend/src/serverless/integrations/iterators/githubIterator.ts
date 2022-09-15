@@ -24,6 +24,7 @@ import DiscussionsQuery from '../usecases/github/graphql/discussions'
 import DiscussionCommentsQuery from '../usecases/github/graphql/discussionComments'
 import { GithubActivityType } from '../../../utils/activityTypes'
 import Error400 from '../../../errors/Error400'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 export default class GithubIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -688,24 +689,24 @@ export default class GithubIterator extends BaseIterator {
     const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
-      crowdInfo: {
-        github: {
-          name: memberFromApi.name,
-          isHireable: memberFromApi.isHireable || false,
-          url: memberFromApi.url,
+      attributes: {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: memberFromApi.name,
+          [MemberAttributeName.IS_HIREABLE]: memberFromApi.isHireable || false,
+          [MemberAttributeName.URL]: memberFromApi.url,
+          [MemberAttributeName.BIO]: memberFromApi.bio || '',
+          [MemberAttributeName.LOCATION]: memberFromApi.location || '',
         },
       },
       email: memberFromApi.email || '',
-      bio: memberFromApi.bio || '',
       organisation: memberFromApi.company || '',
-      location: memberFromApi.location || '',
     }
 
     if (memberFromApi.twitterUsername) {
-      member.crowdInfo.twitter = {
-        url: `https://twitter.com/${memberFromApi.twitterUsername}`,
+      member.attributes[PlatformType.TWITTER] = {
+        [MemberAttributeName.URL]: `https://twitter.com/${memberFromApi.twitterUsername}`,
       }
-      member.username.twitter = memberFromApi.twitterUsername
+      member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
     }
 
     return member

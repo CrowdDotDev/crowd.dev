@@ -49,7 +49,7 @@ export interface GithubIntegrationMessage extends IntegrationsMessage {}
 export type Member = {
   username: any
   displayName?: string,
-  crowdInfo?: any
+  attributes?: any
   email?: string
   organisation?: string
   bio?: string

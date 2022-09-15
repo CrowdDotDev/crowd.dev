@@ -8,6 +8,7 @@ import GitHubWebhook from '../github'
 import TestEvents from './events'
 import { PlatformType } from '../../../../utils/platforms'
 import { GithubActivityType } from '../../../../utils/activityTypes'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 const db = null
 const installId = '23585816'
@@ -55,19 +56,19 @@ describe('Github webhooks tests', () => {
       const parsedMember = GitHubWebhook.parseMember(member)
       const expected = {
         username: {
-          github: 'joanreyero',
+          [PlatformType.GITHUB]: 'joanreyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Joan Reyero',
+            [MemberAttributeName.IS_HIREABLE]: false,
+            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
+            [MemberAttributeName.BIO]: '',
+            [MemberAttributeName.LOCATION]: ''
           },
         },
         email: '',
-        bio: '',
         organisation: '',
-        location: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -82,23 +83,23 @@ describe('Github webhooks tests', () => {
       const parsedMember = GitHubWebhook.parseMember(member)
       const expected = {
         username: {
-          github: 'joanreyero',
-          twitter: 'reyero',
+          [PlatformType.GITHUB]: 'joanreyero',
+          [PlatformType.TWITTER]: 'reyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Joan Reyero',
+            [MemberAttributeName.IS_HIREABLE]: false,
+            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
+            [MemberAttributeName.BIO]: '',
+            [MemberAttributeName.LOCATION]: ''
           },
-          twitter: {
-            url: 'https://twitter.com/reyero',
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: 'https://twitter.com/reyero',
           },
         },
         email: '',
-        bio: '',
         organisation: '',
-        location: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -119,24 +120,24 @@ describe('Github webhooks tests', () => {
       const parsedMember = GitHubWebhook.parseMember(member)
       const expected = {
         username: {
-          github: 'joanreyero',
-          twitter: 'reyero',
+          [PlatformType.GITHUB]: 'joanreyero',
+          [PlatformType.TWITTER]: 'reyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
-            websiteUrl: 'https://crowd.dev',
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Joan Reyero',
+            [MemberAttributeName.IS_HIREABLE]: false,
+            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
+            [MemberAttributeName.WEBSITE_URL]: 'https://crowd.dev',
+            [MemberAttributeName.BIO]: 'Bio goes here',
+            [MemberAttributeName.LOCATION]: 'Cambridge, UK'
           },
-          twitter: {
-            url: 'https://twitter.com/reyero',
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: 'https://twitter.com/reyero',
           },
         },
         email: 'joan@crowd.dev',
-        bio: 'Bio goes here',
         organisation: '@CrowdHQ ',
-        location: 'Cambridge, UK',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -176,7 +177,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -220,7 +221,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -260,7 +261,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -298,7 +299,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_CLOSED,
@@ -366,7 +367,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -411,7 +412,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -459,7 +460,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -502,7 +503,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -547,7 +548,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -588,7 +589,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -628,7 +629,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_CLOSED,
@@ -692,7 +693,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.STAR,
@@ -736,7 +737,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.UNSTAR,
@@ -780,7 +781,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.FORK,
@@ -820,7 +821,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_COMMENT,
@@ -868,7 +869,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_COMMENT,
@@ -916,7 +917,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -967,7 +968,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -1029,7 +1030,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -1081,7 +1082,7 @@ describe('Github webhooks tests', () => {
       const expected = {
         member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,

@@ -10,6 +10,14 @@ import { PlatformType } from '../../utils/platforms'
 import OrganizationRepository from '../../database/repositories/organizationRepository'
 import TaskRepository from '../../database/repositories/taskRepository'
 import NoteRepository from '../../database/repositories/noteRepository'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { GithubMemberAttributes } from '../../database/attributes/member/github'
+import { MemberAttributeName } from '../../database/attributes/member/enums'
+import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
+import { DiscordMemberAttributes } from '../../database/attributes/member/discord'
+import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
+import { AttributeType } from '../../database/attributes/types'
+import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 
 const db = null
 
@@ -27,26 +35,24 @@ describe('MemberService tests', () => {
     it('Should throw 400 error when platform does not exist in member data', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+
       const member1 = {
         username: 'anil',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
@@ -58,34 +64,30 @@ describe('MemberService tests', () => {
     it('Should create non existent member - string type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
       }
 
       // Save some attributes since they get modified in the upsert function
-      const { platform } = member1
-      const { username } = member1
-      const { crowdInfo } = member1
+      const { platform, username, attributes } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -98,12 +100,34 @@ describe('MemberService tests', () => {
           [platform]: username,
         },
         displayName: username,
-        crowdInfo: { [platform]: crowdInfo },
-        attributes: {},
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
+        },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -118,46 +142,43 @@ describe('MemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should create non existent member - crowdInfo with matching platform', async () => {
+    it('Should create non existent member - attributes with matching platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(DiscordMemberAttributes)
 
       const member1 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
-          twitter: {
-            followers: 5,
-            following: 10,
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.ID]: '#twitterId',
+            [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+            [MemberAttributeName.URL]: 'https://some-url',
           },
-          discord: {
-            someDiscordField: 'test',
+          [PlatformType.DISCORD]: {
+            [MemberAttributeName.ID]: '#discordId',
           },
         },
-        bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
       }
 
       // Save some attributes since they get modified in the upsert function
-      const { platform } = member1
-      const { username } = member1
-      const { crowdInfo } = member1
+      const { platform, username, attributes } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -170,12 +191,44 @@ describe('MemberService tests', () => {
           [platform]: username,
         },
         displayName: username,
-        attributes: {},
-        crowdInfo,
+        attributes: {
+          [MemberAttributeName.ID]: {
+            [PlatformType.DISCORD]: attributes[PlatformType.DISCORD][MemberAttributeName.ID],
+            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+            default: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+          },
+          [MemberAttributeName.IMAGE_URL]: {
+            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
+            default: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
+          },
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.URL],
+            default: attributes[PlatformType.TWITTER][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
+        },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -192,38 +245,33 @@ describe('MemberService tests', () => {
 
     it('Should create non existent member - object type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const member1 = {
         username: {
-          github: 'anil',
-          twitter: 'anil_twitter',
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.TWITTER]: 'anil_twitter',
         },
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
       }
 
       // Save some attributes since they get modified in the upsert function
-      const { username } = member1
-      const { platform } = member1
-      const { crowdInfo } = member1
+      const { username, attributes } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -232,14 +280,36 @@ describe('MemberService tests', () => {
 
       const memberExpected = {
         id: memberCreated.id,
-        username: member1.username,
-        displayName: member1.username[PlatformType.GITHUB],
-        attributes: {},
-        crowdInfo: { [platform]: crowdInfo },
+        username,
+        displayName: username[PlatformType.GITHUB],
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
+        },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -262,7 +332,7 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {},
+        attributes: {},
         reach: 10,
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
@@ -270,9 +340,7 @@ describe('MemberService tests', () => {
       }
 
       // Save some attributes since they get modified in the upsert function
-      const { platform } = member1
-      const { username } = member1
-      const { crowdInfo } = member1
+      const { platform, username } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -285,12 +353,9 @@ describe('MemberService tests', () => {
           [platform]: username,
         },
         displayName: username,
-        crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -298,7 +363,7 @@ describe('MemberService tests', () => {
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: 10, github: 10 },
+        reach: { total: 10, [PlatformType.GITHUB]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
       }
 
@@ -313,17 +378,14 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {},
-        reach: { github: 10, twitter: 10 },
+        reach: { [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
       }
 
       // Save some attributes since they get modified in the upsert function
-      const { platform } = member1
-      const { username } = member1
-      const { crowdInfo } = member1
+      const { platform, username } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -336,12 +398,9 @@ describe('MemberService tests', () => {
           [platform]: username,
         },
         displayName: username,
-        crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -349,7 +408,7 @@ describe('MemberService tests', () => {
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: 20, github: 10, twitter: 10 },
+        reach: { total: 20, [PlatformType.GITHUB]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
       }
 
@@ -364,17 +423,14 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {},
-        reach: { discord: 10, twitter: 10 },
+        reach: { [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         bio: 'Computer Science',
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Istanbul',
-        }
+      }
 
       // Save some attributes since they get modified in the upsert function
-      const { platform } = member1
-      const { username } = member1
-      const { crowdInfo } = member1
+      const { platform, username } = member1
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -387,12 +443,9 @@ describe('MemberService tests', () => {
           [platform]: username,
         },
         displayName: username,
-        crowdInfo: { [platform]: crowdInfo },
         attributes: {},
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -400,7 +453,7 @@ describe('MemberService tests', () => {
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: 20, discord: 10, twitter: 10 },
+        reach: { total: 20, [PlatformType.DISCORD]: 10, [PlatformType.TWITTER]: 10 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
       }
 
@@ -410,32 +463,30 @@ describe('MemberService tests', () => {
     it('Should update existent member succesfully - simple', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+
       const member1 = {
         username: 'anil',
         email: 'lala@l.com',
         platform: PlatformType.GITHUB,
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
       const member1Username = member1.username
-      const member1CrowdInfo = member1.crowdInfo
+      const attributes = member1.attributes
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -456,15 +507,37 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        attributes: {},
-        crowdInfo: { github: member1CrowdInfo },
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
+        },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member2.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -479,37 +552,31 @@ describe('MemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent member succesfully - crowdInfo with matching platform', async () => {
+    it('Should update existent member succesfully - attributes with matching platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(TwitterMemberAttributes)
 
       const member1 = {
         username: 'anil',
         email: 'lala@l.com',
         platform: PlatformType.GITHUB,
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
       const member1Username = member1.username
-      const member1CrowdInfo = member1.crowdInfo
+      const attributes1 = member1.attributes
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -519,19 +586,19 @@ describe('MemberService tests', () => {
       const member2 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        location: 'Ankara',
-        crowdInfo: {
-          github: {
-            someNewField: 'test',
-            someOtherNewField: 'test2',
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
-          twitter: {
-            someTwitterNewField: 'test3',
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: 'https://twitter-url',
           },
         },
       }
 
-      const member2CrowdInfo = member2.crowdInfo
+      const attributes2 = member2.attributes
 
       const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
@@ -541,21 +608,40 @@ describe('MemberService tests', () => {
       const memberExpected = {
         id: memberCreated.id,
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        attributes: {},
-        crowdInfo: {
-          github: {
-            ...member1CrowdInfo.github,
-            ...member2CrowdInfo.github,
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
           },
-          twitter: member2CrowdInfo.twitter,
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]:
+              attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.URL],
+            [PlatformType.TWITTER]: attributes2[PlatformType.TWITTER][MemberAttributeName.URL],
+            default: attributes2[PlatformType.TWITTER][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]:
+              attributes2[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes2[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes2[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes2[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes2[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes2[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
         },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member2.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -573,33 +659,30 @@ describe('MemberService tests', () => {
     it('Should update existent member succesfully - object type username', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+
       const member1 = {
         username: 'anil',
         email: 'lala@l.com',
         platform: PlatformType.GITHUB,
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
       const member1Username = member1.username
-      const member1CrowdInfo = member1.crowdInfo
-      const member1Platform = member1.platform
+      const attributes = member1.attributes
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -608,12 +691,11 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          github: 'anil',
-          twitter: 'anil_twitter',
-          discord: 'anil_discord',
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.TWITTER]: 'anil_twitter',
+          [PlatformType.DISCORD]: 'anil_discord',
         },
         platform: PlatformType.GITHUB,
-        location: 'Ankara',
       }
 
       const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
@@ -625,12 +707,34 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         username: member2.username,
         displayName: member1Username,
-        attributes: {},
-        crowdInfo: { [member1Platform]: member1CrowdInfo },
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          },
+        },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member2.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -647,28 +751,25 @@ describe('MemberService tests', () => {
 
     it('Should throw 400 error when given platform does not match with username object ', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const member1 = {
         username: 'anil',
         email: 'lala@l.com',
         platform: PlatformType.GITHUB,
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-28T15:13:30Z',
       }
 
@@ -679,12 +780,11 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          github: 'anil',
-          twitter: 'anil_twitter',
-          discord: 'anil_discord',
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.TWITTER]: 'anil_twitter',
+          [PlatformType.DISCORD]: 'anil_discord',
         },
         platform: PlatformType.SLACK,
-        location: 'Ankara',
       }
 
       await expect(() =>
@@ -694,50 +794,32 @@ describe('MemberService tests', () => {
 
     it('Should update existent member succesfully - JSON fields', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(DevtoMemberAttributes)
 
       const member1 = {
         username: 'anil',
         platform: PlatformType.TWITTER,
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
-          followers: 10,
-        },
-        bio: 'Computer Science',
-        location: 'Istanbul',
-        joinedAt: '2020-05-28T15:13:30Z',
         attributes: {
-          level1: {
-            test_metric_1: 1,
-            level2: {
-              test_metric_2_1: 22,
-              test_metric_2_2: 30,
-              level3: {
-                test_metric_3: 10,
-                level4: {
-                  test_metric_4: 40,
-                },
-              },
-            },
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
         },
+        joinedAt: '2020-05-28T15:13:30Z',
       }
 
       const member1Username = member1.username
       const member1Platform = member1.platform
-      const member1CrowdInfo = member1.crowdInfo
+      const attributes1 = member1.attributes
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -749,29 +831,19 @@ describe('MemberService tests', () => {
         platform: PlatformType.TWITTER,
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Ankara',
-        crowdInfo: {
-          followers: 20,
-          following: 10,
-        },
         attributes: {
-          level1: {
-            level2: {
-              test_metric_2_2: '30',
-              test_metric_2_3: 120,
-              level3: {
-                level4: {
-                  test_metric_4: 90,
-                  level5: {
-                    test_metric_5: 100,
-                  },
-                },
-              },
-            },
+          [PlatformType.DEVTO]: {
+            [MemberAttributeName.ID]: '#someDevtoId',
+            [MemberAttributeName.NAME]: 'Michael Scott',
+            [MemberAttributeName.URL]: 'https://some-devto-url',
           },
+          [PlatformType.SLACK]:{
+            [MemberAttributeName.ID]: '#someSlackId'
+          }
         },
       }
 
-      const member2CrowdInfo = member2.crowdInfo
+      const attributes2 = member2.attributes
 
       const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
 
@@ -782,38 +854,44 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          twitter: member1Username,
+          [PlatformType.TWITTER]: member1Username,
         },
         displayName: member1Username,
         attributes: {
-          level1: {
-            test_metric_1: 1,
-            level2: {
-              test_metric_2_1: 22,
-              test_metric_2_2: '30',
-              test_metric_2_3: 120,
-              level3: {
-                test_metric_3: 10,
-                level4: {
-                  test_metric_4: 90,
-                  level5: {
-                    test_metric_5: 100,
-                  },
-                },
-              },
-            },
+          [MemberAttributeName.ID]: {
+            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
+            [PlatformType.SLACK]: attributes2[PlatformType.SLACK][MemberAttributeName.ID],
+            default: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
           },
-        },
-        crowdInfo: {
-          [member1Platform]: {
-            ...member1CrowdInfo,
-            ...member2CrowdInfo,
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
+            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.NAME],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
+          },
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.URL],
+            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.URL],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.URL],
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.BIO],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.BIO],
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+            default: attributes1[PlatformType.GITHUB][MemberAttributeName.LOCATION],
           },
         },
         email: member1.email,
         score: member1.score,
-        bio: member1.bio,
-        location: member2.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -829,6 +907,9 @@ describe('MemberService tests', () => {
 
     it('Should update existent member succesfully - null fields', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const member1 = {
         username: 'anil',
@@ -837,43 +918,18 @@ describe('MemberService tests', () => {
         joinedAt: '2020-05-28T15:13:30Z',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          name: 'Quoc-Anh Nguyen',
-          isHireable: true,
-          url: 'https://github.com/imcvampire',
-          websiteUrl: 'https://imcvampire.js.org/',
-          bio: 'Lazy geek',
-          location: 'Helsinki, Finland',
-          actions: [
-            {
-              score: 2,
-              timestamp: '2021-05-27T15:13:30Z',
-            },
-          ],
-          followers: 10,
-        },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         attributes: {
-          level1: {
-            test_metric_1: 1,
-            level2: {
-              test_metric_2_1: 22,
-              test_metric_2_2: 30,
-              level3: {
-                test_metric_3: 10,
-                level4: {
-                  test_metric_4: 40,
-                },
-              },
-            },
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
         },
-      }
 
-      const member1Username = member1.username
-      const member1CrowdInfo = member1.crowdInfo
-      const member1Platform = member1.platform
+      }
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
 
@@ -884,62 +940,23 @@ describe('MemberService tests', () => {
         username: 'anil',
         platform: PlatformType.GITHUB,
         location: null,
-        crowdInfo: {},
-        attributes: {
-          level1: null,
-        },
+        attributes:{
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: null,
+            [MemberAttributeName.IS_HIREABLE]: null,
+            [MemberAttributeName.URL]: null,
+            [MemberAttributeName.WEBSITE_URL]: null,
+            [MemberAttributeName.BIO]: null,
+            [MemberAttributeName.LOCATION]: null,
+          },
+        }
+
       }
 
-      const member2CrowdInfo = member2.crowdInfo
-
-      const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
-
-      memberUpdated.createdAt = memberUpdated.createdAt.toISOString().split('T')[0]
-      memberUpdated.updatedAt = memberUpdated.updatedAt.toISOString().split('T')[0]
-
-      const memberExpected = {
-        id: memberCreated.id,
-        joinedAt: new Date('2020-05-28T15:13:30Z'),
-        username: {
-          github: member1Username,
-        },
-        displayName: member1Username,
-        crowdInfo: {
-          [member1Platform]: {
-            ...member1CrowdInfo,
-            ...member2CrowdInfo,
-          },
-        },
-        attributes: {
-          level1: {
-            test_metric_1: 1,
-            level2: {
-              test_metric_2_1: 22,
-              test_metric_2_2: 30,
-              level3: {
-                test_metric_3: 10,
-                level4: {
-                  test_metric_4: 40,
-                },
-              },
-            },
-          },
-        },
-        email: member1.email,
-        score: member1.score,
-        bio: member1.bio,
-        location: member1.location,
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-        reach: { total: -1 },
-      }
-
-      expect(memberUpdated).toStrictEqual(memberExpected)
+      // First null values will throw 400 error because attribute typechecks will fail
+      await expect(() =>
+      new MemberService(mockIServiceOptions).upsert(member2),
+    ).rejects.toThrowError(new Error400(mockIServiceOptions.language, 'settings.memberAttributes.wrongType', MemberAttributeName.NAME, AttributeType.STRING))
     })
 
     it('Should update existent member succesfully - reach from default to complete - sending number', async () => {
@@ -973,10 +990,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        reach: { total: 10, github: 10 },
+        reach: { total: 10, [PlatformType.GITHUB]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -985,9 +1002,6 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        crowdInfo: {},
-        bio: null,
-        location: null,
         email: null,
         attributes: {},
       }
@@ -1015,7 +1029,7 @@ describe('MemberService tests', () => {
       const member2 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        reach: { github: 10 },
+        reach: { [PlatformType.GITHUB]: 10 },
       }
 
       const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
@@ -1027,10 +1041,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        reach: { total: 10, github: 10 },
+        reach: { total: 10, [PlatformType.GITHUB]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1039,9 +1053,6 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        crowdInfo: {},
-        bio: null,
-        location: null,
         email: null,
         attributes: {},
       }
@@ -1057,7 +1068,7 @@ describe('MemberService tests', () => {
         type: 'member',
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-28T15:13:30Z',
-        reach: { twitter: 10, linkedin: 10, total: 20 },
+        reach: { [PlatformType.TWITTER]: 10, linkedin: 10, total: 20 },
       }
 
       const member1Username = member1.username
@@ -1070,7 +1081,7 @@ describe('MemberService tests', () => {
       const member2 = {
         username: 'anil',
         platform: PlatformType.GITHUB,
-        reach: { github: 15, linkedin: 11 },
+        reach: { [PlatformType.GITHUB]: 15, linkedin: 11 },
       }
 
       const memberUpdated = await new MemberService(mockIServiceOptions).upsert(member2)
@@ -1082,10 +1093,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        reach: { total: 36, github: 15, linkedin: 11, twitter: 10 },
+        reach: { total: 36, [PlatformType.GITHUB]: 15, linkedin: 11, [PlatformType.TWITTER]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1094,9 +1105,6 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        crowdInfo: {},
-        bio: null,
-        location: null,
         email: null,
         attributes: {},
       }
@@ -1112,7 +1120,7 @@ describe('MemberService tests', () => {
         type: 'member',
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-28T15:13:30Z',
-        reach: { twitter: 10, linkedin: 10, total: 20 },
+        reach: { [PlatformType.TWITTER]: 10, linkedin: 10, total: 20 },
       }
 
       const member1Username = member1.username
@@ -1137,10 +1145,10 @@ describe('MemberService tests', () => {
         id: memberCreated.id,
         joinedAt: new Date('2020-05-28T15:13:30Z'),
         username: {
-          github: member1Username,
+          [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
-        reach: { total: 50, github: 30, linkedin: 10, twitter: 10 },
+        reach: { total: 50, [PlatformType.GITHUB]: 30, linkedin: 10, [PlatformType.TWITTER]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1149,9 +1157,6 @@ describe('MemberService tests', () => {
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
         score: -1,
-        crowdInfo: {},
-        bio: null,
-        location: null,
         email: null,
         attributes: {},
       }
@@ -1163,6 +1168,12 @@ describe('MemberService tests', () => {
   describe('merge method', () => {
     it('Should merge', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(DiscordMemberAttributes)
+      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(SlackMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
@@ -1184,14 +1195,15 @@ describe('MemberService tests', () => {
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
-          },
+        attributes: {
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+              default: 'Quoc-Anh Nguyen'
+            },
         },
         tags: [t1.id, t2.id],
         organizations: [o1.id, o2.id],
@@ -1201,17 +1213,23 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          discord: 'anil',
+          [PlatformType.DISCORD]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test_2',
+        attributes: {
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: 'Michael Scott',
+            default: 'Michael Scott'
           },
-          discord: {
-            info: 'discord_test',
+          [MemberAttributeName.COMPANY]:{
+            [PlatformType.GITHUB]:'Crowd.dev',
+            default: 'Crowd.dev'
           },
+          [MemberAttributeName.ID]:{
+            [PlatformType.DISCORD]:  '#discordId',
+            default: '#discordId'
+          }
         },
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
@@ -1221,14 +1239,15 @@ describe('MemberService tests', () => {
 
       const member3 = {
         username: {
-          twitter: 'anil',
+          [PlatformType.TWITTER]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
-        crowdInfo: {
-          twitter: {
-            info: 'twitter_test',
-          },
+        attributes: {
+          [MemberAttributeName.URL]:{
+            [PlatformType.TWITTER]: 'https://a-twitter-url',
+            default: 'https://a-twitter-url'
+          }
         },
       }
       const member4 = {
@@ -1237,10 +1256,11 @@ describe('MemberService tests', () => {
         },
         displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',
-        crowdInfo: {
-          slack: {
-            channel: 'test',
-          },
+        attributes: {
+          [MemberAttributeName.ID]:{
+            [PlatformType.SLACK]: '#slackId',
+            default: '#slackId'  
+          }
         },
       }
 
@@ -1253,7 +1273,7 @@ describe('MemberService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
           body: 'Here',
         },
@@ -1368,22 +1388,21 @@ describe('MemberService tests', () => {
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
+
       const expectedMember = {
         id: returnedMember1.id,
         username: {
-          github: member1.username.github,
-          discord: member2.username.discord,
+          [PlatformType.GITHUB]: member1.username.github,
+          [PlatformType.DISCORD]: member2.username.discord,
         },
         displayName: member1.displayName,
         activities: [activityCreated],
-        crowdInfo: {
-          ...member1.crowdInfo,
-          ...member2.crowdInfo,
+        attributes: {
+          ...member1.attributes,
+          ...member2.attributes
         },
         email: null,
         score: -1,
-        bio: null,
-        location: null,
         importHash: null,
         createdAt: returnedMember1.createdAt,
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1399,7 +1418,6 @@ describe('MemberService tests', () => {
         organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
-        attributes:{}
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1407,19 +1425,23 @@ describe('MemberService tests', () => {
 
     it('Should catch when two members are the same', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
-          },
+        attributes: {
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+              default: 'Quoc-Anh Nguyen'
+            },
         },
       }
 
@@ -1434,19 +1456,23 @@ describe('MemberService tests', () => {
 
     it('Should not duplicate activities - by timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
-          },
+        attributes: {
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+              default: 'Quoc-Anh Nguyen'
+            },
         },
       }
 
@@ -1474,7 +1500,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
@@ -1533,19 +1559,23 @@ describe('MemberService tests', () => {
 
     it('Duplication of activities - one matching timestamp is duplicated because platform is different', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
-          },
+        attributes: {
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+              default: 'Quoc-Anh Nguyen'
+            },
         },
       }
 
@@ -1573,7 +1603,7 @@ describe('MemberService tests', () => {
 
       const member2 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
@@ -1611,48 +1641,57 @@ describe('MemberService tests', () => {
   describe('addToNoMerge method', () => {
     it('Should add two members to their respective noMerges, these members should be excluded from toMerges respectively', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(DiscordMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       const member2 = {
         username: {
-          discord: 'anil',
+          [PlatformType.DISCORD]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test_2',
+        attributes: {
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: 'Michael Scott',
+            default: 'Michael Scott'
           },
-          discord: {
-            info: 'discord_test',
-          },
+          [MemberAttributeName.ID]:{
+            [PlatformType.DISCORD]:  '#discordId',
+            default: '#discordId'
+          }
         },
       }
 
       const member3 = {
         username: {
-          twitter: 'anil',
+          [PlatformType.TWITTER]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
-        crowdInfo: {
-          twitter: {
-            info: 'twitter_test',
-          },
+        attributes: {
+          [MemberAttributeName.URL]:{
+            [PlatformType.TWITTER]: 'https://a-twitter-url',
+            default: 'https://a-twitter-url'
+          }
         },
       }
 
@@ -1735,20 +1774,24 @@ describe('MemberService tests', () => {
 
     it('Should throw 404 not found when trying to add non existent members to noMerge', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1764,20 +1807,24 @@ describe('MemberService tests', () => {
   describe('memberExists method', () => {
     it('Should find existing member with string username and default platform', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1799,20 +1846,24 @@ describe('MemberService tests', () => {
 
     it('Should return null if member is not found - string type', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1824,20 +1875,24 @@ describe('MemberService tests', () => {
 
     it('Should return null if member is not found - object type', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
+          [PlatformType.GITHUB]: 'anil',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1855,21 +1910,25 @@ describe('MemberService tests', () => {
 
     it('Should find existing member with object username and given platform', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
-          discord: 'some-other-username',
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.DISCORD]: 'some-other-username',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1891,27 +1950,34 @@ describe('MemberService tests', () => {
 
     it('Should throw 400 error when username is type of object and username[platform] is not present ', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
 
       const memberService = new MemberService(mockIRepositoryOptions)
 
       const member1 = {
         username: {
-          github: 'anil',
-          discord: 'some-other-username',
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.DISCORD]: 'some-other-username',
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        crowdInfo: {
-          github: {
-            info: 'github_test',
+        attributes: {
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen'
           },
-        },
+      },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
       await expect(() =>
-        memberService.memberExists({ [PlatformType.DISCORD]: 'some-other-username' }, PlatformType.SLACK),
+        memberService.memberExists(
+          { [PlatformType.DISCORD]: 'some-other-username' },
+          PlatformType.SLACK,
+        ),
       ).rejects.toThrowError(new Error400())
     })
   })
@@ -1933,41 +1999,41 @@ describe('MemberService tests', () => {
     })
     it('Should update for a new reach and a default old reach', async () => {
       const oldReach = { total: -1 }
-      const newReach = { twitter: 10 }
+      const newReach = { [PlatformType.TWITTER]: 10 }
       const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10,
-        twitter: 10,
+        [PlatformType.TWITTER]: 10,
       })
     })
     it('Should update for a new reach and old reach in the same platform', async () => {
-      const oldReach = { twitter: 5, total: 5 }
-      const newReach = { twitter: 10 }
+      const oldReach = { [PlatformType.TWITTER]: 5, total: 5 }
+      const newReach = { [PlatformType.TWITTER]: 10 }
       const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10,
-        twitter: 10,
+        [PlatformType.TWITTER]: 10,
       })
     })
     it('Should update for a complex reach with different platforms', async () => {
-      const oldReach = { twitter: 10, github: 20, discord: 50, total: 10 + 20 + 50 }
-      const newReach = { twitter: 20, github: 2, linkedin: 10, total: 20 + 2 + 10 }
+      const oldReach = { [PlatformType.TWITTER]: 10, [PlatformType.GITHUB]: 20, [PlatformType.DISCORD]: 50, total: 10 + 20 + 50 }
+      const newReach = { [PlatformType.TWITTER]: 20, [PlatformType.GITHUB]: 2, linkedin: 10, total: 20 + 2 + 10 }
       const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10 + 20 + 2 + 50,
-        twitter: 20,
-        github: 2,
+        [PlatformType.TWITTER]: 20,
+        [PlatformType.GITHUB]: 2,
         linkedin: 10,
-        discord: 50,
+        [PlatformType.DISCORD]: 50,
       })
     })
     it('Should work with reach 0', async () => {
       const oldReach = { total: -1 }
-      const newReach = { twitter: 0 }
+      const newReach = { [PlatformType.TWITTER]: 0 }
       const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 0,
-        twitter: 0,
+        [PlatformType.TWITTER]: 0,
       })
     })
   })

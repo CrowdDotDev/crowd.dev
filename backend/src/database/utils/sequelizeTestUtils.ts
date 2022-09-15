@@ -9,6 +9,7 @@ import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
 import { getConfig } from '../../config'
+import SettingsRepository from '../repositories/settingsRepository'
 
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
@@ -44,6 +45,14 @@ export default class SequelizeTestUtils {
       userId: user.id,
     })
 
+
+    await SettingsRepository.findOrCreateDefault({}, {
+      language: 'en',
+      currentUser: user,
+      currentTenant: tenant,
+      database: db,
+    } as IRepositoryOptions)
+
     tenant = await TenantRepository.findById(tenant.id, {
       database: db,
     } as IRepositoryOptions)
@@ -53,6 +62,7 @@ export default class SequelizeTestUtils {
       currentTenant: tenant,
       bypassPermissionValidation: true,
     } as IRepositoryOptions)
+
 
     return {
       language: 'en',
@@ -68,7 +78,7 @@ export default class SequelizeTestUtils {
     const randomTenant = this.getRandomTestTenant()
     const randomUser = await this.getRandomUser()
 
-    const tenant = await db.tenant.create(randomTenant)
+    let tenant = await db.tenant.create(randomTenant)
     const user = await db.user.create(randomUser)
     await db.tenantUser.create({
       roles: ['admin'],
@@ -76,6 +86,17 @@ export default class SequelizeTestUtils {
       tenantId: tenant.id,
       userId: user.id,
     })
+
+    await SettingsRepository.findOrCreateDefault({}, {
+      language: 'en',
+      currentUser: user,
+      currentTenant: tenant,
+      database: db,
+    } as IRepositoryOptions)
+
+    tenant = await TenantRepository.findById(tenant.id, {
+      database: db,
+    } as IRepositoryOptions)
 
     return {
       language: 'en',

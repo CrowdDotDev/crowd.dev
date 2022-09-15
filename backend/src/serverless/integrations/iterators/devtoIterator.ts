@@ -15,6 +15,7 @@ import { getArticleComments } from '../usecases/devto/getArticleComments'
 import sendIntegrationsMessage from '../utils/integrationSQS'
 import BaseIterator from './baseIterator'
 import { PlatformType } from '../../../utils/platforms'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 /* eslint @typescript-eslint/no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
@@ -196,31 +197,31 @@ export default class DevtoIterator extends BaseIterator {
       username: {
         [PlatformType.DEVTO]: comment.user.username,
       },
-      crowdInfo: {
+      attributes: {
         [PlatformType.DEVTO]: {
-          url: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
+          [MemberAttributeName.URL]: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         },
       },
     }
 
     if (comment.user.twitter_username) {
-      member.crowdInfo.twitter = {
-        url: `https://twitter.com/${comment.user.twitter_username}`,
+      member.attributes[PlatformType.TWITTER] = {
+        [MemberAttributeName.URL]: `https://twitter.com/${comment.user.twitter_username}`,
       }
-      member.username.twitter = comment.user.twitter_username
+      member.username[PlatformType.TWITTER] = comment.user.twitter_username
     }
 
     if (comment.user.github_username) {
-      member.crowdInfo.github = {
-        name: comment.user.name,
-        url: `https://github.com/${comment.user.github_username}`,
+      member.attributes[PlatformType.GITHUB] = {
+        [MemberAttributeName.NAME]: comment.user.name,
+        [MemberAttributeName.URL]: `https://github.com/${comment.user.github_username}`,
       }
-      member.username.github = comment.user.github_username
+      member.username[PlatformType.GITHUB] = comment.user.github_username
     }
 
     if (comment.fullUser) {
-      member.bio = comment.fullUser?.summary || ''
-      member.location = comment.fullUser?.location || ''
+      member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO] = comment.fullUser?.summary || ''
+      member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION] = comment.fullUser?.location || ''
     }
 
     activities.push({

@@ -31,7 +31,7 @@ describe('MemberRepository tests', () => {
         displayName: 'Member 1',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
+        attributes: {
           github: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
@@ -44,15 +44,14 @@ describe('MemberRepository tests', () => {
                 score: 2,
                 timestamp: '2021-05-27T15:13:30Z',
               },
-            ],
+            ],        
+
           },
           twitter: {
             profile_url: 'https://twitter.com/imcvampire',
             url: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
@@ -65,16 +64,13 @@ describe('MemberRepository tests', () => {
       const expectedMemberCreated = {
         id: memberCreated.id,
         username: member2add.username,
-        attributes: {},
+        attributes: member2add.attributes,
         displayName: member2add.displayName,
-        crowdInfo: member2add.crowdInfo,
         email: member2add.email,
         score: member2add.score,
         organizations: [],
         notes: [],
         tasks: [],
-        bio: member2add.bio,
-        location: member2add.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -102,7 +98,7 @@ describe('MemberRepository tests', () => {
         displayName: 'Member 1',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
+        attributes: {
           github: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
@@ -122,8 +118,6 @@ describe('MemberRepository tests', () => {
             url: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
-        location: 'Istanbul',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
@@ -137,12 +131,9 @@ describe('MemberRepository tests', () => {
         id: memberCreated.id,
         username: member2add.username,
         displayName: member2add.displayName,
-        attributes: {},
-        crowdInfo: member2add.crowdInfo,
+        attributes: member2add.attributes,
         email: member2add.email,
         score: member2add.score,
-        bio: member2add.bio,
-        location: member2add.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -177,11 +168,8 @@ describe('MemberRepository tests', () => {
         displayName: member2add.displayName,
         organizations: [],
         attributes: {},
-        crowdInfo: {},
         email: null,
         score: -1,
-        bio: null,
-        location: null,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -310,11 +298,8 @@ describe('MemberRepository tests', () => {
         username: member2add.username,
         displayName: member2add.displayName,
         attributes: {},
-        crowdInfo: {},
         email: null,
         score: -1,
-        bio: null,
-        location: null,
         importHash: null,
         organizations: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -358,11 +343,8 @@ describe('MemberRepository tests', () => {
         username: member2add.username,
         displayName: member2add.displayName,
         attributes: {},
-        crowdInfo: {},
         email: null,
         score: -1,
-        bio: null,
-        location: null,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -626,9 +608,9 @@ describe('MemberRepository tests', () => {
       }
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
-      await expect(() =>
-        MemberRepository.memberExists('test2', 'crowdInfo', mockIRepositoryOptions),
-      )
+      const memberExists  = await MemberRepository.memberExists('test2', PlatformType.TWITTER, mockIRepositoryOptions)
+
+      expect(memberExists).toBeNull()
     })
   })
 
@@ -1087,7 +1069,7 @@ describe('MemberRepository tests', () => {
         },
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
+        attributes: {
           [PlatformType.GITHUB]: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
@@ -1107,7 +1089,6 @@ describe('MemberRepository tests', () => {
             url: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
         joinedAt: '2021-06-27T15:14:30Z',
         location: 'Istanbul',
       }
@@ -1128,12 +1109,9 @@ describe('MemberRepository tests', () => {
         id: returnedMember.id,
         username: updateFields.username,
         displayName: returnedMember.displayName,
-        attributes: {},
-        crowdInfo: updateFields.crowdInfo,
+        attributes: updateFields.attributes,
         email: updateFields.email,
         score: updateFields.score,
-        bio: updateFields.bio,
-        location: updateFields.location,
         organizations: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1172,7 +1150,7 @@ describe('MemberRepository tests', () => {
         },
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
+        attributes: {
           github: {
             name: 'Quoc-Anh Nguyen',
             isHireable: true,
@@ -1192,7 +1170,6 @@ describe('MemberRepository tests', () => {
             url: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
         joinedAt: '2021-06-27T15:14:30Z',
         location: 'Istanbul',
       }
@@ -1214,12 +1191,9 @@ describe('MemberRepository tests', () => {
         id: returnedMember.id,
         username: updateFields.username,
         displayName: returnedMember.displayName,
-        attributes: {},
-        crowdInfo: updateFields.crowdInfo,
+        attributes: updateFields.attributes,
         email: updateFields.email,
         score: updateFields.score,
-        bio: updateFields.bio,
-        location: updateFields.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1276,12 +1250,9 @@ describe('MemberRepository tests', () => {
         username: member1.username,
         displayName: member1.displayName,
         attributes: {},
-        crowdInfo: member1.crowdInfo,
         email: member1.email,
         score: member1.score,
         organizations: [],
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1352,12 +1323,9 @@ describe('MemberRepository tests', () => {
         username: member1.username,
         displayName: member1.displayName,
         attributes: {},
-        crowdInfo: member1.crowdInfo,
         email: member1.email,
         score: member1.score,
         tags: [],
-        bio: member1.bio,
-        location: member1.location,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),

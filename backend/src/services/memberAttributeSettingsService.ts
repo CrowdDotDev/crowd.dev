@@ -1,4 +1,6 @@
+import moment from 'moment'
 import { Attribute, AttributeData } from '../database/attributes/attribute'
+import { AttributeType } from '../database/attributes/types'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import {
@@ -26,6 +28,59 @@ export default class MemberAttributeSettingsService {
    */
   static pickAttributes(names: string[], attributes: Attribute[]): Attribute[] {
     return attributes.filter((i) => names.includes(i.name))
+  }
+
+  static isBoolean(value): boolean {
+    return value === true || value === 'true' || value === false || value === 'false'
+  }
+
+  static isNumber(value): boolean {
+    return !Number.isNaN(value)
+  }
+
+  static isEmail(value): boolean {
+    const emailRegexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
+    return value !== '' && value.match(emailRegexp)
+  }
+
+  static isString(value): boolean {
+    return typeof value === 'string'
+  }
+
+  static isUrl(value): boolean {
+    return MemberAttributeSettingsService.isString(value)
+  }
+
+  static isDate(value): boolean {
+    if (moment(value, 'YYYY-MM-DDTHH:mm:ss', true).isValid()) {
+      return true
+    }
+    if (moment(value, 'YYYY-MM-DD', true).isValid()) {
+      return true
+    }
+
+    return false
+  }
+
+
+
+  static isCorrectType(value, type: AttributeType){
+
+    switch(type){
+      case AttributeType.BOOLEAN:
+        return MemberAttributeSettingsService.isBoolean(value)
+      case AttributeType.STRING:
+        return MemberAttributeSettingsService.isString(value)
+      case AttributeType.DATE:
+        return MemberAttributeSettingsService.isDate(value)
+      case AttributeType.EMAIL:
+        return MemberAttributeSettingsService.isEmail(value)
+      case AttributeType.URL:
+        return MemberAttributeSettingsService.isUrl(value)
+      default:
+        return false
+    }
+
   }
 
   async create(data: MemberAttributeSettingsCreateData): Promise<AttributeData> {

@@ -11,6 +11,7 @@ import BaseIterator from '../iterators/baseIterator'
 import { PlatformType } from '../../../utils/platforms'
 import { GithubActivityType } from '../../../utils/activityTypes'
 import { gridEntry } from '../grid/grid'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -326,28 +327,28 @@ export default class GitHubWebhook {
   static parseMember(member: any): Member {
     const parsedMember: Member = {
       username: { github: member.login },
-      crowdInfo: {
-        github: {
-          name: member.name,
-          isHireable: member.isHireable || false,
-          url: member.url,
+      attributes: {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: member.name,
+          [MemberAttributeName.IS_HIREABLE]: member.isHireable || false,
+          [MemberAttributeName.URL]: member.url,
+          [MemberAttributeName.BIO]: member.bio || '',
+          [MemberAttributeName.LOCATION]: member.location || '',
         },
       },
       email: member.email || '',
-      bio: member.bio || '',
       organisation: member.company || '',
-      location: member.location || '',
     }
 
     if (member.websiteUrl) {
-      parsedMember.crowdInfo.github.websiteUrl = member.websiteUrl
+      parsedMember.attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL] = member.websiteUrl
     }
 
     if (member.twitterUsername) {
-      parsedMember.crowdInfo.twitter = {
-        url: `https://twitter.com/${member.twitterUsername}`,
+      parsedMember.attributes[PlatformType.TWITTER] = {
+        [MemberAttributeName.URL]: `https://twitter.com/${member.twitterUsername}`,
       }
-      parsedMember.username.twitter = member.twitterUsername
+      parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
     }
 
     return parsedMember

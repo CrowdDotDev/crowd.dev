@@ -16,10 +16,6 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      crowdInfo: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
       attributes: {
         type: DataTypes.JSONB,
         defaultValue: {},
@@ -37,12 +33,6 @@ export default (sequelize) => {
       score: {
         type: DataTypes.INTEGER,
         defaultValue: -1,
-      },
-      bio: {
-        type: DataTypes.TEXT,
-      },
-      location: {
-        type: DataTypes.TEXT,
       },
       joinedAt: {
         type: DataTypes.DATE,
@@ -90,13 +80,6 @@ export default (sequelize) => {
           operator: 'jsonb_path_ops',
         },
         // Below are B-tree indexes for speeding up search in normal fields
-        {
-          unique: false,
-          fields: ['location', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
         {
           unique: false,
           fields: ['score', 'tenantId'],

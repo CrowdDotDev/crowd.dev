@@ -8,12 +8,81 @@ import MemberRepository from '../database/repositories/memberRepository'
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
 
 export default class MemberService {
   options: IServiceOptions
 
   constructor(options) {
     this.options = options
+  }
+
+  async getStructuredAttributes(attributes) {
+    const attributesObject = {}
+
+    // check attribute exists in memberAttributeSettings
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows.reduce((acc, attribute) => {
+      acc[attribute.name] = attribute
+      return acc
+    }, {})
+
+    for (const platform of Object.keys(attributes)) {
+      for (const attributeName of Object.keys(attributes[platform])) {
+        if (!memberAttributeSettings[attributeName]) {
+          throw new Error400(
+            this.options.language,
+            'settings.memberAttributes.notFound',
+            attributeName,
+          )
+        }
+        if (
+          !MemberAttributeSettingsService.isCorrectType(
+            attributes[platform][attributeName],
+            memberAttributeSettings[attributeName].type,
+          )
+        ) {
+          throw new Error400(
+            this.options.language,
+            'settings.memberAttributes.wrongType',
+            attributeName,
+            memberAttributeSettings[attributeName].type,
+          )
+        }
+
+        if (attributesObject[attributeName]) {
+          attributesObject[attributeName] = {
+            ...attributesObject[attributeName],
+            [platform]: attributes[platform][attributeName],
+          }
+        } else {
+          attributesObject[attributeName] = {
+            [platform]: attributes[platform][attributeName],
+          }
+        }
+      }
+    }
+
+    return attributesObject
+  }
+
+  setAttributesDefaultValues(attributes) {
+    const priorityArray = this.options.currentTenant.settings[0].get({ plain : true}).attributeSettings.priorities
+    for (const attributeName of Object.keys(attributes)) {
+      const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
+        Object.keys(attributes[attributeName]),
+        priorityArray,
+      )
+      attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+    }
+
+    return attributes
+  }
+
+  static getHighestPriorityPlatformForAttributes(platforms, priorityArray) {
+    return priorityArray.filter((i) => platforms.includes(i))[0]
   }
 
   /**
@@ -31,11 +100,10 @@ export default class MemberService {
       throw new Error400(this.options.language, 'activity.platformRequiredWhileUpsert')
     }
 
-    if (!data.displayName){
-      if(typeof data.username === 'string'){
+    if (!data.displayName) {
+      if (typeof data.username === 'string') {
         data.displayName = data.username
-      }
-      else{
+      } else {
         data.displayName = data.username[data.platform]
       }
     }
@@ -70,10 +138,10 @@ export default class MemberService {
 
       const { platform } = data
 
-      if (data.crowdInfo) {
-        data.crowdInfo =
-          platform in data.crowdInfo ? data.crowdInfo : { [platform]: data.crowdInfo }
+      if (data.attributes) {
+        data.attributes = await this.getStructuredAttributes(data.attributes)
       }
+
       if (data.reach) {
         data.reach = typeof data.reach === 'object' ? data.reach : { [platform]: data.reach }
         data.reach = MemberService.calculateReach(data.reach, {})
@@ -82,7 +150,6 @@ export default class MemberService {
       }
 
       delete data.platform
-
 
       if (!('joinedAt' in data)) {
         data.joinedAt = moment.tz('Europe/London').toDate()
@@ -100,6 +167,11 @@ export default class MemberService {
         const { id } = existing
         delete existing.id
         const toUpdate = MemberService.membersMerge(existing, data)
+
+        if (toUpdate.attributes){
+          toUpdate.attributes = this.setAttributesDefaultValues(toUpdate.attributes)
+        }
+        
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         record = await MemberRepository.update(
@@ -114,6 +186,10 @@ export default class MemberService {
       } else {
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
+        if (data.attributes){
+          data.attributes = this.setAttributesDefaultValues(data.attributes)
+        }
+
         record = await MemberRepository.create(
           data,
           {

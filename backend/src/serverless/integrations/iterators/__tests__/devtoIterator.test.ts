@@ -5,6 +5,7 @@ import DevtoIterator from '../devtoIterator'
 import { DevtoArticle, DevtoComment } from '../../usecases/devto/types'
 import { DevtoGrid } from '../../grid/devtoGrid'
 import { AddActivitiesSingle } from '../../types/messageTypes'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 const db = null
 
@@ -146,18 +147,18 @@ describe('Dev.to iterator tests', () => {
       expect(activity.body).toEqual('Hello world!')
       expect(activity.url).toEqual('https://dev.to/johndoe/comment/123')
 
-      const activityCrowdInfo = activity.attributes as any
-      expect(activityCrowdInfo.userUrl).toEqual('https://dev.to/johndoe')
-      expect(activityCrowdInfo.articleUrl).toEqual(article.url)
+      const activityAttributes = activity.attributes as any
+      expect(activityAttributes.userUrl).toEqual('https://dev.to/johndoe')
+      expect(activityAttributes.articleUrl).toEqual(article.url)
 
       const member = activity.member
       expect(member.username[PlatformType.DEVTO]).toEqual('johndoe')
-      expect(member.bio).toEqual('Nice profile you got there')
-      expect(member.location).toEqual('Venice, Italy')
-      expect(member.crowdInfo[PlatformType.TWITTER].url).toEqual('https://twitter.com/johntwitter')
+      expect(member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO]).toEqual('Nice profile you got there')
+      expect(member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION]).toEqual('Venice, Italy')
+      expect(member.attributes[PlatformType.TWITTER][MemberAttributeName.URL]).toEqual('https://twitter.com/johntwitter')
       expect(member.username[PlatformType.TWITTER]).toEqual('johntwitter')
-      expect(member.crowdInfo[PlatformType.GITHUB].name).toEqual('John')
-      expect(member.crowdInfo[PlatformType.GITHUB].url).toEqual('https://github.com/johngithub')
+      expect(member.attributes[PlatformType.GITHUB][MemberAttributeName.NAME]).toEqual('John')
+      expect(member.attributes[PlatformType.GITHUB][MemberAttributeName.URL]).toEqual('https://github.com/johngithub')
       expect(member.username[PlatformType.GITHUB]).toEqual('johngithub')
     })
 

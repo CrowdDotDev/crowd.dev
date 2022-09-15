@@ -24,13 +24,10 @@ class MemberRepository {
       {
         ...lodash.pick(data, [
           'username',
-          'crowdInfo',
           'displayName',
           'attributes',
           'email',
           'score',
-          'bio',
-          'location',
           'reach',
           'joinedAt',
           'importHash',
@@ -179,7 +176,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "crowdInfo", "attributes", "email", "score", "bio", "location", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "email", "score", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -224,13 +221,10 @@ class MemberRepository {
       {
         ...lodash.pick(data, [
           'username',
-          'crowdInfo',
           'displayName',
           'attributes',
           'email',
           'score',
-          'bio',
-          'location',
           'reach',
           'joinedAt',
           'importHash',
@@ -493,11 +487,6 @@ class MemberRepository {
       }
 
 
-      if (filter.crowdInfo) {
-        whereAnd.push({
-          crowdInfo: filter.crowdInfo,
-        })
-      }
 
       if (filter.tags) {
         const whereTags = filter.tags.reduce((acc, item, index) => {
@@ -563,14 +552,6 @@ class MemberRepository {
             },
           })
         }
-      }
-
-      if (filter.bio) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'bio', filter.bio))
-      }
-
-      if (filter.location) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'location', filter.location))
       }
 
       if (filter.displayName) {

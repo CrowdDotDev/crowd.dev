@@ -4,6 +4,10 @@ import TenantService from '../tenantService'
 import ActivityService from '../activityService'
 import MemberService from '../memberService'
 import { PlatformType } from '../../utils/platforms'
+import { MemberAttributeName } from '../../database/attributes/member/enums'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { GithubMemberAttributes } from '../../database/attributes/member/github'
+import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 
 const db = null
 
@@ -22,46 +26,40 @@ describe('SampleDataService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
       const sampleDataService = new SampleDataService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
 
       const testSampleData = require('./test-sample-data.json')
 
       // create an ordinary member with activities
       const member = {
         username: {
-          github: 'anil_github',
+          [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Computer Science',
+            [MemberAttributeName.LOCATION]: 'Istanbul',
           },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
         organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
         member,
-        crowdInfo: {
+        attributes: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
           state: 'merged',
@@ -73,7 +71,6 @@ describe('SampleDataService tests', () => {
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId0',
       }
 
@@ -95,7 +92,7 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(4)
       expect(updatedTenant.hasSampleData).toBeTruthy()
 
-      let sampleMembers = allMembers.rows.filter((m) => m.crowdInfo.sample === true)
+      let sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
 
       expect(sampleMembers.length).toEqual(3)
       expect(allMembers.count - sampleMembers.length).toEqual(1)
@@ -113,7 +110,7 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(4)
       expect(updatedTenant.hasSampleData).toBeTruthy()
 
-      sampleMembers = allMembers.rows.filter((m) => m.crowdInfo.sample === true)
+      sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
 
       expect(sampleMembers.length).toEqual(3)
       expect(allMembers.count - sampleMembers.length).toEqual(1)
@@ -125,46 +122,40 @@ describe('SampleDataService tests', () => {
       const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
       const sampleDataService = new SampleDataService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
 
       const testSampleData = require('./test-sample-data.json')
 
       // create an ordinary member with activities
       const member = {
         username: {
-          github: 'anil_github',
+          [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Computer Science',
+            [MemberAttributeName.LOCATION]: 'Istanbul',
           },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
           },
         },
-        bio: 'Computer Science',
         organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
         member,
-        crowdInfo: {
+        attributes: {
           body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
           title: 'Dashboard widgets and some other tweaks/adjustments',
           state: 'merged',
@@ -201,7 +192,7 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(1)
       expect(updatedTenant.hasSampleData).toBeFalsy()
 
-      let sampleMembers = allMembers.rows.filter((m) => m.crowdInfo.sample === true)
+      let sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
 
       expect(sampleMembers.length).toEqual(0)
 
@@ -218,7 +209,7 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(1)
       expect(updatedTenant.hasSampleData).toBeFalsy()
 
-      sampleMembers = allMembers.rows.filter((m) => m.crowdInfo.sample === true)
+      sampleMembers = allMembers.rows.filter((m) =>  m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
 
       expect(sampleMembers.length).toEqual(0)
     })
