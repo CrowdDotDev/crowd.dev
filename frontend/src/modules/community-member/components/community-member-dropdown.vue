@@ -59,6 +59,7 @@
       v-model="editing"
       title="Edit Member"
       :append-to-body="true"
+      :close-on-click-modal="false"
       :destroy-on-close="true"
       custom-class="el-dialog--lg"
       @close="editing = false"

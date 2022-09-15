@@ -16,6 +16,7 @@ import widget from '@/modules/widget/widget-module'
 import report from '@/modules/report/report-module'
 import conversation from '@/modules/conversation/conversation-module'
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module'
+import automation from '@/modules/automation/automation-module'
 
 const modules = {
   shared,
@@ -35,7 +36,8 @@ const modules = {
   widget,
   report,
   conversation,
-  eagleEye
+  eagleEye,
+  automation
 }
 
 export default modules

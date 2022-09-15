@@ -13,6 +13,7 @@
     <el-dialog
       v-model="expanded"
       title="Members Filters"
+      :close-on-click-modal="false"
       @close="expanded = false"
     >
       <el-form

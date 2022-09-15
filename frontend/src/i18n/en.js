@@ -352,6 +352,33 @@ const en = {
       menu: 'Eagle Eye'
     },
 
+    automation: {
+      name: 'Automations',
+      label: 'Automations',
+      create: {
+        success: 'Automation successfully saved'
+      },
+      update: {
+        success: 'Automation successfully saved'
+      },
+      destroy: {
+        success: 'Automation successfully deleted'
+      },
+      destroyAll: {
+        success: 'Automation(s) successfully deleted'
+      },
+      fields: {
+        type: 'Type',
+        trigger: 'Choose Trigger',
+        status: 'Status'
+      },
+      triggers: {
+        new_activity:
+          'New activity happened in your community',
+        new_member: 'New member joined your community'
+      }
+    },
+
     conversation: {
       name: 'Conversations',
       label: 'Conversations',

@@ -41,7 +41,7 @@ export default {
     'app-activity-form-modal': ActivityFormModal
   },
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },
@@ -82,7 +82,7 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {

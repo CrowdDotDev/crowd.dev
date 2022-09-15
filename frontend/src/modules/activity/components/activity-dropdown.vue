@@ -25,6 +25,7 @@
       title="Edit Activity"
       :append-to-body="true"
       :destroy-on-close="true"
+      :close-on-click-modal="false"
       custom-class="el-dialog--lg"
       @close="editing = false"
     >

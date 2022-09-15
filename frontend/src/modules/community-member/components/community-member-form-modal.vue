@@ -2,6 +2,7 @@
   <div>
     <el-dialog
       v-model="dialogVisible"
+      :close-on-click-modal="false"
       :title="title"
       width="80%"
     >

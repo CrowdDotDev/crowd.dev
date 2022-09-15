@@ -1,6 +1,6 @@
 import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
-import { IS_TEST_ENV } from '../../config/index'
+import { IS_TEST_ENV } from '../../config'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'

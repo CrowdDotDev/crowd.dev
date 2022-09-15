@@ -2,6 +2,7 @@
   <el-dialog
     v-model="isVisible"
     class="devto-integration-modal"
+    :close-on-click-modal="false"
     @close="cancel"
   >
     <template #header>

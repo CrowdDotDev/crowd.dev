@@ -1,4 +1,4 @@
-import { IS_TEST_ENV, IS_STAGING_ENV, IS_PROD_ENV, DB_CONFIG } from '../config/index'
+import { IS_TEST_ENV, IS_STAGING_ENV, IS_PROD_ENV, DB_CONFIG } from '../config'
 
 const dbEnvVars = {
   username: DB_CONFIG.username,
