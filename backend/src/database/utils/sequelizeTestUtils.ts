@@ -45,7 +45,6 @@ export default class SequelizeTestUtils {
       userId: user.id,
     })
 
-
     await SettingsRepository.findOrCreateDefault({}, {
       language: 'en',
       currentUser: user,
@@ -62,7 +61,6 @@ export default class SequelizeTestUtils {
       currentTenant: tenant,
       bypassPermissionValidation: true,
     } as IRepositoryOptions)
-
 
     return {
       language: 'en',

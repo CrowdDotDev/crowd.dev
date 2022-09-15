@@ -199,7 +199,9 @@ export default class DevtoIterator extends BaseIterator {
       },
       attributes: {
         [PlatformType.DEVTO]: {
-          [MemberAttributeName.URL]: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
+          [MemberAttributeName.URL]: `https://dev.to/${encodeURIComponent(
+            comment.fullUser.username,
+          )}`,
         },
       },
     }
@@ -220,8 +222,10 @@ export default class DevtoIterator extends BaseIterator {
     }
 
     if (comment.fullUser) {
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO] = comment.fullUser?.summary || ''
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION] = comment.fullUser?.location || ''
+      member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO] =
+        comment.fullUser?.summary || ''
+      member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION] =
+        comment.fullUser?.location || ''
     }
 
     activities.push({

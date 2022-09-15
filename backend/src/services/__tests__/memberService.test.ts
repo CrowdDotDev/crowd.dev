@@ -837,9 +837,9 @@ describe('MemberService tests', () => {
             [MemberAttributeName.NAME]: 'Michael Scott',
             [MemberAttributeName.URL]: 'https://some-devto-url',
           },
-          [PlatformType.SLACK]:{
-            [MemberAttributeName.ID]: '#someSlackId'
-          }
+          [PlatformType.SLACK]: {
+            [MemberAttributeName.ID]: '#someSlackId',
+          },
         },
       }
 
@@ -869,7 +869,8 @@ describe('MemberService tests', () => {
             default: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
           },
           [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
+            [PlatformType.GITHUB]:
+              attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
             default: attributes1[PlatformType.GITHUB][MemberAttributeName.IS_HIREABLE],
           },
           [MemberAttributeName.URL]: {
@@ -878,7 +879,8 @@ describe('MemberService tests', () => {
             default: attributes1[PlatformType.GITHUB][MemberAttributeName.URL],
           },
           [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
+            [PlatformType.GITHUB]:
+              attributes1[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
             default: attributes1[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL],
           },
           [MemberAttributeName.BIO]: {
@@ -928,7 +930,6 @@ describe('MemberService tests', () => {
             [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
         },
-
       }
 
       const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
@@ -940,7 +941,7 @@ describe('MemberService tests', () => {
         username: 'anil',
         platform: PlatformType.GITHUB,
         location: null,
-        attributes:{
+        attributes: {
           [PlatformType.GITHUB]: {
             [MemberAttributeName.NAME]: null,
             [MemberAttributeName.IS_HIREABLE]: null,
@@ -949,14 +950,20 @@ describe('MemberService tests', () => {
             [MemberAttributeName.BIO]: null,
             [MemberAttributeName.LOCATION]: null,
           },
-        }
-
+        },
       }
 
       // First null values will throw 400 error because attribute typechecks will fail
       await expect(() =>
-      new MemberService(mockIServiceOptions).upsert(member2),
-    ).rejects.toThrowError(new Error400(mockIServiceOptions.language, 'settings.memberAttributes.wrongType', MemberAttributeName.NAME, AttributeType.STRING))
+        new MemberService(mockIServiceOptions).upsert(member2),
+      ).rejects.toThrowError(
+        new Error400(
+          mockIServiceOptions.language,
+          'settings.memberAttributes.wrongType',
+          MemberAttributeName.NAME,
+          AttributeType.STRING,
+        ),
+      )
     })
 
     it('Should update existent member succesfully - reach from default to complete - sending number', async () => {
@@ -1200,10 +1207,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-              default: 'Quoc-Anh Nguyen'
-            },
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen',
+          },
         },
         tags: [t1.id, t2.id],
         organizations: [o1.id, o2.id],
@@ -1218,18 +1225,18 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Michael Scott',
-            default: 'Michael Scott'
+            default: 'Michael Scott',
           },
-          [MemberAttributeName.COMPANY]:{
-            [PlatformType.GITHUB]:'Crowd.dev',
-            default: 'Crowd.dev'
+          [MemberAttributeName.COMPANY]: {
+            [PlatformType.GITHUB]: 'Crowd.dev',
+            default: 'Crowd.dev',
           },
-          [MemberAttributeName.ID]:{
-            [PlatformType.DISCORD]:  '#discordId',
-            default: '#discordId'
-          }
+          [MemberAttributeName.ID]: {
+            [PlatformType.DISCORD]: '#discordId',
+            default: '#discordId',
+          },
         },
         tags: [t2.id, t3.id],
         organizations: [o2.id, o3.id],
@@ -1244,10 +1251,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.TWITTER]: 'https://a-twitter-url',
-            default: 'https://a-twitter-url'
-          }
+            default: 'https://a-twitter-url',
+          },
         },
       }
       const member4 = {
@@ -1257,10 +1264,10 @@ describe('MemberService tests', () => {
         displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.ID]:{
+          [MemberAttributeName.ID]: {
             [PlatformType.SLACK]: '#slackId',
-            default: '#slackId'  
-          }
+            default: '#slackId',
+          },
         },
       }
 
@@ -1388,7 +1395,6 @@ describe('MemberService tests', () => {
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
-
       const expectedMember = {
         id: returnedMember1.id,
         username: {
@@ -1399,7 +1405,7 @@ describe('MemberService tests', () => {
         activities: [activityCreated],
         attributes: {
           ...member1.attributes,
-          ...member2.attributes
+          ...member2.attributes,
         },
         email: null,
         score: -1,
@@ -1438,10 +1444,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-              default: 'Quoc-Anh Nguyen'
-            },
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen',
+          },
         },
       }
 
@@ -1469,10 +1475,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-              default: 'Quoc-Anh Nguyen'
-            },
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen',
+          },
         },
       }
 
@@ -1572,10 +1578,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
         attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-              default: 'Quoc-Anh Nguyen'
-            },
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
+            default: 'Quoc-Anh Nguyen',
+          },
         },
       }
 
@@ -1658,9 +1664,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       const member2 = {
@@ -1670,14 +1676,14 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Michael Scott',
-            default: 'Michael Scott'
+            default: 'Michael Scott',
           },
-          [MemberAttributeName.ID]:{
-            [PlatformType.DISCORD]:  '#discordId',
-            default: '#discordId'
-          }
+          [MemberAttributeName.ID]: {
+            [PlatformType.DISCORD]: '#discordId',
+            default: '#discordId',
+          },
         },
       }
 
@@ -1688,10 +1694,10 @@ describe('MemberService tests', () => {
         displayName: 'Anil',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.TWITTER]: 'https://a-twitter-url',
-            default: 'https://a-twitter-url'
-          }
+            default: 'https://a-twitter-url',
+          },
         },
       }
 
@@ -1789,9 +1795,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1822,9 +1828,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1861,9 +1867,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1890,9 +1896,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1926,9 +1932,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1966,9 +1972,9 @@ describe('MemberService tests', () => {
         attributes: {
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            default: 'Quoc-Anh Nguyen'
+            default: 'Quoc-Anh Nguyen',
           },
-      },
+        },
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2016,8 +2022,18 @@ describe('MemberService tests', () => {
       })
     })
     it('Should update for a complex reach with different platforms', async () => {
-      const oldReach = { [PlatformType.TWITTER]: 10, [PlatformType.GITHUB]: 20, [PlatformType.DISCORD]: 50, total: 10 + 20 + 50 }
-      const newReach = { [PlatformType.TWITTER]: 20, [PlatformType.GITHUB]: 2, linkedin: 10, total: 20 + 2 + 10 }
+      const oldReach = {
+        [PlatformType.TWITTER]: 10,
+        [PlatformType.GITHUB]: 20,
+        [PlatformType.DISCORD]: 50,
+        total: 10 + 20 + 50,
+      }
+      const newReach = {
+        [PlatformType.TWITTER]: 20,
+        [PlatformType.GITHUB]: 2,
+        linkedin: 10,
+        total: 20 + 2 + 10,
+      }
       const updatedReach = MemberService.calculateReach(oldReach, newReach)
       expect(updatedReach).toStrictEqual({
         total: 10 + 20 + 2 + 50,

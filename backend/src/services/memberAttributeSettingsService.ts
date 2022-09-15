@@ -62,11 +62,8 @@ export default class MemberAttributeSettingsService {
     return false
   }
 
-
-
-  static isCorrectType(value, type: AttributeType){
-
-    switch(type){
+  static isCorrectType(value, type: AttributeType) {
+    switch (type) {
       case AttributeType.BOOLEAN:
         return MemberAttributeSettingsService.isBoolean(value)
       case AttributeType.STRING:
@@ -80,7 +77,6 @@ export default class MemberAttributeSettingsService {
       default:
         return false
     }
-
   }
 
   async create(data: MemberAttributeSettingsCreateData): Promise<AttributeData> {

@@ -145,7 +145,6 @@ describe('Github iterator tests', () => {
             [MemberAttributeName.URL]: prWithMember.url,
             [MemberAttributeName.BIO]: prWithMember.bio,
             [MemberAttributeName.LOCATION]: prWithMember.location,
-
           },
           [PlatformType.TWITTER]: {
             [MemberAttributeName.URL]: `https://twitter.com/${prWithMember.twitterUsername}`,

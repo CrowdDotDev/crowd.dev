@@ -39,16 +39,19 @@ async function devtoWorker(body: DevtoIntegrationMessage) {
 
     await memberAttributesService.createPredefined(DevtoMemberAttributes)
 
-    await memberAttributesService.createPredefined(MemberAttributeSettingsService.pickAttributes(
-      [MemberAttributeName.URL],
-      TwitterMemberAttributes,
-    ))
+    await memberAttributesService.createPredefined(
+      MemberAttributeSettingsService.pickAttributes(
+        [MemberAttributeName.URL],
+        TwitterMemberAttributes,
+      ),
+    )
 
-    await memberAttributesService.createPredefined(MemberAttributeSettingsService.pickAttributes(
-      [MemberAttributeName.URL, MemberAttributeName.NAME],
-      GithubMemberAttributes,
-    ))
-
+    await memberAttributesService.createPredefined(
+      MemberAttributeSettingsService.pickAttributes(
+        [MemberAttributeName.URL, MemberAttributeName.NAME],
+        GithubMemberAttributes,
+      ),
+    )
 
     const integration = await IntegrationRepository.findById(integrationId, userContext)
 

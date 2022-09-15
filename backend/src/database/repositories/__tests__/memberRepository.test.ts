@@ -44,8 +44,7 @@ describe('MemberRepository tests', () => {
                 score: 2,
                 timestamp: '2021-05-27T15:13:30Z',
               },
-            ],        
-
+            ],
           },
           twitter: {
             profile_url: 'https://twitter.com/imcvampire',
@@ -608,7 +607,11 @@ describe('MemberRepository tests', () => {
       }
       await MemberRepository.create(member1, mockIRepositoryOptions)
 
-      const memberExists  = await MemberRepository.memberExists('test2', PlatformType.TWITTER, mockIRepositoryOptions)
+      const memberExists = await MemberRepository.memberExists(
+        'test2',
+        PlatformType.TWITTER,
+        mockIRepositoryOptions,
+      )
 
       expect(memberExists).toBeNull()
     })

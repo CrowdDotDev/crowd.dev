@@ -69,7 +69,8 @@ export default class MemberService {
   }
 
   setAttributesDefaultValues(attributes) {
-    const priorityArray = this.options.currentTenant.settings[0].get({ plain : true}).attributeSettings.priorities
+    const priorityArray = this.options.currentTenant.settings[0].get({ plain: true })
+      .attributeSettings.priorities
     for (const attributeName of Object.keys(attributes)) {
       const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         Object.keys(attributes[attributeName]),
@@ -168,10 +169,10 @@ export default class MemberService {
         delete existing.id
         const toUpdate = MemberService.membersMerge(existing, data)
 
-        if (toUpdate.attributes){
+        if (toUpdate.attributes) {
           toUpdate.attributes = this.setAttributesDefaultValues(toUpdate.attributes)
         }
-        
+
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         record = await MemberRepository.update(
@@ -186,7 +187,7 @@ export default class MemberService {
       } else {
         // It is important to call it with doPupulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
-        if (data.attributes){
+        if (data.attributes) {
           data.attributes = this.setAttributesDefaultValues(data.attributes)
         }
 

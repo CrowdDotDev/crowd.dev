@@ -64,7 +64,7 @@ describe('Github webhooks tests', () => {
             [MemberAttributeName.IS_HIREABLE]: false,
             [MemberAttributeName.URL]: 'https://github.com/joanreyero',
             [MemberAttributeName.BIO]: '',
-            [MemberAttributeName.LOCATION]: ''
+            [MemberAttributeName.LOCATION]: '',
           },
         },
         email: '',
@@ -92,7 +92,7 @@ describe('Github webhooks tests', () => {
             [MemberAttributeName.IS_HIREABLE]: false,
             [MemberAttributeName.URL]: 'https://github.com/joanreyero',
             [MemberAttributeName.BIO]: '',
-            [MemberAttributeName.LOCATION]: ''
+            [MemberAttributeName.LOCATION]: '',
           },
           [PlatformType.TWITTER]: {
             [MemberAttributeName.URL]: 'https://twitter.com/reyero',
@@ -130,7 +130,7 @@ describe('Github webhooks tests', () => {
             [MemberAttributeName.URL]: 'https://github.com/joanreyero',
             [MemberAttributeName.WEBSITE_URL]: 'https://crowd.dev',
             [MemberAttributeName.BIO]: 'Bio goes here',
-            [MemberAttributeName.LOCATION]: 'Cambridge, UK'
+            [MemberAttributeName.LOCATION]: 'Cambridge, UK',
           },
           [PlatformType.TWITTER]: {
             [MemberAttributeName.URL]: 'https://twitter.com/reyero',

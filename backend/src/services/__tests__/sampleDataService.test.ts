@@ -92,7 +92,11 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(4)
       expect(updatedTenant.hasSampleData).toBeTruthy()
 
-      let sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
+      let sampleMembers = allMembers.rows.filter(
+        (m) =>
+          m.attributes[MemberAttributeName.SAMPLE] &&
+          m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true,
+      )
 
       expect(sampleMembers.length).toEqual(3)
       expect(allMembers.count - sampleMembers.length).toEqual(1)
@@ -110,7 +114,11 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(4)
       expect(updatedTenant.hasSampleData).toBeTruthy()
 
-      sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
+      sampleMembers = allMembers.rows.filter(
+        (m) =>
+          m.attributes[MemberAttributeName.SAMPLE] &&
+          m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true,
+      )
 
       expect(sampleMembers.length).toEqual(3)
       expect(allMembers.count - sampleMembers.length).toEqual(1)
@@ -192,7 +200,11 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(1)
       expect(updatedTenant.hasSampleData).toBeFalsy()
 
-      let sampleMembers = allMembers.rows.filter((m) => m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
+      let sampleMembers = allMembers.rows.filter(
+        (m) =>
+          m.attributes[MemberAttributeName.SAMPLE] &&
+          m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true,
+      )
 
       expect(sampleMembers.length).toEqual(0)
 
@@ -209,7 +221,11 @@ describe('SampleDataService tests', () => {
       expect(allMembers.count).toEqual(1)
       expect(updatedTenant.hasSampleData).toBeFalsy()
 
-      sampleMembers = allMembers.rows.filter((m) =>  m.attributes[MemberAttributeName.SAMPLE] && m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true)
+      sampleMembers = allMembers.rows.filter(
+        (m) =>
+          m.attributes[MemberAttributeName.SAMPLE] &&
+          m.attributes[MemberAttributeName.SAMPLE][PlatformType.CROWD] === true,
+      )
 
       expect(sampleMembers.length).toEqual(0)
     })

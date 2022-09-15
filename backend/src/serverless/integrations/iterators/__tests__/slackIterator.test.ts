@@ -192,9 +192,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -240,9 +240,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -291,9 +291,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -376,9 +376,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -431,9 +431,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -488,9 +488,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -550,9 +550,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a12345',
-              }
+              },
             },
           },
           score: SlackGrid.join.score,
@@ -590,9 +590,9 @@ describe('Slack iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: 'a123456',
-              }
+              },
             },
           },
           score: SlackGrid.join.score,

@@ -341,7 +341,8 @@ export default class GitHubWebhook {
     }
 
     if (member.websiteUrl) {
-      parsedMember.attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL] = member.websiteUrl
+      parsedMember.attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL] =
+        member.websiteUrl
     }
 
     if (member.twitterUsername) {

@@ -300,9 +300,9 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.username,
             attributes: {
-              [PlatformType.DISCORD]:{
-                [MemberAttributeName.ID]: record.id
-              }
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: record.id,
+              },
             },
           },
           score: DiscordGrid.join.score,
@@ -365,9 +365,9 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.author.username,
             attributes: {
-              [PlatformType.DISCORD]:{
-                [MemberAttributeName.ID]: record.author.id
-              }
+              [PlatformType.DISCORD]: {
+                [MemberAttributeName.ID]: record.author.id,
+              },
             },
           },
           score: DiscordGrid.message.score,

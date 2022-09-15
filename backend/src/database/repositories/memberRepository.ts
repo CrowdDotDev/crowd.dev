@@ -13,7 +13,6 @@ const log: boolean = false
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPupulateRelations = true) {
-
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -486,8 +485,6 @@ class MemberRepository {
         })
       }
 
-
-
       if (filter.tags) {
         const whereTags = filter.tags.reduce((acc, item, index) => {
           if (index === 0) {
@@ -555,7 +552,9 @@ class MemberRepository {
       }
 
       if (filter.displayName) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'displayName', filter.displayName))
+        whereAnd.push(
+          SequelizeFilterUtils.ilikeIncludes('member', 'displayName', filter.displayName),
+        )
       }
 
       if (filter.reachRange) {
@@ -665,7 +664,7 @@ class MemberRepository {
       whereAnd.push({
         [Op.or]: [
           {
-            'displayName': {
+            displayName: {
               [Op.iLike]: `${query}%`,
             },
           },

@@ -665,7 +665,9 @@ describe('ActivityService tests', () => {
   describe('createWithMember method', () => {
     it('Create an activity with given member [no parent activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
       await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
       await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -763,7 +765,9 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [parent first, child later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
       await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
       await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -886,7 +890,9 @@ describe('ActivityService tests', () => {
     it('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const activityService = new ActivityService(mockIRepositoryOptions)
-      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
       await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
       await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -1056,7 +1062,9 @@ describe('ActivityService tests', () => {
     describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
         await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
         await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -1157,7 +1165,9 @@ describe('ActivityService tests', () => {
 
       it('Should replace joinedAt when activity ts is earlier than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
         await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
         await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -1261,7 +1271,9 @@ describe('ActivityService tests', () => {
 
       it('Should not replace joinedAt when activity ts is later than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
         await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
         await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
@@ -1365,7 +1377,9 @@ describe('ActivityService tests', () => {
 
       it('It should replace joinedAt if the orginal was in year 1000', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-        const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIRepositoryOptions)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
         await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
         await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)

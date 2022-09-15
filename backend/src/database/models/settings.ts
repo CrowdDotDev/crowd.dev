@@ -1,4 +1,4 @@
-import { PlatformType } from "../../utils/platforms"
+import { PlatformType } from '../../utils/platforms'
 
 export default (sequelize, DataTypes) => {
   const settings = sequelize.define(
@@ -18,20 +18,21 @@ export default (sequelize, DataTypes) => {
       logoUrl: {
         type: DataTypes.STRING(1024),
       },
-      attributeSettings:{
+      attributeSettings: {
         type: DataTypes.JSONB,
         allowNull: false,
-        defaultValue: { priorities:[
-          'custom',
-          PlatformType.TWITTER,
-          PlatformType.GITHUB,
-          PlatformType.DEVTO,
-          PlatformType.SLACK,
-          PlatformType.DISCORD,
-          PlatformType.CROWD
-        ]},
-
-      }
+        defaultValue: {
+          priorities: [
+            'custom',
+            PlatformType.TWITTER,
+            PlatformType.GITHUB,
+            PlatformType.DEVTO,
+            PlatformType.SLACK,
+            PlatformType.DISCORD,
+            PlatformType.CROWD,
+          ],
+        },
+      },
     },
     {
       timestamps: true,

@@ -109,7 +109,7 @@ describe('Merge helper tests', () => {
         displayName: 'Anil2',
       }
       const merged = merge(member1, member2, {
-        'displayName': (oldUsername) => oldUsername,
+        displayName: (oldUsername) => oldUsername,
       })
       expect(merged).toStrictEqual({})
     })

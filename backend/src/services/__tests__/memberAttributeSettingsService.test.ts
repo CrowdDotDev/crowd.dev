@@ -32,7 +32,15 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [nameCreated, isHireableCreated, urlCreated, websiteUrlCreated, bioCreated, companyCreated, locationCreated] = attributes
+      const [
+        nameCreated,
+        isHireableCreated,
+        urlCreated,
+        websiteUrlCreated,
+        bioCreated,
+        companyCreated,
+        locationCreated,
+      ] = attributes
 
       const [name, isHireable, url, websiteUrl, bio, company, location] = GithubMemberAttributes
 
@@ -353,7 +361,13 @@ describe('MemberAttributeSettingService tests', () => {
       // create predefined method should still return shared attributes `url` and `id`
       const [idCreatedTwitter, _imageUrlCreated, urlCreatedTwitter] = attributes
 
-      const [_idCreatedDevTo, _urlCreatedDevTo, nameCreatedDevTo, bioCreatedDevTo, locationCreatedDevTo] = attributes2
+      const [
+        _idCreatedDevTo,
+        _urlCreatedDevTo,
+        nameCreatedDevTo,
+        bioCreatedDevTo,
+        locationCreatedDevTo,
+      ] = attributes2
 
       const [id, url, name, bio, location] = DevtoMemberAttributes
 

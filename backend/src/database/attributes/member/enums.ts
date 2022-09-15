@@ -9,7 +9,7 @@ export enum MemberAttributeName {
   BIO = 'bio',
   COMPANY = 'company',
   WEBSITE_URL = 'websiteUrl',
-  SAMPLE = 'sample'
+  SAMPLE = 'sample',
 }
 
 export const MemberAttributes = {
@@ -37,24 +37,24 @@ export const MemberAttributes = {
     name: MemberAttributeName.IMAGE_URL,
     label: 'Image url',
   },
-  [MemberAttributeName.LOCATION]:{
+  [MemberAttributeName.LOCATION]: {
     name: MemberAttributeName.LOCATION,
-    label: 'Location'
+    label: 'Location',
   },
-  [MemberAttributeName.BIO]:{
+  [MemberAttributeName.BIO]: {
     name: MemberAttributeName.BIO,
-    label: 'Bio'
+    label: 'Bio',
   },
-  [MemberAttributeName.COMPANY]:{
+  [MemberAttributeName.COMPANY]: {
     name: MemberAttributeName.COMPANY,
-    label: 'Company'
+    label: 'Company',
   },
-  [MemberAttributeName.WEBSITE_URL]:{
+  [MemberAttributeName.WEBSITE_URL]: {
     name: MemberAttributeName.WEBSITE_URL,
-    label: 'Website'
+    label: 'Website',
   },
-  [MemberAttributeName.SAMPLE]:{
+  [MemberAttributeName.SAMPLE]: {
     name: MemberAttributeName.SAMPLE,
-    label: 'Sample'
-  }
+    label: 'Sample',
+  },
 }

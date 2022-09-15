@@ -330,9 +330,9 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: record.username,
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: record.id,
-              }
+              },
             },
           },
           score: SlackGrid.join.score,
@@ -439,9 +439,9 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: _vm.members[record.author.id],
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: record.author.id,
-              }
+              },
             },
           },
           score: SlackGrid.message.score,
@@ -489,9 +489,9 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: _vm.members[record.author.id],
             attributes: {
-              [PlatformType.SLACK]:{
+              [PlatformType.SLACK]: {
                 [MemberAttributeName.ID]: record.author.id,
-              }
+              },
             },
           },
           score: SlackGrid.message.score,

@@ -46,8 +46,8 @@ export default class SampleDataService {
     for (const member of sampleMembersActivities) {
       const { activities: _, ...memberPlain } = member
 
-      memberPlain.attributes[PlatformType.CROWD] ={
-        sample :true
+      memberPlain.attributes[PlatformType.CROWD] = {
+        sample: true,
       }
 
       for (const activity of member.activities) {

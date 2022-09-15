@@ -290,11 +290,11 @@ export default class TwitterIterator extends BaseIterator {
         username: record.username,
         reach: { twitter: record.followersCount },
         attributes: {
-          [PlatformType.TWITTER]:{
+          [PlatformType.TWITTER]: {
             [MemberAttributeName.ID]: record.id,
             [MemberAttributeName.IMAGE_URL]: record.imageUrl,
             [MemberAttributeName.URL]: `https://twitter.com/${record.username}`,
-          }
+          },
         },
       },
       score: TwitterGrid.follow.score,
@@ -304,7 +304,12 @@ export default class TwitterIterator extends BaseIterator {
     // It is imperative that we remove the followers we have already seen.
     // Since they come without timestamps and we have set the followers timestamp to now(),
     // this would cause repeated activities otherwise
-    out = out.filter((activity) => !this.followers.has(activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.ID]))
+    out = out.filter(
+      (activity) =>
+        !this.followers.has(
+          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+        ),
+    )
 
     return out
   }
@@ -330,10 +335,10 @@ export default class TwitterIterator extends BaseIterator {
         member: {
           username: record.author.username,
           attributes: {
-            [PlatformType.TWITTER]:{
+            [PlatformType.TWITTER]: {
               [MemberAttributeName.ID]: record.author.id,
               [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
-            }
+            },
           },
           reach: { twitter: record.author.followersCount },
         },
