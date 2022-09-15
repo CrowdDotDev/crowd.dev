@@ -78,37 +78,6 @@ class QueryParser {
     this.manyToMany = manyToMany
   }
 
-  replaceWithManyToMany(query, key) {
-    const value = query[key]
-    delete query[key]
-
-    const mapping = this.manyToMany[key]
-    const items = value.reduce((acc, item, index) => {
-      if (index === 0) {
-        return `${acc} "${mapping.relationTable.name}"."${
-          mapping.relationTable.to
-        }"  = '${QueryParser.uuid(item)}'`
-      }
-      return `${acc} OR "${mapping.relationTable.name}"."${
-        mapping.relationTable.to
-      }"  = '${QueryParser.uuid(item)}'`
-    }, '')
-
-    const literal = Sequelize.literal(
-      `(SELECT "${mapping.table}".id FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}".id WHERE ${items})`,
-    )
-
-    if (query.id?.[Op.and]) {
-      query.id[Op.and].push({ [Op.in]: literal })
-    } else {
-      query.id = {
-        [Op.and]: [{ [Op.in]: literal }],
-      }
-    }
-
-    return query
-  }
-
   /**
    * If an invalid UUID is passed to a query, it throws an exception.
    * To hack this behaviour, if the uuid is invalid, it creates a new one,
@@ -141,6 +110,13 @@ class QueryParser {
     return query
   }
 
+  /**
+   * Replace a key with a complex operator. A complex operator is a function that acts on a key.
+   * @param query query object
+   * @param key key that will be replaced
+   * @param complexOp function that will be called with the value of the key
+   * @returns The query object with the key replaced by the result of the function
+   */
   static replaceKeyWithComplexOperator(query, key, complexOp) {
     const value = query[key]
     delete query[key]
@@ -148,6 +124,12 @@ class QueryParser {
     return query
   }
 
+  /**
+   * Replace a query[key] with a nested field
+   * @param query Query object
+   * @param key Key that marks the value to be replaced
+   * @returns Query where query[key] is replaced with a nested field
+   */
   replaceKeyWithNestedField(query: any, key: string): any {
     const value = query[key]
     delete query[key]
@@ -155,7 +137,13 @@ class QueryParser {
     return query
   }
 
-  parseOrderBy(orderBy) {
+  /**
+   * Parse order by
+   * @param orderBy Order by (string or string[]). If string: 'field_ASC,field2_DESC'. If array: ['field_ASC', 'field2_DESC']
+   * @returns {Array<string[]>}
+   */
+  parseOrderBy(orderBy: string | string[]): Array<string[]> {
+    // If type is string, convert to list of strings
     if (typeof orderBy === 'string') {
       orderBy = orderBy.split(',').map((item) => item.trim())
     }
@@ -172,15 +160,81 @@ class QueryParser {
     })
   }
 
+  /**
+   * Replace a key with an aggregator
+   * @param query Query that we are parsing
+   * @param key Key that we are parsing
+   * @returns Query replaced by aggregator
+   */
   replaceKeyWithAggregator(query, key) {
+    // We will need 'having' instead of where for aggregators
     this.whereOrHaving = 'having'
-
+    // Save value and delete
     const value = query[key]
     delete query[key]
+
+    // The LHS of the  query will be the aggregator, instead of the key
     const left = this.aggregators[key]
+
+    // The operator can be a proper operator, if we had for example
+    // {activityCount: {gt: 10}} (the operator would be Op.gt)
+    // Or it can be equal if we had
+    // {platform: github} (then we would be picking Op.eq)
     const op = typeof value === 'object' ? QueryParser.operators[Object.keys(value)[0]] : Op.eq
+
+    // The RHS of the query will be the value, if we had
+    // {platform: github} (then we would be picking github)
+    // Or it can be the value of the object, if we had
+    // {activityCount: {gt: 10}} (the value would be 10)
     const right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
+
+    // We wrap everything onto a where clause and we return
     query[Op.and] = [Sequelize.where(left, op, right)]
+    return query
+  }
+
+  /**
+   *
+   * @param query Query object
+   * @param key Key that we are parsing
+   * @returns
+   */
+  replaceWithManyToMany(query, key) {
+    // Save value and delete
+    const value = query[key]
+    delete query[key]
+
+    // The mapping comes from the manyToMany field for that key
+    const mapping = this.manyToMany[key]
+    // We construct the items to filter on. For example, if we were filtering tags for communityMembers
+    // "communityMemberTags"."tagId"  = '{{id1}}' OR "communityMemberTags"."tagId"  = '{{id2}}'
+    const items = value.reduce((acc, item, index) => {
+      if (index === 0) {
+        return `${acc} "${mapping.relationTable.name}"."${
+          mapping.relationTable.to
+        }"  = '${QueryParser.uuid(item)}'`
+      }
+      return `${acc} OR "${mapping.relationTable.name}"."${
+        mapping.relationTable.to
+      }"  = '${QueryParser.uuid(item)}'`
+    }, '')
+
+    // Find all the rows in the table that have the items we are filtering on
+    // For example, find all communityMembers that have the tags with id1 or id2
+    const literal = Sequelize.literal(
+      `(SELECT "${mapping.table}".id FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}".id WHERE ${items})`,
+    )
+
+    // It coudl be that we have more than 1 many to many filter, so we could need to append. For example:
+    // {tags: [id1, id2], organizations: [id3, id4]}
+    if (query.id?.[Op.and]) {
+      query.id[Op.and].push({ [Op.in]: literal })
+    } else {
+      query.id = {
+        [Op.and]: [{ [Op.in]: literal }],
+      }
+    }
+
     return query
   }
 
@@ -244,8 +298,7 @@ class QueryParser {
    * @returns {JSON} sequelize formatted DB query params JSON
    */
   parseQueryFields(query) {
-    const json = this.iterativeReplace(query)
-    return json
+    return this.iterativeReplace(query)
   }
 
   /**
@@ -260,27 +313,10 @@ class QueryParser {
   }
 
   /**
-   * Sequelize Query Parser is a very simple package that
-   * turns your RESTful APIs into a basic set of Graph APIs.
+   * Pare a query into a sequelize query
    *
-   * Parses - filter, query, sorting, paging, group, relational object queries
-   *
-   * fields=field01,field02...
-   *
-   * limit=value&&offset=value
-   *
-   * orderBy=field01.asc|field02.desc
-   *
-   * group_by=field01,field02
-   *
-   * query=JSON
-   *
-   * include=JSON
-   *
-   * filedName=unaryOperator:value
-   *
-   * @param {JSON} req
-   * @returns {JSON} sequelize formatted DB query
+   * @param {QueryInput} query
+   * @returns {QueryOutput} sequelize formatted DB query
    */
   parse(
     query: QueryInput = {

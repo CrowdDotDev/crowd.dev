@@ -180,16 +180,6 @@ class ConversationRepository {
       },
     ]
 
-    const activityCount = options.database.Sequelize.fn(
-      'COUNT',
-      options.database.Sequelize.col('activities.id'),
-    )
-
-    const lastActive = options.database.Sequelize.fn(
-      'MAX',
-      options.database.Sequelize.col('activities.timestamp'),
-    )
-
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
       advancedFilter = { and: [] }
@@ -313,6 +303,16 @@ class ConversationRepository {
     )
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('channel', orderBy),
+    )
+
+    const activityCount = options.database.Sequelize.fn(
+      'COUNT',
+      options.database.Sequelize.col('activities.id'),
+    )
+
+    const lastActive = options.database.Sequelize.fn(
+      'MAX',
+      options.database.Sequelize.col('activities.timestamp'),
     )
 
     const parser = new QueryParser(
