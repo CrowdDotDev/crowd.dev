@@ -262,7 +262,7 @@ class MicroserviceRepository {
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
-      orderBy: orderBy || ['createdat_DESC'],
+      orderBy: orderBy || ['createdAt_DESC'],
       limit,
       offset,
     })
