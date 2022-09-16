@@ -4,7 +4,7 @@
       >Time Dimensions</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         timeDimensions[0].dimension.name
       "

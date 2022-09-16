@@ -8,7 +8,7 @@
       item-value="name"
       clearable
       filterable
-      :value="
+      :model-value="
         timeDimensions[0] && timeDimensions[0].granularity
       "
       @change="(g) => handleChange(g)"
