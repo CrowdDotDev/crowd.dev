@@ -8,15 +8,7 @@ WORKDIR /var/task
 COPY . .
 
 RUN  pip3 install --user psycopg2-binary && \
-     pip3 install --user -r requirements.txt && \
-     pip3 install --user -r requirements.dev.txt
+pip3 install --user -r requirements.txt && \
+pip3 install --user -r requirements.dev.txt
 
-# release build with much smaller image
-FROM python:3.8-alpine as release
-
-WORKDIR /usr/crowd/python
-COPY --from=builder /root/.local /root/.local
-COPY --from=builder /var/task /usr/crowd/python
-
-ENV PATH=/root/.local/bin:$PATH
-ENTRYPOINT ["python3", "python_worker.py"]
+ENTRYPOINT ["python", "-u", "python_worker.py"]
