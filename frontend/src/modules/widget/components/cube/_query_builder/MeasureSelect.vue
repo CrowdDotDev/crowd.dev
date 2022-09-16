@@ -4,7 +4,7 @@
     <el-select
       clearable
       filterable
-      :value="
+      :model-value="
         translatedOptions(measures).map((i) => i.label)
       "
       @change="(m) => setMeasures([m])"
@@ -13,7 +13,7 @@
         v-for="item in translatedOptions(availableMeasures)"
         :key="item.value"
         :label="item.label"
-        :value="item.value"
+        :model-value="item.value"
       ></el-option>
     </el-select>
   </div>

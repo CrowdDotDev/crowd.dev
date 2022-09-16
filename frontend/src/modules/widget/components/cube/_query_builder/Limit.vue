@@ -2,7 +2,7 @@
   <div>
     <label class="block leading-none mb-2">Limit</label>
     <el-input
-      v-model="value"
+      :model-value="value"
       placeholder="10000"
       :disabled="disabled"
       @change="(v) => $emit('update', v)"
@@ -24,9 +24,14 @@ export default {
     }
   },
   emits: ['update'],
-  data() {
-    return {
-      value: this.limit
+  computed: {
+    value: {
+      get() {
+        return this.limit
+      },
+      set(value) {
+        this.$emit('update', value)
+      }
     }
   }
 }

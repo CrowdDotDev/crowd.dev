@@ -55,7 +55,7 @@
             <el-option
               v-for="item in computedFilters"
               :key="item.value"
-              :value="item.value"
+              :model-value="item.value"
               :label="item.label"
             ></el-option>
           </el-select>
@@ -70,7 +70,7 @@
             <el-option
               v-for="actionItem in actionItems"
               :key="actionItem.value"
-              :value="actionItem.value"
+              :model-value="actionItem.value"
             >
               {{ actionItem.text }}
             </el-option>

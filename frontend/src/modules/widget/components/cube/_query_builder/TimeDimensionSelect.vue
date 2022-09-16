@@ -4,7 +4,7 @@
       >Time Dimensions</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         timeDimensions[0].dimension.name
       "
@@ -17,7 +17,7 @@
           computedTimeDimensions
         )"
         :key="item.value"
-        :value="item.value"
+        :model-value="item.value"
         :label="item.label"
       ></el-option>
     </el-select>

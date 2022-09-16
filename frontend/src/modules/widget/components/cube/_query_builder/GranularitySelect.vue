@@ -8,7 +8,7 @@
       item-value="name"
       clearable
       filterable
-      :value="
+      :model-value="
         timeDimensions[0] && timeDimensions[0].granularity
       "
       @change="(g) => handleChange(g)"
@@ -16,7 +16,7 @@
       <el-option
         v-for="item in granularityOptions"
         :key="item.name"
-        :value="item.name"
+        :model-value="item.name"
         >{{ item.name }}</el-option
       >
     </el-select>

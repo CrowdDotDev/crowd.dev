@@ -11,18 +11,15 @@
       <el-select
         clearable
         filterable
-        :value="
-          translatedOptions(dimensions).map((i) => i.label)
-        "
+        :model-value="value"
         :disabled="measures.length === 0"
-        @change="(d) => setDimensions([d])"
       >
         <el-option
           v-for="item in translatedOptions(
             computedDimensions
           )"
           :key="item.value"
-          :value="item.value"
+          :model-value="item.value"
           :label="item.label"
         ></el-option>
       </el-select>
@@ -106,6 +103,16 @@ export default {
               measure.name
             ].includes(t.name)
           })
+    },
+    value: {
+      get() {
+        return this.translatedOptions(this.dimensions).map(
+          (i) => i.label
+        )
+      },
+      set(value) {
+        return this.setDimensions([value])
+      }
     }
   }
 }

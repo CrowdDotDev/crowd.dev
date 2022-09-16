@@ -4,7 +4,7 @@
       >Date Range</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         dateRangeItems.find(
           (o) => o.value === timeDimensions[0].dateRange
@@ -17,7 +17,7 @@
       <el-option
         v-for="item in dateRangeItems"
         :key="item.label"
-        :value="item.value"
+        :model-value="item.value"
         :label="item.label"
       ></el-option>
     </el-select>
