@@ -4,7 +4,7 @@
       >Time Dimensions</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         timeDimensions[0].dimension.name
       "
@@ -29,7 +29,7 @@ import { i18n } from '@/i18n'
 export default {
   name: 'TimeDimensionSelect',
   props: {
-    measure: {
+    measures: {
       type: Array,
       default: () => []
     },

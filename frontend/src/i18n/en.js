@@ -436,7 +436,12 @@ const en = {
         score: '[Members] Engagement Level',
         location: '[Members] Location',
         organisation: '[Members] Organisation',
-        joinedAt: '[Members] Joined Date'
+        joinedAt: '[Members] Joined Date',
+        averageTimeToFirstInteraction:
+          '[Members] Avg. Time To First Interaction'
+      },
+      MemberTags: {
+        count: '[Members] # of Tags'
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -447,7 +452,8 @@ const en = {
         published: '[Conversations] Published'
       },
       Tags: {
-        name: '[Tags] Name'
+        name: '[Tags] Name',
+        count: '[Tags] Count'
       }
     }
   },
