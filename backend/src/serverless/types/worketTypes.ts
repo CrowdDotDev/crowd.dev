@@ -1,6 +1,7 @@
 export enum NodeWorkerMessageType {
   INTEGRATION = 'integration',
   NODE_MICROSERVICE = 'node_microservice',
+  DB_OPERATIONS = 'db_operations',
 }
 
 export interface NodeWorkerMessage {

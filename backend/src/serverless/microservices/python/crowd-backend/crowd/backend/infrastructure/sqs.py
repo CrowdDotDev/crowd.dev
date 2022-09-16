@@ -4,6 +4,9 @@ import os
 from uuid import uuid1 as uuid
 import json
 
+from crowd.backend.infrastructure.config import KUBE_MODE, IS_DEV_ENV, SQS_ENDPOINT_URL, SQS_REGION, \
+    SQS_SECRET_ACCESS_KEY, SQS_ACCESS_KEY_ID
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,21 +33,34 @@ class SQS:
         self.sqs_url = sqs_url
         # Otherwise from the environment files.
 
-        if os.environ.get("NODE_ENV") == "development":
-            self.sqs = boto3.client(
-                "sqs",
-                region_name="eu-central-1",
-                aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID_CROWD"),
-                aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_CROWD"),
-                endpoint_url=f'{os.environ.get("LOCALSTACK_HOSTNAME")}:{os.environ.get("LOCALSTACK_PORT")}'
-            )
+        if KUBE_MODE:
+            if IS_DEV_ENV:
+                self.sqs = boto3.client("sqs",
+                                        endpoint_url=SQS_ENDPOINT_URL,
+                                        region_name=SQS_REGION,
+                                        aws_secret_access_key=SQS_SECRET_ACCESS_KEY,
+                                        aws_access_key_id=SQS_ACCESS_KEY_ID)
+            else:
+                self.sqs = boto3.client("sqs",
+                                        region_name=SQS_REGION,
+                                        aws_secret_access_key=SQS_SECRET_ACCESS_KEY,
+                                        aws_access_key_id=SQS_ACCESS_KEY_ID)
         else:
-            self.sqs = boto3.client(
-                "sqs",
-                region_name="eu-central-1",
-                aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID_CROWD"),
-                aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_CROWD"),
-            )
+            if os.environ.get("NODE_ENV") == "development":
+                self.sqs = boto3.client(
+                    "sqs",
+                    region_name="eu-central-1",
+                    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID_CROWD"),
+                    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_CROWD"),
+                    endpoint_url=f'{os.environ.get("LOCALSTACK_HOSTNAME")}:{os.environ.get("LOCALSTACK_PORT")}'
+                )
+            else:
+                self.sqs = boto3.client(
+                    "sqs",
+                    region_name="eu-central-1",
+                    aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID_CROWD"),
+                    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY_CROWD"),
+                )
 
     def send_message(self, body, id, deduplicationId, attributes=None):
         """

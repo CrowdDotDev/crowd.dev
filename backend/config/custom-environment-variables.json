@@ -1,1 +1,99 @@
-{}
+{
+  "api": {
+    "url": "CROWD_API_URL",
+    "frontendUrl": "CROWD_API_FRONTEND_URL",
+    "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
+    "jwtSecret": "CROWD_API_JWT_SECRET",
+    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN"
+  },
+  "sqs": {
+    "host": "CROWD_SQS_HOST",
+    "port": "CROWD_SQS_PORT",
+    "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
+    "aws": {
+      "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_SQS_AWS_REGION"
+    }
+  },
+  "s3": {
+    "host": "CROWD_S3_HOST",
+    "port": "CROWD_S3_PORT",
+    "aws": {
+      "accountId": "CROWD_S3_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_S3_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_S3_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_S3_AWS_REGION"
+    }
+  },
+  "db": {
+    "readHost": "CROWD_DB_READ_HOST",
+    "writeHost": "CROWD_DB_WRITE_HOST",
+    "port": "CROWD_DB_PORT",
+    "username": "CROWD_DB_USERNAME",
+    "password": "CROWD_DB_PASSWORD",
+    "database": "CROWD_DB_DATABASE"
+  },
+  "cubejs": {
+    "url": "CROWD_CUBEJS_URL",
+    "jwtSecret": "CROWD_CUBEJS_JWT_SECRET",
+    "jwtExpiry": "CROWD_CUBEJS_JWT_EXPIRY"
+  },
+  "searchEngine": {
+    "host": "CROWD_SEARCH_ENGINE_HOST",
+    "apiKey": "CROWD_SEARCH_ENGINE_API_KEY"
+  },
+  "segment": {
+    "writeKey": "CROWD_SEGMENT_WRITE_KEY"
+  },
+  "netlify": {
+    "apiKey": "CROWD_NETLIFY_API_KEY",
+    "siteDomain": "CROWD_NETLIFY_SITE_DOMAIN"
+  },
+  "sendgrid": {
+    "key": "CROWD_SENDGRID_KEY",
+    "emailFrom": "CROWD_SENDGRID_EMAIL_FROM",
+    "nameFrom": "CROWD_SENDGRID_NAME_FROM",
+    "templateEmailAddressVerification": "CROWD_SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION",
+    "templateInvitation": "CROWD_SENDGRID_TEMPLATE_INVITATION",
+    "templatePasswordReset": "CROWD_SENDGRID_TEMPLATE_PASSWORD_RESET",
+    "templateWeeklyAnalytics": "CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS",
+    "weeklyAnalyticsUnsubscribeGroupId": "CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID"
+  },
+  "plans": {
+    "stripePricePremium": "CROWD_STRIPE_PRICE_PREMIUM",
+    "stripePriceEnterprise": "CROWD_STRIPE_PRICE_ENTERPRISE",
+    "stripeSecretKey": "CROWD_STRIPE_SECRET_KEY",
+    "stripWebhookSigningSecret": "CROWD_STRIPE_WEBHOOK_SIGNING_SECRET"
+  },
+  "twitter": {
+    "clientId": "CROWD_TWITTER_CLIENT_ID",
+    "clientSecret": "CROWD_TWITTER_CLIENT_SECRET"
+  },
+  "slack": {
+    "clientId": "CROWD_SLACK_CLIENT_ID",
+    "clientSecret": "CROWD_SLACK_CLIENT_SECRET"
+  },
+  "google": {
+    "clientId": "CROWD_GOOGLE_CLIENT_ID",
+    "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
+    "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
+  },
+  "facebook": {
+    "clientId": "CROWD_FACEBOOK_CLIENT_ID",
+    "clientSecret": "CROWD_FACEBOOK_CLIENT_SECRET",
+    "callbackUrl": "CROWD_FACEBOOK_CALLBACK_URL"
+  },
+  "discord": {
+    "token": "CROWD_DISCORD_TOKEN"
+  },
+  "github": {
+    "appId": "CROWD_GITHUB_APP_ID",
+    "clientId": "CROWD_GITHUB_CLIENT_ID",
+    "clientSecret": "CROWD_GITHUB_CLIENT_SECRET",
+    "privateKey": "CROWD_GITHUB_PRIVATE_KEY",
+    "webhookSecret": "CROWD_GITHUB_WEBHOOK_SECRET"
+  }
+}

@@ -2,17 +2,16 @@ version: '3.1'
 
 x-env-args: &env-args
   DOCKER_BUILDKIT: 1
-  NODE_ENV: docker
-  SERVICE: job-generator
+  SERVICE_ENV: docker
+  SERVICE: python-worker
   TENANT_MODE: multi
   KUBE_MODE: 1
 
 services:
-  job-generator:
+  python-worker:
     build:
-      context: ../backend
-      dockerfile: Dockerfile-api-dev
-    command: 'npm run start:job-generator'
+      context: ../backend/src/serverless/microservices/python
+      dockerfile: Dockerfile-kube
     env_file:
       - ../../backend/.env.local
       - ../../backend/.env.docker
@@ -21,23 +20,19 @@ services:
     networks:
       - crowd-bridge
 
-  job-generator-dev:
+  python-worker-dev:
     build:
-      context: ../backend
-      dockerfile: Dockerfile-api-dev
-    command: 'npm run start:job-generator'
+      context: ../backend/src/serverless/microservices/python
+      dockerfile: Dockerfile-kube
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.local
       - ../../backend/.env.docker
     environment:
       <<: *env-args
-    hostname: job-generator
+    hostname: python-worker
     networks:
       - crowd-bridge
-    volumes:
-      - ../../backend:/usr/crowd/backend
-      - /usr/crowd/backend/node_modules
 
 networks:
   crowd-bridge:

@@ -3,6 +3,7 @@ from crowd.backend.enums import Services
 import os
 import logging
 
+from crowd.backend.infrastructure.config import KUBE_MODE, PYTHON_WORKER_QUEUE
 from crowd.backend.models import microservice
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 class ServicesSQS(SQS):
     def __init__(self):
-        url = os.environ.get("PYTHON_MICROSERVICES_SQS_URL")
+        if KUBE_MODE:
+            url = PYTHON_WORKER_QUEUE
+        else:
+            url = os.environ.get("PYTHON_MICROSERVICES_SQS_URL")
         super().__init__(url)
 
     def send_message(self, tenant_id, microservice_id, service, params=None, send=True):

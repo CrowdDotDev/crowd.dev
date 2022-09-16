@@ -13,6 +13,9 @@ services:
       context: ../backend
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:api'
+    env_file:
+      - ../../backend/.env.local
+      - ../../backend/.env.docker
     environment:
       <<: *env-args
     networks:
@@ -24,6 +27,9 @@ services:
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:api'
     user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.local
+      - ../../backend/.env.docker
     environment:
       <<: *env-args
     hostname: api

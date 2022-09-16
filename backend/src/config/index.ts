@@ -29,7 +29,9 @@ export const TENANT_MODE: TenantMode = process.env.TENANT_MODE as TenantMode
 export const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
 
 export const IS_DEV_ENV: boolean =
-  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'docker'
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'docker' ||
+  process.env.NODE_ENV === undefined
 
 export const IS_PROD_ENV: boolean = process.env.NODE_ENV === 'production'
 

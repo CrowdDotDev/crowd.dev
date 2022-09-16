@@ -5,6 +5,7 @@ import { SQS_CONFIG } from '../config'
 import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
 import { processIntegrationsMessage } from '../serverless/integrations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
+import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 
 const receiveMessage = (): Promise<Message | undefined> =>
   new Promise<Message | undefined>((resolve, reject) => {
@@ -62,6 +63,9 @@ setImmediate(async () => {
           break
         case NodeWorkerMessageType.NODE_MICROSERVICE:
           processFunction = processNodeMicroserviceMessage
+          break
+        case NodeWorkerMessageType.DB_OPERATIONS:
+          processFunction = processDbOperationsMessage
           break
 
         default:
