@@ -43,7 +43,7 @@
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.2",
     "vue-router": "^4.0.12",
-    "vuedraggable": "^2.24.3",
+    "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",
     "yup": "^0.32.11"

@@ -14,7 +14,7 @@
         <div class="form-buttons">
           <el-button
             :disabled="saveLoading"
-            class="btn btn--primary ml-2"
+            class="btn btn--primary mr-2"
             @click="doSubmit"
           >
             <i class="ri-lg ri-save-line mr-1" />
@@ -23,7 +23,7 @@
 
           <el-button
             :disabled="saveLoading"
-            class="btn btn--secondary ml-2"
+            class="btn btn--secondary mr-2"
             @click="doReset"
           >
             <i class="ri-lg ri-save-line mr-1" />
@@ -32,7 +32,7 @@
 
           <el-button
             :disabled="saveLoading"
-            class="btn btn--secondary ml-2"
+            class="btn btn--secondary"
             @click="doCancel"
           >
             <i class="ri-lg ri-close-line mr-1"></i>

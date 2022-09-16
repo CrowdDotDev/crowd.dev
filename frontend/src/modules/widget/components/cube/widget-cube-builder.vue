@@ -89,7 +89,7 @@
                 >Chart Type</label
               >
               <el-select
-                :value="chartType"
+                :model-value="chartType"
                 :items="chartTypes"
                 clearable
                 filterable
@@ -106,12 +106,10 @@
             <div
               class="px-3 py-2 w-full lg:w-1/3 flex items-center"
             >
-              <span
+              <button
+                type="button"
                 class="inline-flex items-center leading-none mt-5 text-secondary-900 cursor-pointer hover:opacity-80"
-                @click="
-                  additionalSettingsVisible =
-                    !additionalSettingsVisible
-                "
+                @click="handleAdditionalSettingsClick"
               >
                 <i
                   class="mr-1"
@@ -126,8 +124,8 @@
                     ? 'Hide'
                     : 'Show'
                 }}
-                Additional Settings</span
-              >
+                Additional Settings
+              </button>
             </div>
           </div>
           <div
@@ -202,7 +200,6 @@
             Save Widget
           </el-button>
           <el-button
-            type="button"
             class="btn btn--secondary"
             @click="$emit('close')"
           >
@@ -351,6 +348,10 @@ export default {
           label: i18n(`widget.cubejs.${i.name}`)
         }
       })
+    },
+    handleAdditionalSettingsClick() {
+      this.additionalSettingsVisible =
+        !this.additionalSettingsVisible
     }
   }
 }

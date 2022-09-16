@@ -4,7 +4,7 @@
       >Date Range</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         dateRangeItems.find(
           (o) => o.value === timeDimensions[0].dateRange

@@ -5,7 +5,6 @@
       v-model="value"
       placeholder="10000"
       :disabled="disabled"
-      @change="(v) => $emit('update', v)"
     ></el-input>
   </div>
 </template>
@@ -24,9 +23,14 @@ export default {
     }
   },
   emits: ['update'],
-  data() {
-    return {
-      value: this.limit
+  computed: {
+    value: {
+      get() {
+        return this.limit
+      },
+      set(value) {
+        this.$emit('update', value)
+      }
     }
   }
 }
