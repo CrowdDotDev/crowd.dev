@@ -13,7 +13,7 @@
         v-for="item in translatedOptions(availableMeasures)"
         :key="item.value"
         :label="item.label"
-        :model-value="item.value"
+        :value="item.value"
       ></el-option>
     </el-select>
   </div>

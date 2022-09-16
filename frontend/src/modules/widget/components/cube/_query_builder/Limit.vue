@@ -2,10 +2,9 @@
   <div>
     <label class="block leading-none mb-2">Limit</label>
     <el-input
-      :model-value="value"
+      v-model="value"
       placeholder="10000"
       :disabled="disabled"
-      @change="(v) => $emit('update', v)"
     ></el-input>
   </div>
 </template>

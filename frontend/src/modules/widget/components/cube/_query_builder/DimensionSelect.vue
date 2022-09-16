@@ -9,9 +9,9 @@
         >Dimensions (optional)</label
       >
       <el-select
+        v-model="value"
         clearable
         filterable
-        :model-value="value"
         :disabled="measures.length === 0"
       >
         <el-option
@@ -19,7 +19,7 @@
             computedDimensions
           )"
           :key="item.value"
-          :model-value="item.value"
+          :value="item.value"
           :label="item.label"
         ></el-option>
       </el-select>

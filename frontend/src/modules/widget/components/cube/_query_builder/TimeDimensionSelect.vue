@@ -17,7 +17,7 @@
           computedTimeDimensions
         )"
         :key="item.value"
-        :model-value="item.value"
+        :value="item.value"
         :label="item.label"
       ></el-option>
     </el-select>

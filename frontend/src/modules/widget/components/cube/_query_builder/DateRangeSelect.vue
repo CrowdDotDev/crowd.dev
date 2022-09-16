@@ -17,7 +17,7 @@
       <el-option
         v-for="item in dateRangeItems"
         :key="item.label"
-        :model-value="item.value"
+        :value="item.value"
         :label="item.label"
       ></el-option>
     </el-select>

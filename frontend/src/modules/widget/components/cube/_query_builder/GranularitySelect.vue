@@ -16,7 +16,7 @@
       <el-option
         v-for="item in granularityOptions"
         :key="item.name"
-        :model-value="item.name"
+        :value="item.name"
         >{{ item.name }}</el-option
       >
     </el-select>
