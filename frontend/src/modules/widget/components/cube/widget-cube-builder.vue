@@ -202,7 +202,6 @@
             Save Widget
           </el-button>
           <el-button
-            type="button"
             class="btn btn--secondary"
             @click="$emit('close')"
           >
