@@ -24,6 +24,8 @@ class QueryParser {
 
   private manyToMany: ManyToManyType
 
+  private customOperators: any
+
   static maxPageSize = 200
 
   static defaultPageSize = 10
@@ -59,16 +61,31 @@ class QueryParser {
   }
 
   static complexOperators = {
-    textContains: (value) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    textContains: (value, _args = {}) => {
       const result = {
         [Op.iLike]: `%${value}%`,
       }
       return result
     },
+    jsonContains: (value, args) => {
+      const where = Sequelize.where(
+        Sequelize.literal(`CAST("${args.model}"."${args.column}" AS TEXT)`),
+        {
+          [Sequelize.Op.like]: `%${value}%`.toLowerCase(),
+        },
+      )
+      return { [Op.and]: where }
+    },
   }
 
   constructor(
-    { aggregators = {} as any, nestedFields = {} as any, manyToMany = {} as ManyToManyType },
+    {
+      aggregators = {} as any,
+      nestedFields = {} as any,
+      manyToMany = {} as ManyToManyType,
+      customOperators = {} as any,
+    },
     options: IRepositoryOptions,
   ) {
     this.options = options
@@ -76,6 +93,7 @@ class QueryParser {
     this.nestedFields = nestedFields
     this.whereOrHaving = 'where'
     this.manyToMany = manyToMany
+    this.customOperators = customOperators
   }
 
   /**
@@ -117,11 +135,13 @@ class QueryParser {
    * @param complexOp function that will be called with the value of the key
    * @returns The query object with the key replaced by the result of the function
    */
-  static replaceKeyWithComplexOperator(query, key, complexOp) {
+  static replaceKeyWithComplexOperator(query, key, complexOp, args = {}) {
     const value = query[key]
     delete query[key]
-    query = { ...query, ...complexOp(value) }
-    return query
+    return {
+      ...query,
+      ...complexOp(value, args),
+    }
   }
 
   /**
@@ -253,6 +273,16 @@ class QueryParser {
       if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
+      } else if (this.customOperators[key]) {
+        // The complex operator could be substituting the key also.
+        // For example, in member.platform, we are sent: {platform: jsonContains: 'github'}
+        // and we need to replace the platform key with the function result.
+        query = QueryParser.replaceKeyWithComplexOperator(
+          query,
+          key,
+          Object.keys(query[key])[0],
+          this.customOperators[key],
+        )
       } else if (this.aggregators[key]) {
         // If the key is one of the aggregators, replace by aggregator
         query = this.replaceKeyWithAggregator(query, key)

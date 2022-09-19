@@ -618,6 +618,19 @@ class MemberRepository {
       }
     }
 
+    // {
+    //   customOperators: {
+    //     username: {
+    //       model: 'member',
+    //       column: 'username',
+    //     },
+    //     platform: {
+    //       model: 'member',
+    //       column: 'username',
+    //     }
+    //   }
+    // }
+
     const where = { [Op.and]: whereAnd }
 
     let order
