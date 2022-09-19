@@ -202,7 +202,7 @@ function down_scaffold() {
 }
 
 function scaffold_destroy() {
-    say "\nWill delete all local state data. Are you SURE?"
+    say "\nWill delete all local crowd state data (docker volumes) if you have any. Are you sure?"
     select reset_system_condition in "Yes" "No"; do
         case $reset_system_condition in
             'Yes' ) scaffold_destroy_confirmed; break;;
@@ -267,7 +267,17 @@ function kill_all_containers() {
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME^^} CLI ${RESET}\n\nExample usage: ./cli [ scaffold =>, service => ]"
+function start() {
+    scaffold_reset
+    for i in $CONTAINERS
+    do
+        say "Starting service $i."
+        start_service $i
+        nl
+    done
+}
+
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME^^} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service => ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
@@ -277,6 +287,14 @@ do
             exit;
         ;;
         service) service $2 $3 $4 $5
+            exit;
+        ;;
+        start) start
+            exit;
+        ;;
+        start-dev)
+            DEV=1
+            start
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"
