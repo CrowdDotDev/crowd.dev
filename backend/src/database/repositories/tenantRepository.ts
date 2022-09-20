@@ -290,7 +290,7 @@ class TenantRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+    return { rows, count, limit: false, offset: 0 }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
