@@ -41,12 +41,12 @@ export default class OrganizationService {
       }
 
       const existingByUrl = data.url
-        ? await OrganizationRepository.findByName(data.url, {
+        ? await OrganizationRepository.findByUrl(data.url, {
             ...this.options,
             transaction,
           })
         : null
-      if (existingByName) {
+      if (existingByUrl) {
         return existingByUrl
       }
 
