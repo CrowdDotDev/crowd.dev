@@ -10,9 +10,9 @@ export default async (req, res) => {
 
     console.log(req.body)
 
-    const payload = await new EagleEyeContentService(req).search(req.body.data)
+    const payload = await new EagleEyeContentService(req).search(req.body)
 
-    track('EagleEyeSearch', { ...req.body.data }, { ...req })
+    track('EagleEyeSearch', { ...req.body }, { ...req })
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

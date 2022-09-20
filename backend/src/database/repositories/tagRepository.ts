@@ -12,6 +12,7 @@ const { Op } = Sequelize
 
 class TagRepository {
   static async create(data, options: IRepositoryOptions) {
+    console.log('here')
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -213,7 +214,21 @@ class TagRepository {
       }
     }
 
-    const parser = new QueryParser({}, options)
+    const parser = new QueryParser(
+      {
+        manyToMany: {
+          members: {
+            table: 'tags',
+            relationTable: {
+              name: 'memberTags',
+              from: 'tagId',
+              to: 'memberId',
+            },
+          },
+        },
+      },
+      options,
+    )
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
       orderBy: orderBy || ['createdAt_DESC'],

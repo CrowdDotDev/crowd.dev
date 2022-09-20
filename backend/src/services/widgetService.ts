@@ -101,6 +101,17 @@ export default class WidgetService {
     return WidgetRepository.findAndCountAll(args, this.options)
   }
 
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return WidgetRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
+  }
+
   async findByType(type) {
     return WidgetRepository.findByType(type, this.options)
   }

@@ -525,6 +525,17 @@ export default class MemberService {
     return MemberRepository.findAndCountAll(args, this.options)
   }
 
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return MemberRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
+  }
+
   async findMembersWithMergeSuggestions() {
     return MemberRepository.findMembersWithMergeSuggestions(this.options)
   }

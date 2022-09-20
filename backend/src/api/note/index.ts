@@ -1,4 +1,5 @@
 export default (app) => {
+  app.post(`/tenant/:tenantId/note/query`, require('./noteQuery').default)
   app.post(`/tenant/:tenantId/note`, require('./noteCreate').default)
   app.put(`/tenant/:tenantId/note/:id`, require('./noteUpdate').default)
   app.post(`/tenant/:tenantId/note/import`, require('./noteImport').default)
