@@ -22,7 +22,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.conversationCreate)
 
-    const payload = await new ConversationService(req).create(req.body.data)
+    const payload = await new ConversationService(req).create(req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

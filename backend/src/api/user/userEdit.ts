@@ -9,7 +9,7 @@ export default async (req, res) => {
 
     const editor = new UserEditor(req)
 
-    await editor.update(req.body.data)
+    await editor.update(req.body)
 
     const payload = true
 

@@ -7,7 +7,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.noteImport)
 
-    await new NoteService(req).import(req.body.data, req.body.importHash)
+    await new NoteService(req).import(req.body, req.body.importHash)
 
     const payload = true
 

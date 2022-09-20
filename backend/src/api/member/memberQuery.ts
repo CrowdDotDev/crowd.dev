@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-    const payload = await new MemberService(req).query(req.body.data)
+    const payload = await new MemberService(req).query(req.body)
 
     if (req.query.filter && Object.keys(req.query.filter).length > 0) {
       track('Member Advanced Fitler', { ...payload }, { ...req })

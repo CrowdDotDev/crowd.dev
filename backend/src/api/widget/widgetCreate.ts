@@ -8,7 +8,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.widgetCreate)
 
-    const payload = await new WidgetService(req).create(req.body.data)
+    const payload = await new WidgetService(req).create(req.body)
 
     track(
       'Widget Created',

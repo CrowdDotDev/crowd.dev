@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.activityRead)
 
-    const payload = await new ActivityService(req).query(req.body.data)
+    const payload = await new ActivityService(req).query(req.body)
 
     if (req.query.filter && Object.keys(req.query.filter).length > 0) {
       track('Activities Advanced Fitler', { ...payload }, { ...req })
