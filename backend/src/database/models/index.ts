@@ -60,6 +60,7 @@ function models() {
     require('./automation').default,
     require('./automationExecution').default,
     require('./organization').default,
+    require('./organizationCache').default,
     require('./memberAttributeSettings').default,
     require('./task').default,
     require('./note').default,

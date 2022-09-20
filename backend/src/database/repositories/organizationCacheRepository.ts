@@ -4,7 +4,7 @@ import AuditLogRepository from './auditLogRepository'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 
-class organizationCacheRepository {
+class OrganizationCacheRepository {
   static async create(data, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -32,49 +32,9 @@ class organizationCacheRepository {
       },
     )
 
-    await record.setOrganizationsSeeded(data.organizationsSeeded, {
-      transaction,
-    })
-
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
-  }
-
-  /**
-   * Add a list of seeded organizations IDs to the cache relation.
-   * @param url If of the cached organization
-   * @param data List of IDs of organizations to be added to the cache
-   * @param options IRepositoryOptions
-   * @returns The updated organization cache record, with the organizationsSeeded field filled
-   */
-  static async addOrganizationsSeeded(url, data: [string], options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
-    const record = await options.database.organizationCache.findOne({
-      where: {
-        url,
-      },
-      transaction,
-    })
-
-    if (!record) {
-      throw new Error404()
-    }
-
-    const currentSeeded = (
-      await record.getOrganizationsSeeded({
-        transaction,
-      })
-    ).map((record) => record.id)
-
-    await record.setOrganizationsSeeded([...currentSeeded, ...data], {
-      transaction,
-    })
-
-    await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
-
-    return this.findById(record.id, options, true)
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -115,10 +75,6 @@ class organizationCacheRepository {
       },
     )
 
-    await record.setOrganizationsSeeded(data.organizationsSeeded || [], {
-      transaction,
-    })
-
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -146,7 +102,7 @@ class organizationCacheRepository {
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
   }
 
-  static async findById(id, options: IRepositoryOptions, fillRelations = false) {
+  static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const include = []
@@ -163,17 +119,10 @@ class organizationCacheRepository {
       throw new Error404()
     }
     const output = record.get({ plain: true })
-    if (fillRelations) {
-      output.organizationsSeeded = (
-        await record.getOrganizationsSeeded({
-          transaction,
-        })
-      ).map((record) => record.id)
-    }
     return output
   }
 
-  static async findByUrl(url, options: IRepositoryOptions, fillRelations = false) {
+  static async findByUrl(url, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const include = []
@@ -191,13 +140,6 @@ class organizationCacheRepository {
     }
 
     const output = record.get({ plain: true })
-    if (fillRelations) {
-      output.organizationsSeeded = (
-        await record.getOrganizationsSeeded({
-          transaction,
-        })
-      ).map((record) => record.id)
-    }
     return output
   }
 
@@ -222,4 +164,4 @@ class organizationCacheRepository {
   }
 }
 
-export default organizationCacheRepository
+export default OrganizationCacheRepository

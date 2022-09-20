@@ -272,6 +272,22 @@ class OrganizationRepository {
         })
       }
 
+      if (filter.url) {
+        advancedFilter.and.push({
+          url: {
+            textContains: filter.url,
+          },
+        })
+      }
+
+      if (filter.parentUrl) {
+        advancedFilter.and.push({
+          parentUrl: {
+            textContains: filter.parentUrl,
+          },
+        })
+      }
+
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 

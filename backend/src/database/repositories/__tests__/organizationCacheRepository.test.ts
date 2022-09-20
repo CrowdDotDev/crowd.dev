@@ -1,7 +1,6 @@
 import organizationCacheRepository from '../organizationCacheRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
-import OrganizationRepository from '../organizationRepository'
 
 const db = null
 
@@ -34,7 +33,7 @@ const toCreate = {
   revenueRange: [10, 50],
 }
 
-describe('organizationCacheCacheRepository tests', () => {
+describe('OrganizationCacheCacheRepository tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
   })
@@ -70,42 +69,6 @@ describe('organizationCacheCacheRepository tests', () => {
         deletedAt: null,
       }
       expect(organizationCacheCreated).toStrictEqual(expectedorganizationCacheCreated)
-    })
-
-    it('Should create the given organizationCache succesfully with a seeded organization', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const seeded = await OrganizationRepository.create(
-        { name: 'crowd.dev' },
-        mockIRepositoryOptions,
-      )
-
-      const organizationCacheCreated = await organizationCacheRepository.create(
-        { ...toCreate, organizationsSeeded: [seeded.id] },
-        mockIRepositoryOptions,
-      )
-
-      const found = await organizationCacheRepository.findById(
-        organizationCacheCreated.id,
-        mockIRepositoryOptions,
-        true,
-      )
-
-      expect(found.organizationsSeeded).toStrictEqual([seeded.id])
-
-      found.createdAt = organizationCacheCreated.createdAt.toISOString().split('T')[0]
-      found.updatedAt = organizationCacheCreated.updatedAt.toISOString().split('T')[0]
-
-      const expectedFound = {
-        id: organizationCacheCreated.id,
-        ...toCreate,
-        organizationsSeeded: [seeded.id],
-        importHash: null,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-      }
-      expect(found).toStrictEqual(expectedFound)
     })
 
     it('Should throw sequelize not null error -- name field is required', async () => {
@@ -279,55 +242,6 @@ describe('organizationCacheCacheRepository tests', () => {
           mockIRepositoryOptions,
         ),
       ).rejects.toThrowError(new Error404())
-    })
-  })
-
-  describe('Add organizationsSeeded method', () => {
-    it('Should add the organizations seeded to a cache record without organizations', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const organizationCacheCreated = await organizationCacheRepository.create(
-        toCreate,
-        mockIRepositoryOptions,
-      )
-
-      const seeded = await OrganizationRepository.create(
-        { name: 'crowd.dev' },
-        mockIRepositoryOptions,
-      )
-
-      const withSeeded = await organizationCacheRepository.addOrganizationsSeeded(
-        organizationCacheCreated.url,
-        [seeded.id],
-        mockIRepositoryOptions,
-      )
-
-      expect(withSeeded.organizationsSeeded).toStrictEqual([seeded.id])
-    })
-
-    it('Should add the organizations seeded to a cache record with seeded organizations', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const seeded1 = await OrganizationRepository.create(
-        { name: 'crowd.dev' },
-        mockIRepositoryOptions,
-      )
-      const organizationCacheCreated = await organizationCacheRepository.create(
-        { ...toCreate, organizationsSeeded: [seeded1.id] },
-        mockIRepositoryOptions,
-      )
-
-      const seeded2 = await OrganizationRepository.create(
-        { name: 'crowd.dev2' },
-        mockIRepositoryOptions,
-      )
-
-      const withSeeded = await organizationCacheRepository.addOrganizationsSeeded(
-        organizationCacheCreated.url,
-        [seeded2.id],
-        mockIRepositoryOptions,
-      )
-
-      expect(withSeeded.organizationsSeeded).toStrictEqual([seeded1.id, seeded2.id])
     })
   })
 

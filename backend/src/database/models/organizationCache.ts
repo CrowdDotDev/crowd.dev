@@ -92,11 +92,5 @@ export default (sequelize) => {
     },
   )
 
-  organizationCache.associate = (models) => {
-    models.organizationCache.hasMany(models.organization, {
-      as: 'organizationsSeeded',
-    })
-  }
-
   return organizationCache
 }

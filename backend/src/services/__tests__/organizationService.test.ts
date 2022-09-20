@@ -96,10 +96,8 @@ describe('OrganizationService tests', () => {
       const foundCache = await organizationCacheRepository.findByUrl(
         'crowd.dev',
         mockIServiceOptions,
-        true,
       )
 
-      expect(foundCache.organizationsSeeded).toStrictEqual([added.id])
       expect(foundCache.url).toEqual('crowd.dev')
       expect(foundCache.name).toEqual(expectedEnriched.name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
@@ -142,10 +140,8 @@ describe('OrganizationService tests', () => {
       const foundCache = await organizationCacheRepository.findByUrl(
         'crowd.dev',
         mockIServiceOptions,
-        true,
       )
 
-      expect(foundCache.organizationsSeeded).toStrictEqual([added.id])
       expect(foundCache.url).toEqual('crowd.dev')
       expect(foundCache.name).toEqual(expectedEnriched.name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
@@ -191,10 +187,8 @@ describe('OrganizationService tests', () => {
       const foundCache = await organizationCacheRepository.findByUrl(
         'crowd.dev',
         mockIServiceOptions,
-        true,
       )
 
-      expect(foundCache.organizationsSeeded).toStrictEqual([added.id])
       expect(foundCache.url).toEqual('crowd.dev')
       expect(foundCache.name).toEqual(expectedEnriched.name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
@@ -229,9 +223,7 @@ describe('OrganizationService tests', () => {
       const foundCache2 = await organizationCacheRepository.findByUrl(
         'crowd.dev',
         mockIServiceOptions,
-        true,
       )
-      expect(foundCache2.organizationsSeeded).toStrictEqual([added.id, added2.id])
       expect(foundCache2.id).toEqual(foundCache.id)
     })
 

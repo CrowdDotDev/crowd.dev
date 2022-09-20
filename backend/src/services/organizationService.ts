@@ -27,7 +27,6 @@ export default class OrganizationService {
 
     try {
       let wasEnriched = false
-      let wasExisting = false
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
       const existingByName = data.name
@@ -74,7 +73,6 @@ export default class OrganizationService {
               ...data,
               ...cacheExistig,
             }
-            wasExisting = true
           } else {
             try {
               const enrichedData = await enrichOrganization(data.url)
@@ -110,13 +108,6 @@ export default class OrganizationService {
             transaction,
           },
         )
-      }
-
-      if (wasExisting) {
-        await organizationCacheRepository.addOrganizationsSeeded(record.url, [record.id], {
-          ...this.options,
-          transaction,
-        })
       }
 
       await SequelizeRepository.commitTransaction(transaction)

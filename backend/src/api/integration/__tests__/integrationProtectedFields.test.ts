@@ -31,7 +31,7 @@ describe('Integration protected fields tests', () => {
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -50,7 +50,7 @@ describe('Integration protected fields tests', () => {
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(403)
         })
@@ -77,7 +77,7 @@ describe('Integration protected fields tests', () => {
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -102,7 +102,7 @@ describe('Integration protected fields tests', () => {
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(403)
         })

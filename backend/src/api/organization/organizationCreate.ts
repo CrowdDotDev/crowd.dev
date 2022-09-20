@@ -22,8 +22,8 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.organizationCreate)
 
-    const enrichP = req.body?.data?.shouldEnrich || false
-    const payload = await new OrganizationService(req).create(req.body.data, enrichP)
+    const enrichP = req.body?.shouldEnrich || false
+    const payload = await new OrganizationService(req).findOrCreate(req.body, enrichP)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

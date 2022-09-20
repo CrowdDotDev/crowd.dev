@@ -206,7 +206,6 @@ describe('OrganizationRepository tests', () => {
       const expectedOrganizationFound = {
         id: organizationCreated.id,
         ...toCreate,
-        organizationCacheId: null,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -240,7 +239,6 @@ describe('OrganizationRepository tests', () => {
       const expectedOrganizationFound = {
         id: organizationCreated.id,
         ...toCreate,
-        organizationCacheId: null,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
