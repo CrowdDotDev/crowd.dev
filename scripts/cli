@@ -286,7 +286,7 @@ function start() {
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME^^} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service => ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service => ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0

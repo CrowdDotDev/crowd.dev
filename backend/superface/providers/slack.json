@@ -1,0 +1,16 @@
+{
+  "name": "slack",
+  "services": [
+    {
+      "id": "api",
+      "baseUrl": "https://slack.com/api"
+    }
+  ],
+  "defaultService": "api",
+  "parameters": [
+    {
+      "name": "accessToken",
+      "description": "User-authorized access token"
+    }
+  ]
+}
