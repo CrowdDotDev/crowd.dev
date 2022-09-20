@@ -26,7 +26,7 @@ export default async (req, res) => {
     const payload = await new ConversationService(req).query(req.body.data)
 
     if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Activities Advanced Fitler', { ...payload }, { ...req })
+      track('Conversations Advanced Fitler', { ...payload }, { ...req })
     }
 
     await ApiResponseHandler.success(req, res, payload)

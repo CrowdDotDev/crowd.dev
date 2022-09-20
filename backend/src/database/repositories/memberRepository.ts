@@ -394,7 +394,8 @@ class MemberRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    // TODO-sync
+    { filter = {} as any, advancedFilter = false as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
     const tenant = SequelizeRepository.getCurrentTenant(options)

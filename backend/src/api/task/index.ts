@@ -1,4 +1,5 @@
 export default (app) => {
+  app.post(`/tenant/:tenantId/task/query`, require('./taskQuery').default)
   app.post(`/tenant/:tenantId/task`, require('./taskCreate').default)
   app.put(`/tenant/:tenantId/task/:id`, require('./taskUpdate').default)
   app.put(`/tenant/:tenantId/task/:id/assignTo/:userId`, require('./taskAssignTo').default)
