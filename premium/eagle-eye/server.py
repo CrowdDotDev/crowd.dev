@@ -24,5 +24,4 @@ def search():
         exclude = body.get('filters', [])
         return search_main(queries, ndays, exclude)
     except Exception as e:
-        print(e)
         return str(e)
