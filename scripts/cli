@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 PROJECT_NAME="crowd"
 DOCKER_NETWORK_SUBNET="${CROWD_NETWORK_SUBNET:-10.90.0.0/24}"
 DOCKER_NETWORK_GATEWAY="${CROWD_NETWORK_GATEWAY:-10.90.0.1}"
@@ -9,6 +11,13 @@ source $CLI_HOME/utils
 
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
+
+say "Detected services:"
+for i in $CONTAINERS
+    do
+        say "- $i"
+    done
+
 
 function prepare_service_string() {
     if [ $1 == "HELP" ]; then delimiter1=" | "; delimiter2=" => | "; fi
