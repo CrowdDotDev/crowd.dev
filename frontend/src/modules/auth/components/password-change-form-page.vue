@@ -19,13 +19,13 @@
       </h1>
 
       <el-form
+        ref="form"
         :label-position="labelPosition"
         :label-width="labelWidthForm"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doSubmit"
         class="form"
-        ref="form"
+        @submit.prevent="doSubmit"
       >
         <el-form-item
           :label="fields.oldPassword.label"
@@ -35,8 +35,8 @@
           <el-col :lg="11" :md="16" :sm="24">
             <el-input
               ref="focus"
-              type="password"
               v-model="model[fields.oldPassword.name]"
+              type="password"
             />
           </el-col>
         </el-form-item>
@@ -49,8 +49,8 @@
         >
           <el-col :lg="11" :md="16" :sm="24">
             <el-input
-              type="password"
               v-model="model[fields.newPassword.name]"
+              type="password"
             />
           </el-col>
         </el-form-item>
@@ -65,10 +65,10 @@
         >
           <el-col :lg="11" :md="16" :sm="24">
             <el-input
-              type="password"
               v-model="
                 model[fields.newPasswordConfirmation.name]
               "
+              type="password"
             />
           </el-col>
         </el-form-item>
@@ -77,26 +77,24 @@
           <div class="form-buttons">
             <el-button
               :disabled="saveLoading"
-              @click="doSubmit"
-              icon="ri-lg ri-save-line"
               class="btn btn--primary"
+              @click="doSubmit"
             >
+              <i class="ri-lg ri-save-line mr-1" />
               <app-i18n code="common.save"></app-i18n>
             </el-button>
 
             <el-button
               :disabled="saveLoading"
               @click="doReset"
-              icon="ri-lg ri-arrow-go-back-line"
             >
+              <i class="ri-lg ri-arrow-go-back-line mr-1" />
               <app-i18n code="common.reset"></app-i18n>
             </el-button>
 
             <router-link :to="{ path: '/' }">
-              <el-button
-                :disabled="saveLoading"
-                icon="ri-close-line"
-              >
+              <el-button :disabled="saveLoading">
+                <i class="ri-close-line mr-1" />
                 <app-i18n code="common.cancel"></app-i18n>
               </el-button>
             </router-link>
@@ -122,7 +120,7 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-password-change-form-page',
+  name: 'AppPasswordChangeFormPage',
 
   data() {
     const rules = formSchema.rules()

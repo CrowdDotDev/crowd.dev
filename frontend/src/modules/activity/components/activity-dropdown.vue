@@ -1,33 +1,33 @@
 <template>
   <div>
     <el-dropdown
+      v-if="!isReadOnly"
       trigger="click"
       @command="handleCommand"
-      v-if="!isReadOnly"
     >
       <span class="el-dropdown-link">
         <i class="ri-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="activityEdit"
-          >Edit Activity</el-dropdown-item
+      <template #dropdown>
+        <el-dropdown-item command="activityEdit">
+          <i class="ri-pencil-line mr1" />
+          Edit Activity</el-dropdown-item
         >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="activityDelete"
-          >Delete Activity</el-dropdown-item
+        <el-dropdown-item command="activityDelete"
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Activity</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
     <el-dialog
-      :visible.sync="editing"
+      v-if="editing"
+      v-model="editing"
       title="Edit Activity"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="editing = false"
+      :close-on-click-modal="false"
       custom-class="el-dialog--lg"
+      @close="editing = false"
     >
       <app-activity-form-page
         :id="activity.id"
@@ -45,11 +45,20 @@ import ActivityFormPage from './activity-form-page'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 
 export default {
-  name: 'app-activity-dropdown',
+  name: 'AppActivityDropdown',
+  components: {
+    'app-activity-form-page': ActivityFormPage
+  },
   props: {
     activity: {
       type: Object,
       default: () => {}
+    }
+  },
+  emits: ['activity-destroyed'],
+  data() {
+    return {
+      editing: false
     }
   },
   computed: {
@@ -64,14 +73,6 @@ export default {
           this.currentUser
         ).edit === false
       )
-    }
-  },
-  components: {
-    'app-activity-form-page': ActivityFormPage
-  },
-  data() {
-    return {
-      editing: false
     }
   },
   methods: {

@@ -32,24 +32,24 @@
       />
       <div class="eagle-eye-list-item-body-actions">
         <el-tooltip
+          v-if="!record.status"
           content="This post will be excluded from Inbox searches"
           placement="top"
-          v-if="!record.status"
         >
           <el-button
-            icon="ri-eye-off-line"
             class="btn btn--secondary"
             @click="handleExcludeClick"
           >
+            <i class="ri-eye-off-line mr-1" />
             Exclude
           </el-button>
         </el-tooltip>
         <el-button
-          icon="ri-arrow-go-back-line"
+          v-else-if="record.status === 'rejected'"
           class="btn btn--secondary"
           @click="handleRevertExcludeClick"
-          v-else-if="record.status === 'rejected'"
         >
+          <i class="ri-arrow-go-back-line mr-1" />
           Remove from excluded
         </el-button>
         <span v-else></span>
@@ -76,7 +76,7 @@ import { mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 
 export default {
-  name: 'app-eagle-eye-list-item',
+  name: 'AppEagleEyeListItem',
   props: {
     record: {
       type: Object,
@@ -175,6 +175,11 @@ export default {
 
     &-text {
       @apply text-sm text-gray-600;
+
+      pre,
+      code {
+        @apply whitespace-pre-wrap;
+      }
     }
   }
 }

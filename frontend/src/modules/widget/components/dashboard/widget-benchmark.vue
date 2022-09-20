@@ -1,11 +1,11 @@
 <template>
   <app-widget
-    :config="config"
-    @open-settings-modal="modal = true"
-    class="widget-benchmark"
     v-if="widget"
+    :config="config"
+    class="widget-benchmark"
+    @open-settings-modal="modal = true"
   >
-    <div class="empty-placeholder" v-if="hasNoData">
+    <div v-if="hasNoData" class="empty-placeholder">
       <div class="text-center">
         <button
           class="btn btn--primary"
@@ -32,15 +32,16 @@
       }"
     />
     <el-dialog
+      v-model="modal"
       :title="`${config.title} Settings`"
-      :visible.sync="modal"
+      :close-on-click-modal="false"
       @close="modal = false"
     >
       <app-benchmark-settings
+        v-if="config.type === 'benchmark'"
         :widget="widget"
         :timeframe-options="timeframeOptions"
         @submit="handleSettingsSubmit"
-        v-if="config.type === 'benchmark'"
       />
     </el-dialog>
   </app-widget>
@@ -50,15 +51,50 @@
 import Widget from '../widget'
 import BenchmarkSettings from './_settings/_benchmark-settings'
 import GithubGetStarHistory from '@/utils/github-get-star-history'
-import authAxios from '@/shared/axios/auth-axios'
 import { mapGetters, mapActions } from 'vuex'
 import moment from 'moment'
 
 export default {
-  name: 'app-widget-benchmark',
+  name: 'AppWidgetBenchmark',
   components: {
     'app-widget': Widget,
     'app-benchmark-settings': BenchmarkSettings
+  },
+  data() {
+    return {
+      modal: false,
+      loading: true,
+      timeframeOptions: [
+        {
+          label: 'Last week',
+          value: 'last_week',
+          date: moment()
+            .subtract(7, 'days')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last two weeks',
+          value: 'last_two_weeks',
+          date: moment()
+            .subtract(14, 'days')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last month',
+          value: 'last_month',
+          date: moment()
+            .subtract(1, 'months')
+            .format('YYYY-MM-DD')
+        },
+        {
+          label: 'Last three months',
+          value: 'last_three_months',
+          date: moment()
+            .subtract(3, 'months')
+            .format('YYYY-MM-DD')
+        }
+      ]
+    }
   },
   computed: {
     ...mapGetters({
@@ -102,42 +138,10 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      modal: false,
-      loading: true,
-      timeframeOptions: [
-        {
-          label: 'Last week',
-          value: 'last_week',
-          date: moment()
-            .subtract(7, 'days')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last two weeks',
-          value: 'last_two_weeks',
-          date: moment()
-            .subtract(14, 'days')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last month',
-          value: 'last_month',
-          date: moment()
-            .subtract(1, 'months')
-            .format('YYYY-MM-DD')
-        },
-        {
-          label: 'Last three months',
-          value: 'last_three_months',
-          date: moment()
-            .subtract(3, 'months')
-            .format('YYYY-MM-DD')
-        }
-      ]
-    }
+  async created() {
+    await this.refreshData(this.widget.settings)
   },
+
   methods: {
     ...mapActions({
       updateWidgetSettings: 'widget/updateSettings'
@@ -147,17 +151,6 @@ export default {
       await this.refreshData(settings)
       if (this.widget.settings.repositories.length > 0) {
         window.analytics.track('Set Benchmark')
-        try {
-          await authAxios.post(
-            `/tenant/${this.currentTenant.id}/microservices`,
-            {
-              init: true,
-              type: 'github_lookalike'
-            }
-          )
-        } catch (error) {
-          console.log(error)
-        }
       }
     },
     async refreshData(settings) {
@@ -189,9 +182,8 @@ export default {
           data: {
             settings: {
               repositories,
-              last_updated_at: moment().format(
-                'YYYY-MM-DD'
-              ),
+              last_updated_at:
+                moment().format('YYYY-MM-DD'),
               timeframe: timeframe
             }
           }
@@ -199,9 +191,6 @@ export default {
       }
       this.loading = false
     }
-  },
-  async created() {
-    await this.refreshData(this.widget.settings)
   }
 }
 </script>
@@ -209,7 +198,7 @@ export default {
 <style lang="scss">
 .widget-benchmark {
   .empty-placeholder {
-    @apply flex items-center justify-center flex-grow;
+    @apply flex items-center justify-center grow;
     min-height: 300px;
   }
 }

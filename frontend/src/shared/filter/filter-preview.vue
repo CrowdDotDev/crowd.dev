@@ -3,8 +3,8 @@
     <div class="filter-preview">
       <span class="filter-preview-values">
         <el-tag
-          :key="item.label"
           v-for="item of items"
+          :key="item.label"
           type="info"
           closable
           @close="onRemove(item.key)"
@@ -17,8 +17,22 @@
 
 <script>
 export default {
-  name: 'app-filter-preview',
-  props: ['values', 'fields', 'expanded'],
+  name: 'AppFilterPreview',
+  props: {
+    values: {
+      type: Object,
+      default: () => {}
+    },
+    fields: {
+      type: Object,
+      default: () => {}
+    },
+    expanded: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['remove'],
 
   computed: {
     items() {

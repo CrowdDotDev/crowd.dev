@@ -12,6 +12,7 @@ import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
 import { getConfig } from '../config'
+import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
   options: IServiceOptions
@@ -124,6 +125,14 @@ export default class ActivityService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (!existing) {
+        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new activity automation - ${record.id}!`, err),
+          )
+      }
 
       return record
     } catch (error) {

@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n'
+import { i18n, init as i18nInit } from '@/i18n'
 import DateTimeField from '@/shared/fields/date-time-field'
 import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import IdField from '@/shared/fields/id-field'
@@ -8,6 +8,8 @@ import { GenericModel } from '@/shared/model/generic-model'
 function label(name) {
   return i18n(`tenant.fields.${name}`)
 }
+
+i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),

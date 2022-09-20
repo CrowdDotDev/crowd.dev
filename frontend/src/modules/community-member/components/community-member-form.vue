@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-form
+      v-if="model"
+      ref="form"
       :label-position="labelPosition"
       :label-width="labelWidthForm"
       :model="model"
       :rules="rules"
-      @submit.native.prevent="doSubmit"
       class="form"
-      ref="form"
-      v-if="model"
+      @submit.prevent="doSubmit"
     >
       <div class="flex items-center -mx-2">
         <el-form-item
@@ -17,19 +17,19 @@
           :required="fields.username.required"
           class="w-full lg:w-1/2 mx-2"
         >
-          <div
-            class="el-form-item__error"
-            slot="error"
-            slot-scope="scope"
-          >
-            {{
-              scope.error.split('username.crowdUsername')[1]
-            }}
-          </div>
+          <template #error="scope">
+            <span class="el-form-item__error">
+              {{
+                scope.error.split(
+                  'username.crowdUsername'
+                )[1]
+              }}
+            </span>
+          </template>
           <el-input
+            ref="focus"
             v-model="model.username.crowdUsername"
             :placeholder="fields.username.placeholder"
-            ref="focus"
           />
           <div
             v-if="fields.username.hint"
@@ -94,8 +94,8 @@
       </el-form-item>
       <el-form-item :label="fields.bio.label">
         <el-input
-          type="textarea"
           v-model="model[fields.bio.name]"
+          type="textarea"
         />
       </el-form-item>
 
@@ -114,10 +114,10 @@
         :required="fields.tags.required"
       >
         <app-tag-autocomplete-input
-          :fetchFn="fields.tags.fetchFn"
-          :mapperFn="fields.tags.mapperFn"
-          :createIfNotFound="true"
           v-model="model[fields.tags.name]"
+          :fetch-fn="fields.tags.fetchFn"
+          :mapper-fn="fields.tags.mapperFn"
+          :create-if-not-found="true"
           :placeholder="fields.tags.placeholder"
         ></app-tag-autocomplete-input>
 
@@ -129,28 +129,28 @@
       <div class="form-buttons mt-8">
         <el-button
           :disabled="saveLoading"
-          @click="doSubmit"
-          icon="ri-lg ri-save-line"
           class="btn btn--primary mr-2"
+          @click="doSubmit"
         >
+          <i class="ri-lg ri-save-line mr-1" />
           <app-i18n code="common.save"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doReset"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
+          @click="doReset"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           <app-i18n code="common.reset"></app-i18n>
         </el-button>
 
         <el-button
           :disabled="saveLoading"
-          @click="doCancel"
-          icon="ri-lg ri-close-line"
           class="btn btn--secondary"
+          @click="doCancel"
         >
+          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
       </div>
@@ -177,20 +177,45 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-community-member-form',
-
-  props: ['isEditing', 'record', 'saveLoading', 'modal'],
+  name: 'AppCommunityMemberForm',
 
   components: {
     'app-custom-attribute-input': CustomAttributeInput,
     AppCommunityMemberPlatformInput
   },
 
+  props: {
+    isEditing: {
+      type: Boolean,
+      default: false
+    },
+    saveLoading: {
+      type: Boolean,
+      default: false
+    },
+    record: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: ['cancel', 'submit'],
+
   data() {
     return {
       rules: formSchema.rules(),
       model: null,
       platforms: []
+    }
+  },
+
+  computed: {
+    ...mapGetters({
+      labelPosition: 'layout/labelPosition',
+      labelWidthForm: 'layout/labelWidthForm'
+    }),
+
+    fields() {
+      return fields
     }
   },
 
@@ -263,17 +288,6 @@ export default {
           url: null
         }
       ]
-    }
-  },
-
-  computed: {
-    ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm'
-    }),
-
-    fields() {
-      return fields
     }
   },
 

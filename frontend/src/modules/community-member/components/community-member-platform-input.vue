@@ -1,8 +1,8 @@
 <template>
   <div class="app-community-member-platform-input">
     <div
-      class="flex flex-1 mb-1 -mx-2"
       v-if="platforms.length > 0"
+      class="flex flex-1 mb-1 -mx-2"
     >
       <div
         class="mx-2 flex flex-1 text-xs text-gray-600 uppercase"
@@ -19,38 +19,43 @@
       >
         Profile URL
       </div>
-      <div class="w-8" v-if="platforms.length > 1"></div>
+      <div v-if="platforms.length > 1" class="w-8"></div>
     </div>
-    <el-form-item
+    <div
       v-for="(platform, index) in platforms"
       :key="index"
+      class="flex -mx-2"
     >
-      <app-platform-autocomplete-input
-        v-model="platform.name"
-        placeholder="Github"
-        class="block mx-2 flex flex-1"
-      />
-      <el-input
-        placeholder="johndoe"
-        v-model="platform.username"
-        class="block mx-2 flex flex-1"
-      />
-      <el-input
-        placeholder="https://github.com/johndoe"
-        v-model="platform.url"
-        class="block mx-2 flex flex-1"
-      />
+      <el-form-item class="flex flex-grow mx-2">
+        <app-platform-autocomplete-input
+          v-model="platform.name"
+          placeholder="Github"
+          class="flex flex-1"
+        />
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="platform.username"
+          placeholder="johndoe"
+        />
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="platform.url"
+          placeholder="https://github.com/johndoe"
+        />
+      </el-form-item>
       <el-tooltip content="Click to delete" placement="top">
         <button
-          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
           v-if="platforms.length > 1"
+          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8 h-10"
           type="button"
           @click="deletePlatform(index)"
         >
           <i class="ri-delete-bin-line ri-lg"></i>
         </button>
       </el-tooltip>
-    </el-form-item>
+    </div>
     <button
       class="btn btn--link"
       type="button"
@@ -66,16 +71,17 @@ import { i18n } from '@/i18n'
 import AppPlatformAutocompleteInput from '@/shared/form/platform-autocomplete-input'
 
 export default {
-  name: 'app-community-member-platform-input',
+  name: 'AppCommunityMemberPlatformInput',
+  components: {
+    AppPlatformAutocompleteInput
+  },
   props: {
     value: {
       type: Array,
       default: () => []
     }
   },
-  components: {
-    AppPlatformAutocompleteInput
-  },
+  emits: ['update:modelValue'],
   data() {
     return {
       platforms: [].concat(this.value)
@@ -85,7 +91,7 @@ export default {
     platforms: {
       handler(newValue) {
         return this.$emit(
-          'input',
+          'update:modelValue',
           newValue.reduce((acc, item) => {
             if (
               item.name &&
@@ -130,20 +136,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.app-community-member-platform-input {
-  .el-form-item {
-    &.el-form-item {
-      @apply mb-2;
-    }
-    &__content {
-      @apply flex flex-1 items-center -mx-2;
-      & > .el-input,
-      & > .block > .el-select {
-        @apply w-auto;
-      }
-    }
-  }
-}
-</style>

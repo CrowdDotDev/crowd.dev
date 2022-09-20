@@ -20,9 +20,9 @@
         </div>
       </div>
       <div
-        class="app-page-spinner"
         v-else-if="loading"
         v-loading="loading"
+        class="app-page-spinner"
       ></div>
       <div v-else>
         <div class="flex justify-between items-center pt-4">
@@ -47,7 +47,7 @@ import AppEagleEyeSearch from './eagle-eye-search'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-eagle-eye',
+  name: 'AppEagleEye',
   components: {
     AppEagleEyeHeader,
     AppEagleEyeList,

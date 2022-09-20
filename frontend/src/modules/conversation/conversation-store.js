@@ -1,7 +1,6 @@
 import { ConversationService } from '@/modules/conversation/conversation-service'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Errors from '@/shared/error/errors'
-import Vue from 'vue'
 import Message from '@/shared/message/message'
 
 const INITIAL_PAGE_SIZE = 20
@@ -9,26 +8,28 @@ const INITIAL_PAGE_SIZE = 20
 export default {
   namespaced: true,
 
-  state: {
-    records: {},
-    rows: [],
-    count: 0,
-    loading: {
-      table: false,
-      view: false,
-      form: false,
-      submit: false
-    },
-    filter: {},
-    rawFilter: {},
-    pagination: {},
-    sorter: {
-      prop: 'lastActive',
-      order: 'descending'
-    },
-    table: null,
-    form: null,
-    settingsVisible: false
+  state: () => {
+    return {
+      records: {},
+      rows: [],
+      count: 0,
+      loading: {
+        table: false,
+        view: false,
+        form: false,
+        submit: false
+      },
+      filter: {},
+      rawFilter: {},
+      pagination: {},
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
+      table: null,
+      form: null,
+      settingsVisible: false
+    }
   },
 
   getters: {
@@ -107,7 +108,9 @@ export default {
     },
 
     selectedRows: (state) => {
-      return state.table ? state.table.selection : []
+      return state.table
+        ? state.table.getSelectionRows()
+        : []
     },
 
     form: (state) => state.form,
@@ -207,17 +210,13 @@ export default {
       state.loading.table = false
       for (let conversation of payload.rows) {
         if (state.records[conversation.id]) {
-          Vue.set(state.records, conversation.id, {
+          state.records[conversation.id] = {
             ...conversation,
             activities:
               state.records[conversation.id].activities
-          })
+          }
         } else {
-          Vue.set(
-            state.records,
-            conversation.id,
-            conversation
-          )
+          state.records[conversation.id] = conversation
         }
       }
       state.rows = payload.rows.map((row) => row.id)
@@ -236,7 +235,7 @@ export default {
 
     FIND_SUCCESS(state, record) {
       state.loading.view = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
     },
 
     FIND_ERROR(state) {
@@ -264,7 +263,7 @@ export default {
 
     CREATE_SUCCESS(state, record) {
       state.loading.submit = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
       if (state.rows.indexOf(record.id) === -1) {
         state.rows.push(record.id)
       }
@@ -281,7 +280,7 @@ export default {
 
     UPDATE_SUCCESS(state, record) {
       state.loading.submit = false
-      Vue.set(state.records, record.id, record)
+      state.records[record.id] = record
     },
 
     UPDATE_ERROR(state) {
@@ -296,7 +295,7 @@ export default {
       state.loading.submit = false
       const index = state.rows.indexOf(conversationId)
       state.rows.splice(index, 1)
-      Vue.delete(state.records, conversationId)
+      delete state.records[conversationId]
     },
 
     DESTROY_ERROR(state) {
@@ -313,7 +312,7 @@ export default {
       for (const conversationId of conversationIds) {
         const index = state.rows.indexOf(conversationId)
         state.rows.splice(index, 1)
-        Vue.delete(state.records, conversationId)
+        delete state.records[conversationId]
       }
     },
 
@@ -329,11 +328,7 @@ export default {
       state.loading.submit = false
 
       for (const conversationId of conversationIds) {
-        Vue.set(
-          state.records[conversationId],
-          'published',
-          true
-        )
+        state.records[conversationId].published = true
       }
     },
 
@@ -349,11 +344,7 @@ export default {
       state.loading.submit = false
 
       for (const conversationId of conversationIds) {
-        Vue.set(
-          state.records[conversationId],
-          'published',
-          false
-        )
+        state.records[conversationId].published = false
       }
     },
 
@@ -482,7 +473,7 @@ export default {
         )
 
         commit('CREATE_SUCCESS', response)
-        routerAsync().push('/conversations')
+        router.push('/conversations')
       } catch (error) {
         Errors.handle(error)
         commit('FETCH_ERROR')
@@ -502,7 +493,7 @@ export default {
 
         commit('DESTROY_SUCCESS', conversationId)
 
-        routerAsync().push('/conversations')
+        router.push('/conversations')
 
         dispatch(
           `conversation/doFetch`,
@@ -530,7 +521,7 @@ export default {
 
         commit('DESTROY_ALL_SUCCESS', conversationIds)
 
-        routerAsync().push('/conversations')
+        router.push('/conversations')
 
         dispatch(
           `conversation/doFetch`,

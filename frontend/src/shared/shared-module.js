@@ -1,6 +1,3 @@
-import formatDateFilter from '@/shared/filters/format-date-filter'
-import formatDatetimeFilter from '@/shared/filters/format-datetime-filter'
-import AutofocusMixin from '@/shared/mixins/autofocus-mixin'
 import I18n from '@/shared/i18n/i18n.vue'
 import I18nFlags from '@/shared/i18n/i18n-flags.vue'
 import I18nSelect from '@/shared/i18n/i18n-select.vue'
@@ -25,6 +22,8 @@ import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
+import Teleport from '@/shared/teleport/teleport.vue'
+import Popover from '@/shared/popover/popover.vue'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -47,17 +46,17 @@ export default {
     'app-autocomplete-one-input': AutocompleteOneInput,
     'app-autocomplete-many-input': AutocompleteManyInput,
     'app-view-item-relation-to-one': ViewItemRelationToOne,
-    'app-view-item-relation-to-many': ViewItemRelationToMany,
+    'app-view-item-relation-to-many':
+      ViewItemRelationToMany,
     'app-list-item-relation-to-one': ListItemRelationToOne,
-    'app-list-item-relation-to-many': ListItemRelationToMany,
+    'app-list-item-relation-to-many':
+      ListItemRelationToMany,
     'app-filter-preview': FilterPreview,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
     'app-alert': Alert,
-    'app-keywords-input': KeywordsInput
-  },
-
-  filters: [formatDateFilter, formatDatetimeFilter],
-
-  mixins: [AutofocusMixin]
+    'app-keywords-input': KeywordsInput,
+    'app-teleport': Teleport,
+    'app-popover': Popover
+  }
 }

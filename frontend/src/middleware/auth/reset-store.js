@@ -8,17 +8,14 @@ import { buildInitialState } from '@/store'
  * It runs buildInitialState to reset our Vuex store to prevent data leaking from different (and consecutives) signins
  *
  * @param to
- * @param next
  * @param store
  * @returns {Promise<*>}
  */
-export default async function ({ to, next, store }) {
+export default async function ({ to, store }) {
   if (to.path === '/auth/signin') {
     const initialState = buildInitialState()
     console.log(initialState)
     store.replaceState(initialState)
     console.log('store replaced')
   }
-
-  next()
 }

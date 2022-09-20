@@ -1,7 +1,7 @@
 <template>
   <div
-    class="app-page-toolbar conversation-list-toolbar"
     v-if="selectedRows.length > 0"
+    class="app-page-toolbar conversation-list-toolbar"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
@@ -10,49 +10,49 @@
     >
 
     <el-tooltip
+      v-if="hasPermissionToEdit && hasUnpublishedSelected"
       :content="publishButtonTooltip"
       :disabled="!publishButtonTooltip"
-      v-if="hasPermissionToEdit && hasUnpublishedSelected"
     >
       <span>
         <el-button
           :disabled="publishButtonDisabled"
-          @click="doPublishAllWithConfirm"
-          icon="ri-lg ri-upload-cloud-2-line"
           class="btn btn--secondary btn--secondary--orange mr-2"
+          @click="doPublishAllWithConfirm"
         >
+          <i class="ri-lg ri-upload-cloud-2-line mr-1" />
           Publish Conversations
         </el-button>
       </span>
     </el-tooltip>
     <el-tooltip
+      v-if="hasPermissionToEdit && hasPublishedSelected"
       :content="publishButtonTooltip"
       :disabled="!publishButtonTooltip"
-      v-if="hasPermissionToEdit && hasPublishedSelected"
     >
       <span>
         <el-button
           :disabled="publishButtonDisabled"
-          @click="doUnpublishAllWithConfirm"
-          icon="ri-lg ri-arrow-go-back-line"
           class="btn btn--secondary mr-2"
+          @click="doUnpublishAllWithConfirm"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Unpublish Conversations
         </el-button>
       </span>
     </el-tooltip>
     <el-tooltip
+      v-if="hasPermissionToDestroy"
       :content="destroyButtonTooltip"
       :disabled="!destroyButtonTooltip"
-      v-if="hasPermissionToDestroy"
     >
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          @click="doDestroyAllWithConfirm"
-          icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
+          @click="doDestroyAllWithConfirm"
         >
+          <i class="ri-lg ri-delete-bin-line mr-1" />
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
       </span>
@@ -66,7 +66,7 @@ import { ConversationPermissions } from '@/modules/conversation/conversation-per
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-conversation-list-toolbar',
+  name: 'AppConversationListToolbar',
 
   computed: {
     ...mapGetters({

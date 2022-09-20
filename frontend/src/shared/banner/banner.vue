@@ -4,11 +4,11 @@
       class="banner"
       :class="variant ? `banner--${variant}` : ''"
     >
-      <div class="flex items-center flex-grow">
-        <div class="banner-spinner" v-if="spinner">
+      <div class="flex items-center grow">
+        <div v-if="spinner" class="banner-spinner">
           <div
-            class="app-page-spinner"
             v-loading="true"
+            class="app-page-spinner"
           ></div>
         </div>
         <slot>This is an alert</slot>

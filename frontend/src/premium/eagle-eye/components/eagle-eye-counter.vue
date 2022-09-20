@@ -1,22 +1,24 @@
 <template>
-  <div class="text-gray-600 text-sm" v-if="count > 0">
-    {{ count }}
-    {{ typeOfPostsFound }} posts
-    {{
-      filter.keywords && filter.keywords.length > 0
-        ? 'found'
-        : ''
-    }}
-    <span v-if="activeTab === 'inbox'"
-      >・ {{ timeframe }}</span
-    >
+  <div>
+    <div v-if="count > 0" class="text-gray-600 text-sm">
+      {{ count }}
+      {{ typeOfPostsFound }} posts
+      {{
+        filter.keywords && filter.keywords.length > 0
+          ? 'found'
+          : ''
+      }}
+      <span v-if="activeTab === 'inbox'"
+        >・ {{ timeframe }}</span
+      >
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 export default {
-  name: 'app-eagle-eye-counter',
+  name: 'AppEagleEyeCounter',
   computed: {
     ...mapGetters({
       count: 'eagleEye/count',

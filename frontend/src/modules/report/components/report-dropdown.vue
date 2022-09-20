@@ -1,10 +1,10 @@
 <template>
   <div v-if="isReadOnly">
     <el-button
-      icon="ri-lg ri-clipboard-line"
       class="btn btn--secondary"
       @click="copyToClipboard(report.id)"
     >
+      <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
     </el-button>
   </div>
@@ -13,42 +13,42 @@
       <span class="el-dropdown-link">
         <i class="text-xl ri-more-line"></i>
       </span>
-      <el-dropdown-menu slot="dropdown">
+      <template #dropdown>
         <el-dropdown-item
-          icon="ri-link"
+          v-if="report.public"
           :command="{
             action: 'reportPublicUrl',
             report: report
           }"
-          v-if="report.public"
-          >Copy Public Url</el-dropdown-item
+          ><i class="ri-link mr-1"></i>Copy Public
+          Url</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-eye-line"
+          v-if="showViewReport"
           :command="{
             action: 'reportView',
             report: report
           }"
-          v-if="showViewReport"
-          >View Report</el-dropdown-item
+          ><i class="ri-eye-line mr-1" />View
+          Report</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-pencil-line"
           :command="{
             action: 'reportEdit',
             report: report
           }"
-          >Edit Report</el-dropdown-item
+          ><i class="ri-pencil-line mr-1" />Edit
+          Report</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-delete-bin-line"
           :command="{
             action: 'reportDelete',
             report: report
           }"
-          >Delete Report</el-dropdown-item
+          ><i class="ri-delete-bin-line mr-1" />Delete
+          Report</el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
   </div>
 </template>
@@ -61,7 +61,7 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 
 export default {
-  name: 'app-report-dropdown',
+  name: 'AppReportDropdown',
   props: {
     report: {
       type: Object,

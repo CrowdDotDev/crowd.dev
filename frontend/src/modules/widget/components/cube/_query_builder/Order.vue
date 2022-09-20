@@ -2,38 +2,36 @@
   <div>
     <label class="block leading-none mb-1">Order</label>
     <draggable
-      class="list-group"
       v-model="list"
+      class="list-group"
       @end="handleDragEnd"
     >
-      <div
-        v-for="member in list"
-        :key="member.id"
-        class="order-member"
-      >
-        <div class="order-member-name">
-          <i class="ri-drag-move-2-line"></i>
-          <span>{{ member.title }}</span>
+      <template #item="{ element }">
+        <div class="order-element">
+          <div class="order-element-name">
+            <i class="ri-drag-move-2-line"></i>
+            <span>{{ element.title }}</span>
+          </div>
+          <el-radio-group
+            :model-value="element.order"
+            size="small"
+            @input="
+              (value) =>
+                $emit('orderChange', element.id, value)
+            "
+          >
+            <el-radio-button label="asc" :name="element.id"
+              >Asc</el-radio-button
+            >
+            <el-radio-button label="desc" :name="element.id"
+              >Desc</el-radio-button
+            >
+            <el-radio-button label="none" :name="element.id"
+              >None</el-radio-button
+            >
+          </el-radio-group>
         </div>
-        <el-radio-group
-          :value="member.order"
-          size="small"
-          @input="
-            (value) =>
-              $emit('orderChange', member.id, value)
-          "
-        >
-          <el-radio-button label="asc" :name="member.id"
-            >Asc</el-radio-button
-          >
-          <el-radio-button label="desc" :name="member.id"
-            >Desc</el-radio-button
-          >
-          <el-radio-button label="none" :name="member.id"
-            >None</el-radio-button
-          >
-        </el-radio-group>
-      </div>
+      </template>
     </draggable>
   </div>
 </template>
@@ -42,7 +40,7 @@
 import draggable from 'vuedraggable'
 
 export default {
-  name: 'Order',
+  name: 'AppQueryBuilderOrder',
   components: {
     draggable
   },
@@ -56,6 +54,12 @@ export default {
       default: false
     }
   },
+  emits: ['reorder', 'orderChange'],
+  data() {
+    return {
+      dialog: false
+    }
+  },
   computed: {
     list: {
       get() {
@@ -64,11 +68,6 @@ export default {
       set(value) {
         return value
       }
-    }
-  },
-  data() {
-    return {
-      dialog: false
     }
   },
   methods: {
@@ -80,13 +79,13 @@ export default {
 </script>
 
 <style scoped>
-.order-member {
+.order-element {
   @apply flex justify-between items-center w-full;
 }
-.order-member-name {
+.order-element-name {
   @apply flex items-center cursor-move;
 }
-.order-member-name > i {
+.order-element-name > i {
   @apply mr-1;
 }
 </style>

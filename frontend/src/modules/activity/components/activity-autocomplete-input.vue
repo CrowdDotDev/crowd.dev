@@ -1,32 +1,31 @@
 <template>
   <div style="display: flex">
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
       v-if="mode !== 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
     ></app-autocomplete-one-input>
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
       v-if="mode === 'multiple'"
       v-model="model"
+      :fetch-fn="fetchFn"
       :placeholder="placeholder"
     ></app-autocomplete-many-input>
     <el-button
-      @click="doOpenModal()"
-      icon="el-icon-plus"
+      v-if="hasPermissionToCreate && showCreate"
       style="margin-left: 16px"
       class="btn btn--primary"
-      v-if="hasPermissionToCreate && showCreate"
+      @click="doOpenModal()"
     ></el-button>
-    <portal to="modal">
+    <app-teleport to="#teleport-modal">
       <app-activity-form-modal
+        v-if="dialogVisible"
         :visible="dialogVisible"
         @close="onModalClose"
         @success="onModalSuccess"
-        v-if="dialogVisible"
       ></app-activity-form-modal>
-    </portal>
+    </app-teleport>
   </div>
 </template>
 
@@ -36,19 +35,38 @@ import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-activity-autocomplete-input',
-  props: [
-    'value',
-    'mode',
-    'fetchFn',
-    'mapperFn',
-    'showCreate',
-    'placeholder'
-  ],
+  name: 'AppActivityAutocompleteInput',
 
   components: {
     'app-activity-form-modal': ActivityFormModal
   },
+  props: {
+    modelValue: {
+      type: Object,
+      default: () => {}
+    },
+    mode: {
+      type: String,
+      default: 'single'
+    },
+    fetchFn: {
+      type: Function,
+      default: () => {}
+    },
+    mapperFn: {
+      type: Function,
+      default: () => {}
+    },
+    showCreate: {
+      type: Boolean,
+      default: false
+    },
+    placeholder: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -64,11 +82,11 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {
-        this.$emit('input', value)
+        this.$emit('update:modelValue', value)
       }
     },
 

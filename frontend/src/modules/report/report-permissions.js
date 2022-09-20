@@ -26,8 +26,9 @@ export class ReportPermissions {
     this.destroy = permissionChecker.match(
       Permissions.values.reportDestroy
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.reportRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.reportRead
+      )
   }
 }

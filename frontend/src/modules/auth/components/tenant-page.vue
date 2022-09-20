@@ -15,16 +15,16 @@
         </div>
 
         <app-tenant-new-form
-          @viewToggle="doToggleView()"
           v-if="view === 'form'"
+          @view-toggle="doToggleView()"
         />
         <app-tenant-select-form
-          @viewToggle="doToggleView()"
           v-if="view === 'select'"
+          @view-toggle="doToggleView()"
         />
 
         <div class="other-actions">
-          <el-button @click="doSignout" type="text">
+          <el-button type="text" @click="doSignout">
             <app-i18n code="auth.signout"></app-i18n>
           </el-button>
         </div>
@@ -39,7 +39,7 @@ import TenantNewForm from '@/modules/auth/components/tenant-new-form.vue'
 import TenantSelectForm from '@/modules/auth/components/tenant-select-form.vue'
 
 export default {
-  name: 'app-tenant-page',
+  name: 'AppTenantPage',
 
   components: {
     'app-tenant-new-form': TenantNewForm,
@@ -49,12 +49,6 @@ export default {
   data() {
     return {
       view: 'form'
-    }
-  },
-
-  created() {
-    if (this.invitedTenants.length) {
-      this.view = 'select'
     }
   },
 
@@ -76,6 +70,12 @@ export default {
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'left 100px bottom 100px'
       }
+    }
+  },
+
+  created() {
+    if (this.invitedTenants.length) {
+      this.view = 'select'
     }
   },
 

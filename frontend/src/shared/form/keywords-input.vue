@@ -1,9 +1,9 @@
 <template>
   <div>
     <div
-      class="el-select el-keywords-input-wrapper"
-      @click="focusKeywordInput"
+      class="el-keywords-input-wrapper"
       :class="focused ? 'is-focus' : ''"
+      @click="focusKeywordInput"
     >
       <el-tag
         v-for="(keyword, idx) in innerKeywords"
@@ -22,11 +22,13 @@
         v-if="!readOnly"
         class="el-keywords-input"
         :placeholder="placeholder"
-        @input="inputKeyword"
         :value="newKeyword"
+        autocomplete="off"
+        data-lpignore="true"
+        @input="inputKeyword"
         @keydown.delete.stop="removeLastKeyword"
         @keydown="addNew"
-        @blur="addNew"
+        @blur="blur"
       />
     </div>
     <span
@@ -41,7 +43,7 @@
 export default {
   name: 'AppKeywordsInput',
   props: {
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     },
@@ -53,18 +55,22 @@ export default {
       type: Boolean,
       default: false
     },
-    placeholder: String
+    placeholder: {
+      type: String,
+      default: null
+    }
   },
+  emits: ['update:modelValue'],
   data() {
     return {
       newKeyword: '',
-      innerKeywords: [...this.value],
+      innerKeywords: [...this.modelValue],
       focused: false
     }
   },
   watch: {
-    value() {
-      this.innerKeywords = [...this.value]
+    modelValue() {
+      this.innerKeywords = [...this.modelValue]
     }
   },
   methods: {
@@ -81,6 +87,10 @@ export default {
     },
     inputKeyword(ev) {
       this.newKeyword = ev.target.value
+    },
+    blur(e) {
+      this.focused = false
+      this.addNew(e)
     },
     addNew(e) {
       if (
@@ -110,7 +120,6 @@ export default {
         this.keywordChange()
         this.newKeyword = ''
       }
-      this.focused = false
     },
     addKeyword(keyword) {
       keyword = keyword.trim()
@@ -135,7 +144,7 @@ export default {
       this.keywordChange()
     },
     keywordChange() {
-      this.$emit('input', this.innerKeywords)
+      this.$emit('update:modelValue', this.innerKeywords)
     }
   }
 }
@@ -153,9 +162,10 @@ export default {
     cubic-bezier(0.645, 0.045, 0.355, 1);
   min-height: 38px;
 
-  &.el-select > .el-tag {
+  .el-tag {
     margin: 4px 0 4px 4px;
   }
+
   &.is-focus {
     border: 1px solid #0068bd;
   }

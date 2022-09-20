@@ -27,7 +27,7 @@ import AuditLogToolbar from '@/modules/audit-log/components/audit-log-toolbar.vu
 import AuditLogFilter from '@/modules/audit-log/components/audit-log-filter.vue'
 
 export default {
-  name: 'app-audit-log-page',
+  name: 'AppAuditLogPage',
 
   components: {
     'app-audit-log-filter': AuditLogFilter,

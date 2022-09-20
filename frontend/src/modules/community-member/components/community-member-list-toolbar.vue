@@ -1,7 +1,7 @@
 <template>
   <div
-    class="app-page-toolbar community-member-list-toolbar"
     v-if="selectedRows.length > 0"
+    class="app-page-toolbar community-member-list-toolbar"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
@@ -10,19 +10,19 @@
     >
     <el-button
       :disabled="markAsTeamMemberButtonDisabled"
-      @click="doMarkAsTeamMember()"
-      icon="ri-lg ri-user-follow-line"
       class="btn btn--secondary mr-2"
+      @click="doMarkAsTeamMember()"
     >
+      <i class="ri-lg ri-user-follow-line mr-1" />
       Mark as Team Member
     </el-button>
 
     <el-button
       :disabled="exportButtonDisabled"
-      @click="doExport()"
-      icon="ri-lg ri-file-text-line"
       class="btn btn--secondary mr-2"
+      @click="doExport()"
     >
+      <i class="ri-lg ri-file-text-line mr-1" />
       Export to CSV
     </el-button>
 
@@ -33,10 +33,10 @@
 
     <el-button
       :disabled="destroyButtonDisabled"
-      @click="doDestroyAllWithConfirm"
-      icon="ri-lg ri-delete-bin-line"
       class="btn btn--secondary mr-2"
+      @click="doDestroyAllWithConfirm"
     >
+      <i class="ri-lg ri-delete-bin-line mr-1" />
       <app-i18n code="common.destroy"></app-i18n>
     </el-button>
   </div>
@@ -48,7 +48,7 @@ import AppCommunityMemberListBulkUpdateTags from '@/modules/community-member/com
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-community-member-list-toolbar',
+  name: 'AppCommunityMemberListToolbar',
 
   components: {
     AppCommunityMemberListBulkUpdateTags

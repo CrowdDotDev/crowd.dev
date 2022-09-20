@@ -1,5 +1,5 @@
 .btn {
-  @apply px-4 py-3 rounded-lg shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm;
+  @apply px-4 py-3 rounded shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm h-auto;
   transition: all 0.2s;
 
   &.el-button {
@@ -33,6 +33,12 @@
 
     &:hover, &:focus {
       @apply bg-primary-900 border border-primary-900 text-white opacity-90;
+    }
+
+    &[disabled] {
+      @apply border text-white opacity-100;
+      border: 1px solid #F6B9AB;
+      background: #F6B9AB;
     }
   }
 
@@ -71,8 +77,8 @@
 
   &--menu-cta {
     @apply text-white border-white bg-transparent;
-    &:focus, &:hover {
-      @apply text-primary-900 border-primary-900 bg-transparent;
+    &:focus, &:hover, &[disabled] {
+      @apply text-white border-white bg-transparent;
     }
   }
 
@@ -80,6 +86,14 @@
     @apply bg-transparent border-0 p-0 rounded-none text-secondary-900 shadow-none;
     &:hover {
       @apply bg-transparent text-secondary-900 opacity-80;
+    }
+  }
+
+  &--text {
+    @apply bg-transparent border-0 shadow-none text-primary-900;
+    &:hover, &:focus {
+      @apply text-primary-900;
+      background: #FDEDEA;
     }
   }
 
@@ -98,7 +112,7 @@
   }
 
   &--circle {
-    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base flex-shrink-0;
+    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base shrink-0;
     i {
       @apply m-0;
     }
@@ -141,5 +155,9 @@
 
   &--email, &--twitter:hover, &--github:hover &--linkedin:hover {
     @apply opacity-80;
+  }
+
+  &.el-button+&.el-button {
+    @apply ml-0;
   }
 }

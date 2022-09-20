@@ -57,6 +57,8 @@ function models() {
     require('./conversation').default,
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
+    require('./automation').default,
+    require('./automationExecution').default,
     require('./organization').default,
     require('./memberAttributeSettings').default,
     require('./task').default,

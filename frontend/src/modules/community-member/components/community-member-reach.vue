@@ -1,45 +1,49 @@
 <template>
   <div class="reach">
     <el-tooltip
-      placement="top"
       ref="tooltip"
+      placement="top"
       :disabled="member.reach.total === -1"
     >
-      <div slot="content">
-        <div v-if="member.reach.github !== undefined">
-          Github:
-          <span class="font-semibold"
-            >{{ member.reach.github }}
-            {{
-              member.reach.github === 1
-                ? 'follower'
-                : 'followers'
-            }}</span
-          >
+      <template #content>
+        <div>
+          <div v-if="member.reach.github !== undefined">
+            Github:
+            <span class="font-semibold"
+              >{{ member.reach.github }}
+              {{
+                member.reach.github === 1
+                  ? 'follower'
+                  : 'followers'
+              }}</span
+            >
+          </div>
+          <div v-if="member.reach.twitter !== undefined">
+            Twitter:
+            <span class="font-semibold"
+              >{{ member.reach.twitter }}
+              {{
+                member.reach.twitter === 1
+                  ? 'follower'
+                  : 'followers'
+              }}</span
+            >
+          </div>
         </div>
-        <div v-if="member.reach.twitter !== undefined">
-          Twitter:
-          <span class="font-semibold"
-            >{{ member.reach.twitter }}
-            {{
-              member.reach.twitter === 1
-                ? 'follower'
-                : 'followers'
-            }}</span
-          >
-        </div>
+      </template>
+      <div>
+        <span v-if="member.reach.total !== -1">{{
+          member.reach.total
+        }}</span>
+        <span v-else></span>
       </div>
-      <span v-if="member.reach.total !== -1">{{
-        member.reach.total
-      }}</span>
-      <span v-else></span>
     </el-tooltip>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app-community-member-reach',
+  name: 'AppCommunityMemberReach',
   props: {
     member: {
       type: Object,

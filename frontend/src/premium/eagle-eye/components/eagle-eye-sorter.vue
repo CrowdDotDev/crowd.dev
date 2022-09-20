@@ -1,12 +1,14 @@
 <template>
-  <div class="eagle-eye-sorter -mr-3" :style="computedWidth">
+  <div
+    class="eagle-eye-sorter -mr-3"
+    :style="computedWidth"
+  >
     <el-select
-      :value="value"
+      v-model="computedValue"
       popper-class="eagle-eye-popper-class"
       prefix="sort"
-      @change="handleChange"
     >
-      <div slot="prefix">Sort:</div>
+      <template #prefix>Sort:</template>
       <el-option
         key="relevance"
         value="similarityScore"
@@ -24,7 +26,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 export default {
-  name: 'app-eagle-eye-sorter',
+  name: 'AppEagleEyeSorter',
   data() {
     return {
       value: 'similarityScore'
@@ -38,10 +40,21 @@ export default {
       return {
         width:
           this.value === 'similarityScore'
-            ? '140px'
-            : '116px'
+            ? '160px'
+            : '135px'
+      }
+    },
+    computedValue: {
+      get() {
+        return this.sorter.prop
+      },
+      set(v) {
+        this.handleChange(v)
       }
     }
+  },
+  created() {
+    this.value = this.sorter.prop
   },
   methods: {
     ...mapActions({
@@ -54,9 +67,6 @@ export default {
         order: 'descending'
       })
     }
-  },
-  created() {
-    this.value = this.sorter.prop
   }
 }
 </script>
@@ -69,12 +79,25 @@ export default {
   }
 }
 .eagle-eye-sorter {
-  .el-input {
-    &__inner {
-      @apply bg-transparent border-none text-left pr-8 pl-10;
+  .el-select {
+    &:hover,
+    &:focus {
+      @apply shadow-none;
     }
-    &__prefix {
-      @apply flex items-center mr-2 text-gray-400;
+
+    .el-input {
+      &__wrapper {
+        @apply bg-transparent border-none text-left shadow-none;
+        &:hover {
+          @apply shadow-none;
+        }
+      }
+      &.is-focus .el-input__wrapper {
+        box-shadow: none !important;
+      }
+      &__prefix {
+        @apply flex items-center mr-2 text-gray-400;
+      }
     }
   }
 }

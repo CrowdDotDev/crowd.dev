@@ -1,6 +1,7 @@
 <template>
   <div class="widget-cube">
     <app-widget-table
+      v-if="chartType === 'table'"
       :config="{
         title: widget.title,
         subtitle: showSubtitle ? subtitle : null,
@@ -9,11 +10,10 @@
         loading: loading
       }"
       :editable="editable"
+      :data="data"
       @trigger-duplicate-widget="handleDuplicate"
       @trigger-edit-widget="handleEdit"
       @trigger-delete-widget="handleDelete"
-      v-if="chartType === 'table'"
-      :data="data"
     ></app-widget-table>
     <app-widget-number
       v-else-if="chartType === 'number'"
@@ -36,6 +36,7 @@
     >
     </app-widget-number>
     <app-widget
+      v-else
       :config="{
         title: widget.title,
         subtitle: showSubtitle ? subtitle : null,
@@ -46,7 +47,6 @@
       @trigger-duplicate-widget="handleDuplicate"
       @trigger-edit-widget="handleEdit"
       @trigger-delete-widget="handleDelete"
-      v-else
     >
       <component
         :is="componentType"
@@ -63,17 +63,23 @@ import WidgetTable from '../widget-table'
 import WidgetNumber from '../widget-number'
 import Widget from '@/modules/widget/components/widget'
 import { i18n } from '@/i18n'
-import { ResultSet } from '@cubejs-client/core'
 
 export default {
   name: 'WidgetCube',
+
+  components: {
+    'app-widget-table': WidgetTable,
+    'app-widget-number': WidgetNumber,
+    'app-widget': Widget
+  },
   props: {
     widget: {
       type: Object,
       required: true
     },
     resultSet: {
-      type: ResultSet
+      type: null,
+      required: true
     },
     showSubtitle: {
       type: Boolean,
@@ -92,12 +98,7 @@ export default {
       default: () => {}
     }
   },
-
-  components: {
-    'app-widget-table': WidgetTable,
-    'app-widget-number': WidgetNumber,
-    'app-widget': Widget
-  },
+  emits: ['duplicate', 'edit', 'delete'],
 
   computed: {
     loading() {
