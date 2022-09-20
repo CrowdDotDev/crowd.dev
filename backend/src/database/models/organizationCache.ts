@@ -1,8 +1,8 @@
 import { DataTypes, Op } from 'sequelize'
 
 export default (sequelize) => {
-  const organization = sequelize.define(
-    'organization',
+  const organizationCache = sequelize.define(
+    'organizationCache',
     {
       id: {
         type: DataTypes.UUID,
@@ -79,25 +79,11 @@ export default (sequelize) => {
     {
       indexes: [
         {
-          unique: true,
-          fields: ['importHash', 'tenantId'],
-          where: {
-            deletedAt: null,
-          },
-        },
-        {
-          fields: ['url', 'tenantId'],
+          fields: ['url'],
           unique: true,
           where: {
             deletedAt: null,
             url: { [Op.ne]: null },
-          },
-        },
-        {
-          fields: ['name', 'tenantId'],
-          unique: true,
-          where: {
-            deletedAt: null,
           },
         },
       ],
@@ -106,28 +92,11 @@ export default (sequelize) => {
     },
   )
 
-  organization.associate = (models) => {
-    models.organization.belongsToMany(models.member, {
-      as: 'members',
-      through: 'memberOrganizations',
-      foreignKey: 'organizationId',
-    })
-
-    models.organization.belongsTo(models.tenant, {
-      as: 'tenant',
-      foreignKey: {
-        allowNull: false,
-      },
-    })
-
-    models.organization.belongsTo(models.user, {
-      as: 'createdBy',
-    })
-
-    models.organization.belongsTo(models.user, {
-      as: 'updatedBy',
+  organizationCache.associate = (models) => {
+    models.organizationCache.hasMany(models.organization, {
+      as: 'organizationsSeeded',
     })
   }
 
-  return organization
+  return organizationCache
 }

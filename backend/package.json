@@ -41,6 +41,7 @@
     "aws-sdk": "2.814.0",
     "axios": "^0.26.1",
     "bcrypt": "5.0.0",
+    "clearbit": "^1.3.5",
     "cli-highlight": "2.1.6",
     "cors": "2.8.5",
     "crypto-js": "^4.1.1",

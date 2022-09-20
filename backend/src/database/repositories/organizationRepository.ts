@@ -156,6 +156,52 @@ class OrganizationRepository {
     return this._populateRelations(record, options)
   }
 
+  static async findByName(name, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.organization.findOne({
+      where: {
+        name,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    if (!record) {
+      return null
+    }
+
+    return record.get({ plain: true })
+  }
+
+  static async findByUrl(url, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.organization.findOne({
+      where: {
+        url,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    if (!record) {
+      return null
+    }
+
+    return record.get({ plain: true })
+  }
+
   static async filterIdInTenant(id, options: IRepositoryOptions) {
     return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
   }
@@ -358,6 +404,8 @@ class OrganizationRepository {
     }
 
     const output = record.get({ plain: true })
+
+    delete output.organizationCacheId
 
     const transaction = SequelizeRepository.getTransaction(options)
 

@@ -191,6 +191,76 @@ describe('OrganizationRepository tests', () => {
     })
   })
 
+  describe('findByUrl/name methods', () => {
+    it('Should successfully find created organization by name', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const organizationCreated = await OrganizationRepository.create(
+        toCreate,
+        mockIRepositoryOptions,
+      )
+
+      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
+      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
+
+      const expectedOrganizationFound = {
+        id: organizationCreated.id,
+        ...toCreate,
+        organizationCacheId: null,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      const organizatioFound = await OrganizationRepository.findByName(
+        organizationCreated.name,
+        mockIRepositoryOptions,
+      )
+
+      organizatioFound.createdAt = organizatioFound.createdAt.toISOString().split('T')[0]
+      organizatioFound.updatedAt = organizatioFound.updatedAt.toISOString().split('T')[0]
+
+      expect(organizatioFound).toStrictEqual(expectedOrganizationFound)
+    })
+
+    it('Should successfully find created organization by url', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const organizationCreated = await OrganizationRepository.create(
+        toCreate,
+        mockIRepositoryOptions,
+      )
+
+      organizationCreated.createdAt = organizationCreated.createdAt.toISOString().split('T')[0]
+      organizationCreated.updatedAt = organizationCreated.updatedAt.toISOString().split('T')[0]
+
+      const expectedOrganizationFound = {
+        id: organizationCreated.id,
+        ...toCreate,
+        organizationCacheId: null,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      const organizatioFound = await OrganizationRepository.findByUrl(
+        organizationCreated.url,
+        mockIRepositoryOptions,
+      )
+
+      organizatioFound.createdAt = organizatioFound.createdAt.toISOString().split('T')[0]
+      organizatioFound.updatedAt = organizatioFound.updatedAt.toISOString().split('T')[0]
+
+      expect(organizatioFound).toStrictEqual(expectedOrganizationFound)
+    })
+  })
+
   describe('filterIdsInTenant method', () => {
     it('Should return the given ids of previously created organization entities', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)

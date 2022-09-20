@@ -87,6 +87,7 @@ require('./eagleEyeContent').default(routes)
 require('./automation').default(routes)
 require('./task').default(routes)
 require('./note').default(routes)
+require('./organization').default(routes)
 
 // Loads the Tenant if the :tenantId param is passed
 routes.param('tenantId', tenantMiddleware)
