@@ -37,6 +37,7 @@ export default class OrganizationService {
           })
         : null
       if (existingByName) {
+        await SequelizeRepository.commitTransaction(transaction)
         return existingByName
       }
 
@@ -47,6 +48,7 @@ export default class OrganizationService {
           })
         : null
       if (existingByUrl) {
+        await SequelizeRepository.commitTransaction(transaction)
         return existingByUrl
       }
 
