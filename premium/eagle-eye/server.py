@@ -17,11 +17,8 @@ logger = logging.getLogger(__name__)
 
 @app.route("/search", methods=['POST'])
 def search():
-    try:
-        body = request.get_json()
-        queries = body.get('queries', [])
-        ndays = body.get('nDays', 10)
-        exclude = body.get('filters', [])
-        return search_main(queries, ndays, exclude)
-    except Exception as e:
-        return str(e)
+    body = request.get_json()
+    queries = body.get('queries', [])
+    ndays = body.get('nDays', 10)
+    exclude = body.get('filters', [])
+    return search_main(queries, ndays, exclude)
