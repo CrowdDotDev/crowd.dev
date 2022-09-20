@@ -12,7 +12,6 @@ const { Op } = Sequelize
 
 class TagRepository {
   static async create(data, options: IRepositoryOptions) {
-    console.log('here')
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
