@@ -292,7 +292,7 @@ export default class EagleEyeContentRepository {
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async update(id, data, options: IRepositoryOptions) {

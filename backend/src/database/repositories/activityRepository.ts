@@ -533,7 +533,7 @@ class ActivityRepository {
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
