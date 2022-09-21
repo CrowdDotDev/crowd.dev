@@ -59,6 +59,7 @@ export interface ApiConfiguration {
   url: string
   frontendUrl: string
   frontendUrlWithSubdomain: string
+  eagleEyeUrl: string
   edition: string
   jwtSecret: string
   jwtExpiresIn: string

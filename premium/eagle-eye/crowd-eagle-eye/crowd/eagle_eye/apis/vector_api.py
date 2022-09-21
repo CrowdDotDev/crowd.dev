@@ -5,6 +5,7 @@ from crowd.eagle_eye.apis import CohereAPI
 import logging
 import itertools
 import os
+from crowd.eagle_eye.config import KUBE_MODE, VECTOR_API_KEY, VECTOR_INDEX
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +22,16 @@ class VectorAPI:
         Args:
             index_name (str, optional): Name of the DB index. Defaults to "crowddev".
         """
-        pinecone.init(api_key=os.environ.get('VECTOR_API_KEY'), environment="us-east-1-aws")
+        if KUBE_MODE:
+            pinecone.init(api_key=VECTOR_API_KEY, environment="us-east-1-aws")
+        else:
+            pinecone.init(api_key=os.environ.get('VECTOR_API_KEY'), environment="us-east-1-aws")
 
         if index_name is None:
-            index_name = os.environ.get('VECTOR_INDEX')
+            if KUBE_MODE:
+                index_name = VECTOR_INDEX
+            else:
+                index_name = os.environ.get('VECTOR_INDEX')
 
         self.index = pinecone.Index(index_name)
 
