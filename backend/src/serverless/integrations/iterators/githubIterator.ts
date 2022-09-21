@@ -2,7 +2,6 @@
 /* eslint class-methods-use-this: 0 */
 /* eslint prefer-const: 0 */
 import moment from 'moment'
-import sanitizeHtml from 'sanitize-html'
 import { Repo, Repos, Endpoint, Endpoints, State } from '../types/regularTypes'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import BaseIterator from './baseIterator'
@@ -17,6 +16,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { GitHubGrid } from '../grid/githubGrid'
 import PullRequestCommentsQuery from '../usecases/github/graphql/pullRequestComments'
+import getOrganization from '../usecases/github/graphql/organizations'
 import IssuesQuery from '../usecases/github/graphql/issues'
 import IssueCommentsQuery from '../usecases/github/graphql/issueComments'
 import ForksQuery from '../usecases/github/graphql/forks'
@@ -401,7 +401,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -423,7 +423,7 @@ export default class GithubIterator extends BaseIterator {
             description: record.category.description,
           },
         },
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: GitHubGrid.discussionOpened.score,
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       })
@@ -442,7 +442,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -457,7 +457,7 @@ export default class GithubIterator extends BaseIterator {
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: GitHubGrid.issueOpened.score,
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       })
@@ -476,7 +476,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -485,7 +485,7 @@ export default class GithubIterator extends BaseIterator {
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
         channel: this.getRepoByName(repo).url,
-        member: this.parseMember(record.owner),
+        member: await this.parseMember(record.owner),
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       })
@@ -505,7 +505,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -520,7 +520,7 @@ export default class GithubIterator extends BaseIterator {
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       })
@@ -542,7 +542,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       const commentId = record.id
 
       acc.push({
@@ -558,7 +558,7 @@ export default class GithubIterator extends BaseIterator {
         attributes: {
           isAnswer: record.isAnswer ?? undefined,
         },
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
         isKeyAction: record.isAnswer
           ? GitHubGrid.selectedAnswer.isKeyAction
@@ -566,7 +566,7 @@ export default class GithubIterator extends BaseIterator {
       })
 
       // push replies
-      const replies = record.replies.nodes.reduce((acc, reply) => {
+      const replies = record.replies.nodes.reduce(async (acc, reply) => {
         acc.push({
           tenant,
           platform: PlatformType.GITHUB,
@@ -577,7 +577,7 @@ export default class GithubIterator extends BaseIterator {
           url: reply.url,
           body: reply.bodyText,
           channel: this.getRepoByName(repo).url,
-          member: this.parseMember(reply.author),
+          member: await this.parseMember(reply.author),
           score: GitHubGrid.comment.score,
           isKeyAction: GitHubGrid.comment.isKeyAction,
         })
@@ -602,7 +602,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -613,7 +613,7 @@ export default class GithubIterator extends BaseIterator {
         url: record.url,
         body: record.bodyText,
         channel: this.getRepoByName(repo).url,
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -633,7 +633,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -644,7 +644,7 @@ export default class GithubIterator extends BaseIterator {
         url: record.url,
         body: record.bodyText,
         channel: this.getRepoByName(repo).url,
-        member: this.parseMember(record.author),
+        member: await this.parseMember(record.author),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -663,7 +663,7 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce((acc, record) => {
+    return records.reduce(async (acc, record) => {
       acc.push({
         tenant,
         platform: PlatformType.GITHUB,
@@ -677,7 +677,7 @@ export default class GithubIterator extends BaseIterator {
         sourceParentId: '',
         timestamp: moment(record.starredAt).utc().toDate(),
         channel: this.getRepoByName(repo).url,
-        member: this.parseMember(record.node),
+        member: await this.parseMember(record.node),
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       })
@@ -691,7 +691,7 @@ export default class GithubIterator extends BaseIterator {
    * @param memberFromApi member object returned from the github graphQL api
    * @returns parsed members that can be saved to the database.
    */
-  parseMember(memberFromApi: any): Member {
+  async parseMember(memberFromApi: any): Promise<Member> {
     const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
@@ -705,7 +705,16 @@ export default class GithubIterator extends BaseIterator {
         },
       },
       email: memberFromApi.email || '',
-      organisation: memberFromApi.company || '',
+    }
+
+    if (memberFromApi.company) {
+      const company = memberFromApi.company.replace('@', '')
+      const fromAPI = await getOrganization(company, this.accessToken)
+      if (fromAPI) {
+        member.organizations = [fromAPI]
+      } else {
+        member.organizations = [{ name: company }]
+      }
     }
 
     if (memberFromApi.twitterUsername) {

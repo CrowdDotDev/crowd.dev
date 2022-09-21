@@ -51,7 +51,7 @@ export type Member = {
   displayName?: string
   attributes?: any
   email?: string
-  organisation?: string
+  organizations?: [any]
   bio?: string
   reach?: number | any
   location?: string
