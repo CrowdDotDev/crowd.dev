@@ -234,17 +234,22 @@ function scaffold_destroy_confirmed() {
     kill_all_containers
     docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml down
 
+    # needed because if there are no volumes this might cause the script to exit
+    set +eo pipefail
     VOLUMES=$(docker volume ls | tail -n +2 | tr -s " " | cut -d' ' -f2 | grep $PROJECT_NAME)
-    _IFS=$IFS
-    IFS=$' '
-    NAMES=$VOLUMES
-    IFS=$_IFS
+    set -eo pipefail
+    if [[ ${VOLUMES} ]]; then
+        _IFS=$IFS
+        IFS=$' '
+        NAMES=$VOLUMES
+        IFS=$_IFS
 
-    for name in $NAMES
-    do
-      say "Destroying volume $name!"
-      docker volume rm -f $name
-    done
+        for name in $NAMES
+        do
+        say "Destroying volume $name!"
+        docker volume rm -f $name
+        done
+    fi
 }
 
 function wait_for_db() {

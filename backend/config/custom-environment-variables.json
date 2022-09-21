@@ -4,7 +4,8 @@
     "frontendUrl": "CROWD_API_FRONTEND_URL",
     "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
     "jwtSecret": "CROWD_API_JWT_SECRET",
-    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN"
+    "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN",
+    "eagleEyeUrl": "CROWD_EAGLE_EYE_URL"
   },
   "sqs": {
     "host": "CROWD_SQS_HOST",

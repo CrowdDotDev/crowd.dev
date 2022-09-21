@@ -1,5 +1,6 @@
 import moment from 'moment'
-import { IS_PROD_ENV, KUBE_MODE } from '../config'
+import request from 'superagent'
+import { API_CONFIG, IS_PROD_ENV, KUBE_MODE } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
@@ -87,9 +88,15 @@ export default class EagleEyeContentService {
     const filters = await this.findNotInbox()
 
     if (KUBE_MODE) {
-      // TODO replace with a REST API call to premium-server
-      return {
-        status: 'success',
+      try {
+        const response = await request
+          .post(API_CONFIG.eagleEyeUrl)
+          .send({ queries: keywords, nDays, filters })
+
+        return response.body
+      } catch (error) {
+        console.log('error while calling eagle eye server!', error)
+        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
       }
     }
 

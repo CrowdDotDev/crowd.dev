@@ -1,6 +1,6 @@
 import cohere
 import os
-
+from crowd.eagle_eye.config import KUBE_MODE, COHERE_API_KEY
 
 class CohereAPI:
     """
@@ -17,7 +17,10 @@ class CohereAPI:
                                       give preference to left or right hand side. 
                                       Defaults to 'LEFT'.
         """
-        self.co = cohere.Client(os.environ.get("COHERE_API_KEY"))
+        if KUBE_MODE:
+            self.co = cohere.Client(COHERE_API_KEY)
+        else:
+            self.co = cohere.Client(os.environ.get("COHERE_API_KEY"))
         self.model = model
         self.truncate = truncate
 

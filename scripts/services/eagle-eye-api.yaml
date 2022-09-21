@@ -1,0 +1,39 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  SERVICE_ENV: docker
+  SERVICE: eagle-eye-api
+  TENANT_MODE: multi
+  KUBE_MODE: 1
+
+services:
+  eagle-eye-api:
+    build:
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile-kube
+    env_file:
+      - ../../backend/.env.local
+      - ../../backend/.env.docker
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  eagle-eye-api-dev:
+    build:
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile-kube
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.local
+      - ../../backend/.env.docker
+    environment:
+      <<: *env-args
+    hostname: eagle-eye-api
+    networks:
+      - crowd-bridge
+
+networks:
+  crowd-bridge:
+    external: true

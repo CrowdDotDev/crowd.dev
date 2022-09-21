@@ -11,8 +11,7 @@ RUN python -m venv --copies ./venv && . ./venv/bin/activate && \
   pip --version && which pip && \
   ls ./venv/bin
 
-RUN  pip install psycopg2-binary && \
-pip install -r requirements.txt && \
-pip install -r requirements.dev.txt
+RUN  pip install -r requirements.txt
 
-ENTRYPOINT ["python", "-u", "python_worker.py"]
+ENTRYPOINT ["python", "-u", "-m", "flask", "--app", "server", "--debug", "run"]
+# ENTRYPOINT [ "tail", "-f", "/dev/null" ]
