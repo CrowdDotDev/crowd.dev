@@ -172,7 +172,7 @@ export default class MemberService {
           toUpdate.attributes = this.setAttributesDefaultValues(toUpdate.attributes)
         }
 
-        // It is important to call it with doPupulateRelations=false
+        // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         record = await MemberRepository.update(
           id,
@@ -184,7 +184,7 @@ export default class MemberService {
           fillRelations,
         )
       } else {
-        // It is important to call it with doPupulateRelations=false
+        // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         if (data.attributes) {
           data.attributes = this.setAttributesDefaultValues(data.attributes)
@@ -236,7 +236,7 @@ export default class MemberService {
     const fillRelations = false
 
     if (typeof username === 'string') {
-      // It is important to call it with doPupulateRelations=false
+      // It is important to call it with doPopulateRelations=false
       // because otherwise the performance is greatly decreased in integrations
       existing = await MemberRepository.memberExists(
         username,
@@ -248,7 +248,7 @@ export default class MemberService {
       )
     } else if (typeof username === 'object') {
       if (platform in username) {
-        // It is important to call it with doPupulateRelations=false
+        // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         existing = await MemberRepository.memberExists(
           username[platform],
@@ -513,8 +513,8 @@ export default class MemberService {
     }
   }
 
-  async findById(id, returnPlain = true, doPupulateRelations = true) {
-    return MemberRepository.findById(id, this.options, returnPlain, doPupulateRelations)
+  async findById(id, returnPlain = true, doPopulateRelations = true) {
+    return MemberRepository.findById(id, this.options, returnPlain, doPopulateRelations)
   }
 
   async findAllAutocomplete(search, limit) {
@@ -522,7 +522,9 @@ export default class MemberService {
   }
 
   async findAndCountAll(args) {
-    return MemberRepository.findAndCountAll(args, this.options)
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)).rows
+    return MemberRepository.findAndCountAll({...args, attributesSettings:memberAttributeSettings} , this.options)
   }
 
   async findMembersWithMergeSuggestions() {

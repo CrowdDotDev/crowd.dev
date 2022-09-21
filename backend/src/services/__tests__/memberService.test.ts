@@ -1283,6 +1283,14 @@ describe('MemberService tests', () => {
           replies: 12,
           body: 'Here',
         },
+        sentiment:{
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
         isKeyAction: true,
         member: returnedMember2.id,
         score: 1,
@@ -1423,6 +1431,9 @@ describe('MemberService tests', () => {
         organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
+        activityCount: 1,
+        averageSentiment: activityCreated.sentiment.sentiment,
+        lastActive: activityCreated.timestamp
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1840,6 +1851,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
+      delete returnedMember1.activityCount
+      delete returnedMember1.averageSentiment
+      delete returnedMember1.lastActive
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -1944,6 +1958,9 @@ describe('MemberService tests', () => {
       delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
+      delete returnedMember1.activityCount
+      delete returnedMember1.averageSentiment
+      delete returnedMember1.lastActive
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },

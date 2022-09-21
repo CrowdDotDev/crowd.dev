@@ -72,7 +72,7 @@ class QueryParser {
       const where = Sequelize.where(
         Sequelize.literal(`CAST("${args.model}"."${args.column}" AS TEXT)`),
         {
-          [Sequelize.Op.like]: `%${value}%`.toLowerCase(),
+          [Sequelize.Op.like]: `%${Object.values(value)[0]}%`.toLowerCase(),
         },
       )
       return { [Op.and]: where }
@@ -277,10 +277,12 @@ class QueryParser {
         // The complex operator could be substituting the key also.
         // For example, in member.platform, we are sent: {platform: jsonContains: 'github'}
         // and we need to replace the platform key with the function result.
+        const complexOp = QueryParser.complexOperators[Object.keys(query[key])[0]]
+
         query = QueryParser.replaceKeyWithComplexOperator(
           query,
           key,
-          Object.keys(query[key])[0],
+          complexOp,
           this.customOperators[key],
         )
       } else if (this.aggregators[key]) {
