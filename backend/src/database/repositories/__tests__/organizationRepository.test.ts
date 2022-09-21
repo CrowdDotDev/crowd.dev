@@ -448,6 +448,461 @@ describe('OrganizationRepository tests', () => {
     })
   })
 
+  describe('filter method', () => {
+    const crowddev = {
+      name: 'crowd.dev',
+      url: 'https://crowd.dev',
+      description: 'Community-led Growth for Developer-first Companies.\nJoin our private beta',
+      emails: ['hello@crowd.dev', 'jonathan@crowd.dev'],
+      phoneNumbers: ['+42 424242424'],
+      logo: 'https://logo.clearbit.com/crowd.dev',
+      tags: ['community', 'growth', 'developer-first'],
+      parentUrl: null,
+      twitter: {
+        handle: 'CrowdDotDev',
+        id: '1362101830923259908',
+        bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
+        followers: 107,
+        following: 0,
+        location: '🌍 remote',
+        site: 'https://t.co/GRLDhqFWk4',
+        avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
+      },
+      linkedin: {
+        handle: 'company/crowddevhq',
+      },
+      crunchbase: {
+        handle: 'company/crowddevhq',
+      },
+      employees: 42,
+      revenueRange: {
+        min: 10,
+        max: 50,
+      },
+    }
+
+    const piedpiper = {
+      name: 'Pied Piper',
+      url: 'https://piedpiper.io',
+      description: 'Pied Piper is a fictional technology company in the HBO television series',
+      emails: ['richard@piedpiper.io', 'jarded@pipedpiper.io'],
+      phoneNumbers: ['+42 54545454'],
+      logo: 'https://logo.clearbit.com/piedpiper',
+      tags: ['new-internet', 'compression'],
+      parentUrl: null,
+      twitter: {
+        handle: 'piedPiper',
+        id: '1362101830923259908',
+        bio: 'Pied Piper is a making the new, decentralized internet',
+        followers: 1024,
+        following: 0,
+        location: 'silicon valley',
+        site: 'https://t.co/GRLDhqFWk4',
+        avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
+      },
+      linkedin: {
+        handle: 'company/piedpiper',
+      },
+      crunchbase: {
+        handle: 'company/piedpiper',
+      },
+      employees: 100,
+      revenueRange: {
+        min: 0,
+        max: 1,
+      },
+    }
+
+    const hooli = {
+      name: 'Hooli',
+      url: 'https://hooli.com',
+      description: 'Hooli is a fictional technology company in the HBO television series',
+      emails: ['gavin@hooli.com'],
+      phoneNumbers: ['+42 12121212'],
+      logo: 'https://logo.clearbit.com/hooli',
+      tags: ['not-google', 'elephant'],
+      parentUrl: null,
+      twitter: {
+        handle: 'hooli',
+        id: '1362101830923259908',
+        bio: 'Hooli is making the world a better place',
+        followers: 1000000,
+        following: 0,
+        location: 'silicon valley',
+        site: 'https://t.co/GRLDhqFWk4',
+        avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
+      },
+      linkedin: {
+        handle: 'company/hooli',
+      },
+      crunchbase: {
+        handle: 'company/hooli',
+      },
+      employees: 10000,
+      revenueRange: {
+        min: 200,
+        max: 500,
+      },
+    }
+
+    async function createOrganization(organization: any, options, members = []) {
+      const memberIds = []
+      for (const member of members) {
+        const memberCreated = await MemberRepository.create(member, options)
+        memberIds.push(memberCreated.id)
+      }
+      organization.members = memberIds
+      return OrganizationRepository.create(organization, options)
+    }
+
+    it('Should filter by name', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            name: 'Pied Piper',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toEqual('Pied Piper')
+    })
+
+    it('Should filter by url', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            url: 'crowd.dev',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should filter by description', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            description: 'community',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should filter by emails', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            emails: 'richard@piedpiper.io,jonathan@crowd.dev',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(2)
+
+      const found2 = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            emails: ['richard@piedpiper.io', 'jonathan@crowd.dev'],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found2.count).toEqual(2)
+    })
+
+    it('Should filter by tags', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            tags: 'new-internet,not-google,new',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(2)
+
+      const found2 = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            tags: ['new-internet', 'not-google', 'new'],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found2.count).toEqual(2)
+    })
+
+    it('Should filter by twitter handle', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            twitter: 'crowdDotDev',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should filter by linkedin handle', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            linkedin: 'crowddevhq',
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should filter by employee range', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            employeesRange: [90, 120],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('Pied Piper')
+    })
+
+    it('Should filter by revenue range', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions)
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            revenueMin: 0,
+            revenueMax: 1,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('Pied Piper')
+
+      const found2 = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            revenueMin: 9,
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found2.count).toEqual(2)
+    })
+
+    it('Should filter by members', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions, [
+        {
+          username: { github: 'joan' },
+          displayName: 'Joan',
+          joinedAt: moment().toDate(),
+        },
+      ])
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const memberId = await (
+        await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
+      ).rows[0].id
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          filter: {
+            members: [memberId],
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toEqual(1)
+      expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should work with advanced filters', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions, [
+        {
+          username: { github: 'joan' },
+          displayName: 'Joan',
+          joinedAt: moment().toDate(),
+        },
+      ])
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const memberId = await (
+        await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
+      ).rows[0].id
+
+      // Revenue nested field
+      expect(
+        (
+          await OrganizationRepository.findAndCountAll(
+            {
+              advancedFilter: {
+                revenue: {
+                  gte: 9,
+                },
+              },
+            },
+            mockIRepositoryOptions,
+          )
+        ).count,
+      ).toEqual(2)
+
+      // Twitter bio
+      expect(
+        (
+          await OrganizationRepository.findAndCountAll(
+            {
+              advancedFilter: {
+                'twitter.bio': {
+                  textContains: 'world a better place',
+                },
+              },
+            },
+            mockIRepositoryOptions,
+          )
+        ).count,
+      ).toEqual(1)
+
+      // Fucky
+      expect(
+        (
+          await OrganizationRepository.findAndCountAll(
+            {
+              advancedFilter: {
+                or: [
+                  {
+                    and: [
+                      {
+                        revenue: {
+                          gte: 9,
+                        },
+                      },
+                      {
+                        revenue: {
+                          lte: 100,
+                        },
+                      },
+                    ],
+                  },
+                  {
+                    'twitter.bio': {
+                      textContains: 'world a better place',
+                    },
+                  },
+                ],
+              },
+            },
+            mockIRepositoryOptions,
+          )
+        ).count,
+      ).toEqual(2)
+
+      // Fucky 2
+      expect(
+        (
+          await OrganizationRepository.findAndCountAll(
+            {
+              advancedFilter: {
+                or: [
+                  {
+                    and: [
+                      {
+                        tags: {
+                          overlap: ['not-google'],
+                        },
+                      },
+                      {
+                        'twitter.location': {
+                          textContains: 'silicon valley',
+                        },
+                      },
+                    ],
+                  },
+                  {
+                    members: [memberId],
+                  },
+                ],
+              },
+            },
+            mockIRepositoryOptions,
+          )
+        ).count,
+      ).toEqual(2)
+    })
+  })
+
   describe('update method', () => {
     it('Should succesfully update previously created organization', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)

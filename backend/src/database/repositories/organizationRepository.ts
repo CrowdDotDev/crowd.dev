@@ -294,7 +294,7 @@ class OrganizationRepository {
         }
         advancedFilter.and.push({
           emails: {
-            overlaps: filter.emails,
+            overlap: filter.emails,
           },
         })
       }
@@ -305,7 +305,7 @@ class OrganizationRepository {
         }
         advancedFilter.and.push({
           phoneNumbers: {
-            overlaps: filter.phoneNumbers,
+            overlap: filter.phoneNumbers,
           },
         })
       }
@@ -316,7 +316,7 @@ class OrganizationRepository {
         }
         advancedFilter.and.push({
           tags: {
-            overlaps: filter.tags,
+            overlap: filter.tags,
           },
         })
       }
@@ -365,24 +365,20 @@ class OrganizationRepository {
         }
       }
 
-      if (filter.revenueRange) {
-        const [start, end] = filter.revenueRange
+      if (filter.revenueMin) {
+        advancedFilter.and.push({
+          revenueMin: {
+            gte: filter.revenueMin,
+          },
+        })
+      }
 
-        if (start !== undefined && start !== null && start !== '') {
-          advancedFilter.and.push({
-            revenueMin: {
-              gte: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          advancedFilter.and.push({
-            revenueMax: {
-              lte: end,
-            },
-          })
-        }
+      if (filter.revenueMax) {
+        advancedFilter.and.push({
+          revenueMax: {
+            lte: filter.revenueMax,
+          },
+        })
       }
 
       if (filter.parentUrl) {
@@ -390,6 +386,12 @@ class OrganizationRepository {
           parentUrl: {
             textContains: filter.parentUrl,
           },
+        })
+      }
+
+      if (filter.members) {
+        advancedFilter.and.push({
+          members: filter.members,
         })
       }
 
@@ -417,7 +419,22 @@ class OrganizationRepository {
     const parser = new QueryParser(
       {
         nestedFields: {
-          sentiment: 'sentiment.sentiment',
+          twitter: 'twitter.handle',
+          linkedin: 'linkedin.handle',
+          crunchbase: 'crunchbase.handle',
+          revenueMin: 'revenueRange.min',
+          revenueMax: 'revenueRange.max',
+          revenue: 'revenueRange.min',
+        },
+        manyToMany: {
+          members: {
+            table: 'organizations',
+            relationTable: {
+              name: 'memberOrganizations',
+              from: 'organizationId',
+              to: 'memberId',
+            },
+          },
         },
       },
       options,
