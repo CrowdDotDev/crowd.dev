@@ -12,12 +12,13 @@ source $CLI_HOME/utils
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
-say "Detected services:"
-for i in $CONTAINERS
-    do
-        say "- $i"
-    done
+function prepare_override_env_file() {
+    if [[ ! -f "$CLI_HOME/../backend/.env.override" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override"
+    fi
+}
 
+prepare_override_env_file
 
 function prepare_service_string() {
     if [ $1 == "HELP" ]; then delimiter1=" | "; delimiter2=" => | "; fi
@@ -31,12 +32,7 @@ function prepare_service_string() {
 
 HELP_STRING=$(prepare_service_string HELP "$CONTAINERS")
 LIST_STRING=$(prepare_service_string LIST "$CONTAINERS")
-
 HELP_BUILD_STRING=$(prepare_service_string HELP "$BUILDERS")
-
-failFast() {
-    error "$1" && exit 1
-}
 
 function scaffold() {
     HELP="${RESET}\nUsage:\n ./cli scaffold [ up | down | destroy | reset ]\n"
@@ -165,11 +161,11 @@ function print_container_status() {
 }
 
 function get_container_id() {
-    docker container ls -a | grep "$PROJECT_NAME" | grep "$1_" | tr " " "\n" | head -n 1
+    docker container ls -a | grep "${PROJECT_NAME}_${1}_" | tr " " "\n" | head -n 1
 }
 
 function check_container_status() {
-    docker container ls -a | grep "$PROJECT_NAME" | grep "$1_"
+    docker container ls -a | grep "${PROJECT_NAME}_${1}_"
 }
 
 function scaffold_set_up_network() {
@@ -184,7 +180,7 @@ function scaffold_set_up_network() {
 
 function apply_db_schema() {
     say "Applying database schema!"
-    (cd $CLI_HOME/../backend && set -a && . $CLI_HOME/../backend/.env.local && set +a && KUBE_MODE=1 npm run db:create:dev:source)
+    (cd $CLI_HOME/../backend && set -a && . $CLI_HOME/../backend/.env.dist.local && set +a && npm run db:create:dev:source)
 }
 
 function create_s3_buckets() {
@@ -230,6 +226,24 @@ function scaffold_clear() {
     up_scaffold
 }
 
+function kill_all_containers() {
+    for i in $CONTAINERS
+    do
+        say "Killing service $i."
+
+        if [[ $(check_container_status ${i}) ]]; then
+            docker rm -f $(get_container_id ${i})
+            yell "Service $i killed."
+        elif [[ $(check_container_status ${i}-dev) ]]; then
+            docker rm -f $(get_container_id ${i}-dev)
+            yell "Service $i-dev killed."
+        else
+            error "Service $i not running."
+        fi
+        nl
+    done
+}
+
 function scaffold_destroy_confirmed() {
     kill_all_containers
     docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml down
@@ -261,24 +275,6 @@ function wait_for_db() {
     done
 
     say "Scaffold is up and running!"
-}
-
-function kill_all_containers() {
-    for i in $CONTAINERS
-    do
-        say "Killing service $i."
-
-        if [[ $(check_container_status ${i}) ]]; then
-            docker rm -f $(get_container_id ${i})
-            yell "Service $i killed."
-        elif [[ $(check_container_status ${i}-dev) ]]; then
-            docker rm -f $(get_container_id ${i}-dev)
-            yell "Service $i-dev killed."
-        else
-            error "Service $i not running."
-        fi
-        nl
-    done
 }
 
 function start() {

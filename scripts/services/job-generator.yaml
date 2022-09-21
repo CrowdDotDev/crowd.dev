@@ -5,7 +5,6 @@ x-env-args: &env-args
   NODE_ENV: docker
   SERVICE: job-generator
   TENANT_MODE: multi
-  KUBE_MODE: 1
 
 services:
   job-generator:
@@ -14,8 +13,9 @@ services:
       dockerfile: Dockerfile-api-dev
     command: 'npm run start:job-generator'
     env_file:
-      - ../../backend/.env.local
-      - ../../backend/.env.docker
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
     environment:
       <<: *env-args
     networks:
@@ -28,8 +28,9 @@ services:
     command: 'npm run start:job-generator'
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
-      - ../../backend/.env.local
-      - ../../backend/.env.docker
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
     environment:
       <<: *env-args
     hostname: job-generator

@@ -5,7 +5,6 @@ x-env-args: &env-args
   SERVICE_ENV: docker
   SERVICE: eagle-eye-api
   TENANT_MODE: multi
-  KUBE_MODE: 1
 
 services:
   eagle-eye-api:
@@ -13,8 +12,9 @@ services:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile-kube
     env_file:
-      - ../../backend/.env.local
-      - ../../backend/.env.docker
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
     environment:
       <<: *env-args
     networks:
@@ -26,8 +26,9 @@ services:
       dockerfile: Dockerfile-kube
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
-      - ../../backend/.env.local
-      - ../../backend/.env.docker
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
     environment:
       <<: *env-args
     hostname: eagle-eye-api
