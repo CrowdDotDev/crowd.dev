@@ -91,7 +91,7 @@ export const API_CONFIG: ApiConfiguration = KUBE_MODE
       frontendUrlWithSubdomain: process.env.FRONTEND_URL_WITH_SUBDOMAIN,
       jwtSecret: process.env.AUTH_JWT_SECRET,
       jwtExpiresIn: process.env.AUTH_JWT_EXPIRES_IN,
-      eagleEyeUrl: ''
+      eagleEyeUrl: '',
     }
 export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
   ? config.get<PlansConfiguration>('plans')
