@@ -90,7 +90,7 @@ export default class EagleEyeContentService {
     if (KUBE_MODE) {
       try {
         const response = await request
-          .post(API_CONFIG.eagleEyeUrl)
+          .post(API_CONFIG.premiumApiUrl)
           .send({ queries: keywords, nDays, filters })
 
         return response.body

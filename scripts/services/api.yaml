@@ -10,7 +10,7 @@ services:
   api:
     build:
       context: ../backend
-      dockerfile: Dockerfile-api-dev
+      dockerfile: Dockerfile.compose.backend
     command: 'npm run start:api'
     env_file:
       - ../../backend/.env.dist.local
@@ -24,8 +24,8 @@ services:
   api-dev:
     build:
       context: ../backend
-      dockerfile: Dockerfile-api-dev
-    command: 'npm run start:api'
+      dockerfile: Dockerfile.compose.backend
+    command: 'npm run start:api:dev'
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local

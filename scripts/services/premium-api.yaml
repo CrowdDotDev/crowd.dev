@@ -2,16 +2,15 @@ version: '3.1'
 
 x-env-args: &env-args
   DOCKER_BUILDKIT: 1
-  NODE_ENV: docker
-  SERVICE: nodejs-worker
+  SERVICE_ENV: docker
+  SERVICE: premium-api
   TENANT_MODE: multi
 
 services:
-  nodejs-worker:
+  premium-api:
     build:
-      context: ../backend
-      dockerfile: Dockerfile.compose.backend
-    command: 'npm run start:nodejs-worker'
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile.api
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -21,11 +20,10 @@ services:
     networks:
       - crowd-bridge
 
-  nodejs-worker-dev:
+  premium-api-dev:
     build:
-      context: ../backend
-      dockerfile: Dockerfile.compose.backend
-    command: 'npm run start:nodejs-worker:dev'
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile.api
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
@@ -33,12 +31,9 @@ services:
       - ../../backend/.env.override
     environment:
       <<: *env-args
-    hostname: nodejs-worker
+    hostname: premium-api
     networks:
       - crowd-bridge
-    volumes:
-      - ../../backend:/usr/crowd/backend
-      - /usr/crowd/backend/node_modules
 
 networks:
   crowd-bridge:

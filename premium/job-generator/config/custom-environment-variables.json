@@ -1,0 +1,15 @@
+{
+  "sqs": {
+    "host": "CROWD_SQS_HOST",
+    "port": "CROWD_SQS_PORT",
+    "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
+    "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
+    "aws": {
+      "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_SQS_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_SQS_AWS_REGION"
+    }
+  }
+}
