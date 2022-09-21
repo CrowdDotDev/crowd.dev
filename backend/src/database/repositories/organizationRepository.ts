@@ -280,6 +280,111 @@ class OrganizationRepository {
         })
       }
 
+      if (filter.description) {
+        advancedFilter.and.push({
+          description: {
+            textContains: filter.description,
+          },
+        })
+      }
+
+      if (filter.emails) {
+        if (typeof filter.emails === 'string') {
+          filter.emails = filter.emails.split(',')
+        }
+        advancedFilter.and.push({
+          emails: {
+            overlaps: filter.emails,
+          },
+        })
+      }
+
+      if (filter.phoneNumbers) {
+        if (typeof filter.phoneNumbers === 'string') {
+          filter.phoneNumbers = filter.phoneNumbers.split(',')
+        }
+        advancedFilter.and.push({
+          phoneNumbers: {
+            overlaps: filter.phoneNumbers,
+          },
+        })
+      }
+
+      if (filter.tags) {
+        if (typeof filter.tags === 'string') {
+          filter.tags = filter.tags.split(',')
+        }
+        advancedFilter.and.push({
+          tags: {
+            overlaps: filter.tags,
+          },
+        })
+      }
+
+      if (filter.twitter) {
+        advancedFilter.and.push({
+          twitter: {
+            textContains: filter.twitter,
+          },
+        })
+      }
+
+      if (filter.linkedin) {
+        advancedFilter.and.push({
+          linkedin: {
+            textContains: filter.linkedin,
+          },
+        })
+      }
+
+      if (filter.crunchbase) {
+        advancedFilter.and.push({
+          crunchbase: {
+            textContains: filter.crunchbase,
+          },
+        })
+      }
+
+      if (filter.employeesRange) {
+        const [start, end] = filter.employeesRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            employees: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            employees: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.revenueRange) {
+        const [start, end] = filter.revenueRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            revenueMin: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            revenueMax: {
+              lte: end,
+            },
+          })
+        }
+      }
+
       if (filter.parentUrl) {
         advancedFilter.and.push({
           parentUrl: {

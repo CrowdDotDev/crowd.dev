@@ -33,7 +33,10 @@ const toCreate = {
     handle: 'company/crowddevhq',
   },
   employees: 42,
-  revenueRange: [10, 50],
+  revenueRange: {
+    min: 10,
+    max: 50,
+  },
 }
 
 async function createMembers(options) {

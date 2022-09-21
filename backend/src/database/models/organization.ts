@@ -61,12 +61,8 @@ export default (sequelize) => {
         allowNull: true,
       },
       revenueRange: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER),
+        type: DataTypes.JSONB,
         allowNull: true,
-        validator: {
-          isArray: true,
-          len: 2,
-        },
       },
       importHash: {
         type: DataTypes.STRING(255),

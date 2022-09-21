@@ -31,7 +31,10 @@ const expectedEnriched = {
     handle: null,
   },
   employees: 5,
-  revenueRange: [0, 1],
+  revenueRange: {
+    min: 0,
+    max: 1,
+  },
 }
 
 describe('OrganizationService tests', () => {

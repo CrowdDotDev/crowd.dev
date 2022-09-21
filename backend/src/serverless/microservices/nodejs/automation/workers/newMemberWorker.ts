@@ -7,7 +7,7 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
-import CommunityMemberRepository from '../../../../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
 
 /**
@@ -79,7 +79,7 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)
-      const member = await CommunityMemberRepository.findById(memberId, userContext, true, false)
+      const member = await MemberRepository.findById(memberId, userContext, true, false)
 
       for (const automation of automations) {
         if (shouldProcessMember(member, automation)) {

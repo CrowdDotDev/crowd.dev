@@ -26,10 +26,18 @@ interface enrichedOrganization {
     handle: string
   }
   employees: number | null
-  revenueRange: number[] | null
+  revenueRange: {
+    min: number
+    max: number
+  }
 }
 
 function parseOrganization(res) {
+  const revenueList = res.metrics.estimatedAnnualRevenue
+    .replaceAll('$', '')
+    .replaceAll('M', '')
+    .split('-')
+    .map((x) => parseInt(x, 10))
   return {
     url: res.domain,
     name: res.name,
@@ -43,11 +51,10 @@ function parseOrganization(res) {
     linkedin: res.linkedin,
     crunchbase: res.crunchbase,
     employees: res.metrics.employees,
-    revenueRange: res.metrics.estimatedAnnualRevenue
-      .replaceAll('$', '')
-      .replaceAll('M', '')
-      .split('-')
-      .map((x) => parseInt(x, 10)),
+    revenueRange: {
+      min: revenueList[0],
+      max: revenueList[1],
+    },
   }
 }
 
