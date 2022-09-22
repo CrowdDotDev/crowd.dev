@@ -6,7 +6,7 @@ import { TwitterIntegrationMessage } from '../../serverless/integrations/types/m
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
 
-const coordinatorJob: CrowdJob = {
+const job: CrowdJob = {
   name: 'Twitter coordinator',
   cronTime: cronGenerator.every(2).hours(),
   onTrigger: async () => {
@@ -33,4 +33,4 @@ const coordinatorJob: CrowdJob = {
   },
 }
 
-export default coordinatorJob
+export default job

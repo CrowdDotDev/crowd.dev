@@ -696,6 +696,7 @@ class CommunityMemberRepository {
     }
 
     // No need for lazyloading tags for integrations or microservices
+    // TODO-kube
     if (
       (KUBE_MODE &&
         (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR)) ||

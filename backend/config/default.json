@@ -1,14 +1,10 @@
 {
   "api": {
     "port": 8080,
-    "edition": "community",
     "documentation": false
   },
   "sqs": {},
-  "s3": {
-    "integrationsAssetsBucket": "crowd-integrations-assets",
-    "microservicesAssetsBucket": "crowd-microservices-assets"
-  },
+  "s3": {},
   "db": {
     "dialect": "postgres",
     "logging": false,

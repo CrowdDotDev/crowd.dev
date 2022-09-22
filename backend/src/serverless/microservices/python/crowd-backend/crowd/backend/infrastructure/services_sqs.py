@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ServicesSQS(SQS):
     def __init__(self):
+        # TODO-kube
         if KUBE_MODE:
             url = PYTHON_WORKER_QUEUE
         else:

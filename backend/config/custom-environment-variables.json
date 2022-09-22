@@ -1,6 +1,7 @@
 {
   "api": {
     "url": "CROWD_API_URL",
+    "edition": "CROWD_EDITION",
     "frontendUrl": "CROWD_API_FRONTEND_URL",
     "frontendUrlWithSubdomain": "CROWD_API_FRONTEND_URL_WITH_SUBDOMAINS",
     "jwtSecret": "CROWD_API_JWT_SECRET",
@@ -22,6 +23,8 @@
   "s3": {
     "host": "CROWD_S3_HOST",
     "port": "CROWD_S3_PORT",
+    "integrationsAssetsBucket": "CROWD_S3_INTEGRATION_ASSETS_BUCKET",
+    "microservicesAssetsBucket": "CROWD_S3_MICROSERVICES_ASSETS_BUCKET",
     "aws": {
       "accountId": "CROWD_S3_AWS_ACCOUNT_ID",
       "accessKeyId": "CROWD_S3_AWS_ACCESS_KEY_ID",

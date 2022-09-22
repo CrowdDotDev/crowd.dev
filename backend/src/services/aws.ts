@@ -7,6 +7,7 @@ let lambdaInstance
 let notLocalLambdaInstance
 let stepFunctionsInstance
 
+// TODO-kube
 if (KUBE_MODE) {
   const awsSqsConfig = {
     accessKeyId: SQS_CONFIG.aws.accessKeyId,

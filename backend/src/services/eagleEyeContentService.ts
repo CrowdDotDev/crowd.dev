@@ -87,6 +87,7 @@ export default class EagleEyeContentService {
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
 
+    // TODO-kube
     if (KUBE_MODE) {
       try {
         const response = await request
@@ -100,6 +101,7 @@ export default class EagleEyeContentService {
       }
     }
 
+    // TODO-kube
     const lambdaArn = IS_PROD_ENV
       ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
       : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'

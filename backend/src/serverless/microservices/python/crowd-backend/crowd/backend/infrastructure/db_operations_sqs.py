@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class DbOperationsSQS(SQS):
     def __init__(self):
+        # TODO-kube
         if KUBE_MODE:
             db_operations_sqs_url = NODEJS_WORKER_QUEUE
         else:
@@ -79,6 +80,7 @@ class DbOperationsSQS(SQS):
 
             for chunk in chuncked:
                 body = dict(tenant_id=tenant_id, operation=operation.value, records=chunk)
+                # TODO-kube
                 if KUBE_MODE:
                     body["type"] = "db_operations"
                 if send:

@@ -6,7 +6,7 @@ import { DiscordIntegrationMessage } from '../../serverless/integrations/types/m
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
 
-const coordinatorJob: CrowdJob = {
+const job: CrowdJob = {
   name: 'Discord coordinator',
   cronTime: cronGenerator.every(20).minutes(),
   onTrigger: async () => {
@@ -33,4 +33,4 @@ const coordinatorJob: CrowdJob = {
   },
 }
 
-export default coordinatorJob
+export default job

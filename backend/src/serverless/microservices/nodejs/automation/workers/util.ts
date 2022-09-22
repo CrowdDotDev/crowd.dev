@@ -10,6 +10,7 @@ export const sendWebhookProcessRequest = async (
   eventId: string,
   payload: any,
 ): Promise<void> => {
+  // TODO-kube
   if (KUBE_MODE) {
     const event = {
       type: NodeWorkerMessageType.NODE_MICROSERVICE,

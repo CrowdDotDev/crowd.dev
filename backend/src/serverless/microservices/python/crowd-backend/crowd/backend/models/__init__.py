@@ -14,7 +14,7 @@ from .microservice import Microservice
 from ..infrastructure import KUBE_MODE
 
 # from .repo import Repo  # noqa
-
+# TODO-kube
 if not KUBE_MODE:
     import dotenv  # noqa
     found = dotenv.find_dotenv(".env")

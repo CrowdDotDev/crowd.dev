@@ -1,3 +1,4 @@
 wheel
 -e ./crowd-eagle-eye
 flask
+boto3

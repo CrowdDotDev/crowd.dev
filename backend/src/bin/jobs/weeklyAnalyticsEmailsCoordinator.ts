@@ -4,7 +4,7 @@ import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessage, NodeWorkerMessageType } from '../../serverless/types/worketTypes'
 
-const coordinatorJob: CrowdJob = {
+const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',
   cronTime: cronGenerator.everyMondayAt(8),
   onTrigger: async () => {
@@ -20,4 +20,4 @@ const coordinatorJob: CrowdJob = {
   },
 }
 
-export default coordinatorJob
+export default job

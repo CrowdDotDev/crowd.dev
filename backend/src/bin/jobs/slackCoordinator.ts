@@ -6,7 +6,7 @@ import { SlackIntegrationMessage } from '../../serverless/integrations/types/mes
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
 
-const coordinatorJob: CrowdJob = {
+const job: CrowdJob = {
   name: 'Slack coordinator',
   cronTime: cronGenerator.every(20).minutes(),
   onTrigger: async () => {
@@ -30,4 +30,4 @@ const coordinatorJob: CrowdJob = {
   },
 }
 
-export default coordinatorJob
+export default job

@@ -2,6 +2,7 @@ __version__ = "0.0.7"
 from .repository import Repository  # noqa
 from ..infrastructure import KUBE_MODE
 
+# TODO-kube
 if not KUBE_MODE:
     import dotenv
     found = dotenv.find_dotenv(".env")

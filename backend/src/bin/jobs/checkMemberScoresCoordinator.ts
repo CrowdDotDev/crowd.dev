@@ -3,7 +3,7 @@ import { CrowdJob } from '../../utils/jobTypes'
 import { sendPythonWorkerMessage } from '../../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../../serverless/types/worketTypes'
 
-const coordinatorJob: CrowdJob = {
+const job: CrowdJob = {
   name: 'Check Member Scores coordinator',
   cronTime: cronGenerator.every(2).hours(),
   onTrigger: async () => {
@@ -13,4 +13,4 @@ const coordinatorJob: CrowdJob = {
   },
 }
 
-export default coordinatorJob
+export default job

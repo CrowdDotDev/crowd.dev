@@ -272,6 +272,7 @@ export default class IntegrationService {
       args: {},
     }
 
+    // TODO-kube
     if (KUBE_MODE) {
       const payload = {
         type: NodeWorkerMessageType.INTEGRATION,
@@ -316,6 +317,7 @@ export default class IntegrationService {
       },
     }
 
+    // TODO-kube
     if (KUBE_MODE) {
       const payload = {
         type: NodeWorkerMessageType.INTEGRATION,
@@ -361,6 +363,7 @@ export default class IntegrationService {
       args: {},
     }
 
+    // TODO-kube
     if (KUBE_MODE) {
       const payload = {
         type: NodeWorkerMessageType.INTEGRATION,
@@ -402,6 +405,7 @@ export default class IntegrationService {
       args: {},
     }
 
+    // TODO-kube
     if (KUBE_MODE) {
       const payload = {
         type: NodeWorkerMessageType.INTEGRATION,
@@ -467,6 +471,7 @@ export default class IntegrationService {
       },
     }
 
+    // TODO-kube
     if (KUBE_MODE) {
       const payload = {
         type: NodeWorkerMessageType.INTEGRATION,

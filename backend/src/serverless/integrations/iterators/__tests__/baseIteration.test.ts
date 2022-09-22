@@ -218,6 +218,7 @@ describe('BaseIterator tests', () => {
     })
   })
 
+  // TODO-kube
   if (!KUBE_MODE) {
     describe('limit reached  tests', () => {
       it('Should stop when limit is reached', async () => {
@@ -404,6 +405,7 @@ describe('BaseIterator tests', () => {
       expect(out).toStrictEqual(success)
     })
 
+    // TODO-kube
     if (!KUBE_MODE) {
       it('Should iterate with start and limit reached', async () => {
         const itFn = (n: number): Object => {
@@ -444,6 +446,7 @@ describe('BaseIterator tests', () => {
   })
 
   describe('Chain tests', () => {
+    // TODO-kube
     if (!KUBE_MODE) {
       it('Stop state should be start state', async () => {
         const itFn = (n: number): Object => {
@@ -543,6 +546,7 @@ describe('BaseIterator tests', () => {
   })
 
   describe('Runtime limit test', () => {
+    // TODO-kube
     if (!KUBE_MODE) {
       it('Should stop early when sending 1s limit', async () => {
         const itFn = async (n: number) => {

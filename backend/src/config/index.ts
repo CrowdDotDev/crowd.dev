@@ -20,6 +20,8 @@ import {
   CubeJSConfiguration,
 } from './configTypes'
 
+// TODO-kube
+
 export const KUBE_MODE: boolean = process.env.KUBE_MODE !== undefined
 
 export const SERVICE: ServiceType = process.env.SERVICE as ServiceType

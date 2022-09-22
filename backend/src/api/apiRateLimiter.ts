@@ -10,9 +10,6 @@ export function createRateLimiter({
   message: string
 }) {
   return rateLimit({
-    // store: new MongoStore({
-    //   uri: MONGO_CONFIG.DATABASE_CONNECTION,
-    // }),
     max,
     windowMs,
     message,

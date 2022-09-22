@@ -47,6 +47,7 @@ class Repository(object):
         if db_url:
             self.db_url = db_url
         else:
+            # TODO-kube
             if KUBE_MODE:
                 self.db_url = DB_URL
             else:

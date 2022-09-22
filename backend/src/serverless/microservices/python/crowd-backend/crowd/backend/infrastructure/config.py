@@ -1,5 +1,6 @@
 import os
 
+# TODO-kube
 KUBE_MODE = os.environ.get("KUBE_MODE") is not None
 
 IS_TEST_ENV = os.environ.get("SERVICE_ENV") == "test"

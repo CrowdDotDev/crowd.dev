@@ -11,6 +11,7 @@ export const sendPythonWorkerMessage = async (
     return
   }
 
+  // TODO-kube
   if (!KUBE_MODE) {
     throw new Error("Can't send python-worker SQS message when not in kube mode!")
   }

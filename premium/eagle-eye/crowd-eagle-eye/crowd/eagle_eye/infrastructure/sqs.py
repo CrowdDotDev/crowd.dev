@@ -4,7 +4,7 @@ import os
 from uuid import uuid1 as uuid
 import json
 
-from crowd.backend.infrastructure.config import KUBE_MODE, IS_DEV_ENV, SQS_ENDPOINT_URL, SQS_REGION, \
+from crowd.eagle_eye.config import KUBE_MODE, IS_DEV_ENV, SQS_ENDPOINT_URL, SQS_REGION, \
     SQS_SECRET_ACCESS_KEY, SQS_ACCESS_KEY_ID
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,6 @@ class SQS:
         self.sqs_url = sqs_url
         # Otherwise from the environment files.
 
-        # TODO-kube
         if KUBE_MODE:
             if IS_DEV_ENV:
                 self.sqs = boto3.client("sqs",

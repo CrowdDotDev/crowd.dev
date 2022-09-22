@@ -157,6 +157,7 @@ export default abstract class BaseIterator {
             console.log('Response limit reached')
           }
 
+          // TODO-kube
           if (KUBE_MODE) {
             console.log(`Waiting to continue for ${response.timeUntilReset} seconds!`)
             await BaseIterator.sleep(response.timeUntilReset)
@@ -166,6 +167,7 @@ export default abstract class BaseIterator {
         }
         // If the time elapsed is bigger than the max time, return a limit reached state
         // with a waiting time of 0 (no waiting needed, just a fresh function)
+        // TODO-kube
         if (!KUBE_MODE && timeSinceStart >= maxTime) {
           console.log('time limit reached')
           return this.limitReachedFunction(this.state, 0)

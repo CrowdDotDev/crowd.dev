@@ -11,6 +11,7 @@ export const sendNodeWorkerMessage = async (
     return
   }
 
+  // TODO-kube
   if (!KUBE_MODE) {
     throw new Error("Can't send nodejs-worker SQS message when not in kube mode!")
   }
