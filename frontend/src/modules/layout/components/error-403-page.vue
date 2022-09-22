@@ -24,6 +24,6 @@
 
 <script>
 export default {
-  name: 'app-error-403-page'
+  name: 'AppError403Page'
 }
 </script>

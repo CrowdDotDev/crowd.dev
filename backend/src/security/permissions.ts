@@ -166,6 +166,26 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
+      automationCreate: {
+        id: 'automationCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationUpdate: {
+        id: 'automationUpdate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationDestroy: {
+        id: 'automationDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationRead: {
+        id: 'automationRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
       tagImport: {
         id: 'tagImport',
         allowedRoles: [roles.admin],
@@ -195,6 +215,39 @@ class Permissions {
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       tagAutocomplete: {
+        id: 'tagAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationImport: {
+        id: 'tagImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationCreate: {
+        id: 'tagCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationEdit: {
+        id: 'tagEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationDestroy: {
+        id: 'tagDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationRead: {
+        id: 'tagRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationAutocomplete: {
         id: 'tagAutocomplete',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],

@@ -39,6 +39,7 @@ async function getGithubIterator(repos: Repos, options: IRepositoryOptions) {
     {
       endpoint: '',
       page: '',
+      endpoints: [],
     },
     true,
   )

@@ -16,7 +16,7 @@ async function twitterCoordinator(): Promise<void> {
       sleep: 0,
       tenant: integration.tenantId.toString(),
       onboarding: false,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints: [] },
       args: {
         profileId: integration.integrationIdentifier,
         hashtags: integration.settings.hashtags,

@@ -145,6 +145,17 @@ export default class IntegrationService {
     return IntegrationRepository.findAndCountAll(args, this.options)
   }
 
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return IntegrationRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
+  }
+
   async import(data, importHash) {
     if (!importHash) {
       throw new Error400(this.options.language, 'importer.errors.importHashRequired')
@@ -262,6 +273,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -294,6 +306,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -339,7 +352,7 @@ export default class IntegrationService {
       integrationId: integration.id,
       tenant: integration.tenantId.toString(),
       onboarding: true,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints: [] },
       args: {},
     }
 
@@ -367,6 +380,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,
@@ -426,6 +440,7 @@ export default class IntegrationService {
       state: {
         endpoint: '',
         page: '',
+        endpoints: [],
       },
       tenant: integration.tenantId.toString(),
       sleep: 0,

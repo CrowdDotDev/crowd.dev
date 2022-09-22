@@ -1,36 +1,37 @@
 <template>
   <div class="conversation-settings">
     <el-button
-      @click="$emit('open')"
-      class="btn btn--secondary"
-      icon="ri-lg ri-settings-2-line"
       v-if="buttonVisible && hasPermissionToEdit"
+      class="btn btn--secondary"
+      @click="$emit('open')"
     >
+      <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
     <el-dialog
+      v-model="computedVisible"
       title="Community Help Center Settings"
-      :visible="visible"
-      @close="$emit('close')"
+      :close-on-click-modal="false"
       width="100%"
+      @close="$emit('close')"
     >
       <el-form
-        class="w-full form"
+        v-if="visible"
         ref="form"
+        class="w-full form"
         :model="model"
         :rules="rules"
-        @submit.native.prevent="doSubmit"
-        v-if="visible"
+        @submit.prevent="doSubmit"
       >
         <app-alert
+          v-if="!hasConversationsConfigured"
           type="info"
           class="mb-8"
-          v-if="!hasConversationsConfigured"
         >
-          <div slot="title">
+          <template #title>
             Please configure your Community Help Center
-          </div>
-          <div slot="body">
+          </template>
+          <template #body>
             Before publishing any Conversation, your
             Community Help Center needs to be configured.
             <br />
@@ -41,7 +42,7 @@
               >Community Slug</span
             >
             and <span class="font-semibold">Website</span>.
-          </div>
+          </template>
         </app-alert>
         <div
           class="font-semibold text-sm text-gray-200 mb-1"
@@ -87,7 +88,7 @@
           Community links
         </div>
         <hr class="pb-2" />
-        <div class="flex items-start -mx-2">
+        <div class="flex items-start flex-wrap -mx-2">
           <el-form-item
             label="Website"
             prop="website"
@@ -103,10 +104,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('discord')"
             label="Discord URL"
             prop="discordInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('discord')"
           >
             <el-input
               v-model="model.discordInviteLink"
@@ -117,10 +118,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('slack')"
             label="Slack URL"
             prop="slackInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('slack')"
           >
             <el-input
               v-model="model.slackInviteLink"
@@ -131,10 +132,10 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="activeIntegrations.includes('github')"
             label="GitHub URL"
             prop="githubInviteLink"
             class="w-full lg:w-1/3 px-2"
-            v-if="activeIntegrations.includes('github')"
           >
             <el-input
               v-model="model.githubInviteLink"
@@ -195,23 +196,23 @@
             </div>
           </el-form-item>
           <el-form-item
+            v-if="model.autoPublish.status === 'custom'"
             label="Channels"
             prop="channels"
             class="w-full lg:w-1/3 px-2"
-            v-if="model.autoPublish.status === 'custom'"
           >
             <el-select
+              v-model="model.autoPublish.channels"
               class="w-full"
               placeholder="Select channels"
-              v-model="model.autoPublish.channels"
               :filterable="true"
               :multiple="true"
             >
               <el-option
+                v-for="channel in computedChannelsList"
                 :key="channel.value"
                 :label="channel.label"
                 :value="channel.value"
-                v-for="channel in computedChannelsList"
               ></el-option>
             </el-select>
           </el-form-item>
@@ -262,8 +263,8 @@
                 >Primary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.primary"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -278,8 +279,8 @@
                 >Primary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.text"
+                size="mini"
               />
             </div>
             <div
@@ -289,8 +290,8 @@
                 >Secondary</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.textSecondary"
+                size="mini"
               />
             </div>
             <div
@@ -298,8 +299,8 @@
             >
               <span class="text-xs text-gray-600">CTA</span>
               <el-color-picker
-                size="mini"
                 v-model="model.theme.textCta"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -315,8 +316,8 @@
                 >Normal</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bg"
+                size="mini"
               />
             </div>
             <div
@@ -326,8 +327,8 @@
                 >Highlight</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bgHighlight"
+                size="mini"
               />
             </div>
             <div
@@ -337,8 +338,8 @@
                 >Navigation</span
               >
               <el-color-picker
-                size="mini"
                 v-model="model.theme.bgNav"
+                size="mini"
               />
             </div>
           </el-form-item>
@@ -355,15 +356,12 @@
         </div>
         <hr class="pb-2" />
         <div class="relative">
-          <div
-            class="absolute w-full inset-0 z-10 blur-2xl"
-            :style="{
-              backgroundColor: 'rgba(255,255,255,0.95)'
-            }"
-            v-if="!hasPermissionToCustomize"
-          >
+          <div v-if="!hasPermissionToCustomize">
             <div
-              class="flex items-center justify-center flex-col pt-16"
+              class="absolute w-full inset-0 z-10 -mx-4 bg-white"
+            ></div>
+            <div
+              class="absolute inset-0 flex items-center justify-center flex-col pt-8 z-20"
             >
               <span class="text-gray-600 text-center">
                 If you want to customize the URL of your
@@ -405,28 +403,28 @@
         <div class="form-buttons mt-12">
           <el-button
             :disabled="loading"
-            @click="doSubmit"
-            icon="ri-lg ri-save-line"
             class="btn btn--primary mr-2"
+            @click="doSubmit"
           >
+            <i class="ri-lg ri-save-line mr-1" />
             <app-i18n code="common.save"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="loading"
-            @click="doReset"
-            icon="ri-lg ri-arrow-go-back-line"
             class="btn btn--secondary mr-2"
+            @click="doReset"
           >
+            <i class="ri-lg ri-arrow-go-back-line mr-1" />
             <app-i18n code="common.reset"></app-i18n>
           </el-button>
 
           <el-button
             :disabled="loading"
-            @click="$emit('close')"
-            icon="ri-lg ri-close-line"
             class="btn btn--secondary"
+            @click="$emit('close')"
           >
+            <i class="ri-lg ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
         </div>
@@ -459,7 +457,7 @@ const formSchema = new FormSchema([
 ])
 
 export default {
-  name: 'app-conversation-settings',
+  name: 'AppConversationSettings',
   props: {
     visible: {
       type: Boolean,
@@ -470,6 +468,20 @@ export default {
       default: true
     }
   },
+  emits: ['close', 'open'],
+
+  data() {
+    return {
+      loading: false,
+      rules: formSchema.rules(),
+      initialModel: {},
+      model: {
+        theme: {},
+        autoPublish: {}
+      }
+    }
+  },
+
   computed: {
     ...mapGetters({
       publishedConversations: 'conversation/publishedRows',
@@ -484,6 +496,18 @@ export default {
       rawFilter: 'conversation/rawFilter',
       filter: 'conversation/filter'
     }),
+    computedVisible: {
+      get() {
+        return this.visible
+      },
+      set(value) {
+        if (value) {
+          this.$emit('open')
+        } else {
+          this.$emit('close')
+        }
+      }
+    },
     activeIntegrations() {
       return Object.keys(this.activeIntegrationsList)
     },
@@ -572,17 +596,14 @@ export default {
       return shouldConfirm
     }
   },
-  data() {
-    return {
-      loading: false,
-      rules: formSchema.rules(),
-      initialModel: {},
-      model: {
-        theme: {},
-        autoPublish: {}
-      }
+
+  async created() {
+    if (!this.loadedIntegrations) {
+      await this.fetchIntegrations()
     }
+    this.setModels()
   },
+
   methods: {
     ...mapActions({
       fetchIntegrations: 'integration/doFetch',
@@ -634,18 +655,18 @@ export default {
               theme: this.model.theme || undefined,
               autoPublish: {
                 status: this.model.autoPublish.status,
-                channelsByPlatform: this.model.autoPublish.channels.reduce(
-                  (acc, item) => {
-                    const [platform, channel] = item.split(
-                      '.'
-                    )
-                    acc[platform] = acc[platform]
-                      ? [...acc[platform], channel]
-                      : [channel]
-                    return acc
-                  },
-                  {}
-                )
+                channelsByPlatform:
+                  this.model.autoPublish.channels.reduce(
+                    (acc, item) => {
+                      const [platform, channel] =
+                        item.split('.')
+                      acc[platform] = acc[platform]
+                        ? [...acc[platform], channel]
+                        : [channel]
+                      return acc
+                    },
+                    {}
+                  )
               }
             }
           }
@@ -691,12 +712,12 @@ export default {
         customUrl: this.conversationSettings.customUrl,
         logoUrl: this.conversationSettings.logoUrl,
         faviconUrl: this.conversationSettings.faviconUrl,
-        discordInviteLink: this.discordIntegration.settings
-          .inviteLink,
-        slackInviteLink: this.slackIntegration.settings
-          .inviteLink,
-        githubInviteLink: this.githubIntegration.settings
-          .inviteLink,
+        discordInviteLink:
+          this.discordIntegration.settings.inviteLink,
+        slackInviteLink:
+          this.slackIntegration.settings.inviteLink,
+        githubInviteLink:
+          this.githubIntegration.settings.inviteLink,
         autoPublish: !this.conversationSettings.autoPublish
           ? {
               status: 'all',
@@ -704,8 +725,9 @@ export default {
               channelsByPlatform: {}
             }
           : {
-              status: this.conversationSettings.autoPublish
-                .status,
+              status:
+                this.conversationSettings.autoPublish
+                  .status,
               channels: Object.keys(
                 this.conversationSettings.autoPublish
                   .channelsByPlatform
@@ -719,8 +741,9 @@ export default {
                 )
                 return acc
               }, []),
-              channelsByPlatform: this.conversationSettings
-                .autoPublish.channelsByPlatform
+              channelsByPlatform:
+                this.conversationSettings.autoPublish
+                  .channelsByPlatform
             }
       }
       this.model = { ...this.initialModel }
@@ -730,12 +753,6 @@ export default {
         this.initialModel
       )
     }
-  },
-  async created() {
-    if (!this.loadedIntegrations) {
-      await this.fetchIntegrations()
-    }
-    this.setModels()
   }
 }
 </script>

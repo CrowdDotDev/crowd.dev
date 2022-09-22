@@ -1,23 +1,23 @@
 <template>
   <div class="report-view-page">
-    <div class="flex items-start justify-between">
-      <h1 class="app-content-title">
-        {{ report.name }}
-      </h1>
-      <app-report-dropdown
-        :report="report"
-        :show-view-report="false"
-      ></app-report-dropdown>
-    </div>
     <div
-      class="app-page-spinner"
       v-if="loading('view')"
       v-loading="loading('view')"
+      class="app-page-spinner"
     ></div>
     <div v-else>
+      <div class="flex items-start justify-between">
+        <h1 class="app-content-title">
+          {{ report.name }}
+        </h1>
+        <app-report-dropdown
+          :report="report"
+          :show-view-report="false"
+        ></app-report-dropdown>
+      </div>
       <app-report-grid-layout
-        class="-mx-4"
         v-model="report"
+        class="-mx-4"
       ></app-report-grid-layout>
     </div>
   </div>
@@ -29,13 +29,18 @@ import ReportGridLayout from './report-grid-layout'
 import ReportDropdown from './report-dropdown'
 
 export default {
-  name: 'app-report-view-page',
-
-  props: ['id'],
+  name: 'AppReportViewPage',
 
   components: {
     'app-report-grid-layout': ReportGridLayout,
     'app-report-dropdown': ReportDropdown
+  },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
   },
 
   computed: {

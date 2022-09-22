@@ -4,7 +4,8 @@ import CommunityMemberAutocompleteInput from '@/modules/community-member/compone
 
 export default {
   components: {
-    'app-community-member-autocomplete-input': CommunityMemberAutocompleteInput
+    'app-community-member-autocomplete-input':
+      CommunityMemberAutocompleteInput
   },
   routes,
   store

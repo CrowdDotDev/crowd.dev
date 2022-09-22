@@ -3,17 +3,17 @@
     <app-conversation-list-toolbar></app-conversation-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
-        :border="true"
-        :data="conversations"
-        @sort-change="doChangeSort"
         ref="table"
+        v-loading="loading('table')"
+        :data="conversations"
         row-key="id"
+        border
         :default-sort="{
           prop: 'lastActive',
           order: 'descending'
         }"
-        v-loading="loading('table')"
         :row-class-name="rowClass"
+        @sort-change="doChangeSort"
       >
         <el-table-column
           type="selection"
@@ -25,7 +25,7 @@
           prop="title"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <router-link
               :to="{
                 name: 'conversationView',
@@ -40,21 +40,21 @@
           </template>
         </el-table-column>
         <el-table-column width="150">
-          <template slot="header">
+          <template #header>
             <span class="inline-flex items-center">
               <span class="inline-flex mr-1">Status</span>
               <el-tooltip placement="top">
-                <div slot="content">
+                <template #content>
                   Published conversations will be available
                   within community's help center
-                </div>
+                </template>
                 <i
                   class="ri-information-line inline-flex items-center mr-2"
                 ></i>
               </el-tooltip>
             </span>
           </template>
-          <template slot-scope="scope">
+          <template #default="scope">
             {{
               scope.row.published
                 ? 'Published'
@@ -68,7 +68,7 @@
           prop="activityCount"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.activityCount }}
           </template>
         </el-table-column>
@@ -78,7 +78,7 @@
           prop="lastActive"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ timeAgo(scope.row.lastActive) }}
           </template>
         </el-table-column>
@@ -88,7 +88,7 @@
           prop="platform"
           width="150"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <span
               v-if="scope.row.platform === 'github'"
               class="btn btn--circle btn--github mr-2"
@@ -129,26 +129,26 @@
           prop="channel"
           width="150"
         >
-          <template slot="header">
+          <template #header>
             <span class="inline-flex items-center">
               <span class="inline-flex mr-1">Channel</span>
               <el-tooltip placement="top">
-                <div slot="content">
+                <template #content>
                   Channel corresponds to channel (in Discord
                   and Slack) or repo (in GitHub)
-                </div>
+                </template>
                 <i
                   class="ri-information-line inline-flex items-center mr-2"
                 ></i>
               </el-tooltip>
             </span>
           </template>
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ scope.row.channel }}
           </template>
         </el-table-column>
-        <el-table-column label="" width="120">
-          <template slot-scope="scope">
+        <el-table-column label="" width="70">
+          <template #default="scope">
             <div class="table-actions">
               <app-conversation-dropdown
                 :conversation="scope.row"
@@ -164,6 +164,7 @@
           :disabled="loading('table')"
           :layout="paginationLayout"
           :total="count"
+          :page-size="pagination.pageSize"
           :page-sizes="[20, 50, 100, 200]"
           @current-change="doChangePaginationCurrentPage"
           @size-change="doChangePaginationPageSize"
@@ -186,13 +187,11 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 const { fields } = ConversationModel
 
 export default {
-  name: 'app-conversation-list-table',
+  name: 'AppConversationListTable',
   components: {
     'app-conversation-dropdown': ConversationDropdown,
-    'app-conversation-list-toolbar': ConversationListDropdown
-  },
-  mounted() {
-    this.doMountTable(this.$refs.table)
+    'app-conversation-list-toolbar':
+      ConversationListDropdown
   },
 
   computed: {
@@ -229,6 +228,10 @@ export default {
     conversations() {
       return [...this.rows]
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

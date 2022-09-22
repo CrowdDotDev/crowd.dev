@@ -213,7 +213,21 @@ class TagRepository {
       }
     }
 
-    const parser = new QueryParser({}, options)
+    const parser = new QueryParser(
+      {
+        manyToMany: {
+          members: {
+            table: 'tags',
+            relationTable: {
+              name: 'memberTags',
+              from: 'tagId',
+              to: 'memberId',
+            },
+          },
+        },
+      },
+      options,
+    )
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
       orderBy: orderBy || ['createdAt_DESC'],
@@ -236,7 +250,7 @@ class TagRepository {
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

@@ -1,34 +1,39 @@
 <template>
-  <div class="popover-wrapper">
+  <div v-if="isVisible" class="popover-wrapper">
     <el-popover
+      :visible="isVisible"
       :trigger="trigger"
       :title="title"
       :placement="placement"
-      v-model="isVisible"
+      :show-arrow="showArrow"
+      popper-class="app-popover"
+      width="352px"
+      :persistent="false"
       @show="isVisible = true"
       @hide="isVisible = false"
-      :visible-arrow="visibleArrow"
-      popper-class="app-popover"
     >
-      <slot v-if="isVisible"></slot>
+      <div>
+        <slot></slot>
+      </div>
     </el-popover>
-    <transition name="fade">
-      <div
-        class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
-        v-if="isVisible"
-        @click="
-          trigger === 'manual'
-            ? $emit('hide')
-            : (isVisible = false)
-        "
-      ></div>
-    </transition>
+    <app-teleport v-if="isVisible" to="#teleport-modal">
+      <transition name="fade">
+        <div
+          class="fixed inset-0 bg-black opacity-20 cursor-pointer z-10"
+          @click="
+            trigger === 'manual'
+              ? $emit('hide')
+              : (isVisible = false)
+          "
+        ></div>
+      </transition>
+    </app-teleport>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app-popover',
+  name: 'AppPopover',
   props: {
     trigger: {
       type: String,
@@ -46,13 +51,19 @@ export default {
       type: Boolean,
       default: false
     },
-    visibleArrow: {
+    showArrow: {
       type: Boolean,
-      default: true
+      default: false
     },
     customClass: {
       type: String,
       default: null
+    }
+  },
+  emits: ['hide'],
+  data() {
+    return {
+      isVisible: this.visible
     }
   },
   watch: {
@@ -64,25 +75,25 @@ export default {
     isVisible: {
       handler(newValue) {
         if (newValue) {
-          const el = this.$el.querySelector('.app-popover')
+          setTimeout(() => {
+            const el =
+              document.querySelector('.app-popover')
 
-          const offsetTop =
-            this.$el.getBoundingClientRect().top +
-            window.pageYOffset
-          const offsetLeft =
-            this.$el.getBoundingClientRect().left +
-            window.pageXOffset
+            const offsetTop =
+              this.$el.getBoundingClientRect().top +
+              window.pageYOffset
+            const offsetLeft =
+              this.$el.getBoundingClientRect().left +
+              window.pageXOffset
 
-          el.style.top = offsetTop - 100 + 'px'
-          el.style.left =
-            offsetLeft - (offsetLeft < 242 ? 0 : 242) + 'px'
+            el.style.top = offsetTop - 100 + 'px'
+            el.style.left =
+              offsetLeft -
+              (offsetLeft < 242 ? 0 : 242) +
+              'px'
+          }, 100)
         }
       }
-    }
-  },
-  data() {
-    return {
-      isVisible: this.visible
     }
   }
 }
@@ -90,6 +101,6 @@ export default {
 
 <style lang="scss">
 .app-popover {
-  @apply z-20 border border-gray-300 rounded-lg shadow-none p-3 fixed w-88;
+  @apply z-20 border border-gray-300 rounded-lg shadow-none p-3 fixed;
 }
 </style>

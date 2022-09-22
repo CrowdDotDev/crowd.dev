@@ -1,6 +1,5 @@
 import { WidgetService } from '@/modules/widget/widget-service'
 import Errors from '@/shared/error/errors'
-import Vue from 'vue'
 import cubejs from '@cubejs-client/core'
 import config from '@/config'
 
@@ -9,12 +8,14 @@ const CUBE_API_URL = config.cubejsUrl
 export default {
   namespaced: true,
 
-  state: {
-    byId: {},
-    allIds: [],
-    count: 0,
-    loading: false,
-    cubejsToken: null
+  state: () => {
+    return {
+      byId: {},
+      allIds: [],
+      count: 0,
+      loading: false,
+      cubejsToken: null
+    }
   },
 
   getters: {
@@ -80,7 +81,7 @@ export default {
             ? { x: [], y: [] }
             : []
         }
-        Vue.set(state.byId, widget.id, widget)
+        state.byId[widget.id] = widget
         if (state.allIds.indexOf(widget.id) === -1) {
           state.allIds.push(widget.id)
         }
@@ -100,7 +101,7 @@ export default {
 
     FIND_SUCCESS(state, record) {
       record.loading = false
-      Vue.set(state.byId, record.id, record)
+      state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
         state.allIds.push(record.id)
       }
@@ -116,7 +117,7 @@ export default {
 
     CREATE_SUCCESS(state, record) {
       state.loading = false
-      Vue.set(state.byId, record.id, record)
+      state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
         state.allIds.push(record.id)
       }
@@ -133,7 +134,7 @@ export default {
 
     UPDATE_SETTINGS_SUCCESS(state, record) {
       record.loading = false
-      Vue.set(state.byId, record.id, record)
+      state.byId[record.id] = record
     },
 
     UPDATE_SETTINGS_ERROR(state, id) {
@@ -146,7 +147,7 @@ export default {
 
     DESTROY_ALL_SUCCESS(state) {
       state.loading = false
-      Vue.set(state, 'byId', {})
+      state.byId = {}
       state.allIds.splice(0)
       state.count = 0
     },

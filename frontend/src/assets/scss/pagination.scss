@@ -6,10 +6,10 @@
     ul.el-pager {
       @apply flex items-center -mx-1;
       li.number, li.btn-quicknext, li.btn-quickprev {
-        &.active {
+        &.is-active {
           @apply bg-primary-900 border-primary-900 text-white;
         }
-        &:hover:not(.active) {
+        &:hover:not(.is-active) {
           @apply text-primary-900;
         }
       }
@@ -24,9 +24,13 @@
       transition: color 0.2s;
       min-width: unset;
 
-      &:hover:not([disabled]:not(.active)) {
+      &:hover:not([disabled]:not(.is-active)) {
         @apply text-gray-800;
       }
+    }
+
+    .el-select .el-input {
+      width: 100px;
     }
 
     button {

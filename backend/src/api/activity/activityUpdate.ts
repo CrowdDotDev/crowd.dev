@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.activityEdit)
 
-    const payload = await new ActivityService(req).update(req.params.id, req.body.data)
+    const payload = await new ActivityService(req).update(req.params.id, req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

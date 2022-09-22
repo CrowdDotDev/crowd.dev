@@ -1,5 +1,5 @@
 <template>
-  <el-form-item :label="label" v-if="!isBlank">
+  <el-form-item v-if="!isBlank" :label="label">
     <el-col :lg="11" :md="16" :sm="24">
       <strong v-if="prefix"
         >{{ prefix }} {{ value }}</strong
@@ -11,9 +11,22 @@
 
 <script>
 export default {
-  name: 'app-view-item-text',
+  name: 'AppViewItemText',
 
-  props: ['label', 'value', 'prefix'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    },
+    prefix: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

@@ -116,7 +116,7 @@ export default defineComponent({
       this.isLoaded.mode = false;
     },
     truncatedTitle() {
-      const first50Chars = this.conversation.title.substr(50)
+      const first50Chars = this.conversation.title.substr(0, 50)
       if (first50Chars.substr(47, 50).includes('...')) {
         return first50Chars
       } else {

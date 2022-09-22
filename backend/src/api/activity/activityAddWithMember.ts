@@ -26,7 +26,7 @@ export default async (req, res) => {
     new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
     // Call the createWithMember function in activity service
     // to create the activity.
-    const payload = await new ActivityService(req).createWithMember(req.body.data)
+    const payload = await new ActivityService(req).createWithMember(req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

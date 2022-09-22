@@ -10,7 +10,7 @@
           </div>
         </el-col>
       </el-row>
-      <el-row :gutter="16" class="flex mb-4">
+      <el-row :gutter="16" class="mb-4">
         <el-col :lg="12" :md="12" :sm="24">
           <app-widget-benchmark />
         </el-col>
@@ -20,9 +20,9 @@
       </el-row>
     </div>
     <div
-      class="app-page-spinner"
       v-else
       v-loading="loading"
+      class="app-page-spinner"
     ></div>
   </div>
 </template>
@@ -35,10 +35,12 @@ import WidgetBenchmark from '@/modules/widget/components/dashboard/widget-benchm
 import WidgetIntegrations from '@/modules/widget/components/dashboard/widget-integrations'
 
 export default {
-  name: 'app-dashboard-page',
+  name: 'AppDashboardPage',
   components: {
-    'app-dashboard-datetime-based-widgets': DashboardDatetimeBasedWidgets,
-    'app-dashboard-recent-updates-widgets': DashboardRecentUpdatesWidgets,
+    'app-dashboard-datetime-based-widgets':
+      DashboardDatetimeBasedWidgets,
+    'app-dashboard-recent-updates-widgets':
+      DashboardRecentUpdatesWidgets,
     'app-widget-benchmark': WidgetBenchmark,
     'app-widget-integrations': WidgetIntegrations
   },
@@ -50,18 +52,9 @@ export default {
       widgetFindByType: 'widget/findByType',
       cubejsApi: 'widget/cubejsApi'
     }),
-    isLocalhost() {
-      return process.env.NODE_ENV === 'localhost'
-    },
     loading() {
       return this.widgetsLoading
     }
-  },
-  methods: {
-    ...mapActions({
-      doFetchWidgets: 'widget/doFetch',
-      getCubeToken: 'widget/getCubeToken'
-    })
   },
   async created() {
     if (!this.cubejsApi) {
@@ -72,6 +65,12 @@ export default {
   },
   async mounted() {
     window.analytics.page('Dashboard')
+  },
+  methods: {
+    ...mapActions({
+      doFetchWidgets: 'widget/doFetch',
+      getCubeToken: 'widget/getCubeToken'
+    })
   }
 }
 </script>

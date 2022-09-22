@@ -71,7 +71,7 @@ body {
     color: #fff;
   }
 
-  .el-tooltip {
+  .el-tooltip__trigger {
     display: flex!important;
     @apply items-center justify-center;
   }
@@ -137,6 +137,16 @@ hr {
   justify-content: center;
   align-items: center;
   min-height: 10rem;
+
+  .el-loading-mask {
+    @apply bg-transparent;
+  }
+  .el-loading-spinner  {
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
+    .circular {
+      @apply w-10 h-10;
+    }
+  }
 }
 
 .el-loading-spinner .path {

@@ -6,8 +6,23 @@
 import { i18n } from '@/i18n'
 
 export default {
-  name: 'app-i18n',
-  props: ['code', 'args', 'fallback'],
+  name: 'AppI18n',
+
+  props: {
+    code: {
+      type: String,
+      default: null
+    },
+    args: {
+      type: Array,
+      default: () => []
+    },
+    fallback: {
+      type: String,
+      default: undefined
+    }
+  },
+
   computed: {
     message: function () {
       const translated = i18n(

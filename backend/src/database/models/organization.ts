@@ -61,12 +61,8 @@ export default (sequelize) => {
         allowNull: true,
       },
       revenueRange: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER),
+        type: DataTypes.JSONB,
         allowNull: true,
-        validator: {
-          isArray: true,
-          len: 2,
-        },
       },
       importHash: {
         type: DataTypes.STRING(255),
@@ -91,6 +87,13 @@ export default (sequelize) => {
           where: {
             deletedAt: null,
             url: { [Op.ne]: null },
+          },
+        },
+        {
+          fields: ['name', 'tenantId'],
+          unique: true,
+          where: {
+            deletedAt: null,
           },
         },
       ],

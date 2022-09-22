@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
 
-    const payload = await new ActivityService(req).upsert(req.body.data)
+    const payload = await new ActivityService(req).upsert(req.body)
 
     track('Activity Manually Created', { ...payload }, { ...req })
 

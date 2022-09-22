@@ -23,8 +23,8 @@
 
         <el-button
           :loading="loading"
-          @click="doSubmit"
           class="btn btn--primary w-full mt-4"
+          @click="doSubmit"
         >
           <app-i18n
             code="auth.emailUnverified.submit"
@@ -32,7 +32,7 @@
         </el-button>
 
         <div class="other-actions">
-          <el-button @click="doSignout" type="text">
+          <el-button type="text" @click="doSignout">
             <app-i18n code="auth.signout"></app-i18n>
           </el-button>
         </div>
@@ -48,7 +48,7 @@ import { UserModel } from '@/premium/user/user-model'
 const { fields } = UserModel
 
 export default {
-  name: 'app-email-unverified-page',
+  name: 'AppEmailUnverifiedPage',
 
   data() {
     return {

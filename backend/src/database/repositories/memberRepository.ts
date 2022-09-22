@@ -405,6 +405,7 @@ class MemberRepository {
       orderBy = '',
       attributesSettings = [] as AttributeData[],
     },
+
     options: IRepositoryOptions,
   ) {
     let customOrderBy: Array<any> = []
@@ -753,6 +754,7 @@ class MemberRepository {
     rows = await this._populateRelationsForRows(rows)
 
     return { rows, count: count.length }
+
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

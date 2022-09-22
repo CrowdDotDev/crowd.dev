@@ -16,7 +16,7 @@ import TenantListTable from '@/modules/tenant/components/tenant-list-table.vue'
 import TenantListToolbar from '@/modules/tenant/components/tenant-list-toolbar.vue'
 
 export default {
-  name: 'app-tenant-list-page',
+  name: 'AppTenantListPage',
 
   components: {
     'app-tenant-list-table': TenantListTable,

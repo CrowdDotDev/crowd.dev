@@ -482,6 +482,17 @@ export default class ConversationService {
     return ConversationRepository.findAndCountAll(args, this.options)
   }
 
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return ConversationRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
+  }
+
   /**
    * Generates a clean title from given string
    * @param title string used to generate a cleaned title

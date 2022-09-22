@@ -2,28 +2,28 @@
   <div class="relative">
     <h1 class="app-content-title pt-2">
       <app-i18n
-        code="entities.report.edit.title"
         v-if="isEditing"
+        code="entities.report.edit.title"
       ></app-i18n>
       <app-i18n
-        code="entities.report.new.title"
         v-if="!isEditing"
+        code="entities.report.new.title"
       ></app-i18n>
     </h1>
 
     <div
-      class="app-page-spinner"
       v-if="loading('form')"
       v-loading="loading('form')"
+      class="app-page-spinner"
     ></div>
 
     <app-report-form
-      :isEditing="isEditing"
+      v-if="!loading('form')"
+      :is-editing="isEditing"
       :record="record"
-      :saveLoading="loading('submit')"
+      :save-loading="loading('submit')"
       @cancel="doCancel"
       @submit="doSubmit"
-      v-if="!loading('form')"
     />
   </div>
 </template>
@@ -31,15 +31,19 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ReportForm from '@/modules/report/components/report-form.vue'
-import { routerAsync } from '@/router'
 
 export default {
-  name: 'app-report-form-page',
-
-  props: ['id'],
+  name: 'AppReportFormPage',
 
   components: {
     'app-report-form': ReportForm
+  },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
   },
 
   computed: {
@@ -65,7 +69,7 @@ export default {
     }),
 
     doCancel() {
-      routerAsync().push('/reports')
+      this.$router.push('/reports')
     },
 
     async doSubmit(payload) {

@@ -1,14 +1,15 @@
 <template>
   <div>
     <el-dialog
+      v-model="dialogVisible"
+      :close-on-click-modal="false"
       :title="title"
-      :visible.sync="dialogVisible"
       width="80%"
     >
       <app-community-member-form
         :modal="true"
         :record="record"
-        :saveLoading="saveLoading"
+        :save-loading="saveLoading"
         @cancel="doCancel"
         @submit="doSubmit"
       />
@@ -23,13 +24,19 @@ import { i18n } from '@/i18n'
 import Errors from '@/shared/error/errors'
 
 export default {
-  name: 'app-community-member-form-modal',
-
-  props: ['visible'],
+  name: 'AppCommunityMemberFormModal',
 
   components: {
     'app-community-member-form': CommunityMemberForm
   },
+
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['close', 'success'],
 
   data() {
     return {

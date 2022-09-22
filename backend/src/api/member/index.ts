@@ -1,4 +1,5 @@
 export default (app) => {
+  app.post(`/tenant/:tenantId/member/query`, require('./memberQuery').default)
   app.post(`/tenant/:tenantId/member`, require('./memberCreate').default)
   app.put(`/tenant/:tenantId/member/:id`, require('./memberUpdate').default)
   app.post(`/tenant/:tenantId/member/import`, require('./memberImport').default)

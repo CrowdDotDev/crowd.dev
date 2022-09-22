@@ -438,6 +438,8 @@ describe('TaskRepository tests', () => {
           },
         ],
         count: 2,
+        limit: 10,
+        offset: 0,
       })
     })
 

@@ -11,8 +11,9 @@ export class AuditLogPermissions {
     this.read = permissionChecker.match(
       Permissions.values.auditLogRead
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.auditLogRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.auditLogRead
+      )
   }
 }

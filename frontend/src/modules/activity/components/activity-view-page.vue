@@ -22,9 +22,9 @@
       </h1>
 
       <div
-        class="app-page-spinner"
         v-if="loading"
         v-loading="loading"
+        class="app-page-spinner"
       ></div>
 
       <app-activity-view-toolbar
@@ -32,11 +32,11 @@
       ></app-activity-view-toolbar>
 
       <el-form
+        v-if="record"
         :label-position="labelPosition"
         :label-width="labelWidthForm"
-        @submit.prevent.native
         class="form"
-        v-if="record"
+        @submit.prevent
       >
         <app-view-item-text
           :label="fields.type.label"
@@ -79,12 +79,17 @@ import { ActivityModel } from '@/modules/activity/activity-model'
 const { fields } = ActivityModel
 
 export default {
-  name: 'app-activity-view-page',
-
-  props: ['id'],
+  name: 'AppActivityViewPage',
 
   components: {
     'app-activity-view-toolbar': ActivityViewToolbar
+  },
+
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
   },
 
   computed: {

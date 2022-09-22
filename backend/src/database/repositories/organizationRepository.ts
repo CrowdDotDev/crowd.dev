@@ -156,6 +156,52 @@ class OrganizationRepository {
     return this._populateRelations(record, options)
   }
 
+  static async findByName(name, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.organization.findOne({
+      where: {
+        name,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    if (!record) {
+      return null
+    }
+
+    return record.get({ plain: true })
+  }
+
+  static async findByUrl(url, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.organization.findOne({
+      where: {
+        url,
+        tenantId: currentTenant.id,
+      },
+      include,
+      transaction,
+    })
+
+    if (!record) {
+      return null
+    }
+
+    return record.get({ plain: true })
+  }
+
   static async filterIdInTenant(id, options: IRepositoryOptions) {
     return lodash.get(await this.filterIdsInTenant([id], options), '[0]', null)
   }
@@ -226,6 +272,129 @@ class OrganizationRepository {
         })
       }
 
+      if (filter.url) {
+        advancedFilter.and.push({
+          url: {
+            textContains: filter.url,
+          },
+        })
+      }
+
+      if (filter.description) {
+        advancedFilter.and.push({
+          description: {
+            textContains: filter.description,
+          },
+        })
+      }
+
+      if (filter.emails) {
+        if (typeof filter.emails === 'string') {
+          filter.emails = filter.emails.split(',')
+        }
+        advancedFilter.and.push({
+          emails: {
+            overlap: filter.emails,
+          },
+        })
+      }
+
+      if (filter.phoneNumbers) {
+        if (typeof filter.phoneNumbers === 'string') {
+          filter.phoneNumbers = filter.phoneNumbers.split(',')
+        }
+        advancedFilter.and.push({
+          phoneNumbers: {
+            overlap: filter.phoneNumbers,
+          },
+        })
+      }
+
+      if (filter.tags) {
+        if (typeof filter.tags === 'string') {
+          filter.tags = filter.tags.split(',')
+        }
+        advancedFilter.and.push({
+          tags: {
+            overlap: filter.tags,
+          },
+        })
+      }
+
+      if (filter.twitter) {
+        advancedFilter.and.push({
+          twitter: {
+            textContains: filter.twitter,
+          },
+        })
+      }
+
+      if (filter.linkedin) {
+        advancedFilter.and.push({
+          linkedin: {
+            textContains: filter.linkedin,
+          },
+        })
+      }
+
+      if (filter.crunchbase) {
+        advancedFilter.and.push({
+          crunchbase: {
+            textContains: filter.crunchbase,
+          },
+        })
+      }
+
+      if (filter.employeesRange) {
+        const [start, end] = filter.employeesRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            employees: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            employees: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.revenueMin) {
+        advancedFilter.and.push({
+          revenueMin: {
+            gte: filter.revenueMin,
+          },
+        })
+      }
+
+      if (filter.revenueMax) {
+        advancedFilter.and.push({
+          revenueMax: {
+            lte: filter.revenueMax,
+          },
+        })
+      }
+
+      if (filter.parentUrl) {
+        advancedFilter.and.push({
+          parentUrl: {
+            textContains: filter.parentUrl,
+          },
+        })
+      }
+
+      if (filter.members) {
+        advancedFilter.and.push({
+          members: filter.members,
+        })
+      }
+
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
@@ -250,7 +419,22 @@ class OrganizationRepository {
     const parser = new QueryParser(
       {
         nestedFields: {
-          sentiment: 'sentiment.sentiment',
+          twitter: 'twitter.handle',
+          linkedin: 'linkedin.handle',
+          crunchbase: 'crunchbase.handle',
+          revenueMin: 'revenueRange.min',
+          revenueMax: 'revenueRange.max',
+          revenue: 'revenueRange.min',
+        },
+        manyToMany: {
+          members: {
+            table: 'organizations',
+            relationTable: {
+              name: 'memberOrganizations',
+              from: 'organizationId',
+              to: 'memberId',
+            },
+          },
         },
       },
       options,
@@ -278,7 +462,7 @@ class OrganizationRepository {
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -358,6 +542,8 @@ class OrganizationRepository {
     }
 
     const output = record.get({ plain: true })
+
+    delete output.organizationCacheId
 
     const transaction = SequelizeRepository.getTransaction(options)
 

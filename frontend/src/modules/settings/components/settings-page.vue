@@ -3,20 +3,33 @@
     <h1 class="app-content-title">
       <app-i18n code="settings.title"></app-i18n>
     </h1>
-    <el-tabs v-model="activeTab" class="mt-8">
+    <el-tabs v-model="computedActiveTab" class="mt-8">
       <el-tab-pane
+        v-if="hasUsersModule"
         label="Users & Permissions"
         name="users"
-        labelClass="app-content-title"
-        v-if="hasUsersModule"
+        label-class="app-content-title"
       >
-        <app-user-list-page class="pt-4" />
+        <app-user-list-page
+          v-if="activeTab === 'users'"
+          class="pt-4"
+        />
       </el-tab-pane>
       <el-tab-pane label="Integrations" name="integrations">
-        <app-integrations-list-page />
+        <app-integration-list-page
+          v-if="activeTab === 'integrations'"
+        />
+      </el-tab-pane>
+      <el-tab-pane label="Automations" name="automations">
+        <app-automation-list-page
+          v-if="activeTab === 'automations'"
+        />
       </el-tab-pane>
       <el-tab-pane label="API Keys" name="api-keys">
-        <div class="panel mt-4">
+        <div
+          v-if="activeTab === 'api-keys'"
+          class="panel mt-4"
+        >
           <div
             class="border p-4 mb-4 rounded-lg border-secondary-900 bg-secondary-50"
           >
@@ -61,16 +74,18 @@
               class="w-full lg:w-1/2 mx-3"
             >
               <el-input :value="tenantId" :readonly="true">
-                <el-tooltip
-                  content="Copy to Clipboard"
-                  placement="top"
-                  slot="append"
-                >
-                  <el-button
-                    icon="ri-clipboard-line"
-                    @click="copyToClipboard('tenantId')"
-                  ></el-button>
-                </el-tooltip>
+                <template #append>
+                  <el-tooltip
+                    content="Copy to Clipboard"
+                    placement="top"
+                  >
+                    <el-button
+                      @click="copyToClipboard('tenantId')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
             <el-form-item
@@ -82,28 +97,28 @@
                 :disabled="!showToken"
                 :readonly="showToken"
               >
-                <el-tooltip
-                  content="Show Auth Token"
-                  placement="top"
-                  slot="append"
-                  v-if="!showToken"
-                >
-                  <el-button
-                    icon="ri-eye-line"
-                    @click="showToken = true"
-                  ></el-button>
-                </el-tooltip>
-                <el-tooltip
-                  content="Copy to Clipboard"
-                  placement="top"
-                  slot="append"
-                  v-else
-                >
-                  <el-button
-                    icon="ri-clipboard-line"
-                    @click="copyToClipboard('token')"
-                  ></el-button>
-                </el-tooltip>
+                <template #append>
+                  <el-tooltip
+                    v-if="!showToken"
+                    content="Show Auth Token"
+                    placement="top"
+                  >
+                    <el-button @click="showToken = true">
+                      <i class="ri-eye-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip
+                    v-else
+                    content="Copy to Clipboard"
+                    placement="top"
+                  >
+                    <el-button
+                      @click="copyToClipboard('token')"
+                    >
+                      <i class="ri-clipboard-line"></i>
+                    </el-button>
+                  </el-tooltip>
+                </template>
               </el-input>
             </el-form-item>
           </el-form>
@@ -116,6 +131,7 @@
 <script>
 import UserListPage from '@/premium/user/components/user-list-page'
 import IntegrationListPage from '@/modules/integration/components/integration-list-page'
+import AutomationListPage from '@/modules/automation/components/automation-list-page'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import Message from '@/shared/message/message'
@@ -123,11 +139,19 @@ import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {
-  name: 'app-settings-page',
+  name: 'AppSettingsPage',
 
   components: {
     'app-user-list-page': UserListPage,
-    'app-integrations-list-page': IntegrationListPage
+    'app-integration-list-page': IntegrationListPage,
+    'app-automation-list-page': AutomationListPage
+  },
+
+  data() {
+    return {
+      activeTab: null,
+      showToken: false
+    }
   },
 
   computed: {
@@ -148,13 +172,18 @@ export default {
       } else if (config.edition === 'crowd-hosted') {
         return true
       } else return config.communityPremium === 'true'
-    }
-  },
-
-  data() {
-    return {
-      activeTab: null,
-      showToken: false
+    },
+    computedActiveTab: {
+      get() {
+        return this.activeTab
+      },
+      set(value) {
+        this.$router.push({
+          name: 'settings',
+          query: { activeTab: value }
+        })
+        this.activeTab = value
+      }
     }
   },
 
@@ -187,25 +216,11 @@ export default {
 </script>
 
 <style lang="scss">
-.settings {
-  .el-tabs {
-    &__header {
-      @apply m-0 border-b;
-    }
-    &__active-bar {
-      @apply bg-primary-900;
-    }
-    &__item {
-      @apply font-semibold;
-      &.is-active {
-        @apply text-black;
-      }
-      &:focus.is-active.is-focus:not(:active) {
-        box-shadow: none;
-      }
-    }
-    &__content {
-      @apply rounded border-0;
+.el-tabs {
+  &__item {
+    @apply font-normal text-black;
+    &.is-active {
+      @apply text-black;
     }
   }
 }

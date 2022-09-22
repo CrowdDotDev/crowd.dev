@@ -20,9 +20,23 @@
 }
 
 .el-form.form {
+  .el-form-item {
+    @apply block;
+    &__content {
+      @apply block mb-4 w-full;
+    }
+
+    .el-input {
+      .el-input__wrapper {
+        .el-input__inner {
+          @apply border-none;
+        }
+      }
+    }
+  }
+
   .el-form-item__label {
-    @apply font-semibold text-black;
-    float: none;
+    @apply font-medium text-black h-7 leading-6;
   }
   .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before {
     display: none;
@@ -34,6 +48,10 @@
   }
 }
 
+.el-input, .el-date-editor.el-input, .el-date-editor.el-input__wrapper {
+  @apply h-10 leading-10 w-full;
+}
+
 .el-date-editor--daterange.el-input,
 .el-date-editor--daterange.el-input__inner,
 .el-date-editor--timerange.el-input,
@@ -43,7 +61,7 @@
 
 .el-checkbox {
   &__label {
-    @apply text-black;
+    @apply text-black font-normal;
   }
 
   &__input {
@@ -77,7 +95,7 @@
 }
 
 .el-radio.is-bordered {
-  @apply m-0 px-4;
+  @apply m-0 px-4 mr-2;
 
   .el-radio__input {
     @apply hidden;
@@ -98,13 +116,6 @@
 
 .el-input.is-active .el-input__inner, .el-input__inner:focus {
   @apply border-secondary-900;
-}
-
-.el-switch__label.is-active {
-  @apply text-secondary-900;
-}
-.el-switch.is-checked .el-switch__core {
-  @apply bg-secondary-900 border-secondary-900;
 }
 
 .el-form-item.is-error .el-input__inner,

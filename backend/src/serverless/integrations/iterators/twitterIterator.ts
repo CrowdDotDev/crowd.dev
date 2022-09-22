@@ -26,6 +26,7 @@ import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 export default class TwitterIterator extends BaseIterator {
   static limitReachedState: State = {
+    endpoints: [],
     endpoint: '__limit',
     page: '__limit',
   }
@@ -58,7 +59,7 @@ export default class TwitterIterator extends BaseIterator {
     profileId: string,
     accessToken: string,
     hashtags: Array<string>,
-    state: State = { endpoint: '', page: '' },
+    state: State = { endpoint: '', page: '', endpoints: [] },
     onboarding: boolean = false,
     tweetCount: number = 0,
     followers: Set<string> = new Set(),
@@ -280,7 +281,7 @@ export default class TwitterIterator extends BaseIterator {
       sourceId: BaseIterator.generateSourceIdHash(
         record.username,
         'follow',
-        timestampObj.unix().toString(),
+        moment('1970-01-01T00:00:00+00:00').utc().unix().toString(),
         PlatformType.TWITTER,
       ),
       // When onboarding we need a super old date. Otherwise we can place it in a 2h window

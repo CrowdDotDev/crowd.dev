@@ -2,14 +2,14 @@
   <div class="i18n-select">
     <el-select
       :value="value"
-      @change="doChangeLanguage"
       placeholder
+      @change="doChangeLanguage"
     >
       <el-option
+        v-for="language in languages"
         :key="language.id"
         :label="language.label"
         :value="language.id"
-        v-for="language in languages"
       ></el-option>
     </el-select>
   </div>
@@ -20,7 +20,7 @@ import { I18nUtil } from '@/shared/i18n/i18n-util'
 import { getLanguages, getLanguageCode } from '@/i18n'
 
 export default {
-  name: 'app-i18n-select',
+  name: 'AppI18nSelect',
 
   data() {
     return {
