@@ -114,7 +114,7 @@ export default class MemberService {
    * @returns attribute object with default values
    */
   async setAttributesDefaultValues(attributes: object): Promise<object> {
-    if (!await SettingsService.platformPriorityArrayExists(this.options)) {
+    if (!(await SettingsService.platformPriorityArrayExists(this.options))) {
       throw new Error400(this.options.language, 'settings.memberAttributes.priorityArrayNotFound')
     }
 

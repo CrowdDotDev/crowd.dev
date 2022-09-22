@@ -681,15 +681,13 @@ describe('MemberAttributeSettingService tests', () => {
       expect(isCorrectType({}, AttributeType.BOOLEAN)).toBeFalsy()
       expect(isCorrectType([], AttributeType.BOOLEAN)).toBeFalsy()
 
-      
-      // string 
+      // string
       expect(isCorrectType('', AttributeType.STRING)).toBeTruthy()
       expect(isCorrectType('someString', AttributeType.STRING)).toBeTruthy()
-      
+
       expect(isCorrectType(5, AttributeType.STRING)).toBeFalsy()
       expect(isCorrectType(true, AttributeType.STRING)).toBeFalsy()
       expect(isCorrectType({}, AttributeType.STRING)).toBeFalsy()
-
 
       // date
       expect(isCorrectType('2022-05-10', AttributeType.DATE)).toBeTruthy()
@@ -703,16 +701,15 @@ describe('MemberAttributeSettingService tests', () => {
       expect(isCorrectType({}, AttributeType.DATE)).toBeFalsy()
       expect(isCorrectType([], AttributeType.DATE)).toBeFalsy()
 
-
       // email
       expect(isCorrectType('anil@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
       expect(isCorrectType('anil+123@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
-      
+
       expect(isCorrectType(15, AttributeType.EMAIL)).toBeFalsy()
       expect(isCorrectType('', AttributeType.EMAIL)).toBeFalsy()
       expect(isCorrectType('someString', AttributeType.EMAIL)).toBeFalsy()
       expect(isCorrectType(true, AttributeType.EMAIL)).toBeFalsy()
-      expect(isCorrectType({},AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType({}, AttributeType.EMAIL)).toBeFalsy()
       expect(isCorrectType([], AttributeType.EMAIL)).toBeFalsy()
 
       // number
@@ -721,20 +718,12 @@ describe('MemberAttributeSettingService tests', () => {
       expect(isCorrectType(0.000001, AttributeType.NUMBER)).toBeTruthy()
       expect(isCorrectType(0, AttributeType.NUMBER)).toBeTruthy()
       expect(isCorrectType('125', AttributeType.NUMBER)).toBeTruthy()
-      
+
       expect(isCorrectType('', AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType('someString', AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType(true, AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType({}, AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType([], AttributeType.NUMBER)).toBeFalsy()
-
-
-      
-     
-
-
-
+    })
   })
-})
-
 })

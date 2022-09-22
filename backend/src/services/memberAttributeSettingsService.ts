@@ -36,12 +36,17 @@ export default class MemberAttributeSettingsService {
 
   static isNumber(value): boolean {
     // eslint-disable-next-line no-restricted-globals
-    return (typeof(value) === 'number' || typeof(value) === "string" && value.trim() !== '') && !isNaN(value as number)
+    return (
+      (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) &&
+      !isNaN(value as number)
+    )
   }
 
   static isEmail(value): boolean {
     const emailRegexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
-    return MemberAttributeSettingsService.isString(value) && value !== '' && value.match(emailRegexp)
+    return (
+      MemberAttributeSettingsService.isString(value) && value !== '' && value.match(emailRegexp)
+    )
   }
 
   static isString(value): boolean {
@@ -53,7 +58,6 @@ export default class MemberAttributeSettingsService {
   }
 
   static isDate(value): boolean {
-
     if (moment(value, moment.ISO_8601).isValid()) {
       return true
     }
@@ -65,7 +69,7 @@ export default class MemberAttributeSettingsService {
    * Checks the given attribute value against the attribute type.
    * @param value the value to be checked
    * @param type the type value will be checked against
-   * @returns 
+   * @returns
    */
   static isCorrectType(value, type: AttributeType): boolean {
     switch (type) {

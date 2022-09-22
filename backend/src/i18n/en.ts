@@ -17,7 +17,7 @@ const en = {
         requiredFields: `Type and label fields are required when creating member attributes.`,
         notFound: `Member attribute {0} not found in memberAttributeSettings.`,
         noPlatformSent: `Cannot select the highest priority platform. No platform was sent.`,
-        priorityArrayNotFound: `Member attributes platform priority array does not exist.`
+        priorityArrayNotFound: `Member attributes platform priority array does not exist.`,
       },
     },
   },

@@ -85,7 +85,7 @@ describe('MemberRepository tests', () => {
         toMerge: [],
         activityCount: 0,
         lastActive: null,
-        averageSentiment: 0
+        averageSentiment: 0,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -187,9 +187,9 @@ describe('MemberRepository tests', () => {
         tags: [],
         noMerge: [],
         toMerge: [],
-        activityCount:0,
+        activityCount: 0,
         averageSentiment: 0,
-        lastActive: null
+        lastActive: null,
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -323,7 +323,7 @@ describe('MemberRepository tests', () => {
         toMerge: [],
         activityCount: 0,
         averageSentiment: 0,
-        lastActive: null
+        lastActive: null,
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -1122,7 +1122,7 @@ describe('MemberRepository tests', () => {
 
       expect(members.rows[1].activityCount).toEqual('2')
       expect(members.rows[1].lastActive.toISOString()).toEqual('2022-09-12T00:00:00.000Z')
-      
+
       expect(members.rows[2].activityCount).toEqual('1')
       expect(members.rows[2].tags[0].name).toEqual('nodejs')
       expect(members.rows[2].lastActive.toISOString()).toEqual('2022-09-10T00:00:00.000Z')
@@ -1134,7 +1134,7 @@ describe('MemberRepository tests', () => {
       members = await MemberRepository.findAndCountAll(
         {
           filter: {
-            reachRange: [55]
+            reachRange: [55],
           },
           limit: 15,
           offset: 0,
@@ -1147,12 +1147,11 @@ describe('MemberRepository tests', () => {
       expect(members.rows[0].id).toEqual(member3.id)
       expect(members.rows[1].id).toEqual(member2.id)
 
-
       // filter and sort by activity count
       members = await MemberRepository.findAndCountAll(
         {
           filter: {
-            activityCountRange: [2]
+            activityCountRange: [2],
           },
           limit: 15,
           offset: 0,
@@ -1162,13 +1161,13 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.map(i => i.id)).toEqual([member3.id, member2.id])
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
 
       // filter and sort by lastActive
       members = await MemberRepository.findAndCountAll(
         {
           filter: {
-            lastActiveRange: ['2022-09-11']
+            lastActiveRange: ['2022-09-11'],
           },
           limit: 15,
           offset: 0,
@@ -1178,13 +1177,13 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.map(i => i.id)).toEqual([member3.id, member2.id])
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
 
       // filter and sort by averageSentiment (member1.avgSentiment = 0.1, member2.avgSentiment = 0.2, member3.avgSentiment = 0.34)
       members = await MemberRepository.findAndCountAll(
         {
           filter: {
-            averageSentimentRange: [0.20]
+            averageSentimentRange: [0.2],
           },
           limit: 15,
           offset: 0,
@@ -1194,8 +1193,7 @@ describe('MemberRepository tests', () => {
       )
 
       expect(members.rows.length).toEqual(2)
-      expect(members.rows.map(i => i.id)).toEqual([member2.id, member3.id])
-      
+      expect(members.rows.map((i) => i.id)).toEqual([member2.id, member3.id])
     })
   })
 
@@ -1421,7 +1419,7 @@ describe('MemberRepository tests', () => {
         toMerge: [],
         activityCount: 0,
         averageSentiment: 0,
-        lastActive: null
+        lastActive: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -1497,7 +1495,7 @@ describe('MemberRepository tests', () => {
         tasks: [],
         activityCount: 0,
         averageSentiment: 0,
-        lastActive: null
+        lastActive: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)

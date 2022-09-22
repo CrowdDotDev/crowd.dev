@@ -407,7 +407,6 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ) {
-
     let customOrderBy: Array<any> = []
 
     const include = [
@@ -446,9 +445,10 @@ class MemberRepository {
     )
 
     if (orderBy.includes('reach')) {
-      customOrderBy = customOrderBy.concat(
-        [Sequelize.literal(`("member".reach->'total')::int`), orderBy.split('_')[1]]
-      )
+      customOrderBy = customOrderBy.concat([
+        Sequelize.literal(`("member".reach->'total')::int`),
+        orderBy.split('_')[1],
+      ])
     }
 
     if (!advancedFilter) {
@@ -631,10 +631,8 @@ class MemberRepository {
             })
           }
         }
-
       }
     }
-
 
     const dynamicAttributesNestedFields = attributesSettings.reduce((acc, attribute) => {
       acc[attribute.name] = `attributes.${attribute.name}.default`
@@ -713,7 +711,7 @@ class MemberRepository {
 
     if (customOrderBy.length > 0) {
       order = [customOrderBy]
-    } 
+    }
 
     let {
       rows,
@@ -880,22 +878,23 @@ class MemberRepository {
       transaction,
     })
 
-
     output.lastActive = output.activities[0]?.timestamp ?? null
 
     output.activityCount = output.activities.length
 
-    output.averageSentiment = output.activityCount > 0 ?
-      Math.round(
-        (output.activities.reduce((acc, i) => {
-          if (i.sentiment.sentiment) {
-            acc += i.sentiment.sentiment
-          }
-          return acc
-        }, 0) /
-          output.activityCount) *
-          100,
-      ) / 100 : 0
+    output.averageSentiment =
+      output.activityCount > 0
+        ? Math.round(
+            (output.activities.reduce((acc, i) => {
+              if (i.sentiment.sentiment) {
+                acc += i.sentiment.sentiment
+              }
+              return acc
+            }, 0) /
+              output.activityCount) *
+              100,
+          ) / 100
+        : 0
 
     output.tags = await record.getTags({
       transaction,
