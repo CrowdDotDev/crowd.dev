@@ -17,6 +17,15 @@ class SettingsService {
 
     return settings
   }
+
+  static async platformPriorityArrayExists(options) {
+    const settings = await SettingsRepository.findOrCreateDefault(DEFAULT_SETTINGS, options)
+    return (
+      settings.attributeSettings &&
+      settings.attributeSettings.priorities &&
+      settings.attributeSettings.priorities.length > 0
+    )
+  }
 }
 
 export default SettingsService

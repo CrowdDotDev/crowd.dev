@@ -10,6 +10,7 @@ import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import SettingsService from './settingsService'
 
 export default class MemberService {
   options: IServiceOptions
@@ -18,7 +19,44 @@ export default class MemberService {
     this.options = options
   }
 
-  async getStructuredAttributes(attributes) {
+  /**
+   * Transforms the attributes coming from a request to a structured, attribute-name-key(ed) object.
+   * Example incoming attributes:
+   * {
+   *   attributes:{
+   *     github:{
+   *         url: 'http://some-github-url'
+   *         name: 'Michael Scott'
+   *         isHireable: true
+   *     },
+   *     twitter:{
+   *         url: 'http://some-twitter-url'
+   *     }
+   *   }
+   * }
+   *
+   * This object is transformed into:
+   * {
+   *   attributes:{
+   *     url: {
+   *        github: 'http://some-github-url',
+   *        twitter: 'http://some-twitter-url'
+   *     },
+   *     name: {
+   *        github: 'Michael Scott'
+   *     },
+   *     isHireable: {
+   *        github: true
+   *     }
+   *   }
+   * }
+   *
+   * Throws 400 Errors if the attribute does not exist in settings,
+   * or if the sent attribute type does not match the type in the settings.
+   * @param attributes
+   * @returns structured object
+   */
+  async getStructuredAttributes(attributes: object): Promise<object> {
     const attributesObject = {}
 
     // check attribute exists in memberAttributeSettings
@@ -68,11 +106,23 @@ export default class MemberService {
     return attributesObject
   }
 
-  setAttributesDefaultValues(attributes) {
+  /**
+   * Sets the attribute.default key as default values of attribute
+   * object using the priority array stored in the settings.
+   * Throws a 400 Error if priority array does not exist.
+   * @param attributes
+   * @returns attribute object with default values
+   */
+  async setAttributesDefaultValues(attributes: object): Promise<object> {
+    if (!await SettingsService.platformPriorityArrayExists(this.options)) {
+      throw new Error400(this.options.language, 'settings.memberAttributes.priorityArrayNotFound')
+    }
+
     const priorityArray = this.options.currentTenant.settings[0].get({ plain: true })
       .attributeSettings.priorities
+
     for (const attributeName of Object.keys(attributes)) {
-      const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
+      const highestPriorityPlatform = this.getHighestPriorityPlatformForAttributes(
         Object.keys(attributes[attributeName]),
         priorityArray,
       )
@@ -82,8 +132,20 @@ export default class MemberService {
     return attributes
   }
 
-  static getHighestPriorityPlatformForAttributes(platforms, priorityArray) {
-    return priorityArray.filter((i) => platforms.includes(i))[0]
+  /**
+   * Returns the highest priority platform from an array of platforms
+   * If any of the platforms does not exist in the priority array, returns
+   * the first platform sent as the highest priority platform.
+   * @param platforms Array of platforms to select the highest priority platform
+   * @param priorityArray zero indexed priority array. Lower index means higher priority
+   * @returns the highest priority platform
+   */
+  getHighestPriorityPlatformForAttributes(platforms: string[], priorityArray: string[]): string {
+    if (platforms.length <= 0) {
+      throw new Error400(this.options.language, 'settings.memberAttributes.noPlatformSent')
+    }
+    const filteredPlatforms = priorityArray.filter((i) => platforms.includes(i))
+    return filteredPlatforms.length > 0 ? filteredPlatforms[0] : platforms[0]
   }
 
   /**
@@ -169,7 +231,7 @@ export default class MemberService {
         const toUpdate = MemberService.membersMerge(existing, data)
 
         if (toUpdate.attributes) {
-          toUpdate.attributes = this.setAttributesDefaultValues(toUpdate.attributes)
+          toUpdate.attributes = await this.setAttributesDefaultValues(toUpdate.attributes)
         }
 
         // It is important to call it with doPopulateRelations=false
@@ -187,7 +249,7 @@ export default class MemberService {
         // It is important to call it with doPopulateRelations=false
         // because otherwise the performance is greatly decreased in integrations
         if (data.attributes) {
-          data.attributes = this.setAttributesDefaultValues(data.attributes)
+          data.attributes = await this.setAttributesDefaultValues(data.attributes)
         }
 
         record = await MemberRepository.create(
@@ -523,8 +585,12 @@ export default class MemberService {
 
   async findAndCountAll(args) {
     const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)).rows
-    return MemberRepository.findAndCountAll({...args, attributesSettings:memberAttributeSettings} , this.options)
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+    return MemberRepository.findAndCountAll(
+      { ...args, attributesSettings: memberAttributeSettings },
+      this.options,
+    )
   }
 
   async findMembersWithMergeSuggestions() {

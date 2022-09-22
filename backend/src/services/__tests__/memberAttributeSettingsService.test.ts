@@ -665,4 +665,76 @@ describe('MemberAttributeSettingService tests', () => {
       expect(updatedAttribute).toStrictEqual(expectedAttribute)
     })
   })
+
+  describe('isCorrectType tests', () => {
+    it(`Should check various types and values successfully`, async () => {
+      const isCorrectType = MemberAttributeSettingsService.isCorrectType
+
+      // boolean
+      expect(isCorrectType(true, AttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType(false, AttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType('true', AttributeType.BOOLEAN)).toBeTruthy()
+      expect(isCorrectType('false', AttributeType.BOOLEAN)).toBeTruthy()
+
+      expect(isCorrectType(5, AttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType('someString', AttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType({}, AttributeType.BOOLEAN)).toBeFalsy()
+      expect(isCorrectType([], AttributeType.BOOLEAN)).toBeFalsy()
+
+      
+      // string 
+      expect(isCorrectType('', AttributeType.STRING)).toBeTruthy()
+      expect(isCorrectType('someString', AttributeType.STRING)).toBeTruthy()
+      
+      expect(isCorrectType(5, AttributeType.STRING)).toBeFalsy()
+      expect(isCorrectType(true, AttributeType.STRING)).toBeFalsy()
+      expect(isCorrectType({}, AttributeType.STRING)).toBeFalsy()
+
+
+      // date
+      expect(isCorrectType('2022-05-10', AttributeType.DATE)).toBeTruthy()
+      expect(isCorrectType('2022-06-15T00:00:00', AttributeType.DATE)).toBeTruthy()
+      expect(isCorrectType('2022-07-14T00:00:00Z', AttributeType.DATE)).toBeTruthy()
+
+      expect(isCorrectType(5, AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType('someString', AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType('', AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType(true, AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType({}, AttributeType.DATE)).toBeFalsy()
+      expect(isCorrectType([], AttributeType.DATE)).toBeFalsy()
+
+
+      // email
+      expect(isCorrectType('anil@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
+      expect(isCorrectType('anil+123@crowd.dev', AttributeType.EMAIL)).toBeTruthy()
+      
+      expect(isCorrectType(15, AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType('', AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType('someString', AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType(true, AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType({},AttributeType.EMAIL)).toBeFalsy()
+      expect(isCorrectType([], AttributeType.EMAIL)).toBeFalsy()
+
+      // number
+      expect(isCorrectType(100, AttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(5.123, AttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(0.000001, AttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType(0, AttributeType.NUMBER)).toBeTruthy()
+      expect(isCorrectType('125', AttributeType.NUMBER)).toBeTruthy()
+      
+      expect(isCorrectType('', AttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType('someString', AttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType(true, AttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType({}, AttributeType.NUMBER)).toBeFalsy()
+      expect(isCorrectType([], AttributeType.NUMBER)).toBeFalsy()
+
+
+      
+     
+
+
+
+  })
+})
+
 })

@@ -407,7 +407,6 @@ class MemberRepository {
     },
     options: IRepositoryOptions,
   ) {
-    const literalReachTotal = Sequelize.literal(`("member".reach->'total')::int`)
 
     let customOrderBy: Array<any> = []
 
@@ -446,9 +445,11 @@ class MemberRepository {
       SequelizeFilterUtils.customOrderByIfExists('averageSentiment', orderBy),
     )
 
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists(literalReachTotal, orderBy),
-    )
+    if (orderBy.includes('reach')) {
+      customOrderBy = customOrderBy.concat(
+        [Sequelize.literal(`("member".reach->'total')::int`), orderBy.split('_')[1]]
+      )
+    }
 
     if (!advancedFilter) {
       advancedFilter = { and: [] }
@@ -712,11 +713,7 @@ class MemberRepository {
 
     if (customOrderBy.length > 0) {
       order = [customOrderBy]
-    } else if (orderBy) {
-      order = [orderBy.split('_')]
-    } else {
-      order = [['joinedAt', 'DESC']]
-    }
+    } 
 
     let {
       rows,

@@ -35,12 +35,13 @@ export default class MemberAttributeSettingsService {
   }
 
   static isNumber(value): boolean {
-    return !Number.isNaN(value)
+    // eslint-disable-next-line no-restricted-globals
+    return (typeof(value) === 'number' || typeof(value) === "string" && value.trim() !== '') && !isNaN(value as number)
   }
 
   static isEmail(value): boolean {
     const emailRegexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
-    return value !== '' && value.match(emailRegexp)
+    return MemberAttributeSettingsService.isString(value) && value !== '' && value.match(emailRegexp)
   }
 
   static isString(value): boolean {
@@ -52,16 +53,20 @@ export default class MemberAttributeSettingsService {
   }
 
   static isDate(value): boolean {
-    if (moment(value, 'YYYY-MM-DDTHH:mm:ss', true).isValid()) {
-      return true
-    }
-    if (moment(value, 'YYYY-MM-DD', true).isValid()) {
+
+    if (moment(value, moment.ISO_8601).isValid()) {
       return true
     }
 
     return false
   }
 
+  /**
+   * Checks the given attribute value against the attribute type.
+   * @param value the value to be checked
+   * @param type the type value will be checked against
+   * @returns 
+   */
   static isCorrectType(value, type: AttributeType): boolean {
     switch (type) {
       case AttributeType.BOOLEAN:
@@ -74,6 +79,8 @@ export default class MemberAttributeSettingsService {
         return MemberAttributeSettingsService.isEmail(value)
       case AttributeType.URL:
         return MemberAttributeSettingsService.isUrl(value)
+      case AttributeType.NUMBER:
+        return MemberAttributeSettingsService.isNumber(value)
       default:
         return false
     }
@@ -106,6 +113,13 @@ export default class MemberAttributeSettingsService {
     }
   }
 
+  /**
+   * Creates predefined set of attributes in one function call.
+   * Useful when creating predefined platform specific attributes that come
+   * from the integrations.
+   * @param attributes List of attributes
+   * @returns created attributes
+   */
   async createPredefined(attributes: Attribute[]): Promise<AttributeData[]> {
     const transaction = await SequelizeRepository.createTransaction(this.options.database)
 
