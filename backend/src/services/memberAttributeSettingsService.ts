@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import moment from 'moment'
 import { Attribute, AttributeData } from '../database/attributes/attribute'
 import { AttributeType } from '../database/attributes/types'
@@ -35,7 +36,6 @@ export default class MemberAttributeSettingsService {
   }
 
   static isNumber(value): boolean {
-    // eslint-disable-next-line no-restricted-globals
     return (
       (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) &&
       !isNaN(value as number)
