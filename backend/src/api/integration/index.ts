@@ -6,6 +6,7 @@ import { getTwitterStrategy } from '../../services/auth/passportStrategies/super
 import { getSlackStrategy } from '../../services/auth/passportStrategies/slackStrategy'
 
 export default (app) => {
+  app.post(`/tenant/:tenantId/integration/query`, require('./integrationQuery').default)
   app.post(`/tenant/:tenantId/integration`, require('./integrationCreate').default)
   app.put(`/tenant/:tenantId/integration/:id`, require('./integrationUpdate').default)
   app.post(`/tenant/:tenantId/integration/import`, require('./integrationImport').default)

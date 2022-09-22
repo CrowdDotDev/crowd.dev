@@ -1,5 +1,5 @@
 import { i18n, i18nExists } from '@/i18n'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { AuthService } from '@/modules/auth/auth-service'
 
@@ -59,7 +59,7 @@ export default class Errors {
         Message.error(error.response.data, { duration: 0 })
         return
       }
-      routerAsync().push('/403')
+      router.push('/403')
     }
 
     if ([400, 409, 429].includes(selectErrorCode(error))) {
@@ -75,7 +75,7 @@ export default class Errors {
       return
     }
 
-    routerAsync().push('/500')
+    router.push('/500')
   }
 
   static errorCode(error) {

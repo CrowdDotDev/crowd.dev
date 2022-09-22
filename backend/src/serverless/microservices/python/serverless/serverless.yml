@@ -17,14 +17,20 @@ provider:
       Resource:
         - '*'
   region: ${env:AWS_REGION}
-  ecr:
-    # In this section you can define images that will be built locally and uploaded to ECR
-    images:
-      pythonMicroservices:
-        path: ../
 
 custom:
   currentStage: ${opt:stage, self:provider.stage} # 'staging' is default unless overriden by --stage flag
+  scripts:
+    hooks:
+      # The psycopg2-3.8 folder contains the psycopg2 package compiled for the lambda environment.
+      # If it is installed using pip it only works when a linux machine has done the install.
+      # We change the name to psycopg2 so lambda will use the folder as the psycopg2 package.
+      # We need to rename because if it lives named as psycopg2 it overwrites the psycopg2 installation
+      # that one might have in local, and thus functions cannot be invoked locally since the package
+      # might not be compatible with our system.
+      'package:initialize': cp -r psycopg2-3.8 psycopg2
+      'deploy:finalize': rm -rf psycopg2
+
   localstack:
     host: ${env:LOCALSTACK_HOSTNAME}
     stages:
@@ -48,18 +54,8 @@ constructs:
     batchSize: 1 # Lambda will receive 1 message at a time
     worker:
       timeout: 900
-      image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+      handler: handler_scheduled.worker
       environment:
-        DD_ENV: ${env:NODE_ENV}
-        DD_LAMBDA_HANDLER: serverless.handler_scheduled.worker
-        DD_LOGS_ENABLED: true
-        DD_CAPTURE_LAMBDA_PAYLOAD: true
-        DD_SITE: datadoghq.eu
-        DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
-        DD_TRACE_ENABLED: true
-        DD_TAGS: 'context:pythonMicroservices'
-        DD_SERVICE: 'pythonMicroservices'
-        DD_LOGS_INJECTION: true
         NODE_ENV: ${env:NODE_ENV}
         LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
         LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
@@ -72,7 +68,7 @@ constructs:
 
 functions:
   coordinator:
-    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+    handler: handler_scheduled.coordinator
     events:
       - schedule:
           rate: rate(2 hours)
@@ -83,19 +79,6 @@ functions:
           input:
             service: check_merge
     environment:
-      DD_ENV: ${env:NODE_ENV}
-      DD_LAMBDA_HANDLER: serverless.handler_scheduled.coordinator
-      DD_LOGS_ENABLED: true
-      DD_CAPTURE_LAMBDA_PAYLOAD: true
-      DD_SITE: datadoghq.eu
-      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
-      DD_TRACE_ENABLED: true
-      DD_TAGS: 'context:pythonMicroservices'
-      DD_SERVICE: 'pythonMicroservices'
-      DD_LOGS_INJECTION: true
-      DD_FLUSH_TO_LOG: true
-      DD_LOG_LEVEL: 'debug'
-      DD_ENHANCED_METRICS: true
       NODE_ENV: ${env:NODE_ENV}
       EDITION: ${env:EDITION}
       SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
@@ -111,18 +94,8 @@ functions:
       PYTHON_MICROSERVICES_SQS_URL: ${env:PYTHON_MICROSERVICES_SQS_URL}
 
   testSqs:
-    image: ${env:AWS_ACCOUNT_ID}.dkr.ecr.${env:AWS_REGION}.amazonaws.com/python-microservices-lambda:${env:CROWD_VERSION}
+    handler: handler_scheduled.worker
     environment:
-      DD_ENV: ${env:NODE_ENV}
-      DD_LAMBDA_HANDLER: serverless.handler_scheduled.worker
-      DD_LOGS_ENABLED: true
-      DD_CAPTURE_LAMBDA_PAYLOAD: true
-      DD_SITE: datadoghq.eu
-      DD_API_KEY_SECRET_ARN: ${env:DATADOG_API_KEY_SECRET_ARN}
-      DD_TRACE_ENABLED: true
-      DD_TAGS: 'context:pythonMicroservices'
-      DD_SERVICE: 'pythonMicroservices'
-      DD_LOGS_INJECTION: true
       NODE_ENV: ${env:NODE_ENV}
       EDITION: ${env:EDITION}
       SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
@@ -133,11 +106,106 @@ functions:
       DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
       PYTHON_MICROSERVICES_SQS_URL: ${env:PYTHON_MICROSERVICES_SQS_URL}
 
+  gitHubOnboardingCoordinator:
+    handler: handler_github.onboarding_coordinator
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      EDITION: ${env:EDITION}
+      SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
+      LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+      LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
+      DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+      DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+      DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+      DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+      AWS_ACCESS_KEY_ID_CROWD: ${env:AWS_ACCESS_KEY_ID, false}
+      AWS_SECRET_ACCESS_KEY_CROWD: ${env:AWS_SECRET_ACCESS_KEY, false}
+      ONBOARDING_STATE_MACHINE_ARN: ${self:resources.Outputs.OnboardingStateMachine.Value}
+
+  gitHubOnboardingWorker:
+    handler: handler_github.onboarding_worker
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      EDITION: ${env:EDITION}
+      SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
+      LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+      LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
+      DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+      DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+      DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+      DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+      AWS_ACCESS_KEY_ID_CROWD: ${env:AWS_ACCESS_KEY_ID, false}
+      AWS_SECRET_ACCESS_KEY_CROWD: ${env:AWS_SECRET_ACCESS_KEY, false}
+
+  gitHubOnboardingStatus:
+    handler: handler_github.onboarding_status
+    environment:
+      NODE_ENV: ${env:NODE_ENV}
+      EDITION: ${env:EDITION}
+      SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY}
+      LOCALSTACK_HOSTNAME: ${env:LOCALSTACK_HOSTNAME}
+      LOCALSTACK_PORT: ${env:LOCALSTACK_PORT}
+      AWS_ACCOUNT_ID: ${env:AWS_ACCOUNT_ID}
+      CROWD_AWS_REGION: ${env:AWS_REGION}
+      DATABASE_USERNAME: ${env:DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${env:DATABASE_PASSWORD}
+      DATABASE_DATABASE: ${env:DATABASE_DATABASE}
+      DATABASE_HOST_READ: ${env:DATABASE_HOST_WRITE}
+      DB_OPERATIONS_SQS_URL: ${env:DB_OPERATIONS_SQS_URL}
+      AWS_ACCESS_KEY_ID_CROWD: ${env:AWS_ACCESS_KEY_ID, false}
+      AWS_SECRET_ACCESS_KEY_CROWD: ${env:AWS_SECRET_ACCESS_KEY, false}
+
+stepFunctions:
+  stateMachines:
+    # Onboarding state machine
+    onboardingStateMachine:
+      name: OnboardingStateMachine${self:custom.currentStage}
+      definition:
+        Comment: 'State machine that coordinates GitHub onboarding'
+        StartAt: WaitState
+        States:
+          WaitState:
+            Type: Wait
+            SecondsPath: '$.wait'
+            Next: MapState
+          MapState:
+            Type: Map
+            Iterator:
+              StartAt: WorkerState
+              States:
+                WorkerState:
+                  Type: Task
+                  Resource:
+                    Fn::GetAtt: [gitHubOnboardingWorker, Arn]
+                  End: true
+            ItemsPath: '$.events'
+            Next: StatusState
+          StatusState:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [gitHubOnboardingStatus, Arn]
+            End: true
+
+resources:
+  Outputs:
+    OnboardingStateMachine:
+      Description: The ARN of the onboarding state machine
+      Value:
+        Ref: OnboardingStateMachine${self:custom.currentStage}
+
 package:
+  include:
+    - '../crowd-backend/**'
+    - '../crowd-github/**'
+    - '../crowd-members-score/**'
+    - '../crowd-check-merge-members/**'
   patterns:
     - '!venv*/**'
 
 plugins:
   - serverless-lift
   - serverless-step-functions
+  - serverless-plugin-scripts
   - serverless-localstack

@@ -4,7 +4,7 @@
     <el-select
       clearable
       filterable
-      :value="
+      :model-value="
         translatedOptions(measures).map((i) => i.label)
       "
       @change="(m) => setMeasures([m])"

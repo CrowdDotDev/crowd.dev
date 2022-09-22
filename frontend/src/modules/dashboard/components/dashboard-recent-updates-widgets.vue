@@ -25,7 +25,7 @@ import WidgetLatestActivities from '@/modules/widget/components/dashboard/widget
 import WidgetNewestMembers from '@/modules/widget/components/dashboard/widget-newest-members'
 
 export default {
-  name: 'app-dashboard-table-widgets',
+  name: 'AppDashboardTableWidgets',
   components: {
     'app-widget-latest-activities': WidgetLatestActivities,
     'app-widget-newest-members': WidgetNewestMembers

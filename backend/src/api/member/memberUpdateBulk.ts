@@ -7,7 +7,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-    const membersToUpdate = req.body.data
+    const membersToUpdate = req.body
 
     const memberService = new MemberService(req)
 

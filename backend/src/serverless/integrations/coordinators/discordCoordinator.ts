@@ -16,7 +16,7 @@ async function discordCoordinator(): Promise<void> {
       sleep: Math.floor(Math.random() * 1200),
       tenant: integration.tenantId.toString(),
       onboarding: false,
-      state: { endpoint: '', page: '' },
+      state: { endpoint: '', page: '', endpoints: [] },
       args: {
         guildId: integration.integrationIdentifier,
         channels: integration.settings.channels || [],

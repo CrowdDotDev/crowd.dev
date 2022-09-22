@@ -10,19 +10,12 @@ import { PermissionChecker } from '@/premium/user/permission-checker'
  * - currentTenant is set (if not, redirects to /)
  *
  * @param to
- * @param next
  * @param store
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({
-  to,
-  next,
-  store,
-  router
-}) {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.notEmptyTenant) {
-    next()
     return
   }
 
@@ -40,6 +33,4 @@ export default async function ({
   if (!permissionChecker.isEmptyTenant) {
     return router.push('/')
   }
-
-  next()
 }

@@ -77,6 +77,7 @@ async function getDevtoIterator(articles: DevtoArticle[]) {
     {
       endpoint: '',
       page: '',
+      endpoints: [],
     },
     false,
   )

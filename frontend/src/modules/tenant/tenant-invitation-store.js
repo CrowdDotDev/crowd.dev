@@ -1,6 +1,6 @@
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import AuthInvitationToken from '@/modules/auth/auth-invitation-token'
@@ -8,9 +8,11 @@ import AuthInvitationToken from '@/modules/auth/auth-invitation-token'
 export default {
   namespaced: true,
 
-  state: {
-    loading: false,
-    warningMessage: null
+  state: () => {
+    return {
+      loading: false,
+      warningMessage: null
+    }
   },
 
   getters: {
@@ -106,7 +108,7 @@ export default {
 
         if (!isSignedIn) {
           AuthInvitationToken.set(token)
-          routerAsync().push('/auth/signup')
+          router.push('/auth/signup')
           return
         }
 
@@ -124,7 +126,7 @@ export default {
         commit('ACCEPT_FROM_AUTH_SUCCESS')
       } catch (error) {
         if (Errors.errorCode(error) === 404) {
-          routerAsync().push('/')
+          router.push('/')
           return
         }
 
@@ -138,7 +140,7 @@ export default {
 
         Errors.handle(error)
         commit('ACCEPT_FROM_AUTH_ERROR')
-        routerAsync().push('/')
+        router.push('/')
       }
     },
 
@@ -184,7 +186,7 @@ export default {
 
         commit('DECLINE_SUCCESS')
 
-        routerAsync().push('/tenant')
+        router.push('/tenant')
       } catch (error) {
         Errors.handle(error)
         commit('DECLINE_ERROR')

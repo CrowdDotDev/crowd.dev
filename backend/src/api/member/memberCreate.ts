@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.memberCreate)
 
-    const payload = await new MemberService(req).upsert(req.body.data)
+    const payload = await new MemberService(req).upsert(req.body)
 
     track('Member Manually Created', { ...payload }, { ...req })
 

@@ -21,7 +21,7 @@
         </h3>
 
         <div class="other-actions">
-          <el-button @click="doSignout()" type="text">
+          <el-button type="text" @click="doSignout()">
             <app-i18n code="auth.signout"></app-i18n>
           </el-button>
         </div>
@@ -34,13 +34,7 @@
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-  name: 'app-empty-permissions-page',
-
-  methods: {
-    ...mapActions({
-      doSignout: 'auth/doSignout'
-    })
-  },
+  name: 'AppEmptyPermissionsPage',
 
   computed: {
     ...mapGetters({
@@ -60,6 +54,12 @@ export default {
         backgroundPosition: 'left 100px bottom 100px'
       }
     }
+  },
+
+  methods: {
+    ...mapActions({
+      doSignout: 'auth/doSignout'
+    })
   }
 }
 </script>

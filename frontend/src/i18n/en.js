@@ -249,8 +249,8 @@ const en = {
       },
       github: {
         fork: 'forked',
-        star: 'stared',
-        unstar: 'unstared',
+        star: 'starred',
+        unstar: 'unstarred',
         'pull_request-open': 'opened a new pull request',
         'pull_request-opened': 'opened a new pull request',
         'pull_request-close': 'closed a pull request',
@@ -352,6 +352,33 @@ const en = {
       menu: 'Eagle Eye'
     },
 
+    automation: {
+      name: 'Automations',
+      label: 'Automations',
+      create: {
+        success: 'Automation successfully saved'
+      },
+      update: {
+        success: 'Automation successfully saved'
+      },
+      destroy: {
+        success: 'Automation successfully deleted'
+      },
+      destroyAll: {
+        success: 'Automation(s) successfully deleted'
+      },
+      fields: {
+        type: 'Type',
+        trigger: 'Choose Trigger',
+        status: 'Status'
+      },
+      triggers: {
+        new_activity:
+          'New activity happened in your community',
+        new_member: 'New member joined your community'
+      }
+    },
+
     conversation: {
       name: 'Conversations',
       label: 'Conversations',
@@ -409,7 +436,12 @@ const en = {
         score: '[Members] Engagement Level',
         location: '[Members] Location',
         organisation: '[Members] Organisation',
-        joinedAt: '[Members] Joined Date'
+        joinedAt: '[Members] Joined Date',
+        averageTimeToFirstInteraction:
+          '[Members] Avg. Time To First Interaction'
+      },
+      MemberTags: {
+        count: '[Members] # of Tags'
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -420,7 +452,8 @@ const en = {
         published: '[Conversations] Published'
       },
       Tags: {
-        name: '[Tags] Name'
+        name: '[Tags] Name',
+        count: '[Tags] Count'
       }
     }
   },
@@ -599,8 +632,7 @@ const en = {
     },
     select: 'Select Workspace',
     validation: {
-      url:
-        'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
+      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
     }
   },
 

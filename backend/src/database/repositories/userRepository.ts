@@ -446,7 +446,7 @@ export default class UserRepository {
 
     rows = this._mapUserForTenantForRows(rows, currentTenant)
 
-    return { rows, count }
+    return { rows, count, limit: false, offset: 0 }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

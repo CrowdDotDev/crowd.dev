@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n'
+import { i18n, init as i18nInit } from '@/i18n'
 import IdField from '@/shared/fields/id-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import DateTimeField from '@/shared/fields/date-time-field'
@@ -9,6 +9,8 @@ import BooleanField from '@/shared/fields/boolean-field'
 function label(name) {
   return i18n(`entities.conversation.fields.${name}`)
 }
+
+i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),

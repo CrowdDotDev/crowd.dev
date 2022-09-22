@@ -84,8 +84,10 @@ require('./integration').default(routes)
 require('./microservice').default(routes)
 require('./conversation').default(routes)
 require('./eagleEyeContent').default(routes)
+require('./automation').default(routes)
 require('./task').default(routes)
 require('./note').default(routes)
+require('./organization').default(routes)
 
 // Loads the Tenant if the :tenantId param is passed
 routes.param('tenantId', tenantMiddleware)

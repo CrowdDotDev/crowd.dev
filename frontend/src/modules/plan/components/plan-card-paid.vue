@@ -33,23 +33,23 @@
       </p>
 
       <el-button
+        v-if="buttonState === 'payment'"
         :disabled="
           !hasPermissionToEdit || !isPlanUser || loading
         "
-        @click="doCheckout(plan)"
         native-type="button"
         class="w-100 btn btn--primary"
-        v-if="buttonState === 'payment'"
+        @click="doCheckout(plan)"
       >
         <app-i18n code="plan.subscribe"></app-i18n>
       </el-button>
 
       <el-button
+        v-if="buttonState === 'manage' && isPlanUser"
         :disabled="!hasPermissionToEdit || loading"
-        @click="doPortal()"
         native-type="button"
         class="w-100 btn btn--primary"
-        v-if="buttonState === 'manage' && isPlanUser"
+        @click="doPortal()"
       >
         <app-i18n code="plan.manage"></app-i18n>
       </el-button>
@@ -79,9 +79,14 @@ import { i18n } from '@/i18n'
 import { PlanPermissions } from '../plan-permissions'
 
 export default {
-  name: 'app-plan-card-paid',
+  name: 'AppPlanCardPaid',
 
-  props: ['plan'],
+  props: {
+    plan: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

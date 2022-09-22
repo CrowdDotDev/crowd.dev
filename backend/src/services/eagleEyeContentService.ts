@@ -75,6 +75,17 @@ export default class EagleEyeContentService {
     return EagleEyeContentRepository.findAndCountAll(args, this.options)
   }
 
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return EagleEyeContentRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
+  }
+
   async bulkUpsert(data: EagleEyeSearchOutput) {
     for (const point of data) {
       await this.upsert(point)

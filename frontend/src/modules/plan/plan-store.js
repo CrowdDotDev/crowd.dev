@@ -6,8 +6,10 @@ import Plans from '@/security/plans'
 export default {
   namespaced: true,
 
-  state: {
-    loading: false
+  state: () => {
+    return {
+      loading: false
+    }
   },
 
   getters: {
@@ -70,9 +72,8 @@ export default {
       try {
         commit('CHECKOUT_STARTED')
 
-        const sessionId = await PlanService.fetchCheckoutSessionId(
-          plan
-        )
+        const sessionId =
+          await PlanService.fetchCheckoutSessionId(plan)
 
         const stripe = window.Stripe(
           config.stripePublishableKey

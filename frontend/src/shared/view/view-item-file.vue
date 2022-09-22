@@ -1,7 +1,7 @@
 <template>
-  <el-form-item :label="label" v-if="!isBlank">
+  <el-form-item v-if="!isBlank" :label="label">
     <el-col :lg="11" :md="16" :sm="24">
-      <div :key="item.name" v-for="item in value">
+      <div v-for="item in value" :key="item.name">
         <strong>
           <a
             :href="item.downloadUrl"
@@ -17,9 +17,18 @@
 
 <script>
 export default {
-  name: 'app-view-item-file',
+  name: 'AppViewItemFile',
 
-  props: ['label', 'value'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    value: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     isBlank() {

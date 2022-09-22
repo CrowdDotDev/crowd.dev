@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isBlank">
-    <router-link :to="urlWithId" v-if="hasPermissionToRead">
+    <router-link v-if="hasPermissionToRead" :to="urlWithId">
       <strong>{{ display }}</strong>
     </router-link>
     <strong v-if="!hasPermissionToRead">
@@ -14,9 +14,22 @@ import { mapGetters } from 'vuex'
 import { PermissionChecker } from '@/premium/user/permission-checker'
 
 export default {
-  name: 'app-list-item-relation-to-one',
+  name: 'AppListItemRelationToOne',
 
-  props: ['value', 'url', 'permission'],
+  props: {
+    label: {
+      type: String,
+      default: null
+    },
+    url: {
+      type: String,
+      default: null
+    },
+    permission: {
+      type: String,
+      default: null
+    }
+  },
 
   computed: {
     ...mapGetters({

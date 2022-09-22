@@ -6,7 +6,7 @@ module.exports = {
   },
 
   extends: [
-    'plugin:vue/essential',
+    'plugin:vue/vue3-recommended',
     'eslint:recommended',
     '@vue/prettier'
   ],
@@ -21,6 +21,9 @@ module.exports = {
         ? 'warn'
         : 'off',
     'no-debugger':
-      process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+      process.env.NODE_ENV === 'production'
+        ? 'warn'
+        : 'off',
+    'vue/no-v-html': 'off'
   }
 }

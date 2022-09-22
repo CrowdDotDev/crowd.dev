@@ -48,7 +48,7 @@ const { fields } = ConversationModel
 const filterSchema = new FilterSchema([fields.published])
 
 export default {
-  name: 'app-conversation-published-tabs',
+  name: 'AppConversationPublishedTabs',
   computed: {
     ...mapGetters({
       filter: 'conversation/filter'

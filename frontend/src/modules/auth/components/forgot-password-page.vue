@@ -7,31 +7,31 @@
         </div>
 
         <el-form
+          ref="form"
           :model="model"
           :rules="rules"
-          @submit.prevent.native="doSubmit"
           class="form"
           label-position="left"
           label-width="0px"
-          ref="form"
+          @submit.prevent="doSubmit"
         >
           <el-form-item :prop="fields.email.name">
             <el-input
+              id="email"
+              ref="focus"
+              v-model="model[fields.email.name]"
               :placeholder="fields.email.label"
               auto-complete="off"
-              ref="focus"
               type="text"
-              id="email"
-              v-model="model[fields.email.name]"
             ></el-input>
           </el-form-item>
 
           <el-form-item>
             <el-button
+              id="submit"
               :loading="loading"
               native-type="submit"
               class="w-100 btn btn--primary"
-              id="submit"
             >
               <app-i18n
                 code="auth.passwordResetEmail.message"
@@ -59,7 +59,7 @@ import { UserModel } from '@/premium/user/user-model'
 const { fields } = UserModel
 
 export default {
-  name: 'app-forgot-password-page',
+  name: 'AppForgotPasswordPage',
 
   data() {
     return {

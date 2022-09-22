@@ -8,27 +8,26 @@
     <div class="flex items-center justify-between mb-4">
       <app-activity-platform-tabs />
       <div class="flex items-center justify-end">
-        <portal-target
-          name="activity-filter-toggle"
-        ></portal-target>
+        <div id="teleport-activity-filter-toggle"></div>
         <el-button
-          icon="ri-lg ri-add-line"
-          class="btn btn--primary ml-2"
           v-if="hasPermissionToCreate"
+          class="btn btn--primary ml-2"
           @click.prevent="creating = true"
         >
+          <i class="ri-lg ri-add-line mr-1" />
           <app-i18n code="common.new"></app-i18n>
         </el-button>
       </div>
     </div>
 
     <el-dialog
-      :visible.sync="creating"
+      v-model="creating"
+      :close-on-click-modal="false"
       title="New Activity"
       :append-to-body="true"
       :destroy-on-close="true"
-      @close="creating = false"
       custom-class="el-dialog--lg"
+      @close="creating = false"
     >
       <app-activity-form-page @cancel="creating = false">
       </app-activity-form-page>
@@ -44,9 +43,10 @@ import ActivityListFilter from '@/modules/activity/components/activity-list-filt
 import ActivityListFeed from '@/modules/activity/components/activity-list-feed.vue'
 import ActivityFormPage from '@/modules/activity/components/activity-form-page.vue'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
+import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-activity-list-page',
+  name: 'AppActivityListPage',
 
   components: {
     'app-activity-list-filter': ActivityListFilter,
@@ -54,18 +54,22 @@ export default {
     'app-activity-platform-tabs': ActivityPlatformTabs,
     'app-activity-form-page': ActivityFormPage
   },
+
+  data() {
+    return {
+      creating: false
+    }
+  },
   computed: {
+    ...mapGetters({
+      currentTenant: 'auth/currentTenant',
+      currentUser: 'auth/currentUser'
+    }),
     hasPermissionToCreate() {
       return new ActivityPermissions(
         this.currentTenant,
         this.currentUser
       ).create
-    }
-  },
-
-  data() {
-    return {
-      creating: false
     }
   },
 

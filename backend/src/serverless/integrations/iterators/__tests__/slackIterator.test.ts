@@ -31,7 +31,7 @@ async function getSlackIterator(members = {}, channels = [{ name: 'dev', id: 'C0
     members,
     integrationId,
     mockIRepositoryOptions,
-    { endpoint: '', page: '' },
+    { endpoint: '', page: '', endpoints: [] },
     false,
   )
 }

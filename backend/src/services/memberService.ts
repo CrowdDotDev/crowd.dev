@@ -8,6 +8,7 @@ import MemberRepository from '../database/repositories/memberRepository'
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
+import { sendNewMemberNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
@@ -272,6 +273,14 @@ export default class MemberService {
       }
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      if (!existing) {
+        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          .then(() => console.log(`New member automation triggered - ${record.id}!`))
+          .catch((err) =>
+            console.log(`Error triggering new member automation - ${record.id}!`, err),
+          )
+      }
 
       return record
     } catch (error) {
@@ -589,6 +598,17 @@ export default class MemberService {
     ).rows
     return MemberRepository.findAndCountAll(
       { ...args, attributesSettings: memberAttributeSettings },
+      this.options,
+    )
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return MemberRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
       this.options,
     )
   }

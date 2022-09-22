@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: 'avatar',
+  name: 'AppAvatar',
   props: {
     entity: {
       type: Object,
@@ -23,32 +23,6 @@ export default {
     size: {
       type: String,
       default: 'md'
-    }
-  },
-  computed: {
-    computedBackgroundColor() {
-      return this.backgroundColors[
-        this.entity.username.crowdUsername.length %
-          this.backgroundColors.length
-      ]
-    },
-    computedTextColor() {
-      return this.textColors[
-        this.entity.username.crowdUsername.length %
-          this.textColors.length
-      ]
-    },
-    computedStyle() {
-      return this.entity.avatar
-        ? `background-image: url(${this.entity.avatar}`
-        : {
-            backgroundColor: this.computedBackgroundColor,
-            borderColor: this.computedBackgroundColor,
-            color: this.computedTextColor
-          }
-    },
-    computedClass() {
-      return `avatar--${this.size}`
     }
   },
   data() {
@@ -76,13 +50,39 @@ export default {
         '#E03E3E'
       ]
     }
+  },
+  computed: {
+    computedBackgroundColor() {
+      return this.backgroundColors[
+        this.entity.username.crowdUsername.length %
+          this.backgroundColors.length
+      ]
+    },
+    computedTextColor() {
+      return this.textColors[
+        this.entity.username.crowdUsername.length %
+          this.textColors.length
+      ]
+    },
+    computedStyle() {
+      return this.entity.avatar
+        ? `background-image: url(${this.entity.avatar}`
+        : {
+            backgroundColor: this.computedBackgroundColor,
+            borderColor: this.computedBackgroundColor,
+            color: this.computedTextColor
+          }
+    },
+    computedClass() {
+      return `avatar--${this.size}`
+    }
   }
 }
 </script>
 
 <style lang="scss">
 .avatar {
-  @apply rounded-full h-12 w-12 flex-shrink-0 flex justify-center items-center;
+  @apply rounded-full h-12 w-12 shrink-0 flex justify-center items-center;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;

@@ -1,15 +1,14 @@
 <template>
-  <app-widget :config="config" v-if="widget">
+  <app-widget v-if="widget" :config="config">
     <div class="widget-latest-activities">
       <el-table
-        :border="true"
-        :data="rows"
         ref="table"
+        :data="rows"
         row-key="id"
         :show-header="false"
       >
         <el-table-column>
-          <template slot-scope="scope">
+          <template #default="scope">
             <app-activity-header
               :activity="scope.row"
               size="xs"
@@ -33,11 +32,17 @@ import ActivityHeader from '@/modules/activity/components/activity-header'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'app-widget-latest-activities',
+  name: 'AppWidgetLatestActivities',
   components: {
     'app-widget': Widget,
     'app-activity-header': ActivityHeader,
     'app-activity-dropdown': ActivityDropdown
+  },
+  data() {
+    return {
+      rows: [],
+      loading: false
+    }
   },
   computed: {
     ...mapGetters({
@@ -58,21 +63,6 @@ export default {
       }
     }
   },
-  data() {
-    return {
-      rows: [],
-      loading: false
-    }
-  },
-  methods: {
-    handleActivityDestroyed(activityId) {
-      const index = this.rows.findIndex(
-        (a) => a.id === activityId
-      )
-
-      this.rows.splice(index, 1)
-    }
-  },
   async created() {
     this.loading = true
     const response = await ActivityService.list(
@@ -83,6 +73,15 @@ export default {
     )
     this.rows = response.rows
     this.loading = false
+  },
+  methods: {
+    handleActivityDestroyed(activityId) {
+      const index = this.rows.findIndex(
+        (a) => a.id === activityId
+      )
+
+      this.rows.splice(index, 1)
+    }
   }
 }
 </script>

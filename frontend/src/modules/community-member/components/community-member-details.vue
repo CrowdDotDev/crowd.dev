@@ -9,9 +9,9 @@
         :member="member"
       />
       <app-community-member-dropdown
+        v-if="showDropdown"
         :show-view-member="false"
         :member="member"
-        v-if="showDropdown"
       ></app-community-member-dropdown>
     </div>
     <div class="mt-8">
@@ -75,12 +75,12 @@
             >
               <span class="inline-flex mr-1">Reach</span>
               <el-tooltip placement="top">
-                <div slot="content">
+                <template #content>
                   Combined followers on connected social
                   channels<br /><span class="italic"
                     >(Requires Twitter Integration)</span
                   >
-                </div>
+                </template>
                 <i
                   class="ri-information-line inline-flex items-center mr-2"
                 ></i>
@@ -95,8 +95,8 @@
           </div>
         </div>
         <div
-          class="flex justify-between items-center w-full"
           v-if="member.organisation"
+          class="flex justify-between items-center w-full"
         >
           <div class="w-1/3">
             <span class="opacity-50">Organisation</span>
@@ -107,13 +107,13 @@
         </div>
       </div>
       <div
-        class="community-member-details-info-custom"
         v-if="member.info"
+        class="community-member-details-info-custom"
       >
         <div
-          class="flex justify-between items-start w-full"
           v-for="attribute in Object.keys(member.info)"
           :key="attribute"
+          class="flex justify-between items-start w-full"
         >
           <div class="w-1/3">
             <span class="opacity-50">{{
@@ -126,23 +126,23 @@
         </div>
       </div>
       <div
-        class="community-member-details-info-integrations"
         v-if="userIntegrations.length > 0"
+        class="community-member-details-info-integrations"
       >
         <el-collapse>
           <el-collapse-item
-            :name="integration"
             v-for="integration in userIntegrations"
             :key="integration"
+            :name="integration"
           >
-            <span slot="title">{{
+            <template #title>{{
               capitalizeWords(integration)
-            }}</span>
+            }}</template>
             <div
-              :key="attribute"
               v-for="attribute in Object.keys(
                 member.crowdInfo[integration]
               )"
+              :key="attribute"
               class="flex items-start justify-between"
             >
               <div class="w-1/3 opacity-50">
@@ -171,7 +171,17 @@ import moment from 'moment'
 import integrationsJson from '@/jsons/integrations'
 
 export default {
-  name: 'app-community-member-details',
+  name: 'AppCommunityMemberDetails',
+  components: {
+    'app-community-member-dropdown':
+      CommunityMemberDropdown,
+    'app-community-member-channels':
+      CommunityMemberChannels,
+    'app-tag-list': TagList,
+    'app-community-member-engagement-level':
+      CommunityMemberEngagementLevel,
+    'app-community-member-reach': CommunityMemberReach
+  },
   props: {
     member: {
       type: Object,
@@ -182,6 +192,7 @@ export default {
       default: true
     }
   },
+  emits: ['updated'],
   computed: {
     userActivities() {
       return this.member.activities.map((a) => {
@@ -208,13 +219,6 @@ export default {
     computedUsername() {
       return this.member.username.crowdUsername
     }
-  },
-  components: {
-    'app-community-member-dropdown': CommunityMemberDropdown,
-    'app-community-member-channels': CommunityMemberChannels,
-    'app-tag-list': TagList,
-    'app-community-member-engagement-level': CommunityMemberEngagementLevel,
-    'app-community-member-reach': CommunityMemberReach
   },
 
   methods: {

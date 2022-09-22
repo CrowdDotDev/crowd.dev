@@ -3,13 +3,13 @@
     <app-user-list-toolbar></app-user-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
-        :border="true"
-        :data="rows"
-        @sort-change="doChangeSort"
         ref="table"
-        row-key="id"
         v-loading="loading"
+        :data="rows"
+        row-key="id"
+        :bordered="true"
         :row-class-name="rowClass"
+        @sort-change="doChangeSort"
       >
         <el-table-column
           type="selection"
@@ -21,7 +21,7 @@
           :prop="fields.email.name"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ presenter(scope.row, 'email') }}
           </template>
         </el-table-column>
@@ -31,7 +31,7 @@
           :prop="fields.fullName.name"
           sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ presenter(scope.row, 'fullName') }}
           </template>
         </el-table-column>
@@ -40,10 +40,10 @@
           :label="fields.roles.label"
           :prop="fields.roles.name"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <div
-              :key="roleId"
               v-for="roleId in scope.row.roles"
+              :key="roleId"
             >
               <el-tooltip
                 :content="roleDescriptionOf(roleId)"
@@ -57,9 +57,8 @@
         <el-table-column
           :label="fields.status.label"
           :prop="fields.status.name"
-          sortable="custom"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <el-tag
               :type="
                 scope.row[fields.status.name] === 'invited'
@@ -80,7 +79,7 @@
           align="center"
           width="120"
         >
-          <template slot-scope="scope">
+          <template #default="scope">
             <div class="table-actions">
               <app-user-dropdown
                 :user="scope.row"
@@ -96,6 +95,7 @@
           :disabled="loading"
           :layout="paginationLayout"
           :total="count"
+          :page-size="pagination.pageSize"
           :page-sizes="[20, 50, 100, 200]"
           @current-change="doChangePaginationCurrentPage"
           @size-change="doChangePaginationPageSize"
@@ -111,21 +111,17 @@ import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import UserListToolbar from '@/premium/user/components/user-list-toolbar.vue'
 import Roles from '@/security/roles'
-import { i18n } from '../../../i18n'
+import { i18n } from '@/i18n'
 import AppUserDropdown from './user-dropdown'
 
 const { fields } = UserModel
 
 export default {
-  name: 'app-user-list-table',
+  name: 'AppUserListTable',
 
   components: {
     AppUserDropdown,
     'app-user-list-toolbar': UserListToolbar
-  },
-
-  mounted() {
-    this.doMountTable(this.$refs.table)
   },
 
   computed: {
@@ -158,6 +154,10 @@ export default {
     fields() {
       return fields
     }
+  },
+
+  mounted() {
+    this.doMountTable(this.$refs.table)
   },
 
   methods: {

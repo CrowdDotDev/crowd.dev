@@ -17,6 +17,7 @@ class MembersScore:
     def __init__(self, tenant_id, repository=False, test=False, send=True):
 
         self.tenant_id = tenant_id
+        logger.info(tenant_id)
 
         if not repository:
             self.repository = Repository(tenant_id=self.tenant_id, test=test)
@@ -162,6 +163,9 @@ class MembersScore:
         active_members_scores = {k: v for k, v in scores.items() if v != 0}
 
         active_members_raw_scores = [active_members_scores[x] for x in active_members_scores.keys()]
+
+        if len(active_members_scores) == 0:
+            return active_members_scores
 
         # Initialize the k means cluster
         if len(active_members_raw_scores) < 10:

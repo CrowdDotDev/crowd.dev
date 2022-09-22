@@ -3,8 +3,7 @@
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
-    @change="onChange"
+    :model-value="modelValue"
     clearable
     default-first-option
     filterable
@@ -15,6 +14,7 @@
     :allow-create="allowCreate"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
     <el-option
@@ -25,16 +25,16 @@
       <span>{{ currentQuery }}</span>
     </el-option>
     <el-option
+      v-for="initialOption of initialOptions"
       :key="initialOption.id"
       :label="initialOption.label"
       :value="initialOption"
-      v-for="initialOption of initialOptions"
     ></el-option>
     <el-option
+      v-for="record in dataSource"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
     ></el-option>
   </el-select>
 </template>
@@ -46,14 +46,16 @@ import isString from 'lodash/isString'
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-many-input',
+  name: 'AppAutocompleteManyInput',
 
   props: {
-    value: {
-      type: Array
+    modelValue: {
+      type: Array,
+      default: () => []
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     fetchFn: {
       type: Function,
@@ -96,7 +98,7 @@ export default {
       default: () => []
     }
   },
-  emits: ['remove-tag'],
+  emits: ['remove-tag', 'update:modelValue'],
   data() {
     return {
       loading: false,
@@ -106,13 +108,6 @@ export default {
       currentQuery: '',
       debouncedSearch: () => {}
     }
-  },
-
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
   },
 
   computed: {
@@ -150,10 +145,17 @@ export default {
     }
   },
 
+  mounted() {
+    this.debouncedSearch = debounce(
+      this.handleSearch.bind(this),
+      300
+    )
+  },
+
   methods: {
     async onChange(value) {
       if (value.length === 0) {
-        this.$emit('input', [])
+        this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
         if (
@@ -171,7 +173,7 @@ export default {
         }
       })
       Promise.all(promises).then((values) => {
-        this.$emit('input', values)
+        this.$emit('update:modelValue', values)
       })
     },
 
@@ -203,12 +205,12 @@ export default {
       }
 
       if (this.fullDataSource) {
-        this.inMemoryDataSource = this.fullDataSource.filter(
-          (item) =>
+        this.inMemoryDataSource =
+          this.fullDataSource.filter((item) =>
             String(item.label || '')
               .toLowerCase()
               .includes(String(value || '').toLowerCase())
-        )
+          )
       }
 
       this.loading = false

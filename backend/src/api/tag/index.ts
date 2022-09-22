@@ -1,9 +1,10 @@
 export default (app) => {
-  app.post(`/tenant/:tenantId/tag`, require('./TagCreate').default)
-  app.put(`/tenant/:tenantId/tag/:id`, require('./TagUpdate').default)
-  app.post(`/tenant/:tenantId/tag/import`, require('./TagImport').default)
-  app.delete(`/tenant/:tenantId/tag`, require('./TagDestroy').default)
-  app.get(`/tenant/:tenantId/tag/autocomplete`, require('./TagAutocomplete').default)
-  app.get(`/tenant/:tenantId/tag`, require('./TagList').default)
-  app.get(`/tenant/:tenantId/tag/:id`, require('./TagFind').default)
+  app.post(`/tenant/:tenantId/tag`, require('./tagCreate').default)
+  app.post(`/tenant/:tenantId/tag/query`, require('./tagQuery').default)
+  app.put(`/tenant/:tenantId/tag/:id`, require('./tagUpdate').default)
+  app.post(`/tenant/:tenantId/tag/import`, require('./tagImport').default)
+  app.delete(`/tenant/:tenantId/tag`, require('./tagDestroy').default)
+  app.get(`/tenant/:tenantId/tag/autocomplete`, require('./tagAutocomplete').default)
+  app.get(`/tenant/:tenantId/tag`, require('./tagList').default)
+  app.get(`/tenant/:tenantId/tag/:id`, require('./tagFind').default)
 }

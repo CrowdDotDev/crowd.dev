@@ -1,19 +1,23 @@
 <template>
   <div class="eagle-eye-filter">
     <app-filter-toggle
-      @click="expanded = true"
-      :activeFiltersCount="activeFiltersCount"
+      :active-filters-count="activeFiltersCount"
       :expanded="expanded"
+      @click="expanded = true"
     ></app-filter-toggle>
-    <el-dialog :visible.sync="expanded" title="Filters">
+    <el-dialog
+      v-model="expanded"
+      title="Filters"
+      :close-on-click-modal="false"
+    >
       <el-form class="form">
         <el-form-item label="Platform">
           <el-checkbox-group v-model="platforms">
             <div class="flex items-center flex-wrap">
               <el-checkbox
                 v-for="source of eagleEyeSources"
-                :label="source.platform"
                 :key="source.platform"
+                :label="source.platform"
                 class="w-1/2"
                 :disabled="
                   !['devto', 'hacker_news'].includes(
@@ -78,16 +82,16 @@
       <div class="flex items-center justify-end mt-12">
         <el-button
           class="btn btn--primary mr-3"
-          icon="ri-lg ri-check-line"
           @click="handleApplyClick"
         >
+          <i class="ri-lg ri-check-line mr-1" />
           Apply filters
         </el-button>
         <el-button
           class="btn btn--secondary"
-          icon="ri-lg ri-arrow-go-back-line"
           @click="handleResetClick"
         >
+          <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Reset
         </el-button>
       </div>
@@ -99,7 +103,7 @@
 import eagleEyeSourcesJson from '@/jsons/eagle-eye-sources.json'
 import { mapActions, mapGetters } from 'vuex'
 export default {
-  name: 'app-eagle-eye-filter',
+  name: 'AppEagleEyeFilter',
   data() {
     return {
       expanded: false,
@@ -144,7 +148,9 @@ export default {
     },
     'filter.platforms': {
       handler(newValue) {
-        this.platforms = [...newValue]
+        if (Array.isArray(newValue)) {
+          this.platforms = [...newValue]
+        }
       },
       deep: true
     }
