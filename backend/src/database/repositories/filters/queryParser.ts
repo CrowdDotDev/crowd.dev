@@ -54,7 +54,7 @@ class QueryParser {
     notIn: Op.notIn, // NOT IN [1, 2]
     overlap: Op.overlap, // && [1, 2] (PG array overlap operator)
     NULL: null,
-    // contains: Op.contains,          // @> [1, 2] (PG array contains operator)
+    contains: Op.contains, // @> [1, 2] (PG array contains operator)
     // contained: Op.contained,        // <@ [1, 2] (PG array contained by operator)
     // col: Op.col                     // = "user"."organization_id", with dialect specific column identifiers, PG in this example
     // any: Op.any                     // ANY ARRAY[2, 3]::INTEGER (PG only)
