@@ -1,5 +1,5 @@
 import moment from 'moment'
-import sanitizeHtml from 'sanitize-html'
+import { convert as convertHtmlToText } from 'html-to-text'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
@@ -63,10 +63,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         c.lastActivity.username = lastActivity.communityMember.username[c.platform]
 
         if (c.lastActivity.crowdInfo.body) {
-          c.lastActivity.crowdInfo.body = sanitizeHtml(c.lastActivity.crowdInfo.body, {
-            allowedTags: [],
-            allowedAttributes: {},
-          })
+          c.lastActivity.crowdInfo.body = convertHtmlToText(c.lastActivity.crowdInfo.body)
         }
 
         c.lastActiveFromNow = moment(c.lastActive).fromNow()
