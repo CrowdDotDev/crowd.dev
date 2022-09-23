@@ -193,7 +193,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -241,7 +241,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -292,7 +292,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -377,7 +377,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -432,7 +432,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -489,7 +489,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -551,7 +551,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -591,7 +591,7 @@ describe('Slack iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: 'a123456',
+                [MemberAttributeName.SOURCE_ID]: 'a123456',
               },
             },
           },

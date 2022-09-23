@@ -48,7 +48,7 @@
         "location": "Mannheim, Germany",
         "bio": "Member of the @vuejs core team, hobby frontend hacker. Not a  dev by profession."
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -100,7 +100,7 @@
         "location": "Singapore",
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -185,7 +185,7 @@
         "bio": "Member of the @vuejs core team\r\nSpeaker, trainer.\r\nFrom 🇪🇸, lives in 🇫🇷"
       },
       "twitter": { "url": "https://twitter.com/posva" },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -270,7 +270,7 @@
         "bio": "Member of @vuejs. Full Stack Developer. Love OpenSource. Interested in @vuejs / @dotnet / @nodejs / TypeScript"
       },
       "twitter": { "url": "https://twitter.com/edison11051" },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -338,7 +338,7 @@
         "location": "Hong Kong",
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -422,7 +422,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -522,7 +522,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -590,7 +590,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -674,7 +674,7 @@
         "location": "成都",
         "bio": "⊙﹏⊙‖∣° 🐟🐟🐟"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -758,7 +758,7 @@
         "location": "beijing",
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -1099,7 +1099,7 @@
         "location": null,
         "bio": "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -1420,7 +1420,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -1710,7 +1710,7 @@
         "bio": "For the web."
       },
       "twitter": { "url": "https://twitter.com/_justineo" },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -2003,7 +2003,7 @@
         "bio": "Fullstack developer, interested in @vuejs, @dotnet and @nodejs.\r\nTypescript 🧙‍♂️ \r\nConsultant 🕵️‍♂️"
       },
       "twitter": { "url": "https://twitter.com/pikax_dev" },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -2242,7 +2242,7 @@
         "location": "Tirana, Albania",
         "bio": "Frontend enthusiast.\r\nSenior Vue.js developer."
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -2512,7 +2512,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -2739,7 +2739,7 @@
         "bio": "A self-funded solo founder. @vuejs"
       },
       "twitter": { "url": "https://twitter.com/HcySunYang" },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -2936,7 +2936,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -3154,7 +3154,7 @@
         "location": "Melbourne",
         "bio": "I enjoy making things easier & cleaner"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -3358,7 +3358,7 @@
         "location": "China",
         "bio": "我们藉由知识接近神灵."
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -3529,7 +3529,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -3716,7 +3716,7 @@
         "location": "China",
         "bio": "坚持做正确的事"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -3887,7 +3887,7 @@
         "location": "Shinnippori",
         "bio": "闇と森の妖精"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4104,7 +4104,7 @@
         "location": "Beijing",
         "bio": "Knowledge brings real freedom."
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4256,7 +4256,7 @@
         "location": "HangZhou,China",
         "bio": "天空高远，大风吟唱······"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4442,7 +4442,7 @@
         "location": "Basel, Switzerland",
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4610,7 +4610,7 @@
         "location": "深圳",
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4762,7 +4762,7 @@
         "location": "Tehran",
         "bio": "13 years old student from Tehran.\r\nA JS and node js and python developer"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -4916,7 +4916,7 @@
         "location": "Brazil",
         "bio": "Javascript developer. I love Vue!"
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {
@@ -5067,7 +5067,7 @@
         "location": null,
         "bio": null
       },
-      "discord": { "id": "#sample-discord-id" }
+      "discord": { "sourceId": "#sample-discord-id" }
     }
   },
   {

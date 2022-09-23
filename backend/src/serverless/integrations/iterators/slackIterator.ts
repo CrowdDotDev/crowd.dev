@@ -333,7 +333,7 @@ export default class SlackIterator extends BaseIterator {
             username: record.username,
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: record.id,
+                [MemberAttributeName.SOURCE_ID]: record.id,
               },
             },
           },
@@ -442,7 +442,7 @@ export default class SlackIterator extends BaseIterator {
             username: _vm.members[record.author.id],
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: record.author.id,
+                [MemberAttributeName.SOURCE_ID]: record.author.id,
               },
             },
           },
@@ -492,7 +492,7 @@ export default class SlackIterator extends BaseIterator {
             username: _vm.members[record.author.id],
             attributes: {
               [PlatformType.SLACK]: {
-                [MemberAttributeName.ID]: record.author.id,
+                [MemberAttributeName.SOURCE_ID]: record.author.id,
               },
             },
           },

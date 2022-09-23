@@ -2,6 +2,7 @@ import MemberAttributeSettingsRepository from '../memberAttributeSettingsReposit
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import { AttributeType } from '../../attributes/types'
+import Error400 from '../../../errors/Error400'
 
 const db = null
 
@@ -124,6 +125,19 @@ describe('MemberAttributeSettings tests', () => {
           mockIRepositoryOptions,
         ),
       ).rejects.toThrow()
+    })
+
+    it('Should throw 400 error if name exists in member fixed fields', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      // no type
+      await expect(() =>
+        MemberAttributeSettingsRepository.create(
+          { type: AttributeType.STRING, label: 'Some Email', name: 'email' },
+          mockIRepositoryOptions,
+        ),
+      ).rejects.toThrowError(new Error400('en', 'settings.memberAttributes.errors.reservedField', 'email'))
+
     })
   })
 

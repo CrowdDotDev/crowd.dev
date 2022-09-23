@@ -86,6 +86,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         lastActive: null,
         averageSentiment: 0,
+        lastActivity: null
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -190,6 +191,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
+        lastActivity: null
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -324,6 +326,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
+        lastActivity: null
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -476,7 +479,7 @@ describe('MemberRepository tests', () => {
       expect(found).toStrictEqual(member1Returned)
     })
 
-    it('Should  return a plain object when doPopulateRelations is false', async () => {
+    it('Should return a plain object when doPopulateRelations is false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const member1 = {
         username: { [PlatformType.GITHUB]: 'test1' },
@@ -495,6 +498,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.lastActive
       delete member1Returned.averageSentiment
       delete member1Returned.activityCount
+      delete member1Returned.lastActivity
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -584,6 +588,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.lastActive
       delete member1Returned.activityCount
       delete member1Returned.averageSentiment
+      delete member1Returned.lastActivity
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1277,6 +1282,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
+        lastActivity: null
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -1420,6 +1426,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
+        lastActivity: null
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -1496,6 +1503,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
+        lastActivity: null
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)

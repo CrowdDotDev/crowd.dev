@@ -167,12 +167,12 @@ describe('MemberService tests', () => {
             [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: '#twitterId',
+            [MemberAttributeName.SOURCE_ID]: '#twitterId',
             [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
             [MemberAttributeName.URL]: 'https://some-url',
           },
           [PlatformType.DISCORD]: {
-            [MemberAttributeName.ID]: '#discordId',
+            [MemberAttributeName.SOURCE_ID]: '#discordId',
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -193,10 +193,10 @@ describe('MemberService tests', () => {
         },
         displayName: username,
         attributes: {
-          [MemberAttributeName.ID]: {
-            [PlatformType.DISCORD]: attributes[PlatformType.DISCORD][MemberAttributeName.ID],
-            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
-            default: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DISCORD]: attributes[PlatformType.DISCORD][MemberAttributeName.SOURCE_ID],
+            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
+            default: attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
           },
           [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
@@ -833,12 +833,12 @@ describe('MemberService tests', () => {
         location: 'Ankara',
         attributes: {
           [PlatformType.DEVTO]: {
-            [MemberAttributeName.ID]: '#someDevtoId',
+            [MemberAttributeName.SOURCE_ID]: '#someDevtoId',
             [MemberAttributeName.NAME]: 'Michael Scott',
             [MemberAttributeName.URL]: 'https://some-devto-url',
           },
           [PlatformType.SLACK]: {
-            [MemberAttributeName.ID]: '#someSlackId',
+            [MemberAttributeName.SOURCE_ID]: '#someSlackId',
           },
         },
       }
@@ -858,10 +858,10 @@ describe('MemberService tests', () => {
         },
         displayName: member1Username,
         attributes: {
-          [MemberAttributeName.ID]: {
-            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
-            [PlatformType.SLACK]: attributes2[PlatformType.SLACK][MemberAttributeName.ID],
-            default: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.SOURCE_ID],
+            [PlatformType.SLACK]: attributes2[PlatformType.SLACK][MemberAttributeName.SOURCE_ID],
+            default: attributes2[PlatformType.DEVTO][MemberAttributeName.SOURCE_ID],
           },
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
@@ -1233,7 +1233,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Crowd.dev',
             default: 'Crowd.dev',
           },
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.DISCORD]: '#discordId',
             default: '#discordId',
           },
@@ -1264,7 +1264,7 @@ describe('MemberService tests', () => {
         displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.SLACK]: '#slackId',
             default: '#slackId',
           },
@@ -1435,6 +1435,7 @@ describe('MemberService tests', () => {
         activityCount: 1,
         averageSentiment: activityCreated.sentiment.sentiment,
         lastActive: activityCreated.timestamp,
+        lastActivity: activityCreated
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1691,7 +1692,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Michael Scott',
             default: 'Michael Scott',
           },
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.DISCORD]: '#discordId',
             default: '#discordId',
           },
@@ -1855,6 +1856,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityCount
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
+      delete returnedMember1.lastActivity
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -1962,6 +1964,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.activityCount
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
+      delete returnedMember1.lastActivity
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2393,13 +2396,13 @@ describe('MemberService tests', () => {
             aNumberAttribute: 1,
           },
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: '#twitterId2',
+            [MemberAttributeName.SOURCE_ID]: '#twitterId2',
             [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/anil/image',
             [MemberAttributeName.URL]: 'https://twitter.com/anil',
             aNumberAttribute: 2,
           },
           [PlatformType.DISCORD]: {
-            [MemberAttributeName.ID]: '#discordId1',
+            [MemberAttributeName.SOURCE_ID]: '#discordId1',
             aNumberAttribute: 300000,
             [MemberAttributeName.IS_HIREABLE]: true,
           },
@@ -2426,13 +2429,13 @@ describe('MemberService tests', () => {
             aNumberAttribute: 1500,
           },
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: '#twitterId2',
+            [MemberAttributeName.SOURCE_ID]: '#twitterId2',
             [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/michael/image',
             [MemberAttributeName.URL]: 'https://twitter.com/michael',
             aNumberAttribute: 2500,
           },
           [PlatformType.DISCORD]: {
-            [MemberAttributeName.ID]: '#discordId2',
+            [MemberAttributeName.SOURCE_ID]: '#discordId2',
             aNumberAttribute: 2,
             [MemberAttributeName.IS_HIREABLE]: true,
           },
@@ -2459,13 +2462,13 @@ describe('MemberService tests', () => {
             aNumberAttribute: 15500,
           },
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: '#twitterId3',
+            [MemberAttributeName.SOURCE_ID]: '#twitterId3',
             [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/jim/image',
             [MemberAttributeName.URL]: 'https://twitter.com/jim',
             aNumberAttribute: 25500,
           },
           [PlatformType.DISCORD]: {
-            [MemberAttributeName.ID]: '#discordId3',
+            [MemberAttributeName.SOURCE_ID]: '#discordId3',
             aNumberAttribute: 200000,
             [MemberAttributeName.IS_HIREABLE]: true,
           },

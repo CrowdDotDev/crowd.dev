@@ -10,6 +10,7 @@ import {
   MemberAttributeSettingsCriteria,
   MemberAttributeSettingsCriteriaResult,
 } from './types/memberAttributeSettingsTypes'
+import Error400 from '../../errors/Error400'
 
 const Op = Sequelize.Op
 
@@ -52,6 +53,10 @@ class MemberAttributeSettingsRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    if (Object.keys(options.database.member.rawAttributes).includes(data.name)){
+      throw new Error400(options.language, 'settings.memberAttributes.errors.reservedField', data.name)
+    }
 
     const record = await options.database.memberAttributeSettings.create(
       {

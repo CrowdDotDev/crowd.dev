@@ -447,7 +447,7 @@ describe('MemberAttributeSettingService tests', () => {
       expect(allAttributes.count).toBe(6)
       const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'imageUrl', 'id'])
+      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'imageUrl', 'sourceId'])
     })
   })
   describe('create tests', () => {

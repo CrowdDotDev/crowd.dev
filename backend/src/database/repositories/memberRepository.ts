@@ -398,7 +398,7 @@ class MemberRepository {
 
   static async findAndCountAll(
     {
-      filter,
+      filter = {} as any,
       advancedFilter = null as any,
       limit = 0,
       offset = 0,
@@ -703,7 +703,7 @@ class MemberRepository {
 
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
-      orderBy: orderBy || ['createdAt_DESC'],
+      orderBy: orderBy || ['joinedAt_DESC'],
       limit,
       offset,
     })
@@ -840,6 +840,10 @@ class MemberRepository {
         const plainRecord = record.get({ plain: true })
         plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
         plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+        plainRecord.lastActivity = plainRecord.lastActive ? (await record.getActivities({
+          order: [['timestamp', 'DESC']],
+          limit: 1
+        }))[0].get({plain: true}) : null
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
         plainRecord.organizations = await record.getOrganizations({
@@ -879,6 +883,8 @@ class MemberRepository {
       order: [['timestamp', 'DESC']],
       transaction,
     })
+
+    output.lastActivity = output.activities[0]?.get({plain:true}) ?? null
 
     output.lastActive = output.activities[0]?.timestamp ?? null
 

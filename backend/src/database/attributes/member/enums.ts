@@ -1,6 +1,6 @@
 export enum MemberAttributeName {
   ORGANISATION = 'organisation',
-  ID = 'id',
+  SOURCE_ID = 'sourceId',
   IS_HIREABLE = 'isHireable',
   URL = 'url',
   NAME = 'name',
@@ -10,6 +10,7 @@ export enum MemberAttributeName {
   COMPANY = 'company',
   WEBSITE_URL = 'websiteUrl',
   SAMPLE = 'sample',
+  JOB_TITLE = 'jobTitle'
 }
 
 export const MemberAttributes = {
@@ -17,9 +18,9 @@ export const MemberAttributes = {
     name: MemberAttributeName.ORGANISATION,
     label: 'Organisation',
   },
-  [MemberAttributeName.ID]: {
-    name: MemberAttributeName.ID,
-    label: 'Id',
+  [MemberAttributeName.SOURCE_ID]: {
+    name: MemberAttributeName.SOURCE_ID,
+    label: 'Source Id',
   },
   [MemberAttributeName.IS_HIREABLE]: {
     name: MemberAttributeName.IS_HIREABLE,
@@ -56,5 +57,9 @@ export const MemberAttributes = {
   [MemberAttributeName.SAMPLE]: {
     name: MemberAttributeName.SAMPLE,
     label: 'Sample',
+  },
+  [MemberAttributeName.JOB_TITLE]: {
+    name: MemberAttributeName.JOB_TITLE,
+    label: 'Job Title',
   },
 }

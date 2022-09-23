@@ -4,6 +4,8 @@ import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
 import { PlatformType } from '../../utils/platforms'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { MemberAttributeName } from '../../database/attributes/member/enums'
 
 const db = null
 
@@ -114,7 +116,7 @@ describe('TenantService tests', () => {
   })
 
   describe('create method', () => {
-    it('Should succesfully create the tenant and related default microservices', async () => {
+    it('Should succesfully create the tenant, related default microservices and settings', async () => {
       const randomUser = await SequelizeTestUtils.getRandomUser()
       let db = null
       db = await SequelizeTestUtils.getDatabase(db)
@@ -167,6 +169,12 @@ describe('TenantService tests', () => {
       // findAndCountAll returns sorted by createdAt (desc) by default, so first one should be members_score
       expect(microservicesOfTenant.rows[0].type).toEqual('members_score')
       expect(microservicesOfTenant.rows[1].type).toEqual('check_merge')
+
+      // Check default member attributes
+      const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })
+      const defaultAttributes = await mas.findAndCountAll({ filter: {}})
+
+      expect(defaultAttributes.rows.map( i => i.name ).sort()).toEqual([MemberAttributeName.BIO, MemberAttributeName.JOB_TITLE, MemberAttributeName.LOCATION])
     })
   })
 })

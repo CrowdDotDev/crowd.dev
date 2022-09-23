@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
 import moment from 'moment'
+import { Transaction } from 'sequelize/types'
 import { Attribute, AttributeData } from '../database/attributes/attribute'
 import { AttributeType } from '../database/attributes/types'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
@@ -124,8 +125,17 @@ export default class MemberAttributeSettingsService {
    * @param attributes List of attributes
    * @returns created attributes
    */
-  async createPredefined(attributes: Attribute[]): Promise<AttributeData[]> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+  async createPredefined(
+    attributes: Attribute[],
+    carryTransaction: Transaction = null,
+  ): Promise<AttributeData[]> {
+    let transaction
+
+    if (carryTransaction) {
+      transaction = carryTransaction
+    } else {
+      transaction = await SequelizeRepository.createTransaction(this.options.database)
+    }
 
     try {
       const created = []
@@ -147,7 +157,9 @@ export default class MemberAttributeSettingsService {
         }
       }
 
-      await SequelizeRepository.commitTransaction(transaction)
+      if(!carryTransaction){
+        await SequelizeRepository.commitTransaction(transaction)
+      }
 
       return created
     } catch (error) {
