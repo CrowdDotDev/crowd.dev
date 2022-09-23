@@ -34,6 +34,7 @@
     "mv": "2.1.1",
     "omit-deep-by-values": "^1.0.2",
     "pg": "^8.7.3",
+    "sanitize-html": "^2.7.2",
     "sequelize": "6.21.2",
     "serverless-http": "^2.7.0",
     "serverless-s3-sync": "^3.0.0",

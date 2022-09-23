@@ -1,4 +1,5 @@
 import moment from 'moment'
+import sanitizeHtml from 'sanitize-html'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
@@ -60,6 +61,14 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           conversationLazyLoaded.activities[conversationLazyLoaded.activities.length - 1]
         c.lastActivity = lastActivity.get({ plain: true })
         c.lastActivity.username = lastActivity.communityMember.username[c.platform]
+
+        if (c.lastActivity.crowdInfo.body) {
+          c.lastActivity.crowdInfo.body = sanitizeHtml(c.lastActivity.crowdInfo.body, {
+            allowedTags: [],
+            allowedAttributes: {},
+          })
+        }
+
         c.lastActiveFromNow = moment(c.lastActive).fromNow()
         c.replyCount = conversationLazyLoaded.activities.length - 1
         c.memberCount = conversationLazyLoaded.activities.reduce((acc, i) => {
