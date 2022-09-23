@@ -14,7 +14,7 @@
           >
             <i class="ri-information-line mr-1"></i>
             <span class="block font-light italic"
-              >Metrics are recomputed every hour</span
+              >Metrics are recomputed every minute</span
             >
           </div>
         </div>

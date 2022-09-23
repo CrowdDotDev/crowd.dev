@@ -32,7 +32,7 @@
 
 Crowd.dev is a suite of tools to analyze, grow, and leverage online communities in order to drive business results. 
 
-In recent years, community has moved to the forefront of business. But building community is hard. In the beginning, organizations have to continuously find community members and maintain a high engagement among them. Once a community is striving, organizations are stuck managing endless tools, working with incomplete data, and failing to bring the return of community back to their business.
+In recent years, community has moved to the forefront of business. But building community is hard. In the beginning, organizations have to continuously find community members and maintain a high engagement among them. Once a community is thriving, organizations are stuck managing endless tools, working with incomplete data, and failing to bring the return of community back to their business.
 
 Crowd.dev is here to change this. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
 
