@@ -18,6 +18,7 @@ import { DiscordMemberAttributes } from '../../database/attributes/member/discor
 import { DevtoMemberAttributes } from '../../database/attributes/member/devto'
 import { AttributeType } from '../../database/attributes/types'
 import { SlackMemberAttributes } from '../../database/attributes/member/slack'
+import SettingsRepository from '../../database/repositories/settingsRepository'
 
 const db = null
 
@@ -166,12 +167,12 @@ describe('MemberService tests', () => {
             [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
           },
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: '#twitterId',
+            [MemberAttributeName.SOURCE_ID]: '#twitterId',
             [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
             [MemberAttributeName.URL]: 'https://some-url',
           },
           [PlatformType.DISCORD]: {
-            [MemberAttributeName.ID]: '#discordId',
+            [MemberAttributeName.SOURCE_ID]: '#discordId',
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -192,10 +193,10 @@ describe('MemberService tests', () => {
         },
         displayName: username,
         attributes: {
-          [MemberAttributeName.ID]: {
-            [PlatformType.DISCORD]: attributes[PlatformType.DISCORD][MemberAttributeName.ID],
-            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
-            default: attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DISCORD]: attributes[PlatformType.DISCORD][MemberAttributeName.SOURCE_ID],
+            [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
+            default: attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
           },
           [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
@@ -460,7 +461,7 @@ describe('MemberService tests', () => {
       expect(memberCreated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent member succesfully - simple', async () => {
+    it('Should update existent member successfully - simple', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
@@ -552,7 +553,7 @@ describe('MemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent member succesfully - attributes with matching platform', async () => {
+    it('Should update existent member successfully - attributes with matching platform', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
@@ -832,12 +833,12 @@ describe('MemberService tests', () => {
         location: 'Ankara',
         attributes: {
           [PlatformType.DEVTO]: {
-            [MemberAttributeName.ID]: '#someDevtoId',
+            [MemberAttributeName.SOURCE_ID]: '#someDevtoId',
             [MemberAttributeName.NAME]: 'Michael Scott',
             [MemberAttributeName.URL]: 'https://some-devto-url',
           },
           [PlatformType.SLACK]: {
-            [MemberAttributeName.ID]: '#someSlackId',
+            [MemberAttributeName.SOURCE_ID]: '#someSlackId',
           },
         },
       }
@@ -857,10 +858,10 @@ describe('MemberService tests', () => {
         },
         displayName: member1Username,
         attributes: {
-          [MemberAttributeName.ID]: {
-            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
-            [PlatformType.SLACK]: attributes2[PlatformType.SLACK][MemberAttributeName.ID],
-            default: attributes2[PlatformType.DEVTO][MemberAttributeName.ID],
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DEVTO]: attributes2[PlatformType.DEVTO][MemberAttributeName.SOURCE_ID],
+            [PlatformType.SLACK]: attributes2[PlatformType.SLACK][MemberAttributeName.SOURCE_ID],
+            default: attributes2[PlatformType.DEVTO][MemberAttributeName.SOURCE_ID],
           },
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: attributes1[PlatformType.GITHUB][MemberAttributeName.NAME],
@@ -1232,7 +1233,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Crowd.dev',
             default: 'Crowd.dev',
           },
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.DISCORD]: '#discordId',
             default: '#discordId',
           },
@@ -1263,7 +1264,7 @@ describe('MemberService tests', () => {
         displayName: 'Member 4',
         joinedAt: '2021-05-30T15:14:30Z',
         attributes: {
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.SLACK]: '#slackId',
             default: '#slackId',
           },
@@ -1282,6 +1283,14 @@ describe('MemberService tests', () => {
         attributes: {
           replies: 12,
           body: 'Here',
+        },
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
         },
         isKeyAction: true,
         member: returnedMember2.id,
@@ -1423,6 +1432,10 @@ describe('MemberService tests', () => {
         organizations: [o1, o2, o3],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
+        activityCount: 1,
+        averageSentiment: activityCreated.sentiment.sentiment,
+        lastActive: activityCreated.timestamp,
+        lastActivity: activityCreated,
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)
@@ -1679,7 +1692,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Michael Scott',
             default: 'Michael Scott',
           },
-          [MemberAttributeName.ID]: {
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.DISCORD]: '#discordId',
             default: '#discordId',
           },
@@ -1840,6 +1853,10 @@ describe('MemberService tests', () => {
       delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
+      delete returnedMember1.activityCount
+      delete returnedMember1.averageSentiment
+      delete returnedMember1.lastActive
+      delete returnedMember1.lastActivity
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -1944,6 +1961,10 @@ describe('MemberService tests', () => {
       delete returnedMember1.organizations
       delete returnedMember1.tasks
       delete returnedMember1.notes
+      delete returnedMember1.activityCount
+      delete returnedMember1.averageSentiment
+      delete returnedMember1.lastActive
+      delete returnedMember1.lastActivity
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2050,6 +2071,509 @@ describe('MemberService tests', () => {
         total: 0,
         [PlatformType.TWITTER]: 0,
       })
+    })
+  })
+
+  describe('getHighestPriorityPlatformForAttributes method', () => {
+    it('Should return the highest priority platform from a priority array, handling the exceptions', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+
+      const priorityArray = [
+        PlatformType.TWITTER,
+        PlatformType.CROWD,
+        PlatformType.SLACK,
+        PlatformType.DEVTO,
+        PlatformType.DISCORD,
+        PlatformType.GITHUB,
+      ]
+
+      let inputPlatforms = [PlatformType.GITHUB, PlatformType.DEVTO]
+      let highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+        inputPlatforms,
+        priorityArray,
+      )
+
+      expect(highestPriorityPlatform).toBe(PlatformType.DEVTO)
+
+      inputPlatforms = [PlatformType.GITHUB, 'someOtherPlatform'] as any
+      highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+        inputPlatforms,
+        priorityArray,
+      )
+
+      expect(highestPriorityPlatform).toBe(PlatformType.GITHUB)
+
+      inputPlatforms = ['somePlatform1', 'somePlatform2'] as any
+
+      // if no match in the priority array, it should return the first platform it finds
+      highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+        inputPlatforms,
+        priorityArray,
+      )
+
+      expect(highestPriorityPlatform).toBe('somePlatform1')
+
+      inputPlatforms = []
+
+      // if no platforms are sent to choose from, it should throw a 400 Error
+      expect(() =>
+        memberService.getHighestPriorityPlatformForAttributes(inputPlatforms, priorityArray),
+      ).toThrowError(new Error400('en', 'settings.memberAttributes.noPlatformSent'))
+    })
+  })
+
+  describe('getStructuredAttributes method', () => {
+    it('Should return the structured attributes object succesfully', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+
+      const attributes = {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: 'Dwight Schrute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Berlin',
+          [MemberAttributeName.BIO]: 'Assistant to the Regional Manager',
+        },
+        [PlatformType.TWITTER]: {
+          [MemberAttributeName.URL]: 'https://some-twitter-url',
+          [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+        },
+        [PlatformType.DEVTO]: {
+          [MemberAttributeName.NAME]: 'Dweet Srute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Istanbul',
+          [MemberAttributeName.BIO]: 'Assistant Regional Manager',
+        },
+      }
+
+      const structuredAttributes = await memberService.getStructuredAttributes(attributes)
+
+      const expectedStructuredAttributes = {
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.URL],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.URL],
+        },
+        [MemberAttributeName.NAME]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.NAME],
+        },
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.BIO],
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION],
+        },
+      }
+
+      expect(structuredAttributes).toEqual(expectedStructuredAttributes)
+    })
+
+    it('Should throw a 400 Error when an attribute does not exist in member attribute settings', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      // in settings name has a string type, inserting an integer should throw an error
+      const attributes = {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.URL]: 'https://some-github-url',
+        },
+        [PlatformType.TWITTER]: {
+          'non-existing-attribute': 'https://some-twitter-url',
+          [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+        },
+      }
+
+      await expect(() => memberService.getStructuredAttributes(attributes)).rejects.toThrowError(
+        new Error400('en', 'settings.memberAttributes.notFound', 'non-existing-attribute'),
+      )
+    })
+
+    it('Should throw a 400 Error when the type of an attribute does not match the type in member attribute settings', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      // in settings name has a string type, inserting an integer should throw an error
+      const attributes = {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: 55,
+          [MemberAttributeName.URL]: 'https://some-github-url',
+        },
+        [PlatformType.TWITTER]: {
+          [MemberAttributeName.URL]: 'https://some-twitter-url',
+          [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+        },
+      }
+
+      await expect(() => memberService.getStructuredAttributes(attributes)).rejects.toThrowError(
+        new Error400('en', 'settings.memberAttributes.wrongType'),
+      )
+    })
+  })
+
+  describe('setAttributesDefaultValues method', () => {
+    it('Should return the structured attributes object with default values succesfully', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+
+      const attributes = {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: 'Dwight Schrute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Berlin',
+          [MemberAttributeName.BIO]: 'Assistant to the Regional Manager',
+        },
+        [PlatformType.TWITTER]: {
+          [MemberAttributeName.URL]: 'https://some-twitter-url',
+          [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+        },
+        [PlatformType.DEVTO]: {
+          [MemberAttributeName.NAME]: 'Dweet Srute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Istanbul',
+          [MemberAttributeName.BIO]: 'Assistant Regional Manager',
+        },
+      }
+
+      const structuredAttributes = await memberService.getStructuredAttributes(attributes)
+
+      const attributesWithDefaultValues = await memberService.setAttributesDefaultValues(
+        structuredAttributes,
+      )
+
+      // Default platform priority is: custom, twitter, github, devto, slack, discord, crowd
+      const expectedAttributesWithDefaultValues = {
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.URL],
+          [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.URL],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.URL],
+          default: attributes[PlatformType.TWITTER][MemberAttributeName.URL],
+        },
+        [MemberAttributeName.NAME]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.NAME],
+          default: attributes[PlatformType.GITHUB][MemberAttributeName.NAME],
+        },
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
+          default: attributes[PlatformType.TWITTER][MemberAttributeName.IMAGE_URL],
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.BIO],
+          default: attributes[PlatformType.GITHUB][MemberAttributeName.BIO],
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+          [PlatformType.DEVTO]: attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION],
+          default: attributes[PlatformType.GITHUB][MemberAttributeName.LOCATION],
+        },
+      }
+
+      expect(attributesWithDefaultValues).toEqual(expectedAttributesWithDefaultValues)
+    })
+
+    it('Should throw a 400 Error when priority array does not exist', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+
+      // Empty default priority array
+      const settings = await SettingsRepository.findOrCreateDefault({}, mockIServiceOptions)
+
+      await SettingsRepository.save(
+        { ...settings, attributeSettings: { priorities: [] } },
+        mockIServiceOptions,
+      )
+      const attributes = {
+        [PlatformType.GITHUB]: {
+          [MemberAttributeName.NAME]: 'Dwight Schrute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Berlin',
+          [MemberAttributeName.BIO]: 'Assistant to the Regional Manager',
+        },
+        [PlatformType.TWITTER]: {
+          [MemberAttributeName.URL]: 'https://some-twitter-url',
+          [MemberAttributeName.IMAGE_URL]: 'https://some-image-url',
+        },
+        [PlatformType.DEVTO]: {
+          [MemberAttributeName.NAME]: 'Dweet Srute',
+          [MemberAttributeName.URL]: 'https://some-github-url',
+          [MemberAttributeName.LOCATION]: 'Istanbul',
+          [MemberAttributeName.BIO]: 'Assistant Regional Manager',
+        },
+      }
+
+      const structuredAttributes = await memberService.getStructuredAttributes(attributes)
+
+      await expect(() =>
+        memberService.setAttributesDefaultValues(structuredAttributes),
+      ).rejects.toThrowError(new Error400('en', 'settings.memberAttributes.priorityArrayNotFound'))
+    })
+  })
+
+  describe('findAndCountAll method', () => {
+    it('Should filter and sort by dynamic attributes using advanced filters successfully', async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const ms = new MemberService(mockIServiceOptions)
+
+      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await mas.createPredefined(GithubMemberAttributes)
+      await mas.createPredefined(TwitterMemberAttributes)
+      await mas.createPredefined(DiscordMemberAttributes)
+
+      const attribute1 = {
+        name: 'aNumberAttribute',
+        label: 'A number Attribute',
+        type: AttributeType.NUMBER,
+        canDelete: true,
+        show: true,
+      }
+
+      const attribute2 = {
+        name: 'aDateAttribute',
+        label: 'A date Attribute',
+        type: AttributeType.DATE,
+        canDelete: true,
+        show: true,
+      }
+
+      await mas.create(attribute1)
+      await mas.create(attribute2)
+
+      const member1 = {
+        username: 'anil',
+        platform: PlatformType.GITHUB,
+        email: 'lala@l.com',
+        score: 10,
+        attributes: {
+          custom: {
+            aDateAttribute: '2022-08-01T00:00:00',
+          },
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
+            [MemberAttributeName.IS_HIREABLE]: false,
+            [MemberAttributeName.URL]: 'https://github.com/anil',
+            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
+            [MemberAttributeName.BIO]: 'Lazy geek',
+            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+            aNumberAttribute: 1,
+          },
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.SOURCE_ID]: '#twitterId2',
+            [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/anil/image',
+            [MemberAttributeName.URL]: 'https://twitter.com/anil',
+            aNumberAttribute: 2,
+          },
+          [PlatformType.DISCORD]: {
+            [MemberAttributeName.SOURCE_ID]: '#discordId1',
+            aNumberAttribute: 300000,
+            [MemberAttributeName.IS_HIREABLE]: true,
+          },
+        },
+        joinedAt: '2022-05-28T15:13:30',
+      }
+
+      const member2 = {
+        username: 'michaelScott',
+        platform: PlatformType.GITHUB,
+        email: 'michael@mifflin.com',
+        score: 10,
+        attributes: {
+          custom: {
+            aDateAttribute: '2022-08-06T00:00:00',
+          },
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Michael Scott',
+            [MemberAttributeName.IS_HIREABLE]: true,
+            [MemberAttributeName.URL]: 'https://github.com/michael-scott',
+            [MemberAttributeName.WEBSITE_URL]: 'https://website/michael',
+            [MemberAttributeName.BIO]: 'Dunder & Mifflin Regional Manager',
+            [MemberAttributeName.LOCATION]: 'Berlin',
+            aNumberAttribute: 1500,
+          },
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.SOURCE_ID]: '#twitterId2',
+            [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/michael/image',
+            [MemberAttributeName.URL]: 'https://twitter.com/michael',
+            aNumberAttribute: 2500,
+          },
+          [PlatformType.DISCORD]: {
+            [MemberAttributeName.SOURCE_ID]: '#discordId2',
+            aNumberAttribute: 2,
+            [MemberAttributeName.IS_HIREABLE]: true,
+          },
+        },
+        joinedAt: '2022-09-15T15:13:30',
+      }
+
+      const member3 = {
+        username: 'jimHalpert',
+        platform: PlatformType.GITHUB,
+        email: 'jim@mifflin.com',
+        score: 10,
+        attributes: {
+          custom: {
+            aDateAttribute: '2022-08-15T00:00:00',
+          },
+          [PlatformType.GITHUB]: {
+            [MemberAttributeName.NAME]: 'Jim Halpert',
+            [MemberAttributeName.IS_HIREABLE]: false,
+            [MemberAttributeName.URL]: 'https://github.com/jim-halpert',
+            [MemberAttributeName.WEBSITE_URL]: 'https://website/jim',
+            [MemberAttributeName.BIO]: 'Sales guy',
+            [MemberAttributeName.LOCATION]: 'Scranton',
+            aNumberAttribute: 15500,
+          },
+          [PlatformType.TWITTER]: {
+            [MemberAttributeName.SOURCE_ID]: '#twitterId3',
+            [MemberAttributeName.IMAGE_URL]: 'https://twitter.com/jim/image',
+            [MemberAttributeName.URL]: 'https://twitter.com/jim',
+            aNumberAttribute: 25500,
+          },
+          [PlatformType.DISCORD]: {
+            [MemberAttributeName.SOURCE_ID]: '#discordId3',
+            aNumberAttribute: 200000,
+            [MemberAttributeName.IS_HIREABLE]: true,
+          },
+        },
+        joinedAt: '2022-09-16T15:13:30Z',
+      }
+
+      const member1Created = await ms.upsert(member1)
+      const member2Created = await ms.upsert(member2)
+      const member3Created = await ms.upsert(member3)
+
+      // filter and sort by aNumberAttribute default values
+      let members = await ms.findAndCountAll({
+        advancedFilter: {
+          aNumberAttribute: {
+            gte: 1000,
+          },
+        },
+        orderBy: 'aNumberAttribute_DESC',
+      })
+
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member3Created.id, member2Created.id])
+
+      // filter and sort by aNumberAttribute platform specific values
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          'attributes.aNumberAttribute.discord': {
+            gte: 100000,
+          },
+        },
+        orderBy: 'attributes.aNumberAttribute.discord_DESC',
+      })
+
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member1Created.id, member3Created.id])
+
+      // filter by isHireable default values
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          isHireable: true,
+        },
+      })
+
+      expect(members.count).toBe(1)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member2Created.id])
+
+      // filter by isHireable platform specific values
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          'attributes.isHireable.discord': true,
+        },
+      })
+
+      expect(members.count).toBe(3)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([
+        member3Created.id,
+        member2Created.id,
+        member1Created.id,
+      ])
+
+      // filter and sort by url default values
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          url: {
+            textContains: 'jim',
+          },
+        },
+        orderBy: 'url_DESC',
+      })
+
+      expect(members.count).toBe(1)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member3Created.id])
+
+      // filter and sort by url platform specific values
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          'attributes.url.github': {
+            textContains: 'github',
+          },
+        },
+        orderBy: 'attributes.url.github_ASC',
+      })
+
+      expect(members.count).toBe(3)
+
+      // results will be sorted by github.url anil -> jim -> michael
+      expect(members.rows.map((i) => i.id)).toStrictEqual([
+        member1Created.id,
+        member3Created.id,
+        member2Created.id,
+      ])
+
+      // filter and sort by custom aDateAttribute
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          aDateAttribute: {
+            lte: '2022-08-06T00:00:00',
+          },
+        },
+        orderBy: 'aDateAttribute_DESC',
+      })
+
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member2Created.id, member1Created.id])
     })
   })
 })

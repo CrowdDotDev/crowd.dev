@@ -13,7 +13,7 @@
         "websiteUrl": "https://crowd.dev"
       },
       "discord": {
-        "id": "#sample-discord-id"
+        "sourceId": "#sample-discord-id"
       }
     },
     "email": "team@crowd.dev",
@@ -74,7 +74,7 @@
         "websiteUrl": "https://crowd.dev"
       },
       "discord": {
-        "id": "#sample-discord-id"
+        "sourceId": "#sample-discord-id"
       }
     },
     "email": "team@crowd.dev",

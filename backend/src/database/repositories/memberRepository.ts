@@ -2,17 +2,20 @@ import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { getConfig } from '../../config'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
+import { AttributeData } from '../attributes/attribute'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 const { Op } = Sequelize
 
 const log: boolean = false
 
 class MemberRepository {
-  static async create(data, options: IRepositoryOptions, doPupulateRelations = true) {
+  static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
@@ -67,7 +70,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPupulateRelations)
+    return this.findById(record.id, options, true, doPopulateRelations)
   }
 
   static async findMembersWithMergeSuggestions(options: IRepositoryOptions) {
@@ -145,7 +148,7 @@ class MemberRepository {
     return this.findById(id, options)
   }
 
-  static async findOne(query, options: IRepositoryOptions, doPupulateRelations = true) {
+  static async findOne(query, options: IRepositoryOptions, doPopulateRelations = true) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -158,7 +161,7 @@ class MemberRepository {
       transaction,
     })
 
-    if (doPupulateRelations) {
+    if (doPopulateRelations) {
       return this._populateRelations(record, options)
     }
     return record.get({ plain: true })
@@ -168,7 +171,7 @@ class MemberRepository {
     username,
     platform,
     options: IRepositoryOptions,
-    doPupulateRelations = true,
+    doPopulateRelations = true,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -191,13 +194,13 @@ class MemberRepository {
     if (records.length === 0) {
       return null
     }
-    if (doPupulateRelations) {
+    if (doPopulateRelations) {
       return this._populateRelations(records[0], options)
     }
     return records[0].get({ plain: true })
   }
 
-  static async update(id, data, options: IRepositoryOptions, doPupulateRelations = true) {
+  static async update(id, data, options: IRepositoryOptions, doPopulateRelations = true) {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -276,7 +279,7 @@ class MemberRepository {
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
-    return this.findById(record.id, options, true, doPupulateRelations)
+    return this.findById(record.id, options, true, doPopulateRelations)
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
@@ -323,7 +326,7 @@ class MemberRepository {
     id,
     options: IRepositoryOptions,
     returnPlain = true,
-    doPupulateRelations = true,
+    doPopulateRelations = true,
   ) {
     const transaction = SequelizeRepository.getTransaction(options)
 
@@ -344,7 +347,7 @@ class MemberRepository {
       throw new Error404()
     }
 
-    if (doPupulateRelations) {
+    if (doPopulateRelations) {
       return this._populateRelations(record, options, returnPlain)
     }
     return record.get({ plain: returnPlain })
@@ -394,30 +397,29 @@ class MemberRepository {
   }
 
   static async findAndCountAll(
-    // TODO-sync
-    { filter = {} as any, advancedFilter = false as any, limit = 0, offset = 0, orderBy = '' },
+    {
+      filter = {} as any,
+      advancedFilter = null as any,
+      limit = 0,
+      offset = 0,
+      orderBy = '',
+      attributesSettings = [] as AttributeData[],
+    },
+
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const literalReachTotal = Sequelize.literal(`("member".reach->'total')::int`)
-    const computedActivitiesCount = Sequelize.literal(
-      `(SELECT COUNT(*) FROM activities WHERE activities."memberId" = "member".id )`,
-    )
-
-    const whereAnd: Array<any> = []
-    const customOrderBy: Array<any> = []
+    let customOrderBy: Array<any> = []
 
     const include = [
       {
         model: options.database.activity,
         as: 'activities',
-        separate: true,
+        attributes: [],
       },
       {
         model: options.database.member,
         as: 'toMerge',
-        attributes: ['id'],
+        attributes: [],
         through: {
           attributes: [],
         },
@@ -425,245 +427,333 @@ class MemberRepository {
       {
         model: options.database.member,
         as: 'noMerge',
-        attributes: ['id'],
-        through: {
-          attributes: [],
-        },
-      },
-      {
-        model: options.database.organization,
-        as: 'organizations',
-        attributes: ['id'],
-        // Leaving this ready to be able to filter by organization URLs instead of IDs
-        // ...(filter.organizations && {
-        //   where: {
-        //     url: {
-        //       [Op.in]: filter.organizations.split(','),
-        //       tenantId: tenant.id,
-        //     },
-        //   },
-        // }),
+        attributes: [],
         through: {
           attributes: [],
         },
       },
     ]
 
-    if (orderBy.includes('activitiesCount')) {
-      customOrderBy.push([computedActivitiesCount, orderBy.split('_')[1]])
-    }
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
+    )
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
+    )
+
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('averageSentiment', orderBy),
+    )
 
     if (orderBy.includes('reach')) {
-      customOrderBy.push([literalReachTotal, orderBy.split('_')[1]])
+      customOrderBy = customOrderBy.concat([
+        Sequelize.literal(`("member".reach->'total')::int`),
+        orderBy.split('_')[1],
+      ])
     }
 
-    whereAnd.push({
-      tenantId: tenant.id,
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
+
+      if (filter) {
+        if (filter.id) {
+          advancedFilter.and.push({ id: filter.id })
+        }
+
+        if (filter.platform) {
+          advancedFilter.and.push({
+            platform: {
+              jsonContains: filter.platform,
+            },
+          })
+        }
+
+        if (filter.tags) {
+          advancedFilter.and.push({
+            tags: filter.tags,
+          })
+        }
+
+        if (filter.organizations) {
+          advancedFilter.and.push({
+            organizations: filter.organizations,
+          })
+        }
+
+        if (filter.username) {
+          advancedFilter.and.push({ username: { jsonContains: filter.username } })
+        }
+
+        if (filter.displayName) {
+          advancedFilter.and.push({
+            displayName: {
+              textContains: filter.displayName,
+            },
+          })
+        }
+
+        if (filter.email) {
+          advancedFilter.and.push({
+            email: {
+              textContains: filter.email,
+            },
+          })
+        }
+
+        if (filter.scoreRange) {
+          const [start, end] = filter.scoreRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              score: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              score: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.createdAtRange) {
+          const [start, end] = filter.createdAtRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              createdAt: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              createdAt: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.reachRange) {
+          const [start, end] = filter.reachRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              reach: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              reach: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.activityCountRange) {
+          const [start, end] = filter.activityCountRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              activityCount: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              activityCount: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.joinedAtRange) {
+          const [start, end] = filter.joinedAtRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              joinedAt: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              joinedAt: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.lastActiveRange) {
+          const [start, end] = filter.lastActiveRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              lastActive: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              lastActive: {
+                lte: end,
+              },
+            })
+          }
+        }
+
+        if (filter.averageSentimentRange) {
+          const [start, end] = filter.averageSentimentRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              averageSentiment: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              averageSentiment: {
+                lte: end,
+              },
+            })
+          }
+        }
+      }
+    }
+
+    const dynamicAttributesNestedFields = attributesSettings.reduce((acc, attribute) => {
+      acc[attribute.name] = `attributes.${attribute.name}.default`
+      return acc
+    }, {})
+
+    const activityCount = options.database.Sequelize.fn(
+      'COUNT',
+      options.database.Sequelize.col('activities.id'),
+    )
+
+    const lastActive = options.database.Sequelize.fn(
+      'MAX',
+      options.database.Sequelize.col('activities.timestamp'),
+    )
+
+    const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
+
+    const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
+
+    const averageSentiment = Sequelize.literal(
+      `ROUND(AVG(COALESCE("activities"."sentiment"->>'sentiment', '0')::float)::numeric, 2)`,
+    )
+
+    const parser = new QueryParser(
+      {
+        nestedFields: {
+          ...dynamicAttributesNestedFields,
+          reach: 'reach.total',
+        },
+        aggregators: {
+          activityCount,
+          lastActive,
+          averageSentiment,
+        },
+        manyToMany: {
+          tags: {
+            table: 'members',
+            relationTable: {
+              name: 'memberTags',
+              from: 'memberId',
+              to: 'tagId',
+            },
+          },
+          organizations: {
+            table: 'members',
+            relationTable: {
+              name: 'memberOrganizations',
+              from: 'memberId',
+              to: 'organizationId',
+            },
+          },
+        },
+        customOperators: {
+          username: {
+            model: 'member',
+            column: 'username',
+          },
+          platform: {
+            model: 'member',
+            column: 'username',
+          },
+        },
+      },
+      options,
+    )
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['joinedAt_DESC'],
+      limit,
+      offset,
     })
 
-    if (filter) {
-      if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
-        })
-      }
-
-      if (filter.platform) {
-        whereAnd.push(
-          SequelizeFilterUtils.jsonbILikeIncludes('member', 'username', filter.platform),
-        )
-      }
-
-      if (filter.username) {
-        whereAnd.push(
-          SequelizeFilterUtils.jsonbILikeIncludes('member', 'username', filter.username),
-        )
-      }
-
-      if (filter.attributes) {
-        whereAnd.push({
-          attributes: filter.attributes,
-        })
-      }
-
-      if (filter.tags) {
-        const whereTags = filter.tags.reduce((acc, item, index) => {
-          if (index === 0) {
-            return `${acc} "memberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
-          }
-          return `${acc} OR "memberTags"."tagId"  = '${SequelizeFilterUtils.uuid(item)}'`
-        }, '')
-
-        const tagFilterLiteral = Sequelize.literal(
-          `(SELECT "members".id FROM "members" INNER JOIN "memberTags" ON "memberTags"."memberId" = "members".id WHERE ${whereTags})`,
-        )
-
-        whereAnd.push({
-          id: {
-            [Op.in]: tagFilterLiteral,
-          },
-        })
-      }
-
-      if (filter.organizations) {
-        const whereOrganizations = filter.organizations.reduce((acc, item, index) => {
-          if (index === 0) {
-            return `${acc} "memberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
-              item,
-            )}'`
-          }
-          return `${acc} OR "memberOrganizations"."organizationId"  = '${SequelizeFilterUtils.uuid(
-            item,
-          )}'`
-        }, '')
-
-        const organizationFilterLiteral = Sequelize.literal(
-          `(SELECT "members".id FROM "members" INNER JOIN "memberOrganizations" ON "memberOrganizations"."memberId" = "members".id WHERE ${whereOrganizations})`,
-        )
-
-        whereAnd.push({
-          id: {
-            [Op.in]: organizationFilterLiteral,
-          },
-        })
-      }
-
-      if (filter.email) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('member', 'email', filter.email))
-      }
-
-      if (filter.scoreRange) {
-        const [start, end] = filter.scoreRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            score: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            score: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.displayName) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('member', 'displayName', filter.displayName),
-        )
-      }
-
-      if (filter.reachRange) {
-        const [start, end] = filter.reachRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            'reach.total::int': {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            'reach.total::int': {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.joinedAtRange) {
-        const [start, end] = filter.joinedAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            joinedAt: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            joinedAt: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-
-      if (filter.createdAtRange) {
-        const [start, end] = filter.createdAtRange
-
-        if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.gte]: start,
-            },
-          })
-        }
-
-        if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
-            createdAt: {
-              [Op.lte]: end,
-            },
-          })
-        }
-      }
-    }
-
-    // {
-    //   customOperators: {
-    //     username: {
-    //       model: 'member',
-    //       column: 'username',
-    //     },
-    //     platform: {
-    //       model: 'member',
-    //       column: 'username',
-    //     }
-    //   }
-    // }
-
-    const where = { [Op.and]: whereAnd }
-
-    let order
+    let order = parsed.order
 
     if (customOrderBy.length > 0) {
       order = [customOrderBy]
-    } else if (orderBy) {
-      order = [orderBy.split('_')]
-    } else {
-      order = [['joinedAt', 'DESC']]
     }
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.member.findAndCountAll({
-      where,
+      where: parsed.where ? parsed.where : {},
+      having: parsed.having ? parsed.having : {},
       include,
-      attributes: {
-        include: [[computedActivitiesCount, 'activitiesCount']],
-      },
+      attributes: [
+        'id',
+        'username',
+        'attributes',
+        'displayName',
+        'email',
+        'score',
+        'joinedAt',
+        'importHash',
+        'reach',
+        'createdAt',
+        'updatedAt',
+        'deletedAt',
+        'tenantId',
+        'createdById',
+        'updatedById',
+        [activityCount, 'activityCount'],
+        [lastActive, 'lastActive'],
+        [averageSentiment, 'averageSentiment'],
+        [toMergeArray, 'toMergeIds'],
+        [noMergeArray, 'noMergeIds'],
+      ],
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
       order,
       subQuery: false,
+      group: ['member.id', 'toMerge.id'],
       distinct: true,
     })
 
     rows = await this._populateRelationsForRows(rows)
 
-    // TODO-Change to also limit and offset
-    return { rows, count }
+    return { rows, count: count.length }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -736,8 +826,10 @@ class MemberRepository {
     if (getConfig().SERVICE === 'integrations' || getConfig().SERVICE === 'microservices-nodejs') {
       return rows.map((record) => {
         const plainRecord = record.get({ plain: true })
-        plainRecord.noMerge = plainRecord.noMerge.map((i) => i.id)
-        plainRecord.toMerge = plainRecord.toMerge.map((i) => i.id)
+        plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
+        plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+        delete plainRecord.toMergeIds
+        delete plainRecord.noMergeIds
         return plainRecord
       })
     }
@@ -745,12 +837,22 @@ class MemberRepository {
     return Promise.all(
       rows.map(async (record) => {
         const plainRecord = record.get({ plain: true })
-        plainRecord.noMerge = plainRecord.noMerge.map((i) => i.id)
-        plainRecord.toMerge = plainRecord.toMerge.map((i) => i.id)
-        plainRecord.tags = await record.getTags({
+        plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
+        plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+        plainRecord.lastActivity = plainRecord.lastActive
+          ? (
+              await record.getActivities({
+                order: [['timestamp', 'DESC']],
+                limit: 1,
+              })
+            )[0].get({ plain: true })
+          : null
+        delete plainRecord.toMergeIds
+        delete plainRecord.noMergeIds
+        plainRecord.organizations = await record.getOrganizations({
           joinTableAttributes: [],
         })
-        plainRecord.organizations = await record.getOrganizations({
+        plainRecord.tags = await record.getTags({
           joinTableAttributes: [],
         })
         return plainRecord
@@ -784,6 +886,26 @@ class MemberRepository {
       order: [['timestamp', 'DESC']],
       transaction,
     })
+
+    output.lastActivity = output.activities[0]?.get({ plain: true }) ?? null
+
+    output.lastActive = output.activities[0]?.timestamp ?? null
+
+    output.activityCount = output.activities.length
+
+    output.averageSentiment =
+      output.activityCount > 0
+        ? Math.round(
+            (output.activities.reduce((acc, i) => {
+              if (i.sentiment.sentiment) {
+                acc += i.sentiment.sentiment
+              }
+              return acc
+            }, 0) /
+              output.activityCount) *
+              100,
+          ) / 100
+        : 0
 
     output.tags = await record.getTags({
       transaction,

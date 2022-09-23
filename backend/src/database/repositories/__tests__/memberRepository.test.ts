@@ -83,11 +83,15 @@ describe('MemberRepository tests', () => {
         tags: [],
         noMerge: [],
         toMerge: [],
+        activityCount: 0,
+        lastActive: null,
+        averageSentiment: 0,
+        lastActivity: null,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
 
-    it('Should create succesfully but return without relations when doPupulateRelations=false', async () => {
+    it('Should create succesfully but return without relations when doPopulateRelations=false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const member2add = {
@@ -184,6 +188,10 @@ describe('MemberRepository tests', () => {
         tags: [],
         noMerge: [],
         toMerge: [],
+        activityCount: 0,
+        averageSentiment: 0,
+        lastActive: null,
+        lastActivity: null,
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -315,6 +323,10 @@ describe('MemberRepository tests', () => {
         tags: [],
         noMerge: [],
         toMerge: [],
+        activityCount: 0,
+        averageSentiment: 0,
+        lastActive: null,
+        lastActivity: null,
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -326,7 +338,7 @@ describe('MemberRepository tests', () => {
       expect(memberById).toStrictEqual(expectedMemberFound)
     })
 
-    it('Should return a plain object when called with doPupulateRelations false', async () => {
+    it('Should return a plain object when called with doPopulateRelations false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const member2add = {
@@ -467,7 +479,7 @@ describe('MemberRepository tests', () => {
       expect(found).toStrictEqual(member1Returned)
     })
 
-    it('Should  return a plain object when doPupulateRelations is false', async () => {
+    it('Should return a plain object when doPopulateRelations is false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const member1 = {
         username: { [PlatformType.GITHUB]: 'test1' },
@@ -483,6 +495,10 @@ describe('MemberRepository tests', () => {
       delete member1Returned.organizations
       delete member1Returned.tasks
       delete member1Returned.notes
+      delete member1Returned.lastActive
+      delete member1Returned.averageSentiment
+      delete member1Returned.activityCount
+      delete member1Returned.lastActivity
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -553,7 +569,7 @@ describe('MemberRepository tests', () => {
       expect(found).toStrictEqual(member1Returned)
     })
 
-    it('Should a plain object when called with doPupulateRelations false', async () => {
+    it('Should a plain object when called with doPopulateRelations false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const member1 = {
         username: { [PlatformType.TWITTER]: 'test1' },
@@ -569,6 +585,10 @@ describe('MemberRepository tests', () => {
       delete member1Returned.organizations
       delete member1Returned.notes
       delete member1Returned.tasks
+      delete member1Returned.lastActive
+      delete member1Returned.activityCount
+      delete member1Returned.averageSentiment
+      delete member1Returned.lastActivity
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -701,14 +721,14 @@ describe('MemberRepository tests', () => {
       ])
 
       const members = await MemberRepository.findAndCountAll(
-        { filter: {}, orderBy: 'activitiesCount_DESC' },
+        { filter: {}, orderBy: 'activityCount_DESC' },
         mockIRepositoryOptions,
       )
 
       expect(members.rows.length).toEqual(3)
-      expect(members.rows[0].activitiesCount).toEqual('3')
-      expect(members.rows[1].activitiesCount).toEqual('2')
-      expect(members.rows[2].activitiesCount).toEqual('1')
+      expect(members.rows[0].activityCount).toEqual('3')
+      expect(members.rows[1].activityCount).toEqual('2')
+      expect(members.rows[2].activityCount).toEqual('1')
     })
 
     it('is successfully finding and counting all members, and tags [nodejs, vuejs]', async () => {
@@ -941,7 +961,7 @@ describe('MemberRepository tests', () => {
       }
     })
 
-    it('is successfully find and counting members, with computed attributes, and full options (filter, limit, offset and orderBy)', async () => {
+    it('is successfully find and counting members with various filters, computed attributes, and full options (filter, limit, offset and orderBy)', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const nodeTag = await mockIRepositoryOptions.database.tag.create({
@@ -960,6 +980,9 @@ describe('MemberRepository tests', () => {
           score: '1',
           joinedAt: new Date(),
           tags: [nodeTag.id],
+          reach: {
+            total: 15,
+          },
         },
         mockIRepositoryOptions,
       )
@@ -970,6 +993,9 @@ describe('MemberRepository tests', () => {
           score: '6',
           joinedAt: new Date(),
           tags: [nodeTag.id, vueTag.id],
+          reach: {
+            total: 55,
+          },
         },
         mockIRepositoryOptions,
       )
@@ -980,6 +1006,9 @@ describe('MemberRepository tests', () => {
           score: '7',
           joinedAt: new Date(),
           tags: [vueTag.id],
+          reach: {
+            total: 124,
+          },
         },
         mockIRepositoryOptions,
       )
@@ -988,69 +1017,188 @@ describe('MemberRepository tests', () => {
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-10'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member1.id,
           sourceId: '#sourceId1',
+          sentiment: {
+            positive: 0.55,
+            negative: 0.0,
+            neutral: 0.45,
+            mixed: 0.0,
+            label: 'positive',
+            sentiment: 0.1,
+          },
         },
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-11'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
           sourceId: '#sourceId2',
+          sentiment: {
+            positive: 0.01,
+            negative: 0.55,
+            neutral: 0.55,
+            mixed: 0.0,
+            label: 'negative',
+            sentiment: -0.54,
+          },
         },
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-12'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member2.id,
           sourceId: '#sourceId3',
+          sentiment: {
+            positive: 0.94,
+            negative: 0.0,
+            neutral: 0.06,
+            mixed: 0.0,
+            label: 'positive',
+            sentiment: 0.94,
+          },
         },
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-13'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
           sourceId: '#sourceId4',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.42,
+          },
         },
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-14'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
           sourceId: '#sourceId5',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.41,
+          },
         },
         {
           type: 'message',
           platform: PlatformType.SLACK,
-          timestamp: new Date(),
+          timestamp: new Date('2022-09-15'),
           tenantId: mockIRepositoryOptions.currentTenant.id,
           memberId: member3.id,
           sourceId: '#sourceId6',
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.18,
+          },
         },
       ])
 
-      const members = await MemberRepository.findAndCountAll(
+      let members = await MemberRepository.findAndCountAll(
         {
           filter: {},
           limit: 15,
           offset: 0,
-          orderBy: 'activitiesCount_DESC',
+          orderBy: 'activityCount_DESC',
         },
         mockIRepositoryOptions,
       )
       expect(members.rows.length).toEqual(3)
-      expect(members.rows[0].activitiesCount).toEqual('3')
-      expect(members.rows[1].activitiesCount).toEqual('2')
-      expect(members.rows[2].activitiesCount).toEqual('1')
+      expect(members.rows[0].activityCount).toEqual('3')
+      expect(members.rows[0].lastActive.toISOString()).toEqual('2022-09-15T00:00:00.000Z')
+
+      expect(members.rows[1].activityCount).toEqual('2')
+      expect(members.rows[1].lastActive.toISOString()).toEqual('2022-09-12T00:00:00.000Z')
+
+      expect(members.rows[2].activityCount).toEqual('1')
       expect(members.rows[2].tags[0].name).toEqual('nodejs')
+      expect(members.rows[2].lastActive.toISOString()).toEqual('2022-09-10T00:00:00.000Z')
+
       expect(members.rows[1].tags.map((i) => i.name).sort()).toEqual(['nodejs', 'vuejs'])
       expect(members.rows[0].tags[0].name).toEqual('vuejs')
+
+      // filter and order by reach
+      members = await MemberRepository.findAndCountAll(
+        {
+          filter: {
+            reachRange: [55],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'reach_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows[0].id).toEqual(member3.id)
+      expect(members.rows[1].id).toEqual(member2.id)
+
+      // filter and sort by activity count
+      members = await MemberRepository.findAndCountAll(
+        {
+          filter: {
+            activityCountRange: [2],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'activityCount_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
+
+      // filter and sort by lastActive
+      members = await MemberRepository.findAndCountAll(
+        {
+          filter: {
+            lastActiveRange: ['2022-09-11'],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'lastActive_DESC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member3.id, member2.id])
+
+      // filter and sort by averageSentiment (member1.avgSentiment = 0.1, member2.avgSentiment = 0.2, member3.avgSentiment = 0.34)
+      members = await MemberRepository.findAndCountAll(
+        {
+          filter: {
+            averageSentimentRange: [0.2],
+          },
+          limit: 15,
+          offset: 0,
+          orderBy: 'averageSentiment_ASC',
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(members.rows.length).toEqual(2)
+      expect(members.rows.map((i) => i.id)).toEqual([member2.id, member3.id])
     })
   })
 
@@ -1131,12 +1279,16 @@ describe('MemberRepository tests', () => {
         tags: [],
         noMerge: [],
         toMerge: [],
+        activityCount: 0,
+        averageSentiment: 0,
+        lastActive: null,
+        lastActivity: null,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
     })
 
-    it('Should update successfuly but return without relations when doPupulateRelations=false', async () => {
+    it('Should update successfuly but return without relations when doPopulateRelations=false', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const member1 = {
@@ -1271,6 +1423,10 @@ describe('MemberRepository tests', () => {
         tags: [tag1Plain, tag2Plain],
         noMerge: [],
         toMerge: [],
+        activityCount: 0,
+        averageSentiment: 0,
+        lastActive: null,
+        lastActivity: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -1344,6 +1500,10 @@ describe('MemberRepository tests', () => {
         toMerge: [],
         notes: [],
         tasks: [],
+        activityCount: 0,
+        averageSentiment: 0,
+        lastActive: null,
+        lastActivity: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)

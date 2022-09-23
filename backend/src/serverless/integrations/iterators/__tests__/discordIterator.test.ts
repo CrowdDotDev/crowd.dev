@@ -152,7 +152,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -209,7 +209,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -265,7 +265,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -320,7 +320,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -377,7 +377,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },
@@ -427,7 +427,7 @@ describe('Discord iterator tests', () => {
             username: 'username',
             attributes: {
               [PlatformType.DISCORD]: {
-                [MemberAttributeName.ID]: 'a12345',
+                [MemberAttributeName.SOURCE_ID]: 'a12345',
               },
             },
           },

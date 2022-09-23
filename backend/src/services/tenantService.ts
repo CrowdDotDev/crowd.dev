@@ -20,6 +20,8 @@ import ReportRepository from '../database/repositories/reportRepository'
 import WidgetRepository from '../database/repositories/widgetRepository'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import ConversationRepository from '../database/repositories/conversationRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import { DefaultMemberAttributes } from '../database/attributes/member/default'
 
 export default class TenantService {
   options: IServiceOptions
@@ -181,6 +183,14 @@ export default class TenantService {
         currentTenant: record,
         transaction,
       })
+
+      const memberAttributeSettingsService = new MemberAttributeSettingsService({
+        ...this.options,
+        currentTenant: record,
+      })
+
+      // create default member attribute settings
+      await memberAttributeSettingsService.createPredefined(DefaultMemberAttributes, transaction)
 
       await TenantUserRepository.create(record, this.options.currentUser, [Roles.values.admin], {
         ...this.options,

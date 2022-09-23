@@ -4,8 +4,8 @@ import { MemberAttributes, MemberAttributeName } from './enums'
 
 export const SlackMemberAttributes: Attribute[] = [
   {
-    name: MemberAttributes[MemberAttributeName.ID].name,
-    label: MemberAttributes[MemberAttributeName.ID].label,
+    name: MemberAttributes[MemberAttributeName.SOURCE_ID].name,
+    label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,

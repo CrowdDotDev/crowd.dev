@@ -79,7 +79,7 @@ export default class SampleDataService {
 
     const memberIds = await (
       await memberService.findAndCountAll({
-        filter: { attributes: { sample: { crowd: true } } },
+        advancedFilter: { sample: true },
       })
     ).rows.reduce((acc, item) => {
       acc.push(item.id)

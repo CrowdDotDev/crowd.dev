@@ -292,7 +292,7 @@ export default class TwitterIterator extends BaseIterator {
         reach: { [PlatformType.TWITTER]: record.followersCount },
         attributes: {
           [PlatformType.TWITTER]: {
-            [MemberAttributeName.ID]: record.id,
+            [MemberAttributeName.SOURCE_ID]: record.id,
             [MemberAttributeName.IMAGE_URL]: record.imageUrl,
             [MemberAttributeName.URL]: `https://twitter.com/${record.username}`,
           },
@@ -308,7 +308,7 @@ export default class TwitterIterator extends BaseIterator {
     out = out.filter(
       (activity) =>
         !this.followers.has(
-          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.ID],
+          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
         ),
     )
 
@@ -337,7 +337,7 @@ export default class TwitterIterator extends BaseIterator {
           username: record.author.username,
           attributes: {
             [PlatformType.TWITTER]: {
-              [MemberAttributeName.ID]: record.author.id,
+              [MemberAttributeName.SOURCE_ID]: record.author.id,
               [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
             },
           },
@@ -399,7 +399,7 @@ export default class TwitterIterator extends BaseIterator {
       case 'followers':
         return TwitterIterator.isJoin(
           this.followers,
-          TwitterIterator.mapToPath(activities, 'member.attributes.twitter.id'),
+          TwitterIterator.mapToPath(activities, 'member.attributes.twitter.sourceId'),
         )
 
       default:
