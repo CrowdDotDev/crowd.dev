@@ -86,7 +86,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         lastActive: null,
         averageSentiment: 0,
-        lastActivity: null
+        lastActivity: null,
       }
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
     })
@@ -191,7 +191,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
-        lastActivity: null
+        lastActivity: null,
       }
 
       expect(memberCreated).toStrictEqual(expectedMemberCreated)
@@ -326,7 +326,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
-        lastActivity: null
+        lastActivity: null,
       }
 
       const memberById = await MemberRepository.findById(memberCreated.id, mockIRepositoryOptions)
@@ -1282,7 +1282,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
-        lastActivity: null
+        lastActivity: null,
       }
 
       expect(updatedMember).toStrictEqual(expectedMemberCreated)
@@ -1426,7 +1426,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
-        lastActivity: null
+        lastActivity: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)
@@ -1503,7 +1503,7 @@ describe('MemberRepository tests', () => {
         activityCount: 0,
         averageSentiment: 0,
         lastActive: null,
-        lastActivity: null
+        lastActivity: null,
       }
 
       expect(member1).toStrictEqual(expectedMemberCreated)

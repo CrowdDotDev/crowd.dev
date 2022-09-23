@@ -1435,7 +1435,7 @@ describe('MemberService tests', () => {
         activityCount: 1,
         averageSentiment: activityCreated.sentiment.sentiment,
         lastActive: activityCreated.timestamp,
-        lastActivity: activityCreated
+        lastActivity: activityCreated,
       }
 
       expect(mergedMember).toStrictEqual(expectedMember)

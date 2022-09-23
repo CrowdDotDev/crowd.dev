@@ -172,9 +172,13 @@ describe('TenantService tests', () => {
 
       // Check default member attributes
       const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })
-      const defaultAttributes = await mas.findAndCountAll({ filter: {}})
+      const defaultAttributes = await mas.findAndCountAll({ filter: {} })
 
-      expect(defaultAttributes.rows.map( i => i.name ).sort()).toEqual([MemberAttributeName.BIO, MemberAttributeName.JOB_TITLE, MemberAttributeName.LOCATION])
+      expect(defaultAttributes.rows.map((i) => i.name).sort()).toEqual([
+        MemberAttributeName.BIO,
+        MemberAttributeName.JOB_TITLE,
+        MemberAttributeName.LOCATION,
+      ])
     })
   })
 })

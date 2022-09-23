@@ -184,7 +184,10 @@ export default class TenantService {
         transaction,
       })
 
-      const memberAttributeSettingsService = new MemberAttributeSettingsService({...this.options, currentTenant:record})
+      const memberAttributeSettingsService = new MemberAttributeSettingsService({
+        ...this.options,
+        currentTenant: record,
+      })
 
       // create default member attribute settings
       await memberAttributeSettingsService.createPredefined(DefaultMemberAttributes, transaction)

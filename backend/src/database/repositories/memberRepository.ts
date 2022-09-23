@@ -754,7 +754,6 @@ class MemberRepository {
     rows = await this._populateRelationsForRows(rows)
 
     return { rows, count: count.length }
-
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -840,10 +839,14 @@ class MemberRepository {
         const plainRecord = record.get({ plain: true })
         plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
         plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
-        plainRecord.lastActivity = plainRecord.lastActive ? (await record.getActivities({
-          order: [['timestamp', 'DESC']],
-          limit: 1
-        }))[0].get({plain: true}) : null
+        plainRecord.lastActivity = plainRecord.lastActive
+          ? (
+              await record.getActivities({
+                order: [['timestamp', 'DESC']],
+                limit: 1,
+              })
+            )[0].get({ plain: true })
+          : null
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
         plainRecord.organizations = await record.getOrganizations({
@@ -884,7 +887,7 @@ class MemberRepository {
       transaction,
     })
 
-    output.lastActivity = output.activities[0]?.get({plain:true}) ?? null
+    output.lastActivity = output.activities[0]?.get({ plain: true }) ?? null
 
     output.lastActive = output.activities[0]?.timestamp ?? null
 

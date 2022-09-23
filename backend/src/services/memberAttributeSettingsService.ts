@@ -157,7 +157,7 @@ export default class MemberAttributeSettingsService {
         }
       }
 
-      if(!carryTransaction){
+      if (!carryTransaction) {
         await SequelizeRepository.commitTransaction(transaction)
       }
 

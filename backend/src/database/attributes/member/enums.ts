@@ -10,7 +10,7 @@ export enum MemberAttributeName {
   COMPANY = 'company',
   WEBSITE_URL = 'websiteUrl',
   SAMPLE = 'sample',
-  JOB_TITLE = 'jobTitle'
+  JOB_TITLE = 'jobTitle',
 }
 
 export const MemberAttributes = {

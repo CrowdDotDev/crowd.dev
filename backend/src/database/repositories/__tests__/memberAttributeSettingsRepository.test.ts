@@ -136,8 +136,9 @@ describe('MemberAttributeSettings tests', () => {
           { type: AttributeType.STRING, label: 'Some Email', name: 'email' },
           mockIRepositoryOptions,
         ),
-      ).rejects.toThrowError(new Error400('en', 'settings.memberAttributes.errors.reservedField', 'email'))
-
+      ).rejects.toThrowError(
+        new Error400('en', 'settings.memberAttributes.errors.reservedField', 'email'),
+      )
     })
   })
 
