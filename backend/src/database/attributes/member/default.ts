@@ -24,4 +24,11 @@ export const DefaultMemberAttributes: Attribute[] = [
     canDelete: false,
     show: true,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.URL].name,
+    label: MemberAttributes[MemberAttributeName.URL].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
 ]

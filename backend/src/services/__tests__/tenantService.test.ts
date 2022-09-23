@@ -178,6 +178,7 @@ describe('TenantService tests', () => {
         MemberAttributeName.BIO,
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
+        MemberAttributeName.URL,
       ])
     })
   })
