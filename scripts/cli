@@ -34,6 +34,38 @@ HELP_STRING=$(prepare_service_string HELP "$CONTAINERS")
 LIST_STRING=$(prepare_service_string LIST "$CONTAINERS")
 HELP_BUILD_STRING=$(prepare_service_string HELP "$BUILDERS")
 
+function build() {
+    HELP="${RESET}\nUsage:\n ./cli build [ $HELP_BUILD_STRING ]\n"
+    [[ -z "$1" ]] && say "$HELP" && exit 1
+
+    if [[ $BUILDERS =~ (^|[[:space:]])"$1"($|[[:space:]]) ]] ; then
+        build_and_publish "$@"
+    else
+        error "Invalid command '$1'" && say "$HELP"
+        exit 1;
+    fi
+}
+
+function build_and_publish() {
+    VERSION="$3"
+
+    if [[ -z "${VERSION}" ]]; then
+        COMMIT_HASH=`git rev-parse --short HEAD`
+        TS_VERSION=$(date +%s)
+        VERSION="$TS_VERSION.$COMMIT_HASH"
+    fi
+
+    source $CLI_HOME/builders/$1.sh
+
+    say "Building $REPO:$VERSION with dockerfile '$DOCKERFILE' and context '$CONTEXT'"
+    docker build --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
+
+    if [[ ${PUSH} ]]; then
+        say "Pushing image to $REPO:$VERSION"
+        docker push "$REPO:$VERSION"
+    fi
+}
+
 function scaffold() {
     HELP="${RESET}\nUsage:\n ./cli scaffold [ up | down | destroy | reset ]\n"
 
@@ -287,7 +319,7 @@ function start() {
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service => ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
@@ -305,6 +337,15 @@ do
         start-dev)
             DEV=1
             start
+            exit;
+        ;;
+        build)
+            build $2
+            exit;
+        ;;
+        build-and-push)
+            PUSH=1
+            build $2
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"

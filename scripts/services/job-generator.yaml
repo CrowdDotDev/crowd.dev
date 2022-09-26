@@ -10,7 +10,7 @@ services:
   job-generator:
     build:
       context: ../backend
-      dockerfile: Dockerfile.compose.backend
+      dockerfile: Dockerfile.kube
     command: 'npm run start:job-generator'
     env_file:
       - ../../backend/.env.dist.local
@@ -24,7 +24,7 @@ services:
   job-generator-dev:
     build:
       context: ../backend
-      dockerfile: Dockerfile.compose.backend
+      dockerfile: Dockerfile.kube
     command: 'npm run start:job-generator:dev'
     user: '${USER_ID}:${GROUP_ID}'
     env_file:

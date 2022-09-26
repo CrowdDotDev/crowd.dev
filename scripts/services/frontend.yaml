@@ -4,10 +4,9 @@ services:
   frontend:
     build:
       context: ../frontend
-      dockerfile: Dockerfile-frontend-dev
+      dockerfile: Dockerfile.kube
     env_file:
       - ../../frontend/.env
-    command: npm start
     environment:
       - DOCKER_BUILDKIT=1
     networks:

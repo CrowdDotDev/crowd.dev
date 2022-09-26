@@ -10,7 +10,8 @@ services:
   premium-python-worker:
     build:
       context: ../premium/eagle-eye
-      dockerfile: Dockerfile.worker
+      dockerfile: Dockerfile.kube
+    cmd: ['python', '-u', 'worker.py']
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -23,7 +24,8 @@ services:
   premium-python-worker-dev:
     build:
       context: ../premium/eagle-eye
-      dockerfile: Dockerfile.worker
+      dockerfile: Dockerfile.kube
+    cmd: ['python', '-u', 'worker.py']
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local

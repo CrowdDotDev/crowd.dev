@@ -10,7 +10,7 @@ services:
   nodejs-worker:
     build:
       context: ../backend
-      dockerfile: Dockerfile.compose.backend
+      dockerfile: Dockerfile.kube
     command: 'npm run start:nodejs-worker'
     env_file:
       - ../../backend/.env.dist.local
@@ -24,7 +24,7 @@ services:
   nodejs-worker-dev:
     build:
       context: ../backend
-      dockerfile: Dockerfile.compose.backend
+      dockerfile: Dockerfile.kube
     command: 'npm run start:nodejs-worker:dev'
     user: '${USER_ID}:${GROUP_ID}'
     env_file:

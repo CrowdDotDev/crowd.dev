@@ -4,5 +4,5 @@
 **/.webpack
 **/.serverless
 **/.cubestore
-**/.env
-**/.env.*
+**/.idea
+**/.vscode

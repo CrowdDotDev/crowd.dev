@@ -11,10 +11,17 @@ export const sendPremiumPythonWorkerMessage = async (
     return
   }
 
-  await sqs.sendMessage({
-    QueueUrl: SQS_CONFIG.premiumPythonWorkerQueue,
-    MessageGroupId: groupId,
-    MessageDeduplicationId: deduplicationId || `${moment().valueOf()}`,
-    MessageBody: JSON.stringify(body),
-  })
+  console.log(
+    'Sending message to premium python worker queue!',
+    SQS_CONFIG.premiumPythonWorkerQueue,
+    body,
+  )
+  const response = await sqs
+    .sendMessage({
+      QueueUrl: SQS_CONFIG.premiumPythonWorkerQueue,
+      MessageGroupId: groupId || 'premium-python-worker',
+      MessageDeduplicationId: deduplicationId || `${moment().valueOf()}`,
+      MessageBody: JSON.stringify(body),
+    })
+    .promise()
 }

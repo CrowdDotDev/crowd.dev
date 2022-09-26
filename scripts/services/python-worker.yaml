@@ -10,7 +10,7 @@ services:
   python-worker:
     build:
       context: ../backend/src/serverless/microservices/python
-      dockerfile: Dockerfile-kube
+      dockerfile: Dockerfile.kube
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -23,7 +23,7 @@ services:
   python-worker-dev:
     build:
       context: ../backend/src/serverless/microservices/python
-      dockerfile: Dockerfile-kube
+      dockerfile: Dockerfile.kube
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local

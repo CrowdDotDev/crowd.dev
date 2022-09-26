@@ -12,6 +12,3 @@ RUN python -m venv --copies ./venv && . ./venv/bin/activate && \
   ls ./venv/bin
 
 RUN  pip install -r requirements.txt
-
-ENTRYPOINT ["python", "-u", "worker.py"]
-# ENTRYPOINT [ "tail", "-f", "/dev/null" ]

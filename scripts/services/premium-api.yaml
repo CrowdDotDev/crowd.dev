@@ -10,7 +10,8 @@ services:
   premium-api:
     build:
       context: ../premium/eagle-eye
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile.kube
+    cmd: ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -23,7 +24,8 @@ services:
   premium-api-dev:
     build:
       context: ../premium/eagle-eye
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile.kube
+    cmd: ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
