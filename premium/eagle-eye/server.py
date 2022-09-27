@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @app.route("/search", methods=['POST'])
 def search():
     body = request.get_json()
+    logger.info(f"Eagle Eye: received request for search: {body}")
     queries = body.get('queries', [])
     ndays = body.get('nDays', 10)
     exclude = body.get('filters', [])
