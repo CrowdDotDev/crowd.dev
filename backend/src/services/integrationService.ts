@@ -181,9 +181,15 @@ export default class IntegrationService {
    * @returns Installation authentication token
    */
   static async getInstallToken(installId) {
+    let privateKey = GITHUB_CONFIG.privateKey
+
+    if (KUBE_MODE) {
+      privateKey = privateKey.replace(/\\n/g, '\n')
+    }
+
     const auth = createAppAuth({
       appId: GITHUB_CONFIG.appId,
-      privateKey: GITHUB_CONFIG.privateKey,
+      privateKey,
       clientId: GITHUB_CONFIG.clientId,
       clientSecret: GITHUB_CONFIG.clientSecret,
     })
