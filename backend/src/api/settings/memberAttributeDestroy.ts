@@ -10,7 +10,7 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
  * @security Bearer
  * @description Delete a list of member attribute's settings given IDs
  * @pathParam {string} tenantId - Your workspace/tenant ID
- * @queryParam {array} ids - Array of ids to destroy.
+ * @queryParam {string} id - Id to destroy
  * @response 200 - Ok
  * @response 401 - Unauthorized
  * @response 404 - Not found

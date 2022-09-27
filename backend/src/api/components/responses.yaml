@@ -70,6 +70,21 @@ components:
       xml:
         name: MembersList
 
+    MemberAttributeSettingsList:
+      description: List and count member attribute settings.
+      type: object
+      properties:
+        rows:
+          description: List of member attribute settings
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberAttributeSettings'
+        count:
+          description: Count
+          type: integer
+      xml:
+        name: MemberAttributeSettingsList
+
     ActivityList:
       description: List and count of activities.
       type: object
