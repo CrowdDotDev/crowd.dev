@@ -15,7 +15,7 @@
     <div v-else>
       <div class="flex items-center pb-2">
         <span
-          class="font-semibold text-primary-900 leading-relaxed"
+          class="font-semibold text-brand-500 leading-relaxed"
           >Trigger</span
         >
         <span
@@ -145,7 +145,7 @@
 
       <div class="flex items-center pb-2 mt-10">
         <span
-          class="font-semibold text-primary-900 leading-relaxed"
+          class="font-semibold text-brand-500 leading-relaxed"
           >Action</span
         >
         <span
@@ -352,7 +352,7 @@ export default {
     overflow: unset;
 
     .el-collapse-item__header {
-      @apply text-primary-900 text-sm flex flex-row-reverse justify-end leading-tight h-6 font-medium;
+      @apply text-brand-500 text-sm flex flex-row-reverse justify-end leading-tight h-6 font-medium;
       background-color: #f3f4f6;
       .el-collapse-item__arrow {
         margin: 0 8px 0 0;

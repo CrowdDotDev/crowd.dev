@@ -10,17 +10,35 @@ html body {
 }
 
 @supports (font-variation-settings: normal) {
-  html { font-family: 'Inter var', sans-serif; }
+  html {
+    font-family: 'Inter var', sans-serif;
+  }
 }
 
+// Headings
+
 h1 {
-  @apply text-2xl;
+  @apply text-4xl font-bold leading-normal;
 }
+
 h2 {
-  @apply text-xl;
+  @apply text-3xl font-bold leading-normal;
 }
+
 h3 {
-  @apply text-lg;
+  @apply text-2xl font-bold leading-normal;
+}
+
+h4 {
+  @apply text-xl font-bold leading-normal;
+}
+
+h5 {
+  @apply text-lg font-bold leading-normal;
+}
+
+h6 {
+  @apply text-base font-bold leading-normal;
 }
 
 a {
