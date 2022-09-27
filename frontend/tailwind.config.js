@@ -731,6 +731,7 @@ module.exports = {
       loose: '1.75em',
       3: '.75rem',
       4: '1rem',
+      4.5: '1.125rem',
       5: '1.25rem',
       6: '1.5rem',
       7: '1.75rem',
