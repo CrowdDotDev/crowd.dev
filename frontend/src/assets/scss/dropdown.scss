@@ -6,8 +6,7 @@
   }
 
   &:focus, &:not(.is-disabled):hover, &:not(.is-disabled):focus {
-    @apply text-gray-500 font-medium;
-    background-color: #fffbf8;
+    @apply text-gray-500 font-medium bg-gray-50;
   }
 }
 
