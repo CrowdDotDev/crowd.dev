@@ -226,8 +226,8 @@ class QueryParser {
 
     // The mapping comes from the manyToMany field for that key
     const mapping = this.manyToMany[key]
-    // We construct the items to filter on. For example, if we were filtering tags for communityMembers
-    // "communityMemberTags"."tagId"  = '{{id1}}' OR "communityMemberTags"."tagId"  = '{{id2}}'
+    // We construct the items to filter on. For example, if we were filtering tags for members
+    // "memberTags"."tagId"  = '{{id1}}' OR "memberTags"."tagId"  = '{{id2}}'
     const items = value.reduce((acc, item, index) => {
       if (index === 0) {
         return `${acc} "${mapping.relationTable.name}"."${
@@ -240,7 +240,7 @@ class QueryParser {
     }, '')
 
     // Find all the rows in the table that have the items we are filtering on
-    // For example, find all communityMembers that have the tags with id1 or id2
+    // For example, find all members that have the tags with id1 or id2
     const literal = Sequelize.literal(
       `(SELECT "${mapping.table}".id FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}".id WHERE ${items})`,
     )

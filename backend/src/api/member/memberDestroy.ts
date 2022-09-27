@@ -4,7 +4,7 @@ import Permissions from '../../security/permissions'
 import MemberService from '../../services/memberService'
 
 /**
- * DELETE /tenant/{tenantId}/community-member/{id}
+ * DELETE /tenant/{tenantId}/member/{id}
  * @summary Delete a member
  * @tag Members
  * @security Bearer

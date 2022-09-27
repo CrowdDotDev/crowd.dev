@@ -83,8 +83,8 @@ export const prepareActivityPayload = (activity: any): any => {
   delete copy.updatedAt
   delete copy.updatedById
   delete copy.deletedAt
-  if (copy.communityMember) {
-    copy.communityMember = prepareMemberPayload(copy.communityMember)
+  if (copy.member) {
+    copy.member = prepareMemberPayload(copy.member)
   }
   if (copy.parent) {
     copy.parent = prepareActivityPayload(copy.parent)
