@@ -6,11 +6,16 @@ module.exports = {
   presets: [],
   theme: {
     screens: {
-      sm: '640px',
-      md: '768px',
-      lg: '1024px',
-      xl: '1280px',
-      '2xl': '1536px'
+      sm: {
+        max: '768px'
+      },
+      md: {
+        min: '768px',
+        max: '1280px'
+      },
+      lg: {
+        min: '1280px'
+      }
     },
     colors: {
       transparent: 'transparent',
@@ -338,7 +343,12 @@ module.exports = {
       150: '1.5',
       200: '2'
     },
-    container: {},
+    container: {
+      center: true,
+      screens: {
+        lg: '1080px'
+      }
+    },
     content: {
       none: 'none'
     },
@@ -503,21 +513,16 @@ module.exports = {
       ]
     },
     fontSize: {
-      '3xs': ['0.5rem', { lineHeight: '1rem' }],
-      '2xs': ['0.625rem', { lineHeight: '1rem' }],
-      xs: ['0.75rem', { lineHeight: '1rem' }],
-      sm: ['0.875rem', { lineHeight: '1.25rem' }],
+      '3xs': ['0.625rem', { lineHeight: '0.9375rem' }],
+      '2xs': ['0.75rem', { lineHeight: '1.125rem' }],
+      xs: ['0.8125rem', { lineHeight: '1.21875rem' }],
+      sm: ['0.875rem', { lineHeight: '1.3125rem' }],
       base: ['1rem', { lineHeight: '1.5rem' }],
-      lg: ['1.125rem', { lineHeight: '1.75rem' }],
-      xl: ['1.25rem', { lineHeight: '1.75rem' }],
-      '2xl': ['1.5rem', { lineHeight: '2rem' }],
-      '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-      '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-      '5xl': ['3rem', { lineHeight: '1' }],
-      '6xl': ['3.75rem', { lineHeight: '1' }],
-      '7xl': ['4.5rem', { lineHeight: '1' }],
-      '8xl': ['6rem', { lineHeight: '1' }],
-      '9xl': ['8rem', { lineHeight: '1' }]
+      lg: ['1.25rem', { lineHeight: '1.875rem' }],
+      xl: ['1.5rem', { lineHeight: '2.25rem' }],
+      '2xl': ['2rem', { lineHeight: '3rem' }],
+      '3xl': ['2.5rem', { lineHeight: '3.75rem' }],
+      '4xl': ['3rem', { lineHeight: '4.5rem' }]
     },
     fontWeight: {
       thin: '100',
@@ -718,12 +723,12 @@ module.exports = {
       widest: '0.1em'
     },
     lineHeight: {
-      none: '1',
-      tight: '1.25',
-      snug: '1.375',
-      normal: '1.5',
-      relaxed: '1.625',
-      loose: '2',
+      none: '1em',
+      tight: '1.25em',
+      snug: '1.375em',
+      normal: '1.5em',
+      relaxed: '1.625em',
+      loose: '1.75em',
       3: '.75rem',
       4: '1rem',
       5: '1.25rem',
