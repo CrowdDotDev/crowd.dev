@@ -58,7 +58,7 @@ function build_and_publish() {
     source $CLI_HOME/builders/$1.sh
 
     say "Building $REPO:$VERSION with dockerfile '$DOCKERFILE' and context '$CONTEXT'"
-    docker build --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
+    docker build --platform linux/amd64 --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
 
     if [[ ${PUSH} ]]; then
         say "Pushing image to $REPO:$VERSION"
