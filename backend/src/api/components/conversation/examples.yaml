@@ -1,0 +1,34 @@
+components:
+  examples:
+    Conversation:
+      value:
+        id: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        platform: discord
+        channel: general
+        activitityCount: 42
+        title: It's not magic, it's talent and sweat
+        public: true
+        slug: it-s-not-magic-it-s-talent-and-sweat
+        createdAt: '2022-03-29T09:22:31.989Z'
+        updatedAt: '2022-03-29T09:22:31.989Z'
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+
+    Conversation2:
+      value:
+        id: b3297f3b-6924-4e92-80e7-ef2e0d87a120
+        platform: discord
+        channel: announcements
+        activitityCount: 10
+        title: I did a small weekend project and created a searchable directory with 200+ open source SaaS alternatives. Anything I missed?
+        public: true
+        slug: i-did-a-small-weekend-project-and-created-a-searchable
+        createdAt: 2022-03-29T09:22:31.989Z
+        updatedAt: 2022-03-29T09:22:31.989Z
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+
+    ConversationList:
+      value:
+        rows:
+          - $ref: '#/components/examples/Conversation'
+          - $ref: '#/components/examples/Conversation2'
+        count: 2

@@ -1,0 +1,77 @@
+components:
+  schemas:
+    # defines the settings of a member attribute, excluding the ID
+    MemberAttributeSettingsNoId:
+      type: object
+      required:
+        - label
+        - type
+
+      description: A member attribute that can be created dynamically
+      properties:
+        type:
+          description: Type of the member attribute
+          type: string
+          enum: ['boolean', 'number', 'email', 'string', 'url', 'date']
+
+        canDelete:
+          description: If set to true, member attribute can not be deleted in future requests
+          type: boolean
+          default: false
+
+        show:
+          description: Whether to show the member attribute in the web app or not.
+          type: boolean
+          default: true
+
+        name:
+          description: camelCase code friendly name of the attribute. If ommited, name will be generated from the label. Name is unique in workspaces
+          type: string
+
+        createdAt:
+          description: Date the member attribute was created
+          type: string
+          format: date-time
+        updatedAt:
+          description: Date the member attribute was last updated
+          type: string
+          format: date-time
+        tenantId:
+          description: Your workspace/tenant id
+          type: string
+          format: uuid
+
+      xml:
+        name: MemberAttributeSettings
+
+    # defines the settings of a member attribute, including the ID
+    MemberAttributeSettings:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MemberAttributeSettingsNoId'
+      properties:
+        id:
+          description: The unique identifier for a member attribute of your community.
+
+    # Responses:
+    # defines the response for a list of member attribute settings
+    MemberAttributeSettingsList:
+      description: List and count member attribute settings.
+      type: object
+      properties:
+        rows:
+          description: List of member attribute settings
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberAttributeSettings'
+        count:
+          description: Count
+          type: integer
+        limit:
+          description: Limit of records returned
+          type: integer
+        offset:
+          description: Offset, for pagination
+          type: integer
+      xml:
+        name: MemberAttributeSettingsList

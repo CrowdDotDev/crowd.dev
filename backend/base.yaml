@@ -23,3 +23,5 @@ tags:
     description: Everything about conversations
   - name: Tags
     description: Everything about tags
+  - name: Automations
+    description: Everything about automations

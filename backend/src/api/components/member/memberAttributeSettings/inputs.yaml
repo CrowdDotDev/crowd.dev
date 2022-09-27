@@ -1,0 +1,7 @@
+components:
+  schemas:
+    MemberAttributeSettingsCreateInput:
+      description: >-
+        A member attribute.
+      allOf:
+        - $ref: '#/components/schemas/MemberAttributeSettingsNoId'

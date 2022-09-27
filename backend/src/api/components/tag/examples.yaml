@@ -1,0 +1,23 @@
+components:
+  examples:
+    Tag:
+      value:
+        id: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        name: 'developer'
+        createdAt: '2022-03-29T09:22:31.989Z'
+        updatedAt: '2022-03-29T09:22:31.989Z'
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+
+    Tag2:
+      value:
+        id: b3297f3b-6924-4e92-80e7-ef2e0d87a120
+        name: 'advocate'
+        createdAt: '2022-03-29T09:22:31.989Z'
+        updatedAt: '2022-03-29T09:22:31.989Z'
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+
+    TagList:
+      value:
+        rows:
+          - $ref: '#/components/examples/Tag'
+          - $ref: '#/components/examples/Tag2'

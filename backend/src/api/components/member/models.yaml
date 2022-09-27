@@ -1,0 +1,140 @@
+components:
+  schemas:
+
+    # defines a member, excluding the ID
+    MemberNoId:
+      description: A member of your community.
+      type: object
+      required:
+        - username
+        - type
+        - tenantId
+
+      properties:
+        username:
+          description: >-
+            Usernames of the member in each platform. Exactly one for each platform in which the member is active.
+            <br/>Example: ```{ github: 'iamgilfoyle', discord: 'gilfoyle '}```
+          type: object
+          additionalProperties: true
+        displayName:
+          description: UI friendly name of the member
+          type: string
+        type:
+          description: Type of member. (member)
+          type: string
+          enum:
+            - member
+        email:
+          description: Email address of the member
+          type: string
+        bio:
+          description: Bio of the member
+          type: string
+        location:
+          description: Location of the member
+          type: string
+        organisation:
+          description: Organisation of the member
+          type: string
+        joinedAt:
+          description: Date of joining the community
+          type: string
+          format: date-time
+        score:
+          description: Engagement score of the member. From 0 to 10. Set -1 for not yet calculated.
+          type: number
+        reach:
+          description: >-
+            Reach of the member in each platform. At most one for each platform in which the member is active.
+            <br/>Example: ```{ github: 10, twitter: 250, total: 260 }```
+          type: object
+          properties:
+            total:
+              description: Sum of all the platform reaches.
+              type: string
+          additionalProperties: true
+        attributes:
+          description: >-
+            Attributes associated to the member. Each attribute must be an object with it's value for each platform, and a default. 
+            <br/>For example: ```{"location": {"github": "San Francisco", "twitter": "California", "default": "San Francisco"}}```
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MemberAttribute'
+        info:
+          description: Attributes of the member added by the crowd.dev user
+          type: object
+          additionalProperties: true
+        activities:
+          description: Activities of the member
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+        tags:
+          description: Tags associated with the member. Each element in the array is the ID of the tag.
+          type: array
+          items:
+            type: string
+        createdAt:
+          description: Date the member was created
+          type: string
+          format: date-time
+        updatedAt:
+          description: Date the member was last updated
+          type: string
+          format: date-time
+        tenantId:
+          description: Your workspace/tenant id
+          type: string
+          format: uuid
+
+      xml:
+        name: Member
+
+    # defines a member with ID
+    Member:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/MemberNoId'
+      properties:
+        id:
+          description: The unique identifier for a member of your community.
+    
+    # Member attribute
+    MemberAttribute:
+      description: >-
+        A key for each platform. 
+        <br/>- ```default``` is the value that will be displayed by default in the app
+        <br/>- ```custom``` is the value that will be displayed if the user has set a custom value for the attribute
+      type: object
+      properties:
+        default:
+          description: Default value for the attribute. This is set automatically according to <a target="_blank" href="https://crowd.dev">crowd.dev</a> rules.
+          type: string
+        custom:
+          description: Custom value for the attribute. This is optionally set by the user. It will always be picked as the default when sent.
+          type: string
+      additionalProperties: 
+        true
+    
+    # Responses
+    MemberList:
+      description: List and count of members.
+      type: object
+      properties:
+        rows:
+          description: List of members
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        count:
+          description: Count
+          type: integer
+        limit:
+          description: Limit of records returned
+          type: integer
+        offset:
+          description: Offset, for pagination
+          type: integer
+      xml:
+        name: MembersList

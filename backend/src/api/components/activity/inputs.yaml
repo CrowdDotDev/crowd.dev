@@ -1,0 +1,20 @@
+components:
+  schemas:
+    ActivityUpsertInput:
+      description: >-
+        An activity performed by a member of your community. The member is sent as an ID.
+      allOf:
+        - $ref: '#/components/schemas/ActivityNoId'
+      properties:
+        memberId:
+          description: The ID of the member that performed the activity.
+
+    ActivityUpsertWithMemberInput:
+      type: object
+      description: >-
+        An activity performed by a member of your community. The member is sent as a whole object.
+      allOf:
+        - $ref: '#/components/schemas/ActivityNoId'
+      properties:
+        member:
+          $ref: '#/components/schemas/MemberNoId'

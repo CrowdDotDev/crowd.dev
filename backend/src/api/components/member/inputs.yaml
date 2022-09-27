@@ -1,0 +1,15 @@
+components:
+  schemas:
+    MemberPlatformHelper:
+      type: object
+      required:
+        - platform
+      properties:
+        platform:
+          type: string
+          description: Platform for which to check member existence.
+
+    MemberUpsertInput:
+      allOf:
+        - $ref: '#/components/schemas/MemberPlatformHelper'
+        - $ref: '#/components/schemas/MemberNoId'
