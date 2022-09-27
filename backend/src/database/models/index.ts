@@ -3,7 +3,8 @@
  * exports all the models.
  */
 import Sequelize, { DataTypes } from 'sequelize'
-import { DB_CONFIG } from '../../config'
+import * as configTypes from '../../config/configTypes'
+import { DB_CONFIG, SERVICE } from '../../config'
 
 const { highlight } = require('cli-highlight')
 
@@ -18,7 +19,12 @@ function models() {
       dialect: DB_CONFIG.dialect,
       port: DB_CONFIG.port,
       replication: {
-        read: [{ host: DB_CONFIG.readHost }],
+        read: [
+          {
+            host:
+              SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost,
+          },
+        ],
         write: { host: DB_CONFIG.writeHost },
       },
       pool: {
