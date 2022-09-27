@@ -94,7 +94,9 @@ export default class EagleEyeContentService {
           .post(`${API_CONFIG.premiumApiUrl}/search`)
           .send({ queries: keywords, nDays, filters })
 
-        return response.body
+        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+        await this.bulkUpsert(fromEagleEye)
+        return fromEagleEye
       } catch (error) {
         console.log('error while calling eagle eye server!', error)
         throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
