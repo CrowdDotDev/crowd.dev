@@ -7,20 +7,27 @@
       to="/"
       :class="collapsed ? 'logo logo--collapsed' : 'logo'"
     >
-      <transition-group name="fade" mode="in-out">
-        <img
-          v-if="collapsed"
-          key="icon"
-          src="/images/icon.png"
-          alt="crowd.dev icon"
-        />
-        <img
-          v-else
-          key="logo"
-          src="/images/logo.png"
-          alt="crowd.dev logo"
-        />
-      </transition-group>
+      <div
+        class="relative h-6"
+        :class="collapsed ? 'w-6' : 'w-full'"
+      >
+        <transition-group name="fade" mode="in-out">
+          <img
+            v-if="collapsed"
+            key="icon"
+            src="/images/icon.png"
+            alt="crowd.dev icon"
+            class="absolute inset-0"
+          />
+          <img
+            v-else
+            key="logo"
+            src="/images/logo.png"
+            alt="crowd.dev logo"
+            class="absolute inset-0"
+          />
+        </transition-group>
+      </div>
     </router-link>
 
     <el-menu
@@ -424,7 +431,7 @@ export default {
 }
 
 .logo {
-  @apply flex items-center justify-center py-6;
+  @apply flex items-center justify-center py-6 px-4 relative;
 
   img {
     @apply h-6;
