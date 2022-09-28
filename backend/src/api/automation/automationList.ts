@@ -11,7 +11,7 @@ import {
 
 /**
  * GET /tenant/{tenantId}/automation
- * @summary Get all automation data for tenant
+ * @summary List automations
  * @tag Automations
  * @security Bearer
  * @description Get all existing automation data for tenant.

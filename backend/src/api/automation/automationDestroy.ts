@@ -6,7 +6,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 
 /**
  * DELETE /tenant/{tenantId}/automation/{automationId}
- * @summary Destroys an existing automation
+ * @summary Destroy an automation
  * @tag Automations
  * @security Bearer
  * @description Destroys an existing automation in the tenant.

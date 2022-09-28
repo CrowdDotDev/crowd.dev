@@ -5,7 +5,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 
 /**
  * GET /tenant/{tenantId}/automation/{automationId}
- * @summary Get an existing automation data
+ * @summary Find an automation
  * @tag Automations
  * @security Bearer
  * @description Get an existing automation data in the tenant.

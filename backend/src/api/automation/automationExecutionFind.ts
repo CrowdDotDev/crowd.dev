@@ -5,7 +5,7 @@ import AutomationExecutionService from '../../services/automationExecutionServic
 
 /**
  * GET /tenant/{tenantId}/automation/{automationId}/executions
- * @summary Get all automation execution history for tenant and automation
+ * @summary Get automation history
  * @tag Automations
  * @security Bearer
  * @description Get all automation execution history for tenant and automation
