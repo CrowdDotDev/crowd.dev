@@ -9,7 +9,39 @@ components:
           type: string
           description: Platform for which to check member existence.
 
+
+    MemberInputRelations:
+      type: object
+      properties:
+        tags:
+          description: Tags associated with the member. Each element in the array is the ID of the tag.
+          type: array
+          items:
+            type: string
+        organizations:
+          description: Organizations associated with the member. Each element in the array is the ID of the organization.
+          type: array
+          items:
+            type: string
+        tasks:
+          description: Tasks associated with the member. Each element in the array is the ID of the task.
+          type: array
+          items:
+            type: string
+        notes:
+          description: Notes associated with the member. Each element in the array is the ID of the note.
+          type: array
+          items:
+            type: string
+        activities:
+          description: Activities associated with the member. Each element in the array is the ID of the activity.
+          type: array
+          items:
+            type: string    
+
+
     MemberUpsertInput:
       allOf:
         - $ref: '#/components/schemas/MemberPlatformHelper'
         - $ref: '#/components/schemas/MemberNoId'
+        - $ref: '#/components/schemas/MemberInputRelations'

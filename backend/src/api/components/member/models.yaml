@@ -1,14 +1,11 @@
 components:
   schemas:
-
     # defines a member, excluding the ID
     MemberNoId:
       description: A member of your community.
       type: object
       required:
         - username
-        - type
-        - tenantId
 
       properties:
         username:
@@ -20,22 +17,9 @@ components:
         displayName:
           description: UI friendly name of the member
           type: string
-        type:
-          description: Type of member. (member)
-          type: string
-          enum:
-            - member
+        
         email:
           description: Email address of the member
-          type: string
-        bio:
-          description: Bio of the member
-          type: string
-        location:
-          description: Location of the member
-          type: string
-        organisation:
-          description: Organisation of the member
           type: string
         joinedAt:
           description: Date of joining the community
@@ -52,7 +36,7 @@ components:
           properties:
             total:
               description: Sum of all the platform reaches.
-              type: string
+              type: number
           additionalProperties: true
         attributes:
           description: >-
@@ -61,20 +45,6 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/MemberAttribute'
-        info:
-          description: Attributes of the member added by the crowd.dev user
-          type: object
-          additionalProperties: true
-        activities:
-          description: Activities of the member
-          type: array
-          items:
-            $ref: '#/components/schemas/Activity'
-        tags:
-          description: Tags associated with the member. Each element in the array is the ID of the tag.
-          type: array
-          items:
-            type: string
         createdAt:
           description: Date the member was created
           type: string
@@ -83,24 +53,11 @@ components:
           description: Date the member was last updated
           type: string
           format: date-time
-        tenantId:
-          description: Your workspace/tenant id
-          type: string
-          format: uuid
 
       xml:
         name: Member
 
-    # defines a member with ID
-    Member:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/MemberNoId'
-      properties:
-        id:
-          description: The unique identifier for a member of your community.
-    
-    # Member attribute
+     # Member attribute
     MemberAttribute:
       description: >-
         A key for each platform. 
@@ -117,24 +74,3 @@ components:
       additionalProperties: 
         true
     
-    # Responses
-    MemberList:
-      description: List and count of members.
-      type: object
-      properties:
-        rows:
-          description: List of members
-          type: array
-          items:
-            $ref: '#/components/schemas/Member'
-        count:
-          description: Count
-          type: integer
-        limit:
-          description: Limit of records returned
-          type: integer
-        offset:
-          description: Offset, for pagination
-          type: integer
-      xml:
-        name: MembersList

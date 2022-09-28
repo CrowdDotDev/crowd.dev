@@ -13,7 +13,7 @@ import track from '../../segment/track'
  * @description Update a member given an ID.
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
- * @bodyContent {MemberNoId} application/json
+ * @bodyContent {MemberUpsertInput} application/json
  * @response 200 - Ok
  * @responseContent {Member} 200.application/json
  * @responseExample {Member} 200.application/json.Member

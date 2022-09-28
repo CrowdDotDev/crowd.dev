@@ -4,21 +4,21 @@ import Permissions from '../../security/permissions'
 import NoteService from '../../services/noteService'
 import track from '../../segment/track'
 
-// /**
-//  * POST /tenant/{tenantId}/note
-//  * @summary Create or update an note
-//  * @tag Activities
-//  * @security Bearer
-//  * @description Create or update an note. Existence is checked by sourceId and tenantId.
-//  * @pathParam {string} tenantId - Your workspace/tenant ID
-//  * @bodyContent {NoteUpsertInput} application/json
-//  * @response 200 - Ok
-//  * @responseContent {Note} 200.application/json
-//  * @responseExample {NoteUpsert} 200.application/json.Note
-//  * @response 401 - Unauthorized
-//  * @response 404 - Not found
-//  * @response 429 - Too many requests
-//  */
+/**
+ * POST /tenant/{tenantId}/note/query
+ * @summary Query notes
+ * @tag Notes
+ * @security Bearer
+ * @description Query notes. It accepts filters, sorting options and pagination.
+ * @pathParam {string} tenantId - Your workspace/tenant ID
+ * @bodyContent {NoteQuery} application/json
+ * @response 200 - Ok
+ * @responseContent {NoteList} 200.application/json
+ * @responseExample {NoteList} 200.application/json.Note
+ * @response 401 - Unauthorized
+ * @response 404 - Not found
+ * @response 429 - Too many requests
+ */
 export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.noteRead)

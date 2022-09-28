@@ -12,7 +12,7 @@ import MemberService from '../../services/memberService'
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @response 200 - Ok
- * @responseContent {Member} 200.application/json
+ * @responseContent {MemberResponse} 200.application/json
  * @responseExample {Member} 200.application/json.Member
  * @response 401 - Unauthorized
  * @response 404 - Not found
