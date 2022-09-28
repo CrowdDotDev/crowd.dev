@@ -828,6 +828,11 @@ const en = {
 
   imagesViewer: {
     noImage: 'No image'
+  },
+
+  external: {
+    docs: 'Docs',
+    community: 'Community'
   }
 }
 

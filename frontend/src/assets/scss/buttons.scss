@@ -21,6 +21,11 @@
     @apply px-4 py-3 text-base;
   }
 
+  // TODO: Find a better solution for icon buttons
+  &--icon--sm {
+    @apply p-1.5 text-xs;
+  }
+
   // Default buttons' variations
   &--primary {
     @apply bg-gray-900 text-white border-none;
