@@ -8,7 +8,7 @@
 
   </a>
 
-  <h2 align="center">The open source Community OS, built with developers in mind.</h2>
+  <h2 align="center">The community-led growth platform, built with developers in mind.</h2>
   
   <p align="center">
     <br>
