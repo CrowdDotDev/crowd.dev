@@ -6,7 +6,7 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 /**
  * GET /tenant/{tenantId}/settings/members/attributes
  * @summary List member attribute's settings
- * @tag MemberAttributeSettings
+ * @tag Member Attributes
  * @security Bearer
  * @description Get a list of member attribute's settings with filtering, sorting and offsetting.
  * @pathParam {string} tenantId - Your workspace/tenant ID

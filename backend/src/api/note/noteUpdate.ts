@@ -8,7 +8,7 @@ import NoteService from '../../services/noteService'
  * @summary Update a note
  * @tag Notes
  * @security Bearer
- * @description Update a note given an ID.
+ * @description Update a note
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the note
  * @bodyContent {NoteInput} application/json

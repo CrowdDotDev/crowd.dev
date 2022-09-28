@@ -8,7 +8,7 @@ import TagService from '../../services/tagService'
  * @summary Update an tag
  * @tag Tags
  * @security Bearer
- * @description Update a tag given an ID.
+ * @description Update a tag
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the tag
  * @bodyContent {TagNoId} application/json

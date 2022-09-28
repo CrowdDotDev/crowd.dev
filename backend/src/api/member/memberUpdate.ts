@@ -10,7 +10,7 @@ import track from '../../segment/track'
  * @summary Update a member
  * @tag Members
  * @security Bearer
- * @description Update a member given an ID.
+ * @description Update a member
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member
  * @bodyContent {MemberUpsertInput} application/json
