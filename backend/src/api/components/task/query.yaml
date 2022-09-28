@@ -1,6 +1,5 @@
 components:
   schemas:
-
     FilterType:
       type: object
       additionalProperties:
@@ -11,21 +10,20 @@ components:
     TaskQuery:
       description: >-
         All the parameters you can use to query tasks.
-      
+
       properties:
         filter:
           description: >-
             Filter. Please refer to filter docs.
           type: string
           format: blob
-          
 
         orderBy:
           type: string
           enum:
             - createdAt_ASC
             - createdAt_DESC
-    
+
         limit:
           description: >-
             Limit the number of records returned. Default is 10.

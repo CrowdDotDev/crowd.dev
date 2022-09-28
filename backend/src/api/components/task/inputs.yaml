@@ -9,14 +9,14 @@ components:
           items:
             type: string
             format: uuid
-        
+
         activities:
           description: Activities associated with the task. Each element in the array is the ID of the activity.
           type: array
           items:
             type: string
             format: uuid
-        
+
         assignedTo:
           description: The ID of the workspace member assigned to the task.
           type: string

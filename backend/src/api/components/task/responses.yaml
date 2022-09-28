@@ -12,7 +12,7 @@ components:
           description: The body of the task.
           type: string
           format: blob
-        
+
     TaskRelationsResponse:
       description: Relations of a task.
       type: object
@@ -22,13 +22,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Member'
-        
+
         activities:
           description: Activities associated with the task.
           type: array
           items:
             $ref: '#/components/schemas/Activity'
-        
+
         assignedTo:
           description: The workspace member assigned to the task.
           $ref: '#/components/schemas/Member'
@@ -37,9 +37,9 @@ components:
       description: A task of your community.
       type: object
       allOf:
-          - $ref: '#/components/schemas/Task'
-          - $ref: '#/components/schemas/TaskRelationsResponse'
- 
+        - $ref: '#/components/schemas/Task'
+        - $ref: '#/components/schemas/TaskRelationsResponse'
+
     # List
     TaskList:
       description: List and count of tasks.

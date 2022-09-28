@@ -38,7 +38,7 @@ components:
 
       xml:
         name: Conversation
-    
+
     # defines a complete conversation, including the ID
     Conversation:
       allOf:
@@ -52,7 +52,7 @@ components:
           type: array
           items:
             type: string
-    
+
     # Responses
     ConversationList:
       type: object

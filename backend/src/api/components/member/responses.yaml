@@ -15,7 +15,7 @@ components:
           description: Timestamp, type and platform of the last activity performed by the member.
           type: object
           properties:
-            type: 
+            type:
               description: Type of the last activity
               type: string
             timestamp:
@@ -28,7 +28,7 @@ components:
         sentiment:
           description: Sentiment of the member. From 0 to 100.
           type: number
-        
+
     MemberRelationsResponse:
       description: Relations of a member.
       type: object
@@ -48,9 +48,9 @@ components:
       description: A member of your community.
       type: object
       allOf:
-          - $ref: '#/components/schemas/Member'
-          - $ref: '#/components/schemas/MemberRelationsResponse'
- 
+        - $ref: '#/components/schemas/Member'
+        - $ref: '#/components/schemas/MemberRelationsResponse'
+
     # List
     MemberList:
       description: List and count of members.

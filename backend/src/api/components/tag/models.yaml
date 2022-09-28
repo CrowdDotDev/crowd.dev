@@ -26,7 +26,7 @@ components:
 
       xml:
         name: Tag
-    
+
     # Defines a complete tag, including the ID.
     Tag:
       type: object
@@ -57,4 +57,3 @@ components:
           type: integer
       xml:
         name: TagsList
-    

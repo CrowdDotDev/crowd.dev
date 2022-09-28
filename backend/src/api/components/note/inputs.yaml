@@ -9,7 +9,6 @@ components:
           items:
             type: string
 
-
     NoteInput:
       allOf:
         - $ref: '#/components/schemas/NoteNoId'

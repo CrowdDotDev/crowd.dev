@@ -17,7 +17,7 @@ components:
         displayName:
           description: UI friendly name of the member
           type: string
-        
+
         email:
           description: Email address of the member
           type: string
@@ -57,7 +57,7 @@ components:
       xml:
         name: Member
 
-     # Member attribute
+      # Member attribute
     MemberAttribute:
       description: >-
         A key for each platform. 
@@ -71,6 +71,4 @@ components:
         custom:
           description: Custom value for the attribute. This is optionally set by the user. It will always be picked as the default when sent.
           type: string
-      additionalProperties: 
-        true
-    
+      additionalProperties: true
