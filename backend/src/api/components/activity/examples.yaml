@@ -1,6 +1,5 @@
 components:
   examples:
-
     ActivityUpsert:
       value:
         id: 8f43a01f-648b-4b07-b200-2c75bee28f1d
@@ -194,5 +193,3 @@ components:
           - $ref: '#/components/examples/ActivityFind'
           - $ref: '#/components/examples/ActivityFind2'
         count: 2
-
-    

@@ -9,7 +9,6 @@ components:
           type: string
           description: Platform for which to check member existence.
 
-
     MemberInputRelations:
       type: object
       properties:
@@ -37,8 +36,7 @@ components:
           description: Activities associated with the member. Each element in the array is the ID of the activity.
           type: array
           items:
-            type: string    
-
+            type: string
 
     MemberUpsertInput:
       allOf:

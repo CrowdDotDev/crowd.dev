@@ -72,7 +72,7 @@ components:
       properties:
         id:
           description: The unique identifier for an activity.
-        member: 
+        member:
           description: Member that performed the activity
           $ref: '#/components/schemas/Member'
 

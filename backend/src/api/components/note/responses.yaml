@@ -12,7 +12,7 @@ components:
           description: The body of the note.
           type: string
           format: blob
-        
+
     NoteRelationsResponse:
       description: Relations of a note.
       type: object
@@ -27,9 +27,9 @@ components:
       description: A note of your community.
       type: object
       allOf:
-          - $ref: '#/components/schemas/Note'
-          - $ref: '#/components/schemas/NoteRelationsResponse'
- 
+        - $ref: '#/components/schemas/Note'
+        - $ref: '#/components/schemas/NoteRelationsResponse'
+
     # List
     NoteList:
       description: List and count of notes.
