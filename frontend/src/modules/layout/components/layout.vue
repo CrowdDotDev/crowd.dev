@@ -65,15 +65,6 @@ export default {
         }
       }
 
-      if (this.collapsed) {
-        return {
-          marginLeft: '64px'
-        }
-      } else if (!this.collapsed) {
-        return {
-          marginLeft: '210px'
-        }
-      }
       return null
     }
   },

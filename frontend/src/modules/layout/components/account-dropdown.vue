@@ -1,26 +1,38 @@
 <template>
   <el-dropdown
     trigger="click"
+    placement="top-end"
     @command="handleDropdownCommand"
   >
-    <div class="el-dropdown-link">
+    <div class="el-dropdown-link w-full">
       <div
-        class="flex items-center"
-        :class="collapsed ? 'px-3 py-4' : 'p-4'"
+        class="dropdown-content flex w-full h-16 items-center bg-white hover:bg-gray-50"
+        :class="
+          collapsed
+            ? 'justify-center'
+            : 'justify-between px-3'
+        "
       >
-        <app-avatar
-          :entity="computedAvatarEntity"
-          size="sm"
-          class="mr-2"
-        ></app-avatar>
-        <div v-if="!collapsed" class="text-sm">
-          <div class="text-white font-semibold">
-            {{ currentUserNameOrEmailPrefix }}
-          </div>
-          <div class="text-white opacity-75">
-            {{ currentTenant.name }}
+        <div class="flex items-center">
+          <app-avatar
+            :entity="computedAvatarEntity"
+            size="sm"
+            :class="collapsed ? '' : 'mr-3'"
+          ></app-avatar>
+          <div v-if="!collapsed" class="text-sm">
+            <div class="text-gray-900">
+              {{ currentUserNameOrEmailPrefix }}
+            </div>
+            <div class="text-gray-500 text-2xs">
+              {{ currentTenant.name }}
+            </div>
           </div>
         </div>
+
+        <i
+          v-if="!collapsed"
+          class="ri-more-2-fill text-gray-300 text-lg"
+        ></i>
       </div>
     </div>
     <template #dropdown>
@@ -65,15 +77,9 @@ import { i18n } from '@/i18n'
 export default {
   name: 'AppAccountDropdown',
 
-  props: {
-    collapsed: {
-      type: Boolean,
-      default: false
-    }
-  },
-
   computed: {
     ...mapGetters({
+      collapsed: 'layout/menuCollapsed',
       currentUserNameOrEmailPrefix:
         'auth/currentUserNameOrEmailPrefix',
       currentUserAvatar: 'auth/currentUserAvatar',
@@ -142,3 +148,9 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.el-dropdown-link[aria-expanded='true'] .dropdown-content {
+  @apply bg-gray-50;
+}
+</style>
