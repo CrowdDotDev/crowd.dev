@@ -7,20 +7,18 @@
   >
     <template #reference>
       <div
-        class="cursor-pointer flex w-full h-16 items-center bg-white hover:bg-gray-50"
-        :class="
-          collapsed
-            ? 'justify-center'
-            : 'justify-between px-3'
-        "
+        class="cursor-pointer flex w-full h-16 items-center bg-white hover:bg-gray-50 account-btn"
       >
         <div class="flex items-center">
           <app-avatar
             :entity="computedAvatarEntity"
             size="sm"
-            :class="collapsed ? '' : 'mr-3'"
+            :class="isCollapsed ? '' : 'mr-3'"
           ></app-avatar>
-          <div v-if="!collapsed" class="text-sm">
+          <div
+            v-if="!isCollapsed"
+            class="text-sm account-btn-info"
+          >
             <div class="text-gray-900">
               {{ currentUserNameOrEmailPrefix }}
             </div>
@@ -31,7 +29,7 @@
         </div>
 
         <i
-          v-if="!collapsed"
+          v-if="!isCollapsed"
           class="ri-more-2-fill text-gray-300 text-lg"
         ></i>
       </div>
@@ -96,7 +94,7 @@ export default {
 
   computed: {
     ...mapGetters({
-      collapsed: 'layout/menuCollapsed',
+      isCollapsed: 'layout/menuCollapsed',
       currentUserNameOrEmailPrefix:
         'auth/currentUserNameOrEmailPrefix',
       currentUserAvatar: 'auth/currentUserAvatar',
@@ -158,6 +156,8 @@ export default {
     }
   }
 }
+
+// Override inline style in popover
 .workspace-popover {
   padding: 8px 0 !important;
   left: 1px !important;
@@ -165,5 +165,21 @@ export default {
   border-radius: 8px !important;
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+// Smooth disappearance of account information on collapse
+.app-menu {
+  .account-btn {
+    @apply justify-between px-3;
+  }
+
+  :not(.horizontal-collapse-transition).el-menu--collapse {
+    @apply justify-center;
+  }
+
+  .horizontal-collapse-transition .account-btn-info {
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
 }
 </style>

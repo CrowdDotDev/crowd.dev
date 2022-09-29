@@ -1,4 +1,3 @@
-<!-- TODO: Replace menu.vue file with this one at the end of the implementation -->
 <template>
   <el-aside class="app-menu" width="fit-content">
     <el-menu
@@ -9,8 +8,7 @@
     >
       <!-- Menu logo header -->
       <div
-        v-if="!isCollapsed"
-        class="h-14 pl-6 pr-3 flex items-center justify-between"
+        class="h-14 pl-6 pr-3 flex items-center justify-between menu-expanded-header"
       >
         <router-link to="/">
           <img
@@ -32,8 +30,7 @@
 
       <!-- Menu dynamic logo -->
       <div
-        v-if="isCollapsed"
-        class="h-14 flex items-center justify-center"
+        class="h-14 flex items-center justify-center menu-collapsed-header"
       >
         <img
           key="icon"
@@ -168,7 +165,9 @@
               :disabled="!isCollapsed"
               effect="dark"
               placement="right"
-              content="Docs"
+              raw-content
+              popper-class="custom-menu-tooltip"
+              content="Docs <i class='ri-external-link-line ml-1.1'></i>"
             >
               <a
                 class="el-menu-item justify-between"
@@ -200,7 +199,9 @@
               :disabled="!isCollapsed"
               effect="dark"
               placement="right"
-              content="Community"
+              raw-content
+              popper-class="custom-menu-tooltip"
+              content="Community <i class='ri-external-link-line ml-1.1'></i>"
             >
               <a
                 class="el-menu-item justify-between relative"
@@ -369,6 +370,7 @@ const isEagleEyeLocked = computed(
   .expand-btn {
     display: none;
   }
+
   .el-menu:hover:not(.horizontal-collapse-transition).el-menu--collapse {
     .dynamic-logo {
       display: none;
@@ -407,11 +409,21 @@ const isEagleEyeLocked = computed(
   // Menu width and padding customization
   .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
     width: 260px;
+
+    .menu-collapsed-header {
+      display: none;
+    }
   }
 
   .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
     .el-menu-item {
     @apply px-2.5;
+  }
+
+  .el-menu--vertical.el-menu--collapse {
+    .menu-expanded-header {
+      display: none;
+    }
   }
 
   // Override divider margin
@@ -448,6 +460,26 @@ const isEagleEyeLocked = computed(
 
   a[href]:hover {
     opacity: 1;
+  }
+
+  // Image animations
+  img {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+
+  .v-enter-active img,
+  .v-leave-active img {
+    opacity: 0;
+  }
+}
+
+// Custom tooltip for external links
+.custom-menu-tooltip {
+  margin-left: 8px !important;
+
+  span:first-child {
+    @apply flex gap-1.5 items-center;
   }
 }
 </style>
