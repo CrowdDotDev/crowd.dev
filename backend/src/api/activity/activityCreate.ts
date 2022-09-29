@@ -9,7 +9,7 @@ import track from '../../segment/track'
  * @summary Create or update an activity
  * @tag Activities
  * @security Bearer
- * @description Create or update an activity. Existence is checked by sourceId and tenantId.
+ * @description Create or update an activity. Existence is checked by sourceId and tenantId
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityUpsertInput} application/json
  * @response 200 - Ok

@@ -4,21 +4,21 @@ import Permissions from '../../security/permissions'
 import ActivityService from '../../services/activityService'
 import track from '../../segment/track'
 
-// /**
-//  * POST /tenant/{tenantId}/activity
-//  * @summary Create or update an activity
-//  * @tag Activities
-//  * @security Bearer
-//  * @description Create or update an activity. Existence is checked by sourceId and tenantId.
-//  * @pathParam {string} tenantId - Your workspace/tenant ID
-//  * @bodyContent {ActivityUpsertInput} application/json
-//  * @response 200 - Ok
-//  * @responseContent {Activity} 200.application/json
-//  * @responseExample {ActivityUpsert} 200.application/json.Activity
-//  * @response 401 - Unauthorized
-//  * @response 404 - Not found
-//  * @response 429 - Too many requests
-//  */
+/**
+ * POST /tenant/{tenantId}/member/query
+ * @summary Query activities
+ * @tag Activities
+ * @security Bearer
+ * @description Query activities. It accepts filters, sorting options and pagination.
+ * @pathParam {string} tenantId - Your workspace/tenant ID
+ * @bodyContent {ActivityQuery} application/json
+ * @response 200 - Ok
+ * @responseContent {ActivityList} 200.application/json
+ * @responseExample {ActivityList} 200.application/json.Member
+ * @response 401 - Unauthorized
+ * @response 404 - Not found
+ * @response 429 - Too many requests
+ */
 export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.activityRead)

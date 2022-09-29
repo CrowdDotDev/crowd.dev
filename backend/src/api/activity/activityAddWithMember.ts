@@ -4,13 +4,13 @@ import Permissions from '../../security/permissions'
 import ActivityService from '../../services/activityService'
 
 /**
- * POST /tenant/{tenantId}/add-activity
+ * POST /tenant/{tenantId}/activity/with-member
  * @summary Create or update an activity with a member
  * @tag Activities
  * @security Bearer
- * @description Create or update an activity with a member.
- * Activity existence is checked by sourceId and tenantId.
- * Member existence is checked by platform and username.
+ * @description Create or update an activity with a member
+ * Activity existence is checked by sourceId and tenantId
+ * Member existence is checked by platform and username
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityUpsertWithMemberInput} application/json
  * @response 200 - Ok

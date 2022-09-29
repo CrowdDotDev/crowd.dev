@@ -72,35 +72,42 @@ export default class MemberService {
 
     for (const platform of Object.keys(attributes)) {
       for (const attributeName of Object.keys(attributes[platform])) {
-        if (!memberAttributeSettings[attributeName]) {
-          throw new Error400(
-            this.options.language,
-            'settings.memberAttributes.notFound',
-            attributeName,
-          )
-        }
         if (
-          !MemberAttributeSettingsService.isCorrectType(
-            attributes[platform][attributeName],
-            memberAttributeSettings[attributeName].type,
-          )
+          attributes[platform][attributeName] !== undefined &&
+          attributes[platform][attributeName] !== null
         ) {
-          throw new Error400(
-            this.options.language,
-            'settings.memberAttributes.wrongType',
-            attributeName,
-            memberAttributeSettings[attributeName].type,
-          )
-        }
-
-        if (attributesObject[attributeName]) {
-          attributesObject[attributeName] = {
-            ...attributesObject[attributeName],
-            [platform]: attributes[platform][attributeName],
+          if (!memberAttributeSettings[attributeName]) {
+            throw new Error400(
+              this.options.language,
+              'settings.memberAttributes.notFound',
+              attributeName,
+            )
           }
-        } else {
-          attributesObject[attributeName] = {
-            [platform]: attributes[platform][attributeName],
+          if (
+            !MemberAttributeSettingsService.isCorrectType(
+              attributes[platform][attributeName],
+              memberAttributeSettings[attributeName].type,
+            )
+          ) {
+            console.log(attributes[platform][attributeName])
+            console.log('second')
+            throw new Error400(
+              this.options.language,
+              'settings.memberAttributes.wrongType',
+              attributeName,
+              memberAttributeSettings[attributeName].type,
+            )
+          }
+
+          if (attributesObject[attributeName]) {
+            attributesObject[attributeName] = {
+              ...attributesObject[attributeName],
+              [platform]: attributes[platform][attributeName],
+            }
+          } else {
+            attributesObject[attributeName] = {
+              [platform]: attributes[platform][attributeName],
+            }
           }
         }
       }

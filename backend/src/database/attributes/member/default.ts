@@ -31,4 +31,11 @@ export const DefaultMemberAttributes: Attribute[] = [
     canDelete: false,
     show: true,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.TEAM].name,
+    label: MemberAttributes[MemberAttributeName.TEAM].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: false,
+  },
 ]

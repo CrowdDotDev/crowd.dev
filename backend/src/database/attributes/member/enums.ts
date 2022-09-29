@@ -11,6 +11,7 @@ export enum MemberAttributeName {
   WEBSITE_URL = 'websiteUrl',
   SAMPLE = 'sample',
   JOB_TITLE = 'jobTitle',
+  TEAM = 'team',
 }
 
 export const MemberAttributes = {
@@ -61,5 +62,9 @@ export const MemberAttributes = {
   [MemberAttributeName.JOB_TITLE]: {
     name: MemberAttributeName.JOB_TITLE,
     label: 'Job Title',
+  },
+  [MemberAttributeName.TEAM]: {
+    name: MemberAttributeName.TEAM,
+    label: 'Team',
   },
 }

@@ -11,7 +11,7 @@ import ActivityService from '../../services/activityService'
  * @description Update an activity given an ID.
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the activity
- * @bodyContent {ActivityNoId} application/json
+ * @bodyContent {ActivityUpsertInput} application/json
  * @response 200 - Ok
  * @responseContent {Activity} 200.application/json
  * @responseExample {ActivityFind} 200.application/json.Activity

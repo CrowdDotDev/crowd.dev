@@ -8,7 +8,7 @@ export default (app) => {
   app.get(`/tenant/:tenantId/activity`, require('./activityList').default)
   app.get(`/tenant/:tenantId/activity/:id`, require('./activityFind').default)
   app.post(
-    '/tenant/:tenantId/add-activity',
+    '/tenant/:tenantId/activity/with-member',
     // Call the addActivityWithMember file in this dir
     require('./activityAddWithMember').default,
   )
