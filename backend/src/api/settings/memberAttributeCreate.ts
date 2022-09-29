@@ -4,11 +4,11 @@ import Permissions from '../../security/permissions'
 import MemberAttributeSettingsService from '../../services/memberAttributeSettingsService'
 
 /**
- * POST tenant/{tenantId}/settings/members/attributes
- * @summary Create a member attribute's settings
- * @tag Member Attributes
+ * POST /tenant/{tenantId}/settings/members/attributes
+ * @summary Attribute settings: create
+ * @tag Members
  * @security Bearer
- * @description Create a member attribute's settings.
+ * @description Create a members' attribute setting
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {MemberAttributeSettingsCreateInput} application/json
  * @response 200 - Ok

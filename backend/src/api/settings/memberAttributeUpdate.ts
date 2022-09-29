@@ -5,13 +5,13 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 
 /**
  * PUT /tenant/{tenantId}/settings/members/attributes/{id}
- * @summary Update a member attribute settings
- * @tag Member Attributes
+ * @summary Attribute settings: update
+ * @tag Members
  * @security Bearer
- * @description Update a member attribute settings given an ID.
+ * @description Update a members' attribute setting
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member attribute settings
- * @bodyContent {MemberAttributeSettingsNoId} application/json
+ * @bodyContent {MemberAttributeSettingsUpdateInput} application/json
  * @response 200 - Ok
  * @responseContent {MemberAttributeSettings} 200.application/json
  * @responseExample {MemberAttributeSettings} 200.application/json.MemberAttributeSettings

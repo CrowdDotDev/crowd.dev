@@ -5,10 +5,10 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 
 /**
  * GET /tenant/{tenantId}/settings/members/attributes/{id}
- * @summary Find a member attribute's settings
- * @tag Member Attributes
+ * @summary Attributes settings: find
+ * @tag Members
  * @security Bearer
- * @description Find a single member attribute's settings by ID.
+ * @description Find a single members' attribute setting by ID
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the member attribute's settings
  * @response 200 - Ok

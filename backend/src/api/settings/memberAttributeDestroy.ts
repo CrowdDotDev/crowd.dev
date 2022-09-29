@@ -5,10 +5,10 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 
 /**
  * DELETE /tenant/{tenantId}/settings/members/attributes
- * @summary Delete a list of given member attribute settings by id
- * @tag Member Attributes
+ * @summary Attribute settings: delete
+ * @tag Members
  * @security Bearer
- * @description Delete a list of member attribute's settings given IDs
+ * @description Delete a members' attribute setting
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} id - Id to destroy
  * @response 200 - Ok
