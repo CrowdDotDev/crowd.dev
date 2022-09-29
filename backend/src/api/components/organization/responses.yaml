@@ -1,0 +1,53 @@
+components:
+  schemas:
+    # Single organization
+    Organization:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/OrganizationNoId'
+      properties:
+        id:
+          description: The ID of the organization.
+        body:
+          description: The body of the organization.
+          type: string
+          format: blob
+
+    OrganizationRelationsResponse:
+      description: Relations of a organization.
+      type: object
+      properties:
+        members:
+          description: Members associated with the organization.
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+
+    OrganizationResponse:
+      description: A organization of your community.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Organization'
+        - $ref: '#/components/schemas/OrganizationRelationsResponse'
+
+    # List
+    OrganizationList:
+      description: List and count of organizations.
+      type: object
+      properties:
+        rows:
+          description: List of organizations
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationResponse'
+        count:
+          description: Count
+          type: integer
+        limit:
+          description: Limit of records returned
+          type: integer
+        offset:
+          description: Offset, for pagination
+          type: integer
+      xml:
+        name: OrganizationsList

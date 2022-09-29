@@ -25,8 +25,8 @@ components:
             platform:
               description: Platform of the last activity
               type: string
-        sentiment:
-          description: Sentiment of the member. From 0 to 100.
+        averageSentiment:
+          description: Average sentiment of the member. From 0 to 100.
           type: number
 
     MemberRelationsResponse:
@@ -43,6 +43,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Note'
+        tasks:
+          description: Tasks associated with the member.
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        organizations:
+          description: Organizations associated with the member.
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
 
     MemberResponse:
       description: A member of your community.

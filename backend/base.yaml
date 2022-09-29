@@ -17,8 +17,12 @@ servers:
 tags:
   - name: Members
     description: Everything about members
+  - name: Member Attributes
+    description: Settings for member's attributes
   - name: Activities
     description: Everything about activities
+  - name: Organizations
+    description: Everything about organizations
   - name: Conversations
     description: Everything about conversations
   - name: Tags
@@ -27,5 +31,4 @@ tags:
     description: Everything about automations
   - name: Notes
     description: Everything about notes
-  - name: Member Attributes
-    description: Settings for member's attributes
+  

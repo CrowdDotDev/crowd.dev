@@ -1,0 +1,178 @@
+components:
+  examples:
+    Organization:
+      value:
+        id: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+        username:
+          github: smart lady
+          discord: smart lady
+        displayName: smart lady
+        type: organization
+        info: {}
+        crowdInfo:
+          github:
+            url: https://github.com/CrowdHQ
+            name: smart lady
+            isHireable: false
+            websiteUrl: https://crowd.dev
+          sample: true
+          discord:
+            id: '#sample-discord-id'
+        email: team@crowd.dev
+        score: 10
+        bio: "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and
+          `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
+        organisation: crowd.dev
+        location:
+        signals:
+        joinedAt: '2021-08-11T14:28:21.000Z'
+        importHash:
+        reach:
+          total: -1
+        createdAt: '2022-03-29T09:22:22.202Z'
+        updatedAt: '2022-03-29T09:22:23.086Z'
+        deletedAt:
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        activities:
+          - id: 5f674315-5b7d-49ac-9bd2-797c7918a68f
+            type: message
+            timestamp: '2022-03-27T21:00:00.000Z'
+            platform: discord
+            info: {}
+            crowdInfo:
+              url: ''
+              body: Nisi duis qui proident. Labore amet nostrud sint ea ea esse.
+              sample: true
+              thread: false
+              channel: announcements
+              reactions: []
+              attachments: []
+            isKeyAction: true
+            score: 1
+            sourceId:
+            sourceParentId:
+            importHash:
+            createdAt: '2022-03-29T09:22:23.224Z'
+            updatedAt: '2022-03-29T09:22:23.224Z'
+            deletedAt:
+            organizationId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+            conversationId:
+            parentId:
+            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+          - id: 7bd24667-c9fd-45e4-afc7-90e170eaf544
+            type: joined_guild
+            timestamp: '2022-03-23T21:00:00.000Z'
+            platform: discord
+            info: {}
+            crowdInfo:
+              sample: true
+            isKeyAction: false
+            score: 2
+            sourceId:
+            sourceParentId:
+            importHash:
+            createdAt: '2022-03-29T09:22:23.159Z'
+            updatedAt: '2022-03-29T09:22:23.159Z'
+            deletedAt:
+            organizationId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+            conversationId:
+            parentId:
+            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        tags:
+          - id: 1eb3a60a-e5b3-4e43-938a-14085b29a19e
+            name: Contributor
+            importHash:
+            createdAt: '2022-06-03T09:15:42.694Z'
+            updatedAt: '2022-06-03T09:15:42.694Z'
+            deletedAt:
+            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+          - id: 35dd51fd-15ef-424b-8ed0-f58b8adefd9f
+            name: Berlin
+            importHash:
+            createdAt: '2022-06-03T09:16:04.019Z'
+            updatedAt: '2022-06-03T09:16:04.019Z'
+            deletedAt:
+            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        noMerge: []
+        toMerge: []
+    Organization2:
+      value:
+        id: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
+        username:
+          discord: favorable slowboy
+        displayName: favorable slowboy
+        type: organization
+        info: {}
+        crowdInfo:
+          github:
+            url: 'https://github.com/CrowdHQ'
+            name: favorable slowboy
+            isHireable: false
+            websiteUrl: 'https://crowd.dev'
+          discord:
+            id: '#sample-discord-id'
+        email: team@crowd.dev
+        score: 0
+        bio: null
+        organisation: crowd.dev
+        location: Hong Kong
+        signals: null
+        joinedAt: '2022-03-25T21:00:00.000Z'
+        importHash: null
+        createdAt: '2022-03-29T09:22:20.995Z'
+        updatedAt: '2022-03-29T10:07:22.849Z'
+        deletedAt: null
+        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        updatedById: null
+        activitiesCount: '3'
+        tagsArray:
+          - null
+        activities:
+          - id: c4dc7136-34ef-4596-b422-9ab0eb3a4892
+            type: message
+            timestamp: '2022-03-28T21:00:00.000Z'
+            platform: discord
+            info: {}
+            crowdInfo:
+              url: ''
+              body: >-
+                Voluptate amet nisi dolor nulla in occaecat consequat. Aliqua velit
+                minim esse Lorem mollit aute qui.
+              thread: false
+              channel: announcements
+              reactions: []
+              attachments: []
+            isKeyAction: true
+            score: 1
+            sourceId: null
+            importHash: null
+            createdAt: '2022-03-29T09:22:21.084Z'
+            updatedAt: '2022-03-29T09:22:21.084Z'
+            deletedAt: null
+            organizationId: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
+            parentId: null
+            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
+            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+        followers: []
+        following: []
+        tags: []
+        noMerge: []
+        toMerge: []
+    OrganizationList:
+      value:
+        rows:
+          - $ref: '#/components/examples/Organization'
+          - $ref: '#/components/examples/Organization2'
+        count: 2
