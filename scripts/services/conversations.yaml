@@ -36,7 +36,7 @@ services:
     networks:
       - crowd-bridge
     volumes:
-      - ../../conversations:/usr/crowd/conversations
+      - ../../premium/conversations:/usr/crowd/conversations
       - /usr/crowd/conversations/node_modules
 
 networks:
