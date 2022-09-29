@@ -239,16 +239,6 @@
     }
   }
 
-  // TODO: These classes should be removed once the new menu is implemented
-  &--menu-cta {
-    @apply text-white border-white bg-transparent;
-    &:focus,
-    &:hover,
-    &[disabled] {
-      @apply text-white border-white bg-transparent;
-    }
-  }
-
   &--link {
     @apply bg-transparent border-0 p-0 rounded-none text-blue-500 shadow-none;
     &:hover {
