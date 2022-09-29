@@ -337,7 +337,7 @@ export default class GitHubWebhook {
         },
       },
       email: member.email || '',
-      organisation: member.company || '',
+      ...(member.company && { organizations: [member.company.trim()] }),
     }
 
     if (member.websiteUrl) {

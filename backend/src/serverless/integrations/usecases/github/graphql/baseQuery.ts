@@ -19,6 +19,11 @@ class BaseQuery {
         location
     }`
 
+  static ORGANIZATION_SELECT = `{
+    description
+    websiteUrl
+  }`
+
   static PAGE_SELECT = `{
         hasPreviousPage
         startCursor

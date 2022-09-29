@@ -1,5 +1,6 @@
 import moment from 'moment-timezone'
 import lodash from 'lodash'
+import validator from 'validator'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
@@ -12,6 +13,7 @@ import { sendNewMemberNodeSQSMessage } from '../serverless/microservices/nodejs/
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
+import OrganizationService from './organizationService'
 
 export default class MemberService {
   options: IServiceOptions
@@ -251,6 +253,34 @@ export default class MemberService {
         // because otherwise the performance is greatly decreased in integrations
         if (data.attributes) {
           data.attributes = await this.setAttributesDefaultValues(data.attributes)
+        }
+
+        // If organizations are sent
+        if (data.organizations) {
+          // Collect IDs for relation
+          const organizationsIds = []
+          for (const organization of data.organizations) {
+            if (typeof organization === 'string' && validator.isUUID(organization)) {
+              // If an ID was already sent, we simply push it to the list
+              organizationsIds.push(organization)
+            } else {
+              // Otherwise, either another string or an object was sent
+              const organizationService = new OrganizationService(this.options)
+              let data = {}
+              if (typeof organization === 'string') {
+                // If a string was sent, we assume it is the name of the organization
+                data = { name: organization }
+              } else {
+                // Otherwise, we assume it is an object with the data of the organization
+                data = organization
+              }
+              // We findOrCreate the organization and add it to the list of IDs
+              const organizationRecord = await organizationService.findOrCreate(data)
+              organizationsIds.push(organizationRecord.id)
+            }
+          }
+          // Remove dups
+          data.organizations = [...new Set(organizationsIds)]
         }
 
         record = await MemberRepository.create(
