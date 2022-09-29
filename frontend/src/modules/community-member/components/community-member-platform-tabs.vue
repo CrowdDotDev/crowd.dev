@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
 import integrationsJsonArray from '@/jsons/integrations.json'
@@ -76,8 +76,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({
-      filter: 'communityMember/list/filter'
+    ...mapState({
+      filter: (state) => state.communityMember.filter
     }),
     active() {
       return this.memberPlatform || this.filter.platform
@@ -85,8 +85,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      doReset: 'communityMember/list/doReset',
-      doFetch: 'communityMember/list/doFetch'
+      doReset: 'communityMember/doReset',
+      doFetch: 'communityMember/doFetch'
     }),
     handleClick(item) {
       if (this.isMember) {

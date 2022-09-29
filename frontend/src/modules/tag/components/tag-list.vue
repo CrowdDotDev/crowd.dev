@@ -89,7 +89,7 @@ export default {
 
   methods: {
     ...mapActions({
-      doUpdate: 'communityMember/form/doUpdate'
+      doUpdate: 'communityMember/doUpdate'
     }),
     async doSubmit() {
       this.loading = true

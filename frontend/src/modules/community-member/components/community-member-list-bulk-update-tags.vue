@@ -64,7 +64,7 @@ export default {
   methods: {
     ...mapActions({
       doBulkUpdateMembersTags:
-        'communityMember/list/doBulkUpdateMembersTags'
+        'communityMember/doBulkUpdateMembersTags'
     }),
 
     async doBulkUpdateTagsWithConfirm() {

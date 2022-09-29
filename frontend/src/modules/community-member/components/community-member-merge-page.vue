@@ -199,6 +199,7 @@ export default {
   },
 
   computed: {
+    // TODO: Find alternative
     ...mapGetters({
       record: 'communityMember/view/record',
       loading: 'communityMember/view/loading'
@@ -292,8 +293,8 @@ export default {
 
   methods: {
     ...mapActions({
-      doFind: 'communityMember/view/doFind',
-      doMerge: 'communityMember/list/doMerge'
+      doFind: 'communityMember/doFind',
+      doMerge: 'communityMember/doMerge'
     }),
 
     async fetchFn(query, limit) {

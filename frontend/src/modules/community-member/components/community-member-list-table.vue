@@ -174,7 +174,7 @@
 <script>
 import CommunityMemberListToolbar from '@/modules/community-member/components/community-member-list-toolbar.vue'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { CommunityMemberPermissions } from '@/modules/community-member/community-member-permissions'
 import { i18n } from '@/i18n'
 import CommunityMemberDropdown from './community-member-dropdown'
@@ -203,16 +203,18 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      rows: (state) => state.communityMember.list.ids,
+      loading: (state) =>
+        state.communityMember.list.loading,
+      count: (state) => state.communityMember.count
+    }),
     ...mapGetters({
-      rows: 'communityMember/list/rows',
-      selectedRows: 'communityMember/list/selectedRows',
-      count: 'communityMember/list/count',
-      loading: 'communityMember/list/loading',
-      pagination: 'communityMember/list/pagination',
+      selectedRows: 'communityMember/selectedRows',
+      pagination: 'communityMember/pagination',
       isMobile: 'layout/isMobile',
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      destroyLoading: 'communityMember/destroy/loading',
       paginationLayout: 'layout/paginationLayout'
     }),
 
@@ -231,7 +233,7 @@ export default {
     },
 
     computedChannelsWidth() {
-      const maxChannels = this.rows.reduce((acc, item) => {
+      const maxChannels = this.rows?.reduce((acc, item) => {
         acc =
           Object.keys(item.username).length > acc
             ? Object.keys(item.username).length
@@ -256,13 +258,13 @@ export default {
 
   methods: {
     ...mapActions({
-      doChangeSort: 'communityMember/list/doChangeSort',
+      doChangeSort: 'communityMember/doChangeSort',
       doChangePaginationCurrentPage:
-        'communityMember/list/doChangePaginationCurrentPage',
+        'communityMember/doChangePaginationCurrentPage',
       doChangePaginationPageSize:
-        'communityMember/list/doChangePaginationPageSize',
-      doMountTable: 'communityMember/list/doMountTable',
-      doDestroy: 'communityMember/destroy/doDestroy'
+        'communityMember/doChangePaginationPageSize',
+      doMountTable: 'communityMember/doMountTable',
+      doDestroy: 'communityMember/doDestroy'
     }),
 
     doRefresh() {

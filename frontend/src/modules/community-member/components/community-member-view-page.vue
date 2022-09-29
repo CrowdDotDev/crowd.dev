@@ -78,6 +78,7 @@ export default {
     ...mapGetters({
       labelPosition: 'layout/labelPosition',
       labelWidthForm: 'layout/labelWidthForm',
+      // TODO: Find alternative to this approach
       record: 'communityMember/view/record',
       loading: 'communityMember/view/loading'
     }),
@@ -123,7 +124,7 @@ export default {
 
   methods: {
     ...mapActions({
-      doFind: 'communityMember/view/doFind'
+      doFind: 'communityMember/doFind'
     }),
     doRefresh() {
       this.doFind(this.id)

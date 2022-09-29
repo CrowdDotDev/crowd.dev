@@ -17,6 +17,7 @@
   </div>
 </template>
 
+<!-- TODO: Update getters and methods according to new store structure -->
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import CommunityMemberForm from '@/modules/community-member/components/community-member-form.vue'

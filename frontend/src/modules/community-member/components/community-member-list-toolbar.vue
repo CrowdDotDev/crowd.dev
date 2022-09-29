@@ -20,7 +20,7 @@
     <el-button
       :disabled="exportButtonDisabled"
       class="btn btn--secondary mr-2"
-      @click="doExport()"
+      @click="handleDoExport"
     >
       <i class="ri-lg ri-file-text-line mr-1" />
       Export to CSV
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import AppCommunityMemberListBulkUpdateTags from '@/modules/community-member/components/community-member-list-bulk-update-tags'
 import { i18n } from '@/i18n'
 
@@ -54,20 +54,29 @@ export default {
     AppCommunityMemberListBulkUpdateTags
   },
 
+  data() {
+    return {
+      isExportLoading: false,
+      isDestroyLoading: false
+    }
+  },
+
   computed: {
+    ...mapState({
+      loading: (state) => state.communityMember.list.loading
+    }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      hasRows: 'communityMember/list/hasRows',
-      loading: 'communityMember/list/loading',
-      exportLoading: 'communityMember/list/exportLoading',
-      selectedRows: 'communityMember/list/selectedRows',
-      destroyLoading: 'communityMember/destroy/loading'
+      hasRows: 'communityMember/hasRows',
+      selectedRows: 'communityMember/selectedRows'
     }),
 
     exportButtonDisabled() {
       return (
-        !this.hasRows || this.loading || this.exportLoading
+        !this.hasRows ||
+        this.loading ||
+        this.isExportLoading
       )
     },
 
@@ -79,25 +88,25 @@ export default {
       return (
         !this.selectedRows.length ||
         this.loading ||
-        this.destroyLoading
+        this.isDestroyLoading
       )
     }
   },
 
   methods: {
     ...mapActions({
-      doExport: 'communityMember/list/doExport',
+      doExport: 'communityMember/doExport',
       doMarkAsTeamMember:
-        'communityMember/list/doMarkAsTeamMember',
+        'communityMember/doMarkAsTeamMember',
       doRemoveAllSelected:
-        'communityMember/list/doRemoveAllSelected',
+        'communityMember/doRemoveAllSelected',
       doDisableAllSelected:
-        'communityMember/list/doDisableAllSelected',
+        'communityMember/doDisableAllSelected',
       doEnableAllSelected:
-        'communityMember/list/doEnableAllSelected',
-      doDestroyAll: 'communityMember/destroy/doDestroyAll',
+        'communityMember/doEnableAllSelected',
+      doDestroyAll: 'communityMember/doDestroyAll',
       doBulkUpdateMembersTags:
-        'communityMember/list/doBulkUpdateMembersTags'
+        'communityMember/doBulkUpdateMembersTags'
     }),
 
     async doDestroyAllWithConfirm() {
@@ -112,11 +121,28 @@ export default {
           }
         )
 
-        return this.doDestroyAll(
+        this.isDestroyLoading = true
+
+        await this.doDestroyAll(
           this.selectedRows.map((item) => item.id)
         )
+
+        this.isDestroyLoading = false
       } catch (error) {
+        this.isDestroyLoading = false
         // no
+      }
+    },
+
+    async handleDoExport() {
+      try {
+        this.isExportLoading = true
+
+        await this.doExport()
+
+        this.isExportLoading = false
+      } catch (error) {
+        this.isExportLoading = false
       }
     }
   }
