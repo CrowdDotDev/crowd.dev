@@ -22,7 +22,7 @@
 
         <el-table-column
           label="Member"
-          prop="username.crowdUsername"
+          prop="displayName"
           width="220"
           sortable="custom"
         >
@@ -40,7 +40,7 @@
                 class="mr-2"
               />
               <span class="font-semibold">{{
-                scope.row.username['crowdUsername']
+                scope.row.displayName
               }}</span>
             </router-link>
           </template>
@@ -233,8 +233,8 @@ export default {
     computedChannelsWidth() {
       const maxChannels = this.rows.reduce((acc, item) => {
         acc =
-          Object.keys(item.crowdInfo).length > acc
-            ? Object.keys(item.crowdInfo).length
+          Object.keys(item.username).length > acc
+            ? Object.keys(item.username).length
             : acc
         return acc
       }, 0)

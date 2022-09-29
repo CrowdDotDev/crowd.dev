@@ -18,7 +18,7 @@ export class CommunityMemberField {
 
         return {
           id: record.id,
-          label: record.username.crowdUsername
+          label: record.displayName
         }
       },
       options
@@ -39,7 +39,7 @@ export class CommunityMemberField {
 
         return {
           id: record.id,
-          label: record.username.crowdUsername
+          label: record.displayName
         }
       },
       options
