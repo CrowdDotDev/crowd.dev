@@ -4,6 +4,8 @@ components:
     OrganizationNoId:
       description: A created organization.
       type: object
+      required:
+        - name
       properties:
         name:
           description: The name of the organization.

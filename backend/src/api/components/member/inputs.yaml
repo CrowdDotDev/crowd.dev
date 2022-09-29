@@ -17,8 +17,8 @@ components:
             Organizations associated with the member. Each element in the array is the name of the organization, or an organization object.
             If the organization does not exist, it will be created.
           type: array
-          items: 
-            type: string
+          items:    
+            $ref: '#/components/schemas/OrganizationNoId'
 
     MemberInputRelations:
       type: object
