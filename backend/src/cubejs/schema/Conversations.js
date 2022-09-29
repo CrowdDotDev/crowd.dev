@@ -2,6 +2,7 @@ cube(`Conversations`, {
   sql: `SELECT 
     con.*, 
     MAX(a.timestamp) AS "lastActive", 
+    MIN(a.timestamp) AS "firstActivityTime",
     a.platform AS platform, 
     MAX(
       CASE WHEN (a."crowdInfo" ->> 'thread') IS NOT NULL 
@@ -93,6 +94,11 @@ cube(`Conversations`, {
 
     lastActive: {
       sql: `${CUBE}."lastActive"`,
+      type: `time`,
+    },
+
+    firstActivityTime: {
+      sql: `${CUBE}."firstActivityTime"`,
       type: `time`,
     },
   },
