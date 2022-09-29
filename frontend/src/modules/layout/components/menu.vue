@@ -2,11 +2,10 @@
 <template>
   <el-aside class="app-menu" width="fit-content">
     <el-menu
+      class="flex flex-col h-full border-gray-200"
       :default-active="$route.path"
-      class="flex flex-col h-full"
       :collapse="isCollapsed"
       :router="true"
-      @open="handleOpen"
     >
       <!-- Menu logo header -->
       <div
@@ -186,6 +185,7 @@
                 </div>
 
                 <i
+                  v-if="!isCollapsed"
                   class="item-link ri-external-link-line !text-gray-300"
                 ></i>
               </a>
@@ -203,7 +203,7 @@
               content="Community"
             >
               <a
-                class="el-menu-item justify-between"
+                class="el-menu-item justify-between relative"
                 href="http://crowd.dev/discord"
                 target="_blank"
               >
@@ -217,6 +217,7 @@
                 </div>
 
                 <i
+                  v-if="!isCollapsed"
                   class="item-link ri-external-link-line !text-gray-300"
                 ></i>
               </a>
@@ -247,7 +248,7 @@ import { CommunityMemberPermissions } from '@/modules/community-member/community
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const store = useStore()
 const isCollapsed = computed(
@@ -259,6 +260,20 @@ const currentUser = computed(
 const currentTenant = computed(
   () => store.getters['auth/currentTenant']
 )
+const isMediumViewport = computed(
+  () => store.state.layout.isMediumViewport
+)
+
+function toggleMenu() {
+  store.dispatch('layout/toggleMenu')
+}
+
+// Collapse Menu for Medium viewports by default
+onMounted(() => {
+  if (isMediumViewport.value) {
+    store.dispatch('layout/collapseMenu')
+  }
+})
 
 const hasPermissionToSettings = computed(
   () =>
@@ -339,15 +354,6 @@ const isEagleEyeLocked = computed(
       currentUser.value
     ).lockedForCurrentPlan
 )
-
-function toggleMenu() {
-  store.dispatch('layout/toggleMenu')
-}
-
-function handleOpen() {
-  const el = document.querySelector('.el-menu')
-  console.log(el)
-}
 </script>
 
 <style lang="scss">
@@ -438,6 +444,10 @@ function handleOpen() {
 
   .horizontal-collapse-transition .expand-btn {
     display: none;
+  }
+
+  a[href]:hover {
+    opacity: 1;
   }
 }
 </style>

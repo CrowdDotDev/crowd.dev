@@ -1,12 +1,13 @@
 <template>
-  <el-dropdown
+  <el-popover
+    placement="right-end"
+    :width="230"
     trigger="click"
-    placement="top-end"
-    @command="handleDropdownCommand"
+    popper-class="workspace-popover"
   >
-    <div class="el-dropdown-link w-full">
+    <template #reference>
       <div
-        class="dropdown-content flex w-full h-16 items-center bg-white hover:bg-gray-50"
+        class="cursor-pointer flex w-full h-16 items-center bg-white hover:bg-gray-50"
         :class="
           collapsed
             ? 'justify-center'
@@ -34,39 +35,55 @@
           class="ri-more-2-fill text-gray-300 text-lg"
         ></i>
       </div>
-    </div>
-    <template #dropdown>
-      <div
-        v-if="currentTenant && currentTenant.onboardedAt"
-      >
-        <el-dropdown-item command="doEditProfile">
-          <i class="ri-user-line mr-1"></i>
-          <app-i18n code="auth.profile.title"></app-i18n>
-        </el-dropdown-item>
-        <el-dropdown-item command="doPasswordChange">
-          <i class="ri-lock-password-line mr-1"></i>
-          <app-i18n
-            code="auth.passwordChange.title"
-          ></app-i18n>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-if="
-            ['multi', 'multi-with-subdomain'].includes(
-              tenantMode
-            ) && hasTenantModule
-          "
-          command="doSwitchTenants"
-        >
-          <i class="ri-apps-line mr-1"></i>
-          Workspaces
-        </el-dropdown-item>
-      </div>
-      <el-dropdown-item command="doSignout">
-        <i class="ri-logout-circle-line mr-1"></i>
-        <app-i18n code="auth.signout"></app-i18n>
-      </el-dropdown-item>
     </template>
-  </el-dropdown>
+
+    <!-- Popover content -->
+    <div
+      class="text-2xs font-medium tracking-wide text-gray-400 pl-4 pb-1"
+    >
+      WORKSPACE
+    </div>
+    <div v-if="currentTenant && currentTenant.onboardedAt">
+      <div class="popover-item" @click="doEditProfile">
+        <i class="text-base text-gray-400 ri-user-line"></i>
+        <span class="text-xs text-gray-900"
+          ><app-i18n code="auth.profile.title"></app-i18n
+        ></span>
+      </div>
+      <div class="popover-item" @click="doPasswordChange">
+        <i
+          class="text-base text-gray-400 ri-lock-password-line"
+        ></i>
+        <span class="text-xs text-gray-900"
+          ><app-i18n
+            code="auth.passwordChange.title"
+          ></app-i18n
+        ></span>
+      </div>
+      <div
+        v-if="
+          ['multi', 'multi-with-subdomain'].includes(
+            tenantMode
+          ) && hasTenantModule
+        "
+        class="popover-item"
+        @click="doSwitchTenants"
+      >
+        <i class="text-base text-gray-400 ri-apps-line"></i>
+        <span class="text-xs text-gray-900"
+          >Workspaces</span
+        >
+      </div>
+    </div>
+    <div class="popover-item" @click="doSignout">
+      <i
+        class="text-base text-gray-400 ri-logout-box-r-line"
+      ></i>
+      <span class="text-xs text-gray-900"
+        ><app-i18n code="auth.signout"></app-i18n
+      ></span>
+    </div>
+  </el-popover>
 </template>
 
 <script>
@@ -116,24 +133,6 @@ export default {
       return i18n(key, args)
     },
 
-    handleDropdownCommand(command) {
-      if (command === 'doSignout') {
-        this.doSignout()
-      }
-
-      if (command === 'doEditProfile') {
-        this.doEditProfile()
-      }
-
-      if (command === 'doSwitchTenants') {
-        this.doSwitchTenants()
-      }
-
-      if (command === 'doPasswordChange') {
-        this.doPasswordChange()
-      }
-    },
-
     doEditProfile() {
       return this.$router.push('/auth/edit-profile')
     },
@@ -150,7 +149,21 @@ export default {
 </script>
 
 <style lang="scss">
-.el-dropdown-link[aria-expanded='true'] .dropdown-content {
-  @apply bg-gray-50;
+.popover-item {
+  @apply h-12 hover:cursor-pointer flex items-center gap-3 px-4 hover:bg-gray-50;
+
+  &:hover {
+    i {
+      @apply text-gray-500;
+    }
+  }
+}
+.workspace-popover {
+  padding: 8px 0 !important;
+  left: 1px !important;
+  bottom: 10px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
 }
 </style>

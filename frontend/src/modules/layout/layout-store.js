@@ -4,7 +4,8 @@ export default {
   state: () => {
     return {
       menuCollapsed: false,
-      isMobile: false
+      isMobile: false,
+      isMediumViewport: false
     }
   },
 
@@ -33,6 +34,8 @@ export default {
 
     RESIZE(state, payload) {
       state.isMobile = payload.width < 576
+      state.isMediumViewport =
+        payload.width > 768 && payload.width < 1281
     }
   },
 
