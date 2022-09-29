@@ -21,19 +21,17 @@
       </div>
       <div
         v-else
-        class="tag community-member-engagement-level"
+        class="community-member-engagement-level"
         :class="`community-member-engagement-level--${computedEngagementLevel.label.toLowerCase()}`"
       >
-        <span
-          class="community-member-engagement-level-label"
-        >
-          {{ computedEngagementLevel.label }}
-        </span>
-
         <span
           class="community-member-engagement-level-value"
         >
           {{ Math.round(computedEngagementLevel.value) }}
+        </span>
+
+        <span>
+          {{ computedEngagementLevel.label }}
         </span>
       </div>
     </div>
@@ -85,57 +83,50 @@ export default {
 }
 
 .community-member-engagement-level {
-  @apply inline-flex items-center text-sm leading-none bg-gray-600 px-3 text-black font-semibold border-0;
+  @apply inline-flex items-center text-xs leading-none bg-gray-600 pr-1.5 border-0 gap-1.5 rounded-md text-gray-900;
 
   &-value {
-    @apply text-xs h-4 w-6 rounded-md flex items-center justify-center ml-2;
+    @apply font-semibold rounded-tl-md rounded-bl-md h-6 w-6 flex items-center justify-center;
   }
 
   &--silent {
-    @apply bg-red-50 border-red-500;
+    @apply bg-red-100;
 
     .community-member-engagement-level-value {
-      @apply bg-red-500 text-white;
+      @apply bg-red-200;
     }
   }
 
   &--quiet {
-    @apply bg-yellow-50 border-yellow-500;
+    @apply bg-yellow-100;
 
     .community-member-engagement-level-value {
-      @apply bg-yellow-500 text-white;
+      @apply bg-yellow-200;
     }
   }
 
   &--engaged {
-    @apply bg-green-50 border-green-500;
+    @apply bg-green-100;
 
     .community-member-engagement-level-value {
-      @apply bg-green-500 text-white;
+      @apply bg-green-200;
     }
   }
 
   &--fan {
-    @apply bg-teal-50 border-teal-500;
+    @apply bg-purple-100;
 
     .community-member-engagement-level-value {
-      @apply bg-teal-500 text-white;
+      @apply bg-purple-200;
     }
   }
 
   &--ultra {
-    @apply bg-blue-50 border-blue-500;
+    @apply bg-blue-100;
 
     .community-member-engagement-level-value {
-      @apply bg-blue-500 text-white;
+      @apply bg-blue-200;
     }
-    /*background: rgba(0, 165, 175, 0.1);
-    border: 1px solid rgba(0, 165, 175, 0.5);
-
-    .community-member-engagement-level-value {
-      @apply text-white;
-      background: #00a5af;
-    } */
   }
 }
 </style>

@@ -282,7 +282,7 @@ export default {
       router.push('/members')
 
       dispatch(
-        `communityMember/list/doFetch`,
+        `communityMember/doFetch`,
         {
           filter: state.list.filter
         },
@@ -304,7 +304,7 @@ export default {
 
       commit('DESTROY_ALL_SUCCESS')
 
-      dispatch(`communityMember/list/doUnselectAll`, null, {
+      dispatch(`communityMember/doUnselectAll`, null, {
         root: true
       })
 
@@ -315,7 +315,7 @@ export default {
       router.push('/members')
 
       dispatch(
-        `communityMember/list/doFetch`,
+        `communityMember/doFetch`,
         {
           filter: state.list.filter
         },
@@ -338,7 +338,7 @@ export default {
         i18n('entities.communityMember.create.success')
       )
       dispatch(
-        'communityMember/list/doFetch',
+        'communityMember/doFetch',
         {
           filter: state.list.rawFilter
         },
@@ -365,14 +365,14 @@ export default {
       )
       if (router.currentRoute.name === 'communityMember') {
         dispatch(
-          'communityMember/list/doFetch',
+          'communityMember/doFetch',
           {
             filter: state.list.rawFilter
           },
           { root: true }
         )
       } else {
-        dispatch('communityMember/view/doFind', id, {
+        dispatch('communityMember/doFind', id, {
           root: true
         })
       }

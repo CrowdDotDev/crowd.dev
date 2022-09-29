@@ -75,7 +75,7 @@
 
 <script>
 import { i18n } from '@/i18n'
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import AppCommunityMemberFormPage from './community-member-form-page'
 import { CommunityMemberService } from '@/modules/community-member/community-member-service'
 import Message from '@/shared/message/message'
@@ -111,8 +111,10 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      rawFilter: (state) => state.communityMember.rawFilter
+    }),
     ...mapGetters({
-      rawFilter: 'communityMember/list/rawFilter',
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'
     }),
@@ -127,9 +129,9 @@ export default {
   },
   methods: {
     ...mapActions({
-      doFetch: 'communityMember/list/doFetch',
-      doFind: 'communityMember/view/doFind',
-      doDestroy: 'communityMember/destroy/doDestroy'
+      doFetch: 'communityMember/doFetch',
+      doFind: 'communityMember/doFind',
+      doDestroy: 'communityMember/doDestroy'
     }),
     async doDestroyWithConfirm(id) {
       try {

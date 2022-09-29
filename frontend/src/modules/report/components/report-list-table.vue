@@ -140,7 +140,7 @@ export default {
       doChangePaginationPageSize:
         'report/doChangePaginationPageSize',
       doMountTable: 'report/doMountTable',
-      doDestroy: 'communityMember/destroy/doDestroy'
+      doDestroy: 'communityMember/doDestroy'
     }),
 
     doRefresh() {

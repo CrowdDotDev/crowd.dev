@@ -77,7 +77,7 @@ export default {
 
   FETCH_SUCCESS(state, payload) {
     state.list.loading = false
-    state.list.ids = payload.list.ids
+    state.list.ids = payload.rows
     state.count = payload.count
   },
 

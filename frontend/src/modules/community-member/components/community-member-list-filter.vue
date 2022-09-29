@@ -124,7 +124,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input'
@@ -157,11 +157,14 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      loading: (state) =>
+        state.communityMember.list.loading,
+      rawFilter: (state) => state.communityMember.rawFilter
+    }),
     ...mapGetters({
       labelPosition: 'layout/labelPosition',
-      labelWidthFilter: 'layout/labelWidthFilter',
-      loading: 'communityMember/list/loading',
-      rawFilter: 'communityMember/list/rawFilter'
+      labelWidthFilter: 'layout/labelWidthFilter'
     }),
 
     fields() {
@@ -190,8 +193,8 @@ export default {
 
   methods: {
     ...mapActions({
-      doReset: 'communityMember/list/doReset',
-      doFetch: 'communityMember/list/doFetch'
+      doReset: 'communityMember/doReset',
+      doFetch: 'communityMember/doFetch'
     }),
 
     doToggleExpanded() {
