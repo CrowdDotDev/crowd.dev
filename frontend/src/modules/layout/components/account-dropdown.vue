@@ -115,9 +115,7 @@ export default {
     computedAvatarEntity() {
       return {
         avatar: this.currentUserAvatar,
-        username: {
-          crowdUsername: this.currentUserNameOrEmailPrefix
-        }
+        displayName: this.currentUserNameOrEmailPrefix
       }
     }
   },

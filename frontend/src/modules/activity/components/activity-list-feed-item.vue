@@ -125,8 +125,7 @@ export default {
   },
   computed: {
     computedUsername() {
-      return this.activity.communityMember.username
-        .crowdUsername
+      return this.activity.communityMember.displayName
     },
     timeAgo() {
       return computedTimeAgo(this.activity.timestamp)

@@ -7,7 +7,7 @@
     <span
       v-if="!entity.avatar"
       class="font-semibold text-lg uppercase"
-      >{{ entity.username.crowdUsername[0] }}</span
+      >{{ entity.displayName[0] }}</span
     >
   </div>
 </template>
@@ -54,13 +54,13 @@ export default {
   computed: {
     computedBackgroundColor() {
       return this.backgroundColors[
-        this.entity.username.crowdUsername.length %
+        this.entity.displayName.length %
           this.backgroundColors.length
       ]
     },
     computedTextColor() {
       return this.textColors[
-        this.entity.username.crowdUsername.length %
+        this.entity.displayName.length %
           this.textColors.length
       ]
     },

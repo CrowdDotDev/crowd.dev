@@ -39,7 +39,7 @@
                   class="mr-2"
                 />
                 <span class="font-semibold">{{
-                  scope.row[0].username['crowdUsername']
+                  scope.row[0].displayName
                 }}</span>
               </router-link>
             </template>
@@ -60,7 +60,7 @@
                   class="mr-2"
                 />
                 <span class="font-semibold">{{
-                  scope.row[1].username['crowdUsername']
+                  scope.row[1].displayName
                 }}</span>
               </router-link>
             </template>

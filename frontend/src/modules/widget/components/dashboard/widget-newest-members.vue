@@ -43,7 +43,7 @@
                 >
                   <div class="block leading-none">
                     <span class="block text-sm">{{
-                      member.username.crowdUsername
+                      member.displayName
                     }}</span>
                   </div>
                 </router-link>

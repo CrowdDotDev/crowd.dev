@@ -5,7 +5,6 @@ const { fields } = CommunityMemberModel
 export default [
   fields.id,
   fields.username,
-  fields.crowdInfo,
   fields.email,
   fields.createdAt,
   fields.updatedAt

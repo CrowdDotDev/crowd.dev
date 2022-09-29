@@ -206,8 +206,7 @@ export default {
   },
   computed: {
     computedUsername() {
-      return this.activity.communityMember.username
-        .crowdUsername
+      return this.activity.communityMember.displayName
     },
     computedUsernameClass() {
       return this.size === 'md'

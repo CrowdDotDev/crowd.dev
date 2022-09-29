@@ -13,23 +13,19 @@
       <div class="flex items-center -mx-2">
         <el-form-item
           label="Display Name"
-          :prop="'username.crowdUsername'"
-          :required="fields.username.required"
+          :prop="'displayName'"
+          :required="fields.displayName.required"
           class="w-full lg:w-1/2 mx-2"
         >
           <template #error="scope">
             <span class="el-form-item__error">
-              {{
-                scope.error.split(
-                  'username.crowdUsername'
-                )[1]
-              }}
+              {{ scope.error.split('displayName')[1] }}
             </span>
           </template>
           <el-input
             ref="focus"
-            v-model="model.username.crowdUsername"
-            :placeholder="fields.username.placeholder"
+            v-model="model.displayName"
+            :placeholder="fields.placeholder"
           />
           <div
             v-if="fields.username.hint"
@@ -246,8 +242,8 @@ export default {
             return acc
           },
           {
-            crowdUsername: this.model.username.crowdUsername
-              ? this.model.username.crowdUsername
+            displayName: this.model.displayName
+              ? this.model.displayName
               : undefined
           }
         )
@@ -259,9 +255,9 @@ export default {
   created() {
     this.model = formSchema.initialValues(this.record || {})
 
-    this.model.username = {
-      crowdUsername: this.record
-        ? this.record.username.crowdUsername
+    this.model.displayName = {
+      displayName: this.record
+        ? this.record.displayName
         : null
     }
 

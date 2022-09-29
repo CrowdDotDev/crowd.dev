@@ -26,6 +26,10 @@ const fields = {
       return record
     }
   }),
+  displayName: new StringField(
+    'displayName',
+    label('displayName')
+  ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform')),
   activities: ActivityField.relationToMany(

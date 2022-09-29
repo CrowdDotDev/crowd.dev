@@ -215,7 +215,7 @@ export default {
     },
 
     computedUsername() {
-      return this.member.username.crowdUsername
+      return this.member.displayName
     }
   },
 
