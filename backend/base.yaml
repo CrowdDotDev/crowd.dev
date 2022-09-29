@@ -27,3 +27,5 @@ tags:
     description: Everything about automations
   - name: Notes
     description: Everything about notes
+  - name: Member Attributes
+    description: Settings for member's attributes

@@ -6,7 +6,7 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 /**
  * DELETE /tenant/{tenantId}/settings/members/attributes
  * @summary Delete a list of given member attribute settings by id
- * @tag MemberAttributeSettings
+ * @tag Member Attributes
  * @security Bearer
  * @description Delete a list of member attribute's settings given IDs
  * @pathParam {string} tenantId - Your workspace/tenant ID

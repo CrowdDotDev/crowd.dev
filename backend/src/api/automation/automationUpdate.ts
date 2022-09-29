@@ -6,7 +6,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 
 /**
  * PUT /tenant/{tenantId}/automation/{automationId}
- * @summary Update an existing automation
+ * @summary Update an automation
  * @tag Automations
  * @security Bearer
  * @description Updates an existing automation in the tenant.

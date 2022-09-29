@@ -6,7 +6,7 @@ import MemberAttributeSettingsService from '../../services/memberAttributeSettin
 /**
  * POST tenant/{tenantId}/settings/members/attributes
  * @summary Create a member attribute's settings
- * @tag MemberAttributeSettings
+ * @tag Member Attributes
  * @security Bearer
  * @description Create a member attribute's settings.
  * @pathParam {string} tenantId - Your workspace/tenant ID
