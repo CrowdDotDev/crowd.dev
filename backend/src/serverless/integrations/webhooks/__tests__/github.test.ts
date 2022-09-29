@@ -68,7 +68,6 @@ describe('Github webhooks tests', () => {
           },
         },
         email: '',
-        organisation: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -99,7 +98,6 @@ describe('Github webhooks tests', () => {
           },
         },
         email: '',
-        organisation: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -137,7 +135,7 @@ describe('Github webhooks tests', () => {
           },
         },
         email: 'joan@crowd.dev',
-        organisation: '@CrowdHQ ',
+        organizations: ['@CrowdHQ'],
       }
       expect(parsedMember).toStrictEqual(expected)
     })
