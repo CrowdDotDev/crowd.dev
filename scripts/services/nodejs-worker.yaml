@@ -4,7 +4,6 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   NODE_ENV: docker
   SERVICE: nodejs-worker
-  TENANT_MODE: multi
 
 services:
   nodejs-worker:

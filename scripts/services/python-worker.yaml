@@ -4,7 +4,6 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   SERVICE_ENV: docker
   SERVICE: python-worker
-  TENANT_MODE: multi
 
 services:
   python-worker:

@@ -4,14 +4,14 @@ x-env-args: &env-args
   DOCKER_BUILDKIT: 1
   SERVICE_ENV: docker
   SERVICE: premium-api
-  TENANT_MODE: multi
 
 services:
   premium-api:
     build:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
-    cmd: ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
+    command:
+      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -25,7 +25,8 @@ services:
     build:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
-    cmd: ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
+    command:
+      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local

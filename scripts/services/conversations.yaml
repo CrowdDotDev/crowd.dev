@@ -2,15 +2,15 @@ version: '3.1'
 
 x-env-args: &env-args
   DOCKER_BUILDKIT: 1
-  SERVICE_ENV: docker
-  SERVICE: premium-python-worker
+  NODE_ENV: docker
+  SERVICE: conversations
 
 services:
-  premium-python-worker:
+  conversations:
     build:
-      context: ../premium/eagle-eye
-      dockerfile: Dockerfile.kube
-    command: ['python', '-u', 'worker.py']
+      context: ../premium/conversations
+      dockerfile: Dockerfile-conversations
+    command: 'npm run dev'
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.compose
@@ -20,11 +20,11 @@ services:
     networks:
       - crowd-bridge
 
-  premium-python-worker-dev:
+  conversations-dev:
     build:
-      context: ../premium/eagle-eye
-      dockerfile: Dockerfile.kube
-    command: ['python', '-u', 'worker.py']
+      context: ../premium/conversations
+      dockerfile: Dockerfile-conversations
+    command: 'npm run dev'
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
@@ -32,9 +32,12 @@ services:
       - ../../backend/.env.override
     environment:
       <<: *env-args
-    hostname: premium-python-worker
+    hostname: nodejs-worker
     networks:
       - crowd-bridge
+    volumes:
+      - ../../conversations:/usr/crowd/conversations
+      - /usr/crowd/conversations/node_modules
 
 networks:
   crowd-bridge:
