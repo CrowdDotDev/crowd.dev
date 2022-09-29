@@ -11,7 +11,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
-      `/tenant/${tenantId}/community-member/${id}`,
+      `/tenant/${tenantId}/member/${id}`,
       body
     )
 
@@ -26,7 +26,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.patch(
-      `/tenant/${tenantId}/community-member`,
+      `/tenant/${tenantId}/member`,
       body
     )
 
@@ -41,7 +41,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.delete(
-      `/tenant/${tenantId}/community-member`,
+      `/tenant/${tenantId}/member`,
       {
         params
       }
@@ -51,15 +51,11 @@ export class CommunityMemberService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/community-member`,
-      body
+      `/tenant/${tenantId}/member`,
+      data
     )
 
     return response.data
@@ -74,7 +70,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/community-member/import`,
+      `/tenant/${tenantId}/member/import`,
       body
     )
 
@@ -85,15 +81,15 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/community-member/${id}`
+      `/tenant/${tenantId}/member/${id}`
     )
 
     return response.data
   }
 
   static async list(filter, orderBy, limit, offset) {
-    const params = {
-      filter,
+    const body = {
+      filter: {},
       orderBy,
       limit,
       offset
@@ -101,11 +97,9 @@ export class CommunityMemberService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/community-member`,
-      {
-        params
-      }
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/query`,
+      body
     )
 
     return response.data
@@ -120,7 +114,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.get(
-      `/tenant/${tenantId}/community-member/autocomplete`,
+      `/tenant/${tenantId}/member/autocomplete`,
       {
         params
       }
@@ -133,7 +127,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
-      `/tenant/${tenantId}/community-member/${memberToKeep.id}/merge`,
+      `/tenant/${tenantId}/member/${memberToKeep.id}/merge`,
       {
         data: {
           memberToMerge: memberToMerge.id
@@ -148,7 +142,7 @@ export class CommunityMemberService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
-      `/tenant/${tenantId}/community-member/${memberA.id}/no-merge`,
+      `/tenant/${tenantId}/member/${memberA.id}/no-merge`,
       {
         data: {
           memberToNotMerge: memberB.id
