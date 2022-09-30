@@ -13,8 +13,8 @@ export default {
     isMobile: (state) => Boolean(state.isMobile),
     paginationLayout: (state) =>
       state.isMobile
-        ? 'prev, pager, next, total'
-        : 'prev, pager, next, total, sizes',
+        ? 'prev, pager, next, slot, total'
+        : 'prev, pager, next, slot, total, sizes',
     labelPosition: (state) =>
       state.isMobile ? 'top' : undefined,
     labelWidthForm: () => undefined,
