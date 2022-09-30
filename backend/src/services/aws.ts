@@ -52,7 +52,9 @@ export async function detectSentiment(text) {
   // Only if we have proper credentials
   if (
     getConfig().AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
+    getConfig().AWS_ACCESS_KEY_ID !== 'none' &&
     getConfig().AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
+    getConfig().AWS_SECRET_ACCESS_KEY !== 'none' &&
     getConfig().AWS_ACCESS_KEY_ID !== undefined &&
     getConfig().AWS_SECRET_ACCESS_KEY !== undefined
   ) {
