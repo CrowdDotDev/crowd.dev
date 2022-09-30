@@ -51,7 +51,7 @@
         <el-table-column
           label="Engagement Level"
           prop="score"
-          width="180"
+          width="200"
           sortable="custom"
         >
           <template #default="scope">
