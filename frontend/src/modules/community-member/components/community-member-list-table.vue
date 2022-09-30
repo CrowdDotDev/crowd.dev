@@ -199,7 +199,7 @@ export default {
             : acc
         return acc
       }, 0)
-      return `${85 + maxChannels * 30}px`
+      return `${90 + maxChannels * 32}px`
     },
 
     fields() {
