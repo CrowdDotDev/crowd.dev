@@ -5,7 +5,7 @@
       <el-table
         ref="table"
         v-loading="loading"
-        :data="members"
+        :data="rows"
         :default-sort="{
           prop: 'score',
           order: 'descending'
@@ -18,6 +18,7 @@
         <el-table-column
           type="selection"
           width="75"
+          fixed
         ></el-table-column>
 
         <el-table-column
@@ -25,6 +26,7 @@
           prop="displayName"
           width="220"
           sortable="custom"
+          fixed
         >
           <template #default="scope">
             <router-link
@@ -60,68 +62,7 @@
         </el-table-column>
 
         <el-table-column
-          label="Joined At"
-          prop="joinedAt"
-          sortable="custom"
-          width="120"
-        >
-          <template #default="scope">
-            <el-tooltip
-              placement="top"
-              :content="date(scope.row.joinedAt)"
-            >
-              <span>
-                {{ timeAgo(scope.row.joinedAt) }}
-              </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-
-        <el-table-column
-          :label="
-            translate(
-              'entities.communityMember.fields.numberActivities'
-            )
-          "
-          prop="activitiesCount"
-          sortable="custom"
-          width="150"
-        >
-          <template #default="scope">
-            {{ scope.row.activitiesCount }}
-          </template>
-        </el-table-column>
-
-        <el-table-column
-          sortable="custom"
-          prop="reach"
-          width="120"
-        >
-          <template #header>
-            <span class="inline-flex items-center">
-              <span class="inline-flex mr-1">Reach</span>
-              <el-tooltip placement="top">
-                <template #content>
-                  Combined followers on connected social
-                  channels<br /><span class="italic"
-                    >(Requires Twitter Integration)</span
-                  >
-                </template>
-                <i
-                  class="ri-information-line inline-flex items-center mr-2"
-                ></i>
-              </el-tooltip>
-            </span>
-          </template>
-          <template #default="scope">
-            <app-community-member-reach
-              :member="scope.row"
-            />
-          </template>
-        </el-table-column>
-
-        <el-table-column
-          label="Channels"
+          label="Identities"
           :width="computedChannelsWidth"
         >
           <template #default="scope">
@@ -144,7 +85,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column width="80">
+        <el-table-column width="80" fixed="right">
           <template #default="scope">
             <div class="table-actions">
               <app-community-member-dropdown
@@ -181,7 +122,6 @@ import CommunityMemberDropdown from './community-member-dropdown'
 import CommunityMemberChannels from './community-member-channels'
 import TagList from '@/modules/tag/components/tag-list'
 import CommunityMemberEngagementLevel from './community-member-engagement-level'
-import CommunityMemberReach from './community-member-reach'
 import moment from 'moment'
 import computedTimeAgo from '@/utils/time-ago'
 
@@ -198,8 +138,7 @@ export default {
       CommunityMemberChannels,
     'app-tag-list': TagList,
     'app-community-member-engagement-level':
-      CommunityMemberEngagementLevel,
-    'app-community-member-reach': CommunityMemberReach
+      CommunityMemberEngagementLevel
   },
 
   computed: {
@@ -240,15 +179,11 @@ export default {
             : acc
         return acc
       }, 0)
-      return `${85 + (maxChannels - 1) * 30}px`
+      return `${85 + maxChannels * 30}px`
     },
 
     fields() {
       return fields
-    },
-
-    members() {
-      return [...this.rows]
     }
   },
 
