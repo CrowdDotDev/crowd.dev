@@ -1,10 +1,25 @@
 <template>
   <div class="community-member-list-page">
-    <h1 class="app-content-title">
-      <app-i18n
-        code="entities.communityMember.list.title"
-      ></app-i18n>
-    </h1>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <h4>
+          <app-i18n
+            code="entities.communityMember.list.title"
+          ></app-i18n>
+        </h4>
+        <el-button
+          v-if="hasPermissionToCreate"
+          class="btn btn--primary btn--md"
+          @click.prevent="creating = true"
+        >
+          Add member
+        </el-button>
+      </div>
+      <div class="text-xs text-gray-500">
+        Overview of all members from your community
+      </div>
+    </div>
+
     <div
       v-if="hasMembersToMerge"
       class="border p-4 mb-4 rounded-lg border-blue-500 bg-blue-50"
@@ -36,24 +51,6 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between mb-4">
-      <app-community-member-platform-tabs />
-      <div class="flex items-center justify-end">
-        <div
-          id="teleport-community-member-filter-toggle"
-        ></div>
-
-        <el-button
-          v-if="hasPermissionToCreate"
-          class="btn btn--primary ml-2"
-          @click.prevent="creating = true"
-        >
-          <i class="ri-lg ri-add-line mr-1" />
-          <app-i18n code="common.new"></app-i18n>
-        </el-button>
-      </div>
-    </div>
-
     <el-dialog
       v-model="creating"
       title="New Member"
@@ -79,7 +76,6 @@ import { CommunityMemberService } from '../community-member-service'
 import CommunityMemberListFilter from '@/modules/community-member/components/community-member-list-filter.vue'
 import CommunityMemberListTable from '@/modules/community-member/components/community-member-list-table.vue'
 import CommunityMemberFormPage from '@/modules/community-member/components/community-member-form-page.vue'
-import CommunityMemberPlatformTabs from '@/modules/community-member/components/community-member-platform-tabs.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { CommunityMemberPermissions } from '../community-member-permissions'
 
@@ -92,9 +88,7 @@ export default {
     'app-community-member-list-table':
       CommunityMemberListTable,
     'app-community-member-form-page':
-      CommunityMemberFormPage,
-    'app-community-member-platform-tabs':
-      CommunityMemberPlatformTabs
+      CommunityMemberFormPage
   },
 
   data() {

@@ -104,57 +104,6 @@
           </div>
         </div>
       </div>
-      <div
-        v-if="member.info"
-        class="community-member-details-info-custom"
-      >
-        <div
-          v-for="attribute in Object.keys(member.info)"
-          :key="attribute"
-          class="flex justify-between items-start w-full"
-        >
-          <div class="w-1/3">
-            <span class="opacity-50">{{
-              capitalizeWords(attribute)
-            }}</span>
-          </div>
-          <div class="w-2/3 text-right font-semibold">
-            <span>{{ member.info[attribute] }}</span>
-          </div>
-        </div>
-      </div>
-      <div
-        v-if="userIntegrations.length > 0"
-        class="community-member-details-info-integrations"
-      >
-        <el-collapse>
-          <el-collapse-item
-            v-for="integration in userIntegrations"
-            :key="integration"
-            :name="integration"
-          >
-            <template #title>{{
-              capitalizeWords(integration)
-            }}</template>
-            <div
-              v-for="attribute in Object.keys(
-                member.crowdInfo[integration]
-              )"
-              :key="attribute"
-              class="flex items-start justify-between"
-            >
-              <div class="w-1/3 opacity-50">
-                {{ capitalizeWords(attribute) }}
-              </div>
-              <div class="w-2/3 text-right font-semibold">
-                {{
-                  member.crowdInfo[integration][attribute]
-                }}
-              </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </div>
     </div>
   </div>
 </template>

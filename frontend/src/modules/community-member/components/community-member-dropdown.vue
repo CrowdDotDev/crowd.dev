@@ -35,7 +35,7 @@
           Another Member</el-dropdown-item
         >
         <el-dropdown-item
-          v-if="!member.crowdInfo.team"
+          v-if="!member.team"
           :command="{
             action: 'communityMemberMarkAsTeamMember',
             communityMember: member
@@ -163,8 +163,7 @@ export default {
         await CommunityMemberService.update(
           command.communityMember.id,
           {
-            crowdInfo: {
-              ...command.communityMember.crowdInfo,
+            attributes: {
               team: true
             }
           }
