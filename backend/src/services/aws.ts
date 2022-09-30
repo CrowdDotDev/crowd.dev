@@ -76,7 +76,7 @@ export async function detectSentiment(text) {
       //   (positive - negative) / (positive + negative)
       //   Value between -1 and 1
       // Then scale it to 0,100
-      sentiment: 100 * ((positive - negative) / (2 * (positive + negative)) + 0.5),
+      sentiment: Math.round(100 * ((positive - negative) / (2 * (positive + negative)) + 0.5)),
     }
   }
   return {}
