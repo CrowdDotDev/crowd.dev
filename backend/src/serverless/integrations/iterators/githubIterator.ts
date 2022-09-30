@@ -25,6 +25,7 @@ import DiscussionCommentsQuery from '../usecases/github/graphql/discussionCommen
 import { GithubActivityType } from '../../../utils/activityTypes'
 import Error400 from '../../../errors/Error400'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import { getConfig } from '../../../config'
 
 export default class GithubIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -341,35 +342,35 @@ export default class GithubIterator extends BaseIterator {
 
     switch (event) {
       case 'pulls':
-        activities = this.parsePullRequests(records, endpoint)
+        activities = await this.parsePullRequests(records, endpoint)
         break
 
       case 'issues':
-        activities = this.parseIssues(records, endpoint)
+        activities = await this.parseIssues(records, endpoint)
         break
 
       case 'forks':
-        activities = this.parseForks(records, endpoint)
+        activities = await this.parseForks(records, endpoint)
         break
 
       case 'stargazers':
-        activities = this.parseStars(records, endpoint)
+        activities = await this.parseStars(records, endpoint)
         break
 
       case 'pull-comments':
-        activities = this.parsePullRequestComments(records, endpoint)
+        activities = await this.parsePullRequestComments(records, endpoint)
         break
 
       case 'issue-comments':
-        activities = this.parseIssueComments(records, endpoint)
+        activities = await this.parseIssueComments(records, endpoint)
         break
 
       case 'discussions':
-        activities = this.parseDiscussions(records, endpoint)
+        activities = await this.parseDiscussions(records, endpoint)
         break
 
       case 'discussion-comments':
-        activities = this.parseDiscussionComments(records, endpoint)
+        activities = await this.parseDiscussionComments(records, endpoint)
         break
 
       default:
@@ -438,7 +439,7 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed issue activities that can be saved to the database.
    */
-  parseIssues(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseIssues(records: Array<any>, endpoint: string): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -472,7 +473,7 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed fork activities that can be saved to the database.
    */
-  parseForks(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseForks(records: Array<any>, endpoint: string): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -501,7 +502,10 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed fork activities that can be saved to the database.
    */
-  parsePullRequests(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parsePullRequests(
+    records: Array<any>,
+    endpoint: string,
+  ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -538,7 +542,10 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed discussion comment activities that can be saved to the database.
    */
-  parseDiscussionComments(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseDiscussionComments(
+    records: Array<any>,
+    endpoint: string,
+  ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -565,9 +572,10 @@ export default class GithubIterator extends BaseIterator {
           : GitHubGrid.comment.isKeyAction,
       })
 
-      // push replies
-      const replies = record.replies.nodes.reduce(async (acc, reply) => {
-        acc.push({
+      const replies = []
+      for (const reply of record.replies.nodes) {
+        const member = await this.parseMember(reply.author)
+        replies.push({
           tenant,
           platform: PlatformType.GITHUB,
           type: GithubActivityType.DISCUSSION_COMMENT,
@@ -577,13 +585,11 @@ export default class GithubIterator extends BaseIterator {
           url: reply.url,
           body: reply.bodyText,
           channel: this.getRepoByName(repo).url,
-          member: await this.parseMember(reply.author),
+          member,
           score: GitHubGrid.comment.score,
           isKeyAction: GitHubGrid.comment.isKeyAction,
         })
-
-        return acc
-      }, [])
+      }
 
       acc = acc.concat(replies)
 
@@ -598,7 +604,10 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed issue comment activities that can be saved to the database.
    */
-  parseIssueComments(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseIssueComments(
+    records: Array<any>,
+    endpoint: string,
+  ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -629,7 +638,10 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed pull request comment activities that can be saved to the database.
    */
-  parsePullRequestComments(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parsePullRequestComments(
+    records: Array<any>,
+    endpoint: string,
+  ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
@@ -708,12 +720,16 @@ export default class GithubIterator extends BaseIterator {
     }
 
     if (memberFromApi.company) {
-      const company = memberFromApi.company.replace('@', '')
-      const fromAPI = await getOrganization(company, this.accessToken)
-      if (fromAPI) {
-        member.organizations = [fromAPI]
+      if (getConfig().NODE_ENV === 'test') {
+        member.organizations = [{ name: 'crowd.dev' }]
       } else {
-        member.organizations = [{ name: company }]
+        const company = memberFromApi.company.replace('@', '')
+        const fromAPI = await getOrganization(company, this.accessToken)
+        if (fromAPI) {
+          member.organizations = [fromAPI]
+        } else {
+          member.organizations = [{ name: company }]
+        }
       }
     }
 

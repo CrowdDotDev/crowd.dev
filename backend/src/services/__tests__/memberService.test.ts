@@ -1214,65 +1214,6 @@ describe('MemberService tests', () => {
       expect(memberUpdated).toStrictEqual(memberExpected)
     })
 
-    it('Should update existent member succesfully - null fields', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const mas = new MemberAttributeSettingsService(mockIServiceOptions)
-
-      await mas.createPredefined(GithubMemberAttributes)
-
-      const member1 = {
-        username: 'anil',
-        type: 'member',
-        platform: PlatformType.GITHUB,
-        joinedAt: '2020-05-28T15:13:30Z',
-        email: 'lala@l.com',
-        score: 10,
-        attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Lazy geek',
-            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
-          },
-        },
-      }
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const member2 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        location: null,
-        attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: null,
-            [MemberAttributeName.IS_HIREABLE]: null,
-            [MemberAttributeName.URL]: null,
-            [MemberAttributeName.WEBSITE_URL]: null,
-            [MemberAttributeName.BIO]: null,
-            [MemberAttributeName.LOCATION]: null,
-          },
-        },
-      }
-
-      // First null values will throw 400 error because attribute typechecks will fail
-      await expect(() =>
-        new MemberService(mockIServiceOptions).upsert(member2),
-      ).rejects.toThrowError(
-        new Error400(
-          mockIServiceOptions.language,
-          'settings.memberAttributes.wrongType',
-          MemberAttributeName.NAME,
-          AttributeType.STRING,
-        ),
-      )
-    })
-
     it('Should update existent member succesfully - reach from default to complete - sending number', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
