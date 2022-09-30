@@ -7,47 +7,42 @@
             code="entities.communityMember.list.title"
           ></app-i18n>
         </h4>
-        <el-button
-          v-if="hasPermissionToCreate"
-          class="btn btn--primary btn--md"
-          @click.prevent="creating = true"
-        >
-          Add member
-        </el-button>
+        <div class="flex items-center">
+          <div
+            v-if="hasMembersToMerge"
+            class="border py-2.5 pl-2 pr-3 rounded-md border-blue-200 bg-blue-50 mr-4"
+          >
+            <div class="flex items-center">
+              <i class="ri-lightbulb-line mr-3 ri-xl"></i>
+              <div class="text-sm">
+                <span class="font-semibold"
+                  >Suggestion:</span
+                >
+                <span class="mr-6">
+                  Merge community members</span
+                >
+                <router-link
+                  :to="{
+                    name: 'communityMemberMergeSuggestions'
+                  }"
+                  class="font-semibold"
+                  >Review suggestions</router-link
+                >
+              </div>
+            </div>
+          </div>
+
+          <el-button
+            v-if="hasPermissionToCreate"
+            class="btn btn--primary btn--md"
+            @click.prevent="creating = true"
+          >
+            Add member
+          </el-button>
+        </div>
       </div>
       <div class="text-xs text-gray-500">
         Overview of all members from your community
-      </div>
-    </div>
-
-    <div
-      v-if="hasMembersToMerge"
-      class="border p-4 mb-4 rounded-lg border-blue-500 bg-blue-50"
-    >
-      <div class="flex items-start">
-        <i
-          class="ri-information-fill mr-4 ri-xl flex items-center pt-1 text-blue-500"
-        ></i>
-        <div class="text-sm">
-          <div class="font-semibold mb-1">
-            Suggestion: Merge community members
-          </div>
-          <div>
-            We've found some community members that seem to
-            be the same person, which should be merged into
-            a single profile.
-            <br />
-            Click
-            <router-link
-              :to="{
-                name: 'communityMemberMergeSuggestions'
-              }"
-              class="font-semibold"
-              >here</router-link
-            >
-            to look into these suggestions.
-          </div>
-        </div>
       </div>
     </div>
 
@@ -66,6 +61,7 @@
       </app-community-member-form-page>
     </el-dialog>
 
+    <app-community-member-tabs></app-community-member-tabs>
     <app-community-member-list-filter></app-community-member-list-filter>
     <app-community-member-list-table></app-community-member-list-table>
   </div>
@@ -76,6 +72,7 @@ import { CommunityMemberService } from '../community-member-service'
 import CommunityMemberListFilter from '@/modules/community-member/components/community-member-list-filter.vue'
 import CommunityMemberListTable from '@/modules/community-member/components/community-member-list-table.vue'
 import CommunityMemberFormPage from '@/modules/community-member/components/community-member-form-page.vue'
+import CommunityMemberTabs from '@/modules/community-member/components/community-member-tabs.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { CommunityMemberPermissions } from '../community-member-permissions'
 
@@ -88,7 +85,8 @@ export default {
     'app-community-member-list-table':
       CommunityMemberListTable,
     'app-community-member-form-page':
-      CommunityMemberFormPage
+      CommunityMemberFormPage,
+    'app-community-member-tabs': CommunityMemberTabs
   },
 
   data() {

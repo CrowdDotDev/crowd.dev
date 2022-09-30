@@ -10,7 +10,7 @@
           @apply bg-brand-500 border-brand-500 text-white;
         }
         &:hover:not(.is-active) {
-          @apply text-brand-500;
+          @apply bg-gray-200;
         }
       }
     }
@@ -20,13 +20,10 @@
     }
 
     ul.el-pager li.number, ul.el-pager li.btn-quicknext, ul.el-pager li.btn-quickprev, button {
-      @apply text-sm border-0 rounded-full flex items-center justify-center h-8 w-8 p-0 mx-1 bg-transparent font-semibold text-gray-500;
+      @apply text-sm border-0 flex items-center justify-center h-8 w-8 p-0 mx-1 bg-transparent font-semibold text-gray-600;
       transition: color 0.2s;
       min-width: unset;
-
-      &:hover:not([disabled]:not(.is-active)) {
-        @apply text-gray-800;
-      }
+      border-radius: 4px;
     }
 
     .el-select .el-input {

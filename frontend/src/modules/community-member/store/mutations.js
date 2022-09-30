@@ -55,6 +55,19 @@ export default {
     state.sorter = payload || {}
   },
 
+  ACTIVE_VIEW_CHANGED(state, viewId) {
+    state.views = Object.values(state.views).reduce(
+      (acc, item) => {
+        acc[item.id] = {
+          ...item,
+          active: item.id === viewId
+        }
+        return acc
+      },
+      {}
+    )
+  },
+
   FETCH_STARTED(state, payload) {
     state.list.loading = true
 

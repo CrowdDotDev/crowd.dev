@@ -56,7 +56,7 @@
                     placement="top"
                   >
                     <a
-                      :href="member.url.github"
+                      :href="member.url?.github"
                       target="_blank"
                       class="mr-1"
                     >
@@ -74,7 +74,7 @@
                     placement="top"
                   >
                     <a
-                      :href="member.url.twitter"
+                      :href="member.url?.twitter"
                       target="_blank"
                     >
                       <img
@@ -91,8 +91,7 @@
                     placement="top"
                   >
                     <a
-                      v-if="member.url.discord"
-                      :href="member.url.discord"
+                      :href="member.url?.discord"
                       target="_blank"
                     >
                       <img
@@ -109,8 +108,7 @@
                     placement="top"
                   >
                     <a
-                      v-if="member.username.slack"
-                      :href="member.url.slack"
+                      :href="member.url?.slack"
                       target="_blank"
                     >
                       <img
@@ -127,7 +125,7 @@
                     placement="top"
                   >
                     <a
-                      :href="member.url.devto"
+                      :href="member.url?.devto"
                       target="_blank"
                     >
                       <img
