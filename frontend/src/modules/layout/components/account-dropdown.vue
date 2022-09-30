@@ -36,11 +36,6 @@
     </template>
 
     <!-- Popover content -->
-    <div
-      class="text-2xs font-medium tracking-wide text-gray-400 pl-4 pb-1"
-    >
-      WORKSPACE
-    </div>
     <div v-if="currentTenant && currentTenant.onboardedAt">
       <div class="popover-item" @click="doEditProfile">
         <i class="text-base text-gray-400 ri-user-line"></i>
