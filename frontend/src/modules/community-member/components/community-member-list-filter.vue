@@ -1,125 +1,17 @@
 <template>
-  <div class="filter">
-    <app-teleport
-      to="#teleport-community-member-filter-toggle"
+  <div class="community-member-filter list-filter mb-8">
+    <el-input
+      v-model="model.query"
+      placeholder="Search members"
+      :prefix-icon="SearchIcon"
     >
-      <app-filter-toggle
-        :active-filters-count="activeFiltersCount"
-        :expanded="expanded"
-        class="mr-1"
-        @click="doToggleExpanded"
-      ></app-filter-toggle>
-    </app-teleport>
-    <el-dialog
-      v-model="expanded"
-      title="Members Filters"
-      :close-on-click-modal="false"
-      @close="expanded = false"
-    >
-      <el-form
-        v-if="expanded"
-        ref="form"
-        :label-position="labelPosition"
-        :label-width="labelWidthFilter"
-        :model="model"
-        :rules="rules"
-        @submit.prevent="doFilter"
-      >
-        <app-filter-preview
-          :values="model"
-          :fields="fields"
-          :expanded="expanded"
-          @click="doToggleExpanded()"
-          @remove="doRemove($event)"
-        ></app-filter-preview>
-
-        <el-row type="flex">
-          <el-col :md="12" :sm="24">
-            <el-form-item
-              :label="fields.username.label"
-              :prop="fields.username.name"
-            >
-              <el-input
-                v-model="model[fields.username.name]"
-                placeholder="john_doe"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :md="12" :sm="24">
-            <el-form-item
-              label="Engagement Level"
-              label-width="150"
-            >
-              <app-community-member-engagement-level-filter
-                v-model="model[fields.scoreRange.name]"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :sm="24">
-            <el-form-item
-              label="Reach Range"
-              :prop="fields.reachRange.name"
-            >
-              <app-number-range-input
-                v-model="model[fields.reachRange.name]"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :sm="24">
-            <el-form-item
-              label="# of Activities"
-              :prop="fields.activitiesCountRange.name"
-            >
-              <app-number-range-input
-                v-model="
-                  model[fields.activitiesCountRange.name]
-                "
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :sm="24">
-            <el-form-item
-              label="Tags"
-              :prop="fields.tags.name"
-            >
-              <app-tag-autocomplete-input
-                v-model="model[fields.tags.name]"
-                :fetch-fn="fields.tags.fetchFn"
-                :mapper-fn="fields.tags.mapperFn"
-                placeholder="Type to search/create tags"
-              >
-              </app-tag-autocomplete-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <div class="filter-buttons">
-          <el-button
-            :disabled="loading"
-            class="btn btn--primary mr-2"
-            @click="doFilter"
-          >
-            <i class="ri-lg ri-check-line mr-1" />
-            <app-i18n
-              code="common.filters.apply"
-            ></app-i18n>
-          </el-button>
-
-          <el-button
-            :disabled="loading"
-            class="btn btn--secondary"
-            @click="doResetFilter"
-          >
-            <i class="ri-lg ri-arrow-go-back-line mr-1" />
-            <app-i18n code="common.reset"></app-i18n>
-          </el-button>
-        </div>
-      </el-form>
-    </el-dialog>
+      <template #append>
+        <el-button class="btn btn--secondary btn--md"
+          ><i class="ri-lg ri-filter-3-line mr-2"></i>
+          Filters</el-button
+        >
+      </template>
+    </el-input>
   </div>
 </template>
 
@@ -127,9 +19,6 @@
 import { mapGetters, mapActions, mapState } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
-import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input'
-import AppNumberRangeInput from '@/shared/form/number-range-input'
-import AppCommunityMemberEngagementLevelFilter from './community-member-engagement-level-filter'
 
 const { fields } = CommunityMemberModel
 
@@ -141,18 +30,22 @@ const filterSchema = new FilterSchema([
   fields.reachRange
 ])
 
+import { h } from 'vue'
+
+const SearchIcon = h(
+  'i', // type
+  { class: 'ri-search-line' }, // props
+  []
+)
+
 export default {
   name: 'AppCommunityMemberListFilter',
-  components: {
-    AppNumberRangeInput,
-    AppTagAutocompleteInput,
-    AppCommunityMemberEngagementLevelFilter
-  },
   data() {
     return {
       expanded: false,
       rules: filterSchema.rules(),
-      model: {}
+      model: {},
+      SearchIcon
     }
   },
 

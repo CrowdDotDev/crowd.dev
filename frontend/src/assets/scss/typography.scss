@@ -18,31 +18,31 @@ html body {
 // Headings
 
 h1 {
-  @apply text-4xl font-bold leading-normal;
+  @apply text-4xl font-semibold leading-normal;
 }
 
 h2 {
-  @apply text-3xl font-bold leading-normal;
+  @apply text-3xl font-semibold leading-normal;
 }
 
 h3 {
-  @apply text-2xl font-bold leading-normal;
+  @apply text-2xl font-semibold leading-normal;
 }
 
 h4 {
-  @apply text-xl font-bold leading-normal;
+  @apply text-xl font-semibold leading-normal;
 }
 
 h5 {
-  @apply text-lg font-bold leading-normal;
+  @apply text-lg font-semibold leading-normal;
 }
 
 h6 {
-  @apply text-base font-bold leading-normal;
+  @apply text-base font-semibold leading-normal;
 }
 
 a {
-  @apply no-underline text-blue-500;
+  @apply no-underline text-blue-600;
   transition: opacity 0.2s;
   &[href]:hover {
     @apply opacity-80;

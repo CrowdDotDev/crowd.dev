@@ -144,6 +144,21 @@ export default {
     })
   },
 
+  doChangeActiveView(
+    { commit, state, dispatch },
+    activeView
+  ) {
+    commit('ACTIVE_VIEW_CHANGED', activeView)
+
+    const filter = state.views[activeView].filter
+    const rawFilter = state.views[activeView].rawFilter
+    dispatch('doFetch', {
+      filter,
+      rawFilter,
+      keepPagination: true
+    })
+  },
+
   async doFetch(
     { commit, getters },
     {

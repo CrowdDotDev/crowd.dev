@@ -6,21 +6,24 @@ export default {
       name: 'All members',
       columns: [],
       filters: [],
-      sorter: {}
+      sorter: {},
+      active: true
     },
     active: {
       id: 'active',
       name: 'Most active',
       columns: [],
-      filters: [],
-      sorter: {}
+      filter: [],
+      sorter: {},
+      active: false
     },
     recent: {
       id: 'recent',
       name: 'Recent',
       columns: [],
-      filters: [],
-      sorter: {}
+      filter: [],
+      sorter: {},
+      active: false
     }
   },
   list: {

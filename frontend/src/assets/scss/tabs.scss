@@ -6,9 +6,10 @@
     @apply bg-brand-500;
   }
   &__item {
-    @apply font-normal px-4;
+    @apply font-normal text-gray-900 px-4;
+    transition: all 0.2s ease;
     &.is-active {
-      @apply text-brand-500 font-medium;
+      @apply font-medium text-gray-900;
     }
     &:hover {
       @apply text-brand-500;

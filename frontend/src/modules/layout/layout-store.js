@@ -14,8 +14,8 @@ export default {
     isMobile: (state) => Boolean(state.isMobile),
     paginationLayout: (state) =>
       state.isMobile
-        ? 'total, prev, pager, next'
-        : 'total, sizes, prev, pager, next',
+        ? 'prev, pager, next, total'
+        : 'prev, pager, next, total, sizes',
     labelPosition: (state) =>
       state.isMobile ? 'top' : undefined,
     labelWidthForm: () => undefined,
