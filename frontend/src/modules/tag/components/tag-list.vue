@@ -17,7 +17,7 @@
         >
         <span
           v-if="member.tags.length === 0"
-          class="text-black opacity-50 italic"
+          class="text-gray-400 italic"
           >No tags added</span
         >
       </div>

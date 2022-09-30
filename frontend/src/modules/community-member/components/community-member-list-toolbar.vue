@@ -9,7 +9,7 @@
       selected</span
     >
     <el-dropdown trigger="click" @command="handleCommand">
-      <button class="btn btn--secondary btn--sm">
+      <button class="btn btn--bordered btn--sm">
         <span class="mr-2">Actions</span>
         <i class="ri-xl ri-arrow-down-s-line"></i>
       </button>
@@ -37,7 +37,7 @@
           :disabled="isReadOnly"
         >
           <div class="text-red-500 flex items-center">
-            <i class="ri-lg ri-delete-bin-line mr-1" />
+            <i class="ri-lg ri-delete-bin-line mr-2" />
             <app-i18n code="common.destroy"></app-i18n>
           </div>
         </el-dropdown-item>

@@ -44,6 +44,29 @@
         </el-table-column>
 
         <el-table-column
+          label="Organization & Title"
+          width="220"
+        >
+          <template #default="scope">
+            <div
+              v-if="scope.row.organization"
+              class="flex-items-center"
+            >
+              <div class="w-5 h-5">
+                <img
+                  v-if="scope.row.organization.logo"
+                  :src="scope.row.organization.logo"
+                  alt=""
+                />
+              </div>
+              <span>{{
+                scope.row.organization?.name
+              }}</span>
+            </div>
+          </template>
+        </el-table-column>
+
+        <el-table-column
           label="Engagement Level"
           prop="score"
           width="200"
