@@ -3,54 +3,66 @@
     <el-dropdown
       v-if="!isReadOnly"
       trigger="click"
+      placement="bottom-end"
       @command="handleCommand"
     >
-      <span class="el-dropdown-link">
-        <i class="text-xl ri-more-line"></i>
+      <span
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+        @click="handleClick"
+      >
+        <i
+          class="text-lg leading-none text-gray-600 ri-more-fill"
+        ></i>
       </span>
       <template #dropdown>
         <el-dropdown-item
-          v-if="showViewMember"
-          :command="{
-            action: 'communityMemberView',
-            communityMember: member
-          }"
-          ><i class="ri-eye-line mr-1" />View
-          Member</el-dropdown-item
-        >
-        <el-dropdown-item
+          class="h-10"
           :command="{
             action: 'communityMemberEdit',
             communityMember: member
           }"
-          ><i class="ri-pencil-line mr-1" />Edit
-          Member</el-dropdown-item
+          ><i class="ri-pencil-line text-base mr-2" /><span
+            class="text-xs text-gray-900"
+            >Edit member</span
+          ></el-dropdown-item
         >
         <el-dropdown-item
+          class="h-10"
           :command="{
             action: 'communityMemberMerge',
             communityMember: member
           }"
-          ><i class="ri-group-line mr-1" />Merge With
-          Another Member</el-dropdown-item
+          ><i class="ri-group-line text-base mr-2" /><span
+            class="text-xs text-gray-900"
+            >Merge member</span
+          ></el-dropdown-item
         >
         <el-dropdown-item
           v-if="!member.team"
+          class="h-10"
           :command="{
             action: 'communityMemberMarkAsTeamMember',
             communityMember: member
           }"
-          ><i class="ri-user-follow-line mr-1" />Mark as
-          Team Member</el-dropdown-item
+          ><i
+            class="ri-bookmark-line text-base mr-2"
+          /><span class="text-xs text-gray-900"
+            >Mark as team member</span
+          ></el-dropdown-item
         >
+        <el-divider class="border-gray-200" />
         <el-dropdown-item
+          class="h-10"
           :command="{
             action: 'communityMemberDelete',
             communityMember: member
           }"
-          ><i class="ri-delete-bin-line mr-1" />Delete
-          Member</el-dropdown-item
-        >
+          ><i
+            class="ri-delete-bin-line text-base mr-2 text-red-500"
+          /><span class="text-xs text-red-500"
+            >Delete member</span
+          >
+        </el-dropdown-item>
       </template>
     </el-dropdown>
 
@@ -183,7 +195,21 @@ export default {
           params: { id: command.communityMember.id }
         })
       }
+    },
+    handleClick(event) {
+      event.stopPropagation()
     }
   }
 }
 </script>
+
+<style lang="scss">
+.el-dropdown__popper .el-dropdown__list {
+  @apply p-2;
+}
+
+// Override divider margin
+.el-divider--horizontal {
+  @apply my-2;
+}
+</style>
