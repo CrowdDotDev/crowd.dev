@@ -14,6 +14,7 @@
         border
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
+        @row-click="handleRowClick"
       >
         <el-table-column
           type="selection"
@@ -29,13 +30,7 @@
           fixed
         >
           <template #default="scope">
-            <router-link
-              :to="{
-                name: 'communityMemberView',
-                params: { id: scope.row.id }
-              }"
-              class="flex items-center text-black"
-            >
+            <div class="flex items-center text-black">
               <app-avatar
                 :entity="scope.row"
                 size="sm"
@@ -44,7 +39,7 @@
               <span class="font-semibold">{{
                 scope.row.displayName
               }}</span>
-            </router-link>
+            </div>
           </template>
         </el-table-column>
 
@@ -225,6 +220,12 @@ export default {
     },
     timeAgo(timestamp) {
       return computedTimeAgo(timestamp)
+    },
+    handleRowClick(row) {
+      this.$router.push({
+        name: 'communityMemberView',
+        params: { id: row.id }
+      })
     }
   }
 }
@@ -240,6 +241,10 @@ export default {
       .cell {
         @apply p-0 pl-4;
       }
+    }
+
+    .hover-row {
+      cursor: pointer;
     }
   }
 }
