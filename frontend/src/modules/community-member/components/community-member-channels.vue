@@ -8,19 +8,18 @@
       <a
         :href="`mailto:${member.email}`"
         class="btn btn--circle btn--email"
-        :class="member.crowdInfo ? 'mr-2' : ''"
         @click="trackClick('Email')"
         ><i class="ri-sm ri-mail-line"></i
       ></a>
     </el-tooltip>
-    <div class="flex items-center">
+    <div class="flex items-center ml-2">
       <el-tooltip
         v-if="member.username.twitter"
         content="View Twitter Profile"
         placement="top"
       >
         <a
-          :href="member.url.twitter"
+          :href="member.url?.twitter || null"
           target="_blank"
           class="btn btn--circle btn--twitter mr-2"
           @click="trackClick('Twitter')"
@@ -38,7 +37,7 @@
         placement="top"
       >
         <a
-          :href="member.url.github"
+          :href="member.url?.github || null"
           target="_blank"
           class="btn btn--circle btn--github mr-2"
           @click="trackClick('GitHub')"
@@ -74,7 +73,7 @@
         placement="top"
       >
         <a
-          :href="member.url.devto"
+          :href="member.url?.devto || null"
           target="_blank"
           class="btn btn--circle btn--devto mr-2"
           @click="trackClick('Dev.to')"

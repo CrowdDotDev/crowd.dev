@@ -27,6 +27,10 @@
   @apply border-b border-b-gray-200;
 }
 
+.el-table .cell {
+  padding: 0 10px;
+}
+
 .el-table thead tr th {
   @apply font-semibold uppercase text-gray-400 tracking-wider text-2xs leading-4.5;
 }
