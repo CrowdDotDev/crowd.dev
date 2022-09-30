@@ -13,14 +13,14 @@
         ><i class="ri-sm ri-mail-line"></i
       ></a>
     </el-tooltip>
-    <div v-if="member.crowdInfo" class="flex items-center">
+    <div class="flex items-center">
       <el-tooltip
-        v-if="member.crowdInfo.twitter"
+        v-if="member.username.twitter"
         content="View Twitter Profile"
         placement="top"
       >
         <a
-          :href="member.crowdInfo.twitter.url"
+          :href="member.url.twitter"
           target="_blank"
           class="btn btn--circle btn--twitter mr-2"
           @click="trackClick('Twitter')"
@@ -33,12 +33,12 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.crowdInfo.github"
+        v-if="member.username.github"
         content="View GitHub Profile"
         placement="top"
       >
         <a
-          :href="member.crowdInfo.github.url"
+          :href="member.url.github"
           target="_blank"
           class="btn btn--circle btn--github mr-2"
           @click="trackClick('GitHub')"
@@ -51,7 +51,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.crowdInfo.linkedin"
+        v-if="member.username.linkedin"
         content="View LinkedIn Profile"
         placement="top"
       >
@@ -69,12 +69,12 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.crowdInfo.devto"
+        v-if="member.username.devto"
         content="View DEV Profile"
         placement="top"
       >
         <a
-          :href="member.crowdInfo.devto.url"
+          :href="member.url.devto"
           target="_blank"
           class="btn btn--circle btn--devto mr-2"
           @click="trackClick('Dev.to')"
@@ -87,10 +87,7 @@
         </a>
       </el-tooltip>
       <span
-        v-if="
-          member.crowdInfo.discord &&
-          member.username.discord
-        "
+        v-if="member.username.discord"
         class="btn btn--circle btn--discord mr-2"
       >
         <img
@@ -100,9 +97,7 @@
         />
       </span>
       <span
-        v-if="
-          member.crowdInfo.slack && member.username.slack
-        "
+        v-if="member.username.slack"
         class="btn btn--circle btn--slack mr-2"
       >
         <img

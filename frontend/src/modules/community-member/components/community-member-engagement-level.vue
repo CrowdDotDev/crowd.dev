@@ -1,6 +1,6 @@
 <template>
   <div class="community-member-engagement-level-wrapper">
-    <div v-if="member.crowdInfo.team" class="">
+    <div v-if="member.team" class="">
       <div class="font-semibold text-gray-400">
         Team member
       </div>
@@ -8,16 +8,16 @@
     <div v-else>
       <div
         v-if="computedEngagementLevel.value === -1"
-        class="inline-flex items-center justify-center tag"
+        class="inline-flex items-center justify-center"
       >
+        <div
+          v-loading="true"
+          class="app-page-spinner h-6 w-6 mr-2"
+        ></div>
         <span
           class="block mr-2 text-xs font-semibold text-gray-400"
           >Computing</span
         >
-        <div
-          v-loading="true"
-          class="app-page-spinner h-6 w-6"
-        ></div>
       </div>
       <div
         v-else

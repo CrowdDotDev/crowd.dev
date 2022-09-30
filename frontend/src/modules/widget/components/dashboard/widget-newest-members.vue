@@ -51,12 +51,12 @@
                   class="flex leading-none text-base pt-1"
                 >
                   <el-tooltip
-                    v-if="member.crowdInfo.github"
+                    v-if="member.username.github"
                     content="GitHub"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.github.url"
+                      :href="member.url.github"
                       target="_blank"
                       class="mr-1"
                     >
@@ -69,12 +69,12 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    v-if="member.crowdInfo.twitter"
+                    v-if="member.username.twitter"
                     content="Twitter"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.twitter.url"
+                      :href="member.url.twitter"
                       target="_blank"
                     >
                       <img
@@ -86,15 +86,13 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    v-if="member.crowdInfo.discord"
+                    v-if="member.username.discord"
                     content="Discord"
                     placement="top"
                   >
                     <a
-                      v-if="member.crowdInfo.discord"
-                      :href="
-                        member.crowdInfo.discord.html_url
-                      "
+                      v-if="member.url.discord"
+                      :href="member.url.discord"
                       target="_blank"
                     >
                       <img
@@ -106,15 +104,13 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    v-if="member.crowdInfo.slack"
+                    v-if="member.username.slack"
                     content="Slack"
                     placement="top"
                   >
                     <a
-                      v-if="member.crowdInfo.slack"
-                      :href="
-                        member.crowdInfo.slack.html_url
-                      "
+                      v-if="member.username.slack"
+                      :href="member.url.slack"
                       target="_blank"
                     >
                       <img
@@ -126,12 +122,12 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    v-if="member.crowdInfo.devto"
+                    v-if="member.username.devto"
                     content="DEV"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.devto.url"
+                      :href="member.url.devto"
                       target="_blank"
                     >
                       <img
@@ -143,12 +139,11 @@
                   </el-tooltip>
 
                   <el-tooltip
-                    v-if="member.crowdInfo.apis"
+                    v-if="member.apis"
                     content="API"
                     placement="top"
                   >
                     <div
-                      v-if="member.crowdInfo.apis"
                       class="text-sm leading-none h-5 tracking-tighter text-gray-400 hover:text-gray-800 font-semibold"
                     >
                       API
