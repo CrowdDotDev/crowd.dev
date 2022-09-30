@@ -9,6 +9,12 @@
   </el-tabs>
 </template>
 
+<script>
+export default {
+  name: 'AppCommunityMemberTabs'
+}
+</script>
+
 <script setup>
 import { computed } from 'vue'
 import { useStore } from 'vuex'
