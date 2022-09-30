@@ -269,59 +269,6 @@
     @apply mr-2;
   }
 
-  &--circle {
-    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base shrink-0;
-    i {
-      @apply m-0;
-    }
-  }
-
-  &--email,
-  &--email:hover {
-    @apply border-0 text-brand-500;
-    background-color: rgba(219, 53, 0, 0.1);
-  }
-
-  &--twitter,
-  &--twitter:hover {
-    background-color: rgba(0, 162, 245, 0.1);
-    color: #00a2f5;
-  }
-
-  &--github,
-  &--github:hover {
-    background-color: rgba(89, 89, 89, 0.1);
-    color: #000;
-  }
-
-  &--devto,
-  &--devto:hover {
-    background-color: rgba(89, 89, 89, 0.1);
-    color: #000;
-  }
-
-  &--linkedin,
-  &--linkedin:hover {
-    background-color: rgba(2, 116, 179, 0.1);
-    color: #0274b3;
-  }
-
-  &--slack {
-    background-color: rgba(235, 179, 47, 0.1);
-    color: #ebb32f;
-  }
-
-  &--discord {
-    background-color: rgba(115, 124, 248, 0.1);
-    color: #737cf8;
-  }
-
-  &--email,
-  &--twitter:hover,
-  &--github:hover &--linkedin:hover {
-    @apply opacity-80;
-  }
-
   &.el-button + &.el-button {
     @apply ml-0;
   }
