@@ -462,31 +462,31 @@ class ActivityRepository {
         advancedFilter.and.push({
           sourceId: filter.sourceId,
         })
+      }
 
-        if (filter.conversationId) {
+      if (filter.conversationId) {
+        advancedFilter.and.push({
+          conversationId: filter.conversationId,
+        })
+      }
+
+      if (filter.createdAtRange) {
+        const [start, end] = filter.createdAtRange
+
+        if (start !== undefined && start !== null && start !== '') {
           advancedFilter.and.push({
-            conversationId: filter.conversationId,
+            createdAt: {
+              gte: start,
+            },
           })
         }
 
-        if (filter.createdAtRange) {
-          const [start, end] = filter.createdAtRange
-
-          if (start !== undefined && start !== null && start !== '') {
-            advancedFilter.and.push({
-              createdAt: {
-                gte: start,
-              },
-            })
-          }
-
-          if (end !== undefined && end !== null && end !== '') {
-            advancedFilter.and.push({
-              createdAt: {
-                gte: end,
-              },
-            })
-          }
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            createdAt: {
+              gte: end,
+            },
+          })
         }
       }
     }

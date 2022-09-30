@@ -62,14 +62,21 @@ export async function detectSentiment(text) {
       Text: text,
     }
     const fromAWS = await comprehend.detectSentiment(params).promise()
+    const positive = 100 * fromAWS.SentimentScore.Positive
+    const negative = 100 * fromAWS.SentimentScore.Negative
     return {
       label: fromAWS.Sentiment.toLowerCase(),
-      positive: fromAWS.SentimentScore.Positive,
-      negative: fromAWS.SentimentScore.Negative,
-      neutral: fromAWS.SentimentScore.Neutral,
-      mixed: fromAWS.SentimentScore.Mixed,
-      // Mapping the value from -1,1 to 0,10
-      sentiment: 5 * (fromAWS.SentimentScore.Positive - fromAWS.SentimentScore.Negative + 1),
+      positive,
+      negative,
+      neutral: 100 * fromAWS.SentimentScore.Neutral,
+      mixed: 100 * fromAWS.SentimentScore.Mixed,
+      // Mapping the value from -1,1 to 0,100
+      // Get a magnitude of the difference between the two values,
+      // normalised by how much of the 4 dimensions they take:
+      //   (positive - negative) / (positive + negative)
+      //   Value between -1 and 1
+      // Then scale it to 0,100
+      sentiment: 100 * ((positive - negative) / (2 * (positive + negative)) + 0.5),
     }
   }
   return {}
