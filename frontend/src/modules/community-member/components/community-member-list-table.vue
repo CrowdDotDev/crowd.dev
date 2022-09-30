@@ -124,7 +124,9 @@
           :page-sizes="[20, 50, 100, 200]"
           @current-change="doChangePaginationCurrentPage"
           @size-change="doChangePaginationPageSize"
-        ></el-pagination>
+        >
+          <div class="flex flex-grow"></div>
+        </el-pagination>
       </div>
     </div>
   </div>
@@ -268,6 +270,51 @@ export default {
 
     .hover-row {
       cursor: pointer;
+    }
+  }
+}
+
+.el-pagination-wrapper .el-pagination {
+  @apply flex w-full gap-2;
+
+  .el-pagination__total {
+    @apply mr-6 text-gray-500;
+  }
+
+  .btn-prev,
+  .btn-next {
+    &:not([disabled]):hover {
+      @apply bg-gray-100;
+    }
+
+    &-is-first,
+    &-is-last {
+      @apply cursor-not-allowed;
+    }
+  }
+
+  .el-icon svg {
+    @apply text-gray-500;
+    display: unset;
+  }
+
+  button {
+    @apply m-0;
+  }
+
+  ul.el-pager {
+    @apply flex gap-2;
+
+    li.number {
+      @apply font-normal text-gray-600 m-0;
+
+      &:not(.is-active):hover {
+        @apply bg-gray-100;
+      }
+
+      &.is-active {
+        @apply bg-brand-500;
+      }
     }
   }
 }
