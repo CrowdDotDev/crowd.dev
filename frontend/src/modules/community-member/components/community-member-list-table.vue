@@ -1,7 +1,7 @@
 <template>
   <div class="community-member-list-table panel">
     <app-community-member-list-toolbar></app-community-member-list-toolbar>
-    <div class="-mx-6 -mt-4">
+    <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
         v-loading="loading"
@@ -235,10 +235,6 @@ export default {
   @apply relative;
   .el-table {
     @apply mt-0 border-t-0;
-
-    th {
-      @apply pb-4;
-    }
 
     .el-table-column--selection {
       .cell {

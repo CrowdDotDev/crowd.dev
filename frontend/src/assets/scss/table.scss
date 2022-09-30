@@ -32,7 +32,7 @@
 }
 
 .el-table thead tr th {
-  @apply font-semibold uppercase text-gray-400 tracking-wider text-2xs leading-4.5;
+  @apply font-semibold uppercase text-gray-400 tracking-wider text-2xs leading-4.5 h-14;
 }
 
 .el-table .sort-caret.ascending {
@@ -71,7 +71,9 @@
   @apply bg-gray-50;
 }
 
-.el-table tr.is-selected {
+.el-table tr.is-selected,
+.el-table tr.is-selected .el-table-fixed-column--left,
+.el-table tr.is-selected .el-table-fixed-column--right {
   background-color: #fff5f4;
 }
 

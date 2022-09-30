@@ -5,40 +5,50 @@
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'rows' : 'row' }}
+      {{ selectedRows.length > 1 ? 'members' : 'member' }}
       selected</span
     >
-    <el-button
-      :disabled="markAsTeamMemberButtonDisabled"
-      class="btn btn--secondary mr-2"
-      @click="doMarkAsTeamMember()"
-    >
-      <i class="ri-lg ri-user-follow-line mr-1" />
-      Mark as Team Member
-    </el-button>
-
-    <el-button
-      :disabled="exportButtonDisabled"
-      class="btn btn--secondary mr-2"
-      @click="handleDoExport"
-    >
-      <i class="ri-lg ri-file-text-line mr-1" />
-      Export to CSV
-    </el-button>
+    <el-dropdown trigger="click" @command="handleCommand">
+      <button class="btn btn--secondary btn--sm">
+        <span class="mr-2">Actions</span>
+        <i class="ri-xl ri-arrow-down-s-line"></i>
+      </button>
+      <template #dropdown>
+        <el-dropdown-item command="export">
+          <i class="ri-lg ri-file-download-line mr-1" />
+          Export to CSV
+        </el-dropdown-item>
+        <el-dropdown-item
+          command="markAsTeamMember"
+          :disabled="isReadOnly"
+        >
+          <i class="ri-lg ri-bookmark-line mr-1" />
+          Mark as team member{{
+            selectedRows.length === 1 ? '' : 's'
+          }}
+        </el-dropdown-item>
+        <el-dropdown-item command="editTags">
+          <i class="ri-lg ri-price-tag-3-line mr-1" />
+          Edit tags
+        </el-dropdown-item>
+        <hr class="border-gray-200 my-1 mx-2" />
+        <el-dropdown-item
+          command="destroyAll"
+          :disabled="isReadOnly"
+        >
+          <div class="text-red-500 flex items-center">
+            <i class="ri-lg ri-delete-bin-line mr-1" />
+            <app-i18n code="common.destroy"></app-i18n>
+          </div>
+        </el-dropdown-item>
+      </template>
+    </el-dropdown>
 
     <app-community-member-list-bulk-update-tags
+      v-model="bulkTagsUpdateVisible"
       :loading="loading"
       :selected-rows="selectedRows"
     />
-
-    <el-button
-      :disabled="destroyButtonDisabled"
-      class="btn btn--secondary mr-2"
-      @click="doDestroyAllWithConfirm"
-    >
-      <i class="ri-lg ri-delete-bin-line mr-1" />
-      <app-i18n code="common.destroy"></app-i18n>
-    </el-button>
   </div>
 </template>
 
@@ -46,6 +56,7 @@
 import { mapGetters, mapActions, mapState } from 'vuex'
 import AppCommunityMemberListBulkUpdateTags from '@/modules/community-member/components/community-member-list-bulk-update-tags'
 import { i18n } from '@/i18n'
+import { CommunityMemberPermissions } from '@/modules/community-member/community-member-permissions'
 
 export default {
   name: 'AppCommunityMemberListToolbar',
@@ -56,8 +67,7 @@ export default {
 
   data() {
     return {
-      isExportLoading: false,
-      isDestroyLoading: false
+      bulkTagsUpdateVisible: false
     }
   },
 
@@ -71,24 +81,12 @@ export default {
       hasRows: 'communityMember/hasRows',
       selectedRows: 'communityMember/selectedRows'
     }),
-
-    exportButtonDisabled() {
+    isReadOnly() {
       return (
-        !this.hasRows ||
-        this.loading ||
-        this.isExportLoading
-      )
-    },
-
-    markAsTeamMemberButtonDisabled() {
-      return !this.hasRows || this.loading
-    },
-
-    destroyButtonDisabled() {
-      return (
-        !this.selectedRows.length ||
-        this.loading ||
-        this.isDestroyLoading
+        new CommunityMemberPermissions(
+          this.currentTenant,
+          this.currentUser
+        ).edit === false
       )
     }
   },
@@ -109,6 +107,18 @@ export default {
         'communityMember/doBulkUpdateMembersTags'
     }),
 
+    async handleCommand(command) {
+      if (command === 'markAsTeamMember') {
+        await this.doMarkAsTeamMember()
+      } else if (command === 'export') {
+        await this.handleDoExport()
+      } else if (command === 'editTags') {
+        await this.handleAddTags()
+      } else if (command === 'destroyAll') {
+        await this.doDestroyAllWithConfirm()
+      }
+    },
+
     async doDestroyAllWithConfirm() {
       try {
         await this.$myConfirm(
@@ -121,29 +131,24 @@ export default {
           }
         )
 
-        this.isDestroyLoading = true
-
         await this.doDestroyAll(
           this.selectedRows.map((item) => item.id)
         )
-
-        this.isDestroyLoading = false
       } catch (error) {
-        this.isDestroyLoading = false
-        // no
+        console.log(error)
       }
     },
 
     async handleDoExport() {
       try {
-        this.isExportLoading = true
-
         await this.doExport()
-
-        this.isExportLoading = false
       } catch (error) {
-        this.isExportLoading = false
+        console.log(error)
       }
+    },
+
+    async handleAddTags() {
+      this.bulkTagsUpdateVisible = true
     }
   }
 }
@@ -151,7 +156,8 @@ export default {
 
 <style lang="scss">
 .community-member-list-toolbar {
-  @apply flex items-center justify-end absolute h-16 top-0 mt-1 right-0 z-10 bg-white rounded-tr-xl p-2;
+  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
+  height: calc(56px - 1px);
   width: calc(100% - 75px);
 }
 </style>

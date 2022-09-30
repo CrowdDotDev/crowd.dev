@@ -265,7 +265,7 @@
     pointer-events: none;
   }
 
-  i:not(:only-child) {
+  i:first-child:not(:only-child) {
     @apply mr-2;
   }
 

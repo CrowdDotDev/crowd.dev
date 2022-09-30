@@ -1,14 +1,5 @@
 <template>
   <div class="relative inline-flex">
-    <el-button
-      :disabled="bulkEditTagsDisabled"
-      class="btn btn--secondary mr-2"
-      @click="prepareBulkUpdateTags"
-    >
-      <i class="ri-lg ri-price-tag-3-line mr-1" />
-      Edit Tags
-    </el-button>
-
     <app-tag-popover
       v-model="bulkEditTagsModel"
       :visible="bulkEditTags"
@@ -37,6 +28,10 @@ export default {
   },
 
   props: {
+    modelValue: {
+      type: Boolean,
+      default: false
+    },
     loading: {
       type: Boolean,
       default: false
@@ -47,6 +42,8 @@ export default {
     }
   },
 
+  emits: ['update:modelValue'],
+
   data() {
     return {
       bulkEditTags: false,
@@ -55,9 +52,15 @@ export default {
     }
   },
 
-  computed: {
-    bulkEditTagsDisabled() {
-      return !this.selectedRows.length || this.loading
+  watch: {
+    modelValue: {
+      handler: async function (newValue) {
+        console.log('entrei', newValue)
+        if (newValue) {
+          console.log('entrei newValue', newValue)
+          await this.prepareBulkUpdateTags()
+        }
+      }
     }
   },
 
@@ -79,6 +82,7 @@ export default {
           }
         )
 
+        this.$emit('update:modelValue', false)
         this.bulkEditTags = false
 
         return this.doBulkUpdateMembersTags({
@@ -118,6 +122,7 @@ export default {
     cancelBulkUpdateTags() {
       this.bulkEditTagsModel = []
       this.bulkEditTagsInCommon = []
+      this.$emit('update:modelValue', false)
       this.bulkEditTags = false
     }
   }
