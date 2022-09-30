@@ -1,27 +1,31 @@
 <template>
-  <div class="flex items-center flex-wrap">
+  <div class="flex items-center gap-2">
     <el-tooltip
       v-if="member.email"
-      content="Send email"
+      content="Send email <i class='ri-external-link-line text-gray-400'></i>"
+      popper-class="custom-identity-tooltip"
+      raw-content
       placement="top"
     >
       <a
         :href="`mailto:${member.email}`"
-        class="btn btn--circle btn--email"
+        class="btn p-2 text-base leading-none cursor-pointer bg-white text-brand-500 border border-gray-200"
         @click="trackClick('Email')"
-        ><i class="ri-sm ri-mail-line"></i
+        ><i class="ri-mail-line"></i
       ></a>
     </el-tooltip>
-    <div class="flex items-center ml-2">
+    <div class="flex gap-2 items-center">
       <el-tooltip
         v-if="member.username.twitter"
-        content="View Twitter Profile"
+        content="Twitter Profile <i class='ri-external-link-line'></i>"
+        popper-class="custom-identity-tooltip"
+        raw-content
         placement="top"
       >
         <a
           :href="member.url?.twitter || null"
           target="_blank"
-          class="btn btn--circle btn--twitter mr-2"
+          class="btn p-2 text-base btn--twitter"
           @click="trackClick('Twitter')"
         >
           <img
@@ -33,13 +37,15 @@
       </el-tooltip>
       <el-tooltip
         v-if="member.username.github"
-        content="View GitHub Profile"
+        content="GitHub Profile <i class='ri-external-link-line'></i>"
+        popper-class="custom-identity-tooltip"
+        raw-content
         placement="top"
       >
         <a
           :href="member.url?.github || null"
           target="_blank"
-          class="btn btn--circle btn--github mr-2"
+          class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
           @click="trackClick('GitHub')"
         >
           <img
@@ -49,15 +55,16 @@
           />
         </a>
       </el-tooltip>
+      <!-- TODO: Missing design for linkedin -->
       <el-tooltip
         v-if="member.username.linkedin"
-        content="View LinkedIn Profile"
+        content="LinkedIn Profile <i class='ri-external-link-line'></i>"
         placement="top"
       >
         <a
           href="https://linkedin.com"
           target="_blank"
-          class="btn btn--circle btn--linkedin mr-2"
+          class="btn p-2 text-base btn--linkedin"
           @click="trackClick('LinkedIn')"
         >
           <img
@@ -67,15 +74,16 @@
           />
         </a>
       </el-tooltip>
+      <!-- TODO: (TBC) Shouldn't the tooltip have the url validation as well? If there is no URL doesn't make sense to ask to open -->
       <el-tooltip
         v-if="member.username.devto"
-        content="View DEV Profile"
+        content="DEV Profile <i class='ri-external-link-line'></i>"
         placement="top"
       >
         <a
           :href="member.url?.devto || null"
           target="_blank"
-          class="btn btn--circle btn--devto mr-2"
+          class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
           @click="trackClick('Dev.to')"
         >
           <img
@@ -85,9 +93,10 @@
           />
         </a>
       </el-tooltip>
+      <!-- TODO: (TBC) Discord does not have link, is there still any tooltip? -->
       <span
         v-if="member.username.discord"
-        class="btn btn--circle btn--discord mr-2"
+        class="btn p-2 text-base btn--discord"
       >
         <img
           :src="findIcon('discord')"
@@ -97,7 +106,7 @@
       </span>
       <span
         v-if="member.username.slack"
-        class="btn btn--circle btn--slack mr-2"
+        class="btn p-2 text-base btn--slack bg-white border border-gray-200"
       >
         <img
           :src="findIcon('slack')"
@@ -137,6 +146,41 @@ export default {
 </script>
 <style lang="scss">
 .community-member-channels-icon {
-  @apply w-4 h-4;
+  min-width: 1rem;
+  min-height: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+}
+
+// Custom tooltip for external links
+.custom-identity-tooltip {
+  span:first-child {
+    @apply flex gap-1.5 items-center;
+  }
+}
+
+.btn {
+  &--twitter,
+  &--twitter:hover {
+    @apply cursor-pointer;
+    background-color: rgba(29, 155, 240, 0.15);
+    color: #1d9bf0;
+  }
+
+  &--linkedin,
+  &--linkedin:hover {
+    @apply cursor-pointer;
+    background-color: rgba(2, 116, 179, 0.1);
+    color: #0274b3;
+  }
+
+  &--discord,
+  &--discord:hover {
+    background-color: rgba(88, 101, 242, 0.15);
+  }
+}
+
+a[href]:hover {
+  opacity: 1;
 }
 </style>
