@@ -249,7 +249,7 @@ import { CommunityMemberPermissions } from '@/modules/community-member/community
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 
 const store = useStore()
 const isCollapsed = computed(
@@ -261,20 +261,10 @@ const currentUser = computed(
 const currentTenant = computed(
   () => store.getters['auth/currentTenant']
 )
-const isMediumViewport = computed(
-  () => store.state.layout.isMediumViewport
-)
 
 function toggleMenu() {
   store.dispatch('layout/toggleMenu')
 }
-
-// Collapse Menu for Medium viewports by default
-onMounted(() => {
-  if (isMediumViewport.value) {
-    store.dispatch('layout/collapseMenu')
-  }
-})
 
 const hasPermissionToSettings = computed(
   () =>
