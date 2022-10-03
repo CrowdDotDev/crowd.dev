@@ -28,8 +28,8 @@ server {
   listen 443 ssl default_server;
   listen [::]:443 ssl default_server;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
@@ -49,8 +49,8 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
@@ -72,8 +72,8 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
@@ -91,8 +91,8 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {

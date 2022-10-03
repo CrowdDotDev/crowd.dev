@@ -12,13 +12,13 @@ source $CLI_HOME/utils
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
-function prepare_override_env_file() {
+function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override"
     fi
 }
 
-prepare_override_env_file
+prepare_dev_env
 
 function prepare_service_string() {
     if [ $1 == "HELP" ]; then delimiter1=" | "; delimiter2=" => | "; fi
@@ -201,6 +201,8 @@ function check_container_status() {
 }
 
 function scaffold_set_up_network() {
+    rm -rf $CLI_HOME/../nginx/ssl/*.pem
+    $CLI_HOME/../nginx/ssl/init-certs.sh
     NETWORK_ID=$(docker network ls | grep "${PROJECT_NAME}-bridge" | tr " " "\n" | head -n 1)
 
     if [[ ${NETWORK_ID} ]]; then
@@ -228,14 +230,14 @@ function create_s3_buckets() {
 }
 
 function up_scaffold() {
-    scaffold_set_up_network && docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml up -d --build
+    scaffold_set_up_network && docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     apply_db_schema
     create_s3_buckets
 }
 
 function down_scaffold() {
-    docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml down
+    docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -278,7 +280,7 @@ function kill_all_containers() {
 
 function scaffold_destroy_confirmed() {
     kill_all_containers
-    docker-compose --compatibility -p $PROJECT_NAME -f scaffold.yaml down
+    docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail
@@ -328,10 +330,12 @@ do
         scaffold) scaffold $2 $3 $4 $5
             exit;
         ;;
-        service) service $2 $3 $4 $5
+        service) 
+            service $2 $3 $4 $5
             exit;
         ;;
-        start) start
+        start) 
+            start
             exit;
         ;;
         start-dev)
@@ -340,12 +344,12 @@ do
             exit;
         ;;
         build)
-            build $2
+            build $2 $3
             exit;
         ;;
         build-and-push)
             PUSH=1
-            build $2
+            build $2 $3
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"

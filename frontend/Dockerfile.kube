@@ -4,7 +4,7 @@ WORKDIR /usr/crowd/frontend
 COPY . .
 
 RUN npm ci
-RUN npx vue-cli-service build --mode prod
+RUN npx vue-cli-service build --mode production
 
 FROM nginx:1.17-alpine as release
 
