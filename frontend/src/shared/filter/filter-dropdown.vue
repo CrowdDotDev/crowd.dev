@@ -23,6 +23,7 @@
           <el-dropdown-item
             v-for="item of computedAttributes"
             :key="item.name"
+            @click="handleOptionClick(item)"
           >
             {{ item.label }}
           </el-dropdown-item>
@@ -35,6 +36,7 @@
           <el-dropdown-item
             v-for="item of computedCustomAttributes"
             :key="item.name"
+            @click="handleOptionClick(item)"
           >
             {{ item.label }}
           </el-dropdown-item>
@@ -51,7 +53,14 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, computed, h, ref } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  h,
+  ref
+} from 'vue'
+const emit = defineEmits(['filter-added'])
 const props = defineProps({
   attributes: {
     type: Array,
@@ -72,8 +81,13 @@ const query = ref('')
 const queryInput = ref(null)
 const filterFunction = (o) => {
   return (
-    o.name.includes(query.value) ||
-    o.label.includes(query.value)
+    (o.name
+      .toLowerCase()
+      .includes(query.value.toLowerCase()) ||
+      o.label
+        .toLowerCase()
+        .includes(query.value.toLowerCase())) &&
+    o.show !== false
   )
 }
 const computedAttributes = computed(() =>
@@ -87,6 +101,9 @@ function handleDropdownChange(visible) {
   if (visible) {
     queryInput.value.focus()
   }
+}
+function handleOptionClick(v) {
+  emit('filter-added', v)
 }
 </script>
 
