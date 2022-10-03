@@ -1,14 +1,17 @@
 <template>
-  <div class="member-filter list-filter mb-8">
-    <el-input
-      v-model="model.query"
-      placeholder="Search members"
-      :prefix-icon="SearchIcon"
-    >
-      <template #append>
-        <app-member-list-filter-dropdown />
-      </template>
-    </el-input>
+  <div class="member-filter">
+    <div class="mb-6">
+      <el-input
+        v-model="model.query"
+        placeholder="Search members"
+        :prefix-icon="SearchIcon"
+      >
+        <template #append>
+          <app-member-list-filter-dropdown />
+        </template>
+      </el-input>
+    </div>
+    <app-filter-list class="mb-2" />
   </div>
 </template>
 
