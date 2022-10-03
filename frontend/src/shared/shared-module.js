@@ -19,6 +19,7 @@ import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue
 import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
 import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
 import FilterPreview from '@/shared/filter/filter-preview.vue'
+import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
@@ -52,6 +53,7 @@ export default {
     'app-list-item-relation-to-many':
       ListItemRelationToMany,
     'app-filter-preview': FilterPreview,
+    'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
     'app-alert': Alert,

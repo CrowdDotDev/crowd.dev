@@ -26,6 +26,7 @@ export default {
       active: false
     }
   },
+  customAttributes: {},
   list: {
     ids: [],
     loading: false,

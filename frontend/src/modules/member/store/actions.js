@@ -191,6 +191,18 @@ export default {
     }
   },
 
+  async doFetchCustomAttributes({ commit }) {
+    try {
+      commit('FETCH_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.fetchCustomAttributes()
+      commit('FETCH_CUSTOM_ATTRIBUTES_SUCCESS', response)
+    } catch (error) {
+      Errors.handle(error)
+      commit('FETCH_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
   async doMerge(
     { commit },
     { memberToKeep, memberToMerge }

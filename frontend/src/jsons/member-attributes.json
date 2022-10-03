@@ -1,0 +1,34 @@
+[
+  {
+    "name": "organization",
+    "label": "Organization"
+  },
+  {
+    "name": "title",
+    "label": "Title"
+  },
+  {
+    "name": "score",
+    "label": "Engagement Level"
+  },
+  {
+    "name": "identities",
+    "label": "Identities"
+  },
+  {
+    "name": "firstActivity",
+    "label": "First Activity Date"
+  },
+  {
+    "name": "lastActivity",
+    "label": "Last Activity Date"
+  },
+  {
+    "name": "activitiesCount",
+    "label": "# of Activities"
+  },
+  {
+    "name": "tags",
+    "label": "Tags"
+  }
+]
