@@ -23,7 +23,7 @@
             >
               <router-link
                 :to="{
-                  name: 'communityMemberView',
+                  name: 'memberView',
                   params: { id: member.id }
                 }"
               >
@@ -37,7 +37,7 @@
                 <router-link
                   class="block text-black"
                   :to="{
-                    name: 'communityMemberView',
+                    name: 'memberView',
                     params: { id: member.id }
                   }"
                 >
@@ -165,7 +165,7 @@
 
 <script>
 import Widget from '../widget'
-import { CommunityMemberService } from '@/modules/community-member/community-member-service'
+import { MemberService } from '@/modules/member/member-service'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import computedTimeAgo from '@/utils/time-ago'
@@ -196,7 +196,7 @@ export default {
         title: 'Newest Members',
         rows: this.rows,
         loading: this.loading,
-        link: { name: 'communityMember' },
+        link: { name: 'member' },
         linkLabel: 'View all'
       }
     },
@@ -216,7 +216,7 @@ export default {
   },
   async created() {
     this.loading = true
-    const response = await CommunityMemberService.list(
+    const response = await MemberService.list(
       { type: 'member' },
       'joinedAt_DESC',
       15,

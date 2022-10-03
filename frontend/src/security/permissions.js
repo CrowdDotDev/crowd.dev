@@ -254,8 +254,8 @@ class Permissions {
         ]
       },
 
-      communityMemberImport: {
-        id: 'communityMemberImport',
+      memberImport: {
+        id: 'memberImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.free,
@@ -263,8 +263,8 @@ class Permissions {
           plans.enterprise
         ]
       },
-      communityMemberCreate: {
-        id: 'communityMemberCreate',
+      memberCreate: {
+        id: 'memberCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.free,
@@ -273,8 +273,8 @@ class Permissions {
         ],
         allowedStorage: []
       },
-      communityMemberEdit: {
-        id: 'communityMemberEdit',
+      memberEdit: {
+        id: 'memberEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.free,
@@ -283,8 +283,8 @@ class Permissions {
         ],
         allowedStorage: []
       },
-      communityMemberDestroy: {
-        id: 'communityMemberDestroy',
+      memberDestroy: {
+        id: 'memberDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.free,
@@ -293,8 +293,8 @@ class Permissions {
         ],
         allowedStorage: []
       },
-      communityMemberRead: {
-        id: 'communityMemberRead',
+      memberRead: {
+        id: 'memberRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
           plans.free,
@@ -302,8 +302,8 @@ class Permissions {
           plans.enterprise
         ]
       },
-      communityMemberAutocomplete: {
-        id: 'communityMemberAutocomplete',
+      memberAutocomplete: {
+        id: 'memberAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
           plans.free,

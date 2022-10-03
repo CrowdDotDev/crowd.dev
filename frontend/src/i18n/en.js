@@ -69,7 +69,7 @@ const en = {
         integrations: 'Integrations',
         info: 'Custom Attributes',
         activities: 'Activities',
-        communityMembers: 'Members',
+        members: 'Members',
         latestMetrics: 'LatestMetrics',
         membersToMerge: 'Members To Merge',
         benchmarkRepos: 'BenchmarkRepos',
@@ -133,11 +133,11 @@ const en = {
       }
     },
 
-    communityMember: {
-      name: 'communityMember',
+    member: {
+      name: 'member',
       label: 'Members',
       menu: 'Members',
-      exporterFileName: 'communityMember_export',
+      exporterFileName: 'member_export',
       list: {
         menu: 'Members',
         title: 'Members'
@@ -231,7 +231,7 @@ const en = {
         platform: 'Platform',
         project: 'Project',
         info: 'Custom Attributes',
-        communityMember: 'Member',
+        member: 'Member',
         isKeyAction: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',

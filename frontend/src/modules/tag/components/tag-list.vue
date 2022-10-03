@@ -37,11 +37,11 @@ import { i18n } from '@/i18n'
 import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
-import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
-import { CommunityMemberService } from '@/modules/community-member/community-member-service'
+import { MemberModel } from '@/modules/member/member-model'
+import { MemberService } from '@/modules/member/member-service'
 import AppTagPopover from '@/modules/tag/components/tag-popover'
 
-const { fields } = CommunityMemberModel
+const { fields } = MemberModel
 const formSchema = new FormSchema([
   fields.username,
   fields.info,
@@ -89,18 +89,18 @@ export default {
 
   methods: {
     ...mapActions({
-      doUpdate: 'communityMember/doUpdate'
+      doUpdate: 'member/doUpdate'
     }),
     async doSubmit() {
       this.loading = true
-      await CommunityMemberService.update(
+      await MemberService.update(
         this.member.id,
         formSchema.cast(this.model)
       )
       this.loading = false
       this.editing = false
       Message.success(
-        i18n('entities.communityMember.update.success')
+        i18n('entities.member.update.success')
       )
       this.$emit('tags-updated')
     }

@@ -59,12 +59,10 @@
         ></app-view-item-text>
 
         <app-view-item-relation-to-one
-          :label="fields.communityMember.label"
-          :permission="
-            fields.communityMember.readPermission
-          "
-          :url="fields.communityMember.viewUrl"
-          :value="presenter(record, 'communityMember')"
+          :label="fields.member.label"
+          :permission="fields.member.readPermission"
+          :url="fields.member.viewUrl"
+          :value="presenter(record, 'member')"
         ></app-view-item-relation-to-one>
       </el-form>
     </div>

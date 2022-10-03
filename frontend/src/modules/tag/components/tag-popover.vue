@@ -19,9 +19,9 @@
 
 <script>
 import AppPopover from '@/shared/popover/popover'
-import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
+import { MemberModel } from '@/modules/member/member-model'
 
-const { fields } = CommunityMemberModel
+const { fields } = MemberModel
 
 export default {
   name: 'AppTagPopover',

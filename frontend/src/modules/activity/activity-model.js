@@ -5,7 +5,7 @@ import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
-import { CommunityMemberField } from '@/modules/community-member/community-member-field'
+import { MemberField } from '@/modules/member/member-field'
 import JsonField from '@/shared/fields/json-field'
 
 function label(name) {
@@ -31,17 +31,12 @@ const fields = {
     min: 2
   }),
   info: new JsonField('info', label('info')),
-  communityMember: CommunityMemberField.relationToOne(
-    'communityMember',
-    label('communityMember'),
+  member: MemberField.relationToOne(
+    'member',
+    label('member'),
     {
       required: true
     }
-  ),
-  crowdInfo: new StringField(
-    'crowdInfo',
-    label('crowdInfo'),
-    {}
   ),
   isKeyAction: new BooleanField(
     'isKeyAction',

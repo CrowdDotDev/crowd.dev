@@ -2,13 +2,13 @@
   <div class="activity-header">
     <router-link
       :to="{
-        name: 'communityMemberView',
-        params: { id: activity.communityMember.id }
+        name: 'memberView',
+        params: { id: activity.member.id }
       }"
       target="_blank"
     >
       <app-avatar
-        :entity="activity.communityMember"
+        :entity="activity.member"
         :size="size"
         class="mr-2"
       />
@@ -16,8 +16,8 @@
     <div class="leading-none">
       <router-link
         :to="{
-          name: 'communityMemberView',
-          params: { id: activity.communityMember.id }
+          name: 'memberView',
+          params: { id: activity.member.id }
         }"
         target="_blank"
         class="leading-none text-black"
@@ -35,7 +35,7 @@
             "
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -66,7 +66,7 @@
                     ? ''
                     : 'in channel'
                 }}
-                #{{ activity.crowdInfo.channel }}</span
+                #{{ activity.channel }}</span
               >
             </span>
             <span class="mx-1">·</span>
@@ -75,7 +75,7 @@
             v-else-if="activity.platform === 'devto'"
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -94,11 +94,11 @@
             &nbsp;
 
             <a
-              :href="activity.crowdInfo.articleUrl"
+              :href="activity.articleUrl"
               target="_blank"
               :class="computedActivityClass"
             >
-              {{ activity.crowdInfo.articleTitle }}
+              {{ activity.articleTitle }}
             </a>
             <span class="mx-1">·</span>
           </template>
@@ -106,7 +106,7 @@
             v-else-if="activity.platform === 'github'"
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -127,18 +127,18 @@
                 >in</span
               >
               <a
-                :href="activity.crowdInfo.repo"
+                :href="activity.repo"
                 target="_blank"
                 class="ml-1"
               >
-                {{ getRepositoryName(activity.crowdInfo) }}
+                {{ getRepositoryName(activity.repo) }}
               </a>
             </div>
             <span class="mx-1">·</span>
           </template>
           <template v-else>
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -206,7 +206,7 @@ export default {
   },
   computed: {
     computedUsername() {
-      return this.activity.communityMember.displayName
+      return this.activity.member.displayName
     },
     computedUsernameClass() {
       return this.size === 'md'
@@ -217,7 +217,7 @@ export default {
       if (
         this.activity.platform === 'slack' &&
         this.activity.type === 'message' &&
-        this.activity.crowdInfo.thread
+        this.activity.thread
       ) {
         return `entities.activity.${this.activity.platform}.replied`
       } else if (
@@ -225,7 +225,7 @@ export default {
         this.activity.type === 'message' &&
         this.activity.parentId
       ) {
-        return this.activity.crowdInfo.thread
+        return this.activity.thread
           ? `entities.activity.${this.activity.platform}.replied_thread`
           : `entities.activity.${this.activity.platform}.replied`
       } else if (this.activity.platform === 'devto') {
@@ -236,7 +236,7 @@ export default {
     },
     computedArgs() {
       if (this.activity.type === 'hashtag') {
-        return [`#${this.activity.crowdInfo.hashtag}`]
+        return [`#${this.activity.hashtag}`]
       }
       return []
     },
@@ -251,7 +251,7 @@ export default {
       ).name
     },
     computedActivityClass() {
-      return this.activity.crowdInfo.url
+      return this.activity.url
         ? ''
         : 'text-gray-500 hover:opacity-100 hover:cursor-default'
     },
@@ -264,10 +264,8 @@ export default {
       const lower = str.toLowerCase()
       return str.charAt(0).toUpperCase() + lower.slice(1)
     },
-    getRepositoryName(crowdInfo) {
-      return crowdInfo.repo
-        .split('https://github.com/')[1]
-        .split('/')[1]
+    getRepositoryName(repo) {
+      return repo
     }
   }
 }
