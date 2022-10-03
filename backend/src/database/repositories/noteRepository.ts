@@ -196,6 +196,12 @@ class NoteRepository {
         })
       }
 
+      if (filter.members) {
+        advancedFilter.and.push({
+          members: filter.members,
+        })
+      }
+
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
@@ -217,7 +223,21 @@ class NoteRepository {
       }
     }
 
-    const parser = new QueryParser({}, options)
+    const parser = new QueryParser(
+      {
+        manyToMany: {
+          members: {
+            table: 'notes',
+            relationTable: {
+              name: 'memberNotes',
+              from: 'noteId',
+              to: 'memberId',
+            },
+          },
+        },
+      },
+      options,
+    )
     const parsed: QueryOutput = parser.parse({
       filter: advancedFilter,
       orderBy: orderBy || ['createdAt_DESC'],
