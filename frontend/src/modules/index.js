@@ -9,7 +9,7 @@ import user from '@/premium/user/user-module'
 import settings from '@/modules/settings/settings-module'
 import auditLog from '@/modules/audit-log/audit-log-module'
 import integration from '@/modules/integration/integration-module'
-import communityMember from '@/modules/community-member/community-member-module'
+import member from '@/modules/member/member-module'
 import tag from '@/modules/tag/tag-module'
 import activity from '@/modules/activity/activity-module'
 import widget from '@/modules/widget/widget-module'
@@ -30,7 +30,7 @@ const modules = {
   auditLog,
   layout,
   integration,
-  communityMember,
+  member,
   activity,
   tag,
   widget,

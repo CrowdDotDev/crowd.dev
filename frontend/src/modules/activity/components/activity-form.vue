@@ -12,27 +12,25 @@
     >
       <div class="flex items-center -mx-2">
         <el-form-item
-          :label="fields.communityMember.label"
-          :prop="fields.communityMember.name"
-          :required="fields.communityMember.required"
+          :label="fields.member.label"
+          :prop="fields.member.name"
+          :required="fields.member.required"
           class="w-full lg:w-1/2 mx-2"
         >
-          <app-community-member-autocomplete-input
-            v-model="model[fields.communityMember.name]"
-            :fetch-fn="fields.communityMember.fetchFn"
-            :mapper-fn="fields.communityMember.mapperFn"
+          <app-member-autocomplete-input
+            v-model="model[fields.member.name]"
+            :fetch-fn="fields.member.fetchFn"
+            :mapper-fn="fields.member.mapperFn"
             :show-create="false"
-            :placeholder="
-              fields.communityMember.placeholder
-            "
+            :placeholder="fields.member.placeholder"
             mode="single"
-          ></app-community-member-autocomplete-input>
+          ></app-member-autocomplete-input>
 
           <div
-            v-if="fields.communityMember.hint"
+            v-if="fields.member.hint"
             class="app-form-hint"
           >
-            {{ fields.communityMember.hint }}
+            {{ fields.member.hint }}
           </div>
         </el-form-item>
         <el-form-item
@@ -169,7 +167,7 @@ const formSchema = new FormSchema([
   fields.timestamp,
   fields.platform,
   fields.isKeyAction,
-  fields.communityMember
+  fields.member
 ])
 
 export default {

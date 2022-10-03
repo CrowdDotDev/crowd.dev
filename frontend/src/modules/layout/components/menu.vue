@@ -75,7 +75,7 @@
           <i class="ri-contacts-line"></i>
           <template #title
             ><app-i18n
-              code="entities.communityMember.menu"
+              code="entities.member.menu"
             ></app-i18n
           ></template>
         </el-menu-item>
@@ -245,7 +245,7 @@ export default {
 import { useStore } from 'vuex'
 import { SettingsPermissions } from '@/modules/settings/settings-permissions'
 import { ReportPermissions } from '@/modules/report/report-permissions'
-import { CommunityMemberPermissions } from '@/modules/community-member/community-member-permissions'
+import { MemberPermissions } from '@/modules/member/member-permissions'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
@@ -276,7 +276,7 @@ const hasPermissionToSettings = computed(
 
 const hasPermissionToCommunityMember = computed(
   () =>
-    new CommunityMemberPermissions(
+    new MemberPermissions(
       currentTenant.value,
       currentUser.value
     ).read
@@ -316,7 +316,7 @@ const isSettingsLocked = computed(
 
 const isCommunityMemberLocked = computed(
   () =>
-    new CommunityMemberPermissions(
+    new MemberPermissions(
       currentTenant.value,
       currentUser.value
     ).lockedForCurrentPlan

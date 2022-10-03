@@ -8,48 +8,39 @@
       <app-activity-dropdown :activity="activity" />
     </div>
     <div
-      v-if="
-        activity.crowdInfo.title || activity.crowdInfo.body
-      "
+      v-if="activity.title || activity.body"
       class="activity-list-feed-item-content"
-      :class="activity.crowdInfo.url ? 'pb-10' : ''"
+      :class="activity.url ? 'pb-10' : ''"
     >
       <div
-        v-if="activity.crowdInfo.title"
+        v-if="activity.title"
         class="activity-list-feed-item-content-title"
       >
-        <span class="block">{{
-          activity.crowdInfo.title
-        }}</span>
+        <span class="block">{{ activity.title }}</span>
       </div>
       <div
-        v-if="
-          activity.crowdInfo.title &&
-          activity.crowdInfo.body
-        "
+        v-if="activity.title && activity.body"
         class="my-4"
       ></div>
       <div
         v-if="
-          activity.crowdInfo.body &&
-          activity.platform === 'discord'
+          activity.body && activity.platform === 'discord'
         "
         class="activity-list-feed-item-content-body"
       >
         <blockquote
           v-if="activity.parent && !belongsToConversation"
           class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-          v-html="activity.parent.crowdInfo.body"
+          v-html="activity.parent.body"
         />
         <span
           class="block whitespace-pre-wrap custom-break-all"
-          v-html="activity.crowdInfo.body"
+          v-html="activity.body"
         />
       </div>
       <div
         v-else-if="
-          activity.crowdInfo.body &&
-          activity.platform === 'devto'
+          activity.body && activity.platform === 'devto'
         "
         class="activity-list-feed-item-content-body"
       >
@@ -58,39 +49,38 @@
         >
           <blockquote
             class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-            v-html="activity.parent.crowdInfo.body"
+            v-html="activity.parent.body"
           />
           <br />
         </div>
 
-        <span v-html="activity.crowdInfo.body" />
+        <span v-html="activity.body" />
       </div>
       <div
         v-else-if="
-          activity.crowdInfo.body &&
-          activity.platform !== 'discord'
+          activity.body && activity.platform !== 'discord'
         "
         class="activity-list-feed-item-content-body"
       >
         <blockquote
-          v-if="activity.crowdInfo.thread"
+          v-if="activity.thread"
           class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-          v-html="activity.crowdInfo.thread.body"
+          v-html="activity.thread.body"
         />
         <span
           v-if="activity.type === 'reaction_added'"
-          v-html="renderEmoji(activity.crowdInfo.body)"
+          v-html="renderEmoji(activity.body)"
         />
         <span
           v-else
           class="block whitespace-pre-wrap custom-break-all"
-          v-html="activity.crowdInfo.body"
+          v-html="activity.body"
         />
       </div>
 
       <a
-        v-if="activity.crowdInfo.url"
-        :href="activity.crowdInfo.url"
+        v-if="activity.url"
+        :href="activity.url"
         class="activity-list-feed-item-content-external-link"
         target="_blank"
         ><i
@@ -125,7 +115,7 @@ export default {
   },
   computed: {
     computedUsername() {
-      return this.activity.communityMember.displayName
+      return this.activity.member.displayName
     },
     timeAgo() {
       return computedTimeAgo(this.activity.timestamp)

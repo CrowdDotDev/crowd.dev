@@ -145,7 +145,7 @@ export default {
       doChangePaginationPageSize:
         'conversation/doChangePaginationPageSize',
       doMountTable: 'conversation/doMountTable',
-      doDestroy: 'communityMember/doDestroy'
+      doDestroy: 'member/doDestroy'
     }),
 
     doRefresh() {

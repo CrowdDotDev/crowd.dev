@@ -74,12 +74,12 @@
 
           <el-col :lg="12" :md="16" :sm="24">
             <el-form-item
-              :label="fields.communityMember.label"
-              :prop="fields.communityMember.name"
+              :label="fields.member.label"
+              :prop="fields.member.name"
             >
               <app-autocomplete-one-input
-                v-model="model[fields.communityMember.name]"
-                :fetch-fn="fields.communityMember.fetchFn"
+                v-model="model[fields.member.name]"
+                :fetch-fn="fields.member.fetchFn"
               ></app-autocomplete-one-input>
             </el-form-item>
           </el-col>
@@ -125,7 +125,7 @@ const filterSchema = new FilterSchema([
   fields.timestampRange,
   fields.platform,
   fields.info,
-  fields.communityMember
+  fields.member
 ])
 
 export default {

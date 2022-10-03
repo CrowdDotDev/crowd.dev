@@ -8,7 +8,7 @@ export default [
   fields.timestamp,
   fields.platform,
   fields.info,
-  fields.communityMember,
+  fields.member,
   fields.createdAt,
   fields.updatedAt
 ]
