@@ -100,6 +100,22 @@ export default {
     state.count = 0
   },
 
+  FETCH_CUSTOM_ATTRIBUTES_STARTED() {},
+
+  FETCH_CUSTOM_ATTRIBUTES_SUCCESS(state, payload) {
+    state.customAttributes = payload.rows.reduce(
+      (acc, item) => {
+        acc[item.name] = item
+        return acc
+      },
+      {}
+    )
+  },
+
+  FETCH_CUSTOM_ATTRIBUTES_ERROR(state) {
+    state.customAttributes = {}
+  },
+
   EXPORT_STARTED(state) {
     state.exportLoading = true
   },

@@ -7,6 +7,7 @@
     >
       <div
         class="inline-flex items-center flex-wrap"
+        @click.stop
         @dblclick="editing = true"
       >
         <span

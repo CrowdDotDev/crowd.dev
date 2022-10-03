@@ -10,7 +10,7 @@
       <a
         :href="`mailto:${member.email}`"
         class="btn p-2 text-base leading-none cursor-pointer bg-white text-brand-500 border border-gray-200"
-        @click="trackClick('Email')"
+        @click.stop="trackClick('Email')"
         ><i class="ri-mail-line"></i
       ></a>
     </el-tooltip>
@@ -26,7 +26,7 @@
           :href="member.url?.twitter || null"
           target="_blank"
           class="btn p-2 text-base btn--twitter"
-          @click="trackClick('Twitter')"
+          @click.stop="trackClick('Twitter')"
         >
           <img
             :src="findIcon('twitter')"
@@ -46,7 +46,7 @@
           :href="member.url?.github || null"
           target="_blank"
           class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
-          @click="trackClick('GitHub')"
+          @click.stop="trackClick('GitHub')"
         >
           <img
             :src="findIcon('github')"
@@ -65,7 +65,7 @@
           href="https://linkedin.com"
           target="_blank"
           class="btn p-2 text-base btn--linkedin"
-          @click="trackClick('LinkedIn')"
+          @click.stop="trackClick('LinkedIn')"
         >
           <img
             :src="findIcon('linkedin')"
@@ -84,7 +84,7 @@
           :href="member.url?.devto || null"
           target="_blank"
           class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
-          @click="trackClick('Dev.to')"
+          @click.stop="trackClick('Dev.to')"
         >
           <img
             :src="findIcon('devto')"
@@ -97,6 +97,7 @@
       <span
         v-if="member.username.discord"
         class="btn p-2 text-base btn--discord"
+        @click.stop
       >
         <img
           :src="findIcon('discord')"
@@ -107,6 +108,7 @@
       <span
         v-if="member.username.slack"
         class="btn p-2 text-base btn--slack bg-white border border-gray-200"
+        @click.stop
       >
         <img
           :src="findIcon('slack')"

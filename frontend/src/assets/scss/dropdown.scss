@@ -1,3 +1,7 @@
+.el-dropdown__popper .el-scrollbar {
+  @apply max-h-96 overflow-auto;
+}
+
 .el-dropdown-menu__item, .el-dropdown-menu__item a {
   @apply flex items-center text-black px-4 py-3 text-xs;
 
@@ -16,7 +20,7 @@
 }
 
 .el-dropdown-title {
-  @apply block font-bold pb-2 px-4 text-sm text-gray-500;
+  @apply block font-semibold uppercase text-gray-400 tracking-wider text-2xs leading-4.5 px-4 mt-3 mb-1;
 }
 
 .el-dropdown-separator {
