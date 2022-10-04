@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-2">
+  <div v-if="!!count" class="mb-2">
     <app-pagination-sorter
       :page-size="Number(pagination.pageSize)"
       :total="count"
@@ -122,7 +122,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="mt-8 px-6">
+      <div v-if="!!count" class="mt-8 px-6">
         <app-pagination
           :total="count"
           :page-size="Number(pagination.pageSize)"
