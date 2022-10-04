@@ -2,11 +2,16 @@
   <div class="flex items-center gap-2">
     <el-tooltip
       v-if="member.email"
-      content="Send email <i class='ri-external-link-line text-gray-400'></i>"
       popper-class="custom-identity-tooltip"
-      raw-content
       placement="top"
     >
+      <template #content
+        ><span
+          >Send email
+          <i
+            class="ri-external-link-line text-gray-400"
+          ></i></span
+      ></template>
       <a
         :href="`mailto:${member.email}`"
         class="btn p-2 text-base leading-none cursor-pointer bg-white text-brand-500 border border-gray-200"
@@ -17,15 +22,27 @@
     <div class="flex gap-2 items-center">
       <el-tooltip
         v-if="member.username.twitter"
-        content="Twitter Profile <i class='ri-external-link-line'></i>"
         popper-class="custom-identity-tooltip"
-        raw-content
         placement="top"
       >
+        <template #content>
+          <span>
+            Twitter Profile
+            <i
+              v-if="member.attributes.url.twitter"
+              class="ri-external-link-line text-gray-400"
+            ></i>
+          </span>
+        </template>
         <a
-          :href="member.url?.twitter || null"
+          :href="member.attributes.url.twitter || null"
           target="_blank"
           class="btn p-2 text-base btn--twitter"
+          :class="
+            member.attributes.url.twitter
+              ? 'hover:cursor-pointer'
+              : 'hover:cursor-auto'
+          "
           @click.stop="trackClick('Twitter')"
         >
           <img
@@ -37,15 +54,27 @@
       </el-tooltip>
       <el-tooltip
         v-if="member.username.github"
-        content="GitHub Profile <i class='ri-external-link-line'></i>"
         popper-class="custom-identity-tooltip"
-        raw-content
         placement="top"
       >
+        <template #content>
+          <span>
+            GitHub Profile
+            <i
+              v-if="member.attributes.url.github"
+              class="ri-external-link-line text-gray-400"
+            ></i>
+          </span>
+        </template>
         <a
-          :href="member.url?.github || null"
+          :href="member.attributes.url.github || null"
           target="_blank"
-          class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
+          class="btn p-2 text-base bg-gray-100 border border-gray-200"
+          :class="
+            member.attributes.url.github
+              ? 'hover:cursor-pointer'
+              : 'hover:cursor-auto'
+          "
           @click.stop="trackClick('GitHub')"
         >
           <img
@@ -55,16 +84,28 @@
           />
         </a>
       </el-tooltip>
-      <!-- TODO: Missing design for linkedin -->
       <el-tooltip
         v-if="member.username.linkedin"
-        content="LinkedIn Profile <i class='ri-external-link-line'></i>"
         placement="top"
       >
+        <template #content>
+          <span>
+            LinkedIn Profile
+            <i
+              v-if="member.attributes.url.linkedin"
+              class="ri-external-link-line text-gray-400"
+            ></i>
+          </span>
+        </template>
         <a
           href="https://linkedin.com"
           target="_blank"
           class="btn p-2 text-base btn--linkedin"
+          :class="
+            member.attributes.url.linkedin
+              ? 'hover:cursor-pointer'
+              : 'hover:cursor-auto'
+          "
           @click.stop="trackClick('LinkedIn')"
         >
           <img
@@ -74,16 +115,28 @@
           />
         </a>
       </el-tooltip>
-      <!-- TODO: (TBC) Shouldn't the tooltip have the url validation as well? If there is no URL doesn't make sense to ask to open -->
       <el-tooltip
         v-if="member.username.devto"
-        content="DEV Profile <i class='ri-external-link-line'></i>"
         placement="top"
       >
+        <template #content>
+          <span>
+            DEV Profile
+            <i
+              v-if="member.attributes.url.devto"
+              class="ri-external-link-line text-gray-400"
+            ></i>
+          </span>
+        </template>
         <a
-          :href="member.url?.devto || null"
+          :href="member.attributes.url.devto || null"
           target="_blank"
-          class="btn p-2 text-base cursor-pointer bg-gray-100 border border-gray-200"
+          class="btn p-2 text-base bg-gray-100 border border-gray-200"
+          :class="
+            member.attributes.url.devto
+              ? 'hover:cursor-pointer'
+              : 'hover:cursor-auto'
+          "
           @click.stop="trackClick('Dev.to')"
         >
           <img
@@ -94,28 +147,40 @@
         </a>
       </el-tooltip>
       <!-- TODO: (TBC) Discord does not have link, is there still any tooltip? -->
-      <span
+      <el-tooltip
         v-if="member.username.discord"
-        class="btn p-2 text-base btn--discord"
-        @click.stop
+        placement="top"
       >
-        <img
-          :src="findIcon('discord')"
-          alt="Discord"
-          class="member-channels-icon"
-        />
-      </span>
-      <span
+        <template #content>Discord Profile</template>
+        <span
+          v-if="member.username.discord"
+          class="btn p-2 text-base btn--discord cursor-auto hover:cursor-auto"
+          @click.stop
+        >
+          <img
+            :src="findIcon('discord')"
+            alt="Discord"
+            class="member-channels-icon"
+          />
+        </span>
+      </el-tooltip>
+      <el-tooltip
         v-if="member.username.slack"
-        class="btn p-2 text-base btn--slack bg-white border border-gray-200"
-        @click.stop
+        placement="top"
       >
-        <img
-          :src="findIcon('slack')"
-          alt="Slack"
-          class="member-channels-icon"
-        />
-      </span>
+        <template #content>Slack Profile</template>
+        <span
+          v-if="member.username.slack"
+          class="btn p-2 text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200"
+          @click.stop
+        >
+          <img
+            :src="findIcon('slack')"
+            alt="Slack"
+            class="member-channels-icon"
+          />
+        </span>
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -164,7 +229,6 @@ export default {
 .btn {
   &--twitter,
   &--twitter:hover {
-    @apply cursor-pointer;
     background-color: rgba(29, 155, 240, 0.15);
     color: #1d9bf0;
   }
