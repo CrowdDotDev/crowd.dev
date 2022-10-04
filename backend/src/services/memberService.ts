@@ -23,43 +23,32 @@ export default class MemberService {
   }
 
   /**
-   * Transforms the attributes coming from a request to a structured, attribute-name-key(ed) object.
-   * Example incoming attributes:
+   * Validates the attributes against its saved settings.
+   *
+   * Throws 400 Errors if the attribute does not exist in settings,
+   * or if the sent attribute type does not match the type in the settings.
+   * Also restructures custom attributes that come only as a value, without platforms.
+   *
+   * Example custom attributes restructuring
    * {
-   *   attributes:{
-   *     github:{
-   *         url: 'http://some-github-url'
-   *         name: 'Michael Scott'
-   *         isHireable: true
-   *     },
-   *     twitter:{
-   *         url: 'http://some-twitter-url'
-   *     }
+   *   attributes: {
+   *      someAttributeName: 'someValue'
    *   }
    * }
    *
    * This object is transformed into:
    * {
-   *   attributes:{
-   *     url: {
-   *        github: 'http://some-github-url',
-   *        twitter: 'http://some-twitter-url'
+   *   attributes: {
+   *     someAttributeName: {
+   *        custom: 'someValue'
    *     },
-   *     name: {
-   *        github: 'Michael Scott'
-   *     },
-   *     isHireable: {
-   *        github: true
-   *     }
    *   }
    * }
    *
-   * Throws 400 Errors if the attribute does not exist in settings,
-   * or if the sent attribute type does not match the type in the settings.
    * @param attributes
-   * @returns structured object
+   * @returns restructured object
    */
-  async validateAttributes(attributes: object): Promise<object> {
+  async validateAttributes(attributes: { [key: string]: any }): Promise<object> {
     // check attribute exists in memberAttributeSettings
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
@@ -76,6 +65,12 @@ export default class MemberService {
           attributeName,
         )
       }
+      if (typeof attributes[attributeName] !== 'object') {
+        attributes[attributeName] = {
+          custom: attributes[attributeName],
+        }
+      }
+
       for (const platform of Object.keys(attributes[attributeName])) {
         if (
           attributes[attributeName][platform] !== undefined &&
@@ -196,7 +191,7 @@ export default class MemberService {
       const { platform } = data
 
       if (data.attributes) {
-        await this.validateAttributes(data.attributes)
+        data.attributes = await this.validateAttributes(data.attributes)
       }
 
       if (data.reach) {

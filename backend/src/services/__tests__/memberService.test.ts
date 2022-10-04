@@ -2488,8 +2488,89 @@ describe('MemberService tests', () => {
 
       const validateAttributes = await memberService.validateAttributes(attributes)
 
-      expect(validateAttributes).toBeTruthy()
+      expect(validateAttributes).toEqual(attributes)
     })
+
+    it(`Should accept custom attributes without 'custom' platform key`, async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+
+      const attributes = {
+        [MemberAttributeName.NAME]: 'Dwight Schrute',
+      }
+
+      const validateAttributes = await memberService.validateAttributes(attributes)
+
+      const expectedValidatedAttributes = {
+        [MemberAttributeName.NAME]: {
+          custom: 'Dwight Schrute',
+        },
+      }
+
+      expect(validateAttributes).toEqual(expectedValidatedAttributes)
+    })
+
+    it(`Should accept custom attributes both without and with 'custom' platform key`, async () => {
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
+
+      const memberService = new MemberService(mockIServiceOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(mockIServiceOptions)
+
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(DevtoMemberAttributes)
+
+      const attributes = {
+        [MemberAttributeName.NAME]: 'Dwight Schrute',
+        [MemberAttributeName.URL]: 'https://some-url',
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: 'Berlin',
+          [PlatformType.DEVTO]: 'Istanbul',
+          custom: 'a custom location',
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
+          [PlatformType.DEVTO]: 'Assistant Regional Manager',
+          custom: 'a custom bio',
+        },
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: 'https://some-image-url',
+          custom: 'a custom image url',
+        },
+      }
+
+      const validateAttributes = await memberService.validateAttributes(attributes)
+
+      const expectedValidatedAttributes = {
+        [MemberAttributeName.NAME]: {
+          custom: 'Dwight Schrute',
+        },
+        [MemberAttributeName.URL]: {
+          custom: 'https://some-url',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: 'Berlin',
+          [PlatformType.DEVTO]: 'Istanbul',
+          custom: 'a custom location',
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
+          [PlatformType.DEVTO]: 'Assistant Regional Manager',
+          custom: 'a custom bio',
+        },
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: 'https://some-image-url',
+          custom: 'a custom image url',
+        },
+      }
+
+      expect(validateAttributes).toEqual(expectedValidatedAttributes)
+    })
+
     it('Should throw a 400 Error when an attribute does not exist in member attribute settings', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
