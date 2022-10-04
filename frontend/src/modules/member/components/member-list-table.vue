@@ -1,4 +1,14 @@
 <template>
+  <div class="mb-2">
+    <app-pagination-sorter
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      position="top"
+      @change-page-size="doChangePaginationPageSize"
+    />
+  </div>
   <div class="member-list-table panel">
     <app-member-list-toolbar></app-member-list-toolbar>
     <div class="-mx-6 -mt-6">
@@ -112,140 +122,115 @@
         </el-table-column>
       </el-table>
 
-      <div class="el-pagination-wrapper px-3">
-        <el-pagination
-          :current-page="pagination.currentPage || 1"
-          :disabled="loading"
-          :layout="paginationLayout"
+      <div class="mt-8 px-6">
+        <app-pagination
           :total="count"
-          :page-size="pagination.pageSize"
-          :page-sizes="[20, 50, 100, 200]"
-          @current-change="doChangePaginationCurrentPage"
-          @size-change="doChangePaginationPageSize"
-        >
-          <div class="flex flex-grow"></div>
-        </el-pagination>
+          :page-size="Number(pagination.pageSize)"
+          :pager-count="11"
+          :current-page="pagination.currentPage || 1"
+          @change-current-page="
+            doChangePaginationCurrentPage
+          "
+          @change-page-size="doChangePaginationPageSize"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import MemberListToolbar from '@/modules/member/components/member-list-toolbar.vue'
-import { MemberModel } from '@/modules/member/member-model'
-import { mapGetters, mapActions, mapState } from 'vuex'
-import { MemberPermissions } from '@/modules/member/member-permissions'
-import { i18n } from '@/i18n'
-import MemberDropdown from './member-dropdown'
-import MemberChannels from './member-channels'
-import TagList from '@/modules/tag/components/tag-list'
-import MemberEngagementLevel from './member-engagement-level'
-import moment from 'moment'
-import computedTimeAgo from '@/utils/time-ago'
-
-const { fields } = MemberModel
-
 export default {
-  name: 'AppMemberListTable',
-  components: {
-    'app-member-list-toolbar': MemberListToolbar,
-    'app-member-dropdown': MemberDropdown,
-    'app-member-channels': MemberChannels,
-    'app-tag-list': TagList,
-    'app-member-engagement-level': MemberEngagementLevel
-  },
+  name: 'AppMemberListTable'
+}
+</script>
 
-  computed: {
-    ...mapState({
-      rows: (state) => state.member.list.ids,
-      loading: (state) => state.member.list.loading,
-      count: (state) => state.member.count
-    }),
-    ...mapGetters({
-      selectedRows: 'member/selectedRows',
-      pagination: 'member/pagination',
-      isMobile: 'layout/isMobile',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      paginationLayout: 'layout/paginationLayout'
-    }),
+<script setup>
+import { i18n } from '@/i18n'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import AppMemberListToolbar from '@/modules/member/components/member-list-toolbar.vue'
+import AppMemberDropdown from './member-dropdown'
+import AppMemberChannels from './member-channels'
+import AppTagList from '@/modules/tag/components/tag-list'
+import AppMemberEngagementLevel from './member-engagement-level'
 
-    hasPermissionToEdit() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).edit
-    },
+const store = useStore()
+const router = useRouter()
+const table = ref(null)
 
-    hasPermissionToDestroy() {
-      return new MemberPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).destroy
-    },
+const rows = computed(() => store.state.member.list.ids)
+const count = computed(() => store.state.member.count)
+const loading = computed(
+  () => store.state.member.list.loading
+)
 
-    computedChannelsWidth() {
-      const maxChannels = this.rows?.reduce((acc, item) => {
-        acc =
-          Object.keys(item.username).length > acc
-            ? Object.keys(item.username).length
-            : acc
-        return acc
-      }, 0)
-      return `${90 + maxChannels * 32}px`
-    },
+const selectedRows = computed(
+  () => store.getters['member/selectedRows']
+)
+const pagination = computed(
+  () => store.getters['member/pagination']
+)
 
-    fields() {
-      return fields
-    }
-  },
+const computedChannelsWidth = computed(() => {
+  const maxChannels = rows.value?.reduce((acc, item) => {
+    acc =
+      Object.keys(item.username).length > acc
+        ? Object.keys(item.username).length
+        : acc
+    return acc
+  }, 0)
 
-  mounted() {
-    this.doMountTable(this.$refs.table)
-  },
+  return `${90 + maxChannels * 32}px`
+})
 
-  methods: {
-    ...mapActions({
-      doChangeSort: 'member/doChangeSort',
-      doChangePaginationCurrentPage:
-        'member/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'member/doChangePaginationPageSize',
-      doMountTable: 'member/doMountTable',
-      doDestroy: 'member/doDestroy'
-    }),
+onMounted(() => {
+  doMountTable(table.value)
+})
 
-    doRefresh() {
-      this.doChangePaginationCurrentPage()
-    },
+function doChangeSort(sorter) {
+  store.dispatch('member/doChangeSort', sorter)
+}
 
-    presenter(row, fieldName) {
-      return MemberModel.presenter(row, fieldName)
-    },
+function doChangePaginationCurrentPage(currentPage) {
+  store.dispatch(
+    'member/doChangePaginationCurrentPage',
+    currentPage
+  )
+}
 
-    translate(key) {
-      return i18n(key)
-    },
+function doChangePaginationPageSize(pageSize) {
+  store.dispatch(
+    'member/doChangePaginationPageSize',
+    pageSize
+  )
+}
 
-    rowClass({ row }) {
-      const isSelected =
-        this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
-      return isSelected ? 'is-selected' : ''
-    },
-    date(timestamp) {
-      return moment(timestamp).format('YYYY-MM-DD')
-    },
-    timeAgo(timestamp) {
-      return computedTimeAgo(timestamp)
-    },
-    handleRowClick(row) {
-      this.$router.push({
-        name: 'memberView',
-        params: { id: row.id }
-      })
-    }
-  }
+function doMountTable(tableRef) {
+  store.dispatch('member/doMountTable', tableRef)
+}
+
+function doRefresh(currentPage) {
+  doChangePaginationCurrentPage(currentPage)
+}
+
+function translate(key) {
+  return i18n(key)
+}
+
+function rowClass({ row }) {
+  const isSelected =
+    selectedRows.value.find((r) => r.id === row.id) !==
+    undefined
+
+  return isSelected ? 'is-selected' : ''
+}
+
+function handleRowClick(row) {
+  router.push({
+    name: 'memberView',
+    params: { id: row.id }
+  })
 }
 </script>
 
@@ -263,51 +248,6 @@ export default {
 
     .hover-row {
       cursor: pointer;
-    }
-  }
-}
-
-.el-pagination-wrapper .el-pagination {
-  @apply flex w-full gap-2;
-
-  .el-pagination__total {
-    @apply mr-6 text-gray-500;
-  }
-
-  .btn-prev,
-  .btn-next {
-    &:not([disabled]):hover {
-      @apply bg-gray-100;
-    }
-
-    &-is-first,
-    &-is-last {
-      @apply cursor-not-allowed;
-    }
-  }
-
-  .el-icon svg {
-    @apply text-gray-500;
-    display: unset;
-  }
-
-  button {
-    @apply m-0;
-  }
-
-  ul.el-pager {
-    @apply flex gap-2;
-
-    li.number {
-      @apply font-normal text-gray-600 m-0;
-
-      &:not(.is-active):hover {
-        @apply bg-gray-100;
-      }
-
-      &.is-active {
-        @apply bg-brand-500;
-      }
     }
   }
 }

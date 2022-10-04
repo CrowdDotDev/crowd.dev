@@ -1,4 +1,4 @@
-import { INITIAL_PAGE_SIZE } from './index'
+import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
   RESETED(state) {
