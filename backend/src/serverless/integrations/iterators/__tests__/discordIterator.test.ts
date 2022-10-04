@@ -151,9 +151,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345',
+              }
             },
           },
           score: DiscordGrid.message.score,
@@ -208,9 +208,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345'
+              }
             },
           },
           score: DiscordGrid.message.score,
@@ -264,9 +264,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345',
+              }
             },
           },
           score: DiscordGrid.message.score,
@@ -319,9 +319,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345',
+              }
             },
           },
           score: DiscordGrid.message.score,
@@ -376,9 +376,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345',
+              }
             },
           },
           score: DiscordGrid.message.score,
@@ -426,9 +426,9 @@ describe('Discord iterator tests', () => {
           member: {
             username: 'username',
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: 'a12345',
-              },
+              [MemberAttributeName.SOURCE_ID]:{
+                [PlatformType.DISCORD]:'a12345',
+              }
             },
           },
           score: DiscordGrid.join.score,

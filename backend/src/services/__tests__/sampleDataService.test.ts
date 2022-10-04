@@ -41,17 +41,25 @@ describe('SampleDataService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Computer Science',
-            [MemberAttributeName.LOCATION]: 'Istanbul',
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]:'Quoc-Anh Nguyen',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]:true
           },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]:  'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]:'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]:'Computer Science',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Istanbul',
+          }
         },
         organisation: 'Crowd',
         joinedAt: '2020-05-27T15:13:30Z',
@@ -145,17 +153,26 @@ describe('SampleDataService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Computer Science',
-            [MemberAttributeName.LOCATION]: 'Istanbul',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]:true
           },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]:'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]:'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]:'Computer Science',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]:'Istanbul',
+          },
+
         },
         organisation: 'Crowd',
         joinedAt: '2020-05-27T15:13:30Z',

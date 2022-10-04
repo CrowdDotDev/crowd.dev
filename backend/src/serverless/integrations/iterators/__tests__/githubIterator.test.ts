@@ -140,15 +140,21 @@ describe('Github iterator tests', () => {
         },
         displayName: prWithMember.name,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: prWithMember.name,
-            [MemberAttributeName.IS_HIREABLE]: prWithMember.isHireable,
-            [MemberAttributeName.URL]: prWithMember.url,
-            [MemberAttributeName.BIO]: prWithMember.bio,
-            [MemberAttributeName.LOCATION]: prWithMember.location,
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: prWithMember.name,
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: `https://twitter.com/${prWithMember.twitterUsername}`,
+          [MemberAttributeName.IS_HIREABLE]:{
+            [PlatformType.GITHUB]: prWithMember.isHireable,
+          },
+          [MemberAttributeName.URL]:{
+            [PlatformType.GITHUB]: prWithMember.url,
+            [PlatformType.TWITTER]: `https://twitter.com/${prWithMember.twitterUsername}`,
+          },
+          [MemberAttributeName.BIO]:{
+            [PlatformType.GITHUB]: prWithMember.bio,
+          },
+          [MemberAttributeName.LOCATION]:{
+            [PlatformType.GITHUB]: prWithMember.location,
           },
         },
         email: prWithMember.email,

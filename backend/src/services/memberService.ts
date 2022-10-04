@@ -59,9 +59,7 @@ export default class MemberService {
    * @param attributes
    * @returns structured object
    */
-  async getStructuredAttributes(attributes: object): Promise<object> {
-    const attributesObject = {}
-
+  async validateAttributes(attributes: object): Promise<object> {
     // check attribute exists in memberAttributeSettings
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
@@ -70,27 +68,25 @@ export default class MemberService {
       return acc
     }, {})
 
-    for (const platform of Object.keys(attributes)) {
-      for (const attributeName of Object.keys(attributes[platform])) {
+    for (const attributeName of Object.keys(attributes)) {
+      if (!memberAttributeSettings[attributeName]) {
+        throw new Error400(
+          this.options.language,
+          'settings.memberAttributes.notFound',
+          attributeName,
+        )
+      }
+      for (const platform of Object.keys(attributes[attributeName])) {
         if (
-          attributes[platform][attributeName] !== undefined &&
-          attributes[platform][attributeName] !== null
+          attributes[attributeName][platform] !== undefined &&
+          attributes[attributeName][platform] !== null
         ) {
-          if (!memberAttributeSettings[attributeName]) {
-            throw new Error400(
-              this.options.language,
-              'settings.memberAttributes.notFound',
-              attributeName,
-            )
-          }
           if (
             !MemberAttributeSettingsService.isCorrectType(
-              attributes[platform][attributeName],
+              attributes[attributeName][platform],
               memberAttributeSettings[attributeName].type,
             )
           ) {
-            console.log(attributes[platform][attributeName])
-            console.log('second')
             throw new Error400(
               this.options.language,
               'settings.memberAttributes.wrongType',
@@ -98,22 +94,11 @@ export default class MemberService {
               memberAttributeSettings[attributeName].type,
             )
           }
-
-          if (attributesObject[attributeName]) {
-            attributesObject[attributeName] = {
-              ...attributesObject[attributeName],
-              [platform]: attributes[platform][attributeName],
-            }
-          } else {
-            attributesObject[attributeName] = {
-              [platform]: attributes[platform][attributeName],
-            }
-          }
         }
       }
     }
 
-    return attributesObject
+    return attributes
   }
 
   /**
@@ -211,7 +196,7 @@ export default class MemberService {
       const { platform } = data
 
       if (data.attributes) {
-        data.attributes = await this.getStructuredAttributes(data.attributes)
+        await this.validateAttributes(data.attributes)
       }
 
       if (data.reach) {
