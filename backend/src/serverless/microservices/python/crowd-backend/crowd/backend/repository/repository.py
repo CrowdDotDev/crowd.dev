@@ -1,4 +1,6 @@
 import logging
+
+from crowd.backend.infrastructure.config import KUBE_MODE, DB_URL
 from crowd.backend.repository.keys import DBKeys as dbk
 import dns
 import os
@@ -45,15 +47,18 @@ class Repository(object):
         if db_url:
             self.db_url = db_url
         else:
-            if test:
-                self.db_url = os.environ.get("DB_URL_TEST")
-
+            # TODO-kube
+            if KUBE_MODE:
+                self.db_url = DB_URL
             else:
-                username = os.environ.get("DATABASE_USERNAME")
-                password = os.environ.get("DATABASE_PASSWORD")
-                database = os.environ.get("DATABASE_DATABASE")
-                host = os.environ.get("DATABASE_HOST_READ")
-                self.db_url = f'postgresql://{username}:{password}@{host}/{database}'
+                if test:
+                    self.db_url = os.environ.get("DB_URL_TEST")
+                else:
+                    username = os.environ.get("DATABASE_USERNAME")
+                    password = os.environ.get("DATABASE_PASSWORD")
+                    database = os.environ.get("DATABASE_DATABASE")
+                    host = os.environ.get("DATABASE_HOST_READ")
+                    self.db_url = f'postgresql://{username}:{password}@{host}/{database}'
 
         self.engine = create_engine(
             self.db_url, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True}

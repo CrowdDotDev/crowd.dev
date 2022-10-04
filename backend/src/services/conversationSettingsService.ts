@@ -1,9 +1,9 @@
 import Axios from 'axios'
 import lodash from 'lodash'
+import { NETLIFY_CONFIG } from '../config/index'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { getConfig } from '../config'
 
 const DEFAULT_CONVERSATION_SETTINGS = {}
 
@@ -38,13 +38,11 @@ export default class ConversationSettingsService {
       const netlifyClient = Axios.create({
         baseURL: 'https://api.netlify.com/api/v1/',
         headers: {
-          Authorization: `Bearer ${getConfig().NETLIFY_API_KEY}`,
+          Authorization: `Bearer ${NETLIFY_CONFIG.apiKey}`,
         },
       })
       const { data: netlifySites } = await netlifyClient.get('sites')
-      const netlifySite = netlifySites.find(
-        (s) => s.custom_domain === getConfig().NETLIFY_SITE_DOMAIN,
-      )
+      const netlifySite = netlifySites.find((s) => s.custom_domain === NETLIFY_CONFIG.siteDomain)
       const domainAliases = [...netlifySite.domain_aliases, domain]
       await netlifyClient.patch(`sites/${netlifySite.id}`, {
         domain_aliases: domainAliases,

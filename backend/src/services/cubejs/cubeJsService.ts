@@ -1,6 +1,6 @@
 import jwt, { JsonWebTokenError } from 'jsonwebtoken'
 import cubejs from '@cubejs-client/core'
-import { getConfig } from '../../config'
+import { CUBEJS_CONFIG } from '../../config'
 import Error400 from '../../errors/Error400'
 
 export default class CubeJsService {
@@ -24,7 +24,7 @@ export default class CubeJsService {
   async setTenant(tenantId: string): Promise<void> {
     this.tenantId = tenantId
     this.token = await CubeJsService.generateJwtToken(this.tenantId)
-    this.api = cubejs(this.token, { apiUrl: getConfig().CUBE_JS_URL })
+    this.api = cubejs(this.token, { apiUrl: CUBEJS_CONFIG.url })
   }
 
   /**
@@ -39,8 +39,8 @@ export default class CubeJsService {
 
   static async generateJwtToken(tenantId: string | null) {
     const context = tenantId ? { tenantId } : {}
-    const token = jwt.sign(context, getConfig().CUBE_JS_JWT_SECRET, {
-      expiresIn: getConfig().CUBE_JS_JWT_EXPIRY,
+    const token = jwt.sign(context, CUBEJS_CONFIG.jwtSecret, {
+      expiresIn: CUBEJS_CONFIG.jwtExpiry,
     })
 
     return token
@@ -48,7 +48,7 @@ export default class CubeJsService {
 
   static async verifyToken(language, token, tenantId) {
     try {
-      const decodedToken: any = jwt.verify(token, getConfig().CUBE_JS_JWT_SECRET)
+      const decodedToken: any = jwt.verify(token, CUBEJS_CONFIG.jwtSecret)
 
       if (decodedToken.tenantId !== tenantId) {
         throw new Error400(language, 'cubejs.tenantIdNotMatching')

@@ -1,0 +1,44 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: nodejs-worker
+
+services:
+  nodejs-worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.kube
+    command: 'npm run start:nodejs-worker'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  nodejs-worker-dev:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.kube
+    command: 'npm run start:nodejs-worker:dev'
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    hostname: nodejs-worker
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../backend:/usr/crowd/backend
+      - /usr/crowd/backend/node_modules
+
+networks:
+  crowd-bridge:
+    external: true

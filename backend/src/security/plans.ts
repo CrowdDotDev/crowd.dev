@@ -1,4 +1,4 @@
-import { getConfig } from '../config'
+import { PLANS_CONFIG } from '../config'
 
 class Plans {
   static get values() {
@@ -11,8 +11,8 @@ class Plans {
   }
 
   static selectPlanByStripePriceId(stripePriceId) {
-    const premiumStripePriceId = getConfig().PLAN_STRIPE_PRICES_PREMIUM
-    const enterpriseStripePriceId = getConfig().PLAN_STRIPE_PRICES_ENTERPRISE
+    const premiumStripePriceId = PLANS_CONFIG.stripePricePremium
+    const enterpriseStripePriceId = PLANS_CONFIG.stripePriceEnterprise
 
     if (premiumStripePriceId === stripePriceId) {
       return Plans.values.premium
@@ -27,11 +27,11 @@ class Plans {
 
   static selectStripePriceIdByPlan(plan) {
     if (plan === Plans.values.premium) {
-      return getConfig().PLAN_STRIPE_PRICES_PREMIUM
+      return PLANS_CONFIG.stripePricePremium
     }
 
     if (plan === Plans.values.enterprise) {
-      return getConfig().PLAN_STRIPE_PRICES_ENTERPRISE
+      return PLANS_CONFIG.stripePriceEnterprise
     }
 
     return null

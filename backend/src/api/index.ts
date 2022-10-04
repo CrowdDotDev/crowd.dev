@@ -10,6 +10,7 @@ import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
 import setupSwaggerUI from './apiDocumentation'
+import { IS_CLOUD_ENV } from '../config'
 
 const app = express()
 
@@ -90,7 +91,16 @@ require('./automation').default(routes)
 routes.param('tenantId', tenantMiddleware)
 
 // Add the routes to the /api endpoint
-app.use('/api', routes)
+if (IS_CLOUD_ENV) {
+  app.use('/', routes)
+} else {
+  app.use('/api', routes)
+}
+
+const webhookRoutes = express.Router()
+require('./webhooks').default(webhookRoutes)
+
+app.use('/webhooks', webhookRoutes)
 
 const io = require('@pm2/io')
 

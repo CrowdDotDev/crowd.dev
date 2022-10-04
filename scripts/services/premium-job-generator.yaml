@@ -1,0 +1,44 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: premium-job-generator
+
+services:
+  premium-job-generator:
+    build:
+      context: ../premium/job-generator
+      dockerfile: Dockerfile
+    command: 'npm run start'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  premium-job-generator-dev:
+    build:
+      context: ../premium/job-generator
+      dockerfile: Dockerfile
+    command: 'npm run start:dev'
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    hostname: premium-job-generator
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../premium/job-generator:/usr/crowd/premium-job-generator
+      - /usr/crowd/premium-job-generator/node_modules
+
+networks:
+  crowd-bridge:
+    external: true

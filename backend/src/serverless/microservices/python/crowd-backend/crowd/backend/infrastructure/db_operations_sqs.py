@@ -6,12 +6,18 @@ from functools import reduce
 import logging
 import json
 
+from crowd.backend.infrastructure.config import KUBE_MODE, NODEJS_WORKER_QUEUE
+
 logger = logging.getLogger(__name__)
 
 
 class DbOperationsSQS(SQS):
     def __init__(self):
-        db_operations_sqs_url = os.environ.get("DB_OPERATIONS_SQS_URL")
+        # TODO-kube
+        if KUBE_MODE:
+            db_operations_sqs_url = NODEJS_WORKER_QUEUE
+        else:
+            db_operations_sqs_url = os.environ.get("DB_OPERATIONS_SQS_URL")
         super().__init__(db_operations_sqs_url)
 
     @staticmethod
@@ -74,6 +80,9 @@ class DbOperationsSQS(SQS):
 
             for chunk in chuncked:
                 body = dict(tenant_id=tenant_id, operation=operation.value, records=chunk)
+                # TODO-kube
+                if KUBE_MODE:
+                    body["type"] = "db_operations"
                 if send:
                     super().send_message(body, message_id, DbOperationsSQS.make_id())
                 else:

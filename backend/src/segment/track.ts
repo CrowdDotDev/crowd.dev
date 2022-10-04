@@ -1,4 +1,4 @@
-import { getConfig } from '../config'
+import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../config'
 import getTenatUser from './trackHelper'
 
 export default function identify(
@@ -9,13 +9,13 @@ export default function identify(
   timestamp: any = false,
 ) {
   if (
-    process.env.NODE_ENV !== 'test' &&
-    getConfig().SEGMENT_WRITE_KEY &&
+    !IS_TEST_ENV &&
+    SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
-    getConfig().EDITION === 'crowd-hosted'
+    API_CONFIG.edition === 'crowd-hosted'
   ) {
     const Analytics = require('analytics-node')
-    const analytics = new Analytics(getConfig().SEGMENT_WRITE_KEY)
+    const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 
     const { userIdOut, tenantIdOut } = getTenatUser(userId, options)
 

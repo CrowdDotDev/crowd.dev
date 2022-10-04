@@ -196,6 +196,11 @@ export default class DevtoIterator extends BaseIterator {
     const article = single(this.articles, (a) => a.id === articleId)
     const activities: AddActivitiesSingle[] = []
 
+    // comment was deleted or the user deleted his account
+    if (!comment.user.username) {
+      return []
+    }
+
     const communityMember: CommunityMember = {
       username: {
         [PlatformType.DEVTO]: comment.user.username,

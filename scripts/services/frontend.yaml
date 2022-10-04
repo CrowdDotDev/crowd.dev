@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.kube
+    env_file:
+      - ../../frontend/.env
+    environment:
+      - DOCKER_BUILDKIT=1
+    networks:
+      - crowd-bridge
+
+  frontend-dev:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile-frontend-dev
+    env_file:
+      - ../../frontend/.env
+    command: npm start
+    user: '${USER_ID}:${GROUP_ID}'
+    environment:
+      - DOCKER_BUILDKIT=1
+    networks:
+      - crowd-bridge
+    hostname: frontend
+    volumes:
+      - ../../frontend:/usr/crowd/frontend
+
+networks:
+  crowd-bridge:
+    external: true

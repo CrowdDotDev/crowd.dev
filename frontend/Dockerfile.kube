@@ -1,0 +1,12 @@
+FROM node:16-alpine as builder
+
+WORKDIR /usr/crowd/frontend
+COPY . .
+
+RUN npm ci
+RUN npx vue-cli-service build --mode production
+
+FROM nginx:1.17-alpine as release
+
+COPY nginx.kube.conf /etc/nginx/nginx.conf
+COPY --from=builder /usr/crowd/frontend/dist /etc/nginx/html

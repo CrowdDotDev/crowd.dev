@@ -22,6 +22,7 @@ import * as microserviceTypes from '../../../database/utils/keys/microserviceTyp
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { TWITTER_CONFIG } from '../../../config'
 
 export default class TwitterIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -33,7 +34,7 @@ export default class TwitterIterator extends BaseIterator {
   // Some endpoints are hard-coded since they are fixed
   static fixedEndpoints: Endpoints = ['followers', 'mentions']
 
-  static maxRetrospect: number = Number(process.env.TWITTER_MAX_RETROSPECT_IN_SECONDS || 7380)
+  static maxRetrospect: number = TWITTER_CONFIG.maxRetrospectInSeconds || 7380
 
   profileId: string
 
@@ -67,7 +68,7 @@ export default class TwitterIterator extends BaseIterator {
       (hashtags || []).map((hashtag) => `hashtag/${hashtag}`),
     )
 
-    let globalLimit = Number(process.env.TWITTER_GLOBAL_LIMIT || 10000)
+    let globalLimit = TWITTER_CONFIG.globalLimit || 10000
 
     globalLimit = onboarding ? globalLimit * 0.7 : globalLimit
     super(tenant, endpoints, state, onboarding, globalLimit, tweetCount)

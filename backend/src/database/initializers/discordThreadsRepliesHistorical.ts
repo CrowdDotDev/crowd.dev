@@ -9,7 +9,7 @@ import dotenvExpand from 'dotenv-expand'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
-import { getConfig } from '../../config'
+import { DISCORD_CONFIG } from '../../config'
 import getUserContext from '../utils/getUserContext'
 import { PlatformType } from '../../utils/platforms'
 
@@ -163,7 +163,7 @@ async function getThreadMessages(threadId, before = null) {
   }
 
   return fetch(url, {
-    headers: { Authorization: `Bot ${getConfig().DISCORD_TOKEN}` },
+    headers: { Authorization: `Bot ${DISCORD_CONFIG.token}` },
   })
     .then((res) => res.json())
     .then((res) => {

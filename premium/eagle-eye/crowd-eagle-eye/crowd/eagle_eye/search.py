@@ -37,7 +37,6 @@ def transform(query, post):
     Returns:
         dict: transformed dict for crowd.dev's API
     """
-    # TODO-test
     metadata = post['metadata']
 
     return {
@@ -57,6 +56,7 @@ def transform(query, post):
 
 
 def search_main(queries, ndays, exclude):
+    logger.info(f"Starting search for queries {queries}")
     vector = VectorAPI()
     out = []
     for query in queries:
@@ -66,5 +66,5 @@ def search_main(queries, ndays, exclude):
             if result['score'] > 0.1:
                 out.append(transform(query, result))
     out = remove_duplicates(out)
-    logger.info('Finished search. Returning...')
+    logger.info(f"Search done. Returning {list(map(lambda x: x.get('title', ''), out))}")
     return json.dumps(out)

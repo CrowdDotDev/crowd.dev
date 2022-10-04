@@ -3,6 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import lodash from 'lodash'
+import { KUBE_MODE, GITHUB_CONFIG } from '../config/index'
 import {
   DevtoIntegrationMessage,
   DiscordIntegrationMessage,
@@ -10,7 +11,6 @@ import {
 } from '../serverless/integrations/types/messageTypes'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
-import { getConfig } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import IntegrationRepository from '../database/repositories/integrationRepository'
 import Error542 from '../errors/Error542'
@@ -18,6 +18,8 @@ import send from '../serverless/integrations/utils/integrationSQS'
 import track from '../segment/track'
 import { PlatformType } from '../utils/platforms'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
+import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -179,11 +181,17 @@ export default class IntegrationService {
    * @returns Installation authentication token
    */
   static async getInstallToken(installId) {
+    let privateKey = GITHUB_CONFIG.privateKey
+
+    if (KUBE_MODE) {
+      privateKey = privateKey.replace(/\\n/g, '\n')
+    }
+
     const auth = createAppAuth({
-      appId: getConfig().GITHUB_APP_ID,
-      privateKey: getConfig().GITHUB_PRIVATE_KEY,
-      clientId: getConfig().GITHUB_CLIENT_ID,
-      clientSecret: getConfig().GITHUB_CLIENT_SECRET,
+      appId: GITHUB_CONFIG.appId,
+      privateKey,
+      clientId: GITHUB_CONFIG.clientId,
+      clientSecret: GITHUB_CONFIG.clientSecret,
     })
 
     // Retrieve installation access token
@@ -212,8 +220,8 @@ export default class IntegrationService {
 
     const GITHUB_AUTH_ACCESSTOKEN_URL = 'https://github.com/login/oauth/access_token'
     // Getting the GitHub client ID and secret from the .env file.
-    const CLIENT_ID = getConfig().GITHUB_CLIENT_ID
-    const CLIENT_SECRET = getConfig().GITHUB_CLIENT_SECRET
+    const CLIENT_ID = GITHUB_CONFIG.clientId
+    const CLIENT_SECRET = GITHUB_CONFIG.clientSecret
     // Post to GitHub to get token
     const tokenResponse = await axios({
       method: 'post',
@@ -270,7 +278,16 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(integrationsMessageBody)
+    // TODO-kube
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return integration
   }
@@ -306,7 +323,17 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
+    // TODO-kube
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.createOrUpdate({
       platform: PlatformType.DISCORD,
@@ -342,7 +369,17 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(mqMessage)
+    // TODO-kube
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...mqMessage,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(mqMessage)
+    }
 
     return integration
   }
@@ -374,7 +411,16 @@ export default class IntegrationService {
       args: {},
     }
 
-    await send(integrationsMessageBody)
+    // TODO-kube
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.createOrUpdate({
       platform: PlatformType.SLACK,
@@ -431,7 +477,17 @@ export default class IntegrationService {
       },
     }
 
-    await send(integrationsMessageBody)
+    // TODO-kube
+    if (KUBE_MODE) {
+      const payload = {
+        type: NodeWorkerMessageType.INTEGRATION,
+        ...integrationsMessageBody,
+      }
+
+      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+    } else {
+      await send(integrationsMessageBody)
+    }
 
     return this.update(integration.id, {
       limitCount: integration.limitCount,

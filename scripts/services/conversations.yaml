@@ -1,0 +1,44 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+  SERVICE: conversations
+
+services:
+  conversations:
+    build:
+      context: ../premium/conversations
+      dockerfile: Dockerfile-conversations
+    command: 'npm run dev'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  conversations-dev:
+    build:
+      context: ../premium/conversations
+      dockerfile: Dockerfile-conversations
+    command: 'npm run dev'
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.compose
+      - ../../backend/.env.override
+    environment:
+      <<: *env-args
+    hostname: nodejs-worker
+    networks:
+      - crowd-bridge
+    volumes:
+      - ../../premium/conversations:/usr/crowd/conversations
+      - /usr/crowd/conversations/node_modules
+
+networks:
+  crowd-bridge:
+    external: true

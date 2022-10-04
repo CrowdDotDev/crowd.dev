@@ -1,3 +1,13 @@
+resolver 127.0.0.11 valid=1s;
+
+server {
+  listen 8000;
+
+  location /nginx_status {
+    stub_status;
+  }
+}
+
 server {
   listen 8080;
 
@@ -14,13 +24,12 @@ server {
 
 
 server {
-
   server_name anton.localhost;
   listen 443 ssl default_server;
   listen [::]:443 ssl default_server;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
@@ -30,8 +39,8 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto https;
-    proxy_pass http://crowd-backend:8080;
-
+    set $target http://api:8080;
+    proxy_pass $target;
   }
 }
 
@@ -40,12 +49,11 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
-    proxy_pass http://crowd-frontend:8081;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -54,6 +62,8 @@ server {
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "Upgrade";
+    set $target http://frontend:8081;
+    proxy_pass $target;
   }
 }
 
@@ -62,34 +72,35 @@ server {
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
-    proxy_pass http://cubejs:4000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto https;
+    set $target http://cubejs:4000;
+    proxy_pass $target;
   }
 }
 
 server {
-
   server_name open.localhost;
   listen 443 ssl;
   listen [::]:443 ssl;
   ssl on;
-  ssl_certificate /etc/nginx/ssl/anton.localhost+4.pem;
-  ssl_certificate_key /etc/nginx/ssl/anton.localhost+4-key.pem;
+  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
+  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
 
   root /var/www/html;
   location / {
-    proxy_pass http://crowd-conversations:3000;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto https;
+    set $target http://conversations:3000;
+    proxy_pass $target;
   }
 }

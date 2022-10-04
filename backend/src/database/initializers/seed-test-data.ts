@@ -6,20 +6,11 @@
  * testable data
  */
 
-import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
 import TenantService from '../../services/tenantService'
 import MicroserviceService from '../../services/microserviceService'
+import { IS_DEV_ENV } from '../../config/index'
 
 import getUserContext from '../utils/getUserContext'
-
-const path = require('path')
-
-const env = dotenv.config({
-  path: path.resolve(__dirname, `../../../.env`),
-})
-
-dotenvExpand.expand(env)
 
 async function updateCheckMergeMicroserviceInit() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
@@ -40,7 +31,7 @@ async function updateCheckMergeMicroserviceInit() {
   console.log(`checkMerge.init set to false for all tenants!`)
 }
 
-if (process.env.NODE_ENV !== 'local') {
+if (!IS_DEV_ENV) {
   throw new Error('This script is only allowed for development environment!')
 }
 

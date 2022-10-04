@@ -1,25 +1,24 @@
-require('dotenv').config()
+import { IS_TEST_ENV, IS_STAGING_ENV, IS_PROD_ENV, DB_CONFIG } from '../config'
 
 const dbEnvVars = {
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_DATABASE,
-  host: process.env.DATABASE_HOST_WRITE,
-  dialect: process.env.DATABASE_DIALECT,
-  logging: true,
+  username: DB_CONFIG.username,
+  password: DB_CONFIG.password,
+  database: DB_CONFIG.database,
+  host: DB_CONFIG.writeHost,
+  dialect: DB_CONFIG.dialect,
 }
 
 let currentEnvironmentVariables = {}
 
-if (process.env.NODE_ENV === 'test') {
+if (IS_TEST_ENV) {
   currentEnvironmentVariables = {
     test: { ...dbEnvVars },
   }
-} else if (process.env.NODE_ENV === 'staging') {
+} else if (IS_STAGING_ENV) {
   currentEnvironmentVariables = {
     staging: { ...dbEnvVars },
   }
-} else if (process.env.NODE_ENV === 'production') {
+} else if (IS_PROD_ENV) {
   currentEnvironmentVariables = {
     production: { ...dbEnvVars },
   }
@@ -29,4 +28,5 @@ if (process.env.NODE_ENV === 'test') {
   }
 }
 
-module.exports = currentEnvironmentVariables
+const vars = currentEnvironmentVariables
+export default vars

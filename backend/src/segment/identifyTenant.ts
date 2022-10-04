@@ -1,11 +1,11 @@
-import { getConfig } from '../config'
+import { SEGMENT_CONFIG, API_CONFIG } from '../config'
 
 export default function identifyTenant(user, tenant) {
-  if (getConfig().SEGMENT_WRITE_KEY) {
+  if (SEGMENT_CONFIG.writeKey) {
     const Analytics = require('analytics-node')
-    const analytics = new Analytics(getConfig().SEGMENT_WRITE_KEY)
+    const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
 
-    if (getConfig().EDITION === 'crowd-hosted') {
+    if (API_CONFIG.edition === 'crowd-hosted') {
       analytics.group({
         userId: user.id,
         groupId: tenant.id,
