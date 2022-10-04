@@ -10,7 +10,6 @@ components:
             type: string
             format: uuid
 
-
     OrganizationInput:
       allOf:
         - $ref: '#/components/schemas/OrganizationNoId'

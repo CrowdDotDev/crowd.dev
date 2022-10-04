@@ -22,19 +22,19 @@ components:
         displayName: Gilfoyle
         email: gilfoyle@piedpiper.io
         score: -1
-        joinedAt: "2022-10-03T15:17:03.540Z"
+        joinedAt: '2022-10-03T15:17:03.540Z'
         importHash: null
         reach:
           total: 10000
           github: 5000
           twitter: 5000
-        createdAt: "2022-10-03T15:17:03.547Z"
-        updatedAt: "2022-10-03T15:17:27.073Z"
+        createdAt: '2022-10-03T15:17:03.547Z'
+        updatedAt: '2022-10-03T15:17:27.073Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
- 
+
     MemberFind:
       value:
         id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
@@ -57,14 +57,14 @@ components:
         displayName: Gilfoyle
         email: gilfoyle@piedpiper.io
         score: -1
-        joinedAt: "2022-10-03T15:17:03.540Z"
+        joinedAt: '2022-10-03T15:17:03.540Z'
         importHash: null
         reach:
           total: 10000
           github: 5000
           twitter: 5000
-        createdAt: "2022-10-03T15:17:03.547Z"
-        updatedAt: "2022-10-03T15:17:27.073Z"
+        createdAt: '2022-10-03T15:17:03.547Z'
+        updatedAt: '2022-10-03T15:17:27.073Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -72,7 +72,7 @@ components:
         activities:
           - id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
             type: pull_request-comment
-            timestamp: "2021-07-27T20:23:30.000Z"
+            timestamp: '2021-07-27T20:23:30.000Z'
             platform: github
             isKeyAction: true
             score: 3
@@ -91,8 +91,8 @@ components:
               positive: 69.27002668380737
               sentiment: 97
             importHash: null
-            createdAt: "2022-10-03T15:47:20.151Z"
-            updatedAt: "2022-10-03T15:47:20.220Z"
+            createdAt: '2022-10-03T15:47:20.151Z'
+            updatedAt: '2022-10-03T15:47:20.220Z'
             deletedAt: null
             memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
             conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -102,12 +102,12 @@ components:
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
           - id: c39dc046-da1d-4a25-8624-6b78aad00f30
             type: message
-            timestamp: "2020-06-27T15:13:30.000Z"
+            timestamp: '2020-06-27T15:13:30.000Z'
             platform: discord
             isKeyAction: true
             score: 1
-            sourceId: "2345"
-            sourceParentId: "1234"
+            sourceId: '2345'
+            sourceParentId: '1234'
             attributes:
               reactions: 68
             channel: dev
@@ -122,8 +122,8 @@ components:
               positive: 3.365083411335945
               sentiment: 5
             importHash: null
-            createdAt: "2022-10-03T15:19:30.415Z"
-            updatedAt: "2022-10-03T15:26:02.599Z"
+            createdAt: '2022-10-03T15:19:30.415Z'
+            updatedAt: '2022-10-03T15:26:02.599Z'
             deletedAt: null
             memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
             conversationId: null
@@ -133,11 +133,11 @@ components:
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
           - id: 782b426d-adc8-4fb4-a4ee-ab0bb07ffca0
             type: message
-            timestamp: "2020-05-27T15:13:30.000Z"
+            timestamp: '2020-05-27T15:13:30.000Z'
             platform: discord
             isKeyAction: true
             score: 1
-            sourceId: "1234"
+            sourceId: '1234'
             sourceParentId: null
             attributes:
               reactions: 43
@@ -153,8 +153,8 @@ components:
               positive: 1.8582981079816818
               sentiment: 2
             importHash: null
-            createdAt: "2022-10-03T15:18:11.294Z"
-            updatedAt: "2022-10-03T15:21:49.402Z"
+            createdAt: '2022-10-03T15:18:11.294Z'
+            updatedAt: '2022-10-03T15:21:49.402Z'
             deletedAt: null
             memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
             conversationId: null
@@ -165,7 +165,7 @@ components:
         lastActivity:
           id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
           type: pull_request-comment
-          timestamp: "2021-07-27T20:23:30.000Z"
+          timestamp: '2021-07-27T20:23:30.000Z'
           platform: github
           isKeyAction: true
           score: 3
@@ -184,8 +184,8 @@ components:
             positive: 69.27002668380737
             sentiment: 97
           importHash: null
-          createdAt: "2022-10-03T15:47:20.151Z"
-          updatedAt: "2022-10-03T15:47:20.220Z"
+          createdAt: '2022-10-03T15:47:20.151Z'
+          updatedAt: '2022-10-03T15:47:20.220Z'
           deletedAt: null
           memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
           conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -193,7 +193,7 @@ components:
           tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
           createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
           updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-        lastActive: "2021-07-27T20:23:30.000Z"
+        lastActive: '2021-07-27T20:23:30.000Z'
         activityCount: 3
         averageSentiment: 34.67
         tags: []
@@ -203,10 +203,10 @@ components:
             name: Ask for tips on building a new Anton
             body: null
             status: null
-            dueDate: "2022-05-27T15:13:30.000Z"
+            dueDate: '2022-05-27T15:13:30.000Z'
             importHash: null
-            createdAt: "2022-10-03T16:00:18.701Z"
-            updatedAt: "2022-10-03T16:00:18.701Z"
+            createdAt: '2022-10-03T16:00:18.701Z'
+            updatedAt: '2022-10-03T16:00:18.701Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             assignedToId: null
@@ -216,8 +216,8 @@ components:
           - id: 39c850f6-fb96-4d16-8e8c-cd7072e33925
             body: Refused to have a user feedback call
             importHash: null
-            createdAt: "2022-10-03T16:00:57.867Z"
-            updatedAt: "2022-10-03T16:00:57.867Z"
+            createdAt: '2022-10-03T16:00:57.867Z'
+            updatedAt: '2022-10-03T16:00:57.867Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -225,7 +225,6 @@ components:
         noMerge: []
         toMerge: []
 
-    
     Member:
       value:
         id: 2effc566-1932-44f3-a821-2d692933a953
@@ -248,27 +247,27 @@ components:
         displayName: Dinesh
         email: dinesh@piedpiper.io
         score: -1
-        joinedAt: "2022-10-03T15:30:55.672Z"
+        joinedAt: '2022-10-03T15:30:55.672Z'
         importHash: null
         reach:
           total: 100
           github: 60
           twitter: 40
-        createdAt: "2022-10-03T15:30:55.679Z"
-        updatedAt: "2022-10-03T15:30:55.679Z"
+        createdAt: '2022-10-03T15:30:55.679Z'
+        updatedAt: '2022-10-03T15:30:55.679Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-        activityCount: "2"
-        lastActive: "2021-07-27T20:22:30.000Z"
-        averageSentiment: "82.50"
+        activityCount: '2'
+        lastActive: '2021-07-27T20:22:30.000Z'
+        averageSentiment: '82.50'
         noMerge: []
         toMerge: []
         lastActivity:
           id: 462ddc6b-5672-43b2-9018-4e3fd7332228
           type: pull_request-closed
-          timestamp: "2021-07-27T20:22:30.000Z"
+          timestamp: '2021-07-27T20:22:30.000Z'
           platform: github
           isKeyAction: true
           score: 10
@@ -287,8 +286,8 @@ components:
             positive: 47.76550233364105
             sentiment: 79
           importHash: null
-          createdAt: "2022-10-03T15:36:43.775Z"
-          updatedAt: "2022-10-03T15:39:38.199Z"
+          createdAt: '2022-10-03T15:36:43.775Z'
+          updatedAt: '2022-10-03T15:39:38.199Z'
           deletedAt: null
           memberId: 2effc566-1932-44f3-a821-2d692933a953
           conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -298,7 +297,6 @@ components:
           updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         organizations: []
         tags: []
-
 
     Member2:
       value:
@@ -322,27 +320,27 @@ components:
         displayName: Gilfoyle
         email: gilfoyle@piedpiper.io
         score: -1
-        joinedAt: "2022-10-03T15:17:03.540Z"
+        joinedAt: '2022-10-03T15:17:03.540Z'
         importHash: null
         reach:
           total: 10000
           github: 5000
           twitter: 5000
-        createdAt: "2022-10-03T15:17:03.547Z"
-        updatedAt: "2022-10-03T15:17:27.073Z"
+        createdAt: '2022-10-03T15:17:03.547Z'
+        updatedAt: '2022-10-03T15:17:27.073Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-        activityCount: "3"
-        lastActive: "2021-07-27T20:23:30.000Z"
-        averageSentiment: "34.67"
+        activityCount: '3'
+        lastActive: '2021-07-27T20:23:30.000Z'
+        averageSentiment: '34.67'
         noMerge: []
         toMerge: []
         lastActivity:
           id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
           type: pull_request-comment
-          timestamp: "2021-07-27T20:23:30.000Z"
+          timestamp: '2021-07-27T20:23:30.000Z'
           platform: github
           isKeyAction: true
           score: 3
@@ -361,8 +359,8 @@ components:
             positive: 69.27002668380737
             sentiment: 97
           importHash: null
-          createdAt: "2022-10-03T15:47:20.151Z"
-          updatedAt: "2022-10-03T15:47:20.220Z"
+          createdAt: '2022-10-03T15:47:20.151Z'
+          updatedAt: '2022-10-03T15:47:20.220Z'
           deletedAt: null
           memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
           conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -372,8 +370,6 @@ components:
           updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         organizations: []
         tags: []
-
-        
 
     MemberList:
       value:
