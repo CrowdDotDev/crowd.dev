@@ -1,3 +1,5 @@
+import { INITIAL_PAGE_SIZE } from './constants'
+
 export default {
   records: {},
   views: {
@@ -35,7 +37,10 @@ export default {
   count: 0,
   filter: {},
   rawFilter: {},
-  pagination: {},
+  pagination: {
+    currentPage: 1,
+    pageSize: INITIAL_PAGE_SIZE
+  },
   sorter: {
     prop: 'lastActive',
     order: 'descending'

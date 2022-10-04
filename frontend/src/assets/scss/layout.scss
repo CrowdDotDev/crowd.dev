@@ -3,7 +3,7 @@
 }
 
 body {
-  background-color: #f4f4f6;
+  @apply bg-gray-50;
 }
 
 .el-main {
@@ -43,7 +43,7 @@ body {
 }
 
 .el-popper.is-dark {
-  @apply font-medium h-6 px-1.5 bg-brand-900 border-none rounded-md flex items-center;
+  @apply font-medium h-6 px-1.5 bg-gray-900 border-none rounded-md flex items-center;
 }
 
 .w-100 {
