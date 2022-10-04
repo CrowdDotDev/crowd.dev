@@ -273,3 +273,7 @@
     @apply ml-0;
   }
 }
+
+.btn-group>.btn:not(:last-child) {
+  @apply -mr-0.5;
+}

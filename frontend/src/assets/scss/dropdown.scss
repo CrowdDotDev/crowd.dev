@@ -4,6 +4,11 @@
 
 .el-dropdown-menu__item, .el-dropdown-menu__item a {
   @apply flex items-center text-black px-4 py-3 text-xs;
+  border-radius: 4px;
+
+  &:not(:last-of-type) {
+    @apply mb-1;
+  }
 
   i {
     @apply mr-2;
@@ -15,7 +20,10 @@
 
   &:focus, &:not(.is-disabled):hover, &:not(.is-disabled):focus {
     @apply text-black bg-gray-50;
-    border-radius: 4px;
+  }
+
+  &.is-selected {
+    @apply bg-brand-50;
   }
 }
 

@@ -1,15 +1,24 @@
 <template>
   <div class="filter-list">
     <div
-      v-for="filter of filters"
+      v-for="(filter, index) of filtersArray"
       :key="filter.id"
       class="flex items-center"
     >
-      <app-filter-list-item :filter="filter" class="mx-2" />
+      <app-filter-list-item
+        :filter="filter"
+        class="mx-2"
+        @change="handleFilterChange"
+        @destroy="handleFilterDestroy"
+      />
       <app-filter-list-compositor
-        v-if="filters.length > 1"
+        v-if="
+          filtersArray.length > 1 &&
+          index !== filtersArray.length - 1
+        "
         :compositor="compositor"
         class="mx-2"
+        @change="handleCompositorChanged"
       />
     </div>
   </div>
@@ -22,16 +31,47 @@ export default {
 </script>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import AppFilterListItem from './filter-list-item'
 import AppFilterListCompositor from './filter-list-compositor'
 
 const compositor = ref('and')
-const filters = reactive(['a', 'b', 'c'])
+const filters = reactive({
+  a: {
+    name: 'a',
+    label: 'Filter A',
+    values: [],
+    type: 'keywords'
+  },
+  b: {
+    name: 'b',
+    label: 'Filter B',
+    values: [],
+    type: 'keywords'
+  },
+  c: {
+    name: 'c',
+    label: 'Filter C',
+    values: [],
+    type: 'keywords'
+  }
+})
+
+const filtersArray = computed(() => Object.values(filters))
+
+const handleFilterChange = (v) => {
+  filters[v.name] = v
+}
+const handleFilterDestroy = (v) => {
+  delete filters[v.name]
+}
+const handleCompositorChanged = (v) => {
+  compositor.value = v
+}
 </script>
 
 <style lang="scss">
 .filter-list {
-  @apply flex items-center -mx-2;
+  @apply flex items-center -mx-2 mb-6;
 }
 </style>

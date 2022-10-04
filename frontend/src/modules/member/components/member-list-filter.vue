@@ -11,7 +11,7 @@
         </template>
       </el-input>
     </div>
-    <app-filter-list class="mb-2" />
+    <app-filter-list />
   </div>
 </template>
 
