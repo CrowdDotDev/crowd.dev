@@ -93,8 +93,9 @@ const handleDestroy = () => {
 
 <style lang="scss">
 .filter-list-item {
+  @apply text-xs;
   &-btn.el-button {
-    @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600;
+    @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600 text-xs;
     transition: all 0.2s ease;
 
     &.is-expanded,
