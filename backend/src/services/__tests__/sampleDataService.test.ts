@@ -41,25 +41,25 @@ describe('SampleDataService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
-            [PlatformType.GITHUB]:'Quoc-Anh Nguyen',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
           [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]:true
+            [PlatformType.GITHUB]: true,
           },
           [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]:  'https://github.com/imcvampire',
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
             [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
           },
           [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]:'https://imcvampire.js.org/',
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
           [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]:'Computer Science',
+            [PlatformType.GITHUB]: 'Computer Science',
           },
           [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Istanbul',
-          }
+          },
         },
         organisation: 'Crowd',
         joinedAt: '2020-05-27T15:13:30Z',
@@ -157,22 +157,21 @@ describe('SampleDataService tests', () => {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
           [MemberAttributeName.IS_HIREABLE]: {
-            [PlatformType.GITHUB]:true
+            [PlatformType.GITHUB]: true,
           },
           [MemberAttributeName.URL]: {
-            [PlatformType.GITHUB]:'https://github.com/imcvampire',
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
             [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
           },
           [MemberAttributeName.WEBSITE_URL]: {
-            [PlatformType.GITHUB]:'https://imcvampire.js.org/',
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
           [MemberAttributeName.BIO]: {
-            [PlatformType.GITHUB]:'Computer Science',
+            [PlatformType.GITHUB]: 'Computer Science',
           },
           [MemberAttributeName.LOCATION]: {
-            [PlatformType.GITHUB]:'Istanbul',
+            [PlatformType.GITHUB]: 'Istanbul',
           },
-
         },
         organisation: 'Crowd',
         joinedAt: '2020-05-27T15:13:30Z',

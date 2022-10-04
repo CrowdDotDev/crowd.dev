@@ -291,13 +291,13 @@ export default class TwitterIterator extends BaseIterator {
         username: record.username,
         reach: { [PlatformType.TWITTER]: record.followersCount },
         attributes: {
-          [MemberAttributeName.SOURCE_ID]:{
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: record.id,
           },
-          [MemberAttributeName.IMAGE_URL]:{
+          [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: record.imageUrl,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.TWITTER]: `https://twitter.com/${record.username}`,
           },
         },
@@ -340,7 +340,7 @@ export default class TwitterIterator extends BaseIterator {
         member: {
           username: record.author.username,
           attributes: {
-            [MemberAttributeName.SOURCE_ID]:{
+            [MemberAttributeName.SOURCE_ID]: {
               [PlatformType.TWITTER]: record.author.id,
             },
             [MemberAttributeName.URL]: {

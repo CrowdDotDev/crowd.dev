@@ -10,7 +10,7 @@ components:
       description: >-
         A member attribute.
       properties:
-        label: 
+        label:
           description: >-
             Human-friendly name of the attribute. Label is unique in workspaces.
           type: string

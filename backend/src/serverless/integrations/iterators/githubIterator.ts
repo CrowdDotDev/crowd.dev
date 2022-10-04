@@ -708,20 +708,20 @@ export default class GithubIterator extends BaseIterator {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
       attributes: {
-        [MemberAttributeName.NAME]:{
-          [PlatformType.GITHUB]:  memberFromApi.name,
+        [MemberAttributeName.NAME]: {
+          [PlatformType.GITHUB]: memberFromApi.name,
         },
-        [MemberAttributeName.IS_HIREABLE]:{
-          [PlatformType.GITHUB]:  memberFromApi.isHireable || false,
+        [MemberAttributeName.IS_HIREABLE]: {
+          [PlatformType.GITHUB]: memberFromApi.isHireable || false,
         },
-        [MemberAttributeName.URL]:{
-          [PlatformType.GITHUB]:  memberFromApi.url,
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: memberFromApi.url,
         },
-        [MemberAttributeName.BIO]:{
-          [PlatformType.GITHUB]:  memberFromApi.bio || '',
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: memberFromApi.bio || '',
         },
-        [MemberAttributeName.LOCATION]:{
-          [PlatformType.GITHUB]:  memberFromApi.location || '',
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: memberFromApi.location || '',
         },
       },
       email: memberFromApi.email || '',
@@ -742,7 +742,9 @@ export default class GithubIterator extends BaseIterator {
     }
 
     if (memberFromApi.twitterUsername) {
-      member.attributes[MemberAttributeName.URL][PlatformType.TWITTER] = `https://twitter.com/${memberFromApi.twitterUsername}`
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${memberFromApi.twitterUsername}`
       member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
     }
 

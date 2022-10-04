@@ -76,16 +76,16 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
-            [PlatformType.GITHUB]: true
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
           [MemberAttributeName.BIO]: {
@@ -93,7 +93,7 @@ describe('MemberService tests', () => {
           },
           [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
-          },        
+          },
         },
         joinedAt: '2020-05-28T15:13:30Z',
       }
@@ -169,32 +169,32 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
-            [PlatformType.GITHUB]:  'Quoc-Anh Nguyen',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
-            [PlatformType.GITHUB]:  true,
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
-            [PlatformType.GITHUB]:  'https://github.com/imcvampire',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
             [PlatformType.TWITTER]: 'https://some-twitter-url',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
-            [PlatformType.GITHUB]:  'https://imcvampire.js.org/',
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
-            [PlatformType.GITHUB]:  'Lazy geek',
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
-            [PlatformType.GITHUB]:  'Helsinki, Finland',
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
           [MemberAttributeName.SOURCE_ID]: {
-            [PlatformType.TWITTER]:  '#twitterId',
-            [PlatformType.DISCORD]:  '#discordId',
+            [PlatformType.TWITTER]: '#twitterId',
+            [PlatformType.DISCORD]: '#discordId',
           },
           [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: 'https://some-image-url',
-          }
+          },
         },
         joinedAt: '2020-05-28T15:13:30Z',
       }
@@ -280,22 +280,22 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -811,22 +811,22 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -914,14 +914,14 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
-            [PlatformType.GITHUB]:  'Quoc-Anh Nguyen',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
-            [PlatformType.GITHUB]:  true,
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
-            [PlatformType.GITHUB]:  'https://github.com/imcvampire',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
         },
         joinedAt: '2020-05-28T15:13:30Z',
@@ -939,17 +939,17 @@ describe('MemberService tests', () => {
         username: 'anil',
         platform: PlatformType.GITHUB,
         attributes: {
-          [MemberAttributeName.WEBSITE_URL]:{
-            [PlatformType.GITHUB]:  'https://imcvampire.js.org/',
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
-            [PlatformType.GITHUB]:'Lazy geek',
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
-            [PlatformType.GITHUB]:'Helsinki, Finland',
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
-          [MemberAttributeName.URL]:{
-            [PlatformType.TWITTER]:'https://twitter-url',
+          [MemberAttributeName.URL]: {
+            [PlatformType.TWITTER]: 'https://twitter-url',
           },
         },
       }
@@ -1025,22 +1025,22 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -1127,22 +1127,22 @@ describe('MemberService tests', () => {
         platform: PlatformType.GITHUB,
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -1181,22 +1181,22 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]:{
+          [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -1217,14 +1217,14 @@ describe('MemberService tests', () => {
         joinedAt: '2020-05-28T15:13:30Z',
         location: 'Ankara',
         attributes: {
-          [MemberAttributeName.SOURCE_ID]:{
-            [PlatformType.DEVTO]:  '#someDevtoId',
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DEVTO]: '#someDevtoId',
             [PlatformType.SLACK]: '#someSlackId',
           },
-          [MemberAttributeName.NAME]:{
-            [PlatformType.DEVTO]:'Michael Scott',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.DEVTO]: 'Michael Scott',
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.DEVTO]: 'https://some-devto-url',
           },
         },
@@ -2558,31 +2558,28 @@ describe('MemberService tests', () => {
 
       const attributes = {
         [MemberAttributeName.NAME]: {
-          [PlatformType.GITHUB]:'Dwight Schrute',
+          [PlatformType.GITHUB]: 'Dwight Schrute',
           [PlatformType.DEVTO]: 'Dweet Srute',
         },
-        [MemberAttributeName.URL]:{
-          [PlatformType.GITHUB]:'https://some-github-url',
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: 'https://some-github-url',
           [PlatformType.TWITTER]: 'https://some-twitter-url',
           [PlatformType.DEVTO]: 'https://some-devto-url',
         },
-        [MemberAttributeName.LOCATION]:{
-          [PlatformType.GITHUB]:'Berlin',
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: 'Berlin',
           [PlatformType.DEVTO]: 'Istanbul',
         },
-        [MemberAttributeName.BIO]:{
-          [PlatformType.GITHUB]:'Assistant to the Regional Manager',
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
         },
-        [MemberAttributeName.IMAGE_URL]:{
-          [PlatformType.TWITTER]:'https://some-image-url',
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: 'https://some-image-url',
         },
-
       }
 
-      const attributesWithDefaultValues = await memberService.setAttributesDefaultValues(
-        attributes,
-      )
+      const attributesWithDefaultValues = await memberService.setAttributesDefaultValues(attributes)
 
       // Default platform priority is: custom, twitter, github, devto, slack, discord, crowd
       const expectedAttributesWithDefaultValues = {
@@ -2635,31 +2632,30 @@ describe('MemberService tests', () => {
       )
       const attributes = {
         [MemberAttributeName.NAME]: {
-          [PlatformType.GITHUB]:'Dwight Schrute',
+          [PlatformType.GITHUB]: 'Dwight Schrute',
           [PlatformType.DEVTO]: 'Dweet Srute',
         },
-        [MemberAttributeName.URL]:{
-          [PlatformType.GITHUB]:'https://some-github-url',
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: 'https://some-github-url',
           [PlatformType.TWITTER]: 'https://some-twitter-url',
           [PlatformType.DEVTO]: 'https://some-devto-url',
         },
-        [MemberAttributeName.LOCATION]:{
-          [PlatformType.GITHUB]:'Berlin',
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: 'Berlin',
           [PlatformType.DEVTO]: 'Istanbul',
         },
-        [MemberAttributeName.BIO]:{
-          [PlatformType.GITHUB]:'Assistant to the Regional Manager',
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
         },
-        [MemberAttributeName.IMAGE_URL]:{
-          [PlatformType.TWITTER]:'https://some-image-url',
+        [MemberAttributeName.IMAGE_URL]: {
+          [PlatformType.TWITTER]: 'https://some-image-url',
         },
-
       }
 
-      await expect(() =>
-        memberService.setAttributesDefaultValues(attributes),
-      ).rejects.toThrowError(new Error400('en', 'settings.memberAttributes.priorityArrayNotFound'))
+      await expect(() => memberService.setAttributesDefaultValues(attributes)).rejects.toThrowError(
+        new Error400('en', 'settings.memberAttributes.priorityArrayNotFound'),
+      )
     })
   })
 
@@ -2700,42 +2696,41 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          aDateAttribute:{
-            custom:'2022-08-01T00:00:00'
+          aDateAttribute: {
+            custom: '2022-08-01T00:00:00',
           },
-          [MemberAttributeName.NAME]:{
-            [PlatformType.GITHUB]:'Quoc-Anh Nguyen',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
-            [PlatformType.GITHUB]:false,
-            [PlatformType.DISCORD]: true
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: false,
+            [PlatformType.DISCORD]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/anil',
-            [PlatformType.TWITTER]:'https://twitter.com/anil',
+            [PlatformType.TWITTER]: 'https://twitter.com/anil',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
-          [MemberAttributeName.SOURCE_ID]:{
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId2',
             [PlatformType.DISCORD]: '#discordId1',
           },
-          [MemberAttributeName.IMAGE_URL]:{
+          [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/anil/image',
           },
-          aNumberAttribute:{
+          aNumberAttribute: {
             [PlatformType.GITHUB]: 1,
             [PlatformType.TWITTER]: 2,
-            [PlatformType.DISCORD]: 300000
+            [PlatformType.DISCORD]: 300000,
           },
-
         },
         joinedAt: '2022-05-28T15:13:30',
       }
@@ -2746,24 +2741,24 @@ describe('MemberService tests', () => {
         email: 'michael@mifflin.com',
         score: 10,
         attributes: {
-          aDateAttribute:{
-            custom: '2022-08-06T00:00:00'
+          aDateAttribute: {
+            custom: '2022-08-06T00:00:00',
           },
           [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]:'Michael Scott',
+            [PlatformType.GITHUB]: 'Michael Scott',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
-            [PlatformType.DISCORD]: true
+            [PlatformType.DISCORD]: true,
           },
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/michael-scott',
             [PlatformType.TWITTER]: 'https://twitter.com/michael',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
-            [PlatformType.GITHUB]:'https://website/michael',
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://website/michael',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Dunder & Mifflin Regional Manager',
           },
           [MemberAttributeName.LOCATION]: {
@@ -2773,13 +2768,13 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: '#twitterId2',
             [PlatformType.DISCORD]: '#discordId2',
           },
-          [MemberAttributeName.IMAGE_URL]:{
+          [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/michael/image',
           },
           aNumberAttribute: {
             [PlatformType.GITHUB]: 1500,
             [PlatformType.TWITTER]: 2500,
-            [PlatformType.DISCORD]: 2
+            [PlatformType.DISCORD]: 2,
           },
         },
         joinedAt: '2022-09-15T15:13:30',
@@ -2794,38 +2789,38 @@ describe('MemberService tests', () => {
           aDateAttribute: {
             custom: '2022-08-15T00:00:00',
           },
-          [MemberAttributeName.NAME]:{
-            [PlatformType.GITHUB]:  'Jim Halpert',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Jim Halpert',
           },
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
             [PlatformType.DISCORD]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/jim-halpert',
             [PlatformType.TWITTER]: 'https://twitter.com/jim',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://website/jim',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Sales guy',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Scranton',
           },
-          [MemberAttributeName.SOURCE_ID]:{
+          [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: '#twitterId3',
             [PlatformType.DISCORD]: '#discordId3',
           },
           [MemberAttributeName.IMAGE_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/jim/image',
           },
-          aNumberAttribute:{
-            [PlatformType.GITHUB]:15500,
+          aNumberAttribute: {
+            [PlatformType.GITHUB]: 15500,
             [PlatformType.TWITTER]: 25500,
-            [PlatformType.DISCORD]: 200000
-          }
+            [PlatformType.DISCORD]: 200000,
+          },
         },
         joinedAt: '2022-09-16T15:13:30Z',
       }
