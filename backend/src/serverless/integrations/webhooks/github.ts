@@ -491,8 +491,10 @@ export default class GitHubWebhook {
     try {
       const signature = req.headers['x-hub-signature']
       const secret = GITHUB_CONFIG.webhookSecret
+
       console.log('Verifying webhook...')
-      const isVerified = verifyGithubWebhook(signature, req.body, secret) // Returns true if verification succeeds; otherwise, false.
+      const isVerified = verifyGithubWebhook(signature, JSON.stringify(req.body), secret) // Returns true if verification succeeds; otherwise, false.
+
       console.log('Verification', isVerified)
       if (!isVerified) {
         throw new Error('Webhook not verified')
