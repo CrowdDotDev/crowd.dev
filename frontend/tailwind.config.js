@@ -346,7 +346,7 @@ module.exports = {
     container: {
       center: true,
       screens: {
-        lg: '1080px'
+        lg: '1280px'
       }
     },
     content: {
