@@ -5,7 +5,7 @@ import ActivityService from '../../services/activityService'
 import track from '../../segment/track'
 
 /**
- * POST /tenant/{tenantId}/member/query
+ * POST /tenant/{tenantId}/activity/query
  * @summary Query activities
  * @tag Activities
  * @security Bearer
@@ -14,7 +14,7 @@ import track from '../../segment/track'
  * @bodyContent {ActivityQuery} application/json
  * @response 200 - Ok
  * @responseContent {ActivityList} 200.application/json
- * @responseExample {ActivityList} 200.application/json.Member
+ * @responseExample {ActivityList} 200.application/json.Activity
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests
