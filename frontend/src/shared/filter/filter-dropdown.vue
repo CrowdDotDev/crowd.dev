@@ -5,7 +5,10 @@
       placement="bottom-end"
       @visible-change="handleDropdownChange"
     >
-      <el-button class="btn btn--secondary btn--md">
+      <el-button
+        class="filter-dropdown-trigger"
+        :class="isExpanded ? 'is-expanded' : ''"
+      >
         <i class="ri-lg ri-filter-3-line mr-2"></i>
         Filters
       </el-button>
@@ -79,6 +82,8 @@ const SearchIcon = h(
 
 const query = ref('')
 const queryInput = ref(null)
+const isExpanded = ref(false)
+
 const filterFunction = (o) => {
   return (
     (o.name
@@ -97,8 +102,9 @@ const computedCustomAttributes = computed(() =>
   props.customAttributes.filter(filterFunction)
 )
 
-function handleDropdownChange(visible) {
-  if (visible) {
+function handleDropdownChange(value) {
+  isExpanded.value = value
+  if (value) {
     queryInput.value.focus()
   }
 }
@@ -114,6 +120,18 @@ function handleOptionClick(v) {
     &.is-focus,
     &:hover {
       @apply shadow-none;
+    }
+  }
+  .el-input-group__append &-trigger.el-button,
+  .el-input-group__append
+    &-trigger.el-button:focus:not(.is-expanded) {
+    @apply h-10 flex justify-center items-center py-0 px-4 bg-white border border-l-0 rounded-l-none border-gray-300 outline-none text-gray-600;
+    transition: all 0.2s ease;
+
+    &.is-expanded,
+    &:hover,
+    &:active {
+      @apply bg-gray-100 outline-none text-gray-600 border-gray-300;
     }
   }
 }
