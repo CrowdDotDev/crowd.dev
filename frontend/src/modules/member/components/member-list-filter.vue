@@ -5,6 +5,7 @@
         v-model="model.query"
         placeholder="Search members"
         :prefix-icon="SearchIcon"
+        clearable
       >
         <template #append>
           <app-member-list-filter-dropdown />

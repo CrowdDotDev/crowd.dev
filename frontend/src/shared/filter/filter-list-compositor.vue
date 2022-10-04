@@ -10,12 +10,14 @@
     }}</el-button>
     <template #dropdown>
       <el-dropdown-item
+        class="filter-list-compositor-option"
         :class="compositor === 'and' ? 'is-selected' : ''"
         @click.stop="handleClick('and')"
       >
         And
       </el-dropdown-item>
       <el-dropdown-item
+        class="filter-list-compositor-option"
         :class="compositor === 'or' ? 'is-selected' : ''"
         @click.stop="handleClick('or')"
       >
@@ -49,8 +51,10 @@ const handleClick = (value) => {
 
 <style lang="scss">
 .filter-list-compositor {
+  @apply text-xs;
+
   &-btn.el-button {
-    @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600;
+    @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600 text-xs;
     transition: all 0.2s ease;
 
     &.is-expanded,
@@ -60,6 +64,10 @@ const handleClick = (value) => {
     &:visited {
       @apply bg-gray-100 outline-none text-gray-600 border-gray-300;
     }
+  }
+
+  &-option {
+    @apply px-3 py-2.5;
   }
 }
 </style>
