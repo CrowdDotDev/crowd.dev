@@ -63,6 +63,8 @@ import {
   h,
   ref
 } from 'vue'
+import filterFunction from './filter-function'
+
 const emit = defineEmits(['filter-added'])
 const props = defineProps({
   attributes: {
@@ -84,22 +86,15 @@ const query = ref('')
 const queryInput = ref(null)
 const isExpanded = ref(false)
 
-const filterFunction = (o) => {
-  return (
-    (o.name
-      .toLowerCase()
-      .includes(query.value.toLowerCase()) ||
-      o.label
-        .toLowerCase()
-        .includes(query.value.toLowerCase())) &&
-    o.show !== false
-  )
-}
 const computedAttributes = computed(() =>
-  props.attributes.filter(filterFunction)
+  props.attributes.filter((o) =>
+    filterFunction(o, query.value)
+  )
 )
 const computedCustomAttributes = computed(() =>
-  props.customAttributes.filter(filterFunction)
+  props.customAttributes.filter((o) =>
+    filterFunction(o, query.value)
+  )
 )
 
 function handleDropdownChange(value) {

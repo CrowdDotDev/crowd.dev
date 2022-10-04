@@ -92,6 +92,19 @@
       @apply text-black;
     }
   }
+
+  &.filter-checkbox {
+    @apply mr-3;
+
+    .el-checkbox__input .el-checkbox__inner {
+      @apply h-4 w-4;
+      &::after {
+        height: 8px;
+        left: 5px;
+        top: 1px;
+      }
+    }
+  }
 }
 
 .el-radio.is-bordered {
