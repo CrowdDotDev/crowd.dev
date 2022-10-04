@@ -6,6 +6,7 @@
       :page-count="Math.ceil(total / pageSize || 1)"
       :prev-icon="ArrowPrevIcon"
       :next-icon="ArrowNextIcon"
+      hide-on-single-page
       layout="prev, pager, next"
       @current-change="
         (currentPage) =>
