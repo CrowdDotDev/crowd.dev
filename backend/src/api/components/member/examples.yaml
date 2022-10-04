@@ -1,178 +1,385 @@
 components:
   examples:
+    MemberUpsert:
+      value:
+        id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+        username:
+          github: gilfoyle
+          twitter: gilfoyle
+        attributes:
+          bio:
+            github: Systems engineer at Pied Piper
+            default: It's not magic. It's talent and sweat
+            twitter: It's not magic. It's talent and sweat
+          url:
+            github: https://github.com/gilfoyle
+            default: https://t.co/g
+            twitter: https://t.co/g
+          location:
+            custom: Erlich's house
+            github: Palo alto
+            default: Erlich's house
+        displayName: Gilfoyle
+        email: gilfoyle@piedpiper.io
+        score: -1
+        joinedAt: "2022-10-03T15:17:03.540Z"
+        importHash: null
+        reach:
+          total: 10000
+          github: 5000
+          twitter: 5000
+        createdAt: "2022-10-03T15:17:03.547Z"
+        updatedAt: "2022-10-03T15:17:27.073Z"
+        deletedAt: null
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+ 
+    MemberFind:
+      value:
+        id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+        username:
+          github: gilfoyle
+          twitter: gilfoyle
+        attributes:
+          bio:
+            github: Systems engineer at Pied Piper
+            default: It's not magic. It's talent and sweat
+            twitter: It's not magic. It's talent and sweat
+          url:
+            github: https://github.com/gilfoyle
+            default: https://t.co/g
+            twitter: https://t.co/g
+          location:
+            custom: Erlich's house
+            github: Palo alto
+            default: Erlich's house
+        displayName: Gilfoyle
+        email: gilfoyle@piedpiper.io
+        score: -1
+        joinedAt: "2022-10-03T15:17:03.540Z"
+        importHash: null
+        reach:
+          total: 10000
+          github: 5000
+          twitter: 5000
+        createdAt: "2022-10-03T15:17:03.547Z"
+        updatedAt: "2022-10-03T15:17:27.073Z"
+        deletedAt: null
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        activities:
+          - id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
+            type: pull_request-comment
+            timestamp: "2021-07-27T20:23:30.000Z"
+            platform: github
+            isKeyAction: true
+            score: 3
+            sourceId: gh_3
+            sourceParentId: gh_1
+            attributes: {}
+            channel: piedpiper
+            body: Don't worry. I will continue to do it for you.
+            title: null
+            url: github.com/piedpiper/piedpier
+            sentiment:
+              label: positive
+              mixed: 2.9098065569996834
+              neutral: 25.578168034553528
+              negative: 2.241993509232998
+              positive: 69.27002668380737
+              sentiment: 97
+            importHash: null
+            createdAt: "2022-10-03T15:47:20.151Z"
+            updatedAt: "2022-10-03T15:47:20.220Z"
+            deletedAt: null
+            memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+            conversationId: 291af008-7717-457e-9242-f5c507c8987b
+            parentId: 462ddc6b-5672-43b2-9018-4e3fd7332228
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          - id: c39dc046-da1d-4a25-8624-6b78aad00f30
+            type: message
+            timestamp: "2020-06-27T15:13:30.000Z"
+            platform: discord
+            isKeyAction: true
+            score: 1
+            sourceId: "2345"
+            sourceParentId: "1234"
+            attributes:
+              reactions: 68
+            channel: dev
+            body: My servers could handle 10x the traffic, if they weren't busy apologizing for your sh*t codebase.
+            title: null
+            url: discord.gg/2345
+            sentiment:
+              label: negative
+              mixed: 5.963129922747612
+              neutral: 20.673033595085144
+              negative: 69.99874711036682
+              positive: 3.365083411335945
+              sentiment: 5
+            importHash: null
+            createdAt: "2022-10-03T15:19:30.415Z"
+            updatedAt: "2022-10-03T15:26:02.599Z"
+            deletedAt: null
+            memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+            conversationId: null
+            parentId: 782b426d-adc8-4fb4-a4ee-ab0bb07ffca0
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          - id: 782b426d-adc8-4fb4-a4ee-ab0bb07ffca0
+            type: message
+            timestamp: "2020-05-27T15:13:30.000Z"
+            platform: discord
+            isKeyAction: true
+            score: 1
+            sourceId: "1234"
+            sourceParentId: null
+            attributes:
+              reactions: 43
+            channel: dev
+            body: It's not magic. It's talend and sweat.
+            title: null
+            url: discord.gg/1234
+            sentiment:
+              label: negative
+              mixed: 1.1410574428737164
+              neutral: 11.00325882434845
+              negative: 85.99738478660583
+              positive: 1.8582981079816818
+              sentiment: 2
+            importHash: null
+            createdAt: "2022-10-03T15:18:11.294Z"
+            updatedAt: "2022-10-03T15:21:49.402Z"
+            deletedAt: null
+            memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+            conversationId: null
+            parentId: null
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        lastActivity:
+          id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
+          type: pull_request-comment
+          timestamp: "2021-07-27T20:23:30.000Z"
+          platform: github
+          isKeyAction: true
+          score: 3
+          sourceId: gh_3
+          sourceParentId: gh_1
+          attributes: {}
+          channel: piedpiper
+          body: Don't worry. I will continue to do it for you.
+          title: null
+          url: github.com/piedpiper/piedpier
+          sentiment:
+            label: positive
+            mixed: 2.9098065569996834
+            neutral: 25.578168034553528
+            negative: 2.241993509232998
+            positive: 69.27002668380737
+            sentiment: 97
+          importHash: null
+          createdAt: "2022-10-03T15:47:20.151Z"
+          updatedAt: "2022-10-03T15:47:20.220Z"
+          deletedAt: null
+          memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+          conversationId: 291af008-7717-457e-9242-f5c507c8987b
+          parentId: 462ddc6b-5672-43b2-9018-4e3fd7332228
+          tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+          createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        lastActive: "2021-07-27T20:23:30.000Z"
+        activityCount: 3
+        averageSentiment: 34.67
+        tags: []
+        organizations: []
+        tasks:
+          - id: 8a127785-f11d-4102-804d-5b79ccddd4cc
+            name: Ask for tips on building a new Anton
+            body: null
+            status: null
+            dueDate: "2022-05-27T15:13:30.000Z"
+            importHash: null
+            createdAt: "2022-10-03T16:00:18.701Z"
+            updatedAt: "2022-10-03T16:00:18.701Z"
+            deletedAt: null
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            assignedToId: null
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        notes:
+          - id: 39c850f6-fb96-4d16-8e8c-cd7072e33925
+            body: Refused to have a user feedback call
+            importHash: null
+            createdAt: "2022-10-03T16:00:57.867Z"
+            updatedAt: "2022-10-03T16:00:57.867Z"
+            deletedAt: null
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        noMerge: []
+        toMerge: []
+
+    
     Member:
       value:
-        id: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
+        id: 2effc566-1932-44f3-a821-2d692933a953
         username:
-          github: smart lady
-          discord: smart lady
-        displayName: smart lady
-        type: member
-        info: {}
-        crowdInfo:
-          github:
-            url: https://github.com/CrowdHQ
-            name: smart lady
-            isHireable: false
-            websiteUrl: https://crowd.dev
-          sample: true
-          discord:
-            id: '#sample-discord-id'
-        email: team@crowd.dev
-        score: 10
-        bio: "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and
-          `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
-        organisation: crowd.dev
-        location:
-        signals:
-        joinedAt: '2021-08-11T14:28:21.000Z'
-        importHash:
+          github: dinesh
+          twitter: dinesh.chugtai
+        attributes:
+          bio:
+            github: Lead developer at Pied Piper
+            default: Pakistani Denzel. Tesla and gold chain owner.
+            twitter: Pakistani Denzel. Tesla and gold chain owner.
+          url:
+            github: https://github.com/dinesh
+            default: https://t.co/d
+            twitter: https://t.co/d
+          location:
+            custom: Silicon Valley
+            github: Palo alto
+            default: Silicon Valley
+        displayName: Dinesh
+        email: dinesh@piedpiper.io
+        score: -1
+        joinedAt: "2022-10-03T15:30:55.672Z"
+        importHash: null
         reach:
-          total: -1
-        createdAt: '2022-03-29T09:22:22.202Z'
-        updatedAt: '2022-03-29T09:22:23.086Z'
-        deletedAt:
-        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        activities:
-          - id: 5f674315-5b7d-49ac-9bd2-797c7918a68f
-            type: message
-            timestamp: '2022-03-27T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              url: ''
-              body: Nisi duis qui proident. Labore amet nostrud sint ea ea esse.
-              sample: true
-              thread: false
-              channel: announcements
-              reactions: []
-              attachments: []
-            isKeyAction: true
-            score: 1
-            sourceId:
-            sourceParentId:
-            importHash:
-            createdAt: '2022-03-29T09:22:23.224Z'
-            updatedAt: '2022-03-29T09:22:23.224Z'
-            deletedAt:
-            memberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
-            conversationId:
-            parentId:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-          - id: 7bd24667-c9fd-45e4-afc7-90e170eaf544
-            type: joined_guild
-            timestamp: '2022-03-23T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              sample: true
-            isKeyAction: false
-            score: 2
-            sourceId:
-            sourceParentId:
-            importHash:
-            createdAt: '2022-03-29T09:22:23.159Z'
-            updatedAt: '2022-03-29T09:22:23.159Z'
-            deletedAt:
-            memberId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
-            conversationId:
-            parentId:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        tags:
-          - id: 1eb3a60a-e5b3-4e43-938a-14085b29a19e
-            name: Contributor
-            importHash:
-            createdAt: '2022-06-03T09:15:42.694Z'
-            updatedAt: '2022-06-03T09:15:42.694Z'
-            deletedAt:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-          - id: 35dd51fd-15ef-424b-8ed0-f58b8adefd9f
-            name: Berlin
-            importHash:
-            createdAt: '2022-06-03T09:16:04.019Z'
-            updatedAt: '2022-06-03T09:16:04.019Z'
-            deletedAt:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
+          total: 100
+          github: 60
+          twitter: 40
+        createdAt: "2022-10-03T15:30:55.679Z"
+        updatedAt: "2022-10-03T15:30:55.679Z"
+        deletedAt: null
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        activityCount: "2"
+        lastActive: "2021-07-27T20:22:30.000Z"
+        averageSentiment: "82.50"
         noMerge: []
         toMerge: []
+        lastActivity:
+          id: 462ddc6b-5672-43b2-9018-4e3fd7332228
+          type: pull_request-closed
+          timestamp: "2021-07-27T20:22:30.000Z"
+          platform: github
+          isKeyAction: true
+          score: 10
+          sourceId: gh_1
+          sourceParentId: null
+          attributes: {}
+          channel: piedpiper
+          body: Last one to finish the code sprint! But I will have less bugs than Gilfoyle.
+          title: Code sprint over!
+          url: github.com/piedpiper/piedpier
+          sentiment:
+            label: positive
+            mixed: 0.7594161201268435
+            neutral: 39.13898766040802
+            negative: 12.336093187332153
+            positive: 47.76550233364105
+            sentiment: 79
+          importHash: null
+          createdAt: "2022-10-03T15:36:43.775Z"
+          updatedAt: "2022-10-03T15:39:38.199Z"
+          deletedAt: null
+          memberId: 2effc566-1932-44f3-a821-2d692933a953
+          conversationId: 291af008-7717-457e-9242-f5c507c8987b
+          parentId: null
+          tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+          createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        organizations: []
+        tags: []
+
+
     Member2:
       value:
-        id: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
+        id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
         username:
-          discord: favorable slowboy
-        displayName: favorable slowboy
-        type: member
-        info: {}
-        crowdInfo:
-          github:
-            url: 'https://github.com/CrowdHQ'
-            name: favorable slowboy
-            isHireable: false
-            websiteUrl: 'https://crowd.dev'
-          discord:
-            id: '#sample-discord-id'
-        email: team@crowd.dev
-        score: 0
-        bio: null
-        organisation: crowd.dev
-        location: Hong Kong
-        signals: null
-        joinedAt: '2022-03-25T21:00:00.000Z'
+          github: gilfoyle
+          twitter: gilfoyle
+        attributes:
+          bio:
+            github: Systems engineer at Pied Piper
+            default: It's not magic. It's talent and sweat
+            twitter: It's not magic. It's talent and sweat
+          url:
+            github: https://github.com/gilfoyle
+            default: https://t.co/g
+            twitter: https://t.co/g
+          location:
+            custom: Erlich's house
+            github: Palo alto
+            default: Erlich's house
+        displayName: Gilfoyle
+        email: gilfoyle@piedpiper.io
+        score: -1
+        joinedAt: "2022-10-03T15:17:03.540Z"
         importHash: null
-        createdAt: '2022-03-29T09:22:20.995Z'
-        updatedAt: '2022-03-29T10:07:22.849Z'
+        reach:
+          total: 10000
+          github: 5000
+          twitter: 5000
+        createdAt: "2022-10-03T15:17:03.547Z"
+        updatedAt: "2022-10-03T15:17:27.073Z"
         deletedAt: null
-        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        updatedById: null
-        activitiesCount: '3'
-        tagsArray:
-          - null
-        activities:
-          - id: c4dc7136-34ef-4596-b422-9ab0eb3a4892
-            type: message
-            timestamp: '2022-03-28T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              url: ''
-              body: >-
-                Voluptate amet nisi dolor nulla in occaecat consequat. Aliqua velit
-                minim esse Lorem mollit aute qui.
-              thread: false
-              channel: announcements
-              reactions: []
-              attachments: []
-            isKeyAction: true
-            score: 1
-            sourceId: null
-            importHash: null
-            createdAt: '2022-03-29T09:22:21.084Z'
-            updatedAt: '2022-03-29T09:22:21.084Z'
-            deletedAt: null
-            memberId: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
-            parentId: null
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        followers: []
-        following: []
-        tags: []
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        activityCount: "3"
+        lastActive: "2021-07-27T20:23:30.000Z"
+        averageSentiment: "34.67"
         noMerge: []
         toMerge: []
+        lastActivity:
+          id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
+          type: pull_request-comment
+          timestamp: "2021-07-27T20:23:30.000Z"
+          platform: github
+          isKeyAction: true
+          score: 3
+          sourceId: gh_3
+          sourceParentId: gh_1
+          attributes: {}
+          channel: piedpiper
+          body: Don't worry. I will continue to do it for you.
+          title: null
+          url: github.com/piedpiper/piedpier
+          sentiment:
+            label: positive
+            mixed: 2.9098065569996834
+            neutral: 25.578168034553528
+            negative: 2.241993509232998
+            positive: 69.27002668380737
+            sentiment: 97
+          importHash: null
+          createdAt: "2022-10-03T15:47:20.151Z"
+          updatedAt: "2022-10-03T15:47:20.220Z"
+          deletedAt: null
+          memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+          conversationId: 291af008-7717-457e-9242-f5c507c8987b
+          parentId: 462ddc6b-5672-43b2-9018-4e3fd7332228
+          tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+          createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        organizations: []
+        tags: []
+
+        
+
     MemberList:
       value:
         rows:
           - $ref: '#/components/examples/Member'
           - $ref: '#/components/examples/Member2'
         count: 2
+        limit: 10
+        offset: 0
