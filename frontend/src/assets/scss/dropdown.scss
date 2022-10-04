@@ -23,7 +23,10 @@
   }
 
   &.is-selected {
-    @apply bg-brand-50;
+    background-color: #fff5f4;
+    &:hover {
+      @apply bg-brand-50;
+    }
   }
 }
 
