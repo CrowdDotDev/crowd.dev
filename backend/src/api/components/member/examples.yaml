@@ -57,14 +57,14 @@ components:
         displayName: Gilfoyle
         email: gilfoyle@piedpiper.io
         score: 8
-        joinedAt: "2022-10-03T15:17:03.540Z"
+        joinedAt: '2022-10-03T15:17:03.540Z'
         importHash: null
         reach:
           total: 10000
           github: 5000
           twitter: 5000
-        createdAt: "2022-10-03T15:17:03.547Z"
-        updatedAt: "2022-10-05T11:40:32.560Z"
+        createdAt: '2022-10-03T15:17:03.547Z'
+        updatedAt: '2022-10-05T11:40:32.560Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -200,8 +200,8 @@ components:
           - id: 38807625-6302-47b5-9f35-58566ddec83b
             name: developer
             importHash: null
-            createdAt: "2022-10-05T11:41:20.162Z"
-            updatedAt: "2022-10-05T11:41:20.162Z"
+            createdAt: '2022-10-05T11:41:20.162Z'
+            updatedAt: '2022-10-05T11:41:20.162Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -209,8 +209,8 @@ components:
           - id: dca36c33-38cd-4e68-8ba8-515167e00971
             name: attended-hooli-con
             importHash: null
-            createdAt: "2022-10-05T11:42:17.414Z"
-            updatedAt: "2022-10-05T11:42:17.414Z"
+            createdAt: '2022-10-05T11:42:17.414Z'
+            updatedAt: '2022-10-05T11:42:17.414Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -245,8 +245,8 @@ components:
               max: 50
               min: 10
             importHash: null
-            createdAt: "2022-10-03T16:15:21.812Z"
-            updatedAt: "2022-10-03T16:15:21.812Z"
+            createdAt: '2022-10-03T16:15:21.812Z'
+            updatedAt: '2022-10-03T16:15:21.812Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -256,7 +256,6 @@ components:
         noMerge: []
         toMerge: []
 
-      
     MemberList:
       value:
         rows:
@@ -280,27 +279,27 @@ components:
             displayName: Dinesh
             email: dinesh@piedpiper.io
             score: 9
-            joinedAt: "2022-10-03T15:30:55.672Z"
+            joinedAt: '2022-10-03T15:30:55.672Z'
             importHash: null
             reach:
               total: 100
               github: 60
               twitter: 40
-            createdAt: "2022-10-03T15:30:55.679Z"
-            updatedAt: "2022-10-05T11:39:58.095Z"
+            createdAt: '2022-10-03T15:30:55.679Z'
+            updatedAt: '2022-10-05T11:39:58.095Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-            activityCount: "2"
-            lastActive: "2021-07-27T20:22:30.000Z"
-            averageSentiment: "82.50"
+            activityCount: '2'
+            lastActive: '2021-07-27T20:22:30.000Z'
+            averageSentiment: '82.50'
             noMerge: []
             toMerge: []
             lastActivity:
               id: 73aa13b7-1ef9-4987-a273-e560edff94ca
               type: pull_request-comment
-              timestamp: "2021-07-27T20:22:30.000Z"
+              timestamp: '2021-07-27T20:22:30.000Z'
               platform: github
               isKeyAction: true
               score: 3
@@ -319,8 +318,8 @@ components:
                 positive: 61.42715811729431
                 sentiment: 86
               importHash: null
-              createdAt: "2022-10-03T15:38:05.847Z"
-              updatedAt: "2022-10-03T15:46:34.610Z"
+              createdAt: '2022-10-03T15:38:05.847Z'
+              updatedAt: '2022-10-03T15:46:34.610Z'
               deletedAt: null
               memberId: 2effc566-1932-44f3-a821-2d692933a953
               conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -358,8 +357,8 @@ components:
                   max: 50
                   min: 10
                 importHash: null
-                createdAt: "2022-10-03T16:15:21.812Z"
-                updatedAt: "2022-10-03T16:15:21.812Z"
+                createdAt: '2022-10-03T16:15:21.812Z'
+                updatedAt: '2022-10-03T16:15:21.812Z'
                 deletedAt: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -368,8 +367,8 @@ components:
               - id: 38807625-6302-47b5-9f35-58566ddec83b
                 name: developer
                 importHash: null
-                createdAt: "2022-10-05T11:41:20.162Z"
-                updatedAt: "2022-10-05T11:41:20.162Z"
+                createdAt: '2022-10-05T11:41:20.162Z'
+                updatedAt: '2022-10-05T11:41:20.162Z'
                 deletedAt: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -394,27 +393,27 @@ components:
             displayName: Gilfoyle
             email: gilfoyle@piedpiper.io
             score: 8
-            joinedAt: "2022-10-03T15:17:03.540Z"
+            joinedAt: '2022-10-03T15:17:03.540Z'
             importHash: null
             reach:
               total: 10000
               github: 5000
               twitter: 5000
-            createdAt: "2022-10-03T15:17:03.547Z"
-            updatedAt: "2022-10-05T11:40:32.560Z"
+            createdAt: '2022-10-03T15:17:03.547Z'
+            updatedAt: '2022-10-05T11:40:32.560Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-            activityCount: "3"
-            lastActive: "2021-07-27T20:23:30.000Z"
-            averageSentiment: "34.67"
+            activityCount: '3'
+            lastActive: '2021-07-27T20:23:30.000Z'
+            averageSentiment: '34.67'
             noMerge: []
             toMerge: []
             lastActivity:
               id: 2dcbe40e-36e0-4929-ab21-a30467fd9a65
               type: pull_request-comment
-              timestamp: "2021-07-27T20:23:30.000Z"
+              timestamp: '2021-07-27T20:23:30.000Z'
               platform: github
               isKeyAction: true
               score: 3
@@ -433,8 +432,8 @@ components:
                 positive: 69.27002668380737
                 sentiment: 97
               importHash: null
-              createdAt: "2022-10-03T15:47:20.151Z"
-              updatedAt: "2022-10-03T15:47:20.220Z"
+              createdAt: '2022-10-03T15:47:20.151Z'
+              updatedAt: '2022-10-03T15:47:20.220Z'
               deletedAt: null
               memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
               conversationId: 291af008-7717-457e-9242-f5c507c8987b
@@ -472,8 +471,8 @@ components:
                   max: 50
                   min: 10
                 importHash: null
-                createdAt: "2022-10-03T16:15:21.812Z"
-                updatedAt: "2022-10-03T16:15:21.812Z"
+                createdAt: '2022-10-03T16:15:21.812Z'
+                updatedAt: '2022-10-03T16:15:21.812Z'
                 deletedAt: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -482,8 +481,8 @@ components:
               - id: 38807625-6302-47b5-9f35-58566ddec83b
                 name: developer
                 importHash: null
-                createdAt: "2022-10-05T11:41:20.162Z"
-                updatedAt: "2022-10-05T11:41:20.162Z"
+                createdAt: '2022-10-05T11:41:20.162Z'
+                updatedAt: '2022-10-05T11:41:20.162Z'
                 deletedAt: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -491,8 +490,8 @@ components:
               - id: dca36c33-38cd-4e68-8ba8-515167e00971
                 name: attended-hooli-con
                 importHash: null
-                createdAt: "2022-10-05T11:42:17.414Z"
-                updatedAt: "2022-10-05T11:42:17.414Z"
+                createdAt: '2022-10-05T11:42:17.414Z'
+                updatedAt: '2022-10-05T11:42:17.414Z'
                 deletedAt: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
