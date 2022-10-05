@@ -301,8 +301,8 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.username,
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: record.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.DISCORD]: record.id,
               },
             },
           },
@@ -366,8 +366,8 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.author.username,
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: record.author.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.DISCORD]: record.author.id,
               },
             },
           },

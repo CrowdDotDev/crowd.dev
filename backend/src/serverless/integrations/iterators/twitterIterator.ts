@@ -291,10 +291,14 @@ export default class TwitterIterator extends BaseIterator {
         username: record.username,
         reach: { [PlatformType.TWITTER]: record.followersCount },
         attributes: {
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.SOURCE_ID]: record.id,
-            [MemberAttributeName.IMAGE_URL]: record.imageUrl,
-            [MemberAttributeName.URL]: `https://twitter.com/${record.username}`,
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.TWITTER]: record.id,
+          },
+          [MemberAttributeName.IMAGE_URL]: {
+            [PlatformType.TWITTER]: record.imageUrl,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.TWITTER]: `https://twitter.com/${record.username}`,
           },
         },
       },
@@ -308,7 +312,7 @@ export default class TwitterIterator extends BaseIterator {
     out = out.filter(
       (activity) =>
         !this.followers.has(
-          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
+          activity.member.attributes[MemberAttributeName.SOURCE_ID][PlatformType.TWITTER],
         ),
     )
 
@@ -336,9 +340,11 @@ export default class TwitterIterator extends BaseIterator {
         member: {
           username: record.author.username,
           attributes: {
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.SOURCE_ID]: record.author.id,
-              [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
+            [MemberAttributeName.SOURCE_ID]: {
+              [PlatformType.TWITTER]: record.author.id,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.TWITTER]: `https://twitter.com/${record.author.username}`,
             },
           },
           reach: { [PlatformType.TWITTER]: record.author.followersCount },

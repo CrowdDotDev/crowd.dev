@@ -23,45 +23,32 @@ export default class MemberService {
   }
 
   /**
-   * Transforms the attributes coming from a request to a structured, attribute-name-key(ed) object.
-   * Example incoming attributes:
+   * Validates the attributes against its saved settings.
+   * 
+   * Throws 400 Errors if the attribute does not exist in settings,
+   * or if the sent attribute type does not match the type in the settings.
+   * Also restructures custom attributes that come only as a value, without platforms.
+   *
+   * Example custom attributes restructuring
    * {
-   *   attributes:{
-   *     github:{
-   *         url: 'http://some-github-url'
-   *         name: 'Michael Scott'
-   *         isHireable: true
-   *     },
-   *     twitter:{
-   *         url: 'http://some-twitter-url'
-   *     }
+   *   attributes: {
+   *      someAttributeName: 'someValue'
    *   }
    * }
    *
    * This object is transformed into:
    * {
-   *   attributes:{
-   *     url: {
-   *        github: 'http://some-github-url',
-   *        twitter: 'http://some-twitter-url'
+   *   attributes: {
+   *     someAttributeName: {
+   *        custom: 'someValue'
    *     },
-   *     name: {
-   *        github: 'Michael Scott'
-   *     },
-   *     isHireable: {
-   *        github: true
-   *     }
    *   }
    * }
    *
-   * Throws 400 Errors if the attribute does not exist in settings,
-   * or if the sent attribute type does not match the type in the settings.
    * @param attributes
-   * @returns structured object
+   * @returns restructured object
    */
-  async getStructuredAttributes(attributes: object): Promise<object> {
-    const attributesObject = {}
-
+  async validateAttributes(attributes: { [key: string]: any }): Promise<object> {
     // check attribute exists in memberAttributeSettings
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
@@ -70,27 +57,31 @@ export default class MemberService {
       return acc
     }, {})
 
-    for (const platform of Object.keys(attributes)) {
-      for (const attributeName of Object.keys(attributes[platform])) {
+    for (const attributeName of Object.keys(attributes)) {
+      if (!memberAttributeSettings[attributeName]) {
+        throw new Error400(
+          this.options.language,
+          'settings.memberAttributes.notFound',
+          attributeName,
+        )
+      }
+      if (typeof attributes[attributeName] !== 'object') {
+        attributes[attributeName] = {
+          custom: attributes[attributeName],
+        }
+      }
+
+      for (const platform of Object.keys(attributes[attributeName])) {
         if (
-          attributes[platform][attributeName] !== undefined &&
-          attributes[platform][attributeName] !== null
+          attributes[attributeName][platform] !== undefined &&
+          attributes[attributeName][platform] !== null
         ) {
-          if (!memberAttributeSettings[attributeName]) {
-            throw new Error400(
-              this.options.language,
-              'settings.memberAttributes.notFound',
-              attributeName,
-            )
-          }
           if (
             !MemberAttributeSettingsService.isCorrectType(
-              attributes[platform][attributeName],
+              attributes[attributeName][platform],
               memberAttributeSettings[attributeName].type,
             )
           ) {
-            console.log(attributes[platform][attributeName])
-            console.log('second')
             throw new Error400(
               this.options.language,
               'settings.memberAttributes.wrongType',
@@ -98,22 +89,11 @@ export default class MemberService {
               memberAttributeSettings[attributeName].type,
             )
           }
-
-          if (attributesObject[attributeName]) {
-            attributesObject[attributeName] = {
-              ...attributesObject[attributeName],
-              [platform]: attributes[platform][attributeName],
-            }
-          } else {
-            attributesObject[attributeName] = {
-              [platform]: attributes[platform][attributeName],
-            }
-          }
         }
       }
     }
 
-    return attributesObject
+    return attributes
   }
 
   /**
@@ -211,7 +191,7 @@ export default class MemberService {
       const { platform } = data
 
       if (data.attributes) {
-        data.attributes = await this.getStructuredAttributes(data.attributes)
+        data.attributes = await this.validateAttributes(data.attributes)
       }
 
       if (data.reach) {

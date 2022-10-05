@@ -1,20 +1,14 @@
 [
   {
-    "username": {
-      "discord": "considerate snewkes"
-    },
+    "username": { "discord": "considerate snewkes" },
     "type": "member",
     "info": {},
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "considerate snewkes",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev"
-      },
-      "discord": {
-        "sourceId": "#sample-discord-id"
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "considerate snewkes" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "sourceId": { "discord": "#sample-discord-id" }
     },
     "email": "team@crowd.dev",
     "score": 10,
@@ -60,22 +54,15 @@
     "toMerge": []
   },
   {
-    "username": {
-      "github": "amazing worshipper",
-      "discord": "amazing worshipper"
-    },
+    "username": { "github": "amazing worshipper", "discord": "amazing worshipper" },
     "type": "member",
     "info": {},
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "amazing worshipper",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev"
-      },
-      "discord": {
-        "sourceId": "#sample-discord-id"
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "amazing worshipper" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "sourceId": { "discord": "#sample-discord-id" }
     },
     "email": "team@crowd.dev",
     "score": 10,
@@ -229,18 +216,14 @@
     "toMerge": []
   },
   {
-    "username": {
-      "github": "romantic plornish"
-    },
+    "username": { "github": "romantic plornish" },
     "type": "member",
     "info": {},
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "romantic plornish",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev"
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "romantic plornish" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" }
     },
     "email": "team@crowd.dev",
     "score": 10,

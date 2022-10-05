@@ -154,18 +154,18 @@ describe('Dev.to iterator tests', () => {
 
       const member = activity.member
       expect(member.username[PlatformType.DEVTO]).toEqual('johndoe')
-      expect(member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO]).toEqual(
+      expect(member.attributes[MemberAttributeName.BIO][PlatformType.DEVTO]).toEqual(
         'Nice profile you got there',
       )
-      expect(member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION]).toEqual(
+      expect(member.attributes[MemberAttributeName.LOCATION][PlatformType.DEVTO]).toEqual(
         'Venice, Italy',
       )
-      expect(member.attributes[PlatformType.TWITTER][MemberAttributeName.URL]).toEqual(
+      expect(member.attributes[MemberAttributeName.URL][PlatformType.TWITTER]).toEqual(
         'https://twitter.com/johntwitter',
       )
       expect(member.username[PlatformType.TWITTER]).toEqual('johntwitter')
-      expect(member.attributes[PlatformType.GITHUB][MemberAttributeName.NAME]).toEqual('John')
-      expect(member.attributes[PlatformType.GITHUB][MemberAttributeName.URL]).toEqual(
+      expect(member.attributes[MemberAttributeName.NAME][PlatformType.GITHUB]).toEqual('John')
+      expect(member.attributes[MemberAttributeName.URL][PlatformType.GITHUB]).toEqual(
         'https://github.com/johngithub',
       )
       expect(member.username[PlatformType.GITHUB]).toEqual('johngithub')
