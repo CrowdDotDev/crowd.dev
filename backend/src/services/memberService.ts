@@ -24,7 +24,7 @@ export default class MemberService {
 
   /**
    * Validates the attributes against its saved settings.
-   * 
+   *
    * Throws 400 Errors if the attribute does not exist in settings,
    * or if the sent attribute type does not match the type in the settings.
    * Also restructures custom attributes that come only as a value, without platforms.
