@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+JS_DESTINATION="/etc/nginx/html/js/*.js"
+HTML_DESTINATION="/etc/nginx/html/index.html"
+
+declare -a ENV_VARIABLES=(
+  "VUE_APP_FRONTEND_HOST"
+  "VUE_APP_FRONTEND_PROTOCOL"
+  "VUE_APP_BACKEND_URL"
+  "VUE_APP_STRIPE_PUBLISHABLE_KEY"
+  "VUE_APP_GITHUB_INSTALLATION_URL"
+  "VUE_APP_DISCORD_INSTALLATION_URL"
+  "VUE_APP_CUBEJS_URL"
+  "VUE_APP_CONVERSATIONS_PUBLIC_URL"
+  "VUE_APP_EDITION"
+  "VUE_APP_COMMUNITY_PREMIUM"
+  "VUE_APP_SEGMENT_KEY"
+)
+
+for ENV_VAR in "${ENV_VARIABLES[@]}"
+do
+  echo "Replacing CROWD_$ENV_VAR with '${!ENV_VAR}' in $JS_DESTINATION and $HTML_DESTINATION!"
+  sed -i "s|CROWD_$ENV_VAR|${!ENV_VAR}|g" ${JS_DESTINATION}
+  sed -i "s|CROWD_$ENV_VAR|${!ENV_VAR}|g" ${HTML_DESTINATION}
+done
+
+echo "Starting Nginx!"
+nginx -g "daemon off;"

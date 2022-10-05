@@ -6,7 +6,9 @@ services:
       context: ../frontend
       dockerfile: Dockerfile.kube
     env_file:
-      - ../../frontend/.env
+      - ../../frontend/.env.dist.local
+      - ../../frontend/.env.dist.composed
+      - ../../frontend/.env.override
     environment:
       - DOCKER_BUILDKIT=1
     networks:
