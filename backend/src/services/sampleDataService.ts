@@ -8,6 +8,7 @@ import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { CrowdMemberAttributes } from '../database/attributes/member/crowd'
 import { GithubMemberAttributes } from '../database/attributes/member/github'
 import { DiscordMemberAttributes } from '../database/attributes/member/discord'
+import { MemberAttributeName } from '../database/attributes/member/enums'
 
 export default class SampleDataService {
   options: IServiceOptions
@@ -46,8 +47,8 @@ export default class SampleDataService {
     for (const member of sampleMembersActivities) {
       const { activities: _, ...memberPlain } = member
 
-      memberPlain.attributes[PlatformType.CROWD] = {
-        sample: true,
+      memberPlain.attributes[MemberAttributeName.SAMPLE] = {
+        [PlatformType.CROWD]: true,
       }
 
       for (const activity of member.activities) {

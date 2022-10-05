@@ -198,34 +198,36 @@ export default class DevtoIterator extends BaseIterator {
         [PlatformType.DEVTO]: comment.user.username,
       },
       attributes: {
-        [PlatformType.DEVTO]: {
-          [MemberAttributeName.URL]: `https://dev.to/${encodeURIComponent(
-            comment.fullUser.username,
-          )}`,
+        [MemberAttributeName.URL]: {
+          [PlatformType.DEVTO]: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         },
       },
     }
 
     if (comment.user.twitter_username) {
-      member.attributes[PlatformType.TWITTER] = {
-        [MemberAttributeName.URL]: `https://twitter.com/${comment.user.twitter_username}`,
-      }
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${comment.user.twitter_username}`
       member.username[PlatformType.TWITTER] = comment.user.twitter_username
     }
 
     if (comment.user.github_username) {
-      member.attributes[PlatformType.GITHUB] = {
-        [MemberAttributeName.NAME]: comment.user.name,
-        [MemberAttributeName.URL]: `https://github.com/${comment.user.github_username}`,
+      member.attributes[MemberAttributeName.NAME] = {
+        [PlatformType.GITHUB]: comment.user.name,
       }
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.GITHUB
+      ] = `https://github.com/${comment.user.github_username}`
       member.username[PlatformType.GITHUB] = comment.user.github_username
     }
 
     if (comment.fullUser) {
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO] =
-        comment.fullUser?.summary || ''
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION] =
-        comment.fullUser?.location || ''
+      member.attributes[MemberAttributeName.BIO] = {
+        [PlatformType.DEVTO]: comment.fullUser?.summary || '',
+      }
+      member.attributes[MemberAttributeName.LOCATION] = {
+        [PlatformType.DEVTO]: comment.fullUser?.location || '',
+      }
     }
 
     activities.push({

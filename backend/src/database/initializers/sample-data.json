@@ -40,15 +40,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "considerate snewkes",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Mannheim, Germany",
-        "bio": "Member of the @vuejs core team, hobby frontend hacker. Not a  dev by profession."
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "considerate snewkes" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Mannheim, Germany" },
+      "bio": {
+        "github": "Member of the @vuejs core team, hobby frontend hacker. Not a  dev by profession."
       },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -92,15 +92,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "amazing horatio",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Singapore",
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "amazing horatio" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Singapore" },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -176,16 +174,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "great writer",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Paris",
-        "bio": "Member of the @vuejs core team\r\nSpeaker, trainer.\r\nFrom 🇪🇸, lives in 🇫🇷"
+      "url": { "github": "https://github.com/CrowdHQ", "twitter": "https://twitter.com/posva" },
+      "name": { "github": "great writer" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Paris" },
+      "bio": {
+        "github": "Member of the @vuejs core team\r\nSpeaker, trainer.\r\nFrom 🇪🇸, lives in 🇫🇷"
       },
-      "twitter": { "url": "https://twitter.com/posva" },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -261,16 +258,18 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "diligent barley",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "China",
-        "bio": "Member of @vuejs. Full Stack Developer. Love OpenSource. Interested in @vuejs / @dotnet / @nodejs / TypeScript"
+      "url": {
+        "github": "https://github.com/CrowdHQ",
+        "twitter": "https://twitter.com/edison11051"
       },
-      "twitter": { "url": "https://twitter.com/edison11051" },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "name": { "github": "diligent barley" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "China" },
+      "bio": {
+        "github": "Member of @vuejs. Full Stack Developer. Love OpenSource. Interested in @vuejs / @dotnet / @nodejs / TypeScript"
+      },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -330,15 +329,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "favorable slowboy",
-        "websiteUrl": "https://crowd.dev",
-        "location": "Hong Kong",
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "favorable slowboy" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Hong Kong" },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -414,15 +411,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "perfect capitalist",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "perfect capitalist" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -514,15 +509,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "diligent engineer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "diligent engineer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -582,15 +575,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "fortuitous cleaver",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "fortuitous cleaver" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -666,15 +657,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "optimistic technician",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "成都",
-        "bio": "⊙﹏⊙‖∣° 🐟🐟🐟"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "optimistic technician" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "成都" },
+      "bio": { "github": "⊙﹏⊙‖∣° 🐟🐟🐟" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -750,15 +739,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "hard working",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "beijing",
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "hard working" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "beijing" },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -1091,15 +1078,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "smart lady",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "smart lady" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": {
+        "github": "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
       },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -1412,15 +1399,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "persistent  bart",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "persistent  bart" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -1701,16 +1686,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "super jobling",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Shanghai, China",
-        "bio": "For the web."
-      },
-      "twitter": { "url": "https://twitter.com/_justineo" },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ", "twitter": "https://twitter.com/_justineo" },
+      "name": { "github": "super jobling" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Shanghai, China" },
+      "bio": { "github": "For the web." },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -1994,16 +1976,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "intuitive bradley",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "London",
-        "bio": "Fullstack developer, interested in @vuejs, @dotnet and @nodejs.\r\nTypescript 🧙‍♂️ \r\nConsultant 🕵️‍♂️"
+      "url": { "github": "https://github.com/CrowdHQ", "twitter": "https://twitter.com/pikax_dev" },
+      "name": { "github": "intuitive bradley" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "London" },
+      "bio": {
+        "github": "Fullstack developer, interested in @vuejs, @dotnet and @nodejs.\r\nTypescript 🧙‍♂️ \r\nConsultant 🕵️‍♂️"
       },
-      "twitter": { "url": "https://twitter.com/pikax_dev" },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -2234,15 +2215,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "sincere filer",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Tirana, Albania",
-        "bio": "Frontend enthusiast.\r\nSenior Vue.js developer."
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "sincere filer" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Tirana, Albania" },
+      "bio": { "github": "Frontend enthusiast.\r\nSenior Vue.js developer." },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -2504,15 +2483,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "incredible may",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "incredible may" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -2730,16 +2707,16 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "blithesome kenwigs",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Beijing, China",
-        "bio": "A self-funded solo founder. @vuejs"
+      "url": {
+        "github": "https://github.com/CrowdHQ",
+        "twitter": "https://twitter.com/HcySunYang"
       },
-      "twitter": { "url": "https://twitter.com/HcySunYang" },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "name": { "github": "blithesome kenwigs" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Beijing, China" },
+      "bio": { "github": "A self-funded solo founder. @vuejs" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -2928,15 +2905,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "stupendous estimator",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "stupendous estimator" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -3146,15 +3121,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "helpful trainer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Melbourne",
-        "bio": "I enjoy making things easier & cleaner"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "helpful trainer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Melbourne" },
+      "bio": { "github": "I enjoy making things easier & cleaner" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -3350,15 +3323,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "powerful traveler",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "China",
-        "bio": "我们藉由知识接近神灵."
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "powerful traveler" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "China" },
+      "bio": { "github": "我们藉由知识接近神灵." },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -3521,15 +3492,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "spectacular appraiser",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "spectacular appraiser" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -3708,15 +3677,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "independent craftsman",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "China",
-        "bio": "坚持做正确的事"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "independent craftsman" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "China" },
+      "bio": { "github": "坚持做正确的事" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -3879,15 +3846,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "smart accountant",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Shinnippori",
-        "bio": "闇と森の妖精"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "smart accountant" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Shinnippori" },
+      "bio": { "github": "闇と森の妖精" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4096,15 +4061,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "imaginative mortician",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Beijing",
-        "bio": "Knowledge brings real freedom."
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "imaginative mortician" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Beijing" },
+      "bio": { "github": "Knowledge brings real freedom." },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4248,15 +4211,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "sympathetic girlguide",
-        "websiteUrl": "https://crowd.dev",
-        "location": "HangZhou,China",
-        "bio": "天空高远，大风吟唱······"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "sympathetic girlguide" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "HangZhou,China" },
+      "bio": { "github": "天空高远，大风吟唱······" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4434,15 +4395,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "amicable tupman",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Basel, Switzerland",
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "amicable tupman" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Basel, Switzerland" },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4602,15 +4561,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "humorous beadwood",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "深圳",
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "humorous beadwood" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "深圳" },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4754,15 +4711,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "quick witted",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Tehran",
-        "bio": "13 years old student from Tehran.\r\nA JS and node js and python developer"
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "quick witted" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Tehran" },
+      "bio": {
+        "github": "13 years old student from Tehran.\r\nA JS and node js and python developer"
       },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -4908,15 +4865,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "amazing worshipper",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Brazil",
-        "bio": "Javascript developer. I love Vue!"
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "amazing worshipper" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Brazil" },
+      "bio": { "github": "Javascript developer. I love Vue!" },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -5059,15 +5014,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "excellent arabella",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      },
-      "discord": { "sourceId": "#sample-discord-id" }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "excellent arabella" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null },
+      "sourceId": { "discord": "#sample-discord-id" }
     }
   },
   {
@@ -5169,14 +5122,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "passionate girlguide",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "guangdong",
-        "bio": "SSR & TS & Rust"
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "passionate girlguide" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "guangdong" },
+      "bio": { "github": "SSR & TS & Rust" }
     }
   },
   {
@@ -5280,14 +5231,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "awesome miss",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "awesome miss" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null }
     }
   },
   {
@@ -5389,13 +5338,13 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "spectacular slowboy",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Hamilton, ON",
-        "bio": "Full-Stack Dev in the digital-health space. A JavaScript nerd on a mission to modernize healthcare."
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "spectacular slowboy" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Hamilton, ON" },
+      "bio": {
+        "github": "Full-Stack Dev in the digital-health space. A JavaScript nerd on a mission to modernize healthcare."
       }
     }
   },
@@ -5498,14 +5447,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "intuitive sheriff",
-        "websiteUrl": "https://crowd.dev",
-        "location": "杭州",
-        "bio": "演员的自我修养"
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "intuitive sheriff" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "杭州" },
+      "bio": { "github": "演员的自我修养" }
     }
   },
   {
@@ -5609,14 +5556,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "intuitive bounderby",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Japan",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "intuitive bounderby" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Japan" },
+      "bio": { "github": null }
     }
   },
   {
@@ -5718,14 +5663,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "affable senator",
-        "websiteUrl": "https://crowd.dev",
-        "location": "Frankfurt, Germany",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "affable senator" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Frankfurt, Germany" },
+      "bio": { "github": null }
     }
   },
   {
@@ -5827,15 +5770,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "tidy scadder",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": "Student | Full Stack Developer | @element-plus team member"
+      "url": {
+        "github": "https://github.com/CrowdHQ",
+        "twitter": "https://twitter.com/sanxiaozhizi"
       },
-      "twitter": { "url": "https://twitter.com/sanxiaozhizi" }
+      "name": { "github": "tidy scadder" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": "Student | Full Stack Developer | @element-plus team member" }
     }
   },
   {
@@ -5937,14 +5880,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "easygoing craftsman",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Korea",
-        "bio": "I love Javascript."
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "easygoing craftsman" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Korea" },
+      "bio": { "github": "I love Javascript." }
     }
   },
   {
@@ -6046,14 +5987,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "fantastic trainer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "China",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "fantastic trainer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "China" },
+      "bio": { "github": null }
     }
   },
   {
@@ -6157,15 +6096,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "brave chopkins",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "canada",
-        "bio": "JS enthousiast"
+      "url": {
+        "github": "https://github.com/CrowdHQ",
+        "twitter": "https://twitter.com/jsbaguette"
       },
-      "twitter": { "url": "https://twitter.com/jsbaguette" }
+      "name": { "github": "brave chopkins" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "canada" },
+      "bio": { "github": "JS enthousiast" }
     }
   },
   {
@@ -6250,14 +6189,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "conscientious sailor",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "conscientious sailor" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null }
     }
   },
   {
@@ -6344,14 +6281,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "isHireable": false,
-        "name": "independent coder",
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "isHireable": { "github": false },
+      "name": { "github": "independent coder" },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null }
     }
   },
   {
@@ -6436,15 +6371,15 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "compassionate trainer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Tokyo, Japan.",
-        "bio": "👨‍💻 @line Front-end Engineer, 💖 LoveLive!"
+      "url": {
+        "github": "https://github.com/CrowdHQ",
+        "twitter": "https://twitter.com/T28_tatsuya"
       },
-      "twitter": { "url": "https://twitter.com/T28_tatsuya" }
+      "name": { "github": "compassionate trainer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Tokyo, Japan." },
+      "bio": { "github": "👨‍💻 @line Front-end Engineer, 💖 LoveLive!" }
     }
   },
   {
@@ -6529,14 +6464,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "exuberant marketer",
-        "isHireable": true,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Zhuhai, China",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "exuberant marketer" },
+      "isHireable": { "github": true },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Zhuhai, China" },
+      "bio": { "github": null }
     }
   },
   {
@@ -6621,15 +6554,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "loving buyer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "France",
-        "bio": null
-      },
-      "twitter": { "url": "https://twitter.com/antcatel" }
+      "url": { "github": "https://github.com/CrowdHQ", "twitter": "https://twitter.com/antcatel" },
+      "name": { "github": "loving buyer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "France" },
+      "bio": { "github": null }
     }
   },
   {
@@ -6716,14 +6646,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "hard working",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "San Francisco, CA",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "hard working" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "San Francisco, CA" },
+      "bio": { "github": null }
     }
   },
   {
@@ -6808,14 +6736,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "smart priscilla",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "Beijing",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "smart priscilla" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "Beijing" },
+      "bio": { "github": null }
     }
   },
   {
@@ -6900,14 +6826,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "agreeable trainer",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "agreeable trainer" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": null }
     }
   },
   {
@@ -6992,14 +6916,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "excellent emily",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": "中国",
-        "bio": null
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "excellent emily" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": "中国" },
+      "bio": { "github": null }
     }
   },
   {
@@ -7084,14 +7006,12 @@
     "noMerge": [],
     "toMerge": [],
     "attributes": {
-      "github": {
-        "url": "https://github.com/CrowdHQ",
-        "name": "romantic plornish",
-        "isHireable": false,
-        "websiteUrl": "https://crowd.dev",
-        "location": null,
-        "bio": "coding..."
-      }
+      "url": { "github": "https://github.com/CrowdHQ" },
+      "name": { "github": "romantic plornish" },
+      "isHireable": { "github": false },
+      "websiteUrl": { "github": "https://crowd.dev" },
+      "location": { "github": null },
+      "bio": { "github": "coding..." }
     }
   }
 ]
