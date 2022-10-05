@@ -14,7 +14,7 @@ import OrganizationService from '../../services/organizationService'
  * @bodyContent {OrganizationInput} application/json
  * @response 200 - Ok
  * @responseContent {Organization} 200.application/json
- * @responseExample {Organization} 200.application/json.Organization
+ * @responseExample {OrganizationCreate} 200.application/json.Organization
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests

@@ -13,7 +13,7 @@ import MemberService from '../../services/memberService'
  * @pathParam {string} id - The ID of the member
  * @response 200 - Ok
  * @responseContent {MemberResponse} 200.application/json
- * @responseExample {Member} 200.application/json.Member
+ * @responseExample {MemberFind} 200.application/json.Member
  * @response 401 - Unauthorized
  * @response 404 - Not found
  * @response 429 - Too many requests
