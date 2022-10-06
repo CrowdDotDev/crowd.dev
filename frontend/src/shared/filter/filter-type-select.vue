@@ -8,7 +8,7 @@
           ? 'is-selected'
           : ''
       "
-      @click="handleOptionClick(option)"
+      @click.prevent="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">

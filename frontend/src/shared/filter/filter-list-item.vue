@@ -30,10 +30,36 @@
       </el-button>
     </el-button-group>
     <template #dropdown>
-      <app-filter-type-select
-        v-model="model"
-        :options="options"
-      />
+      <div class="filter-list-item-popper-content">
+        <app-filter-type-select
+          v-model="model"
+          multiple
+          :options="options"
+        />
+      </div>
+      <div
+        class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
+      >
+        <el-button
+          v-if="model.length > 0"
+          class="btn btn-link btn-link--primary"
+          @click="handleReset"
+          >Reset filter</el-button
+        >
+        <div v-else>&nbsp;</div>
+        <div class="flex items-center">
+          <el-button
+            class="btn btn--transparent btn--sm mr-3"
+            @click="handleCancel"
+            >Cancel</el-button
+          >
+          <el-button
+            class="btn btn--primary btn--sm"
+            @click="handleApply"
+            >Apply</el-button
+          >
+        </div>
+      </div>
     </template>
   </el-dropdown>
 </template>
@@ -71,12 +97,16 @@ onMounted(() => {
 
 const dropdown = ref(null)
 const isExpanded = ref(false)
-const hasValues = computed(() => model.value.length > 0)
+const hasValues = computed(
+  () => props.filter.value.length > 0
+)
 const valuesToString = computed(() => {
-  return model.value.map((o) => o.label).join(', ')
+  return props.filter.value.map((o) => o.label).join(', ')
 })
 
-const model = ref([])
+const model = ref(
+  JSON.parse(JSON.stringify(props.filter.defaultValue))
+)
 const options = [
   {
     label: 'Option A',
@@ -95,8 +125,29 @@ const handleVisibleChange = (value) => {
   isExpanded.value = value
 }
 
+const handleChange = () => {
+  emits('change', {
+    ...props.filter,
+    value: JSON.parse(JSON.stringify(model.value))
+  })
+}
+
 const handleDestroy = () => {
   emits('destroy', { ...props.filter })
+}
+
+const handleReset = () => {
+  model.value.length = 0
+  handleChange()
+}
+
+const handleCancel = () => {
+  dropdown.value.handleClose()
+}
+
+const handleApply = () => {
+  handleChange()
+  dropdown.value.handleClose()
 }
 </script>
 
@@ -127,6 +178,10 @@ const handleDestroy = () => {
   }
   &-popper {
     @apply relative w-full max-w-xs;
+
+    &-content {
+      @apply max-h-58 overflow-auto pb-2;
+    }
 
     .el-dropdown-menu__item.is-selected {
       @apply relative;

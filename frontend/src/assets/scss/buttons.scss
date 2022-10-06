@@ -186,7 +186,7 @@
       @apply text-brand-500;
 
       &:hover {
-        @apply cursor-pointer text-brand-600;
+        @apply cursor-pointer text-brand-600 bg-transparent;
       }
       &[disabled] {
         @apply cursor-not-allowed text-brand-300;
