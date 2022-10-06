@@ -11,19 +11,19 @@
       <el-button
         class="filter-list-item-btn"
         :class="`${isExpanded ? 'is-expanded' : ''} ${
-          hasValues ? 'is-active' : ''
+          hasValue ? 'is-active' : ''
         }`"
       >
         <span>
-          {{ filter.label }}{{ hasValues ? ':' : '...' }}
+          {{ filter.label }}{{ hasValue ? ':' : '...' }}
         </span>
-        <span v-if="hasValues" class="ml-1">{{
-          valuesToString
+        <span v-if="hasValue" class="ml-1">{{
+          valueToString
         }}</span>
       </el-button>
       <el-button
         class="filter-list-item-btn filter-list-item-btn__close"
-        :class="hasValues ? 'is-active' : ''"
+        :class="hasValue ? 'is-active' : ''"
         @click.stop="handleDestroy"
       >
         <i class="ri-close-line"></i>
@@ -31,10 +31,10 @@
     </el-button-group>
     <template #dropdown>
       <div class="filter-list-item-popper-content">
-        <app-filter-type-select
+        <component
+          :is="`app-filter-type-${filter.type}`"
+          v-bind="filter.props"
           v-model="model"
-          multiple
-          :options="options"
         />
       </div>
       <div
@@ -55,6 +55,7 @@
           >
           <el-button
             class="btn btn--primary btn--sm"
+            :disabled="shouldDisableApplyButton"
             @click="handleApply"
             >Apply</el-button
           >
@@ -78,7 +79,6 @@ import {
   onMounted,
   computed
 } from 'vue'
-import AppFilterTypeSelect from '@/shared/filter/filter-type-select'
 
 const props = defineProps({
   filter: {
@@ -97,30 +97,47 @@ onMounted(() => {
 
 const dropdown = ref(null)
 const isExpanded = ref(false)
-const hasValues = computed(
+const hasValue = computed(
   () => props.filter.value.length > 0
 )
-const valuesToString = computed(() => {
-  return props.filter.value.map((o) => o.label).join(', ')
+const valueToString = computed(() => {
+  if (props.filter.type === 'range') {
+    const start = props.filter.value[0]
+    const end =
+      props.filter.value.length === 2 &&
+      props.filter.value[1]
+
+    if (
+      (start == null || start === '') &&
+      (end == null || end === '')
+    ) {
+      return null
+    }
+
+    if (start != null && (end == null || end === '')) {
+      return `> ${start}`
+    }
+
+    if ((start == null || start === '') && end != null) {
+      return `< ${end}`
+    }
+
+    return `${start} - ${end}`
+  } else {
+    return props.filter.value
+      .map((o) => o.label || o)
+      .join(', ')
+  }
+})
+
+const shouldDisableApplyButton = computed(() => {
+  return model.value.length === 0
 })
 
 const model = ref(
   JSON.parse(JSON.stringify(props.filter.defaultValue))
 )
-const options = [
-  {
-    label: 'Option A',
-    name: 'a'
-  },
-  {
-    label: 'Option B',
-    name: 'b'
-  },
-  {
-    label: 'Option C',
-    name: 'c'
-  }
-]
+
 const handleVisibleChange = (value) => {
   isExpanded.value = value
 }
@@ -137,7 +154,9 @@ const handleDestroy = () => {
 }
 
 const handleReset = () => {
-  model.value.length = 0
+  model.value = JSON.parse(
+    JSON.stringify(props.filter.defaultValue)
+  )
   handleChange()
 }
 
