@@ -39,6 +39,10 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       transaction,
     })
 
+    await queryInterface.renameColumn('activities', 'crowdInfo', 'attributes', {
+      transaction,
+    })
+
     // rename memberToMerge.communityMemberId field to memberToMerge.memberId and update fk name
     await queryInterface.removeConstraint(
       'memberToMerge',
@@ -317,14 +321,6 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       { transaction },
     )
 
-    // create new activities fields
-    await queryInterface.addColumn(
-      'activities',
-      'attributes',
-      { type: Sequelize.JSONB, defaultValue: {} },
-      { transaction },
-    )
-
     // create new settings field: attributeSettings
     await queryInterface.addColumn(
       'settings',
@@ -360,12 +356,15 @@ export const down = async (queryInterface: QueryInterface) => {
     await queryInterface.renameTable('members', 'communityMembers', {
       transaction,
     })
+
     await queryInterface.renameTable('memberTags', 'communityMemberTags', {
       transaction,
     })
+
     await queryInterface.renameTable('memberToMerge', 'communityMemberToMerge', {
       transaction,
     })
+
     await queryInterface.renameTable('memberNoMerge', 'communityMemberNoMerge', {
       transaction,
     })
@@ -373,9 +372,15 @@ export const down = async (queryInterface: QueryInterface) => {
     await queryInterface.removeConstraint('activities', 'activities_memberId_fkey', {
       transaction,
     })
+
     await queryInterface.renameColumn('activities', 'memberId', 'communityMemberId', {
       transaction,
     })
+
+    await queryInterface.renameColumn('activities', 'attributes', 'crowdInfo', {
+      transaction,
+    })
+
     await queryInterface.addConstraint('activities', {
       type: 'foreign key',
       fields: ['communityMemberId'],
@@ -618,9 +623,6 @@ export const down = async (queryInterface: QueryInterface) => {
 
     // displayName
     await queryInterface.removeColumn('communityMembers', 'displayName', { transaction })
-
-    // remove new activities fields
-    await queryInterface.removeColumn('activities', 'attributes', { transaction })
 
     // remove settings.attributeSettings
     await queryInterface.removeColumn('settings', 'attributeSettings', { transaction })
