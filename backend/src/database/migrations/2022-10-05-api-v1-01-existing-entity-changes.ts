@@ -1,4 +1,5 @@
 import { QueryInterface } from 'sequelize/types'
+import { PlatformType } from '../../utils/platforms'
 
 export const up = async (queryInterface: QueryInterface, Sequelize) => {
   const transaction = await queryInterface.sequelize.transaction()
@@ -295,14 +296,56 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
 
     // create new members fields
     // attributes
-    await queryInterface.addColumn('members', 'attributes', Sequelize.JSONB, { transaction })
+    await queryInterface.addColumn(
+      'members',
+      'attributes',
+      { type: Sequelize.JSONB, defaultValue: {} },
+      { transaction },
+    )
 
     // displayName
-    await queryInterface.addColumn('members', 'displayName', Sequelize.TEXT, { transaction }) 
+    await queryInterface.addColumn(
+      'members',
+      'displayName',
+      {
+        type: Sequelize.TEXT,
+        allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
+      },
+      { transaction },
+    )
 
     // create new activities fields
-    await queryInterface.addColumn('activities', 'attributes', Sequelize.JSONB, { transaction })
+    await queryInterface.addColumn(
+      'activities',
+      'attributes',
+      { type: Sequelize.JSONB, defaultValue: {} },
+      { transaction },
+    )
 
+    // create new settings field: attributeSettings
+    await queryInterface.addColumn(
+      'settings',
+      'attributeSettings',
+      {
+        type: Sequelize.JSONB,
+        allowNull: false,
+        defaultValue: {
+          priorities: [
+            'custom',
+            PlatformType.TWITTER,
+            PlatformType.GITHUB,
+            PlatformType.DEVTO,
+            PlatformType.SLACK,
+            PlatformType.DISCORD,
+            PlatformType.CROWD,
+          ],
+        },
+      },
+      { transaction },
+    )
     await transaction.commit()
   } catch (error) {
     await transaction.rollback()
@@ -574,10 +617,13 @@ export const down = async (queryInterface: QueryInterface) => {
     await queryInterface.removeColumn('communityMembers', 'attributes', { transaction })
 
     // displayName
-    await queryInterface.removeColumn('communityMembers', 'displayName', { transaction }) 
+    await queryInterface.removeColumn('communityMembers', 'displayName', { transaction })
 
     // remove new activities fields
     await queryInterface.removeColumn('activities', 'attributes', { transaction })
+
+    // remove settings.attributeSettings
+    await queryInterface.removeColumn('settings', 'attributeSettings', { transaction })
 
     await transaction.commit()
   } catch (error) {
