@@ -37,26 +37,76 @@ import AppFilterListCompositor from './filter-list-compositor'
 
 const compositor = ref('and')
 const filters = reactive({
-  a: {
-    name: 'a',
-    label: 'Filter A',
+  selectSingle: {
+    name: 'selectSingle',
+    label: 'Select Single',
+    props: {
+      options: [
+        {
+          label: 'Option A',
+          name: 'a'
+        },
+        {
+          label: 'Option B',
+          name: 'b'
+        },
+        {
+          label: 'Option C',
+          name: 'c'
+        }
+      ]
+    },
+    defaultValue: [],
+    value: [],
+    type: 'select'
+  },
+  keywords: {
+    name: 'keywords',
+    label: 'Keywords',
+    props: {},
     defaultValue: [],
     value: [],
     type: 'keywords'
   },
-  b: {
-    name: 'b',
-    label: 'Filter B',
+  selectMultiple: {
+    name: 'selectMultiple',
+    label: 'Select Multiple',
+    props: {
+      multiple: true,
+      options: [
+        {
+          label: 'Option A',
+          name: 'a'
+        },
+        {
+          label: 'Option B',
+          name: 'b'
+        },
+        {
+          label: 'Option C',
+          name: 'c'
+        }
+      ]
+    },
     defaultValue: [],
     value: [],
-    type: 'keywords'
+    type: 'select'
   },
-  c: {
-    name: 'c',
-    label: 'Filter C',
+  range: {
+    name: 'range',
+    label: 'Range',
+    props: {},
     defaultValue: [],
     value: [],
-    type: 'keywords'
+    type: 'range'
+  },
+  tags: {
+    name: 'tags',
+    label: 'Tags',
+    props: {},
+    defaultValue: [],
+    value: [],
+    type: 'tags'
   }
 })
 
