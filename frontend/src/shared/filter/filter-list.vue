@@ -1,8 +1,8 @@
 <template>
-  <div class="filter-list">
+  <div v-if="filtersArray.length > 0" class="filter-list">
     <div
       v-for="(filter, index) of filtersArray"
-      :key="filter.id"
+      :key="filter.name"
       class="flex items-center"
     >
       <app-filter-list-item
@@ -40,19 +40,22 @@ const filters = reactive({
   a: {
     name: 'a',
     label: 'Filter A',
-    values: [],
+    defaultValue: [],
+    value: [],
     type: 'keywords'
   },
   b: {
     name: 'b',
     label: 'Filter B',
-    values: [],
+    defaultValue: [],
+    value: [],
     type: 'keywords'
   },
   c: {
     name: 'c',
     label: 'Filter C',
-    values: [],
+    defaultValue: [],
+    value: [],
     type: 'keywords'
   }
 })
