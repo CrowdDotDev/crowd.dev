@@ -1,5 +1,5 @@
 <template>
-  <div class="filter-type-select">
+  <div class="filter-type-select filter-content-wrapper">
     <el-dropdown-item
       v-for="option of options"
       :key="option.name"
@@ -54,6 +54,10 @@ const props = defineProps({
   modelValue: {
     type: Array,
     default: () => []
+  },
+  isExpanded: {
+    type: Boolean,
+    default: false
   },
   multiple: {
     type: Boolean,

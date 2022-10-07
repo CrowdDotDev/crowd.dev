@@ -1,7 +1,7 @@
 export default (option, query) => {
   return (
     (option.name
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(query.toLowerCase()) ||
       option.label
         .toLowerCase()
