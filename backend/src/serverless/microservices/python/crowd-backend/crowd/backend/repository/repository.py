@@ -61,7 +61,13 @@ class Repository(object):
                     self.db_url = f'postgresql://{username}:{password}@{host}/{database}'
 
         self.engine = create_engine(
-            self.db_url, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True}
+            self.db_url, pool_pre_ping=True, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True}, 
+            connect_args={
+                  "keepalives": 1,
+                  "keepalives_idle": 30,
+                  "keepalives_interval": 10,
+                  "keepalives_count": 5,
+              }
         )
 
         Base.metadata.create_all(self.engine, checkfirst=True)
