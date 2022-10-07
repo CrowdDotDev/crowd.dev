@@ -10,7 +10,6 @@ import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
 import setupSwaggerUI from './apiDocumentation'
-import { IS_CLOUD_ENV } from '../config'
 
 const app = express()
 
