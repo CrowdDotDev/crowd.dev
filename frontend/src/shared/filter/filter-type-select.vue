@@ -1,35 +1,22 @@
 <template>
   <div class="filter-type-select filter-content-wrapper">
     <el-dropdown-item
-      v-for="option of options"
+      v-for="option of computedOptions"
       :key="option.name"
-      :class="
-        modelValue.some((item) => item.name === option.name)
-          ? 'is-selected'
-          : ''
-      "
+      :class="options.selected ? 'is-selected' : ''"
       @click.prevent="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">
           <el-checkbox
             v-if="multiple"
-            :model-value="
-              modelValue.some(
-                (item) => item.name === option.name
-              )
-            "
+            :model-value="option.selected"
             class="filter-checkbox"
           />
           {{ option.label }}
         </div>
         <i
-          v-if="
-            !multiple &&
-            modelValue.some(
-              (item) => item.name === option.name
-            )
-          "
+          v-if="!multiple && option.selected"
           class="ri-check-line text-brand-600 absolute right-0 mr-4"
         ></i>
       </div>
@@ -65,6 +52,14 @@ const props = defineProps({
   }
 })
 const emits = defineEmits(['update:modelValue'])
+const computedOptions = computed(() => {
+  return props.options.map((o) => {
+    return {
+      ...o,
+      selected: model.value.some((i) => i.value === o.value)
+    }
+  })
+})
 const model = computed({
   get() {
     return props.modelValue

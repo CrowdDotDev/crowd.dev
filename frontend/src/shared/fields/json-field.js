@@ -2,6 +2,10 @@ import * as yup from 'yup'
 import GenericField from '@/shared/fields/generic-field'
 
 export default class JsonField extends GenericField {
+  constructor(name, label, config = {}) {
+    super(name, label)
+    this.filterable = config.filterable || false
+  }
   forPresenter(value) {
     return value
   }

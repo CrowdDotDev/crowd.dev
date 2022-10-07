@@ -9,6 +9,7 @@ export default class DomainField extends StringField {
     this.placeholder = config.placeholder
     this.hint = config.hint
     this.required = config.required
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

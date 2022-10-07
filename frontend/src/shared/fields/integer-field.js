@@ -12,6 +12,7 @@ export default class IntegerField extends GenericField {
     this.max = config.max
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

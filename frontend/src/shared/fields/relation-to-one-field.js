@@ -21,6 +21,7 @@ export default class RelationToOneField extends GenericField {
     this.mapperFn = mapperFn
     this.viewUrl = viewUrl
     this.readPermission = readPermission
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

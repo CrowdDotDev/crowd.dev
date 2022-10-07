@@ -8,11 +8,13 @@
         clearable
       >
         <template #append>
-          <app-member-list-filter-dropdown />
+          <app-member-list-filter-dropdown
+            module="member"
+          />
         </template>
       </el-input>
     </div>
-    <app-filter-list />
+    <app-filter-list module="member" />
   </div>
 </template>
 

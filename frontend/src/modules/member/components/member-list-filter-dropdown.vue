@@ -12,11 +12,14 @@ export default {
 </script>
 
 <script setup>
-import memberAttributes from '@/jsons/member-attributes.json'
+import { MemberModel } from '@/modules/member/member-model'
 import { useStore } from 'vuex'
 import { onMounted, computed } from 'vue'
 
 const store = useStore()
+const memberAttributes = Object.values(
+  MemberModel.fields
+).filter((f) => f.filterable)
 const customAttributes = computed(() => {
   return (
     Object.values(store.state.member.customAttributes) || []

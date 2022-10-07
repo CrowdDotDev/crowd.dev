@@ -22,8 +22,12 @@
     @apply text-black bg-gray-50;
   }
 
-  &.is-selected {
+  &.is-selected, &:focus.is-selected {
     background-color: #fff5f4;
+    @apply relative;
+    i {
+      @apply mr-3 text-brand-600;
+    }
     &:hover {
       @apply bg-brand-50;
     }

@@ -312,6 +312,64 @@ class Permissions {
         ]
       },
 
+      organizationImport: {
+        id: 'organizationImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      organizationCreate: {
+        id: 'organizationCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      organizationEdit: {
+        id: 'organizationEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      organizationDestroy: {
+        id: 'organizationDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      organizationRead: {
+        id: 'organizationRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      organizationAutocomplete: {
+        id: 'organizationAutocomplete',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+
       activityImport: {
         id: 'activityImport',
         allowedRoles: [roles.admin],

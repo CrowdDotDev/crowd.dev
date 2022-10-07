@@ -12,6 +12,7 @@ export default class StringField extends GenericField {
     this.matches = config.matches
     this.min = config.min
     this.max = config.max
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {
@@ -23,6 +24,17 @@ export default class StringField extends GenericField {
       return value.id
     }
     return value
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'keywords'
+    }
   }
 
   forFormInitialValue(value) {
