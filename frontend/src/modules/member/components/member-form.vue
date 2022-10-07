@@ -74,11 +74,11 @@
         </el-form-item>
 
         <el-form-item
-          :label="fields.organisation.label"
+          :label="fields.organization.label"
           class="w-full lg:w-1/2 mx-2"
         >
           <el-input
-            v-model="model[fields.organisation.name]"
+            v-model="model[fields.organization.name]"
           />
         </el-form-item>
       </div>
@@ -165,7 +165,7 @@ const formSchema = new FormSchema([
   fields.tags,
   fields.bio,
   fields.location,
-  fields.organisation,
+  fields.organization,
   fields.joinedAt,
   fields.email
 ])

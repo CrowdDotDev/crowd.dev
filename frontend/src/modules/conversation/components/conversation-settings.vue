@@ -142,7 +142,7 @@
               placeholder="https://github.com/CrowdHQ"
             />
             <div class="app-form-hint">
-              GitHub's organisation URL
+              GitHub's organization URL
             </div>
           </el-form-item>
         </div>

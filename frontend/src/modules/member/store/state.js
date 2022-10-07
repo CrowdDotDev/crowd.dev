@@ -7,7 +7,7 @@ export default {
       id: 'all',
       name: 'All members',
       columns: [],
-      filters: [],
+      filter: {},
       sorter: {},
       active: true
     },
@@ -23,7 +23,7 @@ export default {
       id: 'recent',
       name: 'Recent',
       columns: [],
-      filter: [],
+      filter: {},
       sorter: {},
       active: false
     }
@@ -36,7 +36,6 @@ export default {
   },
   count: 0,
   filter: {},
-  rawFilter: {},
   pagination: {
     currentPage: 1,
     pageSize: INITIAL_PAGE_SIZE

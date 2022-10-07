@@ -66,9 +66,9 @@ const fields = {
     label('location'),
     {}
   ),
-  organisation: new StringField(
-    'organisation',
-    label('organisation'),
+  organization: new StringField(
+    'organization',
+    label('organization'),
     {}
   ),
   joinedAt: new DateTimeField(

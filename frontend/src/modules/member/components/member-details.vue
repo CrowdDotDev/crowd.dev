@@ -91,14 +91,14 @@
           </div>
         </div>
         <div
-          v-if="member.organisation"
+          v-if="member.organization"
           class="flex justify-between items-center w-full"
         >
           <div class="w-1/3">
-            <span class="opacity-50">Organisation</span>
+            <span class="opacity-50">Organization</span>
           </div>
           <div class="w-2/3 text-right font-semibold">
-            <span>{{ member.organisation }}</span>
+            <span>{{ member.organization }}</span>
           </div>
         </div>
       </div>
