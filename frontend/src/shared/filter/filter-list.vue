@@ -34,6 +34,7 @@ export default {
 import { ref, reactive, computed } from 'vue'
 import AppFilterListItem from './filter-list-item'
 import AppFilterListCompositor from './filter-list-compositor'
+import { MemberService } from '@/modules/member/member-service'
 
 const compositor = ref('and')
 const filters = reactive({
@@ -103,7 +104,9 @@ const filters = reactive({
   tags: {
     name: 'tags',
     label: 'Tags',
-    props: {},
+    props: {
+      fetchFn: MemberService.list
+    },
     defaultValue: [],
     value: [],
     type: 'tags'
@@ -125,6 +128,6 @@ const handleCompositorChanged = (v) => {
 
 <style lang="scss">
 .filter-list {
-  @apply flex items-center -mx-2 mb-6;
+  @apply flex items-center -mx-2 mb-2 flex-wrap;
 }
 </style>

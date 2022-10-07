@@ -1,5 +1,5 @@
 <template>
-  <div class="filter-type-select">
+  <div class="filter-type-range">
     <app-number-range-input v-model="model" />
   </div>
 </template>
@@ -17,6 +17,10 @@ const props = defineProps({
   modelValue: {
     type: Array,
     default: () => []
+  },
+  isExpanded: {
+    type: Boolean,
+    default: false
   }
 })
 const emits = defineEmits(['update:modelValue'])

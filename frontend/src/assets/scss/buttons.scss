@@ -274,6 +274,9 @@
   }
 }
 
+.btn-group {
+  @apply flex items-center flex-nowrap;
+}
 .btn-group>.btn:not(:last-child) {
   @apply -mr-0.5;
 }

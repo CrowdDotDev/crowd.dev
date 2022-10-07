@@ -17,9 +17,11 @@
         <span>
           {{ filter.label }}{{ hasValue ? ':' : '...' }}
         </span>
-        <span v-if="hasValue" class="ml-1">{{
-          valueToString
-        }}</span>
+        <span
+          v-if="hasValue"
+          class="ml-1 max-w-xs truncate"
+          >{{ valueToString }}</span
+        >
       </el-button>
       <el-button
         class="filter-list-item-btn filter-list-item-btn__close"
@@ -30,13 +32,12 @@
       </el-button>
     </el-button-group>
     <template #dropdown>
-      <div class="filter-list-item-popper-content">
-        <component
-          :is="`app-filter-type-${filter.type}`"
-          v-bind="filter.props"
-          v-model="model"
-        />
-      </div>
+      <component
+        :is="`app-filter-type-${filter.type}`"
+        v-bind="filter.props"
+        v-model="model"
+        :is-expanded="isExpanded"
+      />
       <div
         class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
       >
@@ -172,7 +173,7 @@ const handleApply = () => {
 
 <style lang="scss">
 .filter-list-item {
-  @apply text-xs;
+  @apply text-xs mb-4;
   &-btn.el-button {
     @apply h-8 flex items-center p-2 bg-white border border-gray-300 outline-none text-gray-600 text-xs;
     transition: all 0.2s ease;
@@ -198,7 +199,7 @@ const handleApply = () => {
   &-popper {
     @apply relative w-full max-w-xs;
 
-    &-content {
+    .filter-content-wrapper {
       @apply max-h-58 overflow-auto pb-2;
     }
 
