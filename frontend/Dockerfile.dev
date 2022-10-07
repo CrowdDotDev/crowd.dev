@@ -1,0 +1,10 @@
+FROM node:16-alpine
+
+WORKDIR /usr/crowd/frontend
+
+COPY package-lock.json package.json ./
+RUN npm ci
+
+COPY .browserslistrc .eslintrc.js .prettierrc babel.config.js postcss.config.js tailwind.config.js vue.config.js ./
+COPY ./public ./public
+COPY ./src ./src

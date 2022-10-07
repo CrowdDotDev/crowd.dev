@@ -17,6 +17,8 @@ services:
       - ../../backend/.env.override
     environment:
       <<: *env-args
+    ports:
+      - '8080:8080'
     networks:
       - crowd-bridge
 
@@ -33,6 +35,8 @@ services:
     environment:
       <<: *env-args
     hostname: api
+    ports:
+      - '8080:8080'
     networks:
       - crowd-bridge
     volumes:

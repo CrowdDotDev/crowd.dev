@@ -205,8 +205,6 @@ function check_container_status() {
 }
 
 function scaffold_set_up_network() {
-    rm -rf $CLI_HOME/../nginx/ssl/*.pem
-    $CLI_HOME/../nginx/ssl/init-certs.sh
     NETWORK_ID=$(docker network ls | grep "${PROJECT_NAME}-bridge" | tr " " "\n" | head -n 1)
 
     if [[ ${NETWORK_ID} ]]; then
@@ -315,8 +313,18 @@ function wait_for_db() {
     say "Scaffold is up and running!"
 }
 
-function start() {
+function clean_start() {
     scaffold_reset
+    for i in $CONTAINERS
+    do
+        say "Starting service $i."
+        start_service $i
+        nl
+    done
+}
+
+function start() {
+    up_scaffold
     for i in $CONTAINERS
     do
         say "Starting service $i."
@@ -338,13 +346,22 @@ do
             service $2 $3 $4 $5
             exit;
         ;;
-        start) 
+        start)
             start
             exit;
         ;;
         start-dev)
             DEV=1
             start
+            exit;
+        ;;
+        clean-start) 
+            clean_start
+            exit;
+        ;;
+        clean-start-dev)
+            DEV=1
+            clean_start
             exit;
         ;;
         build)
