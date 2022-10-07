@@ -172,7 +172,7 @@ const en = {
         username: 'Username',
         activities: 'Activities',
         location: 'Location',
-        organisation: 'Organisation',
+        organization: 'Organization',
         signal: 'Signal',
         bio: 'Bio',
         projects: 'Projects',
@@ -435,7 +435,7 @@ const en = {
         count: '[Members] Count',
         score: '[Members] Engagement Level',
         location: '[Members] Location',
-        organisation: '[Members] Organisation',
+        organization: '[Members] Organization',
         joinedAt: '[Members] Joined Date',
         averageTimeToFirstInteraction:
           '[Members] Avg. Time To First Interaction'

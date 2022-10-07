@@ -62,7 +62,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ],
         'Members.count': [
@@ -72,7 +72,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ],
         'Conversations.count': [
@@ -87,7 +87,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ]
       }

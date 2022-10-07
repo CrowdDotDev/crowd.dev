@@ -146,7 +146,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.organisation'
+            'Members.organization'
           ],
           Tags: ['Tags.name']
         },
@@ -155,7 +155,7 @@ export default {
             'Members.score',
             'Members.joinedAt',
             'Members.location',
-            'Members.organisation'
+            'Members.organization'
           ],
           Activities: [
             'Activities.platform',
@@ -165,7 +165,7 @@ export default {
           Members: [
             'Members.score',
             'Members.location',
-            'Members.organisation'
+            'Members.organization'
           ],
           Tags: ['Tags.name']
         }
