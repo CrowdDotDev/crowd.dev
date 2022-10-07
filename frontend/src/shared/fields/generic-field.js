@@ -8,6 +8,7 @@ export default class GenericField {
     this.hint = config.hint
     this.required = config.required
     this.config = config
+    this.filterable = config.filterable || false
   }
 
   forImportViewTable(value) {

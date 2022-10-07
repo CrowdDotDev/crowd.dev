@@ -8,6 +8,7 @@ import JsonField from '@/shared/fields/json-field'
 import { ActivityField } from '@/modules/activity/activity-field'
 import { MemberField } from '@/modules/member/member-field'
 import { TagField } from '@/modules/tag/tag-field'
+import { OrganizationField } from '@/modules/organization/organization-field'
 import IntegerRangeField from '@/shared/fields/integer-range-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
@@ -15,8 +16,6 @@ import MemberEngagementLevelField from './member-engagement-level-field'
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
 }
-
-i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),
@@ -28,7 +27,8 @@ const fields = {
   }),
   displayName: new StringField(
     'displayName',
-    label('displayName')
+    label('displayName'),
+    { filterable: true }
   ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform')),
@@ -38,22 +38,9 @@ const fields = {
     {}
   ),
   info: new JsonField('info', label('info')),
-  followers: MemberField.relationToMany(
-    'followers',
-    label('followers'),
-    {}
-  ),
-  following: MemberField.relationToMany(
-    'following',
-    label('following'),
-    {}
-  ),
-  tags: TagField.relationToMany('tags', label('tags'), {}),
-  crowdInfo: new StringField(
-    'crowdInfo',
-    label('crowdInfo'),
-    {}
-  ),
+  tags: TagField.relationToMany('tags', label('tags'), {
+    filterable: true
+  }),
   email: new StringField('email', label('email'), {}),
   noMerge: MemberField.relationToMany(
     'noMerge',
@@ -66,10 +53,12 @@ const fields = {
     label('location'),
     {}
   ),
-  organization: new StringField(
-    'organization',
-    label('organization'),
-    {}
+  organization: OrganizationField.relationToMany(
+    'organizations',
+    label('organizations'),
+    {
+      filterable: true
+    }
   ),
   joinedAt: new DateTimeField(
     'joinedAt',
@@ -107,6 +96,7 @@ const fields = {
 
 export class MemberModel extends GenericModel {
   static get fields() {
+    i18nInit()
     return fields
   }
 }

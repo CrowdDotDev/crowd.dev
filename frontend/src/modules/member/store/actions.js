@@ -403,5 +403,17 @@ export default {
       Errors.handle(error)
       commit('UPDATE_ERROR')
     }
+  },
+
+  addFilter({ commit }, filter) {
+    commit('ADD_FILTER', filter)
+  },
+
+  updateFilter({ commit }, filter) {
+    commit('UPDATE_FILTER', filter)
+  },
+
+  destroyFilter({ commit }, filter) {
+    commit('DESTROY_FILTER', filter)
   }
 }

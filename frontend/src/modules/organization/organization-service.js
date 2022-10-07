@@ -79,4 +79,22 @@ export class OrganizationService {
 
     return response.data
   }
+
+  static async listAutocomplete(query, limit) {
+    const params = {
+      query,
+      limit
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/organization/autocomplete`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
 }

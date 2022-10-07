@@ -31,13 +31,21 @@ export default {
 </script>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { useStore } from 'vuex'
+import { ref, defineProps, computed } from 'vue'
 import AppFilterListItem from './filter-list-item'
 import AppFilterListCompositor from './filter-list-compositor'
-import { MemberService } from '@/modules/member/member-service'
 
+const props = defineProps({
+  module: {
+    type: String,
+    required: true
+  }
+})
+
+const store = useStore()
 const compositor = ref('and')
-const filters = reactive({
+/* const filters = reactive({
   selectSingle: {
     name: 'selectSingle',
     label: 'Select Single',
@@ -111,15 +119,20 @@ const filters = reactive({
     value: [],
     type: 'tags'
   }
-})
+})*/
 
-const filtersArray = computed(() => Object.values(filters))
+const filters = computed(() => {
+  return { ...store.state[props.module].filter }
+})
+const filtersArray = computed(() =>
+  Object.values(filters.value)
+)
 
 const handleFilterChange = (v) => {
-  filters[v.name] = v
+  store.dispatch(`${props.module}/updateFilter`, v)
 }
 const handleFilterDestroy = (v) => {
-  delete filters[v.name]
+  store.dispatch(`${props.module}/destroyFilter`, v)
 }
 const handleCompositorChanged = (v) => {
   compositor.value = v

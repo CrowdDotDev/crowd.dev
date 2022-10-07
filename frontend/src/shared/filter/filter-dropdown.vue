@@ -26,9 +26,16 @@
           <el-dropdown-item
             v-for="item of computedAttributes"
             :key="item.name"
+            :class="item.selected ? 'is-selected' : ''"
             @click="handleOptionClick(item)"
           >
-            {{ item.label }}
+            <div class="flex items-center justify-between">
+              <span class="block">{{ item.label }}</span>
+              <i
+                v-if="item.selected"
+                class="ri-check-line text-brand-600 absolute right-0 mr-8"
+              ></i>
+            </div>
           </el-dropdown-item>
           <div
             v-if="computedCustomAttributes.length > 0"
@@ -39,6 +46,7 @@
           <el-dropdown-item
             v-for="item of computedCustomAttributes"
             :key="item.name"
+            :class="item.selected ? 'is-selected' : ''"
             @click="handleOptionClick(item)"
           >
             {{ item.label }}
@@ -56,17 +64,16 @@ export default {
 </script>
 
 <script setup>
-import {
-  defineProps,
-  defineEmits,
-  computed,
-  h,
-  ref
-} from 'vue'
+import { defineProps, computed, h, ref } from 'vue'
+import { useStore } from 'vuex'
 import filterFunction from './filter-function'
 
-const emit = defineEmits(['filter-added'])
+const store = useStore()
 const props = defineProps({
+  module: {
+    type: String,
+    required: true
+  },
   attributes: {
     type: Array,
     default: () => []
@@ -87,14 +94,24 @@ const queryInput = ref(null)
 const isExpanded = ref(false)
 
 const computedAttributes = computed(() =>
-  props.attributes.filter((o) =>
-    filterFunction(o, query.value)
-  )
+  props.attributes
+    .filter((a) => filterFunction(a, query.value))
+    .map((a) => {
+      a.selected =
+        store.state[props.module].filter[a.name] !==
+        undefined
+      return a
+    })
 )
 const computedCustomAttributes = computed(() =>
-  props.customAttributes.filter((o) =>
-    filterFunction(o, query.value)
-  )
+  props.customAttributes
+    .filter((a) => filterFunction(a, query.value))
+    .map((a) => {
+      a.selected =
+        store.state[props.module].filter[a.name] !==
+        undefined
+      return a
+    })
 )
 
 function handleDropdownChange(value) {
@@ -104,7 +121,14 @@ function handleDropdownChange(value) {
   }
 }
 function handleOptionClick(v) {
-  emit('filter-added', v)
+  if (
+    store.state[props.module].filter[v.name] === undefined
+  ) {
+    store.dispatch(`${props.module}/addFilter`, {
+      ...v.forFilter(),
+      expanded: true
+    })
+  }
 }
 </script>
 

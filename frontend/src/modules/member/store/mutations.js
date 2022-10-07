@@ -176,5 +176,17 @@ export default {
 
   FIND_STARTED() {},
   FIND_SUCCESS() {},
-  FIND_ERROR() {}
+  FIND_ERROR() {},
+
+  ADD_FILTER(state, filter) {
+    state.filter[filter.name] = filter
+  },
+
+  UPDATE_FILTER(state, filter) {
+    state.filter[filter.name] = filter
+  },
+
+  DESTROY_FILTER(state, filter) {
+    delete state.filter[filter.name]
+  }
 }

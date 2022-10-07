@@ -11,6 +11,7 @@ export default class StringArrayField extends GenericField {
     this.required = config.required
     this.min = config.min
     this.max = config.max
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

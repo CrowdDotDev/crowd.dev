@@ -12,6 +12,7 @@ export default class DecimalField extends GenericField {
     this.scale = config.scale
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

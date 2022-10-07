@@ -170,9 +170,10 @@ const en = {
         contact: 'Contact',
         tag: 'Tags',
         username: 'Username',
+        displayName: 'Display Name',
         activities: 'Activities',
         location: 'Location',
-        organization: 'Organization',
+        organizations: 'Organizations',
         signal: 'Signal',
         bio: 'Bio',
         projects: 'Projects',
@@ -197,6 +198,12 @@ const en = {
       view: {
         title: 'View Member'
       }
+    },
+
+    organization: {
+      name: 'organization',
+      label: 'Organizations',
+      menu: 'Organizations'
     },
 
     activity: {

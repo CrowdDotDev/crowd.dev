@@ -202,13 +202,6 @@ const handleApply = () => {
     .filter-content-wrapper {
       @apply max-h-58 overflow-auto pb-2;
     }
-
-    .el-dropdown-menu__item.is-selected {
-      @apply relative;
-      i {
-        @apply mr-3 text-brand-600;
-      }
-    }
   }
 }
 </style>
