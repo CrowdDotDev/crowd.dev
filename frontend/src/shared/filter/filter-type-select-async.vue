@@ -118,6 +118,12 @@ watch(expanded, async (newValue) => {
   }
 })
 
+watch(query, async (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    await fetchOptions()
+  }
+})
+
 const handleOptionClick = (option) => {
   model.value.push(option)
 }
@@ -127,17 +133,14 @@ const fetchOptions = async () => {
     return
   }
   loading.value = true
-  const response = await props.fetchFn(
-    query.value,
-    limit.value
-  )
+  const data = await props.fetchFn(query.value, limit.value)
   loading.value = false
   options.length = 0
-  response.rows.forEach((r) => {
+  data.forEach((r) => {
     if (options.findIndex((o) => o.id === r.id) === -1) {
       options.push({
         id: r.id,
-        label: r.displayName
+        label: r.label
       })
     }
   })

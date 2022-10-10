@@ -42,7 +42,7 @@
         class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
       >
         <el-button
-          v-if="model.length > 0"
+          v-if="shouldShowReset"
           class="btn btn-link btn-link--primary"
           @click="handleReset"
           >Reset filter</el-button
@@ -80,6 +80,8 @@ import {
   onMounted,
   computed
 } from 'vue'
+
+import lodash from 'lodash'
 
 const props = defineProps({
   filter: {
@@ -131,6 +133,17 @@ const valueToString = computed(() => {
   }
 })
 
+const shouldShowReset = computed(() => {
+  return (
+    props.filter.defaultValue.length > 0 &&
+    !lodash(model.value)
+      .differenceWith(
+        props.filter.defaultValue,
+        lodash.isEqual
+      )
+      .isEmpty()
+  )
+})
 const shouldDisableApplyButton = computed(() => {
   return model.value.length === 0
 })
@@ -200,7 +213,7 @@ const handleApply = () => {
     @apply relative w-full max-w-xs;
 
     .filter-content-wrapper {
-      @apply max-h-58 overflow-auto pb-2;
+      @apply h-58 overflow-auto pb-2;
     }
   }
 }

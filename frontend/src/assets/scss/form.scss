@@ -144,6 +144,11 @@
   @apply text-red-500;
 }
 
+.el-tag,
+.el-select .el-select__tags .el-tag--info {
+  @apply bg-gray-100 border border-gray-200 text-gray-900;
+}
+
 .el-select-dropdown__item {
   @apply text-gray-500;
   span.prefix {
