@@ -27,6 +27,10 @@ function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../frontend/.env.override.composed" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.composed"
     fi
+
+    if [[ ! -f "$CLI_HOME/../frontend/.env.override" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override"
+    fi
 }
 
 prepare_dev_env
