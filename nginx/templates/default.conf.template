@@ -5,6 +5,12 @@ server {
   ssl on;
   ssl_certificate /etc/nginx/ssl/selfsigned_cert.pem;
   ssl_certificate_key /etc/nginx/ssl/selfsigned_key.pem;
-  
-  return 301 http://localhost:8081$request_uri;
+
+  location ^~/api/ {
+    rewrite ^/api/(.*)$ http://localhost:8080/$1 permanent;
+  }
+
+  location / {
+    return 301 http://localhost:8081$request_uri;
+  }
 }
