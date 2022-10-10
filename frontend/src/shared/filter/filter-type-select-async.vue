@@ -1,6 +1,6 @@
 <template>
-  <div class="filter-type-tags">
-    <div class="filter-type-tags-input">
+  <div class="filter-type-select-async">
+    <div class="filter-type-select-async-input">
       <div
         class="input-wrapper"
         @click="queryInputRef.focus()"
@@ -31,11 +31,7 @@
         />
       </div>
     </div>
-    <div
-      v-infinite-scroll="fetchOptions"
-      class="filter-content-wrapper mb-4"
-      :infinite-scroll-disabled="disabled"
-    >
+    <div class="filter-content-wrapper mb-4">
       <el-dropdown-item
         v-for="option of computedOptions"
         :key="option.id"
@@ -48,13 +44,19 @@
         v-loading="loading"
         class="app-page-spinner"
       />
+      <div
+        v-else-if="computedOptions.length === 0"
+        class="text-gray-600 px-4 pt-2"
+      >
+        No options matched the query
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AppFilterTypeTags'
+  name: 'AppFilterTypeSelectAsync'
 }
 </script>
 
@@ -94,15 +96,11 @@ const model = computed({
   }
 })
 const expanded = computed(() => props.isExpanded)
-const loading = ref(true)
+const loading = ref(false)
 const query = ref('')
 const queryInputRef = ref(null)
 const limit = ref(10)
-const offset = ref(0)
 const noMore = ref(false)
-const disabled = computed(
-  () => loading.value || noMore.value
-)
 const options = reactive([])
 const computedOptions = computed(() => {
   return options.filter((o) => {
@@ -130,17 +128,11 @@ const fetchOptions = async () => {
   }
   loading.value = true
   const response = await props.fetchFn(
-    {},
-    'lastActive_DESC',
-    limit.value,
-    offset.value
+    query.value,
+    limit.value
   )
   loading.value = false
-  if (response.rows.length < 10) {
-    noMore.value = true
-  } else {
-    offset.value += limit.value
-  }
+  options.length = 0
   response.rows.forEach((r) => {
     if (options.findIndex((o) => o.id === r.id) === -1) {
       options.push({
@@ -162,7 +154,7 @@ const removeLastKeyword = () => {
 </script>
 
 <style lang="scss">
-.filter-type-tags {
+.filter-type-select-async {
   @apply -m-2;
   &-input {
     @apply border-b border-gray-200 mb-2 p-2;

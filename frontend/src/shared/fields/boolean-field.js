@@ -16,6 +16,17 @@ export default class BooleanField extends GenericField {
     return value ? this.yesLabel : this.noLabel
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'boolean'
+    }
+  }
+
   forFilterPreview(value) {
     return value == null
       ? null
