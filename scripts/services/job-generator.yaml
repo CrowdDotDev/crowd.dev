@@ -13,8 +13,8 @@ services:
     command: 'npm run start:job-generator'
     env_file:
       - ../../backend/.env.dist.local
-      - ../../backend/.env.dist.compose
-      - ../../backend/.env.override
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.composed
     environment:
       <<: *env-args
     networks:
@@ -28,8 +28,8 @@ services:
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
-      - ../../backend/.env.dist.compose
-      - ../../backend/.env.override
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.composed
     environment:
       <<: *env-args
     hostname: job-generator

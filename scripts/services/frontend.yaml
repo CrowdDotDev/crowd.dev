@@ -8,7 +8,7 @@ services:
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
-      - ../../frontend/.env.override
+      - ../../frontend/.env.override.composed
     command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1
@@ -25,7 +25,7 @@ services:
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
-      - ../../frontend/.env.override
+      - ../../frontend/.env.override.composed
     command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1

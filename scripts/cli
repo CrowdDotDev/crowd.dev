@@ -13,12 +13,19 @@ CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
 function prepare_dev_env() {
-    if [[ ! -f "$CLI_HOME/../backend/.env.override" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override"
+    if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
+    fi
+    if [[ ! -f "$CLI_HOME/../backend/.env.override.composed" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.composed"
     fi
 
-    if [[ ! -f "$CLI_HOME/../frontend/.env.override" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override"
+    if [[ ! -f "$CLI_HOME/../frontend/.env.override.local" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.local"
+    fi
+
+    if [[ ! -f "$CLI_HOME/../frontend/.env.override.composed" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.composed"
     fi
 }
 
