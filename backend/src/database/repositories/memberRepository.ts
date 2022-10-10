@@ -96,8 +96,45 @@ class MemberRepository {
       include,
       transaction,
     })
+    const rowsOut = []
+    for (let record of rows) {
+      const organizations = await record.getOrganizations({
+        transaction,
+        joinTableAttributes: [],
+      })
 
-    return { rows, count }
+      if (organizations) {
+        record.organizations = organizations.map((organization) =>
+          organization.get({ plain: true }),
+        )
+      }
+
+      const newToMerge = []
+      for (const toMergeRecord of record.toMerge) {
+        const organizations = await toMergeRecord.getOrganizations({
+          transaction,
+          joinTableAttributes: [],
+        })
+
+        const toMergeRecordOut = toMergeRecord.get({ plain: true })
+
+        if (organizations) {
+          toMergeRecordOut.organizations = organizations.map((organization) =>
+            organization.get({ plain: true }),
+          )
+        }
+        newToMerge.push(toMergeRecordOut)
+      }
+      record = record.get({ plain: true })
+      record.toMerge = newToMerge
+      rowsOut.push(record)
+    }
+
+    console.log(rowsOut)
+    for (const r of rowsOut) {
+      console.log(r.toMerge)
+    }
+    return { rows: rowsOut, count }
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {

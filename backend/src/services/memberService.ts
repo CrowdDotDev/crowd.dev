@@ -214,7 +214,6 @@ export default class MemberService {
 
       // If organizations are sent
       if (data.organizations) {
-        console.log('here')
         // Collect IDs for relation
         const organizationsIds = []
         for (const organization of data.organizations) {
