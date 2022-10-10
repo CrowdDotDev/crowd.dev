@@ -13,6 +13,7 @@ services:
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
       - ../../backend/.env.override.composed
     environment:
       <<: *env-args
@@ -27,6 +28,7 @@ services:
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
       - ../../backend/.env.override.composed
     environment:
       <<: *env-args

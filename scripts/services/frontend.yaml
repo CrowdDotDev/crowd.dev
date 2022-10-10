@@ -8,6 +8,7 @@ services:
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
+      - ../../frontend/.env.override.local
       - ../../frontend/.env.override.composed
     command: npm run start:dev
     environment:
@@ -25,6 +26,7 @@ services:
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
+      - ../../frontend/.env.override.local
       - ../../frontend/.env.override.composed
     command: npm run start:dev
     environment:
