@@ -27,7 +27,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -47,7 +47,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -67,7 +67,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -87,7 +87,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -115,7 +115,7 @@ describe('Microservice protected fields tests', () => {
         running: true,
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -142,7 +142,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -168,7 +168,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -195,7 +195,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -222,7 +222,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -248,7 +248,7 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
