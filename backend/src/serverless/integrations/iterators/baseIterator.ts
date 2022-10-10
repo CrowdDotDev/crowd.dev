@@ -140,7 +140,7 @@ export default abstract class BaseIterator {
         // console.log('State: ', this.state)
         console.log('Response length: ', response.records.length)
         console.log('Limit', response.limit)
-        console.log('Last record: ', parseOutput.lastRecord)
+        // console.log('Last record: ', parseOutput.lastRecord)
         console.log('Time since start: ', timeSinceStart)
         console.log('Count towards limit: ', this.limitCount, ' / ', this.globalLimit)
       }
