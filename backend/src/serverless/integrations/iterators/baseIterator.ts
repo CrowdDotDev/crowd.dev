@@ -137,7 +137,7 @@ export default abstract class BaseIterator {
 
       if (log) {
         console.log('========================================================')
-        console.log('State: ', this.state)
+        // console.log('State: ', this.state)
         console.log('Response length: ', response.records.length)
         console.log('Limit', response.limit)
         console.log('Last record: ', parseOutput.lastRecord)
