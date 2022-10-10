@@ -163,9 +163,6 @@ const { fields } = MemberModel
 const formSchema = new FormSchema([
   fields.username,
   fields.tags,
-  fields.bio,
-  fields.location,
-  fields.organization,
   fields.joinedAt,
   fields.email
 ])

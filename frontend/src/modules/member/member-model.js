@@ -25,10 +25,13 @@ const fields = {
       return record
     }
   }),
+  attributes: new JsonField(
+    'attributes',
+    label('attributes')
+  ),
   displayName: new StringField(
     'displayName',
-    label('displayName'),
-    { filterable: true }
+    label('displayName')
   ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform')),
