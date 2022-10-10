@@ -19,6 +19,17 @@ export default class IntegerField extends GenericField {
     return value
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'range'
+    }
+  }
+
   forFormInitialValue(value) {
     return value
   }

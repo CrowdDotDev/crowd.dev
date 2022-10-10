@@ -22,9 +22,9 @@ import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
 import FilterList from '@/shared/filter/filter-list.vue'
 import FilterTypeSelect from '@/shared/filter/filter-type-select'
+import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
 import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
 import FilterTypeRange from '@/shared/filter/filter-type-range'
-import FilterTypeTags from '@/shared/filter/filter-type-tags'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
@@ -64,7 +64,7 @@ export default {
     'app-filter-type-select': FilterTypeSelect,
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-range': FilterTypeRange,
-    'app-filter-type-tags': FilterTypeTags,
+    'app-filter-type-select-async': FilterTypeSelectAsync,
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,

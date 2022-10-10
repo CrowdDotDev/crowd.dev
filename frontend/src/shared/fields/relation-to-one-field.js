@@ -28,6 +28,19 @@ export default class RelationToOneField extends GenericField {
     return this.mapperFn(value)
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {
+        fetchFn: this.fetchFn
+      },
+      defaultValue: [],
+      value: [],
+      type: 'select-async'
+    }
+  }
+
   forFilterPreview(value) {
     return (value && value.label) || null
   }

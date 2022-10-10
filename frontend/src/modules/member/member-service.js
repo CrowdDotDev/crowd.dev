@@ -3,31 +3,22 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class MemberService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${id}`,
-      body
+      data
     )
 
     return response.data
   }
 
   static async updateBulk(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.patch(
       `/tenant/${tenantId}/member`,
-      body
+      data
     )
 
     return response.data
@@ -129,9 +120,7 @@ export class MemberService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${memberToKeep.id}/merge`,
       {
-        data: {
-          memberToMerge: memberToMerge.id
-        }
+        memberToMerge: memberToMerge.id
       }
     )
 
@@ -144,9 +133,7 @@ export class MemberService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/member/${memberA.id}/no-merge`,
       {
-        data: {
-          memberToNotMerge: memberB.id
-        }
+        memberToNotMerge: memberB.id
       }
     )
 

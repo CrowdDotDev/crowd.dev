@@ -39,6 +39,19 @@ export default class RelationToManyField extends GenericField {
     return value.map((item) => this.mapperFn(item))
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {
+        fetchFn: this.fetchFn
+      },
+      defaultValue: [],
+      value: [],
+      type: 'select-async'
+    }
+  }
+
   forFilterPreview(value) {
     return value
       .map((item) => {

@@ -27,6 +27,17 @@ export default class DecimalField extends GenericField {
     return Number(value).toFixed(this.scale)
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'range'
+    }
+  }
+
   forFilterPreview(value) {
     return value
       ? this.scale

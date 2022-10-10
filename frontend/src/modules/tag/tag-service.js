@@ -3,16 +3,11 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class TagService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/tag/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -36,15 +31,11 @@ export class TagService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/tag`,
-      body
+      data
     )
 
     return response.data

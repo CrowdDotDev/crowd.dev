@@ -33,7 +33,7 @@ export default class StringField extends GenericField {
       props: {},
       defaultValue: [],
       value: [],
-      type: 'keywords'
+      type: 'string'
     }
   }
 

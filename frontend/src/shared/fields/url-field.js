@@ -27,6 +27,17 @@ export default class UrlField extends StringField {
     return value
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'string'
+    }
+  }
+
   forFilterInitialValue(value) {
     return value
   }

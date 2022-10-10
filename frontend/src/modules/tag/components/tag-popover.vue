@@ -6,12 +6,11 @@
         ><i class="ri-pencil-line mr-1"></i>Edit tags</span
       >
       <app-tag-autocomplete-input
+        v-model="model"
         :fetch-fn="fields.tags.fetchFn"
         :mapper-fn="fields.tags.mapperFn"
         :create-if-not-found="true"
-        :value="model"
         placeholder="Type to search/create tags"
-        @input="handleInput"
       ></app-tag-autocomplete-input>
     </form>
   </app-popover>
@@ -37,7 +36,7 @@ export default {
       type: Boolean,
       default: false
     },
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     }
@@ -46,7 +45,6 @@ export default {
 
   data() {
     return {
-      model: this.value,
       changed: false
     }
   },
@@ -54,6 +52,15 @@ export default {
   computed: {
     fields() {
       return fields
+    },
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(value) {
+        this.changed = true
+        this.$emit('update:modelValue', value)
+      }
     }
   },
 
@@ -64,11 +71,6 @@ export default {
       } else {
         this.$emit('cancel')
       }
-    },
-    handleInput(value) {
-      this.model = value
-      this.changed = true
-      this.$emit('update:modelValue', this.model)
     }
   }
 }

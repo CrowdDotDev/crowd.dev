@@ -16,6 +16,17 @@ export default class DomainField extends StringField {
     return value
   }
 
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      props: {},
+      defaultValue: [],
+      value: [],
+      type: 'string'
+    }
+  }
+
   forFilterPreview(value) {
     if (typeof value === 'object' && value) {
       return value.id
