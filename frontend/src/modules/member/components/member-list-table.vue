@@ -59,18 +59,18 @@
         >
           <template #default="scope">
             <div
-              v-if="scope.row.organization"
+              v-if="scope.row.organizations"
               class="flex-items-center"
             >
               <div class="w-5 h-5">
                 <img
-                  v-if="scope.row.organization.logo"
-                  :src="scope.row.organization.logo"
+                  v-if="scope.row.organizations[0].logo"
+                  :src="scope.row.organizations[0].logo"
                   alt=""
                 />
               </div>
               <span>{{
-                scope.row.organization?.name
+                scope.row.organizations[0]?.name
               }}</span>
             </div>
           </template>

@@ -1,71 +1,79 @@
 <template>
   <div>
-    <h1 class="app-content-title">Merging Suggestions</h1>
-    <app-alert type="info" class="mb-4">
-      <template #title
-        >Why should I merge profiles?</template
-      >
-      <template #body>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <h4>
+          <app-i18n
+            code="entities.member.list.title"
+          ></app-i18n>
+        </h4>
+      </div>
+      <div class="text-xs text-gray-500 max-w-lg">
         Community members come from different platforms and
         sources, so it's possible that the same person has
-        multiple member profiles in Crowd.
+        multiple member profiles in crowd.dev.
         <br />
         To gather better insights from your community, we
         recommend you to look into these suggestions and
         validate if these profiles belong to the same person
         or not.
-      </template>
-    </app-alert>
+      </div>
+    </div>
+
     <div class="panel">
       <div v-if="membersToMerge.length > 0" class="-mx-6">
         <el-table
           ref="table"
-          :data="membersToMerge"
-          row-key="id"
+          :data="membersToMerge[0]"
+          row-key="k1"
         >
-          <el-table-column label="Member A" min-width="25%">
+          <el-table-column label="Member" min-width="25%">
             <template #default="scope">
-              <router-link
-                :to="{
-                  name: 'memberView',
-                  params: { id: scope.row[0].id }
-                }"
-                target="_blank"
-                class="flex items-center"
-              >
+              <div class="flex items-center">
                 <app-avatar
-                  :entity="scope.row[0]"
+                  :entity="scope.row"
                   size="sm"
                   class="mr-2"
                 />
                 <span class="font-semibold">{{
-                  scope.row[0].displayName
+                  scope.row.displayName
                 }}</span>
-              </router-link>
+              </div>
             </template>
           </el-table-column>
-          <el-table-column label="Member B" min-width="25%">
+          <el-table-column
+            label="Organization & Title"
+            width="220"
+          >
             <template #default="scope">
-              <router-link
-                :to="{
-                  name: 'memberView',
-                  params: { id: scope.row[1].id }
-                }"
-                target="_blank"
-                class="flex items-center"
+              <div
+                v-if="scope.row.organizations"
+                class="flex-items-center"
               >
-                <app-avatar
-                  :entity="scope.row[1]"
-                  size="sm"
-                  class="mr-2"
-                />
-                <span class="font-semibold">{{
-                  scope.row[1].displayName
+                <div class="w-5 h-5">
+                  <img
+                    v-if="scope.row.organizations[0].logo"
+                    :src="scope.row.organizations[0].logo"
+                    alt=""
+                  />
+                </div>
+                <span>{{
+                  scope.row.organizations[0]?.name
                 }}</span>
-              </router-link>
+              </div>
             </template>
           </el-table-column>
-          <el-table-column>
+          <el-table-column
+            label="Identities"
+            :width="channelsWidth"
+          >
+            <template #default="scope">
+              <app-member-channels
+                :member="scope.row"
+              ></app-member-channels>
+            </template>
+          </el-table-column>
+          <!-- <el-table-column>
             <template #default="scope">
               <div class="flex items-center justify-end">
                 <button
@@ -99,7 +107,7 @@
                 </span>
               </div>
             </template>
-          </el-table-column>
+          </el-table-column> -->
         </el-table>
       </div>
     </div>
@@ -107,87 +115,109 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
+export default {
+  name: 'AppMemberMergeSuggestionsPage'
+}
+</script>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import AppMemberChannels from './member-channels'
 import { MemberService } from '../member-service'
 
-export default {
-  name: 'AppMemberMergeSuggestionsPage',
-  data() {
-    return {
-      membersToMerge: []
-    }
-  },
-  async created() {
-    this.membersToMerge =
-      await MemberService.fetchMergeSuggestions()
-  },
-  methods: {
-    async handleMergeClick(members) {
-      try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+const membersToMerge = ref([])
+const channelsWidth = ref('')
 
-        const response = await MemberService.merge(
-          members[0],
-          members[1]
-        )
+onMounted(async () => {
+  membersToMerge.value =
+    await MemberService.fetchMergeSuggestions()
 
-        const index = this.membersToMerge.findIndex(
-          (membersToMerge) => {
-            return (
-              membersToMerge[0].id === members[0].id &&
-              membersToMerge[1].id
-            )
-          }
-        )
+  channelsWidth.value = getChannelsWidth(
+    membersToMerge.value
+  )
+})
 
-        this.membersToMerge.splice(index, 1)
+/**
+ * Find the width of the channels column. Get the member with the most channels,
+ * and return the width of the column based on the number of channels.
+ * @param {string} membersToMerge List of pairs of members to merge
+ * @returns {string} Width of the channels column
+ */
+function getChannelsWidth(membersToMerge) {
+  const maxChannels = membersToMerge.reduce((acc, item) => {
+    const m0Channels = Object.keys(item[0].username).length
+    const m1Channels = Object.keys(item[1].username).length
+    const max = Math.max(m0Channels, m1Channels)
+    return Math.max(acc, max)
+  }, 0)
 
-        console.log(response)
-      } catch (error) {
-        // no
-      }
-    },
-    async handleNotMergeClick(members) {
-      try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
-
-        const response = await MemberService.addToNoMerge(
-          members[0],
-          members[1]
-        )
-
-        const index = this.membersToMerge.findIndex(
-          (membersToMerge) => {
-            return (
-              membersToMerge[0].id === members[0].id &&
-              membersToMerge[1].id
-            )
-          }
-        )
-
-        this.membersToMerge.splice(index, 1)
-
-        console.log(response)
-      } catch (error) {
-        // no
-      }
-    }
-  }
+  return `${90 + maxChannels * 32}px`
 }
+
+// async function handleMergeClick(members) {
+//   try {
+//     await this.$myConfirm(
+//       i18n('common.areYouSure'),
+//       i18n('common.confirm'),
+//       {
+//         confirmButtonText: i18n('common.yes'),
+//         cancelButtonText: i18n('common.no'),
+//         type: 'warning'
+//       }
+//     )
+
+//     const response = await MemberService.merge(
+//       members[0],
+//       members[1]
+//     )
+
+//     const index = this.membersToMerge.findIndex(
+//       (membersToMerge) => {
+//         return (
+//           membersToMerge[0].id === members[0].id &&
+//           membersToMerge[1].id
+//         )
+//       }
+//     )
+
+//     this.membersToMerge.splice(index, 1)
+
+//     console.log(response)
+//   } catch (error) {
+//     // no
+//   }
+// }
+// async function handleNotMergeClick(members) {
+//   try {
+//     await this.$myConfirm(
+//       i18n('common.areYouSure'),
+//       i18n('common.confirm'),
+//       {
+//         confirmButtonText: i18n('common.yes'),
+//         cancelButtonText: i18n('common.no'),
+//         type: 'warning'
+//       }
+//     )
+
+//     const response = await MemberService.addToNoMerge(
+//       members[0],
+//       members[1]
+//     )
+
+//     const index = this.membersToMerge.findIndex(
+//       (membersToMerge) => {
+//         return (
+//           membersToMerge[0].id === members[0].id &&
+//           membersToMerge[1].id
+//         )
+//       }
+//     )
+
+//     this.membersToMerge.splice(index, 1)
+
+//     console.log(response)
+//   } catch (error) {
+//     // no
+//   }
+// }
 </script>
