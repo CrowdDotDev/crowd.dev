@@ -112,6 +112,7 @@ const computedCustomAttributes = computed(() =>
         store.state[props.module].filter.attributes[
           a.name
         ] !== undefined
+      a.custom = true
       return a
     })
 )

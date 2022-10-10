@@ -9,6 +9,7 @@ export default class GenericField {
     this.required = config.required
     this.config = config
     this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forImportViewTable(value) {

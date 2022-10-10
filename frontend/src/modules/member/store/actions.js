@@ -372,19 +372,59 @@ export default {
     }
   },
 
-  addFilterAttribute({ commit }, filter) {
+  addFilterAttribute({ commit, dispatch, state }, filter) {
     commit('ADD_FILTER_ATTRIBUTE', filter)
+
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        filter: state.filter
+      })
+    }
   },
 
-  updateFilterAttribute({ commit }, filter) {
+  updateFilterAttribute(
+    { commit, dispatch, state },
+    filter
+  ) {
     commit('UPDATE_FILTER_ATTRIBUTE', filter)
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        filter: state.filter
+      })
+    }
   },
 
-  destroyFilterAttribute({ commit }, filter) {
+  destroyFilterAttribute(
+    { commit, dispatch, state },
+    filter
+  ) {
     commit('DESTROY_FILTER_ATTRIBUTE', filter)
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        filter: state.filter
+      })
+    }
   },
 
-  updateFilterOperator({ commit }, operator) {
+  updateFilterOperator(
+    { commit, dispatch, state },
+    operator
+  ) {
     commit('UPDATE_FILTER_OPERATOR', operator)
+    dispatch('doFetch', {
+      filter: state.filter
+    })
   }
 }

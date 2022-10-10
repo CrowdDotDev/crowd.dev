@@ -80,7 +80,7 @@ import {
   onMounted,
   computed
 } from 'vue'
-
+import moment from 'moment'
 import lodash from 'lodash'
 
 const props = defineProps({
@@ -100,8 +100,10 @@ onMounted(() => {
 
 const dropdown = ref(null)
 const isExpanded = ref(false)
-const hasValue = computed(
-  () => props.filter.value.length > 0
+const hasValue = computed(() =>
+  Array.isArray(props.filter.value)
+    ? props.filter.value.length > 0
+    : props.filter.value !== null
 )
 const valueToString = computed(() => {
   if (props.filter.type === 'range') {
@@ -126,6 +128,22 @@ const valueToString = computed(() => {
     }
 
     return `${start} - ${end}`
+  } else if (props.filter.type === 'string') {
+    return props.filter.value
+  } else if (props.filter.type === 'date') {
+    if (props.filter.value.length === 2) {
+      return `from ${moment(props.filter.value[0]).format(
+        'YYYY-MM-DD'
+      )} to ${moment(props.filter.value[1]).format(
+        'YYYY-MM-DD'
+      )}`
+    } else {
+      return `from Anytime to ${moment(
+        props.filter.value[1]
+      ).format('YYYY-MM-DD')}`
+    }
+  } else if (props.filter.type === 'boolean') {
+    return props.filter.value
   } else {
     return props.filter.value
       .map((o) => o.label || o)
@@ -134,18 +152,21 @@ const valueToString = computed(() => {
 })
 
 const shouldShowReset = computed(() => {
-  return (
-    props.filter.defaultValue.length > 0 &&
-    !lodash(model.value)
-      .differenceWith(
-        props.filter.defaultValue,
-        lodash.isEqual
-      )
-      .isEmpty()
-  )
+  return Array.isArray(props.filter.defaultValue)
+    ? props.filter.defaultValue.length > 0 &&
+        !lodash(model.value)
+          .differenceWith(
+            props.filter.defaultValue,
+            lodash.isEqual
+          )
+          .isEmpty()
+    : props.filter.defaultValue !== null &&
+        props.filter.defaultValue !== props.filter.value
 })
 const shouldDisableApplyButton = computed(() => {
-  return model.value.length === 0
+  return Array.isArray(model.value)
+    ? model.value.length === 0
+    : model.value === '' || model.value === null
 })
 
 const model = ref(

@@ -25,6 +25,9 @@ import FilterTypeSelect from '@/shared/filter/filter-type-select'
 import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
 import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
 import FilterTypeRange from '@/shared/filter/filter-type-range'
+import FilterTypeBoolean from '@/shared/filter/filter-type-boolean'
+import FilterTypeString from '@/shared/filter/filter-type-string'
+import FilterTypeDate from '@/shared/filter/filter-type-date'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
@@ -65,6 +68,9 @@ export default {
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-range': FilterTypeRange,
     'app-filter-type-select-async': FilterTypeSelectAsync,
+    'app-filter-type-boolean': FilterTypeBoolean,
+    'app-filter-type-string': FilterTypeString,
+    'app-filter-type-date': FilterTypeDate,
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,

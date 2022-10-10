@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiFilter from '@/shared/filter/build-api-filter'
 
 export class MemberService {
   static async update(id, data) {
@@ -80,7 +81,7 @@ export class MemberService {
 
   static async list(filter, orderBy, limit, offset) {
     const body = {
-      filter: {},
+      filter: buildApiFilter(filter),
       orderBy,
       limit,
       offset

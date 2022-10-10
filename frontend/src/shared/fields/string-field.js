@@ -13,6 +13,7 @@ export default class StringField extends GenericField {
     this.min = config.min
     this.max = config.max
     this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
@@ -30,9 +31,12 @@ export default class StringField extends GenericField {
     return {
       name: this.name,
       label: this.label,
+      custom: this.custom,
       props: {},
-      defaultValue: [],
-      value: [],
+      defaultValue: null,
+      value: null,
+      defaultOperator: 'contains',
+      operator: 'contains',
       type: 'string'
     }
   }

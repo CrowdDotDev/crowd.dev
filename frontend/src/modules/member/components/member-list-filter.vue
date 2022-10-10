@@ -44,7 +44,9 @@ onMounted(async () => {
 })
 
 async function doFetch() {
-  const filter = {}
+  const filter = {
+    ...store.state.member.filter
+  }
   await store.dispatch('member/doFetch', {
     filter,
     keepPagination: true

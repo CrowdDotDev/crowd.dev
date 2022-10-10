@@ -46,9 +46,9 @@
       />
       <div
         v-else-if="computedOptions.length === 0"
-        class="text-gray-600 px-4 pt-2"
+        class="text-gray-400 px-4 pt-2"
       >
-        No options matched the query
+        No options left for this query
       </div>
     </div>
   </div>
