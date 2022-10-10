@@ -323,7 +323,7 @@ export default {
         window.location.protocol === 'http:' &&
         window.location.host.includes('localhost')
       ) {
-        currentUrl = 'https://localhost'
+        currentUrl = 'https://localhost/settings'
       } else {
         currentUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
       }
