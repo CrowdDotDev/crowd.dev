@@ -2,23 +2,23 @@
   <el-dropdown
     trigger="click"
     placement="bottom-start"
-    class="filter-list-compositor"
+    class="filter-list-operator"
   >
-    <el-button class="filter-list-compositor-btn">{{
-      compositor.slice(0, 1).toUpperCase() +
-      compositor.slice(1, compositor.length)
+    <el-button class="filter-list-operator-btn">{{
+      operator.slice(0, 1).toUpperCase() +
+      operator.slice(1, operator.length)
     }}</el-button>
     <template #dropdown>
       <el-dropdown-item
-        class="filter-list-compositor-option"
-        :class="compositor === 'and' ? 'is-selected' : ''"
+        class="filter-list-operator-option"
+        :class="operator === 'and' ? 'is-selected' : ''"
         @click.stop="handleClick('and')"
       >
         And
       </el-dropdown-item>
       <el-dropdown-item
-        class="filter-list-compositor-option"
-        :class="compositor === 'or' ? 'is-selected' : ''"
+        class="filter-list-operator-option"
+        :class="operator === 'or' ? 'is-selected' : ''"
         @click.stop="handleClick('or')"
       >
         Or
@@ -29,14 +29,14 @@
 
 <script>
 export default {
-  name: 'AppFilterListCompositor'
+  name: 'AppFilterListOperator'
 }
 </script>
 
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 defineProps({
-  compositor: {
+  operator: {
     type: String,
     default: 'and'
   }
@@ -50,7 +50,7 @@ const handleClick = (value) => {
 </script>
 
 <style lang="scss">
-.filter-list-compositor {
+.filter-list-operator {
   @apply text-xs mb-4;
 
   &-btn.el-button {

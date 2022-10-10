@@ -11,14 +11,14 @@
         @change="handleFilterChange"
         @destroy="handleFilterDestroy"
       />
-      <app-filter-list-compositor
+      <app-filter-list-operator
         v-if="
           filtersArray.length > 1 &&
           index !== filtersArray.length - 1
         "
-        :compositor="compositor"
+        :operator="operator"
         class="mx-2"
-        @change="handleCompositorChanged"
+        @change="handleOperatorChanged"
       />
     </div>
   </div>
@@ -32,9 +32,9 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { ref, defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue'
 import AppFilterListItem from './filter-list-item'
-import AppFilterListCompositor from './filter-list-compositor'
+import AppFilterListOperator from './filter-list-operator'
 
 const props = defineProps({
   module: {
@@ -44,7 +44,9 @@ const props = defineProps({
 })
 
 const store = useStore()
-const compositor = ref('and')
+const operator = computed(
+  () => store.state.member.filter.operator
+)
 /* const filters = reactive({
   selectSingle: {
     name: 'selectSingle',
@@ -122,20 +124,29 @@ const compositor = ref('and')
 })*/
 
 const filters = computed(() => {
-  return { ...store.state[props.module].filter }
+  return { ...store.state[props.module].filter.attributes }
 })
 const filtersArray = computed(() =>
   Object.values(filters.value)
 )
 
-const handleFilterChange = (v) => {
-  store.dispatch(`${props.module}/updateFilter`, v)
+const handleFilterChange = (filter) => {
+  store.dispatch(
+    `${props.module}/updateFilterAttribute`,
+    filter
+  )
 }
-const handleFilterDestroy = (v) => {
-  store.dispatch(`${props.module}/destroyFilter`, v)
+const handleFilterDestroy = (filter) => {
+  store.dispatch(
+    `${props.module}/destroyFilterAttribute`,
+    filter
+  )
 }
-const handleCompositorChanged = (v) => {
-  compositor.value = v
+const handleOperatorChanged = (operator) => {
+  store.dispatch(
+    `${props.module}/updateFilterOperator`,
+    operator
+  )
 }
 </script>
 

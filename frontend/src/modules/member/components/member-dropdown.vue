@@ -87,22 +87,11 @@
 
 <script>
 import { i18n } from '@/i18n'
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import AppMemberFormPage from './member-form-page'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
-import { FilterSchema } from '@/shared/form/filter-schema'
-import { MemberModel } from '@/modules/member/member-model'
 import { MemberPermissions } from '@/modules/member/member-permissions'
-
-const { fields } = MemberModel
-const filterSchema = new FilterSchema([
-  fields.username,
-  fields.tags,
-  fields.scoreRange,
-  fields.activitiesCountRange,
-  fields.reachRange
-])
 
 export default {
   name: 'AppMemberDropdown',
@@ -123,9 +112,6 @@ export default {
     }
   },
   computed: {
-    ...mapState({
-      rawFilter: (state) => state.member.rawFilter
-    }),
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'
@@ -178,8 +164,7 @@ export default {
         Message.success('Member updated successfully')
         if (this.$route.name === 'member') {
           this.doFetch({
-            rawFilter: this.rawFilter,
-            filter: filterSchema.cast(this.rawFilter)
+            filter: {}
           })
         } else {
           this.doFind(command.member.id)

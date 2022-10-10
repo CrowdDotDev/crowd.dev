@@ -20,8 +20,7 @@ export default {
   async doReset({ commit, state, dispatch }) {
     commit('RESETED')
     return dispatch('doFetch', {
-      filter: state.filter,
-      rawFilter: state.rawFilter
+      filter: state.filter
     })
   },
 
@@ -64,7 +63,6 @@ export default {
     try {
       const selectedRows = getters.selectedRows
       const filter = state.filter
-      const rawFilter = state.rawFilter
 
       for (const row of selectedRows) {
         await MemberService.update(row.id, {
@@ -77,7 +75,6 @@ export default {
 
       dispatch('doFetch', {
         filter,
-        rawFilter,
         keepPagination: true
       })
 
@@ -97,10 +94,8 @@ export default {
   ) {
     commit('PAGINATION_CHANGED', pagination)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
       filter,
-      rawFilter,
       keepPagination: true
     })
   },
@@ -111,10 +106,8 @@ export default {
   ) {
     commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
       filter,
-      rawFilter,
       keepPagination: true
     })
   },
@@ -125,10 +118,8 @@ export default {
   ) {
     commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
       filter,
-      rawFilter,
       keepPagination: true
     })
   },
@@ -136,10 +127,8 @@ export default {
   doChangeSort({ commit, state, dispatch }, sorter) {
     commit('SORTER_CHANGED', sorter)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
       filter,
-      rawFilter,
       keepPagination: true
     })
   },
@@ -151,26 +140,19 @@ export default {
     commit('ACTIVE_VIEW_CHANGED', activeView)
 
     const filter = state.views[activeView].filter
-    const rawFilter = state.views[activeView].rawFilter
     dispatch('doFetch', {
       filter,
-      rawFilter,
       keepPagination: true
     })
   },
 
   async doFetch(
     { commit, getters },
-    {
-      filter = null,
-      rawFilter = null,
-      keepPagination = false
-    }
+    { filter = null, keepPagination = false }
   ) {
     try {
       commit('FETCH_STARTED', {
         filter,
-        rawFilter,
         keepPagination
       })
 
@@ -352,7 +334,7 @@ export default {
     }
   },
 
-  async doCreate({ commit, dispatch, state }, values) {
+  async doCreate({ commit, dispatch }, values) {
     try {
       commit('CREATE_STARTED')
       await MemberService.create(values)
@@ -360,23 +342,14 @@ export default {
       Message.success(
         i18n('entities.member.create.success')
       )
-      dispatch(
-        'member/doFetch',
-        {
-          filter: state.list.rawFilter
-        },
-        { root: true }
-      )
+      dispatch('member/doFetch', {}, { root: true })
     } catch (error) {
       Errors.handle(error)
       commit('CREATE_ERROR')
     }
   },
 
-  async doUpdate(
-    { commit, dispatch, state },
-    { id, values }
-  ) {
+  async doUpdate({ commit, dispatch }, { id, values }) {
     try {
       commit('UPDATE_STARTED')
 
@@ -387,13 +360,7 @@ export default {
         i18n('entities.member.update.success')
       )
       if (router.currentRoute.name === 'member') {
-        dispatch(
-          'member/doFetch',
-          {
-            filter: state.list.rawFilter
-          },
-          { root: true }
-        )
+        dispatch('member/doFetch', {}, { root: true })
       } else {
         dispatch('member/doFind', id, {
           root: true
@@ -405,15 +372,19 @@ export default {
     }
   },
 
-  addFilter({ commit }, filter) {
-    commit('ADD_FILTER', filter)
+  addFilterAttribute({ commit }, filter) {
+    commit('ADD_FILTER_ATTRIBUTE', filter)
   },
 
-  updateFilter({ commit }, filter) {
-    commit('UPDATE_FILTER', filter)
+  updateFilterAttribute({ commit }, filter) {
+    commit('UPDATE_FILTER_ATTRIBUTE', filter)
   },
 
-  destroyFilter({ commit }, filter) {
-    commit('DESTROY_FILTER', filter)
+  destroyFilterAttribute({ commit }, filter) {
+    commit('DESTROY_FILTER_ATTRIBUTE', filter)
+  },
+
+  updateFilterOperator({ commit }, operator) {
+    commit('UPDATE_FILTER_OPERATOR', operator)
   }
 }

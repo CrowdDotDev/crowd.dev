@@ -5,8 +5,10 @@ export default {
     state.list.ids = []
     state.list.loading = false
     state.count = 0
-    state.filter = { type: state.filter.type }
-    state.rawFilter = { type: state.rawFilter.type }
+    state.filter = {
+      operator: 'and',
+      attributes: {}
+    }
     state.pagination = {}
     state.sorter = {
       prop: 'score',
@@ -75,10 +77,13 @@ export default {
       state.list.table.clearSelection()
     }
 
-    state.rawFilter =
-      payload && state.rawFilter ? state.rawFilter : {}
     state.filter =
-      payload && payload.filter ? payload.filter : {}
+      payload && state.filter
+        ? state.filter
+        : {
+            operator: 'and',
+            attributes: {}
+          }
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -178,15 +183,19 @@ export default {
   FIND_SUCCESS() {},
   FIND_ERROR() {},
 
-  ADD_FILTER(state, filter) {
-    state.filter[filter.name] = filter
+  ADD_FILTER_ATTRIBUTE(state, filter) {
+    state.filter.attributes[filter.name] = filter
   },
 
-  UPDATE_FILTER(state, filter) {
-    state.filter[filter.name] = filter
+  UPDATE_FILTER_ATTRIBUTE(state, filter) {
+    state.filter.attributes[filter.name] = filter
   },
 
-  DESTROY_FILTER(state, filter) {
-    delete state.filter[filter.name]
+  DESTROY_FILTER_ATTRIBUTE(state, filter) {
+    delete state.filter.attributes[filter.name]
+  },
+
+  UPDATE_FILTER_OPERATOR(state, operator) {
+    state.filter.operator = operator
   }
 }
