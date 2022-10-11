@@ -6,6 +6,7 @@
       class="filter-list-item"
       popper-class="filter-list-item-popper"
       :visible="isExpanded"
+      :width="320"
     >
       <template #reference>
         <el-button-group class="btn-group">
@@ -117,31 +118,7 @@ const valueToString = computed(() => {
       filterOperators[props.filter.type].operator[
         props.filter.operator
       ]
-    if (props.filter.type === 'range') {
-      const start = props.filter.value[0]
-      const end =
-        props.filter.value.length === 2 &&
-        props.filter.value[1]
-
-      if (
-        (start == null || start === '') &&
-        (end == null || end === '')
-      ) {
-        return null
-      }
-
-      if (start != null && (end == null || end === '')) {
-        return `> ${start}`
-      }
-
-      if ((start == null || start === '') && end != null) {
-        return `< ${end}`
-      }
-
-      return `${start} - ${end}`
-    } else if (props.filter.type === 'string') {
-      return `${operatorLabel} ${props.filter.value}`
-    } else if (props.filter.type === 'date') {
+    if (props.filter.type === 'date') {
       if (Array.isArray(props.filter.value)) {
         const formattedStartDate = moment(
           props.filter.value[0]
@@ -156,10 +133,12 @@ const valueToString = computed(() => {
         ).format('YYYY-MM-DD')
         return `${operatorLabel} ${formattedDate}`
       }
-    } else {
+    } else if (props.filter.type.includes('select')) {
       return props.filter.value
         .map((o) => o.label || o)
         .join(', ')
+    } else {
+      return `${operatorLabel} ${props.filter.value}`
     }
   }
 })

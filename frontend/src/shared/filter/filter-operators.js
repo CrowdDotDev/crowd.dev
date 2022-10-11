@@ -9,7 +9,7 @@ export default {
   },
   number: {
     operator: {
-      eq: '',
+      eq: 'is',
       lt: '<',
       lte: '<=',
       gt: '>',
