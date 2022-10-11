@@ -172,6 +172,7 @@ const en = {
         username: 'Username',
         displayName: 'Display Name',
         activities: 'Activities',
+        activityCount: '# of activities',
         location: 'Location',
         organizations: 'Organizations',
         signal: 'Signal',

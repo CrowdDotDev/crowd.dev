@@ -79,13 +79,15 @@ const fields = {
     label('updatedAt')
   ),
   score: new IntegerField('score', label('score')),
-  activitiesCountRange: new IntegerRangeField(
-    'activitiesCountRange',
-    '# of Activities Range'
+  activityCount: new IntegerField(
+    'activityCount',
+    label('activityCount'),
+    { filterable: true }
   ),
-  scoreRange: new MemberEngagementLevelField(
-    'scoreRange',
-    'Engagement Level'
+  engagementLevel: new MemberEngagementLevelField(
+    'score',
+    'Engagement Level',
+    { filterable: true }
   ),
   reachRange: new IntegerRangeField(
     'reachRange',

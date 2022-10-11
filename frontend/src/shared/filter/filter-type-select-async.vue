@@ -32,7 +32,7 @@
       </div>
     </div>
     <div
-      class="filter-type-select filter-content-wrapper mb-4"
+      class="filter-type-select filter-content-wrapper mb-4 p-2"
     >
       <div
         v-for="option of computedOptions"
@@ -49,7 +49,7 @@
       />
       <div
         v-else-if="computedOptions.length === 0"
-        class="text-gray-400 px-4 pt-2"
+        class="text-gray-400 px-2 pt-2"
       >
         No options left for this query
       </div>
@@ -163,7 +163,7 @@ const removeLastKeyword = () => {
 .filter-type-select-async {
   @apply -m-2;
   &-input {
-    @apply border-b border-gray-200 mb-2 p-2;
+    @apply border-b border-gray-200 p-2;
   }
   .input-wrapper {
     @apply min-h-8 bg-gray-50 shadow-none border-none rounded-md max-h-12 overflow-auto;

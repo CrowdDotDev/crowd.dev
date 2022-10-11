@@ -18,7 +18,20 @@ export default (filter) => {
 
 function _buildAttributeBlock(attribute) {
   let rule = {}
-  if (attribute.operator === 'between') {
+
+  if (attribute.name === 'score') {
+    return {
+      or: [
+        attribute.value.map((option) => {
+          return {
+            score: {
+              between: option.value
+            }
+          }
+        })
+      ]
+    }
+  } else if (attribute.operator === 'between') {
     rule = {
       between: attribute.value
     }
