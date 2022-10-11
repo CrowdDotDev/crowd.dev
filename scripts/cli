@@ -13,12 +13,19 @@ CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
 function prepare_dev_env() {
-    if [[ ! -f "$CLI_HOME/../backend/.env.override" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override"
+    if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
+    fi
+    if [[ ! -f "$CLI_HOME/../backend/.env.override.composed" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.composed"
     fi
 
-    if [[ ! -f "$CLI_HOME/../frontend/.env.override" ]]; then
-        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override"
+    if [[ ! -f "$CLI_HOME/../frontend/.env.override.local" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.local"
+    fi
+
+    if [[ ! -f "$CLI_HOME/../frontend/.env.override.composed" ]]; then
+        echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.composed"
     fi
 }
 
@@ -61,7 +68,7 @@ function build_and_publish() {
 
     source $CLI_HOME/builders/$1.sh
 
-    say "Building $REPO:$VERSION with dockerfile '$DOCKERFILE' and context '$CONTEXT'"
+    say "Building $REPO version $VERSION with dockerfile '$DOCKERFILE' and context '$CONTEXT' and pushing it to $REPO:$VERSION"
     docker build --platform linux/amd64 --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
 
     if [[ ${PUSH} ]]; then
@@ -205,8 +212,6 @@ function check_container_status() {
 }
 
 function scaffold_set_up_network() {
-    rm -rf $CLI_HOME/../nginx/ssl/*.pem
-    $CLI_HOME/../nginx/ssl/init-certs.sh
     NETWORK_ID=$(docker network ls | grep "${PROJECT_NAME}-bridge" | tr " " "\n" | head -n 1)
 
     if [[ ${NETWORK_ID} ]]; then
@@ -315,8 +320,18 @@ function wait_for_db() {
     say "Scaffold is up and running!"
 }
 
-function start() {
+function clean_start() {
     scaffold_reset
+    for i in $CONTAINERS
+    do
+        say "Starting service $i."
+        start_service $i
+        nl
+    done
+}
+
+function start() {
+    up_scaffold
     for i in $CONTAINERS
     do
         say "Starting service $i."
@@ -338,13 +353,22 @@ do
             service $2 $3 $4 $5
             exit;
         ;;
-        start) 
+        start)
             start
             exit;
         ;;
         start-dev)
             DEV=1
             start
+            exit;
+        ;;
+        clean-start) 
+            clean_start
+            exit;
+        ;;
+        clean-start-dev)
+            DEV=1
+            clean_start
             exit;
         ;;
         build)

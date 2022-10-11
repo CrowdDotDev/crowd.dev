@@ -13,10 +13,13 @@ services:
     command: 'npm run start:api'
     env_file:
       - ../../backend/.env.dist.local
-      - ../../backend/.env.dist.compose
-      - ../../backend/.env.override
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
     environment:
       <<: *env-args
+    ports:
+      - '8080:8080'
     networks:
       - crowd-bridge
 
@@ -28,11 +31,14 @@ services:
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
-      - ../../backend/.env.dist.compose
-      - ../../backend/.env.override
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
     environment:
       <<: *env-args
     hostname: api
+    ports:
+      - '8080:8080'
     networks:
       - crowd-bridge
     volumes:

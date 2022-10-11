@@ -10,7 +10,6 @@ import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
 import setupSwaggerUI from './apiDocumentation'
-import { IS_CLOUD_ENV } from '../config'
 
 const app = express()
 
@@ -90,12 +89,7 @@ require('./automation').default(routes)
 // Loads the Tenant if the :tenantId param is passed
 routes.param('tenantId', tenantMiddleware)
 
-// Add the routes to the /api endpoint
-if (IS_CLOUD_ENV) {
-  app.use('/', routes)
-} else {
-  app.use('/api', routes)
-}
+app.use('/', routes)
 
 const webhookRoutes = express.Router()
 require('./webhooks').default(webhookRoutes)

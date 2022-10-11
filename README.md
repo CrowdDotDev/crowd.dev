@@ -86,7 +86,7 @@ cd scripts
 ./cli start
 ```
 
-App will be available at https://app.localhost
+App will be available at http://localhost:8081
 
 For more information on development, you can <a href="https://docs.crowd.dev/docs/local-development">check our docs</a>.
 

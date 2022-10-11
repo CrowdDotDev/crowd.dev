@@ -4,31 +4,42 @@ services:
   frontend:
     build:
       context: ../frontend
-      dockerfile: Dockerfile.kube
+      dockerfile: Dockerfile.dev
     env_file:
       - ../../frontend/.env.dist.local
       - ../../frontend/.env.dist.composed
-      - ../../frontend/.env.override
+      - ../../frontend/.env.override.local
+      - ../../frontend/.env.override.composed
+    command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1
+      - BACKEND_URL=http://api:8080
+    ports:
+      - '8081:8081'
     networks:
       - crowd-bridge
 
   frontend-dev:
     build:
       context: ../frontend
-      dockerfile: Dockerfile-frontend-dev
+      dockerfile: Dockerfile.dev
     env_file:
-      - ../../frontend/.env
-    command: npm start
-    user: '${USER_ID}:${GROUP_ID}'
+      - ../../frontend/.env.dist.local
+      - ../../frontend/.env.dist.composed
+      - ../../frontend/.env.override.local
+      - ../../frontend/.env.override.composed
+    command: npm run start:dev
     environment:
       - DOCKER_BUILDKIT=1
+      - BACKEND_URL=http://api:8080
+    ports:
+      - '8081:8081'
     networks:
       - crowd-bridge
     hostname: frontend
     volumes:
-      - ../../frontend:/usr/crowd/frontend
+      - ../../frontend/src:/usr/crowd/frontend/src
+      - ../../frontend/public:/usr/crowd/frontend/public
 
 networks:
   crowd-bridge:

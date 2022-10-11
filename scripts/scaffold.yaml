@@ -5,7 +5,7 @@ services:
     image: cubejs/cube
     ports:
       - '4000:4000'
-      - '3000:3000'
+      - '3001:3000'
     volumes:
       - '../backend/src/cubejs:/cube/conf'
     environment:
@@ -68,9 +68,6 @@ services:
       - ../nginx/ssl:/etc/nginx/ssl
     ports:
       - '443:443'
-      - '8080:8080'
-      - '8081:8081'
-      - '8000:8000'
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=443

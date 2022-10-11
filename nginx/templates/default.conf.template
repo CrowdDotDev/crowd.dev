@@ -1,106 +1,16 @@
-resolver 127.0.0.11 valid=1s;
-
 server {
-  listen 8000;
-
-  location /nginx_status {
-    stub_status;
-  }
-}
-
-server {
-  listen 8080;
-
-  server_name anton.localhost;
-  return 301 https://anton.localhost$request_uri;
-}
-
-server {
-  listen 8081;
-
-  server_name app.localhost;
-  return 301 https://app.localhost$request_uri;
-}
-
-
-server {
-  server_name anton.localhost;
-  listen 443 ssl default_server;
-  listen [::]:443 ssl default_server;
+  listen 443;
+  server_name localhost;
+  
   ssl on;
-  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
-  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
+  ssl_certificate /etc/nginx/ssl/selfsigned_cert.pem;
+  ssl_certificate_key /etc/nginx/ssl/selfsigned_key.pem;
 
-  root /var/www/html;
-  location / {
-    proxy_set_header Host $host;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto https;
-    set $target http://api:8080;
-    proxy_pass $target;
+  location ^~/api/ {
+    rewrite ^/api/(.*)$ http://localhost:8080/$1 permanent;
   }
-}
 
-server {
-  server_name app.localhost;
-  listen 443 ssl;
-  listen [::]:443 ssl;
-  ssl on;
-  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
-  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
-
-  root /var/www/html;
   location / {
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto https;
-    # The following settings came from this StackOverflow answer: https://stackoverflow.com/a/61071363
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "Upgrade";
-    set $target http://frontend:8081;
-    proxy_pass $target;
-  }
-}
-
-server {
-  server_name cubejs.localhost;
-  listen 443 ssl;
-  listen [::]:443 ssl;
-  ssl on;
-  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
-  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
-
-  root /var/www/html;
-  location / {
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto https;
-    set $target http://cubejs:4000;
-    proxy_pass $target;
-  }
-}
-
-server {
-  server_name open.localhost;
-  listen 443 ssl;
-  listen [::]:443 ssl;
-  ssl on;
-  ssl_certificate /etc/nginx/ssl/crowd.localhost.pem;
-  ssl_certificate_key /etc/nginx/ssl/crowd.localhost.key.pem;
-
-  root /var/www/html;
-  location / {
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto https;
-    set $target http://conversations:3000;
-    proxy_pass $target;
+    return 301 http://localhost:8081$request_uri;
   }
 }
