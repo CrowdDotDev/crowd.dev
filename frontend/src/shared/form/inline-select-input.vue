@@ -1,5 +1,5 @@
 <template>
-  <div class="inline-select-input" @click="triggerDropdown">
+  <div class="inline-select-input">
     <el-dropdown
       :placement="popperPlacement"
       :popper-class="popperClass"
@@ -51,7 +51,7 @@ import {
 
 const props = defineProps({
   modelValue: {
-    type: String,
+    type: [String, Number, Array],
     default: null
   },
   options: {
@@ -97,10 +97,6 @@ const modelLabel = computed(
 )
 
 const dropdownExpanded = ref(false)
-const dropdownRef = ref(null)
-const triggerDropdown = () => {
-  dropdownRef.value.handleOpen()
-}
 const handleDropdownVisibleChange = (value) => {
   dropdownExpanded.value = value
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="filter-type-string">
+  <div class="filter-with-operator-and-input">
     <app-inline-select-input
       v-model="operator"
       popper-placement="bottom-start"
@@ -89,23 +89,3 @@ watch(expanded, async (newValue) => {
   }
 })
 </script>
-
-<style lang="scss">
-.filter-type-string {
-  @apply px-2 pb-4 pt-3;
-
-  .el-input__wrapper,
-  .el-input__wrapper.is-focus,
-  .el-input__wrapper:hover {
-    @apply h-8 bg-gray-50 shadow-none border-none rounded-md;
-
-    input {
-      &,
-      &:hover,
-      &:focus {
-        @apply bg-gray-50 shadow-none border-none outline-none h-full min-h-8;
-      }
-    }
-  }
-}
-</style>

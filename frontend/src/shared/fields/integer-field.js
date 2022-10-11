@@ -30,7 +30,7 @@ export default class IntegerField extends GenericField {
       value: [],
       defaultOperator: 'between',
       operator: 'between',
-      type: 'range'
+      type: 'number'
     }
   }
 

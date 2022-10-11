@@ -22,8 +22,8 @@ export default class DateField extends GenericField {
       props: {},
       defaultValue: [],
       value: [],
-      defaultOperator: 'between',
-      operator: 'between',
+      defaultOperator: '=',
+      operator: null,
       type: 'date'
     }
   }

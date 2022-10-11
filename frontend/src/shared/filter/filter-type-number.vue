@@ -3,35 +3,38 @@
     <app-inline-select-input
       v-model="operator"
       popper-placement="bottom-start"
-      prefix="Date:"
+      prefix="Number:"
       class="mb-2"
       :options="[
-        { value: '=', label: 'Is' },
+        { value: 'eq', label: 'is equal to' },
         {
-          value: '<',
-          label: 'Is before'
+          value: 'neq',
+          label: 'is different than'
         },
-        { value: '>', label: 'is after' },
+        { value: '>', label: 'is bigger than' },
+        { value: '<', label: 'is less than' },
+        { value: '>=', label: 'is equal or bigger than' },
+        { value: '<=', label: 'is equal or less than' },
         { value: 'between', label: 'is between' },
         { value: 'is_empty', label: 'is empty' },
         { value: 'is_not_empty', label: 'is not empty' }
       ]"
     />
-    <el-date-picker
+    <el-input
       ref="inputRef"
       v-model="model"
-      placeholder="Select a date"
+      placeholder="Enter a value"
       :disabled="
         operator === 'is_empty' ||
         operator === 'is_not_empty'
       "
-    ></el-date-picker>
+    ></el-input>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AppFilterTypeDate'
+  name: 'AppFilterTypeNumber'
 }
 </script>
 
@@ -84,9 +87,7 @@ const inputRef = ref(null)
 
 watch(expanded, async (newValue) => {
   if (newValue) {
-    setTimeout(() => {
-      inputRef.value.handleOpen()
-    }, 500)
+    inputRef.value.focus()
   }
 })
 </script>

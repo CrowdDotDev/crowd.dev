@@ -1,37 +1,39 @@
 <template>
-  <el-dropdown
-    ref="dropdown"
-    trigger="click"
-    placement="bottom-start"
-    class="filter-list-item"
-    popper-class="filter-list-item-popper"
-    @visible-change="handleVisibleChange"
-  >
-    <el-button-group class="btn-group">
-      <el-button
-        class="filter-list-item-btn"
-        :class="`${isExpanded ? 'is-expanded' : ''} ${
-          hasValue ? 'is-active' : ''
-        }`"
-      >
-        <span>
-          {{ filter.label }}{{ hasValue ? ':' : '...' }}
-        </span>
-        <span
-          v-if="hasValue"
-          class="ml-1 max-w-xs truncate"
-          >{{ valueToString }}</span
-        >
-      </el-button>
-      <el-button
-        class="filter-list-item-btn filter-list-item-btn__close"
-        :class="hasValue ? 'is-active' : ''"
-        @click.stop="handleDestroy"
-      >
-        <i class="ri-close-line"></i>
-      </el-button>
-    </el-button-group>
-    <template #dropdown>
+  <div class="filter-list-item">
+    <el-popover
+      trigger="click"
+      placement="bottom-start"
+      class="filter-list-item"
+      popper-class="filter-list-item-popper"
+      :visible="isExpanded"
+    >
+      <template #reference>
+        <el-button-group class="btn-group">
+          <el-button
+            class="filter-list-item-btn"
+            :class="`${isExpanded ? 'is-expanded' : ''} ${
+              hasValue ? 'is-active' : ''
+            }`"
+            @click="handleOpen"
+          >
+            <span>
+              {{ filter.label }}{{ hasValue ? ':' : '...' }}
+            </span>
+            <span
+              v-if="hasValue"
+              class="ml-1 max-w-xs truncate"
+              >{{ valueToString }}</span
+            >
+          </el-button>
+          <el-button
+            class="filter-list-item-btn filter-list-item-btn__close"
+            :class="hasValue ? 'is-active' : ''"
+            @click.stop="handleDestroy"
+          >
+            <i class="ri-close-line"></i>
+          </el-button>
+        </el-button-group>
+      </template>
       <component
         :is="`app-filter-type-${filter.type}`"
         v-bind="filter.props"
@@ -63,8 +65,8 @@
           >
         </div>
       </div>
-    </template>
-  </el-dropdown>
+    </el-popover>
+  </div>
 </template>
 
 <script>
@@ -96,11 +98,10 @@ const emit = defineEmits(['destroy', 'change'])
 
 onMounted(() => {
   if (props.filter.expanded) {
-    dropdown.value.handleOpen()
+    isExpanded.value = true
   }
 })
 
-const dropdown = ref(null)
 const isExpanded = ref(false)
 const hasValue = computed(() =>
   Array.isArray(props.filter.value)
@@ -131,21 +132,24 @@ const valueToString = computed(() => {
 
     return `${start} - ${end}`
   } else if (props.filter.type === 'string') {
-    return props.filter.value
+    return `${props.filter.operator} ${props.filter.value}`
   } else if (props.filter.type === 'date') {
-    if (props.filter.value.length === 2) {
-      return `from ${moment(props.filter.value[0]).format(
-        'YYYY-MM-DD'
-      )} to ${moment(props.filter.value[1]).format(
-        'YYYY-MM-DD'
-      )}`
-    } else {
-      return `from Anytime to ${moment(
+    if (Array.isArray(props.filter.value)) {
+      const formattedStartDate = moment(
+        props.filter.value[0]
+      ).format('YYYY-MM-DD')
+      const formattedEndDate = moment(
         props.filter.value[1]
-      ).format('YYYY-MM-DD')}`
+      ).format('YYYY-MM-DD')
+      return `${props.filter.operator} ${formattedStartDate} and ${formattedEndDate}`
+    } else {
+      const formattedDate = moment(
+        props.filter.value
+      ).format('YYYY-MM-DD')
+      return `${props.filter.operator} ${formattedDate}`
     }
   } else if (props.filter.type === 'boolean') {
-    return props.filter.value
+    return 'is ' + props.filter.value
   } else {
     return props.filter.value
       .map((o) => o.label || o)
@@ -180,15 +184,16 @@ const model = reactive({
   )
 })
 
-const handleVisibleChange = (value) => {
-  isExpanded.value = value
-}
-
 const handleChange = () => {
   emit('change', {
     ...props.filter,
-    value: JSON.parse(JSON.stringify(model.value))
+    value: JSON.parse(JSON.stringify(model.value)),
+    operator: JSON.parse(JSON.stringify(model.operator))
   })
+}
+
+const handleOpen = () => {
+  isExpanded.value = true
 }
 
 const handleDestroy = () => {
@@ -203,12 +208,12 @@ const handleReset = () => {
 }
 
 const handleCancel = () => {
-  dropdown.value.handleClose()
+  isExpanded.value = false
 }
 
 const handleApply = () => {
   handleChange()
-  dropdown.value.handleClose()
+  handleCancel()
 }
 </script>
 

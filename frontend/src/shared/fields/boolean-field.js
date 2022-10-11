@@ -23,10 +23,10 @@ export default class BooleanField extends GenericField {
       label: this.label,
       custom: this.custom,
       props: {},
-      defaultValue: false,
-      value: false,
+      defaultValue: null,
+      value: null,
       defaultOperator: 'is',
-      operator: 'is',
+      operator: null,
       type: 'boolean'
     }
   }

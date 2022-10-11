@@ -18,7 +18,7 @@ import { onMounted, computed } from 'vue'
 import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
 import IntegerField from '@/shared/fields/integer-field'
-import DateTimeField from '@/shared/fields/date-time-field'
+import DateField from '@/shared/fields/date-field'
 
 const store = useStore()
 const memberAttributes = Object.values(
@@ -35,7 +35,7 @@ const customAttributes = computed(() => {
               customAttribute.label
             )
           case 'date':
-            return new DateTimeField(
+            return new DateField(
               customAttribute.name,
               customAttribute.label
             )

@@ -13,8 +13,7 @@ function _buildAttributeBlock(attribute) {
   let rule = {}
   if (attribute.operator === 'contains') {
     rule = {
-      [attribute.custom ? 'jsonContains' : 'textContains']:
-        attribute.value
+      textContains: attribute.value
     }
   } else if (attribute.operator === 'between') {
     rule = {
@@ -26,9 +25,9 @@ function _buildAttributeBlock(attribute) {
       : attribute.value
   } else {
     rule = {
-      [attribute.operator]: attribute.value.map(
-        (o) => o.id || o.value
-      )
+      [attribute.operator]: Array.isArray(attribute.value)
+        ? attribute.value.map((o) => o.id || o.value)
+        : attribute.value
     }
   }
 
