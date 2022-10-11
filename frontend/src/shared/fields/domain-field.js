@@ -25,8 +25,8 @@ export default class DomainField extends StringField {
       props: {},
       defaultValue: null,
       value: null,
-      defaultOperator: 'contains',
-      operator: 'contains',
+      defaultOperator: 'textContains',
+      operator: 'textContains',
       type: 'string'
     }
   }

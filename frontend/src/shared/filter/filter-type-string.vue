@@ -5,18 +5,7 @@
       popper-placement="bottom-start"
       prefix="Text:"
       class="mb-2"
-      :options="[
-        { value: 'contains', label: 'contains' },
-        {
-          value: 'not_contains',
-          label: 'does not contain'
-        },
-        { value: 'is', label: 'is' },
-        { value: 'starts_with', label: 'starts with' },
-        { value: 'ends_with', label: 'ends with' },
-        { value: 'is_empty', label: 'is empty' },
-        { value: 'is_not_empty', label: 'is not empty' }
-      ]"
+      :options="computedOperatorOptions"
     />
     <el-input
       ref="inputRef"
@@ -44,6 +33,7 @@ import {
   watch,
   ref
 } from 'vue'
+import filterOperators from './filter-operators'
 
 const props = defineProps({
   value: {
@@ -81,6 +71,16 @@ const operator = computed({
   }
 })
 const expanded = computed(() => props.isExpanded)
+const computedOperatorOptions = computed(() => {
+  return Object.keys(filterOperators.string.operator).map(
+    (o) => {
+      return {
+        value: o,
+        label: filterOperators.string.operator[o]
+      }
+    }
+  )
+})
 const inputRef = ref(null)
 
 watch(expanded, async (newValue) => {

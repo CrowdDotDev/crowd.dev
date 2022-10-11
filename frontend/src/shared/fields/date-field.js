@@ -22,7 +22,7 @@ export default class DateField extends GenericField {
       props: {},
       defaultValue: [],
       value: [],
-      defaultOperator: '=',
+      defaultOperator: 'eq',
       operator: null,
       type: 'date'
     }

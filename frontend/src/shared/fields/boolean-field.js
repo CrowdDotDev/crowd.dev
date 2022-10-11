@@ -25,7 +25,7 @@ export default class BooleanField extends GenericField {
       props: {},
       defaultValue: null,
       value: null,
-      defaultOperator: 'is',
+      defaultOperator: 'eq',
       operator: null,
       type: 'boolean'
     }

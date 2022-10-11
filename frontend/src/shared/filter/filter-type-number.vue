@@ -5,20 +5,7 @@
       popper-placement="bottom-start"
       prefix="Number:"
       class="mb-2"
-      :options="[
-        { value: 'eq', label: 'is equal to' },
-        {
-          value: 'neq',
-          label: 'is different than'
-        },
-        { value: '>', label: 'is bigger than' },
-        { value: '<', label: 'is less than' },
-        { value: '>=', label: 'is equal or bigger than' },
-        { value: '<=', label: 'is equal or less than' },
-        { value: 'between', label: 'is between' },
-        { value: 'is_empty', label: 'is empty' },
-        { value: 'is_not_empty', label: 'is not empty' }
-      ]"
+      :options="computedOperatorOptions"
     />
     <el-input
       ref="inputRef"
@@ -46,6 +33,7 @@ import {
   watch,
   ref
 } from 'vue'
+import filterOperators from '@/shared/filter/filter-operators'
 
 const props = defineProps({
   value: {
@@ -81,6 +69,16 @@ const operator = computed({
   set(v) {
     emit('update:operator', v)
   }
+})
+const computedOperatorOptions = computed(() => {
+  return Object.keys(filterOperators.number.operator).map(
+    (o) => {
+      return {
+        value: o,
+        label: filterOperators.number.operator[o]
+      }
+    }
+  )
 })
 const expanded = computed(() => props.isExpanded)
 const inputRef = ref(null)

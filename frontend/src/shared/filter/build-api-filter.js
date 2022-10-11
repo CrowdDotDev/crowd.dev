@@ -11,11 +11,7 @@ export default (filter) => {
 
 function _buildAttributeBlock(attribute) {
   let rule = {}
-  if (attribute.operator === 'contains') {
-    rule = {
-      textContains: attribute.value
-    }
-  } else if (attribute.operator === 'between') {
+  if (attribute.operator === 'between') {
     rule = {
       between: attribute.value
     }
@@ -33,7 +29,7 @@ function _buildAttributeBlock(attribute) {
 
   return {
     [attribute.custom
-      ? `attributes.${attribute.name}`
+      ? `attributes.${attribute.name}.default`
       : attribute.name]: rule
   }
 }

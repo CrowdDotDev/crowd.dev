@@ -36,8 +36,8 @@ export default class UrlField extends StringField {
       props: {},
       defaultValue: null,
       value: null,
-      defaultOperator: 'contains',
-      operator: 'contains',
+      defaultOperator: 'textContains',
+      operator: 'textContains',
       type: 'string'
     }
   }

@@ -5,17 +5,7 @@
       popper-placement="bottom-start"
       prefix="Date:"
       class="mb-2"
-      :options="[
-        { value: '=', label: 'Is' },
-        {
-          value: '<',
-          label: 'Is before'
-        },
-        { value: '>', label: 'is after' },
-        { value: 'between', label: 'is between' },
-        { value: 'is_empty', label: 'is empty' },
-        { value: 'is_not_empty', label: 'is not empty' }
-      ]"
+      :options="computedOperatorOptions"
     />
     <el-date-picker
       ref="inputRef"
@@ -43,6 +33,8 @@ import {
   watch,
   ref
 } from 'vue'
+
+import filterOperators from './filter-operators'
 
 const props = defineProps({
   value: {
@@ -80,6 +72,16 @@ const operator = computed({
   }
 })
 const expanded = computed(() => props.isExpanded)
+const computedOperatorOptions = computed(() => {
+  return Object.keys(filterOperators.date.operator).map(
+    (o) => {
+      return {
+        value: o,
+        label: filterOperators.date.operator[o]
+      }
+    }
+  )
+})
 const inputRef = ref(null)
 
 watch(expanded, async (newValue) => {

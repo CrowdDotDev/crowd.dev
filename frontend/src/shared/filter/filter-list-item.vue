@@ -86,6 +86,7 @@ import {
 } from 'vue'
 import moment from 'moment'
 import lodash from 'lodash'
+import filterOperators from './filter-operators'
 
 const props = defineProps({
   filter: {
@@ -109,51 +110,57 @@ const hasValue = computed(() =>
     : props.filter.value !== null
 )
 const valueToString = computed(() => {
-  if (props.filter.type === 'range') {
-    const start = props.filter.value[0]
-    const end =
-      props.filter.value.length === 2 &&
-      props.filter.value[1]
-
-    if (
-      (start == null || start === '') &&
-      (end == null || end === '')
-    ) {
-      return null
-    }
-
-    if (start != null && (end == null || end === '')) {
-      return `> ${start}`
-    }
-
-    if ((start == null || start === '') && end != null) {
-      return `< ${end}`
-    }
-
-    return `${start} - ${end}`
-  } else if (props.filter.type === 'string') {
-    return `${props.filter.operator} ${props.filter.value}`
-  } else if (props.filter.type === 'date') {
-    if (Array.isArray(props.filter.value)) {
-      const formattedStartDate = moment(
-        props.filter.value[0]
-      ).format('YYYY-MM-DD')
-      const formattedEndDate = moment(
-        props.filter.value[1]
-      ).format('YYYY-MM-DD')
-      return `${props.filter.operator} ${formattedStartDate} and ${formattedEndDate}`
-    } else {
-      const formattedDate = moment(
-        props.filter.value
-      ).format('YYYY-MM-DD')
-      return `${props.filter.operator} ${formattedDate}`
-    }
-  } else if (props.filter.type === 'boolean') {
+  if (props.filter.type === 'boolean') {
     return 'is ' + props.filter.value
   } else {
-    return props.filter.value
-      .map((o) => o.label || o)
-      .join(', ')
+    const operatorLabel =
+      filterOperators[props.filter.type].operator[
+        props.filter.operator
+      ]
+    if (props.filter.type === 'range') {
+      const start = props.filter.value[0]
+      const end =
+        props.filter.value.length === 2 &&
+        props.filter.value[1]
+
+      if (
+        (start == null || start === '') &&
+        (end == null || end === '')
+      ) {
+        return null
+      }
+
+      if (start != null && (end == null || end === '')) {
+        return `> ${start}`
+      }
+
+      if ((start == null || start === '') && end != null) {
+        return `< ${end}`
+      }
+
+      return `${start} - ${end}`
+    } else if (props.filter.type === 'string') {
+      return `${operatorLabel} ${props.filter.value}`
+    } else if (props.filter.type === 'date') {
+      if (Array.isArray(props.filter.value)) {
+        const formattedStartDate = moment(
+          props.filter.value[0]
+        ).format('YYYY-MM-DD')
+        const formattedEndDate = moment(
+          props.filter.value[1]
+        ).format('YYYY-MM-DD')
+        return `${operatorLabel} ${formattedStartDate} and ${formattedEndDate}`
+      } else {
+        const formattedDate = moment(
+          props.filter.value
+        ).format('YYYY-MM-DD')
+        return `${operatorLabel} ${formattedDate}`
+      }
+    } else {
+      return props.filter.value
+        .map((o) => o.label || o)
+        .join(', ')
+    }
   }
 })
 
