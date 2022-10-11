@@ -24,7 +24,6 @@ import FilterList from '@/shared/filter/filter-list.vue'
 import FilterTypeSelect from '@/shared/filter/filter-type-select'
 import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
 import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
-import FilterTypeRange from '@/shared/filter/filter-type-range'
 import FilterTypeBoolean from '@/shared/filter/filter-type-boolean'
 import FilterTypeNumber from '@/shared/filter/filter-type-number'
 import FilterTypeString from '@/shared/filter/filter-type-string'
@@ -68,7 +67,6 @@ export default {
     'app-filter-list': FilterList,
     'app-filter-type-select': FilterTypeSelect,
     'app-filter-type-keywords': FilterTypeKeywords,
-    'app-filter-type-range': FilterTypeRange,
     'app-filter-type-select-async': FilterTypeSelectAsync,
     'app-filter-type-boolean': FilterTypeBoolean,
     'app-filter-type-number': FilterTypeNumber,
