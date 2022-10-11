@@ -3,7 +3,14 @@ export default (filter) => {
     [filter.operator]: Object.values(
       filter.attributes
     ).reduce((acc, item) => {
-      acc.push(_buildAttributeBlock(item))
+      if (
+        Array.isArray(item.value)
+          ? item.value.length > 0
+          : item.value !== '' || item.value !== null
+      ) {
+        acc.push(_buildAttributeBlock(item))
+      }
+
       return acc
     }, [])
   }

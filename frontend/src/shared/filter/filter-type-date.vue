@@ -85,10 +85,10 @@ const computedOperatorOptions = computed(() => {
 const inputRef = ref(null)
 
 watch(expanded, async (newValue) => {
-  if (newValue) {
-    setTimeout(() => {
+  setTimeout(() => {
+    if (newValue) {
       inputRef.value.handleOpen()
-    }, 500)
-  }
+    }
+  }, 500)
 })
 </script>

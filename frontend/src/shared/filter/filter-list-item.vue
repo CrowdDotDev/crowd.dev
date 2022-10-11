@@ -4,17 +4,17 @@
       trigger="click"
       placement="bottom-start"
       class="filter-list-item"
-      popper-class="filter-list-item-popper"
-      :visible="isExpanded"
+      :popper-class="`filter-list-item-popper filter-type-${filter.name}-popper`"
+      :visible="filter.expanded"
       :width="320"
     >
       <template #reference>
         <el-button-group class="btn-group">
           <el-button
             class="filter-list-item-btn"
-            :class="`${isExpanded ? 'is-expanded' : ''} ${
-              hasValue ? 'is-active' : ''
-            }`"
+            :class="`${
+              filter.expanded ? 'is-expanded' : ''
+            } ${hasValue ? 'is-active' : ''}`"
             @click="handleOpen"
           >
             <span>
@@ -40,7 +40,7 @@
         v-bind="filter.props"
         v-model:value="model.value"
         v-model:operator="model.operator"
-        :is-expanded="isExpanded"
+        :is-expanded="filter.expanded"
       />
       <div
         class="border-t border-gray-200 flex items-center justify-between -mx-2 px-4 pt-3 pb-1"
@@ -80,10 +80,9 @@ export default {
 import {
   defineProps,
   defineEmits,
-  ref,
   reactive,
-  onMounted,
-  computed
+  computed,
+  watch
 } from 'vue'
 import moment from 'moment'
 import lodash from 'lodash'
@@ -98,13 +97,6 @@ const props = defineProps({
 
 const emit = defineEmits(['destroy', 'change'])
 
-onMounted(() => {
-  if (props.filter.expanded) {
-    isExpanded.value = true
-  }
-})
-
-const isExpanded = ref(false)
 const hasValue = computed(() =>
   Array.isArray(props.filter.value)
     ? props.filter.value.length > 0
@@ -174,12 +166,16 @@ const handleChange = () => {
   emit('change', {
     ...props.filter,
     value: JSON.parse(JSON.stringify(model.value)),
-    operator: JSON.parse(JSON.stringify(model.operator))
+    operator: JSON.parse(JSON.stringify(model.operator)),
+    expanded: false
   })
 }
 
 const handleOpen = () => {
-  isExpanded.value = true
+  emit('change', {
+    ...props.filter,
+    expanded: true
+  })
 }
 
 const handleDestroy = () => {
@@ -194,13 +190,55 @@ const handleReset = () => {
 }
 
 const handleCancel = () => {
-  isExpanded.value = false
+  emit('change', {
+    ...props.filter,
+    expanded: false
+  })
 }
 
 const handleApply = () => {
   handleChange()
-  handleCancel()
 }
+
+const clickOutsideListener = (event) => {
+  const component = document.querySelector(
+    `.filter-type-${props.filter.name}-popper`
+  )
+  if (
+    // clicks outside
+    !(
+      component === event.target ||
+      component.contains(event.target) ||
+      // we need the following condition to validate clicks
+      // on popovers that are not DOM children of this component,
+      // since popper is adding fixed components to the body directly
+      event.path.some(
+        (o) => o.className?.includes('el-popper') || false
+      )
+    )
+  ) {
+    emit('change', {
+      ...props.filter,
+      expanded: false
+    })
+  }
+}
+
+watch(props.filter.expanded, (newValue) => {
+  setTimeout(() => {
+    if (newValue) {
+      document.addEventListener(
+        'click',
+        clickOutsideListener
+      )
+    } else {
+      document.removeEventListener(
+        'click',
+        clickOutsideListener
+      )
+    }
+  }, 500)
+})
 </script>
 
 <style lang="scss">
