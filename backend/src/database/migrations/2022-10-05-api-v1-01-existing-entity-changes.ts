@@ -39,10 +39,6 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       transaction,
     })
 
-    await queryInterface.renameColumn('activities', 'crowdInfo', 'attributes', {
-      transaction,
-    })
-
     // rename memberToMerge.communityMemberId field to memberToMerge.memberId and update fk name
     await queryInterface.removeConstraint(
       'memberToMerge',
@@ -313,13 +309,77 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       'displayName',
       {
         type: Sequelize.TEXT,
-        allowNull: false,
+        // allowNull: false,
         validate: {
           notEmpty: true,
         },
       },
       { transaction },
     )
+
+    // create new activities field: sentiment
+    await queryInterface.addColumn(
+      'activities',
+      'sentiment',
+      {
+        type: Sequelize.JSONB,
+        defaultValue: {},
+      },
+      { transaction },
+    )
+
+
+    // create new activities field: attributes
+    await queryInterface.addColumn(
+      'activities',
+      'attributes',
+      {
+        type: Sequelize.JSONB,
+        defaultValue: {},
+      },
+      { transaction },
+    )
+
+    // create new activities field: body
+    await queryInterface.addColumn(
+      'activities',
+      'body',
+      {
+        type: Sequelize.TEXT,
+      },
+      { transaction },
+    )
+
+    // create new activities field: title
+    await queryInterface.addColumn(
+      'activities',
+      'title',
+      {
+        type: Sequelize.TEXT,
+      },
+      { transaction },
+    )
+
+    // create new activities field: channel
+    await queryInterface.addColumn(
+      'activities',
+      'channel',
+      {
+        type: Sequelize.TEXT,
+      },
+      { transaction },
+    )
+
+    // create new activities field: url
+    await queryInterface.addColumn(
+      'activities',
+      'url',
+      {
+        type: Sequelize.TEXT,
+      },
+      { transaction },
+    )
+
 
     // create new settings field: attributeSettings
     await queryInterface.addColumn(
@@ -377,9 +437,6 @@ export const down = async (queryInterface: QueryInterface) => {
       transaction,
     })
 
-    await queryInterface.renameColumn('activities', 'attributes', 'crowdInfo', {
-      transaction,
-    })
 
     await queryInterface.addConstraint('activities', {
       type: 'foreign key',
@@ -624,6 +681,24 @@ export const down = async (queryInterface: QueryInterface) => {
     // displayName
     await queryInterface.removeColumn('communityMembers', 'displayName', { transaction })
 
+    // activities.sentiment
+    await queryInterface.removeColumn('activities', 'sentiment', { transaction })
+
+    // activities.attributes
+    await queryInterface.removeColumn('activities', 'attributes', { transaction })
+
+    // activities.body
+    await queryInterface.removeColumn('activities', 'body', { transaction })
+
+     // activities.title
+    await queryInterface.removeColumn('activities', 'title', { transaction })
+
+    // activities.channel
+    await queryInterface.removeColumn('activities', 'channel', { transaction })
+
+    // activities.url
+    await queryInterface.removeColumn('activities', 'url', { transaction })
+    
     // remove settings.attributeSettings
     await queryInterface.removeColumn('settings', 'attributeSettings', { transaction })
 

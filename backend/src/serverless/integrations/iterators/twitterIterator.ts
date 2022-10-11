@@ -359,6 +359,7 @@ export default class TwitterIterator extends BaseIterator {
 
       if (endpoint.includes('hashtag')) {
         out.attributes.hashtag = TwitterIterator.getHashtag(endpoint)
+        out.channel = out.attributes.hashtag
       }
       return out
     })

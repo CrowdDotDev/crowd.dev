@@ -20,14 +20,14 @@ export const GithubMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
-    type: AttributeType.STRING,
+    type: AttributeType.URL,
     canDelete: false,
     show: true,
   },
   {
     name: MemberAttributes[MemberAttributeName.WEBSITE_URL].name,
     label: MemberAttributes[MemberAttributeName.WEBSITE_URL].label,
-    type: AttributeType.STRING,
+    type: AttributeType.URL,
     canDelete: false,
     show: true,
   },

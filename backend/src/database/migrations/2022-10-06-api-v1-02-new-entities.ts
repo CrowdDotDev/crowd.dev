@@ -89,6 +89,20 @@ export const up = async (queryInterface, Sequelize) => {
       { transaction },
     )
 
+    // activityTasks
+    await queryInterface.sequelize.query(
+      `CREATE TABLE public."activityTasks" (
+        "createdAt" timestamptz NOT NULL,
+        "updatedAt" timestamptz NOT NULL,
+        "activityId" uuid NOT NULL,
+        "taskId" uuid NOT NULL,
+        CONSTRAINT "activityTasks_pkey" PRIMARY KEY ("activityId", "taskId"),
+        CONSTRAINT "activityTasks_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES public.activities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT "activityTasks_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES public.tasks(id) ON DELETE CASCADE ON UPDATE CASCADE
+      )`,
+      { transaction },
+    ) 
+
     // notes
     await queryInterface.sequelize.query(
       `CREATE TABLE public.notes (
@@ -233,6 +247,10 @@ export const down = async (queryInterface) => {
     })
 
     await queryInterface.sequelize.query('DROP TABLE "memberTasks"', {
+      transaction,
+    })
+
+    await queryInterface.sequelize.query('DROP TABLE "activityTasks"', {
       transaction,
     })
 
