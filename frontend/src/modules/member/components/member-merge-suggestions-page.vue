@@ -12,7 +12,11 @@
     </div>
 
     <div class="panel">
-      <div v-if="membersToMerge.length > 0" class="-mx-6">
+      <div
+        v-for="pair in membersToMerge"
+        :key="pair[0].id + '-' + pair[1].id"
+        class="-mx-6"
+      >
         <el-table
           ref="table"
           :data="membersToMerge[0]"
@@ -20,15 +24,29 @@
         >
           <el-table-column label="Member" min-width="25%">
             <template #default="scope">
-              <div class="flex items-center">
-                <app-avatar
-                  :entity="scope.row"
-                  size="sm"
-                  class="mr-2"
-                />
-                <span class="font-semibold">{{
-                  scope.row.displayName
-                }}</span>
+              <div class="flex items-center relative">
+                <div class="h-16">
+                  <app-avatar
+                    :entity="scope.row"
+                    size="sm"
+                    class="mr-2"
+                  />
+                </div>
+                <div class="h-16 text-black">
+                  <div>{{ scope.row.displayName }}</div>
+                  <div
+                    v-if="scope.row.attributes.bio"
+                    class="text-gray-400 text-xs pr-4 line-clamp"
+                  >
+                    {{ scope.row.attributes.bio.default }}
+                  </div>
+                  <div
+                    v-else
+                    class="text-gray-400 text-xs pr-4"
+                  >
+                    -
+                  </div>
+                </div>
               </div>
             </template>
           </el-table-column>
@@ -88,6 +106,39 @@
             </template>
           </el-table-column> -->
         </el-table>
+        <div class="flex flex-wrap">
+          <button
+            class="btn btn--transparent mt-4 px-2 text-xs py-3"
+            @click="setViewingDetails(pair[0], pair[1])"
+          >
+            View details
+          </button>
+          <button
+            class="btn btn--bordered mt-4 px-2 text-xs py-3"
+            @click="handleNotMergeClick(pair)"
+          >
+            Ignore suggestion
+          </button>
+          <button
+            class="btn btn--primary mt-4 px-2 text-xs py-3"
+            @click="handleMergeClick(pair)"
+          >
+            Merge members
+          </button>
+          <el-dialog
+            v-model="viewingDetails.viewing"
+            title="New Member"
+            :append-to-body="true"
+            :close-on-click-modal="false"
+            :destroy-on-close="true"
+            custom-class="el-dialog--lg"
+            @close="viewingDetails.viewing = false"
+          >
+            <div>
+              {{ JSON.stringify(pair) }}
+            </div>
+          </el-dialog>
+        </div>
       </div>
     </div>
   </div>
@@ -101,12 +152,18 @@ export default {
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { i18n } from '@/i18n'
 import AppMemberChannels from './member-channels'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 
 const membersToMerge = ref([])
 const channelsWidth = ref('')
+const viewingDetails = ref({
+  viewing: false,
+  m1: {},
+  m2: {}
+})
 
 onMounted(async () => {
   membersToMerge.value =
@@ -134,70 +191,86 @@ function getChannelsWidth(membersToMerge) {
   return `${90 + maxChannels * 32}px`
 }
 
-// async function handleMergeClick(members) {
-//   try {
-//     await this.$myConfirm(
-//       i18n('common.areYouSure'),
-//       i18n('common.confirm'),
-//       {
-//         confirmButtonText: i18n('common.yes'),
-//         cancelButtonText: i18n('common.no'),
-//         type: 'warning'
-//       }
-//     )
+function setViewingDetails(m1, m2) {
+  viewingDetails.value = {
+    viewing: true,
+    m1,
+    m2
+  }
+}
 
-//     const response = await MemberService.merge(
-//       members[0],
-//       members[1]
-//     )
+async function handleMergeClick(members) {
+  try {
+    await this.$myConfirm(
+      i18n('common.areYouSure'),
+      i18n('common.confirm'),
+      {
+        confirmButtonText: i18n('common.yes'),
+        cancelButtonText: i18n('common.no'),
+        type: 'warning'
+      }
+    )
 
-//     const index = this.membersToMerge.findIndex(
-//       (membersToMerge) => {
-//         return (
-//           membersToMerge[0].id === members[0].id &&
-//           membersToMerge[1].id
-//         )
-//       }
-//     )
+    const response = await MemberService.merge(
+      members[0],
+      members[1]
+    )
 
-//     this.membersToMerge.splice(index, 1)
+    const index = this.membersToMerge.findIndex(
+      (membersToMerge) => {
+        return (
+          membersToMerge[0].id === members[0].id &&
+          membersToMerge[1].id
+        )
+      }
+    )
 
-//     console.log(response)
-//   } catch (error) {
-//     // no
-//   }
-// }
-// async function handleNotMergeClick(members) {
-//   try {
-//     await this.$myConfirm(
-//       i18n('common.areYouSure'),
-//       i18n('common.confirm'),
-//       {
-//         confirmButtonText: i18n('common.yes'),
-//         cancelButtonText: i18n('common.no'),
-//         type: 'warning'
-//       }
-//     )
+    this.membersToMerge.splice(index, 1)
 
-//     const response = await MemberService.addToNoMerge(
-//       members[0],
-//       members[1]
-//     )
+    console.log(response)
+  } catch (error) {
+    // no
+  }
+}
+async function handleNotMergeClick(members) {
+  try {
+    await this.$myConfirm(
+      i18n('common.areYouSure'),
+      i18n('common.confirm'),
+      {
+        confirmButtonText: i18n('common.yes'),
+        cancelButtonText: i18n('common.no'),
+        type: 'warning'
+      }
+    )
 
-//     const index = this.membersToMerge.findIndex(
-//       (membersToMerge) => {
-//         return (
-//           membersToMerge[0].id === members[0].id &&
-//           membersToMerge[1].id
-//         )
-//       }
-//     )
+    const response = await MemberService.addToNoMerge(
+      members[0],
+      members[1]
+    )
 
-//     this.membersToMerge.splice(index, 1)
+    const index = this.membersToMerge.findIndex(
+      (membersToMerge) => {
+        return (
+          membersToMerge[0].id === members[0].id &&
+          membersToMerge[1].id
+        )
+      }
+    )
 
-//     console.log(response)
-//   } catch (error) {
-//     // no
-//   }
-// }
+    this.membersToMerge.splice(index, 1)
+
+    console.log(response)
+  } catch (error) {
+    // no
+  }
+}
 </script>
+<style scoped>
+.line-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+</style>
