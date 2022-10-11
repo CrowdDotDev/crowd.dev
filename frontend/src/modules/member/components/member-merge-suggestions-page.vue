@@ -2,21 +2,12 @@
   <div>
     <div class="mb-10">
       <div class="flex items-center justify-between">
-        <h4>
-          <app-i18n
-            code="entities.member.list.title"
-          ></app-i18n>
-        </h4>
+        <h4>Merging suggestions</h4>
       </div>
       <div class="text-xs text-gray-500 max-w-lg">
-        Community members come from different platforms and
-        sources, so it's possible that the same person has
-        multiple member profiles in crowd.dev.
-        <br />
-        To gather better insights from your community, we
-        recommend you to look into these suggestions and
-        validate if these profiles belong to the same person
-        or not.
+        crowd.dev is constantly checking your community for
+        duplicate members. <br />Here you can check all the
+        merging suggestions.
       </div>
     </div>
 
@@ -46,21 +37,9 @@
             width="220"
           >
             <template #default="scope">
-              <div
-                v-if="scope.row.organizations"
-                class="flex-items-center"
-              >
-                <div class="w-5 h-5">
-                  <img
-                    v-if="scope.row.organizations[0].logo"
-                    :src="scope.row.organizations[0].logo"
-                    alt=""
-                  />
-                </div>
-                <span>{{
-                  scope.row.organizations[0]?.name
-                }}</span>
-              </div>
+              <app-member-organizations
+                :member="scope.row"
+              />
             </template>
           </el-table-column>
           <el-table-column
@@ -123,6 +102,7 @@ export default {
 <script setup>
 import { ref, onMounted } from 'vue'
 import AppMemberChannels from './member-channels'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 
 const membersToMerge = ref([])

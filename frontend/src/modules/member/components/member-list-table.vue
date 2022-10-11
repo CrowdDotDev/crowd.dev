@@ -58,23 +58,7 @@
           width="220"
         >
           <template #default="scope">
-            <div v-if="scope.row.organizations.length > 0">
-              <div
-                v-for="organization of scope.row
-                  .organizations"
-                :key="organization.id"
-                class="flex-items-center"
-              >
-                <div class="w-5 h-5">
-                  <img
-                    v-if="organization.logo"
-                    :src="organization.logo"
-                    alt=""
-                  />
-                </div>
-                <span>{{ organization.name }}</span>
-              </div>
-            </div>
+            <app-member-organizations :member="scope.row" />
           </template>
         </el-table-column>
 
@@ -152,6 +136,7 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { computed, onMounted, ref } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/member-list-toolbar.vue'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from './member-dropdown'
 import AppMemberChannels from './member-channels'
 import AppTagList from '@/modules/tag/components/tag-list'
