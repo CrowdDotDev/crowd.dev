@@ -1,6 +1,32 @@
 <template>
   <div class="filter-type-string">
-    <el-input ref="inputRef" v-model="model"></el-input>
+    <app-inline-select-input
+      v-model="operator"
+      popper-placement="bottom-start"
+      prefix="Text:"
+      class="mb-2"
+      :options="[
+        { value: 'contains', label: 'contains' },
+        {
+          value: 'not_contains',
+          label: 'does not contain'
+        },
+        { value: 'is', label: 'is' },
+        { value: 'starts_with', label: 'starts with' },
+        { value: 'ends_with', label: 'ends with' },
+        { value: 'is_empty', label: 'is empty' },
+        { value: 'is_not_empty', label: 'is not empty' }
+      ]"
+    />
+    <el-input
+      ref="inputRef"
+      v-model="model"
+      placeholder="Enter a value"
+      :disabled="
+        operator === 'is_empty' ||
+        operator === 'is_not_empty'
+      "
+    ></el-input>
   </div>
 </template>
 
@@ -20,7 +46,11 @@ import {
 } from 'vue'
 
 const props = defineProps({
-  modelValue: {
+  value: {
+    type: String,
+    default: null
+  },
+  operator: {
     type: String,
     default: null
   },
@@ -30,13 +60,24 @@ const props = defineProps({
   }
 })
 
-const emits = defineEmits(['update:modelValue'])
+const emit = defineEmits([
+  'update:value',
+  'update:operator'
+])
 const model = computed({
   get() {
-    return props.modelValue
+    return props.value
   },
-  set(value) {
-    emits('update:modelValue', value)
+  set(v) {
+    emit('update:value', v)
+  }
+})
+const operator = computed({
+  get() {
+    return props.operator
+  },
+  set(v) {
+    emit('update:operator', v)
   }
 })
 const expanded = computed(() => props.isExpanded)
@@ -48,3 +89,23 @@ watch(expanded, async (newValue) => {
   }
 })
 </script>
+
+<style lang="scss">
+.filter-type-string {
+  @apply px-2 pb-4 pt-3;
+
+  .el-input__wrapper,
+  .el-input__wrapper.is-focus,
+  .el-input__wrapper:hover {
+    @apply h-8 bg-gray-50 shadow-none border-none rounded-md;
+
+    input {
+      &,
+      &:hover,
+      &:focus {
+        @apply bg-gray-50 shadow-none border-none outline-none h-full min-h-8;
+      }
+    }
+  }
+}
+</style>

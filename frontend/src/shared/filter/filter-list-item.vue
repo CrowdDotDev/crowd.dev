@@ -35,7 +35,8 @@
       <component
         :is="`app-filter-type-${filter.type}`"
         v-bind="filter.props"
-        v-model="model"
+        v-model:value="model.value"
+        v-model:operator="model.operator"
         :is-expanded="isExpanded"
       />
       <div
@@ -77,6 +78,7 @@ import {
   defineProps,
   defineEmits,
   ref,
+  reactive,
   onMounted,
   computed
 } from 'vue'
@@ -90,7 +92,7 @@ const props = defineProps({
   }
 })
 
-const emits = defineEmits(['destroy', 'change'])
+const emit = defineEmits(['destroy', 'change'])
 
 onMounted(() => {
   if (props.filter.expanded) {
@@ -169,23 +171,28 @@ const shouldDisableApplyButton = computed(() => {
     : model.value === '' || model.value === null
 })
 
-const model = ref(
-  JSON.parse(JSON.stringify(props.filter.defaultValue))
-)
+const model = reactive({
+  value: JSON.parse(
+    JSON.stringify(props.filter.defaultValue)
+  ),
+  operator: JSON.parse(
+    JSON.stringify(props.filter.defaultOperator)
+  )
+})
 
 const handleVisibleChange = (value) => {
   isExpanded.value = value
 }
 
 const handleChange = () => {
-  emits('change', {
+  emit('change', {
     ...props.filter,
     value: JSON.parse(JSON.stringify(model.value))
   })
 }
 
 const handleDestroy = () => {
-  emits('destroy', { ...props.filter })
+  emit('destroy', { ...props.filter })
 }
 
 const handleReset = () => {

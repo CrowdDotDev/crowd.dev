@@ -86,13 +86,13 @@ const props = defineProps({
   }
 })
 
-const emits = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 const model = computed({
   get() {
     return props.modelValue
   },
   set(value) {
-    emits('update:modelValue', value)
+    emit('update:modelValue', value)
   }
 })
 const expanded = computed(() => props.isExpanded)

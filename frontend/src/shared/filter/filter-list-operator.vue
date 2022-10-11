@@ -42,10 +42,10 @@ defineProps({
   }
 })
 
-const emits = defineEmits(['change'])
+const emit = defineEmits(['change'])
 
 const handleClick = (value) => {
-  emits('change', value)
+  emit('change', value)
 }
 </script>
 

@@ -51,7 +51,7 @@ const props = defineProps({
     default: false
   }
 })
-const emits = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 const computedOptions = computed(() => {
   return props.options.map((o) => {
     return {
@@ -65,7 +65,7 @@ const model = computed({
     return props.modelValue
   },
   set(value) {
-    emits('update:modelValue', value)
+    emit('update:modelValue', value)
   }
 })
 
