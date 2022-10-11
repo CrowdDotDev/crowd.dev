@@ -36,8 +36,8 @@ export default class DecimalField extends GenericField {
       props: {},
       defaultValue: [],
       value: [],
-      defaultOperator: 'between',
-      operator: 'between',
+      defaultOperator: 'eq',
+      operator: 'eq',
       type: 'number'
     }
   }

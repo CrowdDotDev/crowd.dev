@@ -77,6 +77,10 @@
   background-color: #fff5f4;
 }
 
+.el-table.is-scrolling-left.el-table--border .el-table-fixed-column--left.is-last-column.el-table__cell {
+  @apply border-r-0;
+}
+
 .el-table__cell * {
   /* Non standard for WebKit */
   word-break: break-word;

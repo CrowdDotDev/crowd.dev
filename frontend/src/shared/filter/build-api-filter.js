@@ -1,18 +1,22 @@
 export default (filter) => {
-  return {
-    [filter.operator]: Object.values(
-      filter.attributes
-    ).reduce((acc, item) => {
-      if (
-        Array.isArray(item.value)
-          ? item.value.length > 0
-          : item.value !== '' || item.value !== null
-      ) {
-        acc.push(_buildAttributeBlock(item))
-      }
+  if (Object.keys(filter).length === 0) {
+    return {}
+  } else {
+    return {
+      [filter.operator]: Object.values(
+        filter.attributes
+      ).reduce((acc, item) => {
+        if (
+          Array.isArray(item.value)
+            ? item.value.length > 0
+            : item.value !== '' || item.value !== null
+        ) {
+          acc.push(_buildAttributeBlock(item))
+        }
 
-      return acc
-    }, [])
+        return acc
+      }, [])
+    }
   }
 }
 

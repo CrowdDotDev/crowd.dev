@@ -3,7 +3,7 @@
     <el-tab-pane
       v-for="view of views"
       :key="view.id"
-      :label="view.name"
+      :label="view.label"
       :name="view.id"
     ></el-tab-pane>
   </el-tabs>

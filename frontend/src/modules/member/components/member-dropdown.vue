@@ -164,7 +164,8 @@ export default {
         Message.success('Member updated successfully')
         if (this.$route.name === 'member') {
           this.doFetch({
-            filter: {}
+            filter: {},
+            keepPagination: true
           })
         } else {
           this.doFind(command.member.id)

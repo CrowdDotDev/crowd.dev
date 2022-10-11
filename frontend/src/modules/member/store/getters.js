@@ -2,7 +2,7 @@ import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
   rows: (state) =>
-    state.list.ids.map((r) => state.records[r.id]),
+    state.list.ids.map((r) => state.records[r]),
   hasRows: (state) => state.count > 0,
   orderBy: (state) => {
     const sorter = state.sorter
@@ -54,5 +54,9 @@ export default {
     return state.list.table
       ? state.list.table.getSelectionRows()
       : []
+  },
+
+  activeView: (state) => {
+    return state.views.find((v) => v.active)
   }
 }

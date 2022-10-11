@@ -79,6 +79,18 @@
         </el-table-column>
 
         <el-table-column
+          v-for="column of extraColumns"
+          :key="column.name"
+          :prop="column.name"
+          :label="column.label"
+          width="200"
+          :sortable="column.sortable ? 'custom' : ''"
+        >
+          <template #default="scope">
+            {{ scope.row[column.name] }}
+          </template>
+        </el-table-column>
+        <el-table-column
           label="Engagement Level"
           prop="score"
           width="200"
@@ -91,10 +103,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column
-          label="Identities"
-          :width="computedChannelsWidth"
-        >
+        <el-table-column label="Identities" width="200">
           <template #default="scope">
             <app-member-channels
               :member="scope.row"
@@ -161,7 +170,7 @@ const store = useStore()
 const router = useRouter()
 const table = ref(null)
 
-const rows = computed(() => store.state.member.list.ids)
+const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)
 const loading = computed(
   () => store.state.member.list.loading
@@ -173,18 +182,9 @@ const selectedRows = computed(
 const pagination = computed(
   () => store.getters['member/pagination']
 )
-
-const computedChannelsWidth = computed(() => {
-  const maxChannels = rows.value?.reduce((acc, item) => {
-    acc =
-      Object.keys(item.username).length > acc
-        ? Object.keys(item.username).length
-        : acc
-    return acc
-  }, 0)
-
-  return `${90 + maxChannels * 32}px`
-})
+const extraColumns = computed(
+  () => store.getters['member/activeView']?.columns || []
+)
 
 onMounted(() => {
   doMountTable(table.value)

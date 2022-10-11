@@ -5,10 +5,7 @@ export default {
     state.list.ids = []
     state.list.loading = false
     state.count = 0
-    state.filter = {
-      operator: 'and',
-      attributes: {}
-    }
+    state.filter = {}
     state.pagination = {}
     state.sorter = {
       prop: 'score',
@@ -54,19 +51,25 @@ export default {
   },
 
   SORTER_CHANGED(state, payload) {
-    state.sorter = payload || {}
+    state.sorter =
+      Object.keys(payload).length > 0
+        ? payload
+        : {
+            prop: 'score',
+            order: 'descending'
+          }
   },
 
   ACTIVE_VIEW_CHANGED(state, viewId) {
     state.views = Object.values(state.views).reduce(
       (acc, item) => {
-        acc[item.id] = {
+        acc.push({
           ...item,
           active: item.id === viewId
-        }
+        })
         return acc
       },
-      {}
+      []
     )
   },
 
@@ -76,14 +79,6 @@ export default {
     if (state.table) {
       state.list.table.clearSelection()
     }
-
-    state.filter =
-      payload && state.filter
-        ? state.filter
-        : {
-            operator: 'and',
-            attributes: {}
-          }
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -95,7 +90,10 @@ export default {
 
   FETCH_SUCCESS(state, payload) {
     state.list.loading = false
-    state.list.ids = payload.rows
+    for (const record of payload.rows) {
+      state.records[record.id] = record
+    }
+    state.list.ids = payload.rows.map((r) => r.id)
     state.count = payload.count
   },
 
@@ -183,19 +181,27 @@ export default {
   FIND_SUCCESS() {},
   FIND_ERROR() {},
 
-  ADD_FILTER_ATTRIBUTE(state, filter) {
-    state.filter.attributes[filter.name] = filter
+  FILTER_CHANGED(state, filter) {
+    const { attributes, operator } = filter
+    state.filter = {
+      attributes: attributes || {},
+      operator: operator || 'and'
+    }
   },
 
-  UPDATE_FILTER_ATTRIBUTE(state, filter) {
-    state.filter.attributes[filter.name] = filter
+  FILTER_ATTRIBUTE_ADDED(state, attribute) {
+    state.filter.attributes[attribute.name] = attribute
   },
 
-  DESTROY_FILTER_ATTRIBUTE(state, filter) {
-    delete state.filter.attributes[filter.name]
+  FILTER_ATTRIBUTE_CHANGED(state, attribute) {
+    state.filter.attributes[attribute.name] = attribute
   },
 
-  UPDATE_FILTER_OPERATOR(state, operator) {
+  FILTER_ATTRIBUTE_DESTROYED(state, attribute) {
+    delete state.filter.attributes[attribute.name]
+  },
+
+  FILTER_OPERATOR_UPDATED(state, operator) {
     state.filter.operator = operator
   }
 }

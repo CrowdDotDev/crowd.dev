@@ -28,8 +28,8 @@ export default class IntegerField extends GenericField {
       props: {},
       defaultValue: [],
       value: [],
-      defaultOperator: 'between',
-      operator: 'between',
+      defaultOperator: 'eq',
+      operator: 'eq',
       type: 'number'
     }
   }

@@ -20,7 +20,8 @@ export default {
   async doReset({ commit, state, dispatch }) {
     commit('RESETED')
     return dispatch('doFetch', {
-      filter: state.filter
+      filter: state.filter,
+      keepPagination: false
     })
   },
 
@@ -95,8 +96,7 @@ export default {
     commit('PAGINATION_CHANGED', pagination)
     const filter = state.filter
     dispatch('doFetch', {
-      filter,
-      keepPagination: true
+      filter
     })
   },
 
@@ -107,8 +107,7 @@ export default {
     commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
     const filter = state.filter
     dispatch('doFetch', {
-      filter,
-      keepPagination: true
+      filter
     })
   },
 
@@ -119,8 +118,7 @@ export default {
     commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
     const filter = state.filter
     dispatch('doFetch', {
-      filter,
-      keepPagination: true
+      filter
     })
   },
 
@@ -128,36 +126,32 @@ export default {
     commit('SORTER_CHANGED', sorter)
     const filter = state.filter
     dispatch('doFetch', {
-      filter,
-      keepPagination: true
+      filter
     })
   },
 
   doChangeActiveView(
-    { commit, state, dispatch },
+    { commit, dispatch, getters },
     activeView
   ) {
     commit('ACTIVE_VIEW_CHANGED', activeView)
+    commit('FILTER_CHANGED', getters['activeView'].filter)
+    commit('SORTER_CHANGED', getters['activeView'].sorter)
 
-    const filter = state.views[activeView].filter
     dispatch('doFetch', {
-      filter,
-      keepPagination: true
+      keepPagination: false
     })
   },
 
   async doFetch(
-    { commit, getters },
-    { filter = null, keepPagination = false }
+    { commit, getters, state },
+    { keepPagination = false }
   ) {
     try {
-      commit('FETCH_STARTED', {
-        filter,
-        keepPagination
-      })
+      commit('FETCH_STARTED', { keepPagination })
 
       const response = await MemberService.list(
-        filter,
+        state.filter,
         getters.orderBy,
         getters.limit,
         getters.offset
@@ -272,7 +266,7 @@ export default {
     }
   },
 
-  async doDestroy({ commit, dispatch, state }, id) {
+  async doDestroy({ commit, dispatch }, id) {
     try {
       commit('DESTROY_STARTED')
 
@@ -286,22 +280,16 @@ export default {
 
       router.push('/members')
 
-      dispatch(
-        `member/doFetch`,
-        {
-          filter: state.list.filter
-        },
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', {
+        keepPagination: true
+      })
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_ERROR')
     }
   },
 
-  async doDestroyAll({ commit, dispatch, state }, ids) {
+  async doDestroyAll({ commit, dispatch }, ids) {
     try {
       commit('DESTROY_ALL_STARTED')
 
@@ -319,15 +307,9 @@ export default {
 
       router.push('/members')
 
-      dispatch(
-        `member/doFetch`,
-        {
-          filter: state.list.filter
-        },
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', {
+        keepPagination: true
+      })
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_ALL_ERROR')
@@ -342,7 +324,9 @@ export default {
       Message.success(
         i18n('entities.member.create.success')
       )
-      dispatch('member/doFetch', {}, { root: true })
+      dispatch('doFetch', {
+        keepPagination: true
+      })
     } catch (error) {
       Errors.handle(error)
       commit('CREATE_ERROR')
@@ -360,7 +344,9 @@ export default {
         i18n('entities.member.update.success')
       )
       if (router.currentRoute.name === 'member') {
-        dispatch('member/doFetch', {}, { root: true })
+        dispatch('doFetch', {
+          keepPagination: true
+        })
       } else {
         dispatch('member/doFind', id, {
           root: true
@@ -372,8 +358,8 @@ export default {
     }
   },
 
-  addFilterAttribute({ commit, dispatch, state }, filter) {
-    commit('ADD_FILTER_ATTRIBUTE', filter)
+  addFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_ADDED', filter)
 
     if (
       Array.isArray(filter.value)
@@ -381,50 +367,41 @@ export default {
         : filter.value !== null
     ) {
       dispatch('doFetch', {
-        filter: state.filter
+        keepPagination: false
       })
     }
   },
 
-  updateFilterAttribute(
-    { commit, dispatch, state },
-    filter
-  ) {
-    commit('UPDATE_FILTER_ATTRIBUTE', filter)
+  updateFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_CHANGED', filter)
     if (
       Array.isArray(filter.value)
         ? filter.value.length > 0
         : filter.value !== null
     ) {
       dispatch('doFetch', {
-        filter: state.filter
+        keepPagination: false
       })
     }
   },
 
-  destroyFilterAttribute(
-    { commit, dispatch, state },
-    filter
-  ) {
-    commit('DESTROY_FILTER_ATTRIBUTE', filter)
+  destroyFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_DESTROYED', filter)
     if (
       Array.isArray(filter.value)
         ? filter.value.length > 0
         : filter.value !== null
     ) {
       dispatch('doFetch', {
-        filter: state.filter
+        keepPagination: false
       })
     }
   },
 
-  updateFilterOperator(
-    { commit, dispatch, state },
-    operator
-  ) {
-    commit('UPDATE_FILTER_OPERATOR', operator)
+  updateFilterOperator({ commit, dispatch }, operator) {
+    commit('FILTER_OPERATOR_CHANGED', operator)
     dispatch('doFetch', {
-      filter: state.filter
+      keepPagination: false
     })
   }
 }

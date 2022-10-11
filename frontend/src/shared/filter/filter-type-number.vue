@@ -1,5 +1,7 @@
 <template>
-  <div class="filter-with-operator-and-input">
+  <div
+    class="filter-type-number filter-with-operator-and-input"
+  >
     <app-inline-select-input
       v-model="operator"
       popper-placement="bottom-start"
@@ -10,6 +12,7 @@
     <el-input
       ref="inputRef"
       v-model="model"
+      type="number"
       placeholder="Enter a value"
       :disabled="
         operator === 'is_empty' ||
@@ -89,3 +92,13 @@ watch(expanded, async (newValue) => {
   }
 })
 </script>
+
+<style lang="scss">
+.filter-type-number {
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+</style>
