@@ -1,10 +1,11 @@
 <template>
   <div class="filter-type-select filter-content-wrapper">
-    <el-dropdown-item
+    <div
       v-for="option of computedOptions"
       :key="option.name"
+      class="filter-type-select-option"
       :class="options.selected ? 'is-selected' : ''"
-      @click.prevent="handleOptionClick(option)"
+      @click="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">
@@ -20,7 +21,7 @@
           class="ri-check-line text-brand-600 absolute right-0 mr-4"
         ></i>
       </div>
-    </el-dropdown-item>
+    </div>
   </div>
 </template>
 
@@ -38,7 +39,7 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  modelValue: {
+  value: {
     type: Array,
     default: () => []
   },
@@ -51,7 +52,7 @@ const props = defineProps({
     default: false
   }
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:value'])
 const computedOptions = computed(() => {
   return props.options.map((o) => {
     return {
@@ -62,16 +63,16 @@ const computedOptions = computed(() => {
 })
 const model = computed({
   get() {
-    return props.modelValue
+    return props.value
   },
-  set(value) {
-    emit('update:modelValue', value)
+  set(v) {
+    emit('update:value', v)
   }
 })
 
 const handleOptionClick = (option) => {
   if (
-    !props.modelValue.some(
+    !props.value.some(
       (item) => item.name === option.name
     ) &&
     props.multiple
@@ -87,3 +88,43 @@ const handleOptionClick = (option) => {
   }
 }
 </script>
+
+<style lang="scss">
+.filter-type-select {
+  @apply p-2;
+  &-option {
+    @apply flex items-center text-black px-4 py-3 text-xs cursor-pointer;
+    border-radius: 4px;
+
+    &:not(:last-of-type) {
+      @apply mb-1;
+    }
+
+    i {
+      @apply mr-2;
+    }
+
+    i:not(.ri-delete-bin-line) {
+      @apply text-gray-400;
+    }
+
+    &:focus,
+    &:not(.is-disabled):hover,
+    &:not(.is-disabled):focus {
+      @apply text-black bg-gray-50;
+    }
+
+    &.is-selected,
+    &:focus.is-selected {
+      background-color: #fff5f4;
+      @apply relative;
+      i {
+        @apply mr-3 text-brand-600;
+      }
+      &:hover {
+        @apply bg-brand-50;
+      }
+    }
+  }
+}
+</style>

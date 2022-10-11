@@ -31,14 +31,17 @@
         />
       </div>
     </div>
-    <div class="filter-content-wrapper mb-4">
-      <el-dropdown-item
+    <div
+      class="filter-type-select filter-content-wrapper mb-4"
+    >
+      <div
         v-for="option of computedOptions"
         :key="option.id"
-        @click.prevent="handleOptionClick(option)"
+        class="filter-type-select-option"
+        @click="handleOptionClick(option)"
       >
         {{ option.label }}
-      </el-dropdown-item>
+      </div>
       <div
         v-if="loading"
         v-loading="loading"
@@ -72,7 +75,7 @@ import {
 import filterFunction from '@/shared/filter/filter-function'
 
 const props = defineProps({
-  modelValue: {
+  value: {
     type: Array,
     default: () => []
   },
@@ -86,13 +89,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:value'])
 const model = computed({
   get() {
-    return props.modelValue
+    return props.value
   },
-  set(value) {
-    emit('update:modelValue', value)
+  set(v) {
+    emit('update:value', v)
   }
 })
 const expanded = computed(() => props.isExpanded)

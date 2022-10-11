@@ -115,9 +115,9 @@ const valueToString = computed(() => {
     return 'is ' + props.filter.value
   } else {
     const operatorLabel =
-      filterOperators[props.filter.type].operator[
+      filterOperators[props.filter.type]?.operator[
         props.filter.operator
-      ]
+      ] || ''
     if (props.filter.type === 'date') {
       if (Array.isArray(props.filter.value)) {
         const formattedStartDate = moment(
@@ -228,8 +228,8 @@ const handleApply = () => {
   &-btn__close.el-button {
     @apply w-8 h-8 flex items-center p-2 text-gray-600;
   }
-  &-popper {
-    @apply relative w-full max-w-xs;
+  &-popper.el-popover.el-popper {
+    @apply relative w-full max-w-xs p-2;
 
     .filter-content-wrapper {
       @apply h-58 overflow-auto pb-2;
