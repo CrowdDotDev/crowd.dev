@@ -15,6 +15,8 @@ export default class ApiResponseHandler {
   }
 
   static async error(_req, res, error) {
+    console.log('API ERROR', error)
+
     if (error && [400, 401, 403, 404].includes(error.code)) {
       res.status(error.code).send(error.message)
     } else {

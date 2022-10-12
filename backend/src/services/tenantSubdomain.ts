@@ -1,16 +1,17 @@
-import { getConfig } from '../config'
+import { API_CONFIG, TENANT_MODE } from '../config'
+import { TenantMode } from '../config/configTypes'
 
 export const tenantSubdomain = {
   frontendUrl(tenant) {
-    const frontendUrlWithSubdomain = getConfig().FRONTEND_URL_WITH_SUBDOMAIN
+    const frontendUrlWithSubdomain = API_CONFIG.frontendUrlWithSubdomain
 
     if (
-      getConfig().TENANT_MODE !== 'multi-with-subdomain' ||
+      TENANT_MODE !== TenantMode.MULTI_WITH_SUBDOMAIN ||
       !frontendUrlWithSubdomain ||
       !tenant ||
       !tenant.url
     ) {
-      return getConfig().FRONTEND_URL
+      return API_CONFIG.frontendUrl
     }
 
     return frontendUrlWithSubdomain.replace('[subdomain]', tenant.url)

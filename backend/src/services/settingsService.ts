@@ -9,7 +9,7 @@ class SettingsService {
   }
 
   static async save(data, options) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     const settings = await SettingsRepository.save(data, options)
 

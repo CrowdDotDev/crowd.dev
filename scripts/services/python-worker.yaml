@@ -1,0 +1,41 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  SERVICE_ENV: docker
+  SERVICE: python-worker
+
+services:
+  python-worker:
+    build:
+      context: ../backend/src/serverless/microservices/python
+      dockerfile: Dockerfile.kube
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  python-worker-dev:
+    build:
+      context: ../backend/src/serverless/microservices/python
+      dockerfile: Dockerfile.kube
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: python-worker
+    networks:
+      - crowd-bridge
+
+networks:
+  crowd-bridge:
+    external: true

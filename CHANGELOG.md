@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.8.0 - 2022-10-07
+
+### Changes
+
+### ✨ Enhancements
+
+- New Architecture: Serverless plus a static backend has been replaced by a Kubernetes cluster. (#53)
+- Tweak error handling in DEV integration. Give a proper error when an organization / profile was not found @mariobalca (#65)
+
+### 🐞 Bug Fixes
+
+- Fix handler for webhooks coming from GitHub in the new Kubernetes architecture @themarolt (#68)
+- The *new conversations* data-point in weekly emails not uses the first activity time, rather than time of creation @epipav (#64)
+- Copy tweak in Dashboard @joanreyero (#63)
+- Fix SQL Alchemy not connecting in Kubernetes in Python @joanreyero (#72)
+
 ## v0.7.0 - 2022-09-16
 
 ### Changes
@@ -13,7 +29,9 @@ All notable changes to this project will be documented in this file.
 - This means you can now set up a webhook automation to be triggered:
 - 
 - - When a new member is detected
+- 
 - - When a new activity is created
+- 
 - 
 - With some additional optional filters.
 - 
@@ -22,7 +40,6 @@ All notable changes to this project will be documented in this file.
 <img width="500" alt="Automations preview" src="https://user-images.githubusercontent.com/59081450/190612890-147658b8-f7ac-4379-9313-b6c01573e062.png">
 </p>
 ### ✨ Enhancements
-
 - Upgrade Vue from v2 to v3 @mariobalca (#15)
 
 ### 🐞 Bug Fixes
@@ -50,7 +67,9 @@ All notable changes to this project will be documented in this file.
 - 
 - - comments as activities on all articles published by a DEV.to organization
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - This includes replies to comments.
@@ -61,7 +80,6 @@ All notable changes to this project will be documented in this file.
 </p>
 ### ✨ Enhancements
 - Tweak eagle eye search bar UI/UX to enhance keyword selection experience. (#13)
-
 ### 🐞 Bug Fixes
 
 - Fixed EagleEye content filters: when filtering by more than one keyword, we are now using an *or* operation instead of an *and*. @joanreyero #9

@@ -5,6 +5,7 @@ import { get } from 'lodash'
 import AuthService from '../../services/auth/authService'
 import ApiResponseHandler from '../apiResponseHandler'
 import { databaseInit } from '../../database/databaseConnection'
+import { GOOGLE_CONFIG, FACEBOOK_CONFIG, API_CONFIG } from '../../config'
 
 export default (app, routes) => {
   app.use(passport.initialize())
@@ -32,13 +33,13 @@ export default (app, routes) => {
     }
   })
 
-  if (process.env.AUTH_SOCIAL_GOOGLE_CLIENT_ID) {
+  if (GOOGLE_CONFIG.clientId) {
     passport.use(
       new GoogleStrategy(
         {
-          clientID: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_ID,
-          clientSecret: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_SECRET,
-          callbackURL: process.env.AUTH_SOCIAL_GOOGLE_CALLBACK_URL,
+          clientID: GOOGLE_CONFIG.clientId,
+          clientSecret: GOOGLE_CONFIG.clientSecret,
+          callbackURL: GOOGLE_CONFIG.callbackUrl,
         },
         (accessToken, refreshToken, profile, done) => {
           databaseInit()
@@ -88,13 +89,13 @@ export default (app, routes) => {
     })
   }
 
-  if (process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_ID) {
+  if (FACEBOOK_CONFIG.clientId) {
     passport.use(
       new FacebookStrategy(
         {
-          clientID: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_ID,
-          clientSecret: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_SECRET,
-          callbackURL: process.env.AUTH_SOCIAL_FACEBOOK_CALLBACK_URL,
+          clientID: FACEBOOK_CONFIG.clientId,
+          clientSecret: FACEBOOK_CONFIG.clientSecret,
+          callbackURL: FACEBOOK_CONFIG.callbackUrl,
           profileFields: ['id', 'email', 'displayName'],
         },
         (accessToken, refreshToken, profile, done) => {
@@ -155,11 +156,11 @@ function handleCallback(res, err, jwtToken) {
       errorCode = err.message
     }
 
-    res.redirect(`${process.env.FRONTEND_URL}/auth/signin?socialErrorCode=${errorCode}`)
+    res.redirect(`${API_CONFIG.frontendUrl}/auth/signin?socialErrorCode=${errorCode}`)
     return
   }
 
-  res.redirect(`${process.env.FRONTEND_URL}/?social=true&authToken=${jwtToken}`)
+  res.redirect(`${API_CONFIG.frontendUrl}/?social=true&authToken=${jwtToken}`)
 }
 
 function splitFullName(fullName) {

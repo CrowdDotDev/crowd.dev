@@ -21,7 +21,7 @@ export default class AuthProfileEditor {
     await this._validate()
 
     try {
-      this.transaction = await SequelizeRepository.createTransaction(this.options.database)
+      this.transaction = await SequelizeRepository.createTransaction(this.options)
 
       await UserRepository.updateProfile(this.options.currentUser.id, this.data, {
         ...this.options,

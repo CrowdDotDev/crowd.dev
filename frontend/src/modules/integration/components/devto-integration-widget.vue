@@ -43,10 +43,15 @@
               class="text-green-500"
               spellcheck="false"
               placeholder="Enter organization slug"
+              @blur="handleOrganizationValidation(org.id)"
             >
               <template #prepend>dev.to/</template>
-              <template v-if="org.validating" #suffix>
-                <i class="el-input__icon el-icon-loading" />
+              <template #suffix>
+                <div
+                  v-if="org.validating"
+                  v-loading="org.validating"
+                  class="flex items-center justify-center w-6 h-6"
+                ></div>
               </template>
             </el-input>
             <i
@@ -55,6 +60,11 @@
               @click="removeOrganization(org.id)"
             />
           </div>
+          <span
+            v-if="org.touched && !org.valid"
+            class="el-form-item__error"
+            >Organization slug is not valid</span
+          >
         </el-form-item>
         <a
           class="cursor-pointer text-sm font-medium text-primary-900"
@@ -81,10 +91,15 @@
               v-model="user.username"
               spellcheck="false"
               placeholder="Enter user slug"
+              @blur="handleUserValidation(user.id)"
             >
               <template #prepend>dev.to/</template>
-              <template v-if="user.validating" #suffix>
-                <i class="el-input__icon el-icon-loading" />
+              <template #suffix>
+                <div
+                  v-if="user.validating"
+                  v-loading="user.validating"
+                  class="flex items-center justify-center w-6 h-6"
+                ></div>
               </template>
             </el-input>
             <i
@@ -93,6 +108,11 @@
               @click="removeUser(user.id)"
             />
           </div>
+          <span
+            v-if="user.touched && !user.valid"
+            class="el-form-item__error"
+            >User slug is not valid</span
+          >
         </el-form-item>
         <a
           class="cursor-pointer text-sm font-medium text-primary-900"
@@ -105,13 +125,15 @@
       <div>
         <el-button
           class="btn btn--primary mr-2"
-          :disabled="connectDisabled"
+          :disabled="connectDisabled || loading"
+          :loading="loading"
           @click="save"
         >
           <app-i18n code="common.connect"></app-i18n>
         </el-button>
         <el-button
           class="btn btn--secondary"
+          :disabled="loading"
           @click="cancel"
         >
           <app-i18n code="common.cancel"></app-i18n>
@@ -141,11 +163,16 @@ export default {
         (i) => i.platform === 'devto'
       ).image,
       users: [],
-      organizations: []
+      organizations: [],
+      loading: false
     }
   },
   computed: {
     connectDisabled() {
+      if (!this.isValid) {
+        return true
+      }
+
       const validUsers = this.users.filter(
         (u) => !!u.username
       )
@@ -387,35 +414,22 @@ export default {
     },
 
     async save() {
+      this.loading = true
+
       const relevantOrganizations =
         this.organizations.filter((o) => !!o.username)
       const relevantUsers = this.users.filter(
         (u) => !!u.username
       )
-
-      const promises = [
-        ...relevantOrganizations.map((o) =>
-          this.handleOrganizationValidation(o.id)
-        ),
-        ...relevantUsers.map((u) =>
-          this.handleUserValidation(u.id)
+      await this.doDevtoConnect({
+        users: relevantUsers.map((u) => u.username),
+        organizations: relevantOrganizations.map(
+          (o) => o.username
         )
-      ]
+      })
 
-      if (promises.length > 0) {
-        await Promise.all(promises)
-      }
-
-      if (this.isValid) {
-        await this.doDevtoConnect({
-          users: relevantUsers.map((u) => u.username),
-          organizations: relevantOrganizations.map(
-            (o) => o.username
-          )
-        })
-
-        this.isVisible = false
-      }
+      this.isVisible = false
+      this.loading = false
     }
   }
 }

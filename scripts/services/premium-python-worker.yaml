@@ -1,0 +1,43 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  SERVICE_ENV: docker
+  SERVICE: premium-python-worker
+
+services:
+  premium-python-worker:
+    build:
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile.kube
+    command: ['python', '-u', 'worker.py']
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    networks:
+      - crowd-bridge
+
+  premium-python-worker-dev:
+    build:
+      context: ../premium/eagle-eye
+      dockerfile: Dockerfile.kube
+    command: ['python', '-u', 'worker.py']
+    user: '${USER_ID}:${GROUP_ID}'
+    env_file:
+      - ../../backend/.env.dist.local
+      - ../../backend/.env.dist.composed
+      - ../../backend/.env.override.local
+      - ../../backend/.env.override.composed
+    environment:
+      <<: *env-args
+    hostname: premium-python-worker
+    networks:
+      - crowd-bridge
+
+networks:
+  crowd-bridge:
+    external: true

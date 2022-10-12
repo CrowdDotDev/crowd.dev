@@ -1586,9 +1586,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1665,9 +1663,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1737,9 +1733,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1824,9 +1818,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1914,9 +1906,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1925,7 +1915,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2006,9 +1996,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2017,7 +2005,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2101,9 +2089,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2112,7 +2098,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2195,9 +2181,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2205,11 +2189,14 @@ describe('ActivityService tests', () => {
         transaction,
       )
 
-      const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
-          slug: 'some-parent-activity',
-        })
-      ).rows[0]
+      const conversations = await new ConversationService({
+        ...mockIRepositoryOptions,
+        transaction,
+      }).findAndCountAll({
+        slug: 'some-parent-activity',
+      })
+
+      const conversationCreated = conversations.rows[0]
 
       await SequelizeRepository.commitTransaction(transaction)
 

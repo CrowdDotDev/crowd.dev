@@ -72,9 +72,11 @@ class ConversationRepository {
       },
     )
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
+    if (data.activities) {
+      await record.setActivities(data.activities, {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 

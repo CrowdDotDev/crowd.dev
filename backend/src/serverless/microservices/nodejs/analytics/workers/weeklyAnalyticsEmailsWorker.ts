@@ -1,9 +1,10 @@
 import moment from 'moment'
+import { convert as convertHtmlToText } from 'html-to-text'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import CubeJsService from '../../../../../services/cubejs/cubeJsService'
 import EmailSender from '../../../../../services/emailSender'
 import ConversationService from '../../../../../services/conversationService'
-import { getConfig } from '../../../../../config'
+import { API_CONFIG, SENDGRID_CONFIG, S3_CONFIG } from '../../../../../config'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
 import { platformDisplayNames } from '../../../../../utils/platformDisplayNames'
@@ -50,7 +51,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           orderBy: 'activityCount_DESC',
         })
       ).rows.map(async (c) => {
-        c.link = `${getConfig().FRONTEND_URL}/conversations/${c.id}`
+        c.link = `${API_CONFIG.frontendUrl}/conversations/${c.id}`
 
         c.platformIconExists = await platformIconExists(c.platform)
         c.platformPretty = platformDisplayNames[c.platform]
@@ -60,6 +61,11 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           conversationLazyLoaded.activities[conversationLazyLoaded.activities.length - 1]
         c.lastActivity = lastActivity.get({ plain: true })
         c.lastActivity.username = lastActivity.member.username[c.platform]
+
+        if (c.lastActivity.body) {
+          c.lastActivity.body = convertHtmlToText(c.lastActivity.body)
+        }
+
         c.lastActiveFromNow = moment(c.lastActive).fromNow()
         c.replyCount = conversationLazyLoaded.activities.length - 1
         c.memberCount = conversationLazyLoaded.activities.reduce((acc, i) => {
@@ -83,8 +89,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
       const advancedSuppressionManager = {
-        groupId: parseInt(getConfig().SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID, 10),
-        groupsToDisplay: [parseInt(getConfig().SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID, 10)],
+        groupId: parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10),
+        groupsToDisplay: [parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10)],
       }
 
       for (const user of allTenantUsers) {
@@ -177,7 +183,7 @@ async function platformIconExists(platform: string): Promise<boolean> {
   try {
     await s3
       .headObject({
-        Bucket: `${getConfig().MICROSERVICES_ASSETS_BUCKET}-${getStage()}`,
+        Bucket: `${S3_CONFIG.microservicesAssetsBucket}-${getStage()}`,
         Key: `email/${platform}.png`,
       })
       .promise()

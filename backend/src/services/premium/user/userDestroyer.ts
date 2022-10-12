@@ -29,7 +29,7 @@ export default class UserDestroyer {
     await this._validate()
 
     try {
-      this.transaction = await SequelizeRepository.createTransaction(this.options.database)
+      this.transaction = await SequelizeRepository.createTransaction(this.options)
 
       await Promise.all(this._ids.map((id) => this._destroy(id)))
 

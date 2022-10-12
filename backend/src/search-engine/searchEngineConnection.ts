@@ -1,13 +1,13 @@
 import { MeiliSearch } from 'meilisearch'
-import { getConfig } from '../config'
+import { SEARCH_ENGINE_CONFIG } from '../config'
 
 /**
  * Initializes the connection to the Meilisearch search engine
  */
 export async function searchEngineInit(): Promise<MeiliSearch> {
   const client = new MeiliSearch({
-    host: getConfig().SEARCH_ENGINE_HOST,
-    apiKey: getConfig().SEARCH_ENGINE_API_KEY,
+    host: SEARCH_ENGINE_CONFIG.host,
+    apiKey: SEARCH_ENGINE_CONFIG.apiKey,
   })
 
   return client

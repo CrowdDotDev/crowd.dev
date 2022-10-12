@@ -92,7 +92,7 @@ export default class MemberAttributeSettingsService {
   }
 
   async create(data: MemberAttributeSettingsCreateData): Promise<AttributeData> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       data.name = data.name ?? camelCaseNames(data.label)
@@ -134,7 +134,7 @@ export default class MemberAttributeSettingsService {
     if (carryTransaction) {
       transaction = carryTransaction
     } else {
-      transaction = await SequelizeRepository.createTransaction(this.options.database)
+      transaction = await SequelizeRepository.createTransaction(this.options)
     }
 
     try {
@@ -176,7 +176,7 @@ export default class MemberAttributeSettingsService {
   }
 
   async destroyAll(ids: string[]): Promise<void> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -194,7 +194,7 @@ export default class MemberAttributeSettingsService {
   }
 
   async update(id: string, data: MemberAttributeSettingsUpdateData): Promise<AttributeData> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const attribute = await MemberAttributeSettingsRepository.findById(id, {

@@ -11,7 +11,7 @@ const tenantMode = 'multi'
  */
 const isPlanEnabled = true
 
-export default {
+const defaultConfig = {
   frontendUrl: {
     host: process.env.VUE_APP_FRONTEND_HOST,
     protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
@@ -31,3 +31,30 @@ export default {
   edition: process.env.VUE_APP_EDITION,
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM
 }
+
+const composedConfig = {
+  frontendUrl: {
+    host: 'CROWD_VUE_APP_FRONTEND_HOST',
+    protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
+  },
+  backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
+  tenantMode,
+  isPlanEnabled,
+  stripePublishableKey:
+    'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
+  gitHubInstallationUrl:
+    'CROWD_VUE_APP_GITHUB_INSTALLATION_URL',
+  discordInstallationUrl:
+    'CROWD_VUE_APP_DISCORD_INSTALLATION_URL',
+  cubejsUrl: 'CROWD_VUE_APP_CUBEJS_URL',
+  conversationPublicUrl:
+    'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
+  edition: 'CROWD_VUE_APP_EDITION',
+  communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM'
+}
+
+const config = defaultConfig.backendUrl
+  ? defaultConfig
+  : composedConfig
+
+export default config

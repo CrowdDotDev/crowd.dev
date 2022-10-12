@@ -11,4 +11,5 @@ async function weeklyAnalyticsEmailsCoordinator(): Promise<void> {
     await sendNodeMicroserviceMessage({ service: 'weekly-analytics-emails', tenant: tenant.id })
   }
 }
+
 export default weeklyAnalyticsEmailsCoordinator

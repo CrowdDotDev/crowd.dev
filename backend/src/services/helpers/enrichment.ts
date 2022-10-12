@@ -1,4 +1,4 @@
-import { getConfig } from '../../config'
+import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../../config'
 
 interface enrichedOrganization {
   name: string
@@ -66,13 +66,13 @@ function parseOrganization(res) {
 export async function enrichOrganization(url: string): Promise<enrichedOrganization> {
   let out
   // If we are testing we don't want to make real requests
-  if (getConfig().NODE_ENV === 'test') {
+  if (IS_TEST_ENV) {
     const fs = require('fs')
     out = JSON.parse(
       fs.readFileSync('./src/services/helpers/__tests__/enrichment-mocks/company.json'),
     )
   } else {
-    const clearbit = require('clearbit')(getConfig().CLEARBIT_API_KEY)
+    const clearbit = require('clearbit')(CLEARBIT_CONFIG.apiKey)
     out = await clearbit.Company.find({ domain: url })
   }
   return parseOrganization(out)
@@ -86,13 +86,13 @@ export async function enrichOrganization(url: string): Promise<enrichedOrganizat
 export async function enrichPerson(email: string): Promise<any> {
   let out
   // If we are testing we don't want to make real requests
-  if (getConfig().NODE_ENV === 'test') {
+  if (IS_TEST_ENV) {
     const fs = require('fs')
     out = JSON.parse(
       fs.readFileSync('./src/services/helpers/__tests__/enrichment-mocks/person.json'),
     )
   } else {
-    const clearbit = require('clearbit')(getConfig().CLEARBIT_API_KEY)
+    const clearbit = require('clearbit')(CLEARBIT_CONFIG.apiKey)
     out = await clearbit.Enrichment.find({ email, stream: true })
   }
   return out
@@ -104,7 +104,7 @@ export async function enrichPerson(email: string): Promise<any> {
  * @returns The URL of the organization, or null if not found
  */
 export async function organizationUrlFromName(name: string): Promise<string | null> {
-  if (getConfig().NODE_ENV === 'test') {
+  if (IS_TEST_ENV) {
     return 'https://crowd.dev'
   }
   try {
@@ -115,7 +115,7 @@ export async function organizationUrlFromName(name: string): Promise<string | nu
         name,
       },
       auth: {
-        username: getConfig().CLEARBIT_API_KEY,
+        username: CLEARBIT_CONFIG.apiKey,
       },
     })
     return response.data.domain

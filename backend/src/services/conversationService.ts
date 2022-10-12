@@ -3,6 +3,7 @@ import { Transaction } from 'sequelize/types'
 import emoji from 'emoji-dictionary'
 import fetch from 'node-fetch'
 import { convert as convertHtmlToText } from 'html-to-text'
+import { IS_TEST_ENV, S3_CONFIG } from '../config/index'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationRepository from '../database/repositories/conversationRepository'
@@ -10,7 +11,6 @@ import ConversationSearchEngineRepository from '../search-engine/repositories/co
 import telemetryTrack from '../segment/telemetryTrack'
 import TenantService from './tenantService'
 import Error403 from '../errors/Error403'
-import { getConfig } from '../config'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
 import ConversationSettingsService from './conversationSettingsService'
@@ -30,7 +30,7 @@ export default class ConversationService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await ConversationRepository.create(data, {
@@ -376,7 +376,7 @@ export default class ConversationService {
                 }
 
                 console.log(
-                  `trying to get bucket ${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                  `trying to get bucket ${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                 )
 
                 const url = data.file.url_private
@@ -387,7 +387,7 @@ export default class ConversationService {
                   headers,
                 }).then(async (res) => {
                   const objectParams = {
-                    Bucket: `${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                    Bucket: `${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                     ContentType: 'image/png',
                     Body: res.body,
                     Key: `slack/${attachment.id}.png`,
@@ -412,7 +412,7 @@ export default class ConversationService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const recordBeforeUpdate = await ConversationRepository.findById(id, { ...this.options })
@@ -429,7 +429,7 @@ export default class ConversationService {
         await this.loadIntoSearchEngine(record.id, transaction)
         console.log('done!')
 
-        if (recordBeforeUpdate.published !== record.published && process.env.NODE_ENV !== 'test') {
+        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
           track('Conversation Published', { id: record.id }, { ...this.options })
         }
       }
@@ -439,7 +439,7 @@ export default class ConversationService {
         (record.published === false || record.published === 'false')
       ) {
         await this.removeFromSearchEngine(record.id, transaction)
-        if (recordBeforeUpdate.published !== record.published && process.env.NODE_ENV !== 'test') {
+        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
           track('Conversation Unpublished', { id: record.id }, { ...this.options })
         }
       }
@@ -457,7 +457,7 @@ export default class ConversationService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
