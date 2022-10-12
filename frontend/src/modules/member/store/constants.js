@@ -74,7 +74,7 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
 export const INITIAL_VIEW_RECENT_FILTER = {
   operator: 'and',
   attributes: {
-    recent: {
+    joinedAt: {
       name: 'joinedAt',
       label: 'Joined date',
       custom: false,
@@ -85,8 +85,8 @@ export const INITIAL_VIEW_RECENT_FILTER = {
       value: moment()
         .subtract(30, 'days')
         .format('YYYY-MM-DD'),
-      defaultOperator: 'lt',
-      operator: 'lt',
+      defaultOperator: 'gt',
+      operator: 'gt',
       type: 'date',
       expanded: false
     }

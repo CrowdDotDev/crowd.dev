@@ -184,7 +184,7 @@ export default {
   FILTER_CHANGED(state, filter) {
     const { attributes, operator } = filter
     state.filter = {
-      attributes: attributes || {},
+      attributes: { ...attributes } || {},
       operator: operator || 'and'
     }
   },

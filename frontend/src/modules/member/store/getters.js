@@ -58,5 +58,37 @@ export default {
 
   activeView: (state) => {
     return state.views.find((v) => v.active)
+  },
+
+  showResetView: (state, getters) => {
+    return filtersAreDifferent(
+      state.filter,
+      getters.activeView.filter
+    )
   }
+}
+
+const filtersAreDifferent = (filter, viewFilter) => {
+  if (
+    Object.keys(filter).length !==
+    Object.keys(viewFilter).length
+  ) {
+    // Objects are not fully built yet, no need to compare
+    return false
+  } else if (filter.operator !== viewFilter.operator) {
+    return true
+  } else {
+    return Object.values(filter.attributes).some(
+      (attribute) => {
+        return attributeIsDifferent(attribute)
+      }
+    )
+  }
+}
+
+const attributeIsDifferent = (attribute) => {
+  return (
+    attribute.operator !== attribute.defaultOperator ||
+    attribute.value !== attribute.defaultValue
+  )
 }

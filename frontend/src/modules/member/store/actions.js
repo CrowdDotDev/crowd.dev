@@ -25,6 +25,21 @@ export default {
     })
   },
 
+  async doResetActiveView({
+    commit,
+    state,
+    dispatch,
+    getters
+  }) {
+    const activeView = getters.activeView
+    commit('FILTER_CHANGED', activeView.filter)
+    commit('SORTER_CHANGED', activeView.sorter)
+    return dispatch('doFetch', {
+      filter: state.filter,
+      keepPagination: false
+    })
+  },
+
   async doExport({ commit, state, getters }) {
     try {
       if (
@@ -138,7 +153,7 @@ export default {
     commit('FILTER_CHANGED', getters['activeView'].filter)
     commit('SORTER_CHANGED', getters['activeView'].sorter)
 
-    dispatch('doFetch', {
+    return dispatch('doFetch', {
       keepPagination: false
     })
   },

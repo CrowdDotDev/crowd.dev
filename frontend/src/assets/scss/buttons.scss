@@ -149,7 +149,7 @@
     }
 
     &--transparent {
-      @apply bg-white text-brand-600 border-none;
+      @apply bg-transparent text-brand-600 border-none;
 
       &:hover {
         @apply cursor-pointer bg-brand-50 text-brand-600;

@@ -62,7 +62,7 @@ const model = computed({
     return props.value
   },
   set(v) {
-    emit('update:value', v)
+    emit('update:value', Number(v))
   }
 })
 const operator = computed({

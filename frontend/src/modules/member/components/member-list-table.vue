@@ -79,18 +79,6 @@
         </el-table-column>
 
         <el-table-column
-          v-for="column of extraColumns"
-          :key="column.name"
-          :prop="column.name"
-          :label="column.label"
-          width="200"
-          :sortable="column.sortable ? 'custom' : ''"
-        >
-          <template #default="scope">
-            {{ scope.row[column.name] }}
-          </template>
-        </el-table-column>
-        <el-table-column
           label="Engagement Level"
           prop="score"
           width="200"
@@ -181,9 +169,6 @@ const selectedRows = computed(
 )
 const pagination = computed(
   () => store.getters['member/pagination']
-)
-const extraColumns = computed(
-  () => store.getters['member/activeView']?.columns || []
 )
 
 onMounted(() => {

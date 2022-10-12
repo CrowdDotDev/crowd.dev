@@ -137,16 +137,10 @@ const valueToString = computed(() => {
 })
 
 const shouldShowReset = computed(() => {
-  return Array.isArray(props.filter.defaultValue)
-    ? props.filter.defaultValue.length > 0 &&
-        !lodash(model.value)
-          .differenceWith(
-            props.filter.defaultValue,
-            lodash.isEqual
-          )
-          .isEmpty()
-    : props.filter.defaultValue !== null &&
-        props.filter.defaultValue !== props.filter.value
+  return !lodash.isEqual(
+    props.filter.defaultValue,
+    props.filter.value
+  )
 })
 const shouldDisableApplyButton = computed(() => {
   return Array.isArray(model.value)
@@ -225,21 +219,25 @@ const clickOutsideListener = (event) => {
   }
 }
 
-watch(isExpanded, (newValue) => {
-  setTimeout(() => {
-    if (newValue) {
-      document.addEventListener(
-        'click',
-        clickOutsideListener
-      )
-    } else {
-      document.removeEventListener(
-        'click',
-        clickOutsideListener
-      )
-    }
-  }, 500)
-})
+watch(
+  isExpanded,
+  (newValue) => {
+    setTimeout(() => {
+      if (newValue) {
+        document.addEventListener(
+          'click',
+          clickOutsideListener
+        )
+      } else {
+        document.removeEventListener(
+          'click',
+          clickOutsideListener
+        )
+      }
+    }, 500)
+  },
+  { immediate: true }
+)
 </script>
 
 <style lang="scss">
