@@ -14,6 +14,7 @@ export default class StringField extends GenericField {
     this.max = config.max
     this.filterable = config.filterable || false
     this.custom = config.custom || false
+    this.email = config.email
   }
 
   forPresenter(value) {
@@ -90,6 +91,14 @@ export default class StringField extends GenericField {
       })
     }
 
+    if (this.email) {
+      output.push({
+        type: 'email',
+        message: 'Please input correct email address',
+        trigger: ['blur', 'change']
+      })
+    }
+
     return output
   }
 
@@ -102,6 +111,10 @@ export default class StringField extends GenericField {
 
     if (this.required) {
       yupChain = yupChain.required()
+    }
+
+    if (this.email) {
+      yupChain = yupChain.email()
     }
 
     return yupChain

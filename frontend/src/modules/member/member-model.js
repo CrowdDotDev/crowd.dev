@@ -20,11 +20,17 @@ const fields = {
   id: new IdField('id', label('id')),
   jobTitle: new StringField('jobTitle', label('jobTitle')),
   username: new JsonField('username', label('username'), {
+    nonEmpty: true,
     required: true,
     customFilterPreview: (record) => {
       return record
     }
   }),
+  customAttributes: new JsonField(
+    'customAttributes',
+    label(''),
+    { nonEmpty: true }
+  ),
   attributes: new JsonField(
     'attributes',
     label('attributes')
@@ -46,7 +52,9 @@ const fields = {
   tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true
   }),
-  email: new StringField('email', label('email'), {}),
+  email: new StringField('email', label('email'), {
+    email: true
+  }),
   noMerge: MemberField.relationToMany(
     'noMerge',
     label('noMerge'),
