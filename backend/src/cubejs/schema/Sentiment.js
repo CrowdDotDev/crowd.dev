@@ -42,7 +42,7 @@ where
     averageSentiment: {
         type: 'avg',
         sql: `sentiment`,
-        shown: false,
+        // shown: false,
       },
   },
 
