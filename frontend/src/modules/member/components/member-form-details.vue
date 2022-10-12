@@ -8,7 +8,17 @@
         />
       </el-form-item>
 
-      <el-form-item :label="fieldsValue.email.label">
+      <el-form-item
+        prop="email"
+        :label="fieldsValue.email.label"
+        :rules="[
+          {
+            type: 'email',
+            message: 'Please input correct email address',
+            trigger: ['blur', 'change']
+          }
+        ]"
+      >
         <el-input v-model="model[fieldsValue.email.name]" />
       </el-form-item>
 

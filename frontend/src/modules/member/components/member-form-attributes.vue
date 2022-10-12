@@ -48,22 +48,34 @@
             </el-select>
           </el-form-item>
           <el-form-item
-            :prop="`attributes.${camelCase(
-              attribute.name
+            :prop="`customAttributes.${camelCase(
+              attribute.label
             )}`"
             required
+            error="Name is required"
             class="col-span-5"
           >
-            <el-input v-model="attribute.name"></el-input
-          ></el-form-item>
+            <el-input v-model="attribute.label"></el-input
+            ><template #error>
+              <div class="el-form-item__error">
+                Name is required
+              </div>
+            </template></el-form-item
+          >
           <el-form-item
             required
-            :prop="`attributes.${camelCase(
-              attribute.name
+            :prop="`customAttributes.${camelCase(
+              attribute.label
             )}.custom`"
+            error="Value is required"
             class="col-span-4"
             ><el-input v-model="attribute.value"></el-input
-          ></el-form-item>
+            ><template #error>
+              <div class="el-form-item__error">
+                Value is required
+              </div>
+            </template></el-form-item
+          >
           <el-button
             class="btn btn--md btn--transparent w-10 h-10"
             @click="deleteAttribute(index)"
@@ -113,13 +125,25 @@ const model = computed({
 })
 
 watch(customAttributes, (attributes) => {
-  model.value.customAttributes = attributes
+  if (!attributes.length) {
+    delete model.value.customAttributes
+    return
+  }
+
+  model.value.customAttributesArray = attributes
+  model.value.customAttributes = attributes.reduce(
+    (obj, { label, value }) => ({
+      ...obj,
+      [camelCase(label)]: { custom: value }
+    }),
+    {}
+  )
 })
 
 function addAttribute() {
   customAttributes.push({
     type: 'string',
-    name: null,
+    label: null,
     value: null
   })
 }

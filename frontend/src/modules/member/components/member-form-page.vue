@@ -65,7 +65,7 @@ import AppMemberFormIdentities from '@/modules/member/components/member-form-ide
 import AppMemberFormAttributes from '@/modules/member/components/member-form-attributes.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { h, reactive, ref, computed } from 'vue'
+import { h, reactive, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
@@ -87,7 +87,8 @@ const formSchema = new FormSchema([
   fields.attributes,
   fields.tags,
   fields.username,
-  fields.platform
+  fields.platform,
+  fields.customAttributes
 ])
 
 const router = useRouter()
@@ -106,9 +107,15 @@ const isFormValid = computed(() =>
   formSchema.isValidSync(formModel)
 )
 
+watch(formModel, (newModel) => {
+  console.log(newModel)
+})
+
 async function onCancel() {
   const hasFormChanged = !isEqual(
-    formSchema.initialValues(),
+    formSchema.initialValues({
+      username: {}
+    }),
     formModel
   )
 
@@ -126,17 +133,20 @@ async function onCancel() {
 async function doSubmit() {
   let createModel = { ...formModel }
 
-  if (formModel.customAttributes) {
+  // Create custom attributes if existent
+  if ((formModel.customAttributesArray || []).length) {
     const customAttributes = await Promise.all(
-      formModel.customAttributes.map(({ name, type }) => {
-        return store.dispatch(
-          'member/doCreateCustomAttributes',
-          {
-            label: name,
-            type
-          }
-        )
-      })
+      formModel.customAttributesArray.map(
+        ({ label, type }) => {
+          return store.dispatch(
+            'member/doCreateCustomAttributes',
+            {
+              label,
+              type
+            }
+          )
+        }
+      )
     )
 
     // Request failed
@@ -144,31 +154,23 @@ async function doSubmit() {
       return
     }
 
-    const formattedAttributes = customAttributes.reduce(
-      (obj, { label, name }) => {
-        const attribute = formModel.customAttributes.find(
-          (a) => a.name === label
-        )
-        return Object.assign(obj, {
-          [name]: { custom: attribute.value }
-        })
-      },
-      {}
-    )
-
+    // Add customAttributes to attributes object
     formModel.attributes = {
       ...formModel.attributes,
-      ...formattedAttributes
+      ...formModel.customAttributes
     }
 
+    // Delete custom attributes property helpers
     delete createModel.customAttributes
-    delete createModel.attributes.url
+    delete createModel.customAttributesArray
   }
 
+  // Create new member
   await store.dispatch('member/doCreate', {
     data: {
       ...formSchema.cast(createModel),
       // TODO: Improve organizations handling
+      tags: createModel.tags,
       organizations: [{ name: createModel.organizations }]
     }
   })

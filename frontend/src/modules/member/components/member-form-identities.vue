@@ -140,32 +140,27 @@ function onSwitchChange(value, key) {
     model.value.platform = key
   }
 
-  const modelValue = model.value.username?.[key]
-
   // Add platform to username object
   if (
-    (modelValue === null || modelValue === undefined) &&
+    (model.value.username?.[key] === null ||
+      model.value.username?.[key] === undefined) &&
     value
   ) {
     model.value.username[key] = ''
     return
   }
 
-  const modifiedModel = { ...model.value }
-
   // Remove platform from username object
   if (!value) {
-    delete modifiedModel.username[key]
-    delete modifiedModel.attributes?.url?.[key]
+    delete model.value.username[key]
+    delete model.value.attributes?.url?.[key]
   }
 
   // Handle platfom and attributes when username profiles are removed
   if (!Object.keys(model.value.username || {}).length) {
-    delete modifiedModel.platform
-    delete modifiedModel.attributes?.url
+    delete model.value.platform
+    delete model.value.attributes?.url
   }
-
-  model.value = modifiedModel
 }
 
 function onInputChange(newValue, key, value) {

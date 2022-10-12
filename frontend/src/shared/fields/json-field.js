@@ -6,6 +6,7 @@ export default class JsonField extends GenericField {
     super(name, label)
     this.filterable = config.filterable || false
     this.required = config.required
+    this.nonEmpty = config.nonEmpty
   }
   forPresenter(value) {
     return value
@@ -19,14 +20,21 @@ export default class JsonField extends GenericField {
     let yupChain = yup.mixed().label(this.label)
 
     if (this.required) {
+      yupChain = yupChain.required()
+    }
+
+    if (this.nonEmpty) {
       yupChain = yupChain.test({
         name: 'valid required json',
         test: (json) => {
+          if (!this.required && !json) {
+            return true
+          }
           // Object cannot be null or empty and each key must have a value
           return (
-            json &&
+            !!json &&
             Object.keys(json).length !== 0 &&
-            Object.keys(json).every((k) => !!json[k])
+            Object.keys(json).every((k) => !!k && !!json[k])
           )
         }
       })
@@ -39,19 +47,24 @@ export default class JsonField extends GenericField {
     let yupChain = yup.mixed().label(this.label)
 
     if (this.required) {
-      yupChain = yupChain
-        .test({
-          name: 'valid required json',
-          test: (json) => {
-            // Object cannot be null or empty and each key must have a value
-            return (
-              json &&
-              Object.keys(json).length !== 0 &&
-              Object.values(json).every((v) => !!v)
-            )
+      yupChain = yupChain.required()
+    }
+
+    if (this.nonEmpty) {
+      yupChain = yupChain.test({
+        name: 'valid required json',
+        test: (json) => {
+          if (!this.required && !json) {
+            return true
           }
-        })
-        .required()
+          // Object cannot be null or empty and each key must have a value
+          return (
+            !!json &&
+            Object.keys(json).length !== 0 &&
+            Object.keys(json).every((k) => !!k && !!json[k])
+          )
+        }
+      })
     }
 
     return yupChain
