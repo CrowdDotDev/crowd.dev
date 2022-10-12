@@ -64,6 +64,11 @@ where
         sql: `platform`,
         type: `string`,
     },
+
+    mood: {
+        sql: `mood`,
+        type: `string`,
+    },
    
     date: {
       sql: `timestamp`,
