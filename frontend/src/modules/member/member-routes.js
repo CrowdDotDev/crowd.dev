@@ -13,6 +13,8 @@ const MemberMergeSuggestionsPage = () =>
   )
 const MemberViewPage = () =>
   import('@/modules/member/components/member-view-page.vue')
+const MemberCreatePage = () =>
+  import('@/modules/member/components/member-form-page.vue')
 
 export default [
   {
@@ -28,6 +30,15 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.memberRead
+        }
+      },
+      {
+        name: 'memberCreate',
+        path: '/members/new',
+        component: MemberCreatePage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.memberCreate
         }
       },
       {

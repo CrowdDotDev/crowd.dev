@@ -14,7 +14,7 @@
   }
 
   &--md {
-    @apply px-3 py-2.5 text-sm;
+    @apply px-3 h-10 text-sm;
   }
 
   &--lg {
@@ -68,7 +68,7 @@
       @apply cursor-pointer bg-gray-100 text-gray-600 border-2  border-gray-200 border-solid;
     }
     &:focus {
-      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid outline outline-1 outline-gray-900;
+      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid outline outline-offset-2 outline-1 outline-gray-900;
     }
     &:active {
       @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
@@ -185,51 +185,61 @@
     &--primary {
       @apply text-brand-500;
 
-      &:hover {
+      &:hover,
+      &:active,
+      &:focus {
         @apply cursor-pointer text-brand-600 bg-transparent;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-brand-300;
+        @apply cursor-not-allowed text-brand-300 bg-transparent;
       }
     }
     &--secondary {
       @apply text-gray-900;
 
-      &:hover {
-        @apply cursor-pointer text-brand-500;
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-brand-500 bg-transparent;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-gray-400;
+        @apply cursor-not-allowed text-gray-400 bg-transparent;
       }
     }
     &--success {
       @apply text-green-500;
 
-      &:hover {
-        @apply cursor-pointer text-green-600;
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-green-600 bg-transparent;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-green-300;
+        @apply cursor-not-allowed text-green-300 bg-transparent;
       }
     }
     &--danger {
       @apply text-red-500;
 
-      &:hover {
-        @apply cursor-pointer text-red-600;
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-red-600 bg-transparent;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-red-300;
+        @apply cursor-not-allowed text-red-300 bg-transparent;
       }
     }
     &--warning {
       @apply text-yellow-500;
 
-      &:hover {
-        @apply cursor-pointer text-yellow-600;
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-yellow-600 bg-transparent;
       }
       &[disabled] {
-        @apply cursor-not-allowed text-yellow-300;
+        @apply cursor-not-allowed text-yellow-300 bg-transparent;
       }
     }
 
@@ -277,6 +287,29 @@
 .btn-group {
   @apply flex items-center flex-nowrap;
 }
-.btn-group>.btn:not(:last-child) {
+
+.btn-group > .btn:not(:last-child) {
   @apply -mr-0.5;
+}
+
+// Identities
+
+.btn {
+  &--twitter,
+  &--twitter:hover {
+    background-color: rgba(29, 155, 240, 0.15);
+    color: #1d9bf0;
+  }
+
+  &--linkedin,
+  &--linkedin:hover {
+    @apply cursor-pointer;
+    background-color: rgba(2, 116, 179, 0.1);
+    color: #0274b3;
+  }
+
+  &--discord,
+  &--discord:hover {
+    background-color: rgba(88, 101, 242, 0.15);
+  }
 }

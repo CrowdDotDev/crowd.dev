@@ -5,6 +5,7 @@ export default class JsonField extends GenericField {
   constructor(name, label, config = {}) {
     super(name, label)
     this.filterable = config.filterable || false
+    this.required = config.required
   }
   forPresenter(value) {
     return value
@@ -16,6 +17,16 @@ export default class JsonField extends GenericField {
 
   forFormRules() {
     return yup.mixed().label(this.label)
+  }
+
+  forFormCast() {
+    let yupChain = yup.mixed().label(this.label)
+
+    if (this.required) {
+      yupChain = yupChain.required()
+    }
+
+    return yupChain
   }
 
   forFilter() {

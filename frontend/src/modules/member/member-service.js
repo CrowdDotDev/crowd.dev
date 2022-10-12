@@ -47,7 +47,7 @@ export class MemberService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member`,
-      data
+      data.data
     )
 
     return response.data
@@ -156,6 +156,17 @@ export class MemberService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes`
+    )
+
+    return response.data
+  }
+
+  static async createCustomAttributes(data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/settings/members/attributes`,
+      data
     )
 
     return response.data

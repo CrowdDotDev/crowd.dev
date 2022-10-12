@@ -8,7 +8,6 @@ import JsonField from '@/shared/fields/json-field'
 import { ActivityField } from '@/modules/activity/activity-field'
 import { MemberField } from '@/modules/member/member-field'
 import { TagField } from '@/modules/tag/tag-field'
-import { OrganizationField } from '@/modules/organization/organization-field'
 import IntegerRangeField from '@/shared/fields/integer-range-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
@@ -19,6 +18,7 @@ function label(name) {
 
 const fields = {
   id: new IdField('id', label('id')),
+  jobTitle: new StringField('jobTitle', label('jobTitle')),
   username: new JsonField('username', label('username'), {
     required: true,
     customFilterPreview: (record) => {
@@ -31,10 +31,12 @@ const fields = {
   ),
   displayName: new StringField(
     'displayName',
-    label('displayName')
+    label('fullName')
   ),
   // This is only used to filter members
-  platform: new StringField('platform', label('platform')),
+  platform: new StringField('platform', label('platform'), {
+    required: true
+  }),
   activities: ActivityField.relationToMany(
     'activities',
     label('activities'),
@@ -56,19 +58,13 @@ const fields = {
     label('location'),
     {}
   ),
-  organization: OrganizationField.relationToMany(
-    'organizations',
-    label('organizations'),
-    {
-      filterable: true
-    }
+  organization: new StringField(
+    'organization',
+    label('organization')
   ),
   joinedAt: new DateTimeField(
     'joinedAt',
-    label('joinedAt'),
-    {
-      required: true
-    }
+    label('joinedAt')
   ),
   createdAt: new DateTimeField(
     'createdAt',

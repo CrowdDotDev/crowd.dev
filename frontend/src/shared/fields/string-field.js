@@ -94,11 +94,17 @@ export default class StringField extends GenericField {
   }
 
   forFormCast() {
-    return yup
+    let yupChain = yup
       .string()
       .nullable(true)
       .trim()
       .label(this.label)
+
+    if (this.required) {
+      yupChain = yupChain.required()
+    }
+
+    return yupChain
   }
 
   forFilterCast() {

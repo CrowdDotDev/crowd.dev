@@ -5,9 +5,12 @@
   >
     <span v-if="total" class="text-gray-500 text-sm"
       ><span v-if="hasPageCounter"
-        >{{ count.minimum }}-{{ count.maximum }} of
+        >{{ count.minimum.toLocaleString('en') }}-{{
+          count.maximum.toLocaleString('en')
+        }}
+        of
       </span>
-      {{ total }} members</span
+      {{ total.toLocaleString('en') }} members</span
     >
     <app-inline-select-input
       v-model="sorterValue"

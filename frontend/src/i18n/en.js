@@ -161,8 +161,13 @@ const en = {
         title: 'Merge Member',
         success: 'Members merged successfully'
       },
+      attributes: {
+        error: 'Custom Attributes could not be created'
+      },
       fields: {
         id: 'Id',
+        fullName: 'Full Name',
+        jobTitle: 'Job title',
         member: 'Member',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
@@ -174,6 +179,7 @@ const en = {
         activities: 'Activities',
         activityCount: '# of activities',
         location: 'Location',
+        organization: 'Organization',
         organizations: 'Organizations',
         signal: 'Signal',
         bio: 'Bio',
@@ -185,7 +191,7 @@ const en = {
         email: 'Email',
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
-        joinedAt: 'Joined Community',
+        joinedAt: 'Member since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at'
@@ -796,8 +802,7 @@ const en = {
       selected: '${path} must be selected'
     },
     number: {
-      min:
-        '${path} must be greater than or equal to ${min}',
+      min: '${path} must be greater than or equal to ${min}',
       max: '${path} must be less than or equal to ${max}',
       lessThan: '${path} must be less than ${less}',
       moreThan: '${path} must be greater than ${more}',
@@ -818,8 +823,7 @@ const en = {
     },
     array: {
       min: '${path} field must have at least ${min} items',
-      max:
-        '${path} field must have less than or equal to ${max} items'
+      max: '${path} field must have less than or equal to ${max} items'
     }
   },
   /* eslint-disable */

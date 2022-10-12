@@ -33,32 +33,22 @@
               </div>
             </div>
 
-            <el-button
+            <router-link
               v-if="hasPermissionToCreate"
-              class="btn btn--primary btn--md"
-              @click.prevent="creating = true"
+              :to="{
+                name: 'memberCreate'
+              }"
             >
-              Add member
-            </el-button>
+              <el-button class="btn btn--primary btn--md">
+                Add member
+              </el-button>
+            </router-link>
           </div>
         </div>
         <div class="text-xs text-gray-500">
           Overview of all members from your community
         </div>
       </div>
-
-      <el-dialog
-        v-model="creating"
-        title="New Member"
-        :append-to-body="true"
-        :close-on-click-modal="false"
-        :destroy-on-close="true"
-        custom-class="el-dialog--lg"
-        @close="creating = false"
-      >
-        <app-member-form-page @cancel="creating = false">
-        </app-member-form-page>
-      </el-dialog>
 
       <app-member-tabs></app-member-tabs>
       <app-member-list-filter></app-member-list-filter>
@@ -71,7 +61,6 @@
 import { MemberService } from '../member-service'
 import MemberListFilter from '@/modules/member/components/member-list-filter.vue'
 import MemberListTable from '@/modules/member/components/member-list-table.vue'
-import MemberFormPage from '@/modules/member/components/member-form-page.vue'
 import MemberTabs from '@/modules/member/components/member-tabs.vue'
 import PageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import { mapGetters, mapActions } from 'vuex'
@@ -83,14 +72,12 @@ export default {
   components: {
     'app-member-list-filter': MemberListFilter,
     'app-member-list-table': MemberListTable,
-    'app-member-form-page': MemberFormPage,
     'app-member-tabs': MemberTabs,
     'app-page-wrapper': PageWrapper
   },
 
   data() {
     return {
-      creating: false,
       hasMembersToMerge: false
     }
   },

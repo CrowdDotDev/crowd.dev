@@ -194,6 +194,24 @@ export default {
     }
   },
 
+  async doCreateCustomAttributes({ commit }, values) {
+    try {
+      commit('CREATE_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.createCustomAttributes(values)
+      commit('CREATE_ATTRIBUTES_SUCCESS')
+
+      return response
+    } catch (error) {
+      Errors.handle(error)
+      commit('CREATE_ATTRIBUTES_ERROR')
+
+      Message.error(
+        i18n('entities.member.attributes.error')
+      )
+    }
+  },
+
   async doMerge(
     { commit },
     { memberToKeep, memberToMerge }
@@ -331,7 +349,7 @@ export default {
     }
   },
 
-  async doCreate({ commit, dispatch }, values) {
+  async doCreate({ commit }, values) {
     try {
       commit('CREATE_STARTED')
       await MemberService.create(values)
@@ -339,9 +357,7 @@ export default {
       Message.success(
         i18n('entities.member.create.success')
       )
-      dispatch('doFetch', {
-        keepPagination: true
-      })
+      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('CREATE_ERROR')

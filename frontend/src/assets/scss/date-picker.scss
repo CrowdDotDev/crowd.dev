@@ -1,0 +1,115 @@
+.date-picker-popper {
+  &.el-popper.is-light {
+    @apply rounded-lg border-none;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  & .el-picker-panel {
+    @apply leading-none;
+
+    & .el-month-table,
+    .el-year-table {
+      & .cell {
+        @apply text-gray-900 rounded;
+      }
+
+      & td.today .cell {
+        @apply text-brand-500 font-medium;
+      }
+
+      & td.current:not(.disabled):not(:hover) .cell {
+        @apply bg-gray-900 text-white font-medium;
+      }
+
+      & td .cell:hover {
+        @apply bg-gray-100 text-gray-900;
+      }
+    }
+  }
+
+  // Buttons
+  .el-picker-panel__icon-btn {
+    margin-top: 5px;
+
+    &:hover {
+      @apply text-brand-500;
+    }
+  }
+
+  // Header
+  & .el-date-picker__header {
+    @apply m-0 p-4;
+
+    & .el-date-picker__header-label {
+      @apply text-sm text-gray-900 font-medium p-0;
+    }
+  }
+
+  // Table content
+  & .el-date-table {
+    // Table body
+    & tbody {
+      @apply flex flex-col gap-2;
+    }
+
+    // Table Row
+    & tr {
+      @apply flex justify-between;
+
+      &:first-child {
+        @apply mb-2;
+      }
+    }
+
+    // Table Header
+    & th {
+      @apply font-medium text-gray-400 border-none text-2xs;
+    }
+
+    // Table Data cell
+    & td {
+      @apply h-8 p-0;
+
+      &.current:not(.disabled):not(:hover)
+        .el-date-table-cell__text {
+        @apply bg-gray-900 text-white font-medium;
+      }
+
+      &.available:hover .el-date-table-cell__text {
+        @apply bg-gray-100;
+      }
+
+      &.today
+        .el-date-table-cell
+        .el-date-table-cell__text {
+        @apply text-brand-500 font-medium;
+      }
+
+      &.next-month,
+      &.prev-month {
+        & .el-date-table-cell .el-date-table-cell__text {
+          @apply text-gray-300;
+        }
+      }
+
+      & .el-date-table-cell {
+        @apply h-8 w-8 m-auto p-0;
+
+        & .el-date-table-cell__text {
+          @apply leading-8  w-8 h-8 rounded text-2xs text-gray-600;
+        }
+      }
+    }
+  }
+}
+
+// Input
+.custom-date-picker {
+  & .el-input__wrapper {
+    @apply flex flex-row-reverse px-3;
+
+    & .el-icon {
+      @apply m-0;
+    }
+  }
+}

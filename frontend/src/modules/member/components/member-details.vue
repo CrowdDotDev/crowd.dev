@@ -202,7 +202,7 @@ export default {
       @apply border-none;
     }
     &-item__header {
-      @apply h-6 text-sm font-semibold text-sm;
+      @apply h-6 text-sm font-semibold;
     }
     &-item__content {
       @apply mt-0 relative pb-2 text-sm;
