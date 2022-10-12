@@ -75,6 +75,11 @@ const filtersAreDifferent = (filter, viewFilter) => {
   ) {
     // Objects are not fully built yet, no need to compare
     return false
+  } else if (
+    Object.keys(filter.attributes).length !==
+    Object.keys(viewFilter.attributes).length
+  ) {
+    return true
   } else if (filter.operator !== viewFilter.operator) {
     return true
   } else {
