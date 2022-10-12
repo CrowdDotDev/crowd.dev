@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import sanitizeHtml from 'sanitize-html'
+import { DEVTO_CONFIG } from '../../../config/index'
 import { DevtoArticle, DevtoComment, DevtoUser } from '../usecases/devto/types'
 import { single } from '../../../utils/arrays'
 import { getUserById } from '../usecases/devto/getUser'
@@ -20,7 +21,7 @@ import { MemberAttributeName } from '../../../database/attributes/member/enums'
 /* eslint @typescript-eslint/no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
 export default class DevtoIterator extends BaseIterator {
-  static globalLimit: number = Number(process.env.DOTENV_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = Number(DEVTO_CONFIG.globalLimit || Infinity)
 
   userContext: IRepositoryOptions
 
@@ -193,39 +194,46 @@ export default class DevtoIterator extends BaseIterator {
     const article = single(this.articles, (a) => a.id === articleId)
     const activities: AddActivitiesSingle[] = []
 
+    // comment was deleted or the user deleted his account
+    if (!comment.user.username) {
+      return []
+    }
+
     const member: Member = {
       username: {
         [PlatformType.DEVTO]: comment.user.username,
       },
       attributes: {
-        [PlatformType.DEVTO]: {
-          [MemberAttributeName.URL]: `https://dev.to/${encodeURIComponent(
-            comment.fullUser.username,
-          )}`,
+        [MemberAttributeName.URL]: {
+          [PlatformType.DEVTO]: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         },
       },
     }
 
     if (comment.user.twitter_username) {
-      member.attributes[PlatformType.TWITTER] = {
-        [MemberAttributeName.URL]: `https://twitter.com/${comment.user.twitter_username}`,
-      }
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${comment.user.twitter_username}`
       member.username[PlatformType.TWITTER] = comment.user.twitter_username
     }
 
     if (comment.user.github_username) {
-      member.attributes[PlatformType.GITHUB] = {
-        [MemberAttributeName.NAME]: comment.user.name,
-        [MemberAttributeName.URL]: `https://github.com/${comment.user.github_username}`,
+      member.attributes[MemberAttributeName.NAME] = {
+        [PlatformType.GITHUB]: comment.user.name,
       }
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.GITHUB
+      ] = `https://github.com/${comment.user.github_username}`
       member.username[PlatformType.GITHUB] = comment.user.github_username
     }
 
     if (comment.fullUser) {
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.BIO] =
-        comment.fullUser?.summary || ''
-      member.attributes[PlatformType.DEVTO][MemberAttributeName.LOCATION] =
-        comment.fullUser?.location || ''
+      member.attributes[MemberAttributeName.BIO] = {
+        [PlatformType.DEVTO]: comment.fullUser?.summary || '',
+      }
+      member.attributes[MemberAttributeName.LOCATION] = {
+        [PlatformType.DEVTO]: comment.fullUser?.location || '',
+      }
     }
 
     activities.push({

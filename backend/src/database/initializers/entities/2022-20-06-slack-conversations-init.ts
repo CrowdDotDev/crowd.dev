@@ -24,7 +24,7 @@ export default async () => {
         // get parent activity
         const parentAct = await as.findById(slackActivity.parentId)
 
-        const transaction = await SequelizeRepository.createTransaction(userContext.database)
+        const transaction = await SequelizeRepository.createTransaction(userContext)
 
         await as.addToConversation(slackActivity.id, parentAct.id, transaction)
 

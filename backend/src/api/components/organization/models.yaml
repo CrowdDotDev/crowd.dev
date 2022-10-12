@@ -20,7 +20,7 @@ components:
         logo:
           description: A URL for logo of the organization.
           type: string
-        emails: 
+        emails:
           description: The emails for contacting the organization.
           type: array
           items:
@@ -30,15 +30,15 @@ components:
           type: array
           items:
             type: string
-        parentUrl: 
+        parentUrl:
           description: The URL of the parent organization if it has one (for example if it has been acquired).
           type: string
-        tags: 
+        tags:
           description: Tags associated with the organization.
           type: array
           items:
             type: string
-        twitter: 
+        twitter:
           description: Twitter information for the organization.
           type: object
           properties:
@@ -57,7 +57,7 @@ components:
             location:
               description: The Twitter location for the organization.
               type: string
-            site: 
+            site:
               description: The website linked to the organization's Twitter profile.
               type: string
             avatar:
@@ -76,21 +76,21 @@ components:
             max:
               description: The maximum estimated revenue of the organization.
               type: integer
-        linkedin: 
+        linkedin:
           description: 'LinkedIn information for the organization.'
           type: object
           properties:
             handle:
               description: The LinkedIn handle for the organization.
               type: string
-        crunchbase: 
+        crunchbase:
           description: 'Crunchbase information for the organization.'
           type: object
           properties:
             handle:
               description: The Crunchbase handle for the organization.
               type: string
-              
+
         createdAt:
           description: Date the organization was created.
           type: string

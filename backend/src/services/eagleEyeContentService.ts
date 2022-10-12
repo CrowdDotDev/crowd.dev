@@ -1,11 +1,12 @@
 import moment from 'moment'
-import { notLocalLambda } from './aws'
+import request from 'superagent'
+import { API_CONFIG, IS_PROD_ENV, KUBE_MODE } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
-import { getConfig } from '../config'
 import Error400 from '../errors/Error403'
 import track from '../segment/track'
+import { notLocalLambda } from './aws'
 
 interface EagleEyeSearchPoint {
   vectorId: string
@@ -32,7 +33,7 @@ export default class EagleEyeContentService {
   }
 
   async upsert(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await EagleEyeContentRepository.upsert(data, {
@@ -97,10 +98,26 @@ export default class EagleEyeContentService {
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
 
-    const lambdaArn =
-      getConfig().NODE_ENV === 'production'
-        ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
-        : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'
+    // TODO-kube
+    if (KUBE_MODE) {
+      try {
+        const response = await request
+          .post(`${API_CONFIG.premiumApiUrl}/search`)
+          .send({ queries: keywords, nDays, filters })
+
+        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+        await this.bulkUpsert(fromEagleEye)
+        return fromEagleEye
+      } catch (error) {
+        console.log('error while calling eagle eye server!', error)
+        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+      }
+    }
+
+    // TODO-kube
+    const lambdaArn = IS_PROD_ENV
+      ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
+      : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'
     const params = {
       FunctionName: lambdaArn,
       Payload: JSON.stringify({ queries: keywords, ndays: nDays, filters }),
@@ -127,7 +144,7 @@ export default class EagleEyeContentService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const recordBeforeUpdate = await EagleEyeContentRepository.findById(id, { ...this.options })

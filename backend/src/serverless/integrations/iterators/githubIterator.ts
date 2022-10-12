@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 /* eslint prefer-const: 0 */
 import moment from 'moment'
+import { GITHUB_CONFIG, IS_TEST_ENV } from '../../../config/index'
 import { Repo, Repos, Endpoint, Endpoints, State } from '../types/regularTypes'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import BaseIterator from './baseIterator'
@@ -25,7 +26,6 @@ import DiscussionCommentsQuery from '../usecases/github/graphql/discussionCommen
 import { GithubActivityType } from '../../../utils/activityTypes'
 import Error400 from '../../../errors/Error400'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
-import { getConfig } from '../../../config'
 
 export default class GithubIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -36,7 +36,7 @@ export default class GithubIterator extends BaseIterator {
 
   static readonly ENDPOINT_MAX_RETRY = 5
 
-  static globalLimit: number = Number(process.env.GITHUB_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = Number(GITHUB_CONFIG.globalLimit || Infinity)
 
   static fixedEndpoints: Endpoints = ['stargazers', 'forks', 'pulls', 'issues', 'discussions']
 
@@ -708,19 +708,27 @@ export default class GithubIterator extends BaseIterator {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
       attributes: {
-        [PlatformType.GITHUB]: {
-          [MemberAttributeName.NAME]: memberFromApi.name,
-          [MemberAttributeName.IS_HIREABLE]: memberFromApi.isHireable || false,
-          [MemberAttributeName.URL]: memberFromApi.url,
-          [MemberAttributeName.BIO]: memberFromApi.bio || '',
-          [MemberAttributeName.LOCATION]: memberFromApi.location || '',
+        [MemberAttributeName.NAME]: {
+          [PlatformType.GITHUB]: memberFromApi.name,
+        },
+        [MemberAttributeName.IS_HIREABLE]: {
+          [PlatformType.GITHUB]: memberFromApi.isHireable || false,
+        },
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: memberFromApi.url,
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: memberFromApi.bio || '',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: memberFromApi.location || '',
         },
       },
       email: memberFromApi.email || '',
     }
 
     if (memberFromApi.company) {
-      if (getConfig().NODE_ENV === 'test') {
+      if (IS_TEST_ENV) {
         member.organizations = [{ name: 'crowd.dev' }]
       } else {
         const company = memberFromApi.company.replace('@', '')
@@ -734,9 +742,9 @@ export default class GithubIterator extends BaseIterator {
     }
 
     if (memberFromApi.twitterUsername) {
-      member.attributes[PlatformType.TWITTER] = {
-        [MemberAttributeName.URL]: `https://twitter.com/${memberFromApi.twitterUsername}`,
-      }
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${memberFromApi.twitterUsername}`
       member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
     }
 

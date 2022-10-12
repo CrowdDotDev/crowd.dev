@@ -1,0 +1,5 @@
+{
+  /* for jest to transpile typescript */
+  "presets": ["@babel/preset-env"],
+  "plugins": ["@babel/plugin-transform-runtime"]
+}

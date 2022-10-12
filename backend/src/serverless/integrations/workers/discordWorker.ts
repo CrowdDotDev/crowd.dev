@@ -1,3 +1,4 @@
+import { DISCORD_CONFIG } from '../../../config/index'
 import { BaseOutput, DiscordOutput } from '../types/iteratorTypes'
 import { Channels } from '../types/regularTypes'
 import { DiscordIntegrationMessage } from '../types/messageTypes'
@@ -32,8 +33,7 @@ async function discordWorker(body: DiscordIntegrationMessage): Promise<DiscordOu
     console.log('Starting Discord worker with body, ', body)
     const { state, tenant, onboarding, args } = body
     const { guildId } = args
-    const botToken: string = process.env.DISCORD_TOKEN
-
+    const botToken: string = DISCORD_CONFIG.token
     // Initialising the superface client here and passing it to the iterator
     // since we need it to get the channels from the slack api.
     // TODO: the future we can get channels in the iterator.

@@ -1,47 +1,102 @@
-import { getConfig } from '../config'
+import AWS, { SQS } from 'aws-sdk'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config/index'
 
-const AWS = require('aws-sdk')
+let sqsInstance
+let s3Instance
+let lambdaInstance
+let notLocalLambdaInstance
+let stepFunctionsInstance
+let comprehendInstance
 
-if (getConfig().SERVICE === 'default') {
-  AWS.config.update({
-    accessKeyId: getConfig().AWS_ACCESS_KEY_ID,
-    secretAccessKey: getConfig().AWS_SECRET_ACCESS_KEY,
-    region: 'eu-central-1',
-  })
-}
+// TODO-kube
+if (KUBE_MODE) {
+  const awsSqsConfig = {
+    accessKeyId: SQS_CONFIG.aws.accessKeyId,
+    secretAccessKey: SQS_CONFIG.aws.secretAccessKey,
+    region: SQS_CONFIG.aws.region,
+  }
 
-export const sqs =
-  getConfig().NODE_ENV === 'development'
+  sqsInstance = IS_DEV_ENV
     ? new AWS.SQS({
-        endpoint: `${getConfig().LOCALSTACK_HOSTNAME}:${getConfig().LOCALSTACK_PORT}`,
+        endpoint: `http://${SQS_CONFIG.host}:${SQS_CONFIG.port}`,
+        ...awsSqsConfig,
       })
-    : new AWS.SQS()
+    : new AWS.SQS(awsSqsConfig)
 
-export const s3 =
-  getConfig().NODE_ENV === 'development'
+  const awsS3Config = {
+    accessKeyId: S3_CONFIG.aws.accessKeyId,
+    secretAccessKey: S3_CONFIG.aws.secretAccessKey,
+    region: S3_CONFIG.aws.region,
+  }
+
+  s3Instance = IS_DEV_ENV
     ? new AWS.S3({
-        region: `eu-west-1`,
         s3ForcePathStyle: true,
-        endpoint: `${getConfig().LOCALSTACK_HOSTNAME}:${getConfig().LOCALSTACK_PORT}`,
+        endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
         apiVersion: '2012-10-17',
+        ...awsS3Config,
       })
-    : new AWS.S3({ apiVersion: '2012-10-17' })
+    : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
 
-export const lambda =
-  getConfig().NODE_ENV === 'development'
-    ? new AWS.Lambda({
-        endpoint: `${getConfig().LOCALSTACK_HOSTNAME}:${getConfig().LOCALSTACK_PORT}`,
+  comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
+    ? new AWS.Comprehend({
+        accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
+        secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey,
+        region: COMPREHEND_CONFIG.aws.region,
       })
-    : new AWS.Lambda()
+    : undefined
+} else {
+  if (process.env.SERVICE === 'default') {
+    AWS.config.update({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: 'eu-central-1',
+    })
+  }
 
-export const notLocalLambda = new AWS.Lambda()
+  sqsInstance =
+    process.env.NODE_ENV === 'development'
+      ? new AWS.SQS({
+          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+        })
+      : new AWS.SQS()
 
-export const stepFunctions =
-  getConfig().NODE_ENV === 'development'
-    ? new AWS.StepFunctions({
-        endpoint: `${getConfig().LOCALSTACK_HOSTNAME}:${getConfig().LOCALSTACK_PORT}`,
-      })
-    : new AWS.StepFunctions()
+  s3Instance =
+    process.env.NODE_ENV === 'development'
+      ? new AWS.S3({
+          region: `eu-west-1`,
+          s3ForcePathStyle: true,
+          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+          apiVersion: '2012-10-17',
+        })
+      : new AWS.S3({ apiVersion: '2012-10-17' })
+
+  lambdaInstance =
+    process.env.NODE_ENV === 'development'
+      ? new AWS.Lambda({
+          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+        })
+      : new AWS.Lambda()
+
+  notLocalLambdaInstance = new AWS.Lambda()
+
+  stepFunctionsInstance =
+    process.env.NODE_ENV === 'development'
+      ? new AWS.StepFunctions({
+          endpoint: `${process.env.LOCALSTACK_HOSTNAME}:${process.env.LOCALSTACK_PORT}`,
+        })
+      : new AWS.StepFunctions()
+
+  comprehendInstance =
+    process.env.AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
+    process.env.AWS_ACCESS_KEY_ID !== 'none' &&
+    process.env.AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
+    process.env.AWS_SECRET_ACCESS_KEY !== 'none' &&
+    process.env.AWS_ACCESS_KEY_ID !== undefined &&
+    process.env.AWS_SECRET_ACCESS_KEY !== undefined
+      ? new AWS.Comprehend()
+      : undefined
+}
 
 /**
  * Get sentiment for a text using AWS Comprehend
@@ -50,20 +105,12 @@ export const stepFunctions =
  */
 export async function detectSentiment(text) {
   // Only if we have proper credentials
-  if (
-    getConfig().AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
-    getConfig().AWS_ACCESS_KEY_ID !== 'none' &&
-    getConfig().AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
-    getConfig().AWS_SECRET_ACCESS_KEY !== 'none' &&
-    getConfig().AWS_ACCESS_KEY_ID !== undefined &&
-    getConfig().AWS_SECRET_ACCESS_KEY !== undefined
-  ) {
-    const comprehend = new AWS.Comprehend()
+  if (comprehendInstance) {
     const params = {
       LanguageCode: 'en',
       Text: text,
     }
-    const fromAWS = await comprehend.detectSentiment(params).promise()
+    const fromAWS = await comprehendInstance.detectSentiment(params).promise()
     const positive = 100 * fromAWS.SentimentScore.Positive
     const negative = 100 * fromAWS.SentimentScore.Negative
     return {
@@ -83,3 +130,8 @@ export async function detectSentiment(text) {
   }
   return {}
 }
+export const sqs: SQS = sqsInstance
+export const s3 = s3Instance
+export const lambda = lambdaInstance
+export const notLocalLambda = notLocalLambdaInstance
+export const stepFunctions = stepFunctionsInstance

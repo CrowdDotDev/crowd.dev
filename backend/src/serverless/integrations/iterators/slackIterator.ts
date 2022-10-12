@@ -25,6 +25,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import { SLACK_CONFIG } from '../../../config'
 
 export default class SlackIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -33,9 +34,9 @@ export default class SlackIterator extends BaseIterator {
     page: '__limit',
   }
 
-  static maxRetrospect: number = Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600)
+  static maxRetrospect: number = SLACK_CONFIG.maxRetrospectInSeconds || 3600
 
-  static globalLimit: number = Number(process.env.SLACK_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = SLACK_CONFIG.globalLimit || Infinity
 
   static fixedEndpoints: Endpoints = ['members']
 
@@ -332,8 +333,8 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: record.username,
             attributes: {
-              [PlatformType.SLACK]: {
-                [MemberAttributeName.SOURCE_ID]: record.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.SLACK]: record.id,
               },
             },
           },
@@ -441,8 +442,8 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: _vm.members[record.author.id],
             attributes: {
-              [PlatformType.SLACK]: {
-                [MemberAttributeName.SOURCE_ID]: record.author.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.SLACK]: record.author.id,
               },
             },
           },
@@ -491,8 +492,8 @@ export default class SlackIterator extends BaseIterator {
           member: {
             username: _vm.members[record.author.id],
             attributes: {
-              [PlatformType.SLACK]: {
-                [MemberAttributeName.SOURCE_ID]: record.author.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.SLACK]: record.author.id,
               },
             },
           },

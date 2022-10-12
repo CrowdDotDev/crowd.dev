@@ -8,7 +8,7 @@ components:
       properties:
         id:
           description: The unique identifier for an activity.
-        
+
     ActivityRelationsResponse:
       description: Relations of an activity.
       type: object
@@ -21,7 +21,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Task'
-    
+
     ActivityResponse:
       description: An activity performed by a member.
       type: object

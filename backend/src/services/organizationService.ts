@@ -3,7 +3,7 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import MemberRepository from '../database/repositories/memberRepository'
-import { getConfig } from '../config'
+import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import { enrichOrganization, organizationUrlFromName } from './helpers/enrichment'
 
@@ -19,11 +19,11 @@ export default class OrganizationService {
     if (!isPremium) {
       return false
     }
-    return enrichP && (getConfig().CLEARBIT_API_KEY || getConfig().NODE_ENV === 'test')
+    return enrichP && (CLEARBIT_CONFIG.apiKey || IS_TEST_ENV)
   }
 
   async findOrCreate(data, enrichP = true) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       let wasEnriched = false
@@ -123,7 +123,7 @@ export default class OrganizationService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.members) {
@@ -151,7 +151,7 @@ export default class OrganizationService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {

@@ -4,7 +4,7 @@ components:
       description: Relations of an activity.
       type: object
       properties:
-        tasks: 
+        tasks:
           description: Tasks associated with the activity
           type: array
           items:
@@ -20,7 +20,6 @@ components:
       properties:
         memberId:
           description: The ID of the member that performed the activity
-        
 
     ActivityUpsertWithMemberInput:
       type: object

@@ -1,7 +1,11 @@
+import { KUBE_MODE } from '../../config/index'
 import bulkOperations from './operationsWorker'
 
 export async function consumer(event) {
-  event = JSON.parse(event.Records[0].body)
+  if (!KUBE_MODE) {
+    event = JSON.parse(event.Records[0].body)
+  }
+
   console.log('Event: ', event)
   const tenantId = event.tenantId || event.tenant_id
 

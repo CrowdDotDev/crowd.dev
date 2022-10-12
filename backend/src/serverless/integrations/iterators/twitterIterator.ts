@@ -23,6 +23,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import { TWITTER_CONFIG } from '../../../config'
 
 export default class TwitterIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -34,7 +35,7 @@ export default class TwitterIterator extends BaseIterator {
   // Some endpoints are hard-coded since they are fixed
   static fixedEndpoints: Endpoints = ['followers', 'mentions']
 
-  static maxRetrospect: number = Number(process.env.TWITTER_MAX_RETROSPECT_IN_SECONDS || 7380)
+  static maxRetrospect: number = TWITTER_CONFIG.maxRetrospectInSeconds || 7380
 
   profileId: string
 
@@ -68,7 +69,7 @@ export default class TwitterIterator extends BaseIterator {
       (hashtags || []).map((hashtag) => `hashtag/${hashtag}`),
     )
 
-    let globalLimit = Number(process.env.TWITTER_GLOBAL_LIMIT || 10000)
+    let globalLimit = TWITTER_CONFIG.globalLimit || 10000
 
     globalLimit = onboarding ? globalLimit * 0.7 : globalLimit
     super(tenant, endpoints, state, onboarding, globalLimit, tweetCount)
@@ -291,10 +292,14 @@ export default class TwitterIterator extends BaseIterator {
         username: record.username,
         reach: { [PlatformType.TWITTER]: record.followersCount },
         attributes: {
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.SOURCE_ID]: record.id,
-            [MemberAttributeName.IMAGE_URL]: record.imageUrl,
-            [MemberAttributeName.URL]: `https://twitter.com/${record.username}`,
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.TWITTER]: record.id,
+          },
+          [MemberAttributeName.IMAGE_URL]: {
+            [PlatformType.TWITTER]: record.imageUrl,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.TWITTER]: `https://twitter.com/${record.username}`,
           },
         },
       },
@@ -308,7 +313,7 @@ export default class TwitterIterator extends BaseIterator {
     out = out.filter(
       (activity) =>
         !this.followers.has(
-          activity.member.attributes[PlatformType.TWITTER][MemberAttributeName.SOURCE_ID],
+          activity.member.attributes[MemberAttributeName.SOURCE_ID][PlatformType.TWITTER],
         ),
     )
 
@@ -336,9 +341,11 @@ export default class TwitterIterator extends BaseIterator {
         member: {
           username: record.author.username,
           attributes: {
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.SOURCE_ID]: record.author.id,
-              [MemberAttributeName.URL]: `https://twitter.com/${record.author.username}`,
+            [MemberAttributeName.SOURCE_ID]: {
+              [PlatformType.TWITTER]: record.author.id,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.TWITTER]: `https://twitter.com/${record.author.username}`,
             },
           },
           reach: { [PlatformType.TWITTER]: record.author.followersCount },

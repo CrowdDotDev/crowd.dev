@@ -8,6 +8,7 @@ import IntegrationRepository from '../../../database/repositories/integrationRep
 import { PlatformType } from '../../../utils/platforms'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
+import { TWITTER_CONFIG } from '../../../config'
 
 const sdk = TwitterIterator.initSuperfaceClient()
 
@@ -18,8 +19,8 @@ async function refreshToken(userContext) {
   const profileWithNewTokens: any = (
     await profile.getUseCase('GetAccessTokenFromRefreshToken').perform({
       refreshToken: integration.refreshToken,
-      clientId: process.env.AUTH_SOCIAL_TWITTER_CLIENT_ID,
-      clientSecret: process.env.AUTH_SOCIAL_TWITTER_CLIENT_SECRET,
+      clientId: TWITTER_CONFIG.clientId,
+      clientSecret: TWITTER_CONFIG.clientSecret,
     })
   ).unwrap()
 
@@ -31,7 +32,7 @@ async function refreshToken(userContext) {
     .diff(moment(tweetCounterLastReset).utc(), 'days')
   console.log('Time since last reset: ', timeSinceLastReset, ' days')
   // If the time since last reset is greater than the reset time, reset the counter
-  if (timeSinceLastReset >= Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS)) {
+  if (timeSinceLastReset >= TWITTER_CONFIG.limitResetFrequencyDays) {
     integration.limitCount = 0
     integration.limitLastResetAt = moment().utc().toISOString()
   }
@@ -129,7 +130,7 @@ async function twitterWorker(body: TwitterIntegrationMessage): Promise<TwitterOu
       // This is because the tweets allowed during onboarding are free. Like this, the limit will reset 6h after the onboarding.
       const oldResetTime = moment()
         .utc()
-        .subtract(Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS) * 2, 'days')
+        .subtract(TWITTER_CONFIG.limitResetFrequencyDays * 2, 'days')
         .format('YYYY-MM-DD HH:mm:ss')
       integrationAfterIterator.limitLastResetAt = oldResetTime
       console.log('It is onboarding, changing limit to something recent')

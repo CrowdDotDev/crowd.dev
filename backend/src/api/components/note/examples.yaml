@@ -1,178 +1,100 @@
 components:
   examples:
-    Note:
-      value:
-        id: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
-        username:
-          github: smart lady
-          discord: smart lady
-        displayName: smart lady
-        type: note
-        info: {}
-        crowdInfo:
-          github:
-            url: https://github.com/CrowdHQ
-            name: smart lady
-            isHireable: false
-            websiteUrl: https://crowd.dev
-          sample: true
-          discord:
-            id: '#sample-discord-id'
-        email: team@crowd.dev
-        score: 10
-        bio: "Angular and Vue contributor\r\n\r\nAuthor of `Become a ninja with Angular` and
-          `Become a ninja with Vue` \r\n\r\nCo-founder and trainer at @Ninja-Squad"
-        organisation: crowd.dev
-        location:
-        signals:
-        joinedAt: '2021-08-11T14:28:21.000Z'
-        importHash:
-        reach:
-          total: -1
-        createdAt: '2022-03-29T09:22:22.202Z'
-        updatedAt: '2022-03-29T09:22:23.086Z'
-        deletedAt:
-        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        activities:
-          - id: 5f674315-5b7d-49ac-9bd2-797c7918a68f
-            type: message
-            timestamp: '2022-03-27T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              url: ''
-              body: Nisi duis qui proident. Labore amet nostrud sint ea ea esse.
-              sample: true
-              thread: false
-              channel: announcements
-              reactions: []
-              attachments: []
-            isKeyAction: true
-            score: 1
-            sourceId:
-            sourceParentId:
-            importHash:
-            createdAt: '2022-03-29T09:22:23.224Z'
-            updatedAt: '2022-03-29T09:22:23.224Z'
-            deletedAt:
-            noteId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
-            conversationId:
-            parentId:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-          - id: 7bd24667-c9fd-45e4-afc7-90e170eaf544
-            type: joined_guild
-            timestamp: '2022-03-23T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              sample: true
-            isKeyAction: false
-            score: 2
-            sourceId:
-            sourceParentId:
-            importHash:
-            createdAt: '2022-03-29T09:22:23.159Z'
-            updatedAt: '2022-03-29T09:22:23.159Z'
-            deletedAt:
-            noteId: 5a6b61fe-b3f1-4168-9209-5b13d9d3027e
-            conversationId:
-            parentId:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        tags:
-          - id: 1eb3a60a-e5b3-4e43-938a-14085b29a19e
-            name: Contributor
-            importHash:
-            createdAt: '2022-06-03T09:15:42.694Z'
-            updatedAt: '2022-06-03T09:15:42.694Z'
-            deletedAt:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-          - id: 35dd51fd-15ef-424b-8ed0-f58b8adefd9f
-            name: Berlin
-            importHash:
-            createdAt: '2022-06-03T09:16:04.019Z'
-            updatedAt: '2022-06-03T09:16:04.019Z'
-            deletedAt:
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        noMerge: []
-        toMerge: []
     Note2:
       value:
-        id: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
-        username:
-          discord: favorable slowboy
-        displayName: favorable slowboy
-        type: note
-        info: {}
-        crowdInfo:
-          github:
-            url: 'https://github.com/CrowdHQ'
-            name: favorable slowboy
-            isHireable: false
-            websiteUrl: 'https://crowd.dev'
-          discord:
-            id: '#sample-discord-id'
-        email: team@crowd.dev
-        score: 0
-        bio: null
-        organisation: crowd.dev
-        location: Hong Kong
-        signals: null
-        joinedAt: '2022-03-25T21:00:00.000Z'
+        id: 39c850f6-fb96-4d16-8e8c-cd7072e33925
+        body: Refused to have a user feedback call
         importHash: null
-        createdAt: '2022-03-29T09:22:20.995Z'
-        updatedAt: '2022-03-29T10:07:22.849Z'
+        createdAt: "2022-10-03T16:00:57.867Z"
+        updatedAt: "2022-10-03T16:00:57.867Z"
         deletedAt: null
-        tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-        createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        updatedById: null
-        activitiesCount: '3'
-        tagsArray:
-          - null
-        activities:
-          - id: c4dc7136-34ef-4596-b422-9ab0eb3a4892
-            type: message
-            timestamp: '2022-03-28T21:00:00.000Z'
-            platform: discord
-            info: {}
-            crowdInfo:
-              url: ''
-              body: >-
-                Voluptate amet nisi dolor nulla in occaecat consequat. Aliqua velit
-                minim esse Lorem mollit aute qui.
-              thread: false
-              channel: announcements
-              reactions: []
-              attachments: []
-            isKeyAction: true
-            score: 1
-            sourceId: null
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        members:
+          - id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+            username:
+              github: gilfoyle
+              twitter: gilfoyle
+            attributes:
+              bio:
+                github: Systems engineer at Pied Piper
+                default: It's not magic. It's talent and sweat
+                twitter: It's not magic. It's talent and sweat
+              url:
+                github: https://github.com/gilfoyle
+                default: https://t.co/g
+                twitter: https://t.co/g
+              location:
+                custom: Erlich's house
+                github: Palo alto
+                default: Erlich's house
+            displayName: Gilfoyle
+            email: gilfoyle@piedpiper.io
+            score: -1
+            joinedAt: "2022-10-03T15:17:03.540Z"
             importHash: null
-            createdAt: '2022-03-29T09:22:21.084Z'
-            updatedAt: '2022-03-29T09:22:21.084Z'
+            reach:
+              total: 10000
+              github: 5000
+              twitter: 5000
+            createdAt: "2022-10-03T15:17:03.547Z"
+            updatedAt: "2022-10-03T15:17:27.073Z"
             deletedAt: null
-            noteId: 416d7984-4cb5-4fef-9a60-bb3f228bdf9a
-            parentId: null
-            tenantId: 452b683a-1bd4-4a67-b61c-819aacf62a6d
-            createdById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-            updatedById: a3297f3b-6924-4e92-80e7-ef2e0d87a120
-        followers: []
-        following: []
-        tags: []
-        noMerge: []
-        toMerge: []
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+
+    Note:
+      value:
+        id: 196c07da-14e0-419e-bd9a-5f15c721a694
+        body: Likes frunks
+        importHash: null
+        createdAt: "2022-10-05T11:58:30.977Z"
+        updatedAt: "2022-10-05T11:58:30.977Z"
+        deletedAt: null
+        tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+        createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+        members:
+          - id: 2effc566-1932-44f3-a821-2d692933a953
+            username:
+              github: dinesh
+              twitter: dinesh.chugtai
+            attributes:
+              bio:
+                github: Lead developer at Pied Piper
+                default: Pakistani Denzel. Tesla and gold chain owner.
+                twitter: Pakistani Denzel. Tesla and gold chain owner.
+              url:
+                github: https://github.com/dinesh
+                default: https://t.co/d
+                twitter: https://t.co/d
+              location:
+                custom: Silicon Valley
+                github: Palo alto
+                default: Silicon Valley
+            displayName: Dinesh
+            email: dinesh@piedpiper.io
+            score: 9
+            joinedAt: "2022-10-03T15:30:55.672Z"
+            importHash: null
+            reach:
+              total: 100
+              github: 60
+              twitter: 40
+            createdAt: "2022-10-03T15:30:55.679Z"
+            updatedAt: "2022-10-05T11:39:58.095Z"
+            deletedAt: null
+            tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+            createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+            updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+
     NoteList:
       value:
         rows:
           - $ref: '#/components/examples/Note'
           - $ref: '#/components/examples/Note2'
         count: 2
+        limit: 10
+        offset: 0

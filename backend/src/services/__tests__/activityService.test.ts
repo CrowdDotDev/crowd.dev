@@ -679,16 +679,24 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Lazy geek',
-            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
         organisation: 'Crowd',
@@ -777,16 +785,24 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Lazy geek',
-            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
         organisation: 'Crowd',
@@ -902,16 +918,24 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-            [MemberAttributeName.IS_HIREABLE]: true,
-            [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-            [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-            [MemberAttributeName.BIO]: 'Lazy geek',
-            [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+          [MemberAttributeName.NAME]: {
+            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
         organisation: 'Crowd',
@@ -1076,16 +1100,24 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [PlatformType.GITHUB]: {
-              [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-              [MemberAttributeName.IS_HIREABLE]: true,
-              [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-              [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-              [MemberAttributeName.BIO]: 'Lazy geek',
-              [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
             },
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
           organisation: 'Crowd',
@@ -1180,16 +1212,24 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [PlatformType.GITHUB]: {
-              [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-              [MemberAttributeName.IS_HIREABLE]: true,
-              [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-              [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-              [MemberAttributeName.BIO]: 'Lazy geek',
-              [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
             },
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
           organisation: 'Crowd',
@@ -1286,16 +1326,24 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [PlatformType.GITHUB]: {
-              [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-              [MemberAttributeName.IS_HIREABLE]: true,
-              [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-              [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-              [MemberAttributeName.BIO]: 'Lazy geek',
-              [MemberAttributeName.LOCATION]: 'Helsinki, Finland',
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
             },
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
           organisation: 'Crowd',
@@ -1392,16 +1440,24 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [PlatformType.GITHUB]: {
-              [MemberAttributeName.NAME]: 'Quoc-Anh Nguyen',
-              [MemberAttributeName.IS_HIREABLE]: true,
-              [MemberAttributeName.URL]: 'https://github.com/imcvampire',
-              [MemberAttributeName.WEBSITE_URL]: 'https://imcvampire.js.org/',
-              [MemberAttributeName.BIO]: 'Computer Science',
-              [MemberAttributeName.LOCATION]: 'Istanbul',
+            [MemberAttributeName.NAME]: {
+              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
             },
-            [PlatformType.TWITTER]: {
-              [MemberAttributeName.URL]: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
+            },
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Computer Science',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Istanbul',
             },
           },
           organisation: 'Crowd',
@@ -1530,9 +1586,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1609,9 +1663,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1681,9 +1733,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1768,9 +1818,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1858,9 +1906,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1869,7 +1915,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -1950,9 +1996,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1961,7 +2005,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2045,9 +2089,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2056,7 +2098,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2139,9 +2181,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2149,11 +2189,14 @@ describe('ActivityService tests', () => {
         transaction,
       )
 
-      const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
-          slug: 'some-parent-activity',
-        })
-      ).rows[0]
+      const conversations = await new ConversationService({
+        ...mockIRepositoryOptions,
+        transaction,
+      }).findAndCountAll({
+        slug: 'some-parent-activity',
+      })
+
+      const conversationCreated = conversations.rows[0]
 
       await SequelizeRepository.commitTransaction(transaction)
 

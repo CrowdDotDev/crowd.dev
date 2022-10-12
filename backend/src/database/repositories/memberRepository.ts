@@ -4,11 +4,12 @@ import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { getConfig } from '../../config'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
 import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import { KUBE_MODE, SERVICE } from '../../config'
+import { ServiceType } from '../../config/configTypes'
 
 const { Op } = Sequelize
 
@@ -823,7 +824,12 @@ class MemberRepository {
     }
 
     // No need for lazyloading tags for integrations or microservices
-    if (getConfig().SERVICE === 'integrations' || getConfig().SERVICE === 'microservices-nodejs') {
+    if (
+      (KUBE_MODE &&
+        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR)) ||
+      process.env.SERVICE === 'integrations' ||
+      process.env.SERVICE === 'microservices-nodejs'
+    ) {
       return rows.map((record) => {
         const plainRecord = record.get({ plain: true })
         plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []

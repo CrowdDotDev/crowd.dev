@@ -4,6 +4,7 @@ import { IServiceOptions } from './IServiceOptions'
 import ReportRepository from '../database/repositories/reportRepository'
 import WidgetRepository from '../database/repositories/widgetRepository'
 import track from '../segment/track'
+import { IS_TEST_ENV } from '../config'
 
 export default class ReportService {
   options: IServiceOptions
@@ -13,7 +14,7 @@ export default class ReportService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.widgets) {
@@ -41,7 +42,7 @@ export default class ReportService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.widgets) {
@@ -61,7 +62,7 @@ export default class ReportService {
         (data.published === true || data.published === 'true') &&
         (record.published === true || record.published === 'true') &&
         recordBeforeUpdate.published !== record.published &&
-        process.env.NODE_ENV !== 'test'
+        !IS_TEST_ENV
       ) {
         track('Report Published', { id: record.id }, { ...this.options })
       }
@@ -79,7 +80,7 @@ export default class ReportService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {

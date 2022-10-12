@@ -1,0 +1,21 @@
+FROM node:16-alpine as builder
+
+WORKDIR /usr/crowd/frontend
+
+COPY package-lock.json package.json ./
+RUN npm ci
+
+COPY .browserslistrc .eslintrc.js .prettierrc babel.config.js postcss.config.js tailwind.config.js vue.config.js ./
+COPY ./public ./public
+COPY ./src ./src
+RUN NODE_ENV=production npx vue-cli-service build --mode production
+
+FROM nginx:1.23-alpine as release
+
+RUN apk add --no-cache bash
+
+COPY nginx.kube.conf /etc/nginx/nginx.conf
+COPY ./scripts/docker-entrypoint.sh /docker-entrypoint.sh
+COPY --from=builder /usr/crowd/frontend/dist /etc/nginx/html
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

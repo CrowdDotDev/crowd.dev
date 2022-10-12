@@ -32,7 +32,7 @@ components:
         body:
           description: Body of the activity
           type: string
-        
+
         channel:
           description: Channel of the activity
           type: string
@@ -76,7 +76,7 @@ components:
         sourceId:
           description: The id of the activity in the platform (e.g. the id of the message in Discord)
           type: string
-        
+
         sourceParentId:
           description: The id of the parent activity in the platform (e.g. the id of the parent message in Discord)
           type: string
@@ -93,7 +93,7 @@ components:
         isKeyAction:
           description: Whether the activity was a key action
           type: boolean
-        
+
         attributes:
           description: Extra attributes of the activity
           type: object
@@ -111,4 +111,3 @@ components:
 
       xml:
         name: ActivityNoId
-

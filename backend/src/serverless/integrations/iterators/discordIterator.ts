@@ -2,7 +2,6 @@
 /* eslint class-methods-use-this: 0 */
 
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import sanitizeHtml from 'sanitize-html'
 import moment from 'moment'
 import { BaseOutput, DiscordOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import { Channels, Endpoint, Endpoints, State } from '../types/regularTypes'
@@ -18,6 +17,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import { DISCORD_CONFIG } from '../../../config'
 
 export default class DiscordIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -28,9 +28,9 @@ export default class DiscordIterator extends BaseIterator {
 
   static readonly ENDPOINT_MAX_RETRY = 5
 
-  static maxRetrospect: number = Number(process.env.DISCORD_MAX_RETROSPECT_IN_SECONDS || 3600)
+  static maxRetrospect: number = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
-  static globalLimit: number = Number(process.env.DISCORD_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = DISCORD_CONFIG.globalLimit || Infinity
 
   static fixedEndpoints: Endpoints = ['members']
 
@@ -301,8 +301,8 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.username,
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: record.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.DISCORD]: record.id,
               },
             },
           },
@@ -366,8 +366,8 @@ export default class DiscordIterator extends BaseIterator {
           member: {
             username: record.author.username,
             attributes: {
-              [PlatformType.DISCORD]: {
-                [MemberAttributeName.SOURCE_ID]: record.author.id,
+              [MemberAttributeName.SOURCE_ID]: {
+                [PlatformType.DISCORD]: record.author.id,
               },
             },
           },

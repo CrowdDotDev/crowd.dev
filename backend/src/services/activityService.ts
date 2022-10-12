@@ -11,7 +11,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { getConfig } from '../config'
+import { IS_TEST_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
@@ -36,7 +36,7 @@ export default class ActivityService {
    * @returns The upserted activity
    */
   async upsert(data, existing: boolean | any = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.member) {
@@ -150,7 +150,7 @@ export default class ActivityService {
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
   static async getSentiment(data) {
-    if (getConfig().NODE_ENV === 'test') {
+    if (IS_TEST_ENV) {
       return {
         positive: 0.42,
         negative: 0.42,
@@ -283,7 +283,7 @@ export default class ActivityService {
   }
 
   async createWithMember(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const activityExists = await this._activityExists(data, transaction)
@@ -318,7 +318,7 @@ export default class ActivityService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       data.member = await MemberRepository.filterIdInTenant(data.member, {
@@ -351,7 +351,7 @@ export default class ActivityService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
