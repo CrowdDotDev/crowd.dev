@@ -10,7 +10,7 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
       label: '# of activities',
       custom: false,
       props: {},
-      defaultValue: [],
+      defaultValue: 100,
       value: 100,
       defaultOperator: 'gt',
       operator: 'gt',

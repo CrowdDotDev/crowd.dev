@@ -97,6 +97,7 @@ const props = defineProps({
 
 const emit = defineEmits(['destroy', 'change'])
 
+const isExpanded = computed(() => props.filter.expanded)
 const hasValue = computed(() =>
   Array.isArray(props.filter.value)
     ? props.filter.value.length > 0
@@ -224,7 +225,7 @@ const clickOutsideListener = (event) => {
   }
 }
 
-watch(props.filter.expanded, (newValue) => {
+watch(isExpanded, (newValue) => {
   setTimeout(() => {
     if (newValue) {
       document.addEventListener(
