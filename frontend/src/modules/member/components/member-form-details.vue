@@ -2,10 +2,7 @@
   <div class="grid gap-x-12 grid-cols-3">
     <h6>Personal details</h6>
     <div class="col-span-2 personal-details-form">
-      <el-form-item
-        :label="fieldsValue.displayName.label"
-        :prop="fieldsValue.displayName.name"
-      >
+      <el-form-item :label="fieldsValue.displayName.label">
         <el-input
           v-model="model[fieldsValue.displayName.name]"
         />
@@ -42,11 +39,9 @@
 
         <el-form-item
           class="grow"
-          :label="fieldsValue.organization.label"
+          :label="fieldsValue.organizations.label"
         >
-          <el-input
-            v-model="defaultAttributes.organization.custom"
-          />
+          <el-input v-model="model.organizations" />
         </el-form-item>
       </div>
 
@@ -110,9 +105,6 @@ const defaultAttributes = reactive({
     custom: ''
   },
   bio: {
-    custom: ''
-  },
-  organization: {
     custom: ''
   },
   location: {

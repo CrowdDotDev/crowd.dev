@@ -83,6 +83,7 @@ const { fields } = MemberModel
 const formSchema = new FormSchema([
   fields.displayName,
   fields.email,
+  fields.organizations,
   fields.attributes,
   fields.tags,
   fields.username,
@@ -123,46 +124,53 @@ async function onCancel() {
 }
 
 async function doSubmit() {
-  const customAttributes = await Promise.all(
-    formModel.customAttributes.map(({ name, type }) => {
-      return store.dispatch(
-        'member/doCreateCustomAttributes',
-        {
-          label: name,
-          type
-        }
-      )
-    })
-  )
+  let createModel = { ...formModel }
 
-  // Request failed
-  if (customAttributes[0] === undefined) {
-    return
-  }
-
-  const formattedAttributes = customAttributes.reduce(
-    (obj, { label, name }) => {
-      const attribute = formModel.customAttributes.find(
-        (a) => a.name === label
-      )
-      return Object.assign(obj, {
-        [name]: { custom: attribute.value }
+  if (formModel.customAttributes) {
+    const customAttributes = await Promise.all(
+      formModel.customAttributes.map(({ name, type }) => {
+        return store.dispatch(
+          'member/doCreateCustomAttributes',
+          {
+            label: name,
+            type
+          }
+        )
       })
-    },
-    {}
-  )
+    )
 
-  formModel.attributes = {
-    ...formModel.attributes,
-    ...formattedAttributes
+    // Request failed
+    if (customAttributes[0] === undefined) {
+      return
+    }
+
+    const formattedAttributes = customAttributes.reduce(
+      (obj, { label, name }) => {
+        const attribute = formModel.customAttributes.find(
+          (a) => a.name === label
+        )
+        return Object.assign(obj, {
+          [name]: { custom: attribute.value }
+        })
+      },
+      {}
+    )
+
+    formModel.attributes = {
+      ...formModel.attributes,
+      ...formattedAttributes
+    }
+
+    delete createModel.customAttributes
+    delete createModel.attributes.url
   }
-
-  const formattedFormModel = { ...formModel }
-  delete formattedFormModel.customAttributes
-  delete formattedFormModel.attributes.url
 
   await store.dispatch('member/doCreate', {
-    data: formSchema.cast(formattedFormModel)
+    data: {
+      ...formSchema.cast(createModel),
+      // TODO: Improve organizations handling
+      organizations: [{ name: createModel.organizations }]
+    }
   })
 }
 </script>

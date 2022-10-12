@@ -118,7 +118,7 @@ watch(customAttributes, (attributes) => {
 
 function addAttribute() {
   customAttributes.push({
-    type: 'text',
+    type: 'string',
     name: null,
     value: null
   })
