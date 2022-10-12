@@ -150,10 +150,18 @@ const shouldDisableApplyButton = computed(() => {
 
 const model = reactive({
   value: JSON.parse(
-    JSON.stringify(props.filter.defaultValue)
+    JSON.stringify(
+      props.filter.value
+        ? props.filter.value
+        : props.filter.defaultValue
+    )
   ),
   operator: JSON.parse(
-    JSON.stringify(props.filter.defaultOperator)
+    JSON.stringify(
+      props.filter.operator
+        ? props.filter.operator
+        : props.filter.defaultOperator
+    )
   )
 })
 
