@@ -58,8 +58,8 @@ const fields = {
     label('location'),
     {}
   ),
-  organization: new StringField(
-    'organization',
+  organizations: new StringField(
+    'organizations',
     label('organization')
   ),
   joinedAt: new DateTimeField(

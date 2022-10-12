@@ -39,6 +39,7 @@
 
           <el-form-item
             v-if="value.enabled"
+            error="Identity profile is required"
             :prop="`username.${key}`"
             required
             class="mt-1 !mb-6"
@@ -57,6 +58,11 @@
                 ></template
               >
             </el-input>
+            <template #error>
+              <div class="el-form-item__error">
+                Identity profile is required
+              </div>
+            </template>
           </el-form-item>
         </div>
       </div>
@@ -130,9 +136,36 @@ function findPlatform(platform) {
 }
 
 function onSwitchChange(value, key) {
-  if (!props.modelValue.platform && value) {
+  if (value) {
     model.value.platform = key
   }
+
+  const modelValue = model.value.username?.[key]
+
+  // Add platform to username object
+  if (
+    (modelValue === null || modelValue === undefined) &&
+    value
+  ) {
+    model.value.username[key] = ''
+    return
+  }
+
+  const modifiedModel = { ...model.value }
+
+  // Remove platform from username object
+  if (!value) {
+    delete modifiedModel.username[key]
+    delete modifiedModel.attributes?.url?.[key]
+  }
+
+  // Handle platfom and attributes when username profiles are removed
+  if (!Object.keys(model.value.username || {}).length) {
+    delete modifiedModel.platform
+    delete modifiedModel.attributes?.url
+  }
+
+  model.value = modifiedModel
 }
 
 function onInputChange(newValue, key, value) {

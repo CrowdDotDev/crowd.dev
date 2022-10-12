@@ -203,7 +203,9 @@ export default {
 
       return response
     } catch (error) {
-      Errors.handle(error)
+      if (error.response.status !== 500) {
+        Errors.handle(error)
+      }
       commit('CREATE_ATTRIBUTES_ERROR')
 
       Message.error(

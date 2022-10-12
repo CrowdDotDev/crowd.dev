@@ -16,14 +16,42 @@ export default class JsonField extends GenericField {
   }
 
   forFormRules() {
-    return yup.mixed().label(this.label)
+    let yupChain = yup.mixed().label(this.label)
+
+    if (this.required) {
+      yupChain = yupChain.test({
+        name: 'valid required json',
+        test: (json) => {
+          // Object cannot be null or empty and each key must have a value
+          return (
+            json &&
+            Object.keys(json).length !== 0 &&
+            Object.keys(json).every((k) => !!json[k])
+          )
+        }
+      })
+    }
+
+    return yupChain
   }
 
   forFormCast() {
     let yupChain = yup.mixed().label(this.label)
 
     if (this.required) {
-      yupChain = yupChain.required()
+      yupChain = yupChain
+        .test({
+          name: 'valid required json',
+          test: (json) => {
+            // Object cannot be null or empty and each key must have a value
+            return (
+              json &&
+              Object.keys(json).length !== 0 &&
+              Object.values(json).every((v) => !!v)
+            )
+          }
+        })
+        .required()
     }
 
     return yupChain
