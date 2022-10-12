@@ -1,5 +1,6 @@
 <template>
   <app-filter-dropdown
+    module="member"
     :attributes="memberAttributes"
     :custom-attributes="customAttributes"
   />

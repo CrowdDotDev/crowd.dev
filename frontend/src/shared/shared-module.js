@@ -20,6 +20,7 @@ import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
 import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
 import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
+import FilterSearch from '@/shared/filter/filter-type-search'
 import FilterList from '@/shared/filter/filter-list.vue'
 import FilterTypeSelect from '@/shared/filter/filter-type-select'
 import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
@@ -72,6 +73,7 @@ export default {
     'app-filter-type-number': FilterTypeNumber,
     'app-filter-type-string': FilterTypeString,
     'app-filter-type-date': FilterTypeDate,
+    'app-filter-search': FilterSearch,
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,

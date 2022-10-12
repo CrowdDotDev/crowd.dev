@@ -1,20 +1,10 @@
 <template>
   <div class="member-filter">
-    <div class="mb-6">
-      <el-input
-        v-model="model.query"
-        placeholder="Search members"
-        :prefix-icon="SearchIcon"
-        clearable
-      >
-        <template #append>
-          <app-member-list-filter-dropdown
-            module="member"
-          />
-        </template>
-      </el-input>
-    </div>
-    <app-filter-list module="member" />
+    <app-filter-list module="member">
+      <template #dropdown>
+        <app-member-list-filter-dropdown />
+      </template>
+    </app-filter-list>
   </div>
 </template>
 
@@ -27,17 +17,9 @@ export default {
 <script setup>
 import AppMemberListFilterDropdown from './member-list-filter-dropdown'
 import { useStore } from 'vuex'
-import { h, onMounted, reactive } from 'vue'
+import { onMounted } from 'vue'
 
 const store = useStore()
-const model = reactive({
-  query: null
-})
-const SearchIcon = h(
-  'i', // type
-  { class: 'ri-search-line' }, // props
-  []
-)
 
 onMounted(async () => {
   await doFetch()

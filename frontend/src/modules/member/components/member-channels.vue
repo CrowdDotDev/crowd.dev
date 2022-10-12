@@ -21,7 +21,7 @@
     </el-tooltip>
     <div class="flex gap-2 items-center">
       <el-tooltip
-        v-if="member.username.twitter"
+        v-if="member.username?.twitter || false"
         popper-class="custom-identity-tooltip"
         placement="top"
       >
@@ -53,7 +53,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.github"
+        v-if="member.username?.github || false"
         popper-class="custom-identity-tooltip"
         placement="top"
       >
@@ -85,7 +85,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.linkedin"
+        v-if="member.username?.linkedin || false"
         placement="top"
       >
         <template #content>
@@ -116,7 +116,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.devto"
+        v-if="member.username?.devto || false"
         placement="top"
       >
         <template #content>
@@ -148,7 +148,7 @@
       </el-tooltip>
       <!-- TODO: (TBC) Discord does not have link, is there still any tooltip? -->
       <el-tooltip
-        v-if="member.username.discord"
+        v-if="member.username?.discord || false"
         placement="top"
       >
         <template #content>Discord Profile</template>
@@ -165,7 +165,7 @@
         </span>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.slack"
+        v-if="member.username?.slack || false"
         placement="top"
       >
         <template #content>Slack Profile</template>

@@ -70,7 +70,8 @@ import {
   computed,
   reactive,
   ref,
-  watch
+  watch,
+  onMounted
 } from 'vue'
 import filterFunction from '@/shared/filter/filter-function'
 
@@ -116,8 +117,7 @@ const computedOptions = computed(() => {
 
 watch(expanded, async (newValue) => {
   if (newValue) {
-    await fetchOptions()
-    queryInputRef.value.focus()
+    await init()
   }
 })
 
@@ -127,6 +127,14 @@ watch(query, async (newValue, oldValue) => {
   }
 })
 
+onMounted(async () => {
+  await init()
+})
+
+const init = async () => {
+  await fetchOptions()
+  queryInputRef.value.focus()
+}
 const handleOptionClick = (option) => {
   model.value.push(option)
 }

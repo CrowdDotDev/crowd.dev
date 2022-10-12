@@ -9,7 +9,7 @@ export default (filter) => {
         if (
           Array.isArray(item.value)
             ? item.value.length > 0
-            : item.value !== '' || item.value !== null
+            : item.value !== '' && item.value !== null
         ) {
           acc.push(_buildAttributeBlock(item))
         }
@@ -33,6 +33,26 @@ function _buildAttributeBlock(attribute) {
             }
           }
         })
+      ]
+    }
+  } else if (attribute.name === 'search') {
+    return {
+      or: [
+        {
+          displayName: {
+            textContains: attribute.value
+          }
+        },
+        {
+          email: {
+            textContains: attribute.value
+          }
+        },
+        {
+          'username.default': {
+            textContains: attribute.value
+          }
+        }
       ]
     }
   } else if (attribute.operator === 'between') {

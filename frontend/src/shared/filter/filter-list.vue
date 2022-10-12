@@ -1,25 +1,36 @@
 <template>
-  <div v-if="filtersArray.length > 0" class="filter-list">
-    <div
-      v-for="(filter, index) of filtersArray"
-      :key="filter.name"
-      class="flex items-center"
+  <div>
+    <app-filter-search
+      class="mb-6"
+      @change="handleFilterChange"
     >
-      <app-filter-list-item
-        :filter="filter"
-        class="mx-2"
-        @change="handleFilterChange"
-        @destroy="handleFilterDestroy"
-      />
-      <app-filter-list-operator
-        v-if="
-          filtersArray.length > 1 &&
-          index !== filtersArray.length - 1
-        "
-        :operator="operator"
-        class="mx-2"
-        @change="handleOperatorChanged"
-      />
+      <template #dropdown>
+        <slot name="dropdown"></slot>
+      </template>
+    </app-filter-search>
+
+    <div v-if="filtersArray.length > 0" class="filter-list">
+      <div
+        v-for="(filter, index) of filtersArray"
+        :key="filter.name"
+        class="flex items-center"
+      >
+        <app-filter-list-item
+          :filter="filter"
+          class="mx-2"
+          @change="handleFilterChange"
+          @destroy="handleFilterDestroy"
+        />
+        <app-filter-list-operator
+          v-if="
+            filtersArray.length > 1 &&
+            index !== filtersArray.length - 1
+          "
+          :operator="operator"
+          class="mx-2"
+          @change="handleOperatorChanged"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -52,19 +63,21 @@ const filters = computed(() => {
   return { ...store.state[props.module].filter.attributes }
 })
 const filtersArray = computed(() =>
-  Object.values(filters.value)
+  Object.values(filters.value).filter(
+    (a) => a.type !== 'search'
+  )
 )
 
-const handleFilterChange = (filter) => {
+const handleFilterChange = (attribute) => {
   store.dispatch(
     `${props.module}/updateFilterAttribute`,
-    filter
+    attribute
   )
 }
-const handleFilterDestroy = (filter) => {
+const handleFilterDestroy = (attribute) => {
   store.dispatch(
     `${props.module}/destroyFilterAttribute`,
-    filter
+    attribute
   )
 }
 const handleOperatorChanged = (operator) => {
