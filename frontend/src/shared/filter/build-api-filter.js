@@ -23,19 +23,7 @@ export default (filter) => {
 function _buildAttributeBlock(attribute) {
   let rule = {}
 
-  if (attribute.name === 'score') {
-    return {
-      or: [
-        attribute.value.map((option) => {
-          return {
-            score: {
-              between: option.value
-            }
-          }
-        })
-      ]
-    }
-  } else if (attribute.name === 'search') {
+  if (attribute.name === 'search') {
     return {
       or: [
         {
@@ -54,6 +42,17 @@ function _buildAttributeBlock(attribute) {
           }
         }
       ]
+    }
+  } else if (attribute.name === 'score') {
+    rule = {
+      in: attribute.value.reduce((acc, option) => {
+        for (const value of option.value) {
+          if (!acc.includes(value)) {
+            acc.push(value)
+          }
+        }
+        return acc
+      }, [])
     }
   } else if (attribute.operator === 'between') {
     rule = {
