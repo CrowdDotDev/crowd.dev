@@ -10,7 +10,6 @@ cube(`Members`, {
 		 
 		  AS time_to_first_interaction FROM "members" m
 LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
-WHERE m.type ='member'
 GROUP BY m.id`,
 
   preAggregations: {
