@@ -348,27 +348,37 @@ function wait_for_db() {
     say "Scaffold is up and running!"
 }
 
-function clean_start() {
-    scaffold_reset
-    for i in $CONTAINERS
-    do
-        say "Starting service $i."
-        start_service $i
-        nl
-    done
-}
-
 function start() {
-    up_scaffold
-    for i in $CONTAINERS
+    if [[ -z "$CLEAN_START" ]]; then
+        up_scaffold
+    else
+        scaffold_reset
+    fi
+
+    for SERVICE in $CONTAINERS
     do
-        say "Starting service $i."
-        start_service $i
-        nl
+        if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
+            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"
+            do
+                if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
+                    whisper "Skipping service $SERVICE!"
+                    nl
+                    SKIP=1
+                    break
+                fi
+            done
+        fi
+
+        if [[ -z "$SKIP" ]]; then
+            say "Starting service $SERVICE."
+            start_service $SERVICE
+            nl
+        fi
+        unset SKIP      
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service =>, build =>, build-and-push ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
@@ -391,12 +401,38 @@ do
             exit;
         ;;
         clean-start) 
-            clean_start
+            CLEAN_START=1
+            start
             exit;
         ;;
         clean-start-dev)
+            CLEAN_START=1
             DEV=1
-            clean_start
+            start
+            exit;
+        ;;
+        start-backend)
+            declare -a INGORED_SERVICES=("frontend")
+            start
+            exit;
+        ;;
+        start-backend-dev)
+            declare -a INGORED_SERVICES=("frontend")
+            DEV=1
+            start
+            exit;
+        ;;
+        clean-start-backend)
+            declare -a INGORED_SERVICES=("frontend")
+            CLEAN_START=1
+            start
+            exit;
+        ;;
+        clean-start-backend-dev)
+            declare -a INGORED_SERVICES=("frontend")
+            CLEAN_START=1
+            DEV=1
+            start
             exit;
         ;;
         build)
