@@ -3,6 +3,7 @@
     "platform": "github",
     "name": "GitHub",
     "color": "#E5E7EB",
+    "borderColor": "#E5E7EB",
     "image":
     "https://cdn-icons-png.flaticon.com/512/25/25231.png"
   },
@@ -10,6 +11,7 @@
     "platform": "discord",
     "name": "Discord",
     "color": "#5865F2",
+    "borderColor": "#5865F2",
     "image":
     "https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
   },
@@ -17,6 +19,7 @@
     "platform": "slack",
     "name": "Slack",
     "color": "#FFFFFF",
+    "borderColor": "#FFFFFF",
     "image":
     "https://cdn-icons-png.flaticon.com/512/3800/3800024.png"
   },
@@ -24,6 +27,7 @@
     "platform": "twitter",
     "name": "Twitter",
     "color": "#1D9BF0",
+    "borderColor": "#1D9BF0",
     "image":
     "https://cdn-icons-png.flaticon.com/512/733/733579.png"
   },
@@ -31,6 +35,7 @@
     "platform": "devto",
     "name": "DEV",
     "color": "#E5E7EB",
+    "borderColor": "#E5E7EB",
     "image": "https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
   },
   {

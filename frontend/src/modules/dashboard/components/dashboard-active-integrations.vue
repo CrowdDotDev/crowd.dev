@@ -3,13 +3,17 @@
     <div
       v-for="active of Object.keys(activeIntegrations)"
       :key="active"
-      class="w-8 h-8 m-1 rounded-full flex items-center justify-center"
-      :style="{ background: platformDetails(active).color }"
+      :set="(details = platformDetails(active))"
+      class="w-8 h-8 m-1 rounded-full border flex items-center justify-center"
+      :style="{
+        background: details.color,
+        'border-color': details.borderColor
+      }"
     >
       <img
         class="w-4 h-4"
-        :src="platformDetails(active).image"
-        :alt="platformDetails(active).name"
+        :src="details.image"
+        :alt="details.name"
       />
     </div>
     <router-link
