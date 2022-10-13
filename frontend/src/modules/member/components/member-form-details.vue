@@ -42,9 +42,7 @@
           class="grow"
           :label="fieldsValue.jobTitle.label"
         >
-          <el-input
-            v-model="defaultAttributes.jobTitle.custom"
-          />
+          <el-input v-model="model.jobTitle" />
         </el-form-item>
 
         <el-form-item
@@ -57,16 +55,14 @@
 
       <el-form-item :label="fieldsValue.bio.label">
         <el-input
-          v-model="defaultAttributes.bio.custom"
+          v-model="model.bio"
           type="textarea"
           :rows="4"
         />
       </el-form-item>
 
       <el-form-item :label="fieldsValue.location.label">
-        <el-input
-          v-model="defaultAttributes.location.custom"
-        />
+        <el-input v-model="model.location" />
       </el-form-item>
 
       <el-form-item :label="fieldsValue.tags.label">
@@ -84,14 +80,7 @@
 
 <script setup>
 import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue'
-import {
-  defineEmits,
-  defineProps,
-  computed,
-  watch,
-  h,
-  reactive
-} from 'vue'
+import { defineEmits, defineProps, computed, h } from 'vue'
 
 const CalendarIcon = h(
   'i', // type
@@ -104,10 +93,6 @@ const CalendarIcon = h(
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
-  record: {
-    type: Object,
-    default: () => {}
-  },
   modelValue: {
     type: Object,
     default: () => {}
@@ -118,51 +103,12 @@ const props = defineProps({
   }
 })
 
-const defaultAttributes = reactive({
-  jobTitle: {
-    custom: ''
-  },
-  bio: {
-    custom: ''
-  },
-  location: {
-    custom: ''
-  }
-})
-
 const model = computed({
   get() {
     return props.modelValue
   },
   set(newModel) {
     emit('update:modelValue', newModel)
-  }
-})
-const member = computed(() => props.record)
-
-watch(defaultAttributes, (attributes) => {
-  model.value.attributes = {
-    ...model.value.attributes,
-    jobTitle: attributes.jobTitle,
-    bio: attributes.bio,
-    location: attributes.location
-  }
-})
-
-watch(member, (newMember) => {
-  if (newMember) {
-    defaultAttributes.jobTitle = {
-      ...defaultAttributes.jobTitle,
-      ...newMember.attributes.jobTitle
-    }
-    defaultAttributes.bio = {
-      ...defaultAttributes.bio,
-      ...newMember.attributes.bio
-    }
-    defaultAttributes.location = {
-      ...defaultAttributes.location,
-      ...newMember.attributes.location
-    }
   }
 })
 </script>

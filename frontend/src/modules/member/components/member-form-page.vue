@@ -26,7 +26,6 @@
           >
             <AppMemberFormDetails
               v-model="formModel"
-              :record="record"
               :fields-value="computedFields"
             />
             <el-divider
@@ -41,7 +40,9 @@
             />
             <AppMemberFormAttributes
               v-model="formModel"
+              :attributes="attributes"
               :record="record"
+              @open-drawer="() => (isDrawerOpen = true)"
             />
           </el-form>
         </el-main>
@@ -79,6 +80,12 @@
         </el-footer>
       </el-container>
     </div>
+
+    <!-- Manage Custom Attributes Drawer-->
+    <AppMemberAttributesDrawer
+      v-model="isDrawerOpen"
+      :attributes="attributes"
+    />
   </app-page-wrapper>
 </template>
 
@@ -87,6 +94,7 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppMemberFormDetails from '@/modules/member/components/member-form-details.vue'
 import AppMemberFormIdentities from '@/modules/member/components/member-form-identities.vue'
 import AppMemberFormAttributes from '@/modules/member/components/member-form-attributes.vue'
+import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { h, reactive, ref, computed, onMounted } from 'vue'
@@ -98,6 +106,7 @@ import {
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
+import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 
 const ArrowPrevIcon = h(
   'i', // type
@@ -108,16 +117,22 @@ const ArrowPrevIcon = h(
 )
 
 const { fields } = MemberModel
-const formSchema = new FormSchema([
-  fields.displayName,
-  fields.email,
-  fields.organizations,
-  fields.attributes,
-  fields.tags,
-  fields.username,
-  fields.platform,
-  fields.customAttributes
-])
+const formSchema = computed(
+  () =>
+    new FormSchema([
+      fields.displayName,
+      fields.email,
+      fields.organizations,
+      fields.joinedAt,
+      fields.tags,
+      fields.username,
+      fields.platform,
+      fields.attributes,
+      ...getCustomAttributes(
+        store.state.member.customAttributes
+      )
+    ])
+)
 
 const router = useRouter()
 const route = useRoute()
@@ -127,12 +142,19 @@ const record = ref(null)
 const formRef = ref(null)
 const formModel = ref(getInitialModel())
 
-const rules = reactive(formSchema.rules())
+const isDrawerOpen = ref(false)
 
+const rules = reactive(formSchema.value.rules())
+
+const attributes = computed(() =>
+  Object.values(store.state.member.customAttributes).filter(
+    (attribute) => attribute.show
+  )
+)
 const isEditPage = computed(() => !!route.params.id)
 const computedFields = computed(() => fields)
 const isFormValid = computed(() => {
-  return formSchema.isValidSync(formModel.value)
+  return formSchema.value.isValidSync(formModel.value)
 })
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
@@ -143,16 +165,19 @@ const hasFormChanged = computed(() => {
 })
 
 onMounted(async () => {
+  // Fetch custom attributes on mount
   await store.dispatch('member/doFetchCustomAttributes')
+
   if (isEditPage.value) {
     const id = route.params.id
-    record.value = await store.dispatch('member/doFind', id)
 
+    record.value = await store.dispatch('member/doFind', id)
     formModel.value = getInitialModel(record.value)
   }
 })
 
 onBeforeRouteLeave(() => {
+  // TODO: Fix this for when member was created
   if (hasFormChanged.value) {
     return ConfirmDialog()
       .then(() => {
@@ -167,19 +192,34 @@ onBeforeRouteLeave(() => {
 })
 
 function getInitialModel(record) {
-  return {
+  const attributes = Object.entries(
+    record?.attributes || {}
+  ).reduce((obj, [key, val]) => {
+    if (!val.default) {
+      return obj
+    }
+
+    return {
+      ...obj,
+      [key]: val.default
+    }
+  }, {})
+
+  return formSchema.value.initialValues({
     displayName: record ? record.displayName : '',
     email: record ? record.email : '',
+    joinedAt: record ? record.joinedAt : '',
     organizations: record
       ? record.organizations?.[0]?.name
       : ' ',
     attributes: record ? record.attributes : {},
+    ...attributes,
     tags: record ? record.tags : [],
     username: record ? record.username : {},
     platform: record
       ? record.username[Object.keys(record.username)[0]]
       : ''
-  }
+  })
 }
 
 async function onCancel() {
@@ -187,44 +227,31 @@ async function onCancel() {
 }
 
 async function doSubmit() {
-  // Create custom attributes if existent
-  if (
-    !isEditPage.value &&
-    (formModel.value.customAttributesArray || []).length
-  ) {
-    const customAttributes = await Promise.all(
-      formModel.value.customAttributesArray.map(
-        ({ label, type }) => {
-          return store.dispatch(
-            'member/doCreateCustomAttributes',
-            {
-              label,
-              type
-            }
-          )
+  const formattedAttributes = attributes.value.reduce(
+    (obj, attribute) => {
+      if (!formModel.value[attribute.name]) {
+        return obj
+      }
+
+      return {
+        ...obj,
+        [attribute.name]: {
+          ...formModel.value.attributes[attribute.name],
+          default: formModel.value[attribute.name]
         }
-      )
-    )
-
-    // Request failed
-    if (customAttributes[0] === undefined) {
-      return
-    }
-
-    // Add customAttributes to attributes object
-    formModel.value.attributes = {
-      ...formModel.value.attributes,
-      ...formModel.value.customAttributes
-    }
-  }
+      }
+    },
+    {}
+  )
 
   const data = {
     displayName: formModel.value.displayName,
     email: formModel.value.email,
+    joinedAt: formModel.value.joinedAt,
     organizations: !formModel.value.organizations
       ? []
       : [{ name: formModel.value.organizations }],
-    attributes: formModel.value.attributes,
+    attributes: formattedAttributes,
     tags: formModel.value.tags.map((t) => t.id),
     username: formModel.value.username,
     platform: formModel.value.platform
@@ -234,9 +261,7 @@ async function doSubmit() {
   if (isEditPage.value) {
     await store.dispatch('member/doUpdate', {
       id: record.value.id,
-      values: {
-        data
-      }
+      values: data
     })
   } else {
     // Create new member
