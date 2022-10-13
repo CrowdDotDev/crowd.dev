@@ -76,11 +76,6 @@ cube(`Activities`, {
       primaryKey: true,
     },
 
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
 
     type: {
       sql: `type`,
@@ -99,12 +94,6 @@ cube(`Activities`, {
       shown: false,
     },
 
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
-    },
-
     parentid: {
       sql: `${CUBE}."parentId"`,
       type: `string`,
@@ -117,11 +106,6 @@ cube(`Activities`, {
       shown: false,
     },
 
-    importhash: {
-      sql: `${CUBE}."importHash"`,
-      type: `string`,
-      shown: false,
-    },
 
     createdat: {
       sql: `${CUBE}."createdAt"`,

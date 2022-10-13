@@ -53,4 +53,4 @@ cube(`MemberOrganizations`, {
       type: `time`
     }
   }
-});
+})

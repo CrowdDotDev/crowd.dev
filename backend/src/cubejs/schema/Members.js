@@ -94,11 +94,6 @@ GROUP BY m.id`,
   },
 
   dimensions: {
-    bio: {
-      sql: `bio`,
-      type: `string`,
-      shown: false,
-    },
 
     email: {
       sql: `email`,
@@ -117,6 +112,11 @@ GROUP BY m.id`,
       type: `string`,
     },
 
+    bio: {
+      sql: `COALESCE(${CUBE}.attributes->'bio'->>'default', '')`,
+      type: `string`,
+    },
+
 
     info: {
       sql: `info`,
@@ -130,11 +130,6 @@ GROUP BY m.id`,
       primaryKey: true,
     },
 
-    importhash: {
-      sql: `${CUBE}."importHash"`,
-      type: `string`,
-      shown: false,
-    },
 
     updatedbyid: {
       sql: `${CUBE}."updatedById"`,
@@ -142,14 +137,8 @@ GROUP BY m.id`,
       shown: false,
     },
 
-    signals: {
-      sql: `signals`,
-      type: `string`,
-      shown: false,
-    },
-
     username: {
-      sql: `username`,
+      sql: `${CUBE}."displayName"`,
       type: `string`,
       shown: false,
     },
