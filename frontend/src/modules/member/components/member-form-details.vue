@@ -70,23 +70,27 @@
       </el-form-item>
 
       <el-form-item :label="fieldsValue.tags.label">
-        <app-keywords-input
+        <app-tag-autocomplete-input
           v-model="model[fieldsValue.tags.name]"
+          :fetch-fn="fieldsValue.tags.fetchFn"
+          :mapper-fn="fieldsValue.tags.mapperFn"
+          :create-if-not-found="true"
           placeholder="Enter tags..."
-        />
+        ></app-tag-autocomplete-input>
       </el-form-item>
     </div>
   </div>
 </template>
 
 <script setup>
+import AppTagAutocompleteInput from '@/modules/tag/components/tag-autocomplete-input.vue'
 import {
   defineEmits,
   defineProps,
   computed,
-  reactive,
   watch,
-  h
+  h,
+  reactive
 } from 'vue'
 
 const CalendarIcon = h(
@@ -100,6 +104,10 @@ const CalendarIcon = h(
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
+  record: {
+    type: Object,
+    default: () => {}
+  },
   modelValue: {
     type: Object,
     default: () => {}
@@ -130,8 +138,31 @@ const model = computed({
     emit('update:modelValue', newModel)
   }
 })
+const member = computed(() => props.record)
 
 watch(defaultAttributes, (attributes) => {
-  model.value.attributes = attributes
+  model.value.attributes = {
+    ...model.value.attributes,
+    jobTitle: attributes.jobTitle,
+    bio: attributes.bio,
+    location: attributes.location
+  }
+})
+
+watch(member, (newMember) => {
+  if (newMember) {
+    defaultAttributes.jobTitle = {
+      ...defaultAttributes.jobTitle,
+      ...newMember.attributes.jobTitle
+    }
+    defaultAttributes.bio = {
+      ...defaultAttributes.bio,
+      ...newMember.attributes.bio
+    }
+    defaultAttributes.location = {
+      ...defaultAttributes.location,
+      ...newMember.attributes.location
+    }
+  }
 })
 </script>

@@ -52,7 +52,6 @@
               attribute.label
             )}`"
             required
-            error="Name is required"
             class="col-span-5"
           >
             <el-input v-model="attribute.label"></el-input
@@ -67,7 +66,6 @@
             :prop="`customAttributes.${camelCase(
               attribute.label
             )}.custom`"
-            error="Value is required"
             class="col-span-4"
             ><el-input v-model="attribute.value"></el-input
             ><template #error>
@@ -102,19 +100,25 @@ import {
   defineProps,
   defineEmits,
   computed,
-  reactive,
+  ref,
   watch
 } from 'vue'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
+  record: {
+    type: Object,
+    default: () => {}
+  },
   modelValue: {
     type: Object,
     default: () => {}
   }
 })
-const customAttributes = reactive([])
 
+const customAttributes = ref([])
+
+const member = computed(() => props.record)
 const model = computed({
   get() {
     return props.modelValue
@@ -124,7 +128,28 @@ const model = computed({
   }
 })
 
-watch(customAttributes, (attributes) => {
+watch(member, (newMember) => {
+  const defaultAttributes = [
+    'jobTitle',
+    'url',
+    'bio',
+    'location'
+  ]
+
+  Object.entries(newMember.attributes).forEach(
+    ([key, value]) => {
+      if (!defaultAttributes.includes(key)) {
+        customAttributes.value.push({
+          type: 'string',
+          label: key,
+          value: value.custom
+        })
+      }
+    }
+  )
+})
+
+watch(customAttributes.value, (attributes) => {
   if (!attributes.length) {
     delete model.value.customAttributes
     return
@@ -141,7 +166,7 @@ watch(customAttributes, (attributes) => {
 })
 
 function addAttribute() {
-  customAttributes.push({
+  customAttributes.value.push({
     type: 'string',
     label: null,
     value: null
@@ -149,6 +174,6 @@ function addAttribute() {
 }
 
 function deleteAttribute(index) {
-  customAttributes.splice(index, 1)
+  customAttributes.value.splice(index, 1)
 }
 </script>
