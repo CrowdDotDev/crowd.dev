@@ -182,6 +182,18 @@ export default {
     }
   },
 
+  async doDestroyCustomAttributes({ commit }, id) {
+    try {
+      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.destroyCustomAttribute(id)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response)
+    } catch (error) {
+      Errors.handle(error)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
   async doFetchCustomAttributes({ commit }) {
     try {
       commit('FETCH_CUSTOM_ATTRIBUTES_STARTED')
@@ -203,7 +215,9 @@ export default {
 
       return response
     } catch (error) {
-      Errors.handle(error)
+      if (error.response.status !== 500) {
+        Errors.handle(error)
+      }
       commit('CREATE_ATTRIBUTES_ERROR')
 
       Message.error(
@@ -292,6 +306,7 @@ export default {
       commit('FIND_STARTED')
       const record = await MemberService.find(id)
       commit('FIND_SUCCESS', record)
+      return record
     } catch (error) {
       Errors.handle(error)
       commit('FIND_ERROR')
@@ -383,6 +398,8 @@ export default {
           root: true
         })
       }
+
+      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('UPDATE_ERROR')

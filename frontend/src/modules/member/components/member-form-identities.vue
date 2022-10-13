@@ -57,6 +57,11 @@
                 ></template
               >
             </el-input>
+            <template #error>
+              <div class="el-form-item__error">
+                Identity profile is required
+              </div>
+            </template>
           </el-form-item>
         </div>
       </div>
@@ -66,22 +71,27 @@
 
 <script setup>
 import {
-  reactive,
+  ref,
   defineEmits,
   defineProps,
-  computed
+  computed,
+  watch
 } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
+  record: {
+    type: Object,
+    default: () => {}
+  },
   modelValue: {
     type: Object,
     default: () => {}
   }
 })
 
-const identitiesForm = reactive({
+const identitiesForm = ref({
   devto: {
     enabled: false,
     urlPrefix: 'dev.to/',
@@ -114,6 +124,7 @@ const identitiesForm = reactive({
   }
 })
 
+const member = computed(() => props.record)
 const model = computed({
   get() {
     return props.modelValue
@@ -123,6 +134,13 @@ const model = computed({
   }
 })
 
+watch(member, (newMember) => {
+  Object.entries(identitiesForm.value).forEach(([key]) => {
+    identitiesForm.value[key].enabled =
+      !!newMember.username[key]
+  })
+})
+
 function findPlatform(platform) {
   return integrationsJsonArray.find(
     (p) => p.platform === platform
@@ -130,8 +148,30 @@ function findPlatform(platform) {
 }
 
 function onSwitchChange(value, key) {
-  if (!props.modelValue.platform && value) {
+  if (value) {
     model.value.platform = key
+  }
+
+  // Add platform to username object
+  if (
+    (model.value.username?.[key] === null ||
+      model.value.username?.[key] === undefined) &&
+    value
+  ) {
+    model.value.username[key] = ''
+    return
+  }
+
+  // Remove platform from username object
+  if (!value) {
+    delete model.value.username[key]
+    delete model.value.attributes?.url?.[key]
+  }
+
+  // Handle platfom and attributes when username profiles are removed
+  if (!Object.keys(model.value.username || {}).length) {
+    delete model.value.platform
+    delete model.value.attributes?.url
   }
 }
 
@@ -139,6 +179,7 @@ function onInputChange(newValue, key, value) {
   model.value.attributes = {
     ...props.modelValue.attributes,
     url: {
+      ...props.modelValue.attributes?.url,
       [key]: `${value.urlPrefix}${newValue}`
     }
   }

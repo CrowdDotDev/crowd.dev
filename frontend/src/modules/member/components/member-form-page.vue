@@ -11,7 +11,9 @@
         @click="onCancel"
         >Members</el-button
       >
-      <h4 class="mt-4 mb-6">New member</h4>
+      <h4 class="mt-4 mb-6">
+        {{ isEditPage ? 'Edit member' : 'New member' }}
+      </h4>
       <el-container
         class="bg-white rounded-lg shadow shadow-black/15"
       >
@@ -29,32 +31,61 @@
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <AppMemberFormIdentities v-model="formModel" />
+            <AppMemberFormIdentities
+              v-model="formModel"
+              :record="record"
+            />
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
-            <AppMemberFormAttributes v-model="formModel" />
+            <AppMemberFormAttributes
+              v-model="formModel"
+              :attributes="attributes"
+              :record="record"
+              @open-drawer="() => (isDrawerOpen = true)"
+            />
           </el-form>
         </el-main>
         <el-footer
-          class="bg-gray-50 flex items-center justify-end gap-4 p-6 h-fit rounded-b-lg"
+          class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
+          :class="
+            isEditPage && hasFormChanged
+              ? 'justify-between'
+              : 'justify-end'
+          "
         >
           <el-button
-            class="btn btn--md btn--bordered"
-            @click="onCancel"
+            v-if="isEditPage && hasFormChanged"
+            class="btn btn-link btn-link--primary"
+            ><i class="ri-arrow-go-back-line"></i>
+            <span>Reset changes</span></el-button
           >
-            Cancel
-          </el-button>
-          <el-button
-            :disabled="!isFormValid"
-            class="btn btn--md btn--primary"
-            @click="doSubmit"
-          >
-            Add member
-          </el-button>
+          <div class="flex gap-4">
+            <el-button
+              class="btn btn--md btn--bordered"
+              @click="onCancel"
+            >
+              Cancel
+            </el-button>
+            <el-button
+              :disabled="!isFormValid"
+              class="btn btn--md btn--primary"
+              @click="doSubmit"
+            >
+              {{
+                isEditPage ? 'Update member' : 'Add member'
+              }}
+            </el-button>
+          </div>
         </el-footer>
       </el-container>
     </div>
+
+    <!-- Manage Custom Attributes Drawer-->
+    <AppMemberAttributesDrawer
+      v-model="isDrawerOpen"
+      :attributes="attributes"
+    />
   </app-page-wrapper>
 </template>
 
@@ -63,13 +94,19 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppMemberFormDetails from '@/modules/member/components/member-form-details.vue'
 import AppMemberFormIdentities from '@/modules/member/components/member-form-identities.vue'
 import AppMemberFormAttributes from '@/modules/member/components/member-form-attributes.vue'
+import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { h, reactive, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { h, reactive, ref, computed, onMounted } from 'vue'
+import {
+  useRouter,
+  useRoute,
+  onBeforeRouteLeave
+} from 'vue-router'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
+import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 
 const ArrowPrevIcon = h(
   'i', // type
@@ -80,90 +117,158 @@ const ArrowPrevIcon = h(
 )
 
 const { fields } = MemberModel
-const formSchema = new FormSchema([
-  fields.displayName,
-  fields.email,
-  fields.attributes,
-  fields.tags,
-  fields.username,
-  fields.platform
-])
+const formSchema = computed(
+  () =>
+    new FormSchema([
+      fields.displayName,
+      fields.email,
+      fields.organizations,
+      fields.joinedAt,
+      fields.tags,
+      fields.username,
+      fields.platform,
+      fields.attributes,
+      ...getCustomAttributes(
+        store.state.member.customAttributes
+      )
+    ])
+)
 
 const router = useRouter()
+const route = useRoute()
 const store = useStore()
 
+const record = ref(null)
 const formRef = ref(null)
-const rules = reactive(formSchema.rules())
-const formModel = reactive(
-  formSchema.initialValues({
-    username: {}
-  })
-)
+const formModel = ref(getInitialModel())
 
-const computedFields = computed(() => fields)
-const isFormValid = computed(() =>
-  formSchema.isValidSync(formModel)
-)
+const isDrawerOpen = ref(false)
 
-async function onCancel() {
-  const hasFormChanged = !isEqual(
-    formSchema.initialValues(),
-    formModel
+const rules = reactive(formSchema.value.rules())
+
+const attributes = computed(() =>
+  Object.values(store.state.member.customAttributes).filter(
+    (attribute) => attribute.show
   )
+)
+const isEditPage = computed(() => !!route.params.id)
+const computedFields = computed(() => fields)
+const isFormValid = computed(() => {
+  return formSchema.value.isValidSync(formModel.value)
+})
+const hasFormChanged = computed(() => {
+  const initialModel = isEditPage.value
+    ? getInitialModel(record.value)
+    : getInitialModel()
 
-  if (!hasFormChanged) {
-    return router.push({ name: 'member' })
+  return !isEqual(initialModel, formModel.value)
+})
+
+onMounted(async () => {
+  // Fetch custom attributes on mount
+  await store.dispatch('member/doFetchCustomAttributes')
+
+  if (isEditPage.value) {
+    const id = route.params.id
+
+    record.value = await store.dispatch('member/doFind', id)
+    formModel.value = getInitialModel(record.value)
+  }
+})
+
+onBeforeRouteLeave(() => {
+  // TODO: Fix this for when member was created
+  if (hasFormChanged.value) {
+    return ConfirmDialog()
+      .then(() => {
+        return true
+      })
+      .catch(() => {
+        return false
+      })
   }
 
-  ConfirmDialog()
-    .then(() => {
-      router.push({ name: 'member' })
-    })
-    .catch(() => null)
+  return true
+})
+
+function getInitialModel(record) {
+  const attributes = Object.entries(
+    record?.attributes || {}
+  ).reduce((obj, [key, val]) => {
+    if (!val.default) {
+      return obj
+    }
+
+    return {
+      ...obj,
+      [key]: val.default
+    }
+  }, {})
+
+  return formSchema.value.initialValues({
+    displayName: record ? record.displayName : '',
+    email: record ? record.email : '',
+    joinedAt: record ? record.joinedAt : '',
+    organizations: record
+      ? record.organizations?.[0]?.name
+      : ' ',
+    attributes: record ? record.attributes : {},
+    ...attributes,
+    tags: record ? record.tags : [],
+    username: record ? record.username : {},
+    platform: record
+      ? record.username[Object.keys(record.username)[0]]
+      : ''
+  })
+}
+
+async function onCancel() {
+  router.push({ name: 'member' })
 }
 
 async function doSubmit() {
-  const customAttributes = await Promise.all(
-    formModel.customAttributes.map(({ name, type }) => {
-      return store.dispatch(
-        'member/doCreateCustomAttributes',
-        {
-          label: name,
-          type
+  const formattedAttributes = attributes.value.reduce(
+    (obj, attribute) => {
+      if (!formModel.value[attribute.name]) {
+        return obj
+      }
+
+      return {
+        ...obj,
+        [attribute.name]: {
+          ...formModel.value.attributes[attribute.name],
+          default: formModel.value[attribute.name]
         }
-      )
-    })
-  )
-
-  // Request failed
-  if (customAttributes[0] === undefined) {
-    return
-  }
-
-  const formattedAttributes = customAttributes.reduce(
-    (obj, { label, name }) => {
-      const attribute = formModel.customAttributes.find(
-        (a) => a.name === label
-      )
-      return Object.assign(obj, {
-        [name]: { custom: attribute.value }
-      })
+      }
     },
     {}
   )
 
-  formModel.attributes = {
-    ...formModel.attributes,
-    ...formattedAttributes
+  const data = {
+    displayName: formModel.value.displayName,
+    email: formModel.value.email,
+    joinedAt: formModel.value.joinedAt,
+    organizations: !formModel.value.organizations
+      ? []
+      : [{ name: formModel.value.organizations }],
+    attributes: formattedAttributes,
+    tags: formModel.value.tags.map((t) => t.id),
+    username: formModel.value.username,
+    platform: formModel.value.platform
   }
 
-  const formattedFormModel = { ...formModel }
-  delete formattedFormModel.customAttributes
-  delete formattedFormModel.attributes.url
-
-  await store.dispatch('member/doCreate', {
-    data: formSchema.cast(formattedFormModel)
-  })
+  // Edit member
+  if (isEditPage.value) {
+    await store.dispatch('member/doUpdate', {
+      id: record.value.id,
+      values: data
+    })
+  } else {
+    // Create new member
+    await store.dispatch('member/doCreate', {
+      data
+    })
+  }
 }
 </script>
 
@@ -179,28 +284,21 @@ async function doSubmit() {
 
   // Personal Details form
   .personal-details-form {
-    & .el-form-item:not(:last-of-type) {
+    & .el-form-item {
       @apply mb-6;
     }
 
-    & .app-keywords-input {
+    & .app-tags-input,
+    .el-select {
       @apply w-full;
+    }
 
-      & .el-keywords-input-wrapper {
+    & .app-tags-input {
+      & .el-input__wrapper {
         @apply gap-2 px-3;
 
         & .el-tag {
           @apply m-0 h-6 bg-gray-100 border-gray-200;
-        }
-
-        & .el-keywords-input {
-          &:first-child {
-            @apply ml-0;
-          }
-
-          &:not(:first-child) {
-            @apply ml-1;
-          }
         }
       }
     }
@@ -217,5 +315,21 @@ async function doSubmit() {
     .el-form-item__content {
     @apply flex mb-0;
   }
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected,
+.el-select-dropdown .el-select-dropdown__item.selected {
+  @apply font-medium  text-gray-900;
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected {
+  @apply bg-brand-50;
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected::after {
+  @apply bg-gray-900;
 }
 </style>
