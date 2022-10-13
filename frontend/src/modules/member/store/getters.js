@@ -20,6 +20,9 @@ export default {
 
     return `${sorter.prop}_${direction}`
   },
+  find: (state) => (id) => {
+    return state.records[id]
+  },
   limit: (state) => {
     const pagination = state.pagination
 

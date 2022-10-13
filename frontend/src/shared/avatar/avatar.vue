@@ -89,7 +89,7 @@ export default {
   border: 1px solid #dedede;
 
   &--xl {
-    @apply h-20 w-20;
+    @apply h-18 w-18;
   }
 
   &--lg {
