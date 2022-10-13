@@ -1,4 +1,5 @@
 import { QueryTypes } from 'sequelize'
+import ActivityService from '../../../services/activityService'
 import TenantService from '../../../services/tenantService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
 
@@ -8,30 +9,54 @@ import SequelizeRepository from '../../repositories/sequelizeRepository'
  * TODO:: Finish this up
  */
 export default async () => {
-  let tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
-  tenants = [tenants[0]]
+  // let tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
+  // tenants = [tenants[0]]
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-  const activityCountQuery = `select count(*) from activities a
+  const activityQuery = `select * from activities a
                               where a."timestamp"  between '2022-09-01' and now() `
 
-  const activityCount = (
-    await options.database.sequelize.query(activityCountQuery, {
-      type: QueryTypes.SELECT,
-    })
-  )[0].count
+  let activities = await options.database.sequelize.query(activityQuery, {
+    type: QueryTypes.SELECT,
+  })
 
-  const og = [
-    {
-      name: 'someOGName',
-      memberOrganizations: [
-        {
-          memberId: '005f6c8a-a7f7-4e8b-88d2-ecfbba21e6e4',
-        },
-      ],
-    },
-  ]
+  // console.log('activities: ')
+  // console.log(activities)
 
-  await options.database.member.bulkCreate(og)
+  const splittedActivities = []
+  const ACTIVITY_CHUNK_SIZE = 20
+
+  if (activities.length > ACTIVITY_CHUNK_SIZE) {
+    splittedActivities.push(activities.slice(0, ACTIVITY_CHUNK_SIZE))
+  }
+
+  console.log("splitted activities[0]")
+  console.log(splittedActivities[0])
+  const sentimentPromises = []
+
+  for (const activity of splittedActivities[0]) {
+    sentimentPromises.push(ActivityService.getSentiment(activity))
+  }
+
+  // console.log('sentiment promises: ')
+  // console.log(sentimentPromises)
+
+  console.log('getting 10 sentiment in parallel...')
+  const values = await Promise.all(sentimentPromises)
+
+  console.log(values)
+
+  splittedActivities[0] = splittedActivities[0].map((i, index) => {
+    i.sentiment = values[index]
+    return i
+  })
+
+  console.log("transformed splitted:")
+  console.log(splittedActivities[0])
+
+  // for (let i = 0; i< 10; i++){
+  //   sentimentPromises.push(Ac)
+  // }
+  // const sentiment = await ActivityService.getSentiment(data)
 }

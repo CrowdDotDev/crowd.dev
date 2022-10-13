@@ -161,6 +161,9 @@ export default class ActivityService {
       }
     }
 
+    data.body = data.body ?? ''
+    data.title = data.title ?? ''
+
     // Concatenate title and body
     const text = `${data.title} ${data.body}`.trim()
 
