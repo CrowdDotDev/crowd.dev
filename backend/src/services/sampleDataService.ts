@@ -77,7 +77,7 @@ export default class SampleDataService {
    * Deletes sample data
    * Sample data is defined for all members and activities where attributes.sample.crowd = true
    * Sets currentTenant.hasSampleData to false
-   * Also removes settings for attributes.sample.crowd 
+   * Also removes settings for attributes.sample.crowd
    */
   async deleteSampleData(): Promise<void> {
     // deleting sample members should cascade to their activities as well
@@ -97,7 +97,11 @@ export default class SampleDataService {
     await memberService.destroyBulk(memberIds)
 
     // delete attribute settings for attributes.sample.crowd as well
-    const sampleAttributeSettings = (await memberAttributeSettingsService.findAndCountAll({filter: {name: MemberAttributeName.SAMPLE}})).rows[0]
+    const sampleAttributeSettings = (
+      await memberAttributeSettingsService.findAndCountAll({
+        filter: { name: MemberAttributeName.SAMPLE },
+      })
+    ).rows[0]
     await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
 
     await tenantService.update(this.options.currentTenant.id, {

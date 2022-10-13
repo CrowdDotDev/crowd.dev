@@ -16,11 +16,7 @@ where
   preAggregations: {
     Sentiment: {
       measures: [Sentiment.averageSentiment],
-      dimensions: [
-        Sentiment.platform,
-        Sentiment.mood,
-        Sentiment.tenantId,
-      ],
+      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
       timeDimension: Sentiment.date,
       granularity: `day`,
       refreshKey: {
@@ -40,14 +36,13 @@ where
 
   measures: {
     averageSentiment: {
-        type: 'avg',
-        sql: `sentiment`,
-        // shown: false,
-      },
+      type: 'avg',
+      sql: `sentiment`,
+      // shown: false,
+    },
   },
 
   dimensions: {
-
     tenantId: {
       sql: `${CUBE}."tenantId"`,
       type: `string`,
@@ -61,15 +56,15 @@ where
     },
 
     platform: {
-        sql: `platform`,
-        type: `string`,
+      sql: `platform`,
+      type: `string`,
     },
 
     mood: {
-        sql: `mood`,
-        type: `string`,
+      sql: `mood`,
+      type: `string`,
     },
-   
+
     date: {
       sql: `timestamp`,
       type: `time`,

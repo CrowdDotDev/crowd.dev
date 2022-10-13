@@ -164,7 +164,7 @@ export default class ActivityService {
     // Concatenate title and body
     const text = `${data.title} ${data.body}`.trim()
 
-    return text === "" ? {} : detectSentiment(text)
+    return text === '' ? {} : detectSentiment(text)
   }
 
   /**

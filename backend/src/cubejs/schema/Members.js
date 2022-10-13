@@ -25,7 +25,6 @@ GROUP BY m.id`,
     },
     */
 
-
     ActiveMembers: {
       measures: [Members.count],
       dimensions: [
@@ -94,7 +93,6 @@ GROUP BY m.id`,
   },
 
   dimensions: {
-
     email: {
       sql: `email`,
       type: `string`,
@@ -117,7 +115,6 @@ GROUP BY m.id`,
       type: `string`,
     },
 
-
     info: {
       sql: `info`,
       type: `string`,
@@ -129,7 +126,6 @@ GROUP BY m.id`,
       type: `string`,
       primaryKey: true,
     },
-
 
     updatedbyid: {
       sql: `${CUBE}."updatedById"`,

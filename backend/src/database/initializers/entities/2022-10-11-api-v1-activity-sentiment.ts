@@ -2,7 +2,6 @@ import { QueryTypes } from 'sequelize'
 import TenantService from '../../../services/tenantService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
 
-
 /**
  * Since requests to aws activity sentiment api creates a bottleneck,
  * We'll be generating the sentiment for this month's activities only.
@@ -11,7 +10,7 @@ import SequelizeRepository from '../../repositories/sequelizeRepository'
 export default async () => {
   let tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
   tenants = [tenants[0]]
-  
+
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
   const activityCountQuery = `select count(*) from activities a
@@ -23,12 +22,16 @@ export default async () => {
     })
   )[0].count
 
-  const og = [{
-    name: 'someOGName',
-    memberOrganizations: [{
-        memberId: "005f6c8a-a7f7-4e8b-88d2-ecfbba21e6e4"
-    }]
-  }]
+  const og = [
+    {
+      name: 'someOGName',
+      memberOrganizations: [
+        {
+          memberId: '005f6c8a-a7f7-4e8b-88d2-ecfbba21e6e4',
+        },
+      ],
+    },
+  ]
 
   await options.database.member.bulkCreate(og)
 }

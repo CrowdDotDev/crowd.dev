@@ -1,108 +1,109 @@
 cube(`Organizations`, {
   sql: `SELECT * FROM public.organizations`,
-  preAggregations: {// Pre-Aggregations definitions go here
-    // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started  
+  preAggregations: {
+    // Pre-Aggregations definitions go here
+    // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started
 
     activeOrganizations: {
       measures: [Organizations.count],
       dimensions: [Organizations.tenantId],
       timeDimension: Activities.date,
-      granularity: `day`
-    }
+      granularity: `day`,
+    },
   },
   joins: {
     MemberOrganizations: {
       sql: `${CUBE}.id = ${MemberOrganizations}."organizationId"`,
-      relationship: `hasMany`
-    }
+      relationship: `hasMany`,
+    },
   },
   measures: {
     count: {
       type: `count`,
-      drillMembers: [updatedbyid, id, name, createdbyid, tenantId, createdat, updatedat]
-    }
+      drillMembers: [updatedbyid, id, name, createdbyid, tenantId, createdat, updatedat],
+    },
   },
   dimensions: {
     emails: {
       sql: `emails`,
-      type: `string`
+      type: `string`,
     },
     logo: {
       sql: `logo`,
-      type: `string`
+      type: `string`,
     },
     phonenumbers: {
       sql: `${CUBE}."phoneNumbers"`,
-      type: `string`
+      type: `string`,
     },
     twitter: {
       sql: `twitter`,
-      type: `string`
+      type: `string`,
     },
     importhash: {
       sql: `${CUBE}."importHash"`,
-      type: `string`
+      type: `string`,
     },
     updatedbyid: {
       sql: `${CUBE}."updatedById"`,
-      type: `string`
+      type: `string`,
     },
     revenuerange: {
       sql: `${CUBE}."revenueRange"`,
-      type: `string`
+      type: `string`,
     },
     url: {
       sql: `url`,
-      type: `string`
+      type: `string`,
     },
     tags: {
       sql: `tags`,
-      type: `string`
+      type: `string`,
     },
     description: {
       sql: `description`,
-      type: `string`
+      type: `string`,
     },
     id: {
       sql: `id`,
       type: `string`,
-      primaryKey: true
+      primaryKey: true,
     },
     linkedin: {
       sql: `linkedin`,
-      type: `string`
+      type: `string`,
     },
     name: {
       sql: `name`,
-      type: `string`
+      type: `string`,
     },
     crunchbase: {
       sql: `crunchbase`,
-      type: `string`
+      type: `string`,
     },
     createdbyid: {
       sql: `${CUBE}."createdById"`,
-      type: `string`
+      type: `string`,
     },
     tenantId: {
       sql: `${CUBE}."tenantId"`,
-      type: `string`
+      type: `string`,
     },
     parenturl: {
       sql: `${CUBE}."parentUrl"`,
-      type: `string`
+      type: `string`,
     },
     createdat: {
       sql: `${CUBE}."createdAt"`,
-      type: `time`
+      type: `time`,
     },
     updatedat: {
       sql: `${CUBE}."updatedAt"`,
-      type: `time`
+      type: `time`,
     },
     deletedat: {
       sql: `${CUBE}."deletedAt"`,
-      type: `time`
-    }
-  }
-});
+      type: `time`,
+    },
+  },
+})

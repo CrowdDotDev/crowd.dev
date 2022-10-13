@@ -101,7 +101,7 @@ export const up = async (queryInterface, Sequelize) => {
         CONSTRAINT "activityTasks_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES public.tasks(id) ON DELETE CASCADE ON UPDATE CASCADE
       )`,
       { transaction },
-    ) 
+    )
 
     // notes
     await queryInterface.sequelize.query(
@@ -277,7 +277,7 @@ export const down = async (queryInterface) => {
     await queryInterface.sequelize.query('DROP TABLE "organizationCaches"', {
       transaction,
     })
-    
+
     return transaction.commit()
   } catch (error) {
     await transaction.rollback()

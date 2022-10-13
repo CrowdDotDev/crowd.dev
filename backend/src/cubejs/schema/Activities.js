@@ -76,7 +76,6 @@ cube(`Activities`, {
       primaryKey: true,
     },
 
-
     type: {
       sql: `type`,
       type: `string`,
@@ -105,7 +104,6 @@ cube(`Activities`, {
       type: `string`,
       shown: false,
     },
-
 
     createdat: {
       sql: `${CUBE}."createdAt"`,

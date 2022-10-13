@@ -328,7 +328,6 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       { transaction },
     )
 
-
     // create new activities field: attributes
     await queryInterface.addColumn(
       'activities',
@@ -379,7 +378,6 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       },
       { transaction },
     )
-
 
     // create new settings field: attributeSettings
     await queryInterface.addColumn(
@@ -436,7 +434,6 @@ export const down = async (queryInterface: QueryInterface) => {
     await queryInterface.renameColumn('activities', 'memberId', 'communityMemberId', {
       transaction,
     })
-
 
     await queryInterface.addConstraint('activities', {
       type: 'foreign key',
@@ -690,7 +687,7 @@ export const down = async (queryInterface: QueryInterface) => {
     // activities.body
     await queryInterface.removeColumn('activities', 'body', { transaction })
 
-     // activities.title
+    // activities.title
     await queryInterface.removeColumn('activities', 'title', { transaction })
 
     // activities.channel
@@ -698,7 +695,7 @@ export const down = async (queryInterface: QueryInterface) => {
 
     // activities.url
     await queryInterface.removeColumn('activities', 'url', { transaction })
-    
+
     // remove settings.attributeSettings
     await queryInterface.removeColumn('settings', 'attributeSettings', { transaction })
 

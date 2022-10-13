@@ -17,7 +17,7 @@ import { CrowdMemberAttributes } from '../../attributes/member/crowd'
 
 export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
-  
+
   // tenants = [tenants[0]]
   // tenants = tenants.filter(i => i.id === '283bc26a-77f7-46d5-a88f-99f145675aab')
 
@@ -72,7 +72,6 @@ export default async () => {
 
     // Create integration specific member attribute settings
     for (const integration of activeIntegrations.rows) {
-
       switch (integration.platform) {
         case PlatformType.DEVTO:
           await memberAttributesService.createPredefined(DevtoMemberAttributes)
@@ -231,24 +230,23 @@ export default async () => {
       console.log('bulk updating organizations...')
       let organizationsQuery = `INSERT INTO "organizations" ("id", "name", "createdAt", "updatedAt", "tenantId") VALUES `
       for (const organisationName of Object.keys(orgNameMemberIdMappings)) {
-        organizationsQuery += `('${randomUUID()}', '${organisationName.replace(/'/g, "''")}', NOW(), NOW(), '${tenant.id}'),`
+        organizationsQuery += `('${randomUUID()}', '${organisationName.replace(
+          /'/g,
+          "''",
+        )}', NOW(), NOW(), '${tenant.id}'),`
       }
-      organizationsQuery = organizationsQuery.slice(
-        0,
-        organizationsQuery.length - 1,
-      )
+      organizationsQuery = organizationsQuery.slice(0, organizationsQuery.length - 1)
       organizationsQuery += ` returning id`
 
       const ids = await seq.query(organizationsQuery, {
         type: QueryTypes.INSERT,
       })
 
-      let a  = 0 
+      let a = 0
       for (const organisationName of Object.keys(orgNameMemberIdMappings)) {
         nameMemberMapping[ids[0][a].id] = orgNameMemberIdMappings[organisationName]
         a += 1
       }
-
 
       console.log('bulk updating memberOrganisations...')
       let memberOrganisationsQuery = `
@@ -359,37 +357,34 @@ export default async () => {
       if (transformedActivityCount % 1000 === 0) {
         console.log(`transforming activities: ${transformedActivityCount}/${activityCount}`)
       }
-
     }
     console.log(`bulk updating tenant [${tenant.id}] activities...`)
 
     const ACTIVITY_CHUNK_SIZE = 25000
 
-    if (updateActivities.length > ACTIVITY_CHUNK_SIZE ){
+    if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
       const rawLength = updateActivities.length
       const splittedBulkActivities = []
 
-      while (updateActivities.length > ACTIVITY_CHUNK_SIZE){
-        splittedBulkActivities.push(updateActivities.slice(0,ACTIVITY_CHUNK_SIZE))
+      while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
+        splittedBulkActivities.push(updateActivities.slice(0, ACTIVITY_CHUNK_SIZE))
         updateActivities = updateActivities.slice(ACTIVITY_CHUNK_SIZE)
       }
-  
+
       let counter = ACTIVITY_CHUNK_SIZE
-      for (const activityChunk of splittedBulkActivities){
+      for (const activityChunk of splittedBulkActivities) {
         console.log(`updating activity chunk ${counter}/${rawLength}`)
         await userContext.database.activity.bulkCreate(activityChunk, {
           updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
         })
         counter += ACTIVITY_CHUNK_SIZE
       }
-    }
-    else{
+    } else {
       await userContext.database.activity.bulkCreate(updateActivities, {
         updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
       })
     }
 
-  
     console.log('done!')
   }
   const endedAt = new Date()
