@@ -5,21 +5,22 @@
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Add custom data points to enhance the member profile
       </p>
+      <el-button
+        class="btn btn-link btn-link--sm btn-link--primary mt-3"
+        @click="() => emit('openDrawer')"
+        >Manage custom attributes</el-button
+      >
     </div>
     <div class="col-span-2">
       <div
         class="grid grid-cols-12 gap-3 border-b h-8 items-center"
       >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-2"
-          >Type</span
-        >
-        <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-5"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-3"
           >Name</span
         >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-5"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-9"
           >Value</span
         >
       </div>
@@ -32,83 +33,83 @@
           :key="index"
           class="grid grid-cols-12 gap-3"
         >
-          <el-form-item class="col-span-2">
+          <div class="col-span-3 flex flex-col gap-1">
+            <span
+              class="text-gray-900 text-xs font-medium"
+              >{{ attribute.label }}</span
+            >
+            <span class="text-2xs text-gray-500">{{
+              attributesTypes[attribute.type]
+            }}</span>
+          </div>
+          <el-form-item class="col-span-9">
+            <el-date-picker
+              v-if="attribute.type === 'date'"
+              v-model="model[attribute.name]"
+              clearable
+              :prefix-icon="CalendarIcon"
+              class="custom-date-picker"
+              popper-class="date-picker-popper"
+              type="date"
+              placeholder="YYYY-MM-DD"
+            />
             <el-select
-              v-model="attribute.type"
-              popper-class="attribute-popper-class"
-              placeholder="Type"
-              size="large"
+              v-else-if="attribute.type === 'boolean'"
+              v-model="model[attribute.name]"
+              class="w-full"
+              clearable
+              placeholder="Select option"
             >
               <el-option
-                v-for="typeOption in attributeTypes"
-                :key="typeOption.value"
-                :label="typeOption.label"
-                :value="typeOption.value"
+                key="true"
+                label="True"
+                :value="true"
+              />
+              <el-option
+                key="false"
+                label="False"
+                :value="false"
               />
             </el-select>
-          </el-form-item>
-          <el-form-item
-            :prop="`customAttributes.${camelCase(
-              attribute.label
-            )}`"
-            required
-            class="col-span-5"
-          >
-            <el-input v-model="attribute.label"></el-input
-            ><template #error>
-              <div class="el-form-item__error">
-                Name is required
-              </div>
-            </template></el-form-item
-          >
-          <el-form-item
-            required
-            :prop="`customAttributes.${camelCase(
-              attribute.label
-            )}.custom`"
-            class="col-span-4"
-            ><el-input v-model="attribute.value"></el-input
+
+            <el-input
+              v-else
+              v-model="model[attribute.name]"
+              :type="attribute.type"
+              clearable
+            ></el-input
             ><template #error>
               <div class="el-form-item__error">
                 Value is required
               </div>
             </template></el-form-item
           >
-          <el-button
-            class="btn btn--md btn--transparent w-10 h-10"
-            @click="deleteAttribute(index)"
-          >
-            <i
-              class="ri-delete-bin-line text-lg text-black"
-            ></i>
-          </el-button>
         </div>
       </div>
-      <el-button
-        class="btn btn-link btn-link--md btn-link--primary mt-4"
-        @click="addAttribute"
-        >+ Add custom attribute</el-button
-      >
     </div>
   </div>
 </template>
 
 <script setup>
-import attributeTypes from '@/jsons/member-custom-attributes.json'
-import camelCase from 'lodash/camelCase'
-import {
-  defineProps,
-  defineEmits,
-  computed,
-  ref,
-  watch
-} from 'vue'
+import { defineProps, defineEmits, computed } from 'vue'
 
-const emit = defineEmits(['update:modelValue'])
+const attributesTypes = {
+  string: 'Text',
+  number: 'Number',
+  email: 'E-mail',
+  url: 'URL',
+  date: 'Date',
+  boolean: 'Boolean'
+}
+
+const emit = defineEmits([
+  'update:modelValue',
+  'openDrawer'
+])
 const props = defineProps({
-  record: {
-    type: Object,
-    default: () => {}
+  attributes: {
+    type: Array,
+    default: () => []
   },
   modelValue: {
     type: Object,
@@ -116,9 +117,12 @@ const props = defineProps({
   }
 })
 
-const customAttributes = ref([])
+const customAttributes = computed(() =>
+  props.attributes.filter(
+    (attribute) => attribute.canDelete
+  )
+)
 
-const member = computed(() => props.record)
 const model = computed({
   get() {
     return props.modelValue
@@ -127,53 +131,4 @@ const model = computed({
     emit('update:modelValue', newModel)
   }
 })
-
-watch(member, (newMember) => {
-  const defaultAttributes = [
-    'jobTitle',
-    'url',
-    'bio',
-    'location'
-  ]
-
-  Object.entries(newMember.attributes).forEach(
-    ([key, value]) => {
-      if (!defaultAttributes.includes(key)) {
-        customAttributes.value.push({
-          type: 'string',
-          label: key,
-          value: value.custom
-        })
-      }
-    }
-  )
-})
-
-watch(customAttributes.value, (attributes) => {
-  if (!attributes.length) {
-    delete model.value.customAttributes
-    return
-  }
-
-  model.value.customAttributesArray = attributes
-  model.value.customAttributes = attributes.reduce(
-    (obj, { label, value }) => ({
-      ...obj,
-      [camelCase(label)]: { custom: value }
-    }),
-    {}
-  )
-})
-
-function addAttribute() {
-  customAttributes.value.push({
-    type: 'string',
-    label: null,
-    value: null
-  })
-}
-
-function deleteAttribute(index) {
-  customAttributes.value.splice(index, 1)
-}
 </script>

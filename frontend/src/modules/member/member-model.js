@@ -26,11 +26,6 @@ const fields = {
       return record
     }
   }),
-  customAttributes: new JsonField(
-    'customAttributes',
-    label(''),
-    { nonEmpty: true }
-  ),
   attributes: new JsonField(
     'attributes',
     label('attributes')
