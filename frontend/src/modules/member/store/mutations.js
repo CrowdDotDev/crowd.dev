@@ -186,7 +186,9 @@ export default {
   DESTROY_ERROR() {},
 
   FIND_STARTED() {},
-  FIND_SUCCESS() {},
+  FIND_SUCCESS(state, payload) {
+    state.records[payload.id] = payload
+  },
   FIND_ERROR() {},
 
   FILTER_CHANGED(state, filter) {

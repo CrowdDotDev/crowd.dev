@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-x-12 grid-cols-3">
-    <div>
+    <div v-if="showHeader">
       <h6>
         Identities <span class="text-brand-500">*</span>
       </h6>
@@ -9,7 +9,10 @@
         profiles
       </p>
     </div>
-    <div class="col-span-2 identities-form">
+    <div
+      class="identities-form"
+      :class="showHeader ? 'col-span-2' : 'col-span-3'"
+    >
       <div
         v-for="[key, value] in Object.entries(
           identitiesForm
@@ -71,60 +74,25 @@
 
 <script setup>
 import {
-  ref,
+  reactive,
   defineEmits,
   defineProps,
-  computed,
-  watch
+  computed
 } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
-  record: {
-    type: Object,
-    default: () => {}
-  },
   modelValue: {
     type: Object,
     default: () => {}
+  },
+  showHeader: {
+    type: Boolean,
+    default: true
   }
 })
 
-const identitiesForm = ref({
-  devto: {
-    enabled: false,
-    urlPrefix: 'dev.to/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
-  },
-  discord: {
-    enabled: false,
-    urlPrefix: 'discord.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto'
-  },
-  github: {
-    enabled: false,
-    urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
-  },
-  slack: {
-    enabled: false,
-    urlPrefix: 'slack.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
-  },
-  twitter: {
-    enabled: false,
-    urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
-  }
-})
-
-const member = computed(() => props.record)
 const model = computed({
   get() {
     return props.modelValue
@@ -134,11 +102,47 @@ const model = computed({
   }
 })
 
-watch(member, (newMember) => {
-  Object.entries(identitiesForm.value).forEach(([key]) => {
-    identitiesForm.value[key].enabled =
-      !!newMember.username[key]
-  })
+const identitiesForm = reactive({
+  devto: {
+    enabled:
+      props.modelValue.username?.devto !== undefined ||
+      false,
+    urlPrefix: 'dev.to/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+  },
+  discord: {
+    enabled:
+      props.modelValue.username?.discord !== undefined ||
+      false,
+    urlPrefix: 'discord.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto'
+  },
+  github: {
+    enabled:
+      props.modelValue.username?.github !== undefined ||
+      false,
+    urlPrefix: 'github.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+  },
+  slack: {
+    enabled:
+      props.modelValue.username?.slack !== undefined ||
+      false,
+    urlPrefix: 'slack.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
+  },
+  twitter: {
+    enabled:
+      props.modelValue.username?.twitter !== undefined ||
+      false,
+    urlPrefix: 'twitter.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
+  }
 })
 
 function findPlatform(platform) {
