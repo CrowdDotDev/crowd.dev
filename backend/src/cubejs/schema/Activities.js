@@ -9,7 +9,6 @@ cube(`Activities`, {
         Activities.type,
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Activities.tenantId,
         Tags.name,

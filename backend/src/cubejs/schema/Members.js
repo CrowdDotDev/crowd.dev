@@ -13,26 +13,30 @@ LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
 GROUP BY m.id`,
 
   preAggregations: {
+    /*
     Members: {
       measures: [Members.count],
-      dimensions: [Members.score, Members.location, Members.organisation, Members.tenantId],
+      dimensions: [Members.score, Members.location, Members.tenantId],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,
       },
     },
+    */
+
 
     ActiveMembers: {
       measures: [Members.count],
       dimensions: [
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Tags.name,
+        // Activities.date
       ],
-      timeDimension: Activities.date,
+      // timeDimension: Activities.date,
+      timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,
@@ -70,6 +74,11 @@ GROUP BY m.id`,
       sql: `${CUBE}.id = ${MemberTags}."memberId"`,
       relationship: `belongsTo`,
     },
+
+    MemberOrganizations: {
+      sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
+      relationship: `belongsTo`,
+    },
   },
 
   measures: {
@@ -104,9 +113,10 @@ GROUP BY m.id`,
     },
 
     location: {
-      sql: `location`,
+      sql: `COALESCE(${CUBE}.attributes->'location'->>'default', '')`,
       type: `string`,
     },
+
 
     info: {
       sql: `info`,
@@ -118,23 +128,6 @@ GROUP BY m.id`,
       sql: `id`,
       type: `string`,
       primaryKey: true,
-    },
-
-    type: {
-      sql: `type`,
-      type: `string`,
-      shown: false,
-    },
-
-    organisation: {
-      sql: `organisation`,
-      type: `string`,
-    },
-
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
     },
 
     importhash: {
