@@ -39,7 +39,6 @@
 
           <el-form-item
             v-if="value.enabled"
-            error="Identity profile is required"
             :prop="`username.${key}`"
             required
             class="mt-1 !mb-6"
@@ -72,22 +71,27 @@
 
 <script setup>
 import {
-  reactive,
+  ref,
   defineEmits,
   defineProps,
-  computed
+  computed,
+  watch
 } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
+  record: {
+    type: Object,
+    default: () => {}
+  },
   modelValue: {
     type: Object,
     default: () => {}
   }
 })
 
-const identitiesForm = reactive({
+const identitiesForm = ref({
   devto: {
     enabled: false,
     urlPrefix: 'dev.to/',
@@ -120,6 +124,7 @@ const identitiesForm = reactive({
   }
 })
 
+const member = computed(() => props.record)
 const model = computed({
   get() {
     return props.modelValue
@@ -127,6 +132,13 @@ const model = computed({
   set(newModel) {
     emit('update:modelValue', newModel)
   }
+})
+
+watch(member, (newMember) => {
+  Object.entries(identitiesForm.value).forEach(([key]) => {
+    identitiesForm.value[key].enabled =
+      !!newMember.username[key]
+  })
 })
 
 function findPlatform(platform) {
@@ -167,6 +179,7 @@ function onInputChange(newValue, key, value) {
   model.value.attributes = {
     ...props.modelValue.attributes,
     url: {
+      ...props.modelValue.attributes?.url,
       [key]: `${value.urlPrefix}${newValue}`
     }
   }

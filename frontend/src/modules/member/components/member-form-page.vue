@@ -11,7 +11,9 @@
         @click="onCancel"
         >Members</el-button
       >
-      <h4 class="mt-4 mb-6">New member</h4>
+      <h4 class="mt-4 mb-6">
+        {{ isEditPage ? 'Edit member' : 'New member' }}
+      </h4>
       <el-container
         class="bg-white rounded-lg shadow shadow-black/15"
       >
@@ -24,34 +26,56 @@
           >
             <AppMemberFormDetails
               v-model="formModel"
+              :record="record"
               :fields-value="computedFields"
             />
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <AppMemberFormIdentities v-model="formModel" />
+            <AppMemberFormIdentities
+              v-model="formModel"
+              :record="record"
+            />
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
-            <AppMemberFormAttributes v-model="formModel" />
+            <AppMemberFormAttributes
+              v-model="formModel"
+              :record="record"
+            />
           </el-form>
         </el-main>
         <el-footer
-          class="bg-gray-50 flex items-center justify-end gap-4 p-6 h-fit rounded-b-lg"
+          class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
+          :class="
+            isEditPage && hasFormChanged
+              ? 'justify-between'
+              : 'justify-end'
+          "
         >
           <el-button
-            class="btn btn--md btn--bordered"
-            @click="onCancel"
+            v-if="isEditPage && hasFormChanged"
+            class="btn btn-link btn-link--primary"
+            ><i class="ri-arrow-go-back-line"></i>
+            <span>Reset changes</span></el-button
           >
-            Cancel
-          </el-button>
-          <el-button
-            :disabled="!isFormValid"
-            class="btn btn--md btn--primary"
-            @click="doSubmit"
-          >
-            Add member
-          </el-button>
+          <div class="flex gap-4">
+            <el-button
+              class="btn btn--md btn--bordered"
+              @click="onCancel"
+            >
+              Cancel
+            </el-button>
+            <el-button
+              :disabled="!isFormValid"
+              class="btn btn--md btn--primary"
+              @click="doSubmit"
+            >
+              {{
+                isEditPage ? 'Update member' : 'Add member'
+              }}
+            </el-button>
+          </div>
         </el-footer>
       </el-container>
     </div>
@@ -65,8 +89,12 @@ import AppMemberFormIdentities from '@/modules/member/components/member-form-ide
 import AppMemberFormAttributes from '@/modules/member/components/member-form-attributes.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { h, reactive, ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { h, reactive, ref, computed, onMounted } from 'vue'
+import {
+  useRouter,
+  useRoute,
+  onBeforeRouteLeave
+} from 'vue-router'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
@@ -92,51 +120,80 @@ const formSchema = new FormSchema([
 ])
 
 const router = useRouter()
+const route = useRoute()
 const store = useStore()
 
+const record = ref(null)
 const formRef = ref(null)
+const formModel = ref(getInitialModel())
+
 const rules = reactive(formSchema.rules())
-const formModel = reactive(
-  formSchema.initialValues({
-    username: {}
-  })
-)
 
+const isEditPage = computed(() => !!route.params.id)
 const computedFields = computed(() => fields)
-const isFormValid = computed(() =>
-  formSchema.isValidSync(formModel)
-)
+const isFormValid = computed(() => {
+  return formSchema.isValidSync(formModel.value)
+})
+const hasFormChanged = computed(() => {
+  const initialModel = isEditPage.value
+    ? getInitialModel(record.value)
+    : getInitialModel()
 
-watch(formModel, (newModel) => {
-  console.log(newModel)
+  return !isEqual(initialModel, formModel.value)
 })
 
-async function onCancel() {
-  const hasFormChanged = !isEqual(
-    formSchema.initialValues({
-      username: {}
-    }),
-    formModel
-  )
+onMounted(async () => {
+  await store.dispatch('member/doFetchCustomAttributes')
+  if (isEditPage.value) {
+    const id = route.params.id
+    record.value = await store.dispatch('member/doFind', id)
 
-  if (!hasFormChanged) {
-    return router.push({ name: 'member' })
+    formModel.value = getInitialModel(record.value)
+  }
+})
+
+onBeforeRouteLeave(() => {
+  if (hasFormChanged.value) {
+    return ConfirmDialog()
+      .then(() => {
+        return true
+      })
+      .catch(() => {
+        return false
+      })
   }
 
-  ConfirmDialog()
-    .then(() => {
-      router.push({ name: 'member' })
-    })
-    .catch(() => null)
+  return true
+})
+
+function getInitialModel(record) {
+  return {
+    displayName: record ? record.displayName : '',
+    email: record ? record.email : '',
+    organizations: record
+      ? record.organizations?.[0]?.name
+      : ' ',
+    attributes: record ? record.attributes : {},
+    tags: record ? record.tags : [],
+    username: record ? record.username : {},
+    platform: record
+      ? record.username[Object.keys(record.username)[0]]
+      : ''
+  }
+}
+
+async function onCancel() {
+  router.push({ name: 'member' })
 }
 
 async function doSubmit() {
-  let createModel = { ...formModel }
-
   // Create custom attributes if existent
-  if ((formModel.customAttributesArray || []).length) {
+  if (
+    !isEditPage.value &&
+    (formModel.value.customAttributesArray || []).length
+  ) {
     const customAttributes = await Promise.all(
-      formModel.customAttributesArray.map(
+      formModel.value.customAttributesArray.map(
         ({ label, type }) => {
           return store.dispatch(
             'member/doCreateCustomAttributes',
@@ -155,25 +212,38 @@ async function doSubmit() {
     }
 
     // Add customAttributes to attributes object
-    formModel.attributes = {
-      ...formModel.attributes,
-      ...formModel.customAttributes
+    formModel.value.attributes = {
+      ...formModel.value.attributes,
+      ...formModel.value.customAttributes
     }
-
-    // Delete custom attributes property helpers
-    delete createModel.customAttributes
-    delete createModel.customAttributesArray
   }
 
-  // Create new member
-  await store.dispatch('member/doCreate', {
-    data: {
-      ...formSchema.cast(createModel),
-      // TODO: Improve organizations handling
-      tags: createModel.tags,
-      organizations: [{ name: createModel.organizations }]
-    }
-  })
+  const data = {
+    displayName: formModel.value.displayName,
+    email: formModel.value.email,
+    organizations: !formModel.value.organizations
+      ? []
+      : [{ name: formModel.value.organizations }],
+    attributes: formModel.value.attributes,
+    tags: formModel.value.tags.map((t) => t.id),
+    username: formModel.value.username,
+    platform: formModel.value.platform
+  }
+
+  // Edit member
+  if (isEditPage.value) {
+    await store.dispatch('member/doUpdate', {
+      id: record.value.id,
+      values: {
+        data
+      }
+    })
+  } else {
+    // Create new member
+    await store.dispatch('member/doCreate', {
+      data
+    })
+  }
 }
 </script>
 
@@ -189,28 +259,21 @@ async function doSubmit() {
 
   // Personal Details form
   .personal-details-form {
-    & .el-form-item:not(:last-of-type) {
+    & .el-form-item {
       @apply mb-6;
     }
 
-    & .app-keywords-input {
+    & .app-tags-input,
+    .el-select {
       @apply w-full;
+    }
 
-      & .el-keywords-input-wrapper {
+    & .app-tags-input {
+      & .el-input__wrapper {
         @apply gap-2 px-3;
 
         & .el-tag {
           @apply m-0 h-6 bg-gray-100 border-gray-200;
-        }
-
-        & .el-keywords-input {
-          &:first-child {
-            @apply ml-0;
-          }
-
-          &:not(:first-child) {
-            @apply ml-1;
-          }
         }
       }
     }
@@ -227,5 +290,21 @@ async function doSubmit() {
     .el-form-item__content {
     @apply flex mb-0;
   }
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected,
+.el-select-dropdown .el-select-dropdown__item.selected {
+  @apply font-medium  text-gray-900;
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected {
+  @apply bg-brand-50;
+}
+
+.el-select-dropdown.is-multiple
+  .el-select-dropdown__item.selected::after {
+  @apply bg-gray-900;
 }
 </style>

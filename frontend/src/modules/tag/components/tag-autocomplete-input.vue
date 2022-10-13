@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex">
+  <div class="app-tags-input" style="display: flex">
     <app-autocomplete-many-input
       v-if="multiple"
       v-model="model"

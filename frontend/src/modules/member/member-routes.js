@@ -42,6 +42,16 @@ export default [
         }
       },
       {
+        name: 'memberEdit',
+        path: '/members/:id/edit',
+        component: MemberCreatePage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.memberEdit
+        },
+        props: true
+      },
+      {
         name: 'memberMergeSuggestions',
         path: '/members/merge-suggestions',
         component: MemberMergeSuggestionsPage,
