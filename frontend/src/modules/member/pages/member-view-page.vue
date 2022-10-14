@@ -25,10 +25,6 @@
         />
       </div>
     </div>
-    <app-member-manage-identities-drawer
-      v-model="identitiesDrawer"
-      :member="member"
-    />
   </app-page-wrapper>
 </template>
 
@@ -43,7 +39,6 @@ import { useStore } from 'vuex'
 import { defineProps, computed, onMounted, ref } from 'vue'
 
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppMemberManageIdentitiesDrawer from '../components/member-manage-identities-drawer'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
 import AppMemberViewActivities from '@/modules/member/components/view/member-view-activities'
@@ -61,7 +56,6 @@ const member = computed(() => {
 })
 
 const loading = ref(true)
-const identitiesDrawer = ref(false)
 
 onMounted(async () => {
   await store.dispatch('member/doFind', props.id)
