@@ -2,7 +2,6 @@
   <el-aside class="app-menu" width="fit-content">
     <el-menu
       class="flex flex-col h-full border-gray-200"
-      :default-active="$route.path"
       :collapse="isCollapsed"
       :router="true"
     >
@@ -56,6 +55,7 @@
           id="menu-dashboard"
           index="/"
           :route="{ path: '/' }"
+          :class="classFor('/', true)"
         >
           <i class="ri-home-5-line"></i>
           <template #title
@@ -70,6 +70,7 @@
           id="menu-members"
           index="/members"
           :route="{ path: '/members' }"
+          :class="classFor('/members')"
           :disabled="isCommunityMemberLocked"
         >
           <i class="ri-contacts-line"></i>
@@ -84,6 +85,7 @@
           id="menu-activities"
           index="/activities"
           :route="{ path: '/activities' }"
+          :class="classFor('/activities')"
           :disabled="isActivityLocked"
         >
           <i class="ri-radar-line"></i>
@@ -97,6 +99,7 @@
           id="menu-conversations"
           index="/conversations"
           :route="{ path: '/conversations' }"
+          :class="classFor('/conversations')"
         >
           <i class="ri-question-answer-line"></i>
           <template #title
@@ -110,6 +113,7 @@
           id="menu-eagle-eye"
           index="/eagle-eye"
           :route="{ path: '/eagle-eye' }"
+          :class="classFor('/eagle-eye')"
           :disabled="isEagleEyeLocked"
         >
           <i class="ri-search-eye-line"></i>
@@ -124,6 +128,7 @@
           id="menu-reports"
           index="/reports"
           :route="{ path: '/reports' }"
+          :class="classFor('/reports')"
           :disabled="isReportLocked"
         >
           <i class="ri-bar-chart-line"></i>
@@ -144,6 +149,7 @@
           id="menu-settings"
           index="/settings"
           :route="{ path: '/settings' }"
+          :class="classFor('/settings')"
           :disabled="isSettingsLocked"
         >
           <i class="ri-settings-3-line"></i>
@@ -251,7 +257,10 @@ import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
 import { computed } from 'vue'
 
+import { RouterLink, useLink } from 'vue-router'
+
 const store = useStore()
+const { route } = useLink(RouterLink.props)
 const isCollapsed = computed(
   () => store.getters['layout/menuCollapsed']
 )
@@ -345,6 +354,21 @@ const isEagleEyeLocked = computed(
       currentUser.value
     ).lockedForCurrentPlan
 )
+
+const classFor = (path, exact = false) => {
+  if (exact) {
+    return {
+      'is-active': route.value.path === path
+    }
+  }
+
+  const routePath = route.value.path
+  const active =
+    routePath === path || routePath.startsWith(path + '/ ')
+  return {
+    'is-active': active
+  }
+}
 </script>
 
 <style lang="scss">

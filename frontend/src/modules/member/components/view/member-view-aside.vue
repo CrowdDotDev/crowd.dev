@@ -76,6 +76,10 @@
         </p>
       </div>
     </div>
+    <app-member-manage-identities-drawer
+      v-model="identitiesDrawer"
+      :member="member"
+    />
   </div>
 </template>
 
@@ -87,8 +91,9 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { computed, defineProps } from 'vue'
+import { computed, defineProps, ref } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import AppMemberManageIdentitiesDrawer from '../member-manage-identities-drawer'
 
 const store = useStore()
 
@@ -98,6 +103,8 @@ defineProps({
     default: () => {}
   }
 })
+
+const identitiesDrawer = ref(false)
 
 const computedCustomAttributes = computed(() => {
   return Object.values(

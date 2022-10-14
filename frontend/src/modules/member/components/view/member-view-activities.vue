@@ -113,7 +113,10 @@ const fetchActivities = async () => {
   }
   loading.value = true
   const response = await ActivityService.list(
-    { member: props.memberId },
+    {
+      member: props.memberId,
+      platform: platform.value ?? undefined
+    },
     'timestamp_DESC',
     limit.value,
     offset.value
