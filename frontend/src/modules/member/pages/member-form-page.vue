@@ -98,8 +98,20 @@ import AppMemberFormAttributes from '@/modules/member/components/form/member-for
 import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { h, reactive, ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {
+  h,
+  reactive,
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch
+} from 'vue'
+import {
+  useRouter,
+  useRoute,
+  onBeforeRouteLeave
+} from 'vue-router'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
@@ -138,6 +150,7 @@ const record = ref(null)
 const formRef = ref(null)
 const formModel = ref(getInitialModel())
 
+const hasFormSubmitted = ref(false)
 const isDrawerOpen = ref(false)
 
 const rules = reactive(formSchema.value.rules())
@@ -160,6 +173,21 @@ const hasFormChanged = computed(() => {
   return !isEqual(initialModel, formModel.value)
 })
 
+// Prevent lost data on route change
+onBeforeRouteLeave(() => {
+  if (hasFormChanged.value && !hasFormSubmitted.value) {
+    return ConfirmDialog({})
+      .then(() => {
+        return true
+      })
+      .catch(() => {
+        return false
+      })
+  }
+
+  return true
+})
+
 onMounted(async () => {
   // Fetch custom attributes on mount
   await store.dispatch('member/doFetchCustomAttributes')
@@ -169,6 +197,30 @@ onMounted(async () => {
 
     record.value = await store.dispatch('member/doFind', id)
     formModel.value = getInitialModel(record.value)
+  }
+})
+
+// Prevent window reload when form has changes
+const preventWindowReload = (e) => {
+  if (hasFormChanged.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+
+window.addEventListener('beforeunload', preventWindowReload)
+
+onUnmounted(() => {
+  window.removeEventListener(
+    'beforeunload',
+    preventWindowReload
+  )
+})
+
+// Once form is submitted, update route
+watch(hasFormSubmitted, (isFormSubmitted) => {
+  if (isFormSubmitted) {
+    router.push({ name: 'member' })
   }
 })
 
@@ -209,17 +261,7 @@ async function onReset() {
 }
 
 async function onCancel() {
-  if (hasFormChanged.value) {
-    ConfirmDialog({})
-      .then(() => {
-        router.push({ name: 'member' })
-      })
-      .catch(() => {
-        return false
-      })
-  } else {
-    router.push({ name: 'member' })
-  }
+  router.push({ name: 'member' })
 }
 
 async function doSubmit() {
@@ -255,14 +297,14 @@ async function doSubmit() {
       values: data
     })
 
-    router.push('/members')
+    hasFormSubmitted.value = true
   } else {
     // Create new member
     await store.dispatch('member/doCreate', {
       data
     })
 
-    router.push('/members')
+    hasFormSubmitted.value = true
   }
 }
 </script>

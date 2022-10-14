@@ -10,9 +10,7 @@
       <h5 class="text-black">Manage custom attributes</h5>
     </template>
     <template #default>
-      <div
-        class="flex gap-4 border-b h-8 items-center mb-4"
-      >
+      <div class="flex gap-4 border-b h-8 items-center">
         <div
           class="attribute-type uppercase text-gray-400 text-2xs font-semibold tracking-wide"
         >
@@ -27,7 +25,7 @@
       <el-form :model="model">
         <div
           v-if="!!Object.keys(model).length"
-          class="flex flex-col gap-4"
+          class="flex flex-col gap-4 mt-4"
         >
           <div
             v-for="(attribute, index) in model"
@@ -304,7 +302,7 @@ function deleteAttribute(key) {
   } else {
     const id = addedFields.findIndex((a) => a.name === key)
 
-    if (id) {
+    if (id !== -1) {
       addedFields.splice(id, 1)
     }
   }
