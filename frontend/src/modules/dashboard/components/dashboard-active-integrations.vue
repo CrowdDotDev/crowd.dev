@@ -1,28 +1,49 @@
 <template>
-  <div class="flex items-center -ml-1">
+  <div class="flex items-center justify-end -ml-1">
+    <!-- List of integrations -->
     <div
       v-for="active of Object.keys(activeIntegrations)"
       :key="active"
       :set="(details = platformDetails(active))"
-      class="w-8 h-8 m-1 rounded-full border flex items-center justify-center"
-      :style="{
-        background: details.color,
-        'border-color': details.borderColor
-      }"
+      class="m-1"
     >
-      <img
-        class="w-4 h-4"
-        :src="details.image"
-        :alt="details.name"
-      />
+      <el-tooltip
+        effect="dark"
+        :content="details.name"
+        placement="top"
+      >
+        <div
+          class="w-8 h-8 rounded-full border flex items-center justify-center"
+          :style="{
+            background: details.color,
+            'border-color': details.borderColor
+          }"
+        >
+          <img
+            class="w-4 h-4"
+            :src="details.image"
+            :alt="details.name"
+          />
+        </div>
+      </el-tooltip>
     </div>
-    <router-link
-      :to="{ name: 'settings' }"
-      class="w-8 h-8 m-1 rounded-full border border-gray-400 border-dashed flex items-center justify-center"
-      route
+
+    <!-- button linking to add new integrations -->
+    <el-tooltip
+      effect="dark"
+      content="Add integrations"
+      placement="top"
     >
-      <i class="ri-add-line text-lg text-gray-400"></i>
-    </router-link>
+      <router-link
+        :to="{ name: 'settings' }"
+        class="w-8 h-8 m-1 rounded-full border border-gray-400 hover:bg-brand-50 hover:border-brand-500 transition group border-dashed flex items-center justify-center"
+        route
+      >
+        <i
+          class="ri-add-line text-lg text-gray-400 group-hover:text-brand-500"
+        ></i>
+      </router-link>
+    </el-tooltip>
   </div>
 </template>
 

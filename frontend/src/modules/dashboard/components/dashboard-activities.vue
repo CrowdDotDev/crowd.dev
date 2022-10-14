@@ -1,5 +1,6 @@
 <template>
   <div class="widget panel">
+    <!-- Header -->
     <div class="flex justify-between">
       <div class="flex items-center">
         <div
@@ -22,11 +23,37 @@
         <!-- TODO: filters -->
       </div>
     </div>
+
+    <!-- Chart -->
+    <div>Chart</div>
+
+    <el-tabs
+      v-model="tab"
+      class="demo-tabs"
+      @tab-click="handleClick"
+    >
+      <el-tab-pane
+        label="Trending conversations"
+        name="trending"
+      >
+        <div class="pt-3"></div>
+      </el-tab-pane>
+      <el-tab-pane label="Recent activities" name="recent">
+        <app-dashboard-activities-list />
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <script>
+import AppDashboardActivitiesList from '@/modules/dashboard/components/activities/dashboard-activities-list'
 export default {
-  name: 'AppDashboardActivities'
+  name: 'AppDashboardActivities',
+  components: { AppDashboardActivitiesList },
+  data() {
+    return {
+      tab: 'trending'
+    }
+  }
 }
 </script>
