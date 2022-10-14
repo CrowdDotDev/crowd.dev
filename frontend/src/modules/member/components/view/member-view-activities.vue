@@ -23,27 +23,53 @@
         </template>
       </el-input>
     </div>
-    <div
-      v-if="loading"
-      v-loading="loading"
-      class="app-page-spinner"
-    ></div>
-    <div v-else>
+    <div>
       <el-timeline>
         <el-timeline-item
           v-for="activity in activities"
           :key="activity.id"
         >
-          <app-activity-list-feed-item
-            :activity="activity"
-          />
+          <div>
+            <app-activity-header
+              :activity="activity"
+              :show-user="false"
+              :show-platform-icon="false"
+              class="pt-2"
+            />
+            <div
+              v-if="activity.attributes.body"
+              class="block whitespace-pre-wrap custom-break-all text-xs p-4 rounded-md bg-gray-50 mt-5 w-full"
+              v-html="activity.attributes.body"
+            />
+          </div>
+          <template #dot>
+            <span
+              class="btn btn--circle cursor-auto p-2 bg-gray-100 border border-gray-200"
+              :class="`btn--${activity.platform}`"
+            >
+              <img
+                :src="findIcon(activity.platform)"
+                :alt="`${activity.platform}-icon`"
+                class="w-4 h-4"
+              />
+            </span>
+          </template>
         </el-timeline-item>
       </el-timeline>
-      <div class="flex justify-center mt-6">
+      <div
+        v-if="loading"
+        v-loading="loading"
+        class="app-page-spinner"
+      ></div>
+      <div
+        v-if="!noMore && activities.length <= limit"
+        class="flex justify-center mt-6"
+      >
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :loading="loading"
           :disabled="noMore"
+          @click="fetchActivities"
           ><i class="ri-arrow-down-line mr-2"></i>Load
           more</el-button
         >
@@ -62,7 +88,7 @@ export default {
 import { useStore } from 'vuex'
 import integrationsJson from '@/jsons/integrations.json'
 import { ActivityService } from '@/modules/activity/activity-service'
-import AppActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'
+import AppActivityHeader from '@/modules/activity/components/activity-header'
 
 import {
   defineProps,
@@ -72,6 +98,8 @@ import {
   h,
   onMounted
 } from 'vue'
+
+import integrationsJsonArray from '@/jsons/integrations.json'
 
 const SearchIcon = h(
   'i', // type
@@ -131,6 +159,12 @@ const fetchActivities = async () => {
   }
 }
 
+const findIcon = (platform) => {
+  return integrationsJsonArray.find(
+    (p) => p.platform === platform
+  ).image
+}
+
 onMounted(async () => {
   await fetchActivities()
 })
@@ -140,6 +174,9 @@ onMounted(async () => {
 .member-view-activities {
   .el-input-group__append {
     @apply bg-white;
+  }
+  .activity-header {
+    @apply max-w-full overflow-visible;
   }
 }
 </style>
