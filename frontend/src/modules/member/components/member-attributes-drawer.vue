@@ -182,61 +182,69 @@ async function onSubmit() {
   let hasErrorOccurred = false
   // Handle deleted fields
   if (deletedFields.length) {
-    // Show confirmation modal before deleting attributes
-    ConfirmDialog({
-      type: 'error',
-      title: 'Deleting custom attributes in use',
-      message:
-        'Deleting custom attributes will also discard any associated values. \n Are you sure you want to proceed?',
-      confirmButtonText: 'Confirm update'
-    })
-      .then(async () => {
-        const ids = deletedFields.map(
-          (deletedField) => deletedField.id
-        )
-
-        store
-          .dispatch('member/doDestroyCustomAttributes', ids)
-          .catch(() => {
-            hasErrorOccurred = true
-          })
+    try {
+      // Show confirmation modal before deleting attributes
+      await ConfirmDialog({
+        type: 'error',
+        title: 'Deleting custom attributes in use',
+        message:
+          'Deleting custom attributes will also discard any associated values. \n Are you sure you want to proceed?',
+        confirmButtonText: 'Confirm update'
       })
-      .catch(() => {})
+
+      const ids = deletedFields.map(
+        (deletedField) => deletedField.id
+      )
+
+      store
+        .dispatch('member/doDestroyCustomAttributes', ids)
+        .catch(() => {
+          hasErrorOccurred = true
+        })
+    } catch (e) {
+      return
+    }
   }
 
   // Handle added fields
   if (addedFields.length) {
     addedFields.forEach(async ({ type, label }) => {
-      store
-        .dispatch('member/doCreateCustomAttributes', {
-          type,
-          label
-        })
-        .catch(() => {
-          hasErrorOccurred = true
-        })
+      try {
+        await store.dispatch(
+          'member/doCreateCustomAttributes',
+          {
+            type,
+            label
+          }
+        )
+      } catch (e) {
+        hasErrorOccurred = true
+      }
     })
   }
 
   // Handle edited fields
   if (editedFields.length) {
     editedFields.forEach(async ({ id, label }) => {
-      store
-        .dispatch('member/doUpdateCustomAttributes', {
-          id,
-          data: {
-            label
+      try {
+        await store.dispatch(
+          'member/doUpdateCustomAttributes',
+          {
+            id,
+            data: {
+              label
+            }
           }
-        })
-        .catch(() => (hasErrorOccurred = true))
+        )
+      } catch (e) {
+        hasErrorOccurred = true
+      }
     })
   }
 
   if (hasErrorOccurred) {
     Message.error(i18n('errors.defaultErrorMessage'))
   } else {
-    await store.dispatch('member/doFetchCustomAttributes')
-
     Message.success(
       i18n('entities.member.attributes.success')
     )
@@ -266,6 +274,10 @@ function onInputChange(newValue, attribute) {
 }
 
 function onReset() {
+  addedFields.splice(0)
+  editedFields.splice(0)
+  deletedFields.splice(0)
+
   Object.assign(
     model,
     JSON.parse(JSON.stringify(initialModel))
@@ -284,7 +296,10 @@ function addAttribute() {
 }
 
 function deleteAttribute(key) {
-  if (model[key].canDelete) {
+  if (
+    model[key].canDelete &&
+    !deletedFields.some((field) => field.name === key)
+  ) {
     deletedFields.push(model[key])
   } else {
     const id = addedFields.findIndex((a) => a.name === key)

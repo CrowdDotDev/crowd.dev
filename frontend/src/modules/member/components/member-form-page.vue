@@ -250,19 +250,19 @@ async function doSubmit() {
 
   // Edit member
   if (isEditPage.value) {
-    store
-      .dispatch('member/doUpdate', {
-        id: record.value.id,
-        values: data
-      })
-      .then(() => router.push('/members'))
+    await store.dispatch('member/doUpdate', {
+      id: record.value.id,
+      values: data
+    })
+
+    router.push('/members')
   } else {
     // Create new member
-    store
-      .dispatch('member/doCreate', {
-        data
-      })
-      .then(() => router.push('/members'))
+    await store.dispatch('member/doCreate', {
+      data
+    })
+
+    router.push('/members')
   }
 }
 </script>
