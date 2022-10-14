@@ -397,7 +397,6 @@ export default {
       await MemberService.create(values)
       commit('CREATE_SUCCESS')
 
-      router.push('/members')
       Message.success(
         i18n('entities.member.create.success')
       )
