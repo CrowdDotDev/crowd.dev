@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import ActivityService from '../../../services/activityService'
-import TenantService from '../../../services/tenantService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
+import BaseIterator from '../../../serverless/integrations/iterators/baseIterator'
 
 /**
  * Since requests to aws activity sentiment api creates a bottleneck,
@@ -9,54 +9,67 @@ import SequelizeRepository from '../../repositories/sequelizeRepository'
  * TODO:: Finish this up
  */
 export default async () => {
-  // let tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
-  // tenants = [tenants[0]]
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+  console.time("whole-script-time")
 
-  const activityQuery = `select * from activities a
-                              where a."timestamp"  between '2022-09-01' and now() `
+  // const activityQuery = `select * from activities a where a."timestamp"  between '2022-09-01' and now() and (a."attributes"->>'sample') is null`
+  const activityQuery = `select * from activities a where (a."attributes"->>'sample') is null
+  and ((a.title is not null and a.title != '') or (a.body is not null and a.body != ''))`
+
 
   let activities = await options.database.sequelize.query(activityQuery, {
     type: QueryTypes.SELECT,
   })
 
-  // console.log('activities: ')
-  // console.log(activities)
+  console.log('activities: ')
+  console.log(activities.length)
+  const rawLength = activities.length
 
   const splittedActivities = []
-  const ACTIVITY_CHUNK_SIZE = 20
+  const ACTIVITY_CHUNK_SIZE = 400
 
   if (activities.length > ACTIVITY_CHUNK_SIZE) {
-    splittedActivities.push(activities.slice(0, ACTIVITY_CHUNK_SIZE))
+    while (activities.length > ACTIVITY_CHUNK_SIZE){
+      splittedActivities.push(activities.slice(0, ACTIVITY_CHUNK_SIZE))
+      activities = activities.slice(ACTIVITY_CHUNK_SIZE)
+    }
+    // insert last small chunk
+    if (activities.length > 0)
+      splittedActivities.push(activities)
+  }
+  else{
+    splittedActivities.push(activities)
   }
 
-  console.log("splitted activities[0]")
-  console.log(splittedActivities[0])
-  const sentimentPromises = []
+  let processedCount = 0
 
-  for (const activity of splittedActivities[0]) {
-    sentimentPromises.push(ActivityService.getSentiment(activity))
+  for (let activityChunk of splittedActivities){
+
+    let sentiments
+
+    try {
+      sentiments = await ActivityService.getSentimentBatch(activityChunk)
+    }
+    catch (e){
+      console.log(e)
+      console.log("exception occured. sleeping 2 seconds and retrying...")
+      await BaseIterator.sleep(3)
+      sentiments = await ActivityService.getSentimentBatch(activityChunk)
+    }
+    
+    activityChunk = activityChunk.map((a, index) => {
+      a.sentiment = sentiments[index]
+      return a
+    })
+
+    await options.database.activity.bulkCreate(activityChunk, {
+      updateOnDuplicate: ['sentiment'],
+    })
+    processedCount += activityChunk.length
+    console.log(`${processedCount}/${rawLength} processed`)
   }
 
-  // console.log('sentiment promises: ')
-  // console.log(sentimentPromises)
+  console.timeEnd("whole-script-time")
 
-  console.log('getting 10 sentiment in parallel...')
-  const values = await Promise.all(sentimentPromises)
-
-  console.log(values)
-
-  splittedActivities[0] = splittedActivities[0].map((i, index) => {
-    i.sentiment = values[index]
-    return i
-  })
-
-  console.log("transformed splitted:")
-  console.log(splittedActivities[0])
-
-  // for (let i = 0; i< 10; i++){
-  //   sentimentPromises.push(Ac)
-  // }
-  // const sentiment = await ActivityService.getSentiment(data)
 }

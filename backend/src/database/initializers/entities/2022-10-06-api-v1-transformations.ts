@@ -371,6 +371,11 @@ export default async () => {
         updateActivities = updateActivities.slice(ACTIVITY_CHUNK_SIZE)
       }
 
+      // push last leftover chunk
+      if (updateActivities.length > 0){
+        splittedBulkActivities.push(updateActivities)
+      }
+
       let counter = ACTIVITY_CHUNK_SIZE
       for (const activityChunk of splittedBulkActivities) {
         console.log(`updating activity chunk ${counter}/${rawLength}`)
