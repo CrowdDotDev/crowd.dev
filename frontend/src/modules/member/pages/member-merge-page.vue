@@ -162,8 +162,8 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
-import MemberDetails from './member-details'
-import MemberAutocompleteInput from './member-autocomplete-input'
+import MemberDetails from '../components/member-details'
+import MemberAutocompleteInput from '../components/member-autocomplete-input'
 import { MemberModel } from '@/modules/member/member-model'
 import { MemberService } from '@/modules/member/member-service'
 import ActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'

@@ -148,11 +148,11 @@ import { i18n } from '@/i18n'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { computed, onMounted, ref } from 'vue'
-import AppMemberListToolbar from '@/modules/member/components/member-list-toolbar.vue'
-import AppMemberDropdown from './member-dropdown'
-import AppMemberChannels from './member-channels'
+import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
+import AppMemberDropdown from '../member-dropdown'
+import AppMemberChannels from '../member-channels'
 import AppTagList from '@/modules/tag/components/tag-list'
-import AppMemberEngagementLevel from './member-engagement-level'
+import AppMemberEngagementLevel from '../member-engagement-level'
 
 const store = useStore()
 const router = useRouter()

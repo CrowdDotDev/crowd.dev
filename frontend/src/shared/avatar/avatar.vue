@@ -7,7 +7,7 @@
     <span
       v-if="!entity.avatar"
       class="font-semibold text-lg uppercase"
-      >{{ entity.displayName[0] }}</span
+      >{{ computedInitials }}</span
     >
   </div>
 </template>
@@ -75,6 +75,12 @@ export default {
     },
     computedClass() {
       return `avatar--${this.size}`
+    },
+    computedInitials() {
+      const names = this.entity.displayName.split(' ')
+      return names.length > 1
+        ? names[0][0] + names[1][0]
+        : names[0][0]
     }
   }
 }

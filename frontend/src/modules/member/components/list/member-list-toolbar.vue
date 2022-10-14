@@ -54,7 +54,7 @@
 
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex'
-import AppMemberListBulkUpdateTags from '@/modules/member/components/member-list-bulk-update-tags'
+import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
 import { i18n } from '@/i18n'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 
