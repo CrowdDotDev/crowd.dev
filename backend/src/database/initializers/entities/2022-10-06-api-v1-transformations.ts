@@ -372,7 +372,7 @@ export default async () => {
       }
 
       // push last leftover chunk
-      if (updateActivities.length > 0){
+      if (updateActivities.length > 0) {
         splittedBulkActivities.push(updateActivities)
       }
 

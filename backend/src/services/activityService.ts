@@ -216,9 +216,9 @@ export default class ActivityService {
       promiseArray.push(textArray)
     }
 
-    console.time("sentiment-api-request")
+    console.time('sentiment-api-request')
     const values = await Promise.all(promiseArray)
-    console.timeEnd("sentiment-api-request")
+    console.timeEnd('sentiment-api-request')
 
     return values.reduce((acc, i) => {
       acc.push(...i)
