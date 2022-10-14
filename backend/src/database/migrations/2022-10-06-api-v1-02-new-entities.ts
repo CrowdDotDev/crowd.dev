@@ -1,4 +1,4 @@
-export const up = async (queryInterface, Sequelize) => {
+export const up = async (queryInterface) => {
   const transaction = await queryInterface.sequelize.transaction()
   try {
     // memberAttributeSettings
