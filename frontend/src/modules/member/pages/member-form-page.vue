@@ -15,6 +15,7 @@
         {{ isEditPage ? 'Edit member' : 'New member' }}
       </h4>
       <el-container
+        v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15"
       >
         <el-main class="p-6">
@@ -57,19 +58,23 @@
           <el-button
             v-if="isEditPage && hasFormChanged"
             class="btn btn-link btn-link--primary"
+            :disabled="isFormSubmitting"
             @click="onReset"
             ><i class="ri-arrow-go-back-line"></i>
             <span>Reset changes</span></el-button
           >
           <div class="flex gap-4">
             <el-button
+              :disabled="isFormSubmitting"
               class="btn btn--md btn--bordered"
               @click="onCancel"
             >
               Cancel
             </el-button>
             <el-button
-              :disabled="!isFormValid"
+              :disabled="!isFormValid || isFormSubmitting"
+              :loading="isFormSubmitting"
+              :loading-icon="LoaderIcon"
               class="btn btn--md btn--primary"
               @click="doSubmit"
             >
@@ -79,6 +84,12 @@
             </el-button>
           </div>
         </el-footer>
+      </el-container>
+      <el-container v-else>
+        <div
+          v-loading="isPageLoading"
+          class="app-page-spinner w-full"
+        ></div>
       </el-container>
     </div>
 
@@ -117,6 +128,13 @@ import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 
+const LoaderIcon = h(
+  'i',
+  {
+    class: 'ri-loader-4-fill text-sm text-white'
+  },
+  []
+)
 const ArrowPrevIcon = h(
   'i', // type
   {
@@ -150,6 +168,8 @@ const record = ref(null)
 const formRef = ref(null)
 const formModel = ref(getInitialModel())
 
+const isPageLoading = ref(true)
+const isFormSubmitting = ref(false)
 const hasFormSubmitted = ref(false)
 const isDrawerOpen = ref(false)
 
@@ -196,7 +216,10 @@ onMounted(async () => {
     const id = route.params.id
 
     record.value = await store.dispatch('member/doFind', id)
+    isPageLoading.value = false
     formModel.value = getInitialModel(record.value)
+  } else {
+    isPageLoading.value = false
   }
 })
 
@@ -292,18 +315,22 @@ async function doSubmit() {
 
   // Edit member
   if (isEditPage.value) {
+    isFormSubmitting.value = true
     await store.dispatch('member/doUpdate', {
       id: record.value.id,
       values: data
     })
 
+    isFormSubmitting.value = false
     hasFormSubmitted.value = true
   } else {
     // Create new member
+    isFormSubmitting.value = true
     await store.dispatch('member/doCreate', {
       data
     })
 
+    isFormSubmitting.value = false
     hasFormSubmitted.value = true
   }
 }
