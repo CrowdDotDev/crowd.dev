@@ -1,5 +1,5 @@
 <template>
-  <div class="member-view-header panel">
+  <div class="member-view-header panel relative">
     <div class="flex items-start justify-between">
       <div class="flex items-start">
         <app-avatar
@@ -105,7 +105,7 @@
     </div>
 
     <div
-      class="-mx-6 -mb-6 rounded-b-md bg-gray-50 p-6 mt-9"
+      class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9"
     >
       <div class="text-sm">
         <app-tags :member="member" />
@@ -148,3 +148,9 @@ const formattedNumber = (number) => {
   return number.toLocaleString('en-US')
 }
 </script>
+
+<style lang="scss">
+.member-view-header.panel {
+  @apply pb-24;
+}
+</style>
