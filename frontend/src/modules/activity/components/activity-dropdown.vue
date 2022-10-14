@@ -2,11 +2,12 @@
   <div>
     <el-dropdown
       v-if="!isReadOnly"
+      placement="bottom-end"
       trigger="click"
       @command="handleCommand"
     >
       <span class="el-dropdown-link">
-        <i class="ri-xl ri-more-line"></i>
+        <i class="ri-xl ri-more-fill"></i>
       </span>
       <template #dropdown>
         <el-dropdown-item command="activityEdit">

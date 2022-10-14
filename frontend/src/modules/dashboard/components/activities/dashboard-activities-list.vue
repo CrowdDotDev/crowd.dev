@@ -1,10 +1,19 @@
 <template>
   <div class="pt-3">
     <app-dashboard-activities-item
-      v-for="activity of activities"
+      v-for="(activity, ai) of activities"
       :key="activity.id"
+      :class="{ 'border-b': ai < activities.length - 1 }"
       :activity="activity"
     />
+    <div class="pt-3 pb-2 flex justify-center">
+      <router-link
+        :to="{ name: 'activity' }"
+        class="text-red font-medium text-center text-xs leading-5"
+      >
+        All activities
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -21,7 +30,7 @@ export default {
       loading: false
     }
   },
-  created() {
+  mounted() {
     this.fetchActivities()
   },
   methods: {
@@ -30,7 +39,7 @@ export default {
         return
       }
       this.loading = true
-      ActivityService.list(null, 'createdAt_DESC', 10, 0)
+      ActivityService.list(null, 'createdAt_ASC', 20, 0)
         .then(({ rows, count }) => {
           this.activities = rows
           this.$emit('count', count)

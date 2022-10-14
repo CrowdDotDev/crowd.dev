@@ -1,0 +1,136 @@
+<template>
+  <!-- discord, slack -->
+  <template
+    v-if="['discord', 'slack'].includes(activity.platform)"
+  >
+    <a :href="activity.url" target="_blank">
+      <app-i18n
+        :code="computedMessage"
+        :args="computedArgs"
+        :fallback="'entities.activity.fallback'"
+      ></app-i18n>
+    </a>
+    <span
+      v-if="
+        [
+          'message',
+          'file_share',
+          'channel_joined',
+          'channel_left',
+          'reaction_added'
+        ].includes(activity.type)
+      "
+      class="block ml-1"
+    >
+      <span class="text-red"
+        >{{
+          ['channel_joined', 'channel_left'].includes(
+            activity.type
+          )
+            ? ''
+            : 'in channel'
+        }}
+        #{{ activity.channel }}</span
+      >
+    </span>
+  </template>
+  <!-- devto -->
+  <template v-else-if="activity.platform === 'devto'">
+    <a
+      :href="activity.url"
+      target="_blank"
+      class="text-red"
+    >
+      <app-i18n
+        code="entities.activity.devto.commented"
+        :args="computedArgs"
+        :fallback="'entities.activity.fallback'"
+      ></app-i18n>
+    </a>
+    <span> on a </span>
+    <app-i18n
+      code="entities.activity.devto.post"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n
+    >&nbsp;<a
+      :href="activity.attributes.articleUrl"
+      class="text-red"
+      target="_blank"
+    >
+      {{ activity.attributes.articleTitle }}
+    </a>
+  </template>
+  <!-- github -->
+  <template v-else-if="activity.platform === 'github'">
+    <a
+      :href="activity.url"
+      target="_blank"
+      class="text-red"
+    >
+      <app-i18n
+        :code="computedMessage"
+        :args="computedArgs"
+        :fallback="'entities.activity.fallback'"
+      ></app-i18n>
+    </a>
+    <div class="flex items-center">
+      <span
+        v-if="
+          !['fork', 'star', 'unstar'].includes(
+            activity.type
+          )
+        "
+        class="ml-1"
+        >in</span
+      >
+      <a
+        :href="activity.repo"
+        target="_blank"
+        class="ml-1 text-red"
+      >
+        {{ getRepositoryName(activity.repo) }}
+      </a>
+    </div>
+  </template>
+  <!-- other -->
+  <template v-else>
+    <a
+      :href="activity.url"
+      target="_blank"
+      class="text-red"
+    >
+      <app-i18n
+        :code="computedMessage"
+        :args="computedArgs"
+        :fallback="'entities.activity.fallback'"
+      ></app-i18n>
+    </a>
+  </template>
+</template>
+
+<script>
+import AppI18n from '@/shared/i18n/i18n'
+import {
+  computedMessage,
+  computedArgs
+} from '@/modules/activity/activity.helpers'
+export default {
+  name: 'AppDashboardActivitiesMessage',
+  components: { AppI18n },
+  props: {
+    activity: {
+      type: Object,
+      required: true
+    }
+  },
+  computed: {
+    computedMessage() {
+      return computedMessage(this.activity)
+    },
+    computedArgs() {
+      return computedArgs(this.activity)
+    }
+  }
+}
+</script>

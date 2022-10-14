@@ -42,12 +42,14 @@
       </div>
       <template #dropdown>
         <el-dropdown-menu>
+          <!-- all platforms -->
           <el-dropdown-item
             :class="{ 'bg-brand-25': platform === 'all' }"
             @click="setPlatform('all')"
           >
             All platforms
           </el-dropdown-item>
+          <!-- dynamic active platforms -->
           <el-dropdown-item
             v-for="(integration, ii) of activeIntegrations"
             :key="integration.platform"
