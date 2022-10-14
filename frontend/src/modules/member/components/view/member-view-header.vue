@@ -50,7 +50,7 @@
     <div
       class="text-sm text-gray-600 py-6 border-b border-gray-200 mb-4"
     >
-      {{ member.attributes.bio.default }}
+      {{ member.attributes.bio?.default }}
     </div>
 
     <div class="grid grid-rows-2 grid-flow-col gap-4">
@@ -70,7 +70,7 @@
           v-if="member.attributes.location"
           class="mt-1 text-gray-900 text-xs"
         >
-          {{ member.attributes.location.default }}
+          {{ member.attributes.location?.default }}
         </p>
       </div>
       <div>

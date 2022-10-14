@@ -1,6 +1,7 @@
 <template>
   <div class="activity-header">
     <router-link
+      v-if="showUser"
       :to="{
         name: 'memberView',
         params: { id: activity.member.id }
@@ -15,6 +16,7 @@
     </router-link>
     <div class="leading-none">
       <router-link
+        v-if="showUser"
         :to="{
           name: 'memberView',
           params: { id: activity.member.id }
@@ -152,9 +154,9 @@
           </template>
         </div>
         <span>{{ timeAgo }}</span>
-        <span class="mx-1">·</span>
+        <span v-if="showPlatformIcon" class="mx-1">·</span>
         <el-tooltip
-          v-if="activity.platform"
+          v-if="activity.platform && showPlatformIcon"
           :content="
             activity.platform === 'apis'
               ? 'API'
@@ -196,6 +198,14 @@ export default {
       default: () => {}
     },
     showMessage: {
+      type: Boolean,
+      default: true
+    },
+    showUser: {
+      type: Boolean,
+      default: true
+    },
+    showPlatformIcon: {
       type: Boolean,
       default: true
     },

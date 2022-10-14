@@ -8,7 +8,8 @@
         >{{ tag.name }}</span
       >
       <el-button
-        class="btn btn-link btn-link--primary text-2xs ml-2"
+        class="btn btn-link btn-link--primary text-2xs"
+        :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click="editing = true"
         >Edit tags</el-button
       >
