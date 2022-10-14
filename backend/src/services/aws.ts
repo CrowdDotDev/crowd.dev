@@ -130,6 +130,33 @@ export async function detectSentiment(text) {
   }
   return {}
 }
+
+export async function detectSentimentBatch(textArray) {
+  if (comprehendInstance) {
+    const params = {
+      LanguageCode: 'en',
+      TextList: textArray,
+    }
+    const fromAWSBatch = await comprehendInstance.batchDetectSentiment(params).promise()
+
+    const batchSentimentResults = fromAWSBatch.ResultList.map((i) => {
+      const positive = 100 * i.SentimentScore.Positive
+      const negative = 100 * i.SentimentScore.Negative
+      return {
+        label: i.Sentiment.toLowerCase(),
+        positive,
+        negative,
+        neutral: 100 * i.SentimentScore.Neutral,
+        mixed: 100 * i.SentimentScore.Mixed,
+        sentiment: Math.round(100 * ((positive - negative) / (2 * (positive + negative)) + 0.5)),
+      }
+    })
+
+    return batchSentimentResults
+  }
+  return {}
+}
+
 export const sqs: SQS = sqsInstance
 export const s3 = s3Instance
 export const lambda = lambdaInstance

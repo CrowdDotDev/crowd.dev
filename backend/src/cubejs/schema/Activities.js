@@ -9,7 +9,6 @@ cube(`Activities`, {
         Activities.type,
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Activities.tenantId,
         Tags.name,
@@ -77,12 +76,6 @@ cube(`Activities`, {
       primaryKey: true,
     },
 
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
-
     type: {
       sql: `type`,
       type: `string`,
@@ -100,12 +93,6 @@ cube(`Activities`, {
       shown: false,
     },
 
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
-    },
-
     parentid: {
       sql: `${CUBE}."parentId"`,
       type: `string`,
@@ -114,12 +101,6 @@ cube(`Activities`, {
 
     createdbyid: {
       sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    importhash: {
-      sql: `${CUBE}."importHash"`,
       type: `string`,
       shown: false,
     },

@@ -27,14 +27,14 @@ export const DefaultMemberAttributes: Attribute[] = [
   {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
-    type: AttributeType.STRING,
+    type: AttributeType.URL,
     canDelete: false,
     show: true,
   },
   {
-    name: MemberAttributes[MemberAttributeName.TEAM].name,
-    label: MemberAttributes[MemberAttributeName.TEAM].label,
-    type: AttributeType.STRING,
+    name: MemberAttributes[MemberAttributeName.IS_TEAM_MEMBER].name,
+    label: MemberAttributes[MemberAttributeName.IS_TEAM_MEMBER].label,
+    type: AttributeType.BOOLEAN,
     canDelete: false,
     show: false,
   },

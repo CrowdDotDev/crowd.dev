@@ -248,11 +248,11 @@ export default class DevtoIterator extends BaseIterator {
         comment.id_code
       }`,
       attributes: {
-        thread: parentCommentId !== undefined,
         userUrl: `https://dev.to/${encodeURIComponent(comment.fullUser.username)}`,
         articleUrl: article.url,
         articleTitle: article.title,
       },
+      channel: article.title,
       member,
       score: DevtoGrid.comment.score,
       isKeyAction: DevtoGrid.comment.isKeyAction,

@@ -11,7 +11,7 @@ export enum MemberAttributeName {
   WEBSITE_URL = 'websiteUrl',
   SAMPLE = 'sample',
   JOB_TITLE = 'jobTitle',
-  TEAM = 'team',
+  IS_TEAM_MEMBER = 'isTeamMember',
 }
 
 export const MemberAttributes = {
@@ -63,8 +63,8 @@ export const MemberAttributes = {
     name: MemberAttributeName.JOB_TITLE,
     label: 'Job Title',
   },
-  [MemberAttributeName.TEAM]: {
-    name: MemberAttributeName.TEAM,
-    label: 'Team',
+  [MemberAttributeName.IS_TEAM_MEMBER]: {
+    name: MemberAttributeName.IS_TEAM_MEMBER,
+    label: 'is Team Member',
   },
 }
