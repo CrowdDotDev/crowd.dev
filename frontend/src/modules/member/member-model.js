@@ -19,6 +19,7 @@ function label(name) {
 const fields = {
   id: new IdField('id', label('id')),
   jobTitle: new StringField('jobTitle', label('jobTitle')),
+  company: new StringField('company', label('company')),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
     required: true,

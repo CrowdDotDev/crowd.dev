@@ -194,6 +194,18 @@ export default {
     }
   },
 
+  async doUpdateCustomAttributes({ commit }, { id, data }) {
+    try {
+      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.updateCustomAttribute(id, data)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response)
+    } catch (error) {
+      Errors.handle(error)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
   async doFetchCustomAttributes({ commit }) {
     try {
       commit('FETCH_CUSTOM_ATTRIBUTES_STARTED')
@@ -372,7 +384,6 @@ export default {
       Message.success(
         i18n('entities.member.create.success')
       )
-      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('CREATE_ERROR')
@@ -398,8 +409,6 @@ export default {
           root: true
         })
       }
-
-      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('UPDATE_ERROR')

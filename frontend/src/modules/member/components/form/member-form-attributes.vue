@@ -46,8 +46,8 @@
             <el-date-picker
               v-if="attribute.type === 'date'"
               v-model="model[attribute.name]"
-              clearable
               :prefix-icon="CalendarIcon"
+              :clearable="false"
               class="custom-date-picker"
               popper-class="date-picker-popper"
               type="date"
@@ -91,7 +91,16 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed, h } from 'vue'
+
+const CalendarIcon = h(
+  'i', // type
+  {
+    class:
+      'ri-calendar-line text-base leading-none text-gray-400'
+  }, // props
+  []
+)
 
 const attributesTypes = {
   string: 'Text',

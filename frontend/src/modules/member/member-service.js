@@ -198,7 +198,7 @@ export class MemberService {
   static async updateCustomAttribute(id, data) {
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.delete(
+    const response = await authAxios.put(
       `/tenant/${tenantId}/settings/members/attributes/${id}`,
       data
     )
