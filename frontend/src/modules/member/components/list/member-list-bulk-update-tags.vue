@@ -13,7 +13,7 @@
 <script>
 import AppTagPopover from '@/modules/tag/components/tag-popover'
 import { i18n } from '@/i18n'
-import { MemberModel } from '../member-model'
+import { MemberModel } from '../../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { mapActions } from 'vuex'
 

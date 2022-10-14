@@ -312,4 +312,9 @@
   &--discord:hover {
     background-color: rgba(88, 101, 242, 0.15);
   }
+
+  &--slack,
+  &--slack:hover {
+    @apply bg-white;
+  }
 }

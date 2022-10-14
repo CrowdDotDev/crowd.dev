@@ -91,9 +91,9 @@
 
 <script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
-import AppMemberFormDetails from '@/modules/member/components/member-form-details.vue'
-import AppMemberFormIdentities from '@/modules/member/components/member-form-identities.vue'
-import AppMemberFormAttributes from '@/modules/member/components/member-form-attributes.vue'
+import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue'
+import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue'
+import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue'
 import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
