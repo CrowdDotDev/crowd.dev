@@ -162,12 +162,14 @@ const en = {
         success: 'Members merged successfully'
       },
       attributes: {
-        error: 'Custom Attributes could not be created'
+        error: 'Custom Attributes could not be created',
+        success: 'Custom Attributes successfuly updated'
       },
       fields: {
         id: 'Id',
         fullName: 'Full Name',
         jobTitle: 'Job title',
+        company: 'Company',
         member: 'Member',
         score: 'Score',
         estimatedReach: 'Estimated Reach',

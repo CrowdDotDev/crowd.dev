@@ -40,7 +40,7 @@
             />
             <AppMemberFormAttributes
               v-model="formModel"
-              :attributes="attributes"
+              :attributes="computedAttributes"
               :record="record"
               @open-drawer="() => (isDrawerOpen = true)"
             />
@@ -57,6 +57,7 @@
           <el-button
             v-if="isEditPage && hasFormChanged"
             class="btn btn-link btn-link--primary"
+            @click="onReset"
             ><i class="ri-arrow-go-back-line"></i>
             <span>Reset changes</span></el-button
           >
@@ -83,8 +84,8 @@
 
     <!-- Manage Custom Attributes Drawer-->
     <AppMemberAttributesDrawer
+      v-if="computedAttributes.length"
       v-model="isDrawerOpen"
-      :attributes="attributes"
     />
   </app-page-wrapper>
 </template>
@@ -98,11 +99,7 @@ import AppMemberAttributesDrawer from '@/modules/member/components/member-attrib
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { h, reactive, ref, computed, onMounted } from 'vue'
-import {
-  useRouter,
-  useRoute,
-  onBeforeRouteLeave
-} from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
@@ -122,7 +119,6 @@ const formSchema = computed(
     new FormSchema([
       fields.displayName,
       fields.email,
-      fields.organizations,
       fields.joinedAt,
       fields.tags,
       fields.username,
@@ -146,7 +142,7 @@ const isDrawerOpen = ref(false)
 
 const rules = reactive(formSchema.value.rules())
 
-const attributes = computed(() =>
+const computedAttributes = computed(() =>
   Object.values(store.state.member.customAttributes).filter(
     (attribute) => attribute.show
   )
@@ -176,21 +172,6 @@ onMounted(async () => {
   }
 })
 
-onBeforeRouteLeave(() => {
-  // TODO: Fix this for when member was created
-  if (hasFormChanged.value) {
-    return ConfirmDialog()
-      .then(() => {
-        return true
-      })
-      .catch(() => {
-        return false
-      })
-  }
-
-  return true
-})
-
 function getInitialModel(record) {
   const attributes = Object.entries(
     record?.attributes || {}
@@ -209,9 +190,6 @@ function getInitialModel(record) {
     displayName: record ? record.displayName : '',
     email: record ? record.email : '',
     joinedAt: record ? record.joinedAt : '',
-    organizations: record
-      ? record.organizations?.[0]?.name
-      : ' ',
     attributes: record ? record.attributes : {},
     ...attributes,
     tags: record ? record.tags : [],
@@ -222,13 +200,31 @@ function getInitialModel(record) {
   })
 }
 
+async function onReset() {
+  const initialModel = isEditPage.value
+    ? getInitialModel(record.value)
+    : getInitialModel()
+
+  Object.assign(formModel.value, initialModel)
+}
+
 async function onCancel() {
-  router.push({ name: 'member' })
+  if (hasFormChanged.value) {
+    ConfirmDialog({})
+      .then(() => {
+        router.push({ name: 'member' })
+      })
+      .catch(() => {
+        return false
+      })
+  } else {
+    router.push({ name: 'member' })
+  }
 }
 
 async function doSubmit() {
-  const formattedAttributes = attributes.value.reduce(
-    (obj, attribute) => {
+  const formattedAttributes =
+    computedAttributes.value.reduce((obj, attribute) => {
       if (!formModel.value[attribute.name]) {
         return obj
       }
@@ -240,17 +236,12 @@ async function doSubmit() {
           default: formModel.value[attribute.name]
         }
       }
-    },
-    {}
-  )
+    }, {})
 
   const data = {
     displayName: formModel.value.displayName,
     email: formModel.value.email,
     joinedAt: formModel.value.joinedAt,
-    organizations: !formModel.value.organizations
-      ? []
-      : [{ name: formModel.value.organizations }],
     attributes: formattedAttributes,
     tags: formModel.value.tags.map((t) => t.id),
     username: formModel.value.username,
@@ -263,11 +254,15 @@ async function doSubmit() {
       id: record.value.id,
       values: data
     })
+
+    router.push('/members')
   } else {
     // Create new member
     await store.dispatch('member/doCreate', {
       data
     })
+
+    router.push('/members')
   }
 }
 </script>
