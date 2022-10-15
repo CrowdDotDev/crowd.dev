@@ -1,21 +1,22 @@
 <template>
-  <page-wrapper>
-    <app-dashboard-header />
-    <app-dashboard-filters />
-    <div class="flex -mx-3">
-      <div class="w-full md:w-2/3 lg:w-3/4 px-3">
-        <app-dashboard-activities class="mb-6" />
-      </div>
-      <div class="w-full md:w-1/3 lg:w-1/4 px-3">
-        <app-dashboard-members class="mb-6" />
-        <app-dashboard-organizations class="mb-6" />
+  <div class="gap-x-4 px-6 lg:container lg:px-10">
+    <div>
+      <app-dashboard-header />
+      <app-dashboard-filters />
+      <div class="flex flex-wrap -mx-3">
+        <div class="w-full md:w-2/3 lg:w-3/4 px-3">
+          <app-dashboard-activities class="mb-6" />
+        </div>
+        <div class="w-full md:w-1/3 lg:w-1/4 px-3">
+          <app-dashboard-members class="mb-6" />
+          <app-dashboard-organizations class="mb-6" />
+        </div>
       </div>
     </div>
-  </page-wrapper>
+  </div>
 </template>
 
 <script>
-import PageWrapper from '@/modules/layout/components/page-wrapper'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities'
@@ -31,8 +32,7 @@ export default {
     AppDashboardHeader,
     AppDashboardOrganizations,
     AppDashboardMembers,
-    AppDashboardActivities,
-    PageWrapper
+    AppDashboardActivities
   },
   computed: {
     ...mapGetters('auth', {

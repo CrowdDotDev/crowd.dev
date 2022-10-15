@@ -1,8 +1,8 @@
 <template>
   <div
-    class="flex justify-between border-b border-gray-200 pb-8"
+    class="flex flex-wrap justify-between border-b border-gray-200 pb-6"
   >
-    <div>
+    <div class="pb-2">
       <h4 class="text-xl font-semibold leading-9 mb-1">
         Overview of
         <span class="text-brand-500">{{
@@ -17,9 +17,9 @@
         </p>
       </div>
     </div>
-    <div>
+    <div class="w-full md:w-auto pb-2">
       <p
-        class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide text-right tracking-1 pb-1"
+        class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide md:text-right lg:text-right tracking-1 pb-1"
       >
         Active integrations
       </p>

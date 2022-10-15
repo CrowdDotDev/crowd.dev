@@ -1,16 +1,26 @@
 <template>
-  <div v-if="conversations">
-    <app-dashboard-conversations-item
-      v-for="(conversation, ci) of conversations"
-      :key="conversation.id"
-      :class="{ 'border-b': ci < conversations.length - 1 }"
-      :conversation="conversation"
-    />
-    <div v-if="conversations.length === 0">
-      <p class="text-xs leading-5 text-center pt-4">
-        No trending conversations
-      </p>
+  <div>
+    <div
+      v-if="conversations.loading"
+      v-loading="conversations.loading"
+      class="app-page-spinner !min-h-5"
+    ></div>
+    <div v-else>
+      <app-dashboard-conversations-item
+        v-for="(conversation, ci) of trendingConversations"
+        :key="conversation.id"
+        :class="{
+          'border-b': ci < trendingConversations.length - 1
+        }"
+        :conversation="conversation"
+      />
+      <div v-if="trendingConversations.length === 0">
+        <p class="text-xs leading-5 text-center pt-4">
+          No trending conversations
+        </p>
+      </div>
     </div>
+
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
         :to="{ name: 'conversation' }"
@@ -30,9 +40,10 @@ export default {
   components: { AppDashboardConversationsItem },
   emits: { count: null },
   computed: {
-    ...mapGetters('dashboard', {
-      conversations: 'trendingConversations'
-    })
+    ...mapGetters('dashboard', [
+      'trendingConversations',
+      'conversations'
+    ])
   }
 }
 </script>

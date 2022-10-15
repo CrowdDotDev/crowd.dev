@@ -1,5 +1,7 @@
 <template>
-  <div class="flex items-center justify-end -ml-1">
+  <div
+    class="flex items-center md:justify-end lg:justify-end -ml-1"
+  >
     <!-- List of integrations -->
     <div
       v-for="active of Object.keys(activeIntegrations)"
@@ -60,8 +62,6 @@ export default {
   },
   async mounted() {
     window.analytics.page('Dashboard')
-  },
-  async created() {
     await this.fetchIntegrations()
   },
   methods: {

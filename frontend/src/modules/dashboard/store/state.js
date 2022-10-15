@@ -5,7 +5,7 @@ export default {
   },
   conversations: {
     loading: false,
-    recent: [],
+    trending: [],
     total: 0
   },
   activities: {

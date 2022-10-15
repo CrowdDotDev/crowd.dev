@@ -44,22 +44,35 @@
       <!-- Chart -->
       <div>Chart</div>
     </div>
+
+    <!-- new organizations -->
     <div v-if="tab === 'new'" class="list -mx-5 -mb-5 p-5">
-      <template
-        v-for="(organization, oi) of recentOrganizations"
-        :key="organization.id"
-      >
-        <p
-          v-if="getTimeText(oi)"
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+      <div
+        v-if="organizations.loadingRecent"
+        v-loading="organizations.loadingRecent"
+        class="app-page-spinner !min-h-5"
+      ></div>
+      <div v-else>
+        <template
+          v-for="(organization, oi) of recentOrganizations"
+          :key="organization.id"
         >
-          {{ getTimeText(mi) }}
-        </p>
-      </template>
-      <div v-if="recentOrganizations.length === 0">
-        <p class="text-xs leading-5 text-center pb-2">
-          No organizations yet
-        </p>
+          <p
+            v-if="getTimeText(oi)"
+            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+          >
+            {{ getTimeText(mi) }}
+          </p>
+          <app-dashboard-organizations-item
+            class="mb-4"
+            :organization="organization"
+          />
+        </template>
+        <div v-if="recentOrganizations.length === 0">
+          <p class="text-xs leading-5 text-center pb-2">
+            No organizations yet
+          </p>
+        </div>
       </div>
     </div>
 
@@ -68,16 +81,29 @@
       v-if="tab === 'active'"
       class="list -mx-5 -mb-5 p-5"
     >
-      <p
-        class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
-      >
-        Most active
-      </p>
-
-      <div v-if="activeOrganizations.length === 0">
-        <p class="text-xs leading-5 text-center pb-2">
-          No active organizations yet
+      <div
+        v-if="organizations.loadingActive"
+        v-loading="organizations.loadingActive"
+        class="app-page-spinner !min-h-5"
+      ></div>
+      <div v-else>
+        <p
+          v-if="activeOrganizations.length > 0"
+          class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+        >
+          Most active
         </p>
+        <app-dashboard-organizations-item
+          v-for="organization of activeOrganizations"
+          :key="organization.id"
+          class="mb-4"
+          :organization="organization"
+        />
+        <div v-if="activeOrganizations.length === 0">
+          <p class="text-xs leading-5 text-center pb-2">
+            No active organizations yet
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -88,9 +114,11 @@ import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab
 import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
+import AppDashboardOrganizationsItem from '@/modules/dashboard/components/organizations/dashboard-organizations-item'
 export default {
   name: 'AppDashboardOrganizations',
   components: {
+    AppDashboardOrganizationsItem,
     AppDashboardBadge,
     AppDashboardTab
   },
@@ -102,7 +130,8 @@ export default {
   computed: {
     ...mapGetters('dashboard', [
       'activeOrganizations',
-      'recentOrganizations'
+      'recentOrganizations',
+      'organizations'
     ])
   },
   methods: {

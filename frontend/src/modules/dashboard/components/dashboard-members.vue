@@ -44,33 +44,41 @@
       <!-- Chart -->
       <div>Chart</div>
     </div>
+    <!-- new members -->
     <div v-if="tab === 'new'" class="list -mx-5 -mb-5 p-5">
-      <template
-        v-for="(member, mi) of recentMembers"
-        :key="member.id"
-      >
-        <p
-          v-if="getTimeText(mi)"
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+      <div
+        v-if="members.loadingRecent"
+        v-loading="members.loadingRecent"
+        class="app-page-spinner !min-h-5"
+      ></div>
+      <div v-else>
+        <template
+          v-for="(member, mi) of recentMembers"
+          :key="member.id"
         >
-          {{ getTimeText(mi) }}
-        </p>
-        <app-dashboard-members-item
-          class="mb-4"
-          :member="member"
-        />
-      </template>
-      <div v-if="recentMembers.length === 0">
-        <p class="text-xs leading-5 text-center pb-2">
-          No active members yet
-        </p>
-      </div>
-      <div class="pt-1 flex justify-center">
-        <router-link
-          :to="{ name: 'member' }"
-          class="text-xs leading-5 font-medium text-red"
-          >View more</router-link
-        >
+          <p
+            v-if="getTimeText(mi)"
+            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+          >
+            {{ getTimeText(mi) }}
+          </p>
+          <app-dashboard-members-item
+            class="mb-4"
+            :member="member"
+          />
+        </template>
+        <div v-if="recentMembers.length === 0">
+          <p class="text-xs leading-5 text-center pb-2">
+            No active members yet
+          </p>
+        </div>
+        <div class="pt-1 flex justify-center">
+          <router-link
+            :to="{ name: 'member' }"
+            class="text-xs leading-5 font-medium text-red"
+            >View more</router-link
+          >
+        </div>
       </div>
     </div>
 
@@ -79,28 +87,36 @@
       v-if="tab === 'active'"
       class="list -mx-5 -mb-5 p-5"
     >
-      <p
-        class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
-      >
-        most active
-      </p>
-      <app-dashboard-members-item
-        v-for="member of activeMembers"
-        :key="member.id"
-        class="mb-4"
-        :member="member"
-      />
-      <div v-if="activeMembers.length === 0">
-        <p class="text-xs leading-5 text-center pb-2">
-          No active members yet
-        </p>
-      </div>
-      <div class="pt-1 flex justify-center">
-        <router-link
-          :to="{ name: 'member' }"
-          class="text-xs leading-5 font-medium text-red"
-          >View more</router-link
+      <div
+        v-if="members.loadingActive"
+        v-loading="members.loadingActive"
+        class="app-page-spinner !min-h-5"
+      ></div>
+      <div v-else>
+        <p
+          v-if="activeMembers.length > 0"
+          class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
         >
+          most active
+        </p>
+        <app-dashboard-members-item
+          v-for="member of activeMembers"
+          :key="member.id"
+          class="mb-4"
+          :member="member"
+        />
+        <div v-if="activeMembers.length === 0">
+          <p class="text-xs leading-5 text-center pb-2">
+            No active members yet
+          </p>
+        </div>
+        <div class="pt-1 flex justify-center">
+          <router-link
+            :to="{ name: 'member' }"
+            class="text-xs leading-5 font-medium text-red"
+            >View more</router-link
+          >
+        </div>
       </div>
     </div>
   </div>
@@ -128,7 +144,8 @@ export default {
   computed: {
     ...mapGetters('dashboard', [
       'activeMembers',
-      'recentMembers'
+      'recentMembers',
+      'members'
     ])
   },
   methods: {

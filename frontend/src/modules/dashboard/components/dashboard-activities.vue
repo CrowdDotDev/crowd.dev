@@ -38,21 +38,37 @@
         </p>
         <div class="flex w-full pb-3">
           <div
-            class="h-2 bg-green-500 border-l border-r rounded-sm"
+            class="h-2 bg-green-500 border-l border-r rounded-sm transition"
             :style="{ width: `${60}%` }"
+            :class="hoverSentimentClass('positive')"
+            @mouseover="hoveredSentiment = 'positive'"
+            @mouseleave="hoveredSentiment = ''"
           ></div>
           <div
-            class="h-2 bg-red-500 border-l border-r rounded-sm"
+            class="h-2 bg-red-500 border-l border-r rounded-sm transition"
+            :class="hoverSentimentClass('negative')"
             :style="{ width: `${40}%` }"
+            @mouseover="hoveredSentiment = 'negative'"
+            @mouseleave="hoveredSentiment = ''"
           ></div>
         </div>
-        <div class="flex justify-between pb-2">
+        <div
+          class="flex justify-between pb-2"
+          :class="hoverSentimentClass('positive')"
+          @mouseover="hoveredSentiment = 'positive'"
+          @mouseleave="hoveredSentiment = ''"
+        >
           <p class="text-sm font-medium">Positive</p>
           <p class="text-xs text-gray-600 text-right">
             600・60%
           </p>
         </div>
-        <div class="flex justify-between">
+        <div
+          class="flex justify-between"
+          :class="hoverSentimentClass('negative')"
+          @mouseover="hoveredSentiment = 'negative'"
+          @mouseleave="hoveredSentiment = ''"
+        >
           <p class="text-sm font-medium">Negative</p>
           <p class="text-xs text-gray-600 text-right">
             400・40%
@@ -93,7 +109,16 @@ export default {
   },
   data() {
     return {
-      tab: 'trending'
+      tab: 'trending',
+      hoveredSentiment: ''
+    }
+  },
+  methods: {
+    hoverSentimentClass(type) {
+      return this.hoveredSentiment !== type &&
+        this.hoveredSentiment !== ''
+        ? 'opacity-50'
+        : ''
     }
   }
 }

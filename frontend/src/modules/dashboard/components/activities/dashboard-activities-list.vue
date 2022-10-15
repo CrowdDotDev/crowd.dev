@@ -1,15 +1,24 @@
 <template>
   <div class="pt-3">
-    <app-dashboard-activities-item
-      v-for="(activity, ai) of activities"
-      :key="activity.id"
-      :class="{ 'border-b': ai < activities.length - 1 }"
-      :activity="activity"
-    />
-    <div v-if="activities.length === 0">
-      <p class="text-xs leading-5 text-center pt-1">
-        No recent activities
-      </p>
+    <div
+      v-if="activities.loading"
+      v-loading="activities.loading"
+      class="app-page-spinner !min-h-5"
+    ></div>
+    <div v-else>
+      <app-dashboard-activities-item
+        v-for="(activity, ai) of recentActivities"
+        :key="activity.id"
+        :class="{
+          'border-b': ai < recentActivities.length - 1
+        }"
+        :activity="activity"
+      />
+      <div v-if="recentActivities.length === 0">
+        <p class="text-xs leading-5 text-center pt-1">
+          No recent activities
+        </p>
+      </div>
     </div>
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
@@ -30,9 +39,10 @@ export default {
   components: { AppDashboardActivitiesItem },
   emits: { count: null },
   computed: {
-    ...mapGetters('dashboard', {
-      activities: 'recentActivities'
-    })
+    ...mapGetters('dashboard', [
+      'recentActivities',
+      'activities'
+    ])
   }
 }
 </script>
