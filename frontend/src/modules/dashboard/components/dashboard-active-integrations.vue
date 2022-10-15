@@ -4,25 +4,25 @@
     <div
       v-for="active of Object.keys(activeIntegrations)"
       :key="active"
-      :set="(details = platformDetails(active))"
       class="m-1"
     >
       <el-tooltip
         effect="dark"
-        :content="details.name"
+        :content="platformDetails(active).name"
         placement="top"
       >
         <div
           class="w-8 h-8 rounded-full border flex items-center justify-center"
           :style="{
-            background: details.color,
-            'border-color': details.borderColor
+            background: platformDetails(active).color,
+            'border-color':
+              platformDetails(active).borderColor
           }"
         >
           <img
             class="w-4 h-4"
-            :src="details.image"
-            :alt="details.name"
+            :src="platformDetails(active).image"
+            :alt="platformDetails(active).name"
           />
         </div>
       </el-tooltip>

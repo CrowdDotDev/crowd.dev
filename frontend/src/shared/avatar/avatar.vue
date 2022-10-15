@@ -107,5 +107,9 @@ export default {
   &--xs {
     @apply h-8 w-8;
   }
+
+  &--xxs {
+    @apply h-5 w-5;
+  }
 }
 </style>

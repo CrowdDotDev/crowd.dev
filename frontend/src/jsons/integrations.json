@@ -11,8 +11,8 @@
   {
     "platform": "discord",
     "name": "Discord",
-    "color": "#5865F2",
-    "borderColor": "#5865F2",
+    "color": "#dee0fc",
+    "borderColor": "#dee0fc",
     "active": true,
     "image":
     "https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
@@ -21,7 +21,7 @@
     "platform": "slack",
     "name": "Slack",
     "color": "#FFFFFF",
-    "borderColor": "#FFFFFF",
+    "borderColor": "#E5E7EB",
     "active": true,
     "image":
     "https://cdn-icons-png.flaticon.com/512/3800/3800024.png"
@@ -29,8 +29,8 @@
   {
     "platform": "twitter",
     "name": "Twitter",
-    "color": "#1D9BF0",
-    "borderColor": "#1D9BF0",
+    "color": "#d2ebfc",
+    "borderColor": "#d2ebfc",
     "active": true,
     "image":
     "https://cdn-icons-png.flaticon.com/512/733/733579.png"
