@@ -1,19 +1,22 @@
 /* eslint-disable no-constant-condition */
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
+import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
+import { SQS_CONFIG } from '../config/index'
+import { createChildLogger, createServiceLogger } from '../utils/logging'
 import { sqs } from '../services/aws'
-import { SQS_CONFIG } from '../config'
 import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
 import { processIntegrationsMessage } from '../serverless/integrations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 
-const receiveMessage = (): Promise<Message | undefined> =>
+const receiveMessage = (delayed?: boolean): Promise<Message | undefined> =>
   new Promise<Message | undefined>((resolve, reject) => {
     const params: ReceiveMessageRequest = {
-      QueueUrl: SQS_CONFIG.nodejsWorkerQueue,
+      QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
       MaxNumberOfMessages: 1,
       WaitTimeSeconds: 15,
       VisibilityTimeout: 15,
+      MessageAttributeNames: !delayed ? undefined : ['remainingDelaySeconds', 'tenantId'],
     }
 
     sqs.receiveMessage(params, (err, data) => {
@@ -27,10 +30,10 @@ const receiveMessage = (): Promise<Message | undefined> =>
     })
   })
 
-const deleteMessage = (receiptHandle: string): Promise<void> =>
+const deleteMessage = (receiptHandle: string, delayed?: boolean): Promise<void> =>
   new Promise<void>((resolve, reject) => {
     const params: DeleteMessageRequest = {
-      QueueUrl: SQS_CONFIG.nodejsWorkerQueue,
+      QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
       ReceiptHandle: receiptHandle,
     }
 
@@ -43,8 +46,50 @@ const deleteMessage = (receiptHandle: string): Promise<void> =>
     })
   })
 
-setImmediate(async () => {
-  console.log('Listening for messages on: ', SQS_CONFIG.nodejsWorkerQueue)
+const serviceLogger = createServiceLogger()
+
+async function handleDelayedMessages() {
+  const delayedHandlerLogger = createChildLogger(serviceLogger, 'delayedMessages', {
+    queue: SQS_CONFIG.nodejsWorkerDelayableQueue,
+  })
+  delayedHandlerLogger.info('Listing for delayed messages!')
+
+  // noinspection InfiniteLoopJS
+  while (true) {
+    const message = await receiveMessage(true)
+
+    if (message) {
+      const msg: NodeWorkerMessage = JSON.parse(message.Body)
+      const messageLogger = createChildLogger(delayedHandlerLogger, 'messageHandler', {
+        messageId: message.MessageId,
+        type: msg.type,
+      })
+
+      if (message.MessageAttributes && message.MessageAttributes.remainingDelaySeconds) {
+        // re-delay
+        const newDelay = parseInt(message.MessageAttributes.remainingDelaySeconds.StringValue, 10)
+        const tenantId = message.MessageAttributes.tenantId.StringValue
+        messageLogger.info({ newDelay, tenantId }, 'Re-delaying message!')
+        await sendNodeWorkerMessage(tenantId, msg, newDelay)
+      } else {
+        // just emit to the normal queue for processing
+        const tenantId = message.MessageAttributes.tenantId.StringValue
+        messageLogger.info({ tenantId }, 'Successfully delayed a message!')
+        await sendNodeWorkerMessage(tenantId, msg)
+      }
+
+      await deleteMessage(message.ReceiptHandle, true)
+    } else {
+      delayedHandlerLogger.trace('No message received!')
+    }
+  }
+}
+
+async function handleMessages() {
+  const handlerLogger = createChildLogger(serviceLogger, 'messages', {
+    queue: SQS_CONFIG.nodejsWorkerQueue,
+  })
+  handlerLogger.info('Listening for messages!')
 
   // noinspection InfiniteLoopJS
   while (true) {
@@ -52,7 +97,13 @@ setImmediate(async () => {
 
     if (message) {
       const msg: NodeWorkerMessage = JSON.parse(message.Body)
-      console.log('Received a new queue message: ', message.MessageId, msg.type)
+
+      const messageLogger = createChildLogger(handlerLogger, 'messageHandler', {
+        messageId: message.MessageId,
+        type: msg.type,
+      })
+
+      messageLogger.info('Received a new queue message!')
 
       let processFunction: (msg: NodeWorkerMessage) => Promise<void>
       let keep = false
@@ -70,7 +121,7 @@ setImmediate(async () => {
 
         default:
           keep = true
-          console.log('Error while parsing NodeJS Worker queue message! Invalid type: ', msg.type)
+          messageLogger.error('Error while parsing queue message! Invalid type.')
       }
 
       if (!keep) {
@@ -80,11 +131,18 @@ setImmediate(async () => {
         try {
           await processFunction(msg)
         } catch (err) {
-          console.log('Error while processing NodeJS Worker queue message!', err)
+          messageLogger.error(err, 'Error while processing queue message!')
         }
       } else {
-        console.log('Warning keeping the message in the queue!', message.MessageId)
+        messageLogger.warn('Keeping the message in the queue!')
       }
+    } else {
+      serviceLogger.trace('No message received!')
     }
   }
+}
+
+setImmediate(async () => {
+  const promises = [handleMessages(), handleDelayedMessages()]
+  await Promise.all(promises)
 })

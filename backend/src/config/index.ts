@@ -42,6 +42,8 @@ export const IS_PROD_ENV: boolean = process.env.NODE_ENV === 'production'
 
 export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
 
+export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
+
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')

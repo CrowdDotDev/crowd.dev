@@ -12,7 +12,9 @@
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
+    "pythonWorkerDelayableQueue": "CROWD_SQS_PYTHON_WORKER_DELAYABLE_QUEUE",
     "aws": {
       "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
       "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
