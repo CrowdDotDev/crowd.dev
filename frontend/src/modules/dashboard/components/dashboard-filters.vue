@@ -98,6 +98,9 @@ export default {
       return 'All'
     }
   },
+  mounted() {
+    this.setFilters({})
+  },
   methods: {
     ...mapActions({
       setFilters: 'dashboard/setFilters'

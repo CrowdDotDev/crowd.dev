@@ -18,7 +18,7 @@
           'channel_joined',
           'channel_left',
           'reaction_added'
-        ].includes(activity.type)
+        ].includes(activity.type) && !short
       "
       class="block ml-1"
     >
@@ -54,6 +54,7 @@
       :fallback="'entities.activity.fallback'"
     ></app-i18n
     >&nbsp;<a
+      v-if="!short"
       :href="activity.attributes.articleUrl"
       class="text-red"
       target="_blank"
@@ -79,12 +80,13 @@
         v-if="
           !['fork', 'star', 'unstar'].includes(
             activity.type
-          )
+          ) && !short
         "
         class="ml-1"
         >in</span
       >
       <a
+        v-if="!short"
         :href="activity.repo"
         target="_blank"
         class="ml-1 text-red"
@@ -96,6 +98,7 @@
   <!-- other -->
   <template v-else>
     <a
+      v-if="!short"
       :href="activity.url"
       target="_blank"
       class="text-red"
@@ -122,6 +125,11 @@ export default {
     activity: {
       type: Object,
       required: true
+    },
+    short: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {

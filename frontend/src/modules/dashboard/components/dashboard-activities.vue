@@ -27,11 +27,7 @@
     <!-- Chart -->
     <div>Chart</div>
 
-    <el-tabs
-      v-model="tab"
-      class="demo-tabs"
-      @tab-click="handleClick"
-    >
+    <el-tabs v-model="tab" class="demo-tabs">
       <el-tab-pane
         label="Trending conversations"
         name="trending"
