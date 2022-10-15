@@ -1,7 +1,11 @@
 <template>
-  <el-dropdown trigger="click" @command="handleCommand">
+  <el-dropdown
+    trigger="click"
+    placement="bottom-end"
+    @command="handleCommand"
+  >
     <span class="el-dropdown-link">
-      <i class="text-xl ri-more-line"></i>
+      <i class="text-xl ri-more-fill"></i>
     </span>
     <template #dropdown>
       <el-dropdown-item

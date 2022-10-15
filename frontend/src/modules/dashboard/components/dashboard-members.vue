@@ -42,7 +42,7 @@
         >
       </div>
       <!-- Chart -->
-      <div>ToDo Chart</div>
+      <div>Chart</div>
     </div>
     <div v-if="tab === 'new'" class="list -mx-5 -mb-5 p-5">
       <template

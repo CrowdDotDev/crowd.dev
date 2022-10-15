@@ -6,6 +6,11 @@
       :class="{ 'border-b': ai < activities.length - 1 }"
       :activity="activity"
     />
+    <div v-if="activities.length === 0">
+      <p class="text-xs leading-5 text-center pt-1">
+        No recent activities
+      </p>
+    </div>
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
         :to="{ name: 'activity' }"
@@ -19,35 +24,15 @@
 
 <script>
 import AppDashboardActivitiesItem from '@/modules/dashboard/components/activities/dashboard-activities-item'
-import { ActivityService } from '@/modules/activity/activity-service'
+import { mapGetters } from 'vuex'
 export default {
   name: 'AppDashboardActivitiesList',
   components: { AppDashboardActivitiesItem },
   emits: { count: null },
-  data() {
-    return {
-      activities: [],
-      loading: false
-    }
-  },
-  mounted() {
-    this.fetchActivities()
-  },
-  methods: {
-    async fetchActivities() {
-      if (this.loading) {
-        return
-      }
-      this.loading = true
-      ActivityService.list(null, 'createdAt_ASC', 20, 0)
-        .then(({ rows, count }) => {
-          this.activities = rows
-          this.$emit('count', count)
-        })
-        .finally(() => {
-          this.loading = false
-        })
-    }
+  computed: {
+    ...mapGetters('dashboard', {
+      activities: 'recentActivities'
+    })
   }
 }
 </script>

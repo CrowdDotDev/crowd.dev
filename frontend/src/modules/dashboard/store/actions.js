@@ -17,9 +17,13 @@ export default {
     dispatch('getMembers')
     dispatch('getOrganizations')
   },
-  async getTrendingConversations({ commit }) {
+  async getTrendingConversations({ commit, state }) {
     return ConversationService.list(
       {
+        platform:
+          state.filters.platform !== 'all'
+            ? state.filters.platform
+            : undefined,
         activityCount: {
           gt: 4
         }
@@ -32,14 +36,19 @@ export default {
       return Promise.resolve(rows)
     })
   },
-  async getRecentActivities({ commit }) {
+  async getRecentActivities({ commit, state }) {
     return ActivityService.list(
-      null,
+      {
+        platform:
+          state.filters.platform !== 'all'
+            ? state.filters.platform
+            : undefined
+      },
       'createdAt_ASC',
       20,
       0
     ).then(({ rows }) => {
-      commit('SET_RECENT_ORGANIZATIONS', rows)
+      commit('SET_RECENT_ACTIVITIES', rows)
       return Promise.resolve(rows)
     })
   },
@@ -63,6 +72,8 @@ export default {
       return Promise.resolve(rows)
     })
   },
+
+  // fetch recent members
   async getRecentMembers({ commit }) {
     return MemberService.list(
       null,

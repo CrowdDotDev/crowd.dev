@@ -19,7 +19,7 @@
     </div>
     <div>
       <p
-        class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide tracking-1 pb-1"
+        class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide text-right tracking-1 pb-1"
       >
         Active integrations
       </p>
