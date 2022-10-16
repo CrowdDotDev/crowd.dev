@@ -16,8 +16,19 @@
 
     <div class="pt-6 flex -mx-5 pb-12">
       <div class="w-7/12 px-5 pb-4">
-        <!-- Chart -->
-        <div>Chart</div>
+        <div
+          v-if="activities.loading"
+          v-loading="activities.loading"
+          class="app-page-spinner h-16 !relative !min-h-5"
+        ></div>
+        <app-widget-cube-renderer
+          v-else
+          class="chart"
+          :widget="activitiesChart(period, platform)"
+          :dashboard="false"
+          :show-subtitle="false"
+          :chart-options="chartOptions"
+        ></app-widget-cube-renderer>
       </div>
       <div class="w-5/12 px-5 pb-4">
         <p
@@ -25,55 +36,13 @@
         >
           Total
         </p>
-        <div class="flex items-center pb-6">
-          <p class="text-sm font-medium mr-2">
-            4,600 activities
-          </p>
-          <app-dashboard-badge>+2%</app-dashboard-badge>
-        </div>
+        <app-dashboard-activities-count />
         <p
           class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
         >
           OVERALL SENTIMENT
         </p>
-        <div class="flex w-full pb-3">
-          <div
-            class="h-2 bg-green-500 border-l border-r rounded-sm transition"
-            :style="{ width: `${60}%` }"
-            :class="hoverSentimentClass('positive')"
-            @mouseover="hoveredSentiment = 'positive'"
-            @mouseleave="hoveredSentiment = ''"
-          ></div>
-          <div
-            class="h-2 bg-red-500 border-l border-r rounded-sm transition"
-            :class="hoverSentimentClass('negative')"
-            :style="{ width: `${40}%` }"
-            @mouseover="hoveredSentiment = 'negative'"
-            @mouseleave="hoveredSentiment = ''"
-          ></div>
-        </div>
-        <div
-          class="flex justify-between pb-2"
-          :class="hoverSentimentClass('positive')"
-          @mouseover="hoveredSentiment = 'positive'"
-          @mouseleave="hoveredSentiment = ''"
-        >
-          <p class="text-sm font-medium">Positive</p>
-          <p class="text-xs text-gray-600 text-right">
-            600・60%
-          </p>
-        </div>
-        <div
-          class="flex justify-between"
-          :class="hoverSentimentClass('negative')"
-          @mouseover="hoveredSentiment = 'negative'"
-          @mouseleave="hoveredSentiment = ''"
-        >
-          <p class="text-sm font-medium">Negative</p>
-          <p class="text-xs text-gray-600 text-right">
-            400・40%
-          </p>
-        </div>
+        <app-dashboard-activities-sentiment />
       </div>
     </div>
 
@@ -99,27 +68,37 @@
 <script>
 import AppDashboardActivitiesList from '@/modules/dashboard/components/activities/dashboard-activities-list'
 import AppDashboardConversationsList from '@/modules/dashboard/components/conversations/dashboard-conversations-list'
-import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
+import { mapGetters } from 'vuex'
+import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
+import {
+  activitiesChart,
+  chartOptions
+} from '@/modules/dashboard/dashboard.cube'
+import AppDashboardActivitiesSentiment from '@/modules/dashboard/components/activities/dashboard-activities-sentiment'
+import AppDashboardActivitiesCount from '@/modules/dashboard/components/activities/dashboard-activities-count'
 export default {
   name: 'AppDashboardActivities',
   components: {
-    AppDashboardBadge,
+    AppDashboardActivitiesCount,
+    AppDashboardActivitiesSentiment,
+    AppWidgetCubeRenderer,
     AppDashboardConversationsList,
     AppDashboardActivitiesList
   },
   data() {
     return {
       tab: 'trending',
-      hoveredSentiment: ''
+      hoveredSentiment: '',
+      activitiesChart,
+      chartOptions
     }
   },
-  methods: {
-    hoverSentimentClass(type) {
-      return this.hoveredSentiment !== type &&
-        this.hoveredSentiment !== ''
-        ? 'opacity-50'
-        : ''
-    }
+  computed: {
+    ...mapGetters('dashboard', [
+      'period',
+      'platform',
+      'activities'
+    ])
   }
 }
 </script>
@@ -128,6 +107,12 @@ export default {
 .tabs::v-deep {
   .el-tabs__content {
     overflow: visible;
+  }
+}
+.chart::v-deep {
+  div {
+    line-height: inherit !important;
+    height: auto !important;
   }
 }
 </style>

@@ -2,6 +2,7 @@ import { MemberService } from '@/modules/member/member-service'
 import { OrganizationService } from '@/modules/organization/organization-service'
 import { ActivityService } from '@/modules/activity/activity-service'
 import { ConversationService } from '@/modules/conversation/conversation-service'
+import moment from 'moment'
 
 export default {
   // Set new filters & fetch new data
@@ -22,15 +23,15 @@ export default {
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true
+    const platform = state.filters.platform
+    const period = state.filters.period
     return ConversationService.list(
       {
-        platform:
-          state.filters.platform !== 'all'
-            ? state.filters.platform
-            : undefined,
-        activityCount: {
-          gt: 4
-        }
+        createdAtRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ],
+        platform: platform !== 'all' ? platform : undefined
       },
       'activityCount_DESC',
       5,
@@ -48,14 +49,17 @@ export default {
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
     state.activities.loading = true
+    const platform = state.filters.platform
+    const period = state.filters.period
     return ActivityService.list(
       {
-        platform:
-          state.filters.platform !== 'all'
-            ? state.filters.platform
-            : undefined
+        timestampRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ],
+        platform: platform !== 'all' ? platform : undefined
       },
-      'createdAt_ASC',
+      '',
       20,
       0
     )
@@ -78,12 +82,8 @@ export default {
   async getActiveMembers({ commit, state }) {
     state.members.loadingActive = true
     return MemberService.list(
-      {
-        activityCount: {
-          gt: 100
-        }
-      },
-      'createdAt_ASC',
+      {},
+      'activityCount_DESC',
       5,
       0,
       false
@@ -100,13 +100,7 @@ export default {
   // Fetch recent members
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true
-    return MemberService.list(
-      null,
-      'createdAt_ASC',
-      20,
-      0,
-      false
-    )
+    return MemberService.list(null, '', 20, 0, false)
       .then((data) => {
         commit('SET_RECENT_MEMBERS', data)
         return Promise.resolve(data)
@@ -128,10 +122,10 @@ export default {
     return OrganizationService.list(
       {
         activityCount: {
-          gt: 100
+          gt: 4
         }
       },
-      'createdAt_ASC',
+      '',
       5,
       0,
       false
@@ -148,13 +142,7 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    return OrganizationService.list(
-      null,
-      'createdAt_ASC',
-      20,
-      0,
-      false
-    )
+    return OrganizationService.list(null, '', 20, 0, false)
       .then((data) => {
         commit('SET_RECENT_ORGANIZATIONS', data)
         return Promise.resolve(data)

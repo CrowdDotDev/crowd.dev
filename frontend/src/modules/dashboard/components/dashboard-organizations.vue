@@ -31,107 +31,151 @@
         Active
       </app-dashboard-tab>
     </div>
-    <div
-      class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-    >
-      <!-- difference in period -->
-      <div class="flex items-center pb-4">
-        <h6 class="text-base leading-5 mr-2">52</h6>
-        <app-dashboard-badge type="success"
-          >+12</app-dashboard-badge
-        >
-      </div>
-      <!-- Chart -->
-      <div>Chart</div>
-    </div>
 
-    <!-- new organizations -->
-    <div v-if="tab === 'new'" class="list -mx-5 -mb-5 p-5">
+    <section v-show="tab === 'new'">
       <div
         v-if="organizations.loadingRecent"
         v-loading="organizations.loadingRecent"
-        class="app-page-spinner !min-h-5"
+        class="app-page-spinner h-16 !relative !min-h-5"
       ></div>
       <div v-else>
-        <template
-          v-for="(organization, oi) of recentOrganizations"
-          :key="organization.id"
+        <div
+          class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
         >
-          <p
-            v-if="getTimeText(oi)"
-            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
-          >
-            {{ getTimeText(mi) }}
-          </p>
-          <app-dashboard-organizations-item
-            class="mb-4"
-            :organization="organization"
+          <!-- difference in period -->
+          <app-dashboard-count
+            :query="
+              newOrganizationChart(period, platform)
+                .settings.query
+            "
           />
-        </template>
-        <div v-if="recentOrganizations.length === 0">
-          <p class="text-xs leading-5 text-center pb-2">
-            No organizations yet
-          </p>
+          <!-- Chart -->
+          <app-widget-cube-renderer
+            class="chart"
+            :widget="newOrganizationChart(period, platform)"
+            :dashboard="false"
+            :show-subtitle="false"
+            :chart-options="chartOptions"
+          ></app-widget-cube-renderer>
+        </div>
+        <div class="list -mx-5 -mb-5 p-5">
+          <div>
+            <template
+              v-for="(
+                organization, oi
+              ) of recentOrganizations"
+              :key="organization.id"
+            >
+              <p
+                v-if="getTimeText(oi)"
+                class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+              >
+                {{ getTimeText(mi) }}
+              </p>
+              <app-dashboard-organizations-item
+                class="mb-4"
+                :organization="organization"
+              />
+            </template>
+            <div v-if="recentOrganizations.length === 0">
+              <p class="text-xs leading-5 text-center pb-2">
+                No organizations yet
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- active members -->
-    <div
-      v-if="tab === 'active'"
-      class="list -mx-5 -mb-5 p-5"
-    >
+    <section v-show="tab === 'active'">
       <div
         v-if="organizations.loadingActive"
         v-loading="organizations.loadingActive"
-        class="app-page-spinner !min-h-5"
+        class="app-page-spinner h-16 !relative !min-h-5"
       ></div>
       <div v-else>
-        <p
-          v-if="activeOrganizations.length > 0"
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+        <div
+          class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
         >
-          Most active
-        </p>
-        <app-dashboard-organizations-item
-          v-for="organization of activeOrganizations"
-          :key="organization.id"
-          class="mb-4"
-          :organization="organization"
-        />
-        <div v-if="activeOrganizations.length === 0">
-          <p class="text-xs leading-5 text-center pb-2">
-            No active organizations yet
-          </p>
+          <!-- difference in period -->
+          <app-dashboard-count
+            :query="
+              activeOrganizationChart(period, platform)
+                .settings.query
+            "
+          />
+          <!-- Chart -->
+          <app-widget-cube-renderer
+            class="chart"
+            :widget="
+              activeOrganizationChart(period, platform)
+            "
+            :dashboard="false"
+            :show-subtitle="false"
+            :chart-options="chartOptions"
+          ></app-widget-cube-renderer>
+        </div>
+        <div class="list -mx-5 -mb-5 p-5">
+          <div>
+            <p
+              v-if="activeOrganizations.length > 0"
+              class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+            >
+              Most active
+            </p>
+            <app-dashboard-organizations-item
+              v-for="organization of activeOrganizations"
+              :key="organization.id"
+              class="mb-4"
+              :organization="organization"
+            />
+            <div v-if="activeOrganizations.length === 0">
+              <p class="text-xs leading-5 text-center pb-2">
+                No active organizations yet
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script>
 import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab'
-import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import AppDashboardOrganizationsItem from '@/modules/dashboard/components/organizations/dashboard-organizations-item'
+import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
+import {
+  newOrganizationChart,
+  activeOrganizationChart,
+  chartOptions
+} from '@/modules/dashboard/dashboard.cube'
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 export default {
   name: 'AppDashboardOrganizations',
   components: {
+    AppDashboardCount,
+    AppWidgetCubeRenderer,
     AppDashboardOrganizationsItem,
-    AppDashboardBadge,
     AppDashboardTab
   },
   data() {
     return {
-      tab: 'new'
+      tab: 'new',
+      newOrganizationChart,
+      activeOrganizationChart,
+      chartOptions
     }
   },
   computed: {
     ...mapGetters('dashboard', [
       'activeOrganizations',
       'recentOrganizations',
-      'organizations'
+      'organizations',
+      'period',
+      'platform'
     ])
   },
   methods: {
@@ -168,5 +212,11 @@ export default {
 .list {
   max-height: 14rem;
   overflow: auto;
+}
+.chart::v-deep {
+  div {
+    line-height: inherit !important;
+    height: auto !important;
+  }
 }
 </style>

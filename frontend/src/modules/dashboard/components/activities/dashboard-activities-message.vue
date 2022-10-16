@@ -3,7 +3,11 @@
   <template
     v-if="['discord', 'slack'].includes(activity.platform)"
   >
-    <a :href="activity.url" target="_blank">
+    <a
+      :href="activity.url"
+      target="_blank"
+      class="text-gray-900"
+    >
       <app-i18n
         :code="computedMessage"
         :args="computedArgs"
@@ -22,16 +26,14 @@
       "
       class="block ml-1"
     >
-      <span class="text-red"
-        >{{
-          ['channel_joined', 'channel_left'].includes(
-            activity.type
-          )
-            ? ''
-            : 'in channel'
-        }}
-        #{{ activity.channel }}</span
-      >
+      <span class="text-gray-900">{{
+        ['channel_joined', 'channel_left'].includes(
+          activity.type
+        )
+          ? ''
+          : 'in channel'
+      }}</span>
+      <span class="text-red"> #{{ activity.channel }}</span>
     </span>
   </template>
   <!-- devto -->
@@ -67,7 +69,7 @@
     <a
       :href="activity.url"
       target="_blank"
-      class="text-red"
+      class="text-gray-900"
     >
       <app-i18n
         :code="computedMessage"
@@ -101,7 +103,7 @@
       v-if="!short"
       :href="activity.url"
       target="_blank"
-      class="text-red"
+      class="text-gray-900"
     >
       <app-i18n
         :code="computedMessage"

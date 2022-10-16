@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-cube">
+  <div ref="widget" class="widget-cube">
     <app-widget-table
       v-if="chartType === 'table'"
       :config="{
@@ -35,25 +35,36 @@
       @trigger-delete-widget="handleDelete"
     >
     </app-widget-number>
-    <app-widget
-      v-else
-      :config="{
-        title: widget.title,
-        subtitle: showSubtitle ? subtitle : null,
-        settings: editable ? {} : undefined,
-        loading: loading
-      }"
-      :editable="editable"
-      @trigger-duplicate-widget="handleDuplicate"
-      @trigger-edit-widget="handleEdit"
-      @trigger-delete-widget="handleDelete"
-    >
-      <component
-        :is="componentType"
-        :data="data"
-        v-bind="chartOptions"
-      ></component>
-    </app-widget>
+    <div v-else>
+      <app-widget
+        v-if="!widget.chartOnly"
+        :config="{
+          title: widget.title,
+          subtitle: showSubtitle ? subtitle : null,
+          settings: editable ? {} : undefined,
+          loading: loading
+        }"
+        :editable="editable"
+        @trigger-duplicate-widget="handleDuplicate"
+        @trigger-edit-widget="handleEdit"
+        @trigger-delete-widget="handleDelete"
+      >
+        <component
+          :is="componentType"
+          ref="chart"
+          :data="data"
+          v-bind="chartOptions"
+        ></component>
+      </app-widget>
+      <div v-else class="cube-widget-chart">
+        <component
+          :is="componentType"
+          ref="chart"
+          :data="data"
+          v-bind="{ ...chartOptions, dataset }"
+        ></component>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -99,7 +110,11 @@ export default {
     }
   },
   emits: ['duplicate', 'edit', 'delete'],
-
+  data() {
+    return {
+      dataset: {}
+    }
+  },
   computed: {
     loading() {
       return (
@@ -202,8 +217,25 @@ export default {
       return data
     }
   },
-
+  mounted() {
+    this.$nextTick(() => {
+      console.log('done')
+      this.paintDataSet()
+    })
+  },
+  updated() {
+    this.paintDataSet()
+  },
   methods: {
+    paintDataSet() {
+      const canvas = this.$refs.widget.querySelector(
+        '.cube-widget-chart canvas'
+      )
+      if (canvas && this.chartOptions.computeDataset) {
+        this.dataset =
+          this.chartOptions.computeDataset(canvas)
+      }
+    },
     series(resultSet) {
       // For line & area charts
       const seriesNames = resultSet.seriesNames()

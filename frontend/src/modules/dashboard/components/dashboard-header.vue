@@ -17,7 +17,7 @@
         </p>
       </div>
     </div>
-    <div class="w-full md:w-auto pb-2">
+    <div class="w-full lg:w-auto md:w-auto pb-2">
       <p
         class="text-gray-400 text-2xs leading-5 uppercase font-semibold tracking-wide md:text-right lg:text-right tracking-1 pb-1"
       >

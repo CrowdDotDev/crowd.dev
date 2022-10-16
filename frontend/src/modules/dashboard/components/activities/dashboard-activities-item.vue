@@ -1,5 +1,5 @@
 <template>
-  <article class="py-5 border-gray-200">
+  <article class="py-5 border-gray-200 relative">
     <div class="flex">
       <!-- avatar -->
       <div class="pr-3">
@@ -40,7 +40,7 @@
                   />
                 </el-tooltip>
               </div>
-              <div class="text-2xs leading-4 pl-2">
+              <div class="text-2xs leading-4 pl-2 flex">
                 <app-dashboard-activities-message
                   :activity="activity"
                 /><span class="whitespace-nowrap"
@@ -55,29 +55,10 @@
           </div>
         </div>
         <!-- Content -->
-        <div class="mt-4 bg-gray-50 rounded-lg p-4">
-          <app-dashboard-activities-content
-            class="text-xs"
-            :activity="activity"
-          />
-          <div class="pt-6 flex justify-between">
-            <div></div>
-            <div>
-              <a
-                v-if="activity.url"
-                :href="activity.url"
-                class="text-2xs text-gray-600 font-medium flex items-center"
-                target="_blank"
-                ><i
-                  class="ri-lg ri-external-link-line mr-1"
-                ></i>
-                <span class="block"
-                  >Open on {{ platform.name }}</span
-                ></a
-              >
-            </div>
-          </div>
-        </div>
+        <app-dashboard-activities-content
+          class="text-xs"
+          :activity="activity"
+        />
       </div>
     </div>
   </article>

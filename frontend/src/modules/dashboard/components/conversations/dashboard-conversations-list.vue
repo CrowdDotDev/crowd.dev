@@ -3,7 +3,7 @@
     <div
       v-if="conversations.loading"
       v-loading="conversations.loading"
-      class="app-page-spinner !min-h-5"
+      class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
       <app-dashboard-conversations-item

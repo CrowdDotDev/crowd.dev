@@ -3,7 +3,7 @@
     <div
       v-if="activities.loading"
       v-loading="activities.loading"
-      class="app-page-spinner !min-h-5"
+      class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
       <app-dashboard-activities-item
