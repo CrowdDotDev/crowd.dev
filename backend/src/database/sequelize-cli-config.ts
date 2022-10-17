@@ -1,4 +1,3 @@
-
 const IS_TEST_ENV = process.env.NODE_ENV === 'test'
 const IS_STAGING_ENV = process.env.NODE_ENV === 'staging'
 const IS_PROD_ENV = process.env.NODE_ENV === 'production'

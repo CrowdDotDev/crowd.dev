@@ -76,7 +76,6 @@ export default async () => {
   }
 
   console.timeEnd('remove-crowdUsername-time')
-
 }
 
 async function getMembers(seq, limit, offset) {

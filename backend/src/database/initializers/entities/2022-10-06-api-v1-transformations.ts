@@ -297,7 +297,7 @@ export default async () => {
     let currentActivityCount = 0
     let currentOffset = 0
 
-    while (currentActivityCount < totalActivityCount){
+    while (currentActivityCount < totalActivityCount) {
       const LIMIT = 200000
 
       console.log(`getting activities with limit: ${LIMIT}, offset: ${currentOffset}`)
@@ -307,27 +307,27 @@ export default async () => {
 
       for (const activity of activities) {
         let body = ''
-  
+
         if (activity.crowdInfo.body) {
           body = activity.crowdInfo.body
           delete activity.crowdInfo.body
         }
-  
+
         let url = ''
-  
+
         if (activity.crowdInfo.url) {
           url = activity.crowdInfo.url
           delete activity.crowdInfo.url
         }
         let title = ''
-  
+
         if (activity.crowdInfo.title) {
           title = activity.crowdInfo.title
           delete activity.crowdInfo.title
         }
-  
+
         let channel = ''
-  
+
         if (activity.platform === PlatformType.TWITTER) {
           if (activity.type === 'hashtag' && activity.crowdInfo.hashtag) {
             channel = activity.crowdInfo.hashtag
@@ -344,7 +344,7 @@ export default async () => {
           if (activity.crowdInfo.articleTitle) {
             channel = activity.crowdInfo.articleTitle
           }
-  
+
           if (activity.crowdInfo.thread === false || activity.crowdInfo.thread === true) {
             delete activity.crowdInfo.thread
           }
@@ -353,15 +353,15 @@ export default async () => {
             channel = activity.crowdInfo.channel
           } else if (activity.crowdInfo.thread) {
             channel = activity.crowdInfo.thread
-  
+
             if (activity.crowdInfo.channel) {
               delete activity.crowdInfo.channel
             }
           }
         }
-  
+
         const attributes = activity.crowdInfo
-  
+
         updateActivities.push({
           ...activity,
           body,
@@ -370,30 +370,30 @@ export default async () => {
           attributes,
           channel,
         })
-  
+
         transformedActivityCount += 1
         if (transformedActivityCount % 1000 === 0) {
           console.log(`transforming activities: ${transformedActivityCount}/${activityCount}`)
         }
       }
       console.log(`bulk updating tenant [${tenant.id}] activities...`)
-  
+
       const ACTIVITY_CHUNK_SIZE = 25000
-  
+
       if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
         const rawLength = updateActivities.length
         splittedBulkActivities = []
-  
+
         while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
           splittedBulkActivities.push(updateActivities.slice(0, ACTIVITY_CHUNK_SIZE))
           updateActivities = updateActivities.slice(ACTIVITY_CHUNK_SIZE)
         }
-  
+
         // push last leftover chunk
         if (updateActivities.length > 0) {
           splittedBulkActivities.push(updateActivities)
         }
-  
+
         let counter = ACTIVITY_CHUNK_SIZE
         for (const activityChunk of splittedBulkActivities) {
           console.log(`updating activity chunk ${counter}/${rawLength}`)
@@ -407,39 +407,36 @@ export default async () => {
           updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
         })
       }
-  
+
       currentActivityCount += activities.length
       currentOffset += activities.length
-
     }
-
-
 
     console.log('done!')
   }
   console.timeEnd('transformations-time')
- 
 }
 
-async function getActivityCount(seq, tenantId){
+async function getActivityCount(seq, tenantId) {
   const activityCountQuery = `
         select count(*) from activities a
         where a."tenantId"  = :tenantId
     `
-    const activityCountQueryParameters: any = {
-      tenantId,
-    }
+  const activityCountQueryParameters: any = {
+    tenantId,
+  }
 
-    const activityCount = (await seq.query(activityCountQuery, {
+  const activityCount = (
+    await seq.query(activityCountQuery, {
       replacements: activityCountQueryParameters,
       type: QueryTypes.SELECT,
-    }))[0].count
+    })
+  )[0].count
 
-    return activityCount
+  return activityCount
 }
 
-async function getActivities(seq, tenantId, limit, offset){
-
+async function getActivities(seq, tenantId, limit, offset) {
   const activityQuery = `
         select * from activities a
         where a."tenantId"  = :tenantId
@@ -447,17 +444,16 @@ async function getActivities(seq, tenantId, limit, offset){
         OFFSET :offset
         LIMIT  :limit
     `
-    const activityQueryParameters: any = {
-      tenantId,
-      offset,
-      limit
-    }
+  const activityQueryParameters: any = {
+    tenantId,
+    offset,
+    limit,
+  }
 
-    return seq.query(activityQuery, {
-      replacements: activityQueryParameters,
-      type: QueryTypes.SELECT,
-    })
-
+  return seq.query(activityQuery, {
+    replacements: activityQueryParameters,
+    type: QueryTypes.SELECT,
+  })
 }
 
 function setObjectAttribute(obj, attributeName, platform, value) {
