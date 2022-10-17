@@ -327,6 +327,7 @@ describe('Integrations worker static tests', () => {
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
           body: 'First message #apis',
           url: 'https://twitter.com/i/status/1234567',
+          channel: '1234',
           attributes: {
             hashtag: '1234',
             attachments: [
@@ -873,6 +874,7 @@ describe('Integrations worker static tests', () => {
           timestamp: moment(Date.parse('2022-02-02T08:20:04.000Z')).toDate(),
           body: 'First message #apis',
           url: 'https://twitter.com/i/status/1234567',
+          channel: '1',
           attributes: {
             hashtag: '1',
             attachments: [
@@ -907,6 +909,7 @@ describe('Integrations worker static tests', () => {
           timestamp: moment(Date.parse('2022-02-01T08:20:04.000Z')).toDate(),
           body: 'Second Message',
           url: 'https://twitter.com/i/status/123456798',
+          channel: '1',
           attributes: {
             hashtag: '1',
             attachments: [
