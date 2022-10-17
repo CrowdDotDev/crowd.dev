@@ -53,6 +53,19 @@ cube(`Activities`, {
       shown: false,
     },
 
+    sentimentMood: {
+      case: {
+        when: [
+          { sql: `${CUBE}.sentiment->>'sentiment' is null`, label: `no data` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer < 50`, label: `negative` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer > 50`, label: `positive` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer = 50`, label: `positive` },
+        ],
+        else: { label: `no data` },
+      },
+      type: `string`,
+    },
+
     sourceid: {
       sql: `${CUBE}."sourceId"`,
       type: `string`,

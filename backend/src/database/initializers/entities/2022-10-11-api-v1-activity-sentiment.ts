@@ -13,7 +13,8 @@ export default async () => {
   console.time('whole-script-time')
 
   // const activityQuery = `select * from activities a where a."timestamp"  between '2022-09-01' and now() and (a."attributes"->>'sample') is null`
-  const activityQuery = `select * from activities a where (a."attributes"->>'sample') is null
+  const activityQuery = `select * from activities a where a."timestamp"  between '2022-09-01' and now() 
+  and(a."attributes"->>'sample') is null
   and ((a.title is not null and a.title != '') or (a.body is not null and a.body != ''))`
 
   let activities = await options.database.sequelize.query(activityQuery, {
@@ -25,7 +26,7 @@ export default async () => {
   const rawLength = activities.length
 
   const splittedActivities = []
-  const ACTIVITY_CHUNK_SIZE = 400
+  const ACTIVITY_CHUNK_SIZE = 350
 
   if (activities.length > ACTIVITY_CHUNK_SIZE) {
     while (activities.length > ACTIVITY_CHUNK_SIZE) {

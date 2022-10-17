@@ -16,10 +16,9 @@ import MemberService from '../../../services/memberService'
 import { CrowdMemberAttributes } from '../../attributes/member/crowd'
 
 export default async () => {
-  const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
+  console.time('transformations-time')
 
-  // tenants = [tenants[0]]
-  // tenants = tenants.filter(i => i.id === '283bc26a-77f7-46d5-a88f-99f145675aab')
+  const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
@@ -39,17 +38,12 @@ export default async () => {
     })
   )[0].count
 
-  // tenants = [tenants[0]]
-  let updateMembers = []
-  let updateActivities = []
   let transformedMemberCount = 0
   let transformedActivityCount = 0
 
-  const startedAt = new Date()
-
   for (const tenant of tenants) {
-    updateMembers = []
-    updateActivities = []
+    let updateMembers = []
+    let updateActivities = []
     console.log('processing tenant: ', tenant.id)
 
     const userContext = await getUserContext(tenant.id)
@@ -267,137 +261,199 @@ export default async () => {
       console.log('done!')
     }
 
-    console.log(`bulk updating tenant [${tenant.id}] members...`)
-    await userContext.database.member.bulkCreate(updateMembers, {
-      updateOnDuplicate: ['displayName', 'attributes'],
-    })
-    console.log('done!')
+    const MEMBER_CHUNK_SIZE = 25000
 
-    // start transforming activities
-    const activityQuery = `
-        select * from activities a 
-        where a."tenantId"  = :tenantId
-    `
-    const activityQueryParameters: any = {
-      tenantId: tenant.id,
-    }
+    if (updateMembers.length > MEMBER_CHUNK_SIZE) {
+      const rawLength = updateMembers.length
+      const splittedBulkMembers = []
 
-    const activities = await seq.query(activityQuery, {
-      replacements: activityQueryParameters,
-      type: QueryTypes.SELECT,
-    })
-
-    for (const activity of activities) {
-      let body = ''
-
-      if (activity.crowdInfo.body) {
-        body = activity.crowdInfo.body
-        delete activity.crowdInfo.body
-      }
-
-      let url = ''
-
-      if (activity.crowdInfo.url) {
-        url = activity.crowdInfo.url
-        delete activity.crowdInfo.url
-      }
-      let title = ''
-
-      if (activity.crowdInfo.title) {
-        title = activity.crowdInfo.title
-        delete activity.crowdInfo.title
-      }
-
-      let channel = ''
-
-      if (activity.platform === PlatformType.TWITTER) {
-        if (activity.type === 'hashtag' && activity.crowdInfo.hashtag) {
-          channel = activity.crowdInfo.hashtag
-        }
-      } else if (activity.platform === PlatformType.GITHUB) {
-        if (activity.crowdInfo.repo) {
-          channel = activity.crowdInfo.repo
-        }
-      } else if (activity.platform === PlatformType.SLACK) {
-        if (activity.crowdInfo.channel) {
-          channel = activity.crowdInfo.channel
-        }
-      } else if (activity.platform === PlatformType.DEVTO) {
-        if (activity.crowdInfo.articleTitle) {
-          channel = activity.crowdInfo.articleTitle
-        }
-
-        if (activity.crowdInfo.thread === false || activity.crowdInfo.thread === true) {
-          delete activity.crowdInfo.thread
-        }
-      } else if (activity.platform === PlatformType.DISCORD) {
-        if (activity.crowdInfo.thread === false && activity.crowdInfo.channel) {
-          channel = activity.crowdInfo.channel
-        } else if (activity.crowdInfo.thread) {
-          channel = activity.crowdInfo.thread
-
-          if (activity.crowdInfo.channel) {
-            delete activity.crowdInfo.channel
-          }
-        }
-      }
-
-      const attributes = activity.crowdInfo
-
-      updateActivities.push({
-        ...activity,
-        body,
-        url,
-        title,
-        attributes,
-        channel,
-      })
-
-      transformedActivityCount += 1
-      if (transformedActivityCount % 1000 === 0) {
-        console.log(`transforming activities: ${transformedActivityCount}/${activityCount}`)
-      }
-    }
-    console.log(`bulk updating tenant [${tenant.id}] activities...`)
-
-    const ACTIVITY_CHUNK_SIZE = 25000
-
-    if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
-      const rawLength = updateActivities.length
-      const splittedBulkActivities = []
-
-      while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
-        splittedBulkActivities.push(updateActivities.slice(0, ACTIVITY_CHUNK_SIZE))
-        updateActivities = updateActivities.slice(ACTIVITY_CHUNK_SIZE)
+      while (updateMembers.length > MEMBER_CHUNK_SIZE) {
+        splittedBulkMembers.push(updateMembers.slice(0, MEMBER_CHUNK_SIZE))
+        updateMembers = updateMembers.slice(MEMBER_CHUNK_SIZE)
       }
 
       // push last leftover chunk
-      if (updateActivities.length > 0) {
-        splittedBulkActivities.push(updateActivities)
+      if (updateMembers.length > 0) {
+        splittedBulkMembers.push(updateMembers)
       }
 
-      let counter = ACTIVITY_CHUNK_SIZE
-      for (const activityChunk of splittedBulkActivities) {
-        console.log(`updating activity chunk ${counter}/${rawLength}`)
-        await userContext.database.activity.bulkCreate(activityChunk, {
-          updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
+      let counter = MEMBER_CHUNK_SIZE
+      for (const memberChunk of splittedBulkMembers) {
+        console.log(`updating member chunk ${counter}/${rawLength}`)
+
+        await userContext.database.member.bulkCreate(memberChunk, {
+          updateOnDuplicate: ['displayName', 'attributes'],
         })
-        counter += ACTIVITY_CHUNK_SIZE
+
+        counter += MEMBER_CHUNK_SIZE
       }
     } else {
-      await userContext.database.activity.bulkCreate(updateActivities, {
-        updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
+      await userContext.database.member.bulkCreate(updateMembers, {
+        updateOnDuplicate: ['displayName', 'attributes'],
       })
+    }
+
+    const totalActivityCount = await getActivityCount(seq, tenant.id)
+    let currentActivityCount = 0
+    let currentOffset = 0
+
+    while (currentActivityCount < totalActivityCount) {
+      const LIMIT = 200000
+
+      console.log(`getting activities with limit: ${LIMIT}, offset: ${currentOffset}`)
+      updateActivities = []
+      let splittedBulkActivities = []
+      const activities = await getActivities(seq, tenant.id, LIMIT, currentOffset)
+
+      for (const activity of activities) {
+        let body = ''
+
+        if (activity.crowdInfo.body) {
+          body = activity.crowdInfo.body
+          delete activity.crowdInfo.body
+        }
+
+        let url = ''
+
+        if (activity.crowdInfo.url) {
+          url = activity.crowdInfo.url
+          delete activity.crowdInfo.url
+        }
+        let title = ''
+
+        if (activity.crowdInfo.title) {
+          title = activity.crowdInfo.title
+          delete activity.crowdInfo.title
+        }
+
+        let channel = ''
+
+        if (activity.platform === PlatformType.TWITTER) {
+          if (activity.type === 'hashtag' && activity.crowdInfo.hashtag) {
+            channel = activity.crowdInfo.hashtag
+          }
+        } else if (activity.platform === PlatformType.GITHUB) {
+          if (activity.crowdInfo.repo) {
+            channel = activity.crowdInfo.repo
+          }
+        } else if (activity.platform === PlatformType.SLACK) {
+          if (activity.crowdInfo.channel) {
+            channel = activity.crowdInfo.channel
+          }
+        } else if (activity.platform === PlatformType.DEVTO) {
+          if (activity.crowdInfo.articleTitle) {
+            channel = activity.crowdInfo.articleTitle
+          }
+
+          if (activity.crowdInfo.thread === false || activity.crowdInfo.thread === true) {
+            delete activity.crowdInfo.thread
+          }
+        } else if (activity.platform === PlatformType.DISCORD) {
+          if (activity.crowdInfo.thread === false && activity.crowdInfo.channel) {
+            channel = activity.crowdInfo.channel
+          } else if (activity.crowdInfo.thread) {
+            channel = activity.crowdInfo.thread
+
+            if (activity.crowdInfo.channel) {
+              delete activity.crowdInfo.channel
+            }
+          }
+        }
+
+        const attributes = activity.crowdInfo
+
+        updateActivities.push({
+          ...activity,
+          body,
+          url,
+          title,
+          attributes,
+          channel,
+        })
+
+        transformedActivityCount += 1
+        if (transformedActivityCount % 1000 === 0) {
+          console.log(`transforming activities: ${transformedActivityCount}/${activityCount}`)
+        }
+      }
+      console.log(`bulk updating tenant [${tenant.id}] activities...`)
+
+      const ACTIVITY_CHUNK_SIZE = 25000
+
+      if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
+        const rawLength = updateActivities.length
+        splittedBulkActivities = []
+
+        while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
+          splittedBulkActivities.push(updateActivities.slice(0, ACTIVITY_CHUNK_SIZE))
+          updateActivities = updateActivities.slice(ACTIVITY_CHUNK_SIZE)
+        }
+
+        // push last leftover chunk
+        if (updateActivities.length > 0) {
+          splittedBulkActivities.push(updateActivities)
+        }
+
+        let counter = ACTIVITY_CHUNK_SIZE
+        for (const activityChunk of splittedBulkActivities) {
+          console.log(`updating activity chunk ${counter}/${rawLength}`)
+          await userContext.database.activity.bulkCreate(activityChunk, {
+            updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
+          })
+          counter += ACTIVITY_CHUNK_SIZE
+        }
+      } else {
+        await userContext.database.activity.bulkCreate(updateActivities, {
+          updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
+        })
+      }
+
+      currentActivityCount += activities.length
+      currentOffset += activities.length
     }
 
     console.log('done!')
   }
-  const endedAt = new Date()
+  console.timeEnd('transformations-time')
+}
 
-  console.log('started at: ')
-  console.log(startedAt)
-  console.log('ended at: ')
-  console.log(endedAt)
+async function getActivityCount(seq, tenantId) {
+  const activityCountQuery = `
+        select count(*) from activities a
+        where a."tenantId"  = :tenantId
+    `
+  const activityCountQueryParameters: any = {
+    tenantId,
+  }
+
+  const activityCount = (
+    await seq.query(activityCountQuery, {
+      replacements: activityCountQueryParameters,
+      type: QueryTypes.SELECT,
+    })
+  )[0].count
+
+  return activityCount
+}
+
+async function getActivities(seq, tenantId, limit, offset) {
+  const activityQuery = `
+        select * from activities a
+        where a."tenantId"  = :tenantId
+        ORDER  BY a."timestamp" DESC
+        OFFSET :offset
+        LIMIT  :limit
+    `
+  const activityQueryParameters: any = {
+    tenantId,
+    offset,
+    limit,
+  }
+
+  return seq.query(activityQuery, {
+    replacements: activityQueryParameters,
+    type: QueryTypes.SELECT,
+  })
 }
 
 function setObjectAttribute(obj, attributeName, platform, value) {

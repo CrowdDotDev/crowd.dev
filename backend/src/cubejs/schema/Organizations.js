@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 cube(`Organizations`, {
   sql: `SELECT * FROM public.organizations`,
   preAggregations: {
