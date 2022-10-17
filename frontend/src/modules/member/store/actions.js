@@ -182,15 +182,37 @@ export default {
     }
   },
 
-  async doDestroyCustomAttributes({ commit }, id) {
+  async doDestroyCustomAttributes(
+    { commit, dispatch },
+    id
+  ) {
     try {
       commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED')
       const response =
         await MemberService.destroyCustomAttribute(id)
       commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response)
+
+      dispatch('doFetchCustomAttributes')
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
+  async doUpdateCustomAttributes(
+    { commit, dispatch },
+    { id, data }
+  ) {
+    try {
+      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.updateCustomAttribute(id, data)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response)
+
+      dispatch('doFetchCustomAttributes')
+    } catch (error) {
+      Errors.handle(error)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR')
     }
   },
 
@@ -206,11 +228,16 @@ export default {
     }
   },
 
-  async doCreateCustomAttributes({ commit }, values) {
+  async doCreateCustomAttributes(
+    { commit, dispatch },
+    values
+  ) {
     try {
       commit('CREATE_ATTRIBUTES_STARTED')
       const response =
         await MemberService.createCustomAttributes(values)
+
+      dispatch('doFetchCustomAttributes')
       commit('CREATE_ATTRIBUTES_SUCCESS')
 
       return response
@@ -369,17 +396,17 @@ export default {
       commit('CREATE_STARTED')
       await MemberService.create(values)
       commit('CREATE_SUCCESS')
+
       Message.success(
         i18n('entities.member.create.success')
       )
-      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('CREATE_ERROR')
     }
   },
 
-  async doUpdate({ commit, dispatch }, { id, values }) {
+  async doUpdate({ commit }, { id, values }) {
     try {
       commit('UPDATE_STARTED')
 
@@ -389,17 +416,6 @@ export default {
       Message.success(
         i18n('entities.member.update.success')
       )
-      if (router.currentRoute.name === 'member') {
-        dispatch('doFetch', {
-          keepPagination: true
-        })
-      } else {
-        dispatch('member/doFind', id, {
-          root: true
-        })
-      }
-
-      router.push('/members')
     } catch (error) {
       Errors.handle(error)
       commit('UPDATE_ERROR')

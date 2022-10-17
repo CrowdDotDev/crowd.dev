@@ -15,6 +15,7 @@
         {{ isEditPage ? 'Edit member' : 'New member' }}
       </h4>
       <el-container
+        v-if="!isPageLoading"
         class="bg-white rounded-lg shadow shadow-black/15"
       >
         <el-main class="p-6">
@@ -40,7 +41,7 @@
             />
             <AppMemberFormAttributes
               v-model="formModel"
-              :attributes="attributes"
+              :attributes="computedAttributes"
               :record="record"
               @open-drawer="() => (isDrawerOpen = true)"
             />
@@ -57,18 +58,23 @@
           <el-button
             v-if="isEditPage && hasFormChanged"
             class="btn btn-link btn-link--primary"
+            :disabled="isFormSubmitting"
+            @click="onReset"
             ><i class="ri-arrow-go-back-line"></i>
             <span>Reset changes</span></el-button
           >
           <div class="flex gap-4">
             <el-button
+              :disabled="isFormSubmitting"
               class="btn btn--md btn--bordered"
               @click="onCancel"
             >
               Cancel
             </el-button>
             <el-button
-              :disabled="!isFormValid"
+              :disabled="!isFormValid || isFormSubmitting"
+              :loading="isFormSubmitting"
+              :loading-icon="LoaderIcon"
               class="btn btn--md btn--primary"
               @click="doSubmit"
             >
@@ -79,12 +85,18 @@
           </div>
         </el-footer>
       </el-container>
+      <el-container v-else>
+        <div
+          v-loading="isPageLoading"
+          class="app-page-spinner w-full"
+        ></div>
+      </el-container>
     </div>
 
     <!-- Manage Custom Attributes Drawer-->
     <AppMemberAttributesDrawer
+      v-if="computedAttributes.length"
       v-model="isDrawerOpen"
-      :attributes="attributes"
     />
   </app-page-wrapper>
 </template>
@@ -97,7 +109,15 @@ import AppMemberFormAttributes from '@/modules/member/components/form/member-for
 import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { h, reactive, ref, computed, onMounted } from 'vue'
+import {
+  h,
+  reactive,
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch
+} from 'vue'
 import {
   useRouter,
   useRoute,
@@ -108,6 +128,13 @@ import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 
+const LoaderIcon = h(
+  'i',
+  {
+    class: 'ri-loader-4-fill text-sm text-white'
+  },
+  []
+)
 const ArrowPrevIcon = h(
   'i', // type
   {
@@ -122,7 +149,6 @@ const formSchema = computed(
     new FormSchema([
       fields.displayName,
       fields.email,
-      fields.organizations,
       fields.joinedAt,
       fields.tags,
       fields.username,
@@ -142,11 +168,14 @@ const record = ref(null)
 const formRef = ref(null)
 const formModel = ref(getInitialModel())
 
+const isPageLoading = ref(true)
+const isFormSubmitting = ref(false)
+const hasFormSubmitted = ref(false)
 const isDrawerOpen = ref(false)
 
 const rules = reactive(formSchema.value.rules())
 
-const attributes = computed(() =>
+const computedAttributes = computed(() =>
   Object.values(store.state.member.customAttributes).filter(
     (attribute) => attribute.show
   )
@@ -164,22 +193,10 @@ const hasFormChanged = computed(() => {
   return !isEqual(initialModel, formModel.value)
 })
 
-onMounted(async () => {
-  // Fetch custom attributes on mount
-  await store.dispatch('member/doFetchCustomAttributes')
-
-  if (isEditPage.value) {
-    const id = route.params.id
-
-    record.value = await store.dispatch('member/doFind', id)
-    formModel.value = getInitialModel(record.value)
-  }
-})
-
+// Prevent lost data on route change
 onBeforeRouteLeave(() => {
-  // TODO: Fix this for when member was created
-  if (hasFormChanged.value) {
-    return ConfirmDialog()
+  if (hasFormChanged.value && !hasFormSubmitted.value) {
+    return ConfirmDialog({})
       .then(() => {
         return true
       })
@@ -189,6 +206,45 @@ onBeforeRouteLeave(() => {
   }
 
   return true
+})
+
+onMounted(async () => {
+  // Fetch custom attributes on mount
+  await store.dispatch('member/doFetchCustomAttributes')
+
+  if (isEditPage.value) {
+    const id = route.params.id
+
+    record.value = await store.dispatch('member/doFind', id)
+    isPageLoading.value = false
+    formModel.value = getInitialModel(record.value)
+  } else {
+    isPageLoading.value = false
+  }
+})
+
+// Prevent window reload when form has changes
+const preventWindowReload = (e) => {
+  if (hasFormChanged.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+
+window.addEventListener('beforeunload', preventWindowReload)
+
+onUnmounted(() => {
+  window.removeEventListener(
+    'beforeunload',
+    preventWindowReload
+  )
+})
+
+// Once form is submitted, update route
+watch(hasFormSubmitted, (isFormSubmitted) => {
+  if (isFormSubmitted) {
+    router.push({ name: 'member' })
+  }
 })
 
 function getInitialModel(record) {
@@ -209,9 +265,6 @@ function getInitialModel(record) {
     displayName: record ? record.displayName : '',
     email: record ? record.email : '',
     joinedAt: record ? record.joinedAt : '',
-    organizations: record
-      ? record.organizations?.[0]?.name
-      : ' ',
     attributes: record ? record.attributes : {},
     ...attributes,
     tags: record ? record.tags : [],
@@ -222,13 +275,21 @@ function getInitialModel(record) {
   })
 }
 
+async function onReset() {
+  const initialModel = isEditPage.value
+    ? getInitialModel(record.value)
+    : getInitialModel()
+
+  Object.assign(formModel.value, initialModel)
+}
+
 async function onCancel() {
   router.push({ name: 'member' })
 }
 
 async function doSubmit() {
-  const formattedAttributes = attributes.value.reduce(
-    (obj, attribute) => {
+  const formattedAttributes =
+    computedAttributes.value.reduce((obj, attribute) => {
       if (!formModel.value[attribute.name]) {
         return obj
       }
@@ -240,17 +301,12 @@ async function doSubmit() {
           default: formModel.value[attribute.name]
         }
       }
-    },
-    {}
-  )
+    }, {})
 
   const data = {
     displayName: formModel.value.displayName,
     email: formModel.value.email,
     joinedAt: formModel.value.joinedAt,
-    organizations: !formModel.value.organizations
-      ? []
-      : [{ name: formModel.value.organizations }],
     attributes: formattedAttributes,
     tags: formModel.value.tags.map((t) => t.id),
     username: formModel.value.username,
@@ -259,15 +315,23 @@ async function doSubmit() {
 
   // Edit member
   if (isEditPage.value) {
+    isFormSubmitting.value = true
     await store.dispatch('member/doUpdate', {
       id: record.value.id,
       values: data
     })
+
+    isFormSubmitting.value = false
+    hasFormSubmitted.value = true
   } else {
     // Create new member
+    isFormSubmitting.value = true
     await store.dispatch('member/doCreate', {
       data
     })
+
+    isFormSubmitting.value = false
+    hasFormSubmitted.value = true
   }
 }
 </script>

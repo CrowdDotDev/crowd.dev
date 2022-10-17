@@ -16,11 +16,11 @@
         class="grid grid-cols-12 gap-3 border-b h-8 items-center"
       >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-3"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-4"
           >Name</span
         >
         <span
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-9"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide col-span-8"
           >Value</span
         >
       </div>
@@ -33,7 +33,7 @@
           :key="index"
           class="grid grid-cols-12 gap-3"
         >
-          <div class="col-span-3 flex flex-col gap-1">
+          <div class="col-span-4 flex flex-col gap-1">
             <span
               class="text-gray-900 text-xs font-medium"
               >{{ attribute.label }}</span
@@ -42,12 +42,12 @@
               attributesTypes[attribute.type]
             }}</span>
           </div>
-          <el-form-item class="col-span-9">
+          <el-form-item class="col-span-8">
             <el-date-picker
               v-if="attribute.type === 'date'"
               v-model="model[attribute.name]"
-              clearable
               :prefix-icon="CalendarIcon"
+              :clearable="false"
               class="custom-date-picker"
               popper-class="date-picker-popper"
               type="date"
@@ -86,12 +86,27 @@
           >
         </div>
       </div>
+      <div
+        v-else
+        class="text-gray-500 text-xs italic mt-4 mb-2"
+      >
+        No attributes available
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, defineEmits, computed, h } from 'vue'
+
+const CalendarIcon = h(
+  'i', // type
+  {
+    class:
+      'ri-calendar-line text-base leading-none text-gray-400'
+  }, // props
+  []
+)
 
 const attributesTypes = {
   string: 'Text',

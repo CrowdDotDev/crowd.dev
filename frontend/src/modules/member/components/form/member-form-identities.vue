@@ -73,12 +73,7 @@
 </template>
 
 <script setup>
-import {
-  reactive,
-  defineEmits,
-  defineProps,
-  computed
-} from 'vue'
+import { defineEmits, defineProps, computed } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const emit = defineEmits(['update:modelValue'])
@@ -102,7 +97,7 @@ const model = computed({
   }
 })
 
-const identitiesForm = reactive({
+const identitiesForm = computed(() => ({
   devto: {
     enabled:
       props.modelValue.username?.devto !== undefined ||
@@ -143,7 +138,7 @@ const identitiesForm = reactive({
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
   }
-})
+}))
 
 function findPlatform(platform) {
   return integrationsJsonArray.find(

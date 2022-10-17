@@ -269,6 +269,10 @@
     @apply w-full;
   }
 
+  &--circle {
+    @apply rounded-full;
+  }
+
   &[disabled] {
     opacity: 0.75;
     cursor: default;
