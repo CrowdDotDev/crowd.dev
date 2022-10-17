@@ -23,22 +23,30 @@ import {
 } from 'vue'
 
 const props = defineProps({
-  modelValue: {
-    type: Array,
-    default: () => []
+  value: {
+    type: String,
+    default: null
+  },
+  operator: {
+    type: String,
+    default: null
   },
   isExpanded: {
     type: Boolean,
     default: false
   }
 })
-const emits = defineEmits(['update:modelValue'])
+
+const emit = defineEmits([
+  'update:value',
+  'update:operator'
+])
 const model = computed({
   get() {
-    return props.modelValue
+    return props.value
   },
-  set(value) {
-    emits('update:modelValue', value)
+  set(v) {
+    emit('update:value', v)
   }
 })
 const expanded = computed(() => props.isExpanded)

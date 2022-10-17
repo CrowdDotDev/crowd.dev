@@ -20,7 +20,7 @@ export default class MicroserviceService {
    * @returns created plain microservice object
    */
   async create(data, forceRunOnCreation = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await MicroserviceRepository.create(data, {
@@ -67,7 +67,7 @@ export default class MicroserviceService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await MicroserviceRepository.update(id, data, {
@@ -88,7 +88,7 @@ export default class MicroserviceService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {

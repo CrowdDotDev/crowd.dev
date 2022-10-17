@@ -1,4 +1,4 @@
-import { getConfig } from '../../../config'
+import { API_CONFIG, TWITTER_CONFIG } from '../../../config'
 import StaticPKCEStore from './staticPKCEStore'
 
 const TwitterStrategy = require('@superfaceai/passport-twitter-oauth2')
@@ -7,9 +7,9 @@ export function getTwitterStrategy() {
   const staticPKCEStore = new StaticPKCEStore()
   return new TwitterStrategy(
     {
-      clientID: process.env.AUTH_SOCIAL_TWITTER_CLIENT_ID,
-      clientSecret: process.env.AUTH_SOCIAL_TWITTER_CLIENT_SECRET,
-      callbackURL: `${getConfig().BACKEND_URL}/twitter/callback`,
+      clientID: TWITTER_CONFIG.clientId,
+      clientSecret: TWITTER_CONFIG.clientSecret,
+      callbackURL: `${API_CONFIG.url}/twitter/callback`,
       clientType: 'private',
       passReqToCallback: true,
       store: staticPKCEStore,

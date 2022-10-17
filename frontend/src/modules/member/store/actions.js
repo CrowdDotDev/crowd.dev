@@ -21,7 +21,22 @@ export default {
     commit('RESETED')
     return dispatch('doFetch', {
       filter: state.filter,
-      rawFilter: state.rawFilter
+      keepPagination: false
+    })
+  },
+
+  async doResetActiveView({
+    commit,
+    state,
+    dispatch,
+    getters
+  }) {
+    const activeView = getters.activeView
+    commit('FILTER_CHANGED', activeView.filter)
+    commit('SORTER_CHANGED', activeView.sorter)
+    return dispatch('doFetch', {
+      filter: state.filter,
+      keepPagination: false
     })
   },
 
@@ -64,7 +79,6 @@ export default {
     try {
       const selectedRows = getters.selectedRows
       const filter = state.filter
-      const rawFilter = state.rawFilter
 
       for (const row of selectedRows) {
         await MemberService.update(row.id, {
@@ -77,7 +91,6 @@ export default {
 
       dispatch('doFetch', {
         filter,
-        rawFilter,
         keepPagination: true
       })
 
@@ -97,11 +110,8 @@ export default {
   ) {
     commit('PAGINATION_CHANGED', pagination)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
-      filter,
-      rawFilter,
-      keepPagination: true
+      filter
     })
   },
 
@@ -111,11 +121,8 @@ export default {
   ) {
     commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
-      filter,
-      rawFilter,
-      keepPagination: true
+      filter
     })
   },
 
@@ -125,57 +132,41 @@ export default {
   ) {
     commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
-      filter,
-      rawFilter,
-      keepPagination: true
+      filter
     })
   },
 
   doChangeSort({ commit, state, dispatch }, sorter) {
     commit('SORTER_CHANGED', sorter)
     const filter = state.filter
-    const rawFilter = state.rawFilter
     dispatch('doFetch', {
-      filter,
-      rawFilter,
-      keepPagination: true
+      filter
     })
   },
 
   doChangeActiveView(
-    { commit, state, dispatch },
+    { commit, dispatch, getters },
     activeView
   ) {
     commit('ACTIVE_VIEW_CHANGED', activeView)
+    commit('FILTER_CHANGED', getters['activeView'].filter)
+    commit('SORTER_CHANGED', getters['activeView'].sorter)
 
-    const filter = state.views[activeView].filter
-    const rawFilter = state.views[activeView].rawFilter
-    dispatch('doFetch', {
-      filter,
-      rawFilter,
-      keepPagination: true
+    return dispatch('doFetch', {
+      keepPagination: false
     })
   },
 
   async doFetch(
-    { commit, getters },
-    {
-      filter = null,
-      rawFilter = null,
-      keepPagination = false
-    }
+    { commit, getters, state },
+    { keepPagination = false }
   ) {
     try {
-      commit('FETCH_STARTED', {
-        filter,
-        rawFilter,
-        keepPagination
-      })
+      commit('FETCH_STARTED', { keepPagination })
 
       const response = await MemberService.list(
-        filter,
+        state.filter,
         getters.orderBy,
         getters.limit,
         getters.offset
@@ -191,6 +182,40 @@ export default {
     }
   },
 
+  async doDestroyCustomAttributes(
+    { commit, dispatch },
+    id
+  ) {
+    try {
+      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.destroyCustomAttribute(id)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response)
+
+      dispatch('doFetchCustomAttributes')
+    } catch (error) {
+      Errors.handle(error)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
+  async doUpdateCustomAttributes(
+    { commit, dispatch },
+    { id, data }
+  ) {
+    try {
+      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.updateCustomAttribute(id, data)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response)
+
+      dispatch('doFetchCustomAttributes')
+    } catch (error) {
+      Errors.handle(error)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
   async doFetchCustomAttributes({ commit }) {
     try {
       commit('FETCH_CUSTOM_ATTRIBUTES_STARTED')
@@ -200,6 +225,31 @@ export default {
     } catch (error) {
       Errors.handle(error)
       commit('FETCH_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
+  async doCreateCustomAttributes(
+    { commit, dispatch },
+    values
+  ) {
+    try {
+      commit('CREATE_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.createCustomAttributes(values)
+
+      dispatch('doFetchCustomAttributes')
+      commit('CREATE_ATTRIBUTES_SUCCESS')
+
+      return response
+    } catch (error) {
+      if (error.response.status !== 500) {
+        Errors.handle(error)
+      }
+      commit('CREATE_ATTRIBUTES_ERROR')
+
+      Message.error(
+        i18n('entities.member.attributes.error')
+      )
     }
   },
 
@@ -283,6 +333,7 @@ export default {
       commit('FIND_STARTED')
       const record = await MemberService.find(id)
       commit('FIND_SUCCESS', record)
+      return record
     } catch (error) {
       Errors.handle(error)
       commit('FIND_ERROR')
@@ -290,7 +341,7 @@ export default {
     }
   },
 
-  async doDestroy({ commit, dispatch, state }, id) {
+  async doDestroy({ commit, dispatch }, id) {
     try {
       commit('DESTROY_STARTED')
 
@@ -304,22 +355,16 @@ export default {
 
       router.push('/members')
 
-      dispatch(
-        `member/doFetch`,
-        {
-          filter: state.list.filter
-        },
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', {
+        keepPagination: true
+      })
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_ERROR')
     }
   },
 
-  async doDestroyAll({ commit, dispatch, state }, ids) {
+  async doDestroyAll({ commit, dispatch }, ids) {
     try {
       commit('DESTROY_ALL_STARTED')
 
@@ -337,35 +382,23 @@ export default {
 
       router.push('/members')
 
-      dispatch(
-        `member/doFetch`,
-        {
-          filter: state.list.filter
-        },
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', {
+        keepPagination: true
+      })
     } catch (error) {
       Errors.handle(error)
       commit('DESTROY_ALL_ERROR')
     }
   },
 
-  async doCreate({ commit, dispatch, state }, values) {
+  async doCreate({ commit }, values) {
     try {
       commit('CREATE_STARTED')
       await MemberService.create(values)
       commit('CREATE_SUCCESS')
+
       Message.success(
         i18n('entities.member.create.success')
-      )
-      dispatch(
-        'member/doFetch',
-        {
-          filter: state.list.rawFilter
-        },
-        { root: true }
       )
     } catch (error) {
       Errors.handle(error)
@@ -373,10 +406,7 @@ export default {
     }
   },
 
-  async doUpdate(
-    { commit, dispatch, state },
-    { id, values }
-  ) {
+  async doUpdate({ commit }, { id, values }) {
     try {
       commit('UPDATE_STARTED')
 
@@ -386,34 +416,56 @@ export default {
       Message.success(
         i18n('entities.member.update.success')
       )
-      if (router.currentRoute.name === 'member') {
-        dispatch(
-          'member/doFetch',
-          {
-            filter: state.list.rawFilter
-          },
-          { root: true }
-        )
-      } else {
-        dispatch('member/doFind', id, {
-          root: true
-        })
-      }
     } catch (error) {
       Errors.handle(error)
       commit('UPDATE_ERROR')
     }
   },
 
-  addFilter({ commit }, filter) {
-    commit('ADD_FILTER', filter)
+  addFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_ADDED', filter)
+
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        keepPagination: false
+      })
+    }
   },
 
-  updateFilter({ commit }, filter) {
-    commit('UPDATE_FILTER', filter)
+  updateFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_CHANGED', filter)
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        keepPagination: false
+      })
+    }
   },
 
-  destroyFilter({ commit }, filter) {
-    commit('DESTROY_FILTER', filter)
+  destroyFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_DESTROYED', filter)
+    if (
+      Array.isArray(filter.value)
+        ? filter.value.length > 0
+        : filter.value !== null
+    ) {
+      dispatch('doFetch', {
+        keepPagination: false
+      })
+    }
+  },
+
+  updateFilterOperator({ commit, dispatch }, operator) {
+    commit('FILTER_OPERATOR_CHANGED', operator)
+    dispatch('doFetch', {
+      keepPagination: false
+    })
   }
 }

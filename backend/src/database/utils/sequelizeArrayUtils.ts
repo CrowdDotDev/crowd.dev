@@ -1,18 +1,16 @@
 import Sequelize, { DataTypes } from 'sequelize'
-import { getConfig } from '../../config'
+import { DB_CONFIG } from '../../config'
 
 export default class SequelizeArrayUtils {
   // MySQL doesn't have Array Field
   static get DataType() {
-    return getConfig().DATABASE_DIALECT === 'mysql'
-      ? DataTypes.JSON
-      : DataTypes.ARRAY(DataTypes.TEXT)
+    return DB_CONFIG.dialect === 'mysql' ? DataTypes.JSON : DataTypes.ARRAY(DataTypes.TEXT)
   }
 
   static filter(tableName, fieldName, filterValue) {
     const filterValueAsArray = Array.isArray(filterValue) ? filterValue : [filterValue]
 
-    if (getConfig().DATABASE_DIALECT === 'mysql') {
+    if (DB_CONFIG.dialect === 'mysql') {
       return {
         [Sequelize.Op.and]: filterValueAsArray.map((filterValue) =>
           arrayContainsForMySQL(tableName, fieldName, filterValue),

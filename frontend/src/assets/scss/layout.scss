@@ -74,6 +74,22 @@ hr {
   font-weight: 500;
 }
 
+.el-loading-mask {
+  @apply bg-transparent;
+
+  .el-loading-spinner {
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
+
+    .circular {
+      @apply h-6 w-6;
+    }
+
+    .path {
+      stroke: #E94F2E;
+    }
+  }
+}
+
 .app-page-spinner {
   display: flex;
   justify-content: center;

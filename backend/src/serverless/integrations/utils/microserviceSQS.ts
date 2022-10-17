@@ -1,7 +1,9 @@
+// TODO-kube
+
 import moment from 'moment'
 import { BaseOutput } from '../types/iteratorTypes'
 import { MicroserviceMessage } from '../types/messageTypes'
-import { getConfig } from '../../../config'
+import { KUBE_MODE } from '../../../config'
 
 const { SQS } = require('aws-sdk')
 
@@ -16,10 +18,13 @@ async function sendMicroserviceMessage(body: MicroserviceMessage): Promise<BaseO
   const statusCode: number = 200
 
   console.log('SQS Message body: ', body)
+  if (KUBE_MODE) {
+    throw new Error("Can't send integrations SQS message in kube mode!")
+  }
 
   await sqs
     .sendMessage({
-      QueueUrl: getConfig().PYTHON_MICROSERVICES_SQS_URL,
+      QueueUrl: process.env.PYTHON_MICROSERVICES_SQS_URL,
       MessageGroupId: `${body.service}-${body.tenant}`,
       MessageDeduplicationId: `${body.service}-${body.tenant}-${moment().unix()}`,
       MessageBody: JSON.stringify(body),

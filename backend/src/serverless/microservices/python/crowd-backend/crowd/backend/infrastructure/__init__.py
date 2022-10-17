@@ -1,7 +1,10 @@
-import dotenv
+from .config import KUBE_MODE
 
-found = dotenv.find_dotenv(".env")
-dotenv.load_dotenv(found)
+# TODO-kube
+if not KUBE_MODE:
+    import dotenv
+    found = dotenv.find_dotenv(".env")
+    dotenv.load_dotenv(found)
 
 from .state_machine import StateMachine  # noqa
 from .sqs import SQS  # noqa

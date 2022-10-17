@@ -92,8 +92,12 @@ require('./organization').default(routes)
 // Loads the Tenant if the :tenantId param is passed
 routes.param('tenantId', tenantMiddleware)
 
-// Add the routes to the /api endpoint
-app.use('/api', routes)
+app.use('/', routes)
+
+const webhookRoutes = express.Router()
+require('./webhooks').default(webhookRoutes)
+
+app.use('/webhooks', webhookRoutes)
 
 const io = require('@pm2/io')
 

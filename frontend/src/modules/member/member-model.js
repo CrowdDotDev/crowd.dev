@@ -8,7 +8,6 @@ import JsonField from '@/shared/fields/json-field'
 import { ActivityField } from '@/modules/activity/activity-field'
 import { MemberField } from '@/modules/member/member-field'
 import { TagField } from '@/modules/tag/tag-field'
-import { OrganizationField } from '@/modules/organization/organization-field'
 import IntegerRangeField from '@/shared/fields/integer-range-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
@@ -19,19 +18,27 @@ function label(name) {
 
 const fields = {
   id: new IdField('id', label('id')),
+  jobTitle: new StringField('jobTitle', label('jobTitle')),
+  company: new StringField('company', label('company')),
   username: new JsonField('username', label('username'), {
+    nonEmpty: true,
     required: true,
     customFilterPreview: (record) => {
       return record
     }
   }),
+  attributes: new JsonField(
+    'attributes',
+    label('attributes')
+  ),
   displayName: new StringField(
     'displayName',
-    label('displayName'),
-    { filterable: true }
+    label('fullName')
   ),
   // This is only used to filter members
-  platform: new StringField('platform', label('platform')),
+  platform: new StringField('platform', label('platform'), {
+    required: true
+  }),
   activities: ActivityField.relationToMany(
     'activities',
     label('activities'),
@@ -41,7 +48,9 @@ const fields = {
   tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true
   }),
-  email: new StringField('email', label('email'), {}),
+  email: new StringField('email', label('email'), {
+    email: true
+  }),
   noMerge: MemberField.relationToMany(
     'noMerge',
     label('noMerge'),
@@ -53,19 +62,13 @@ const fields = {
     label('location'),
     {}
   ),
-  organization: OrganizationField.relationToMany(
+  organizations: new StringField(
     'organizations',
-    label('organizations'),
-    {
-      filterable: true
-    }
+    label('organization')
   ),
   joinedAt: new DateTimeField(
     'joinedAt',
-    label('joinedAt'),
-    {
-      required: true
-    }
+    label('joinedAt')
   ),
   createdAt: new DateTimeField(
     'createdAt',
@@ -76,13 +79,15 @@ const fields = {
     label('updatedAt')
   ),
   score: new IntegerField('score', label('score')),
-  activitiesCountRange: new IntegerRangeField(
-    'activitiesCountRange',
-    '# of Activities Range'
+  activityCount: new IntegerField(
+    'activityCount',
+    label('activityCount'),
+    { filterable: true }
   ),
-  scoreRange: new MemberEngagementLevelField(
-    'scoreRange',
-    'Engagement Level'
+  engagementLevel: new MemberEngagementLevelField(
+    'score',
+    'Engagement Level',
+    { filterable: true }
   ),
   reachRange: new IntegerRangeField(
     'reachRange',

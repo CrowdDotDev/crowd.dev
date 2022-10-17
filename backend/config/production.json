@@ -1,0 +1,9 @@
+{
+  "twitter": {
+    "maxRetrospectInSeconds": 7380,
+    "globalLimit": 10000
+  },
+  "discord": {
+    "maxRetrospectInSeconds": 2000
+  }
+}

@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import { TENANT_MODE } from '../config/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
@@ -6,7 +7,6 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import PermissionChecker from './user/permissionChecker'
 import Permissions from '../security/permissions'
 import Error404 from '../errors/Error404'
-import { getConfig } from '../config'
 import Roles from '../security/roles'
 import SettingsService from './settingsService'
 import Plans from '../security/plans'
@@ -22,6 +22,7 @@ import MicroserviceRepository from '../database/repositories/microserviceReposit
 import ConversationRepository from '../database/repositories/conversationRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
+import { TenantMode } from '../config/configTypes'
 
 export default class TenantService {
   options: IServiceOptions
@@ -159,10 +160,10 @@ export default class TenantService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (getConfig().TENANT_MODE === 'single') {
+      if (TENANT_MODE === TenantMode.SINGLE) {
         const count = await TenantRepository.count(null, {
           ...this.options,
           transaction,
@@ -244,7 +245,7 @@ export default class TenantService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       let record = await TenantRepository.findById(id, {
@@ -290,7 +291,7 @@ export default class TenantService {
   }
 
   async updatePlanUser(id, planStripeCustomerId, planUserId) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await TenantRepository.updatePlanUser(id, planStripeCustomerId, planUserId, {
@@ -312,7 +313,7 @@ export default class TenantService {
   }
 
   async updatePlanStatus(planStripeCustomerId, plan, planStatus) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await TenantRepository.updatePlanStatus(planStripeCustomerId, plan, planStatus, {
@@ -329,7 +330,7 @@ export default class TenantService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -401,7 +402,7 @@ export default class TenantService {
   }
 
   async acceptInvitation(token, forceAcceptOtherEmail = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const tenantUser = await TenantUserRepository.findByInvitationToken(token, {
@@ -441,7 +442,7 @@ export default class TenantService {
   }
 
   async declineInvitation(token) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const tenantUser = await TenantUserRepository.findByInvitationToken(token, {

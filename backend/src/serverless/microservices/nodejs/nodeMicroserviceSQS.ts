@@ -1,6 +1,10 @@
+// TODO-kube
+
 import moment from 'moment'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../../types/worketTypes'
+import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
+import { KUBE_MODE, IS_TEST_ENV } from '../../../config'
 import { NodeMicroserviceMessage } from './messageTypes'
-import { getConfig } from '../../../config'
 import { sqs } from '../../../services/aws'
 import { AutomationTrigger } from '../../../types/automationTypes'
 
@@ -11,17 +15,19 @@ import { AutomationTrigger } from '../../../types/automationTypes'
  */
 async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promise<any> {
   const statusCode: number = 200
-
   console.log('SQS Message body: ', body)
 
-  const config = getConfig()
-  if (config.NODE_ENV === 'test') {
+  if (IS_TEST_ENV) {
     return {
       status: statusCode,
       msg: JSON.stringify({
         body,
       }),
     }
+  }
+
+  if (KUBE_MODE) {
+    throw new Error("Can't send node-microservices SQS message in kube mode!")
   }
 
   const messageGroupId = body.tenant ? `${body.service}-${body.tenant}` : `${body.service}`
@@ -31,7 +37,7 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
   await sqs
     .sendMessage({
-      QueueUrl: config.NODE_MICROSERVICES_SQS_URL,
+      QueueUrl: process.env.NODE_MICROSERVICES_SQS_URL,
       MessageGroupId: messageGroupId,
       MessageDeduplicationId: messageDeduplicationId,
       MessageBody: JSON.stringify(body),
@@ -52,24 +58,46 @@ export const sendNewActivityNodeSQSMessage = async (
   tenant: string,
   activityId: string,
 ): Promise<void> => {
-  await sendNodeMicroserviceMessage({
-    tenant,
-    activityId,
-    trigger: AutomationTrigger.NEW_ACTIVITY,
-    service: 'automation',
-  })
+  if (KUBE_MODE) {
+    const payload = {
+      type: NodeWorkerMessageType.NODE_MICROSERVICE,
+      tenant,
+      activityId,
+      trigger: AutomationTrigger.NEW_ACTIVITY,
+      service: 'automation',
+    }
+    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
+  } else {
+    await sendNodeMicroserviceMessage({
+      tenant,
+      activityId,
+      trigger: AutomationTrigger.NEW_ACTIVITY,
+      service: 'automation',
+    })
+  }
 }
 
 export const sendNewMemberNodeSQSMessage = async (
   tenant: string,
   memberId: string,
 ): Promise<void> => {
-  await sendNodeMicroserviceMessage({
-    tenant,
-    memberId,
-    trigger: AutomationTrigger.NEW_MEMBER,
-    service: 'automation',
-  })
+  if (KUBE_MODE) {
+    const payload = {
+      type: NodeWorkerMessageType.NODE_MICROSERVICE,
+      tenant,
+      memberId,
+      trigger: AutomationTrigger.NEW_MEMBER,
+      service: 'automation',
+    }
+    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
+  } else {
+    await sendNodeMicroserviceMessage({
+      tenant,
+      memberId,
+      trigger: AutomationTrigger.NEW_MEMBER,
+      service: 'automation',
+    })
+  }
 }
 
 export default sendNodeMicroserviceMessage

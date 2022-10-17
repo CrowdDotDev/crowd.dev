@@ -8,12 +8,12 @@
           variant="alert"
         >
           <div
-            class="flex items-center justify-center grow"
+            class="flex items-center justify-center grow text-sm"
           >
             This workspace is using sample data, before
             adding real data please
             <el-button
-              class="btn btn--xs btn--primary ml-4"
+              class="btn btn--sm btn--primary ml-4"
               :loading="loading"
               @click="handleDeleteSampleDataClick"
             >

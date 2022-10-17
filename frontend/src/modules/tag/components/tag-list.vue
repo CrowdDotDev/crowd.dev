@@ -1,28 +1,19 @@
 <template>
   <div>
-    <el-tooltip
-      content="Double click to edit"
-      effect="dark"
-      placement="top"
-    >
-      <div
-        class="inline-flex items-center flex-wrap"
-        @click.stop
-        @dblclick="editing = true"
+    <div class="inline-flex items-center flex-wrap">
+      <span
+        v-for="tag in member.tags"
+        :key="tag.id"
+        class="tag mr-2 my-1"
+        >{{ tag.name }}</span
       >
-        <span
-          v-for="tag in member.tags"
-          :key="tag.id"
-          class="tag mr-2 my-1"
-          >{{ tag.name }}</span
-        >
-        <span
-          v-if="member.tags.length === 0"
-          class="text-gray-400 italic"
-          >No tags added</span
-        >
-      </div>
-    </el-tooltip>
+      <el-button
+        class="btn btn-link btn-link--primary text-2xs"
+        :class="member.tags.length > 0 ? 'ml-2' : ''"
+        @click.stop="editing = true"
+        >Edit tags</el-button
+      >
+    </div>
     <app-tag-popover
       v-model="model[fields.tags.name]"
       :visible="editing"

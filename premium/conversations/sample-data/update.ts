@@ -1,11 +1,17 @@
-const MeiliSearch = require("meilisearch").MeiliSearch;
-require("dotenv").config();
+import {
+  SEARCH_ENGINE_API_KEY,
+  SEARCH_ENGINE_HOST,
+  SEARCH_ENGINE_SETTINGS_INDEX,
+} from '~~/helpers/config';
 
-console.log(process.env.SEARCH_ENGINE_HOST);
+const MeiliSearch = require('meilisearch').MeiliSearch;
+require('dotenv').config();
+
+console.log(SEARCH_ENGINE_HOST);
 
 const client = new MeiliSearch({
-  host: process.env.SEARCH_ENGINE_HOST,
-  apiKey: process.env.SEARCH_ENGINE_API_KEY,
+  host: SEARCH_ENGINE_HOST,
+  apiKey: SEARCH_ENGINE_API_KEY,
 });
 
 // const documents = [
@@ -49,7 +55,7 @@ const client = new MeiliSearch({
 
 // for (const doc of documents) {
 client
-  .index(process.env.SETTINGS_INDEX)
-  .deleteDocument("e78fcbbe-3b1f-4d0f-b7ce-1105fc985d0d")
+  .index(SEARCH_ENGINE_SETTINGS_INDEX)
+  .deleteDocument('e78fcbbe-3b1f-4d0f-b7ce-1105fc985d0d')
   .then((res) => console.log(res));
 // }

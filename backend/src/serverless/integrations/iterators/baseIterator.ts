@@ -2,11 +2,11 @@ import lodash from 'lodash'
 import moment from 'moment'
 import crypto from 'crypto'
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { IS_TEST_ENV, KUBE_MODE } from '../../../config/index'
 import { parseOutput, IntegrationResponse, BaseOutput } from '../types/iteratorTypes'
 
 import { State, Endpoint, Endpoints } from '../types/regularTypes'
 import { AddActivitiesSingle } from '../types/messageTypes'
-import { getConfig } from '../../../config'
 
 export default abstract class BaseIterator {
   tenant: string
@@ -137,10 +137,10 @@ export default abstract class BaseIterator {
 
       if (log) {
         console.log('========================================================')
-        console.log('State: ', this.state)
+        // console.log('State: ', this.state)
         console.log('Response length: ', response.records.length)
         console.log('Limit', response.limit)
-        console.log('Last record: ', parseOutput.lastRecord)
+        // console.log('Last record: ', parseOutput.lastRecord)
         console.log('Time since start: ', timeSinceStart)
         console.log('Count towards limit: ', this.limitCount, ' / ', this.globalLimit)
       }
@@ -156,11 +156,19 @@ export default abstract class BaseIterator {
           if (log) {
             console.log('Response limit reached')
           }
-          return this.limitReachedFunction(this.state, response.timeUntilReset)
+
+          // TODO-kube
+          if (KUBE_MODE) {
+            console.log(`Waiting to continue for ${response.timeUntilReset} seconds!`)
+            await BaseIterator.sleep(response.timeUntilReset)
+          } else {
+            return this.limitReachedFunction(this.state, response.timeUntilReset)
+          }
         }
         // If the time elapsed is bigger than the max time, return a limit reached state
         // with a waiting time of 0 (no waiting needed, just a fresh function)
-        if (timeSinceStart >= maxTime) {
+        // TODO-kube
+        if (!KUBE_MODE && timeSinceStart >= maxTime) {
           console.log('time limit reached')
           return this.limitReachedFunction(this.state, 0)
         }
@@ -385,7 +393,7 @@ export default abstract class BaseIterator {
    * @returns The initialised client
    */
   static initSuperfaceClient(): SuperfaceClient {
-    if (getConfig().NODE_ENV === 'test') {
+    if (IS_TEST_ENV) {
       return undefined
     }
     return new SuperfaceClient()

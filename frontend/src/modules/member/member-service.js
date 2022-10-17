@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiFilter from '@/shared/filter/build-api-filter'
 
 export class MemberService {
   static async update(id, data) {
@@ -46,7 +47,7 @@ export class MemberService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/member`,
-      data
+      data.data
     )
 
     return response.data
@@ -80,7 +81,7 @@ export class MemberService {
 
   static async list(filter, orderBy, limit, offset) {
     const body = {
-      filter: {},
+      filter: buildApiFilter(filter),
       orderBy,
       limit,
       offset
@@ -155,6 +156,45 @@ export class MemberService {
 
     const response = await authAxios.get(
       `/tenant/${tenantId}/settings/members/attributes`
+    )
+
+    return response.data
+  }
+
+  static async createCustomAttributes(data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/settings/members/attributes`,
+      data
+    )
+
+    return response.data
+  }
+
+  static async destroyCustomAttribute(id) {
+    const params = {
+      ids: [id]
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.delete(
+      `/tenant/${tenantId}/settings/members/attributes`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
+  static async updateCustomAttribute(id, data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/settings/members/attributes/${id}`,
+      data
     )
 
     return response.data

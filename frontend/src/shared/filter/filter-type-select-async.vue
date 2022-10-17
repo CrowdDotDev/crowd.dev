@@ -31,14 +31,17 @@
         />
       </div>
     </div>
-    <div class="filter-content-wrapper mb-4">
-      <el-dropdown-item
+    <div
+      class="filter-type-select filter-content-wrapper mb-4 p-2"
+    >
+      <div
         v-for="option of computedOptions"
         :key="option.id"
-        @click.prevent="handleOptionClick(option)"
+        class="filter-type-select-option"
+        @click="handleOptionClick(option)"
       >
         {{ option.label }}
-      </el-dropdown-item>
+      </div>
       <div
         v-if="loading"
         v-loading="loading"
@@ -46,9 +49,9 @@
       />
       <div
         v-else-if="computedOptions.length === 0"
-        class="text-gray-600 px-4 pt-2"
+        class="text-gray-400 px-2 pt-2"
       >
-        No options matched the query
+        No options left for this query
       </div>
     </div>
   </div>
@@ -67,12 +70,13 @@ import {
   computed,
   reactive,
   ref,
-  watch
+  watch,
+  onMounted
 } from 'vue'
 import filterFunction from '@/shared/filter/filter-function'
 
 const props = defineProps({
-  modelValue: {
+  value: {
     type: Array,
     default: () => []
   },
@@ -86,13 +90,13 @@ const props = defineProps({
   }
 })
 
-const emits = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:value'])
 const model = computed({
   get() {
-    return props.modelValue
+    return props.value
   },
-  set(value) {
-    emits('update:modelValue', value)
+  set(v) {
+    emit('update:value', v)
   }
 })
 const expanded = computed(() => props.isExpanded)
@@ -113,11 +117,24 @@ const computedOptions = computed(() => {
 
 watch(expanded, async (newValue) => {
   if (newValue) {
-    await fetchOptions()
-    queryInputRef.value.focus()
+    await init()
   }
 })
 
+watch(query, async (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    await fetchOptions()
+  }
+})
+
+onMounted(async () => {
+  await init()
+})
+
+const init = async () => {
+  await fetchOptions()
+  queryInputRef.value.focus()
+}
 const handleOptionClick = (option) => {
   model.value.push(option)
 }
@@ -127,17 +144,14 @@ const fetchOptions = async () => {
     return
   }
   loading.value = true
-  const response = await props.fetchFn(
-    query.value,
-    limit.value
-  )
+  const data = await props.fetchFn(query.value, limit.value)
   loading.value = false
   options.length = 0
-  response.rows.forEach((r) => {
+  data.forEach((r) => {
     if (options.findIndex((o) => o.id === r.id) === -1) {
       options.push({
         id: r.id,
-        label: r.displayName
+        label: r.label
       })
     }
   })
@@ -157,7 +171,7 @@ const removeLastKeyword = () => {
 .filter-type-select-async {
   @apply -m-2;
   &-input {
-    @apply border-b border-gray-200 mb-2 p-2;
+    @apply border-b border-gray-200 p-2;
   }
   .input-wrapper {
     @apply min-h-8 bg-gray-50 shadow-none border-none rounded-md max-h-12 overflow-auto;

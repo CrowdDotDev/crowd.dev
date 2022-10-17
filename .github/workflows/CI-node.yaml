@@ -3,7 +3,7 @@ name: Node.js CI
 on:
   pull_request:
     paths:
-      - "backend/**"
+      - 'backend/**'
 jobs:
   lint-format:
     runs-on: ubuntu-latest
@@ -37,8 +37,6 @@ jobs:
       - name: Check formatting
         run: npx prettier --check .
 
-
-
   tests-main:
     needs: lint-format
     runs-on: ubuntu-latest
@@ -47,16 +45,16 @@ jobs:
         shell: bash
         working-directory: ./backend
 
-    steps: 
-        - name: Check out repository code
-          uses: actions/checkout@v2
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
 
-        - name: Install root dependencies
-          run:  npm ci
-        
-        - name: Run tests
-          working-directory: ./backend
-          run: npm test -- --testPathIgnorePatterns=serverless
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./backend
+        run: npm test -- --testPathIgnorePatterns=serverless
 
   tests-serverless:
     needs: lint-format
@@ -67,18 +65,12 @@ jobs:
         working-directory: ./backend
 
     steps:
-        - name: Check out repository code
-          uses: actions/checkout@v2
+      - name: Check out repository code
+        uses: actions/checkout@v2
 
-        - name: Install dependencies
-          run: npm ci && cd ./src/serverless/integrations && npm ci && cd ./../dbOperations && npm ci && cd ./../microservices/nodejs && npm ci
+      - name: Install dependencies
+        run: npm ci && cd ./src/serverless/integrations && npm ci && cd ./../dbOperations && npm ci && cd ./../microservices/nodejs && npm ci
 
-        - name: change db port in env
-          working-directory: ./backend
-          run: sed -i -e 's/5433/'5434'/g' ./.env.test && sed -i -e 's/7701/'7702'/g' ./.env.test  
-        - name: change db port in docker compose
-          working-directory: ./backend
-          run: sed -i -e 's/5433/'5434'/g' ../docker/docker-compose.test.yaml && sed -i -e 's/7701/'7702'/g' ../docker/docker-compose.test.yaml
-        - name: Run tests
-          working-directory: ./backend
-          run: npm test -- --testPathPattern="serverless\/"
+      - name: Run tests
+        working-directory: ./backend
+        run: npm test -- --testPathPattern="serverless\/"

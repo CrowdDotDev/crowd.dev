@@ -13,6 +13,7 @@ export default class DecimalField extends GenericField {
     this.placeholder = config.placeholder
     this.hint = config.hint
     this.filterable = config.filterable || false
+    this.custom = config.custom
   }
 
   forPresenter(value) {
@@ -31,10 +32,13 @@ export default class DecimalField extends GenericField {
     return {
       name: this.name,
       label: this.label,
+      custom: this.custom,
       props: {},
       defaultValue: [],
       value: [],
-      type: 'range'
+      defaultOperator: 'eq',
+      operator: 'eq',
+      type: 'number'
     }
   }
 

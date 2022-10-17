@@ -157,11 +157,9 @@ export default {
 <style lang="scss">
 .app-keywords-input {
   .el-keywords-input-wrapper {
-    @apply relative text-sm bg-white rounded-md pr-2 pl-1 flex items-center flex-wrap;
+    @apply relative text-sm bg-white shadow-none border border-solid border-gray-300 rounded-md pr-2 pl-1 flex items-center flex-wrap;
     background-image: none;
-    border: 1px solid #dcdfe6;
     box-sizing: content-box;
-    color: #606266;
     outline: none;
     transition: border-color 0.2s
       cubic-bezier(0.645, 0.045, 0.355, 1);
@@ -172,16 +170,31 @@ export default {
     }
 
     &.is-focus {
-      border: 1px solid #0068bd;
+      @apply border-gray-500;
+    }
+
+    &:hover:not(:focus):not(.is-focus) {
+      @apply border-gray-400;
     }
   }
 
   .el-keywords-input {
-    @apply bg-transparent border-none pl-0 ml-2 h-full;
+    @apply bg-transparent border-none pl-0 ml-2 h-full text-gray-900;
     font-size: inherit;
     outline: none;
     width: 200px;
     min-height: 24px;
+  }
+  .el-tag--small .el-tag__close {
+    @apply ml-1.5;
+  }
+
+  &.is-focus {
+    border: 1px solid #0068bd;
+  }
+
+  .el-tag.el-tag--info {
+    @apply text-black;
   }
 
   .el-keywords-input-list {

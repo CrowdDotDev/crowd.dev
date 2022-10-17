@@ -19,13 +19,14 @@ import MemberService from '../../../services/memberService'
 import getProfiles from '../usecases/social/profiles'
 import Operations from '../../dbOperations/operations'
 import { PlatformType } from '../../../utils/platforms'
+import { TWITTER_CONFIG } from '../../../config'
 
 export default class TwitterReachIterator extends BaseIterator {
   static readonly TWITTER_API_MAX_USERNAME_LENGTH = 15
 
   static limitReachedState: State = { endpoint: '__limit', page: '__limit', endpoints: [] }
 
-  static maxRetrospect: number = Number(process.env.TWITTER_MAX_RETROSPECT_IN_SECONDS || 7380)
+  static maxRetrospect: number = Number(TWITTER_CONFIG.maxRetrospectInSeconds || 7380)
 
   static platform: string = PlatformType.TWITTER
 

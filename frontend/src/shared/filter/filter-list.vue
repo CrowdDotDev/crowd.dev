@@ -1,25 +1,36 @@
 <template>
-  <div v-if="filtersArray.length > 0" class="filter-list">
-    <div
-      v-for="(filter, index) of filtersArray"
-      :key="filter.name"
-      class="flex items-center"
+  <div>
+    <app-filter-search
+      class="mb-6"
+      @change="handleFilterChange"
     >
-      <app-filter-list-item
-        :filter="filter"
-        class="mx-2"
-        @change="handleFilterChange"
-        @destroy="handleFilterDestroy"
-      />
-      <app-filter-list-compositor
-        v-if="
-          filtersArray.length > 1 &&
-          index !== filtersArray.length - 1
-        "
-        :compositor="compositor"
-        class="mx-2"
-        @change="handleCompositorChanged"
-      />
+      <template #dropdown>
+        <slot name="dropdown"></slot>
+      </template>
+    </app-filter-search>
+
+    <div v-if="filtersArray.length > 0" class="filter-list">
+      <div
+        v-for="(filter, index) of filtersArray"
+        :key="filter.name"
+        class="flex items-center"
+      >
+        <app-filter-list-item
+          :filter="filter"
+          class="mx-2"
+          @change="handleFilterChange"
+          @destroy="handleFilterDestroy"
+        />
+        <app-filter-list-operator
+          v-if="
+            filtersArray.length > 1 &&
+            index !== filtersArray.length - 1
+          "
+          :operator="operator"
+          class="mx-2"
+          @change="handleOperatorChanged"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -32,9 +43,9 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { ref, defineProps, computed } from 'vue'
+import { defineProps, computed } from 'vue'
 import AppFilterListItem from './filter-list-item'
-import AppFilterListCompositor from './filter-list-compositor'
+import AppFilterListOperator from './filter-list-operator'
 
 const props = defineProps({
   module: {
@@ -44,98 +55,36 @@ const props = defineProps({
 })
 
 const store = useStore()
-const compositor = ref('and')
-/* const filters = reactive({
-  selectSingle: {
-    name: 'selectSingle',
-    label: 'Select Single',
-    props: {
-      options: [
-        {
-          label: 'Option A',
-          name: 'a'
-        },
-        {
-          label: 'Option B',
-          name: 'b'
-        },
-        {
-          label: 'Option C',
-          name: 'c'
-        }
-      ]
-    },
-    defaultValue: [],
-    value: [],
-    type: 'select'
-  },
-  keywords: {
-    name: 'keywords',
-    label: 'Keywords',
-    props: {},
-    defaultValue: [],
-    value: [],
-    type: 'keywords'
-  },
-  selectMultiple: {
-    name: 'selectMultiple',
-    label: 'Select Multiple',
-    props: {
-      multiple: true,
-      options: [
-        {
-          label: 'Option A',
-          name: 'a'
-        },
-        {
-          label: 'Option B',
-          name: 'b'
-        },
-        {
-          label: 'Option C',
-          name: 'c'
-        }
-      ]
-    },
-    defaultValue: [],
-    value: [],
-    type: 'select'
-  },
-  range: {
-    name: 'range',
-    label: 'Range',
-    props: {},
-    defaultValue: [],
-    value: [],
-    type: 'range'
-  },
-  tags: {
-    name: 'tags',
-    label: 'Tags',
-    props: {
-      fetchFn: MemberService.list
-    },
-    defaultValue: [],
-    value: [],
-    type: 'tags'
-  }
-})*/
-
-const filters = computed(() => {
-  return { ...store.state[props.module].filter }
-})
-const filtersArray = computed(() =>
-  Object.values(filters.value)
+const operator = computed(
+  () => store.state.member.filter.operator
 )
 
-const handleFilterChange = (v) => {
-  store.dispatch(`${props.module}/updateFilter`, v)
+const filters = computed(() => {
+  return { ...store.state[props.module].filter.attributes }
+})
+const filtersArray = computed(() =>
+  Object.values(filters.value).filter(
+    (a) => a.type !== 'search'
+  )
+)
+
+const handleFilterChange = (attribute) => {
+  store.dispatch(
+    `${props.module}/updateFilterAttribute`,
+    attribute
+  )
 }
-const handleFilterDestroy = (v) => {
-  store.dispatch(`${props.module}/destroyFilter`, v)
+const handleFilterDestroy = (attribute) => {
+  store.dispatch(
+    `${props.module}/destroyFilterAttribute`,
+    attribute
+  )
 }
-const handleCompositorChanged = (v) => {
-  compositor.value = v
+const handleOperatorChanged = (operator) => {
+  store.dispatch(
+    `${props.module}/updateFilterOperator`,
+    operator
+  )
 }
 </script>
 

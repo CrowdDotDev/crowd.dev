@@ -13,6 +13,8 @@ export default class StringField extends GenericField {
     this.min = config.min
     this.max = config.max
     this.filterable = config.filterable || false
+    this.custom = config.custom || false
+    this.email = config.email
   }
 
   forPresenter(value) {
@@ -30,9 +32,12 @@ export default class StringField extends GenericField {
     return {
       name: this.name,
       label: this.label,
+      custom: this.custom,
       props: {},
-      defaultValue: [],
-      value: [],
+      defaultValue: null,
+      value: null,
+      defaultOperator: 'textContains',
+      operator: 'textContains',
       type: 'string'
     }
   }
@@ -86,15 +91,33 @@ export default class StringField extends GenericField {
       })
     }
 
+    if (this.email) {
+      output.push({
+        type: 'email',
+        message: 'Please input correct email address',
+        trigger: ['blur', 'change']
+      })
+    }
+
     return output
   }
 
   forFormCast() {
-    return yup
+    let yupChain = yup
       .string()
       .nullable(true)
       .trim()
       .label(this.label)
+
+    if (this.required) {
+      yupChain = yupChain.required()
+    }
+
+    if (this.email) {
+      yupChain = yupChain.email()
+    }
+
+    return yupChain
   }
 
   forFilterCast() {

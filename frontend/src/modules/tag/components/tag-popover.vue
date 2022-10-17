@@ -1,31 +1,44 @@
 <template>
-  <app-popover :visible="visible" @hide="handleHide">
-    <form v-if="visible" class="tags-form">
-      <span
-        class="flex items-center font-semibold text-base"
-        ><i class="ri-pencil-line mr-1"></i>Edit tags</span
+  <app-teleport to="#teleport-modal">
+    <el-dialog v-model="computedVisible">
+      <template #header>
+        <h5>Edit tags</h5>
+      </template>
+      <form v-if="visible" class="tags-form mb-10">
+        <app-tag-autocomplete-input
+          v-model="model"
+          :fetch-fn="fields.tags.fetchFn"
+          :mapper-fn="fields.tags.mapperFn"
+          :create-if-not-found="true"
+          placeholder="Type to search/create tags"
+        ></app-tag-autocomplete-input>
+      </form>
+
+      <div
+        class="bg-gray-50 rounded-b-md -mx-5 -mb-8 py-5 px-5 flex items-center justify-end"
       >
-      <app-tag-autocomplete-input
-        v-model="model"
-        :fetch-fn="fields.tags.fetchFn"
-        :mapper-fn="fields.tags.mapperFn"
-        :create-if-not-found="true"
-        placeholder="Type to search/create tags"
-      ></app-tag-autocomplete-input>
-    </form>
-  </app-popover>
+        <el-button
+          class="btn btn--bordered btn--md mr-3"
+          @click="handleCancel"
+          >Cancel</el-button
+        >
+        <el-button
+          class="btn btn--primary btn--md"
+          @click="handleSubmit"
+          >Submit</el-button
+        >
+      </div>
+    </el-dialog>
+  </app-teleport>
 </template>
 
 <script>
-import AppPopover from '@/shared/popover/popover'
 import { MemberModel } from '@/modules/member/member-model'
 
 const { fields } = MemberModel
 
 export default {
   name: 'AppTagPopover',
-
-  components: { AppPopover },
 
   props: {
     visible: {
@@ -61,16 +74,23 @@ export default {
         this.changed = true
         this.$emit('update:modelValue', value)
       }
+    },
+    computedVisible: {
+      get() {
+        return this.visible
+      },
+      set() {
+        this.handleCancel()
+      }
     }
   },
 
   methods: {
-    handleHide() {
-      if (this.changed) {
-        this.$emit('submit')
-      } else {
-        this.$emit('cancel')
-      }
+    handleCancel() {
+      this.$emit('cancel')
+    },
+    handleSubmit() {
+      this.$emit('submit')
     }
   }
 }

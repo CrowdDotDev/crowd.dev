@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import sanitizeHtml from 'sanitize-html'
+import { DEVTO_CONFIG } from '../../../config/index'
 import { DevtoArticle, DevtoComment, DevtoUser } from '../usecases/devto/types'
 import { single } from '../../../utils/arrays'
 import { getUserById } from '../usecases/devto/getUser'
@@ -20,7 +21,7 @@ import { MemberAttributeName } from '../../../database/attributes/member/enums'
 /* eslint @typescript-eslint/no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
 export default class DevtoIterator extends BaseIterator {
-  static globalLimit: number = Number(process.env.DOTENV_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = Number(DEVTO_CONFIG.globalLimit || Infinity)
 
   userContext: IRepositoryOptions
 
@@ -192,6 +193,11 @@ export default class DevtoIterator extends BaseIterator {
   ): AddActivitiesSingle[] {
     const article = single(this.articles, (a) => a.id === articleId)
     const activities: AddActivitiesSingle[] = []
+
+    // comment was deleted or the user deleted his account
+    if (!comment.user.username) {
+      return []
+    }
 
     const member: Member = {
       username: {

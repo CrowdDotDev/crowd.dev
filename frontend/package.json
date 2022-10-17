@@ -8,6 +8,8 @@
     "build:production": "vue-cli-service build --mode prod",
     "build:staging": "vue-cli-service build --mode staging",
     "start": "vue-cli-service serve --mode localhost --port 8081",
+    "start:dev": "vue-cli-service serve --mode localhost --port 8081",
+    "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vue-cli-service serve --mode localhost --port 8081",
     "start:test": "vue-cli-service serve --mode test --port 4000",
     "start:json-server": "node tests/support/json-server/index.js",
     "test": "node tests/localhost-runner.js"
@@ -42,7 +44,7 @@
     "vue": "^3.2.29",
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.2",
-    "vue-router": "^4.0.12",
+    "vue-router": "^4.1.5",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",

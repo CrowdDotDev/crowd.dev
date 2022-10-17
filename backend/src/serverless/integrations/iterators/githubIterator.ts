@@ -2,6 +2,7 @@
 /* eslint class-methods-use-this: 0 */
 /* eslint prefer-const: 0 */
 import moment from 'moment'
+import { GITHUB_CONFIG, IS_TEST_ENV } from '../../../config/index'
 import { Repo, Repos, Endpoint, Endpoints, State } from '../types/regularTypes'
 import { BaseOutput, IntegrationResponse, parseOutput } from '../types/iteratorTypes'
 import BaseIterator from './baseIterator'
@@ -25,7 +26,6 @@ import DiscussionCommentsQuery from '../usecases/github/graphql/discussionCommen
 import { GithubActivityType } from '../../../utils/activityTypes'
 import Error400 from '../../../errors/Error400'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
-import { getConfig } from '../../../config'
 
 export default class GithubIterator extends BaseIterator {
   static limitReachedState: State = {
@@ -36,7 +36,7 @@ export default class GithubIterator extends BaseIterator {
 
   static readonly ENDPOINT_MAX_RETRY = 5
 
-  static globalLimit: number = Number(process.env.GITHUB_GLOBAL_LIMIT || Infinity)
+  static globalLimit: number = Number(GITHUB_CONFIG.globalLimit || Infinity)
 
   static fixedEndpoints: Endpoints = ['stargazers', 'forks', 'pulls', 'issues', 'discussions']
 
@@ -728,7 +728,7 @@ export default class GithubIterator extends BaseIterator {
     }
 
     if (memberFromApi.company) {
-      if (getConfig().NODE_ENV === 'test') {
+      if (IS_TEST_ENV) {
         member.organizations = [{ name: 'crowd.dev' }]
       } else {
         const company = memberFromApi.company.replace('@', '')

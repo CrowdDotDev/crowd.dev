@@ -10,6 +10,7 @@ export default class BooleanField extends GenericField {
     this.yesLabel = config.yesLabel || i18n('common.yes')
     this.noLabel = config.noLabel || i18n('common.no')
     this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
@@ -20,9 +21,12 @@ export default class BooleanField extends GenericField {
     return {
       name: this.name,
       label: this.label,
+      custom: this.custom,
       props: {},
-      defaultValue: [],
-      value: [],
+      defaultValue: null,
+      value: null,
+      defaultOperator: 'eq',
+      operator: null,
       type: 'boolean'
     }
   }

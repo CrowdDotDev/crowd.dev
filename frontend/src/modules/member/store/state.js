@@ -1,33 +1,49 @@
-import { INITIAL_PAGE_SIZE } from './constants'
+import {
+  INITIAL_PAGE_SIZE,
+  INITIAL_VIEW_ACTIVE_FILTER,
+  INITIAL_VIEW_RECENT_FILTER
+} from './constants'
 
 export default {
   records: {},
-  views: {
-    all: {
+  views: [
+    {
       id: 'all',
-      name: 'All members',
+      label: 'All members',
       columns: [],
       filter: {},
       sorter: {},
       active: true
     },
-    active: {
+    {
       id: 'active',
-      name: 'Most active',
-      columns: [],
-      filter: [],
+      label: 'Most active',
+      columns: [
+        {
+          name: 'activityCount',
+          label: '# of Activities',
+          sortable: true
+        }
+      ],
+      filter: INITIAL_VIEW_ACTIVE_FILTER,
       sorter: {},
       active: false
     },
-    recent: {
+    {
       id: 'recent',
-      name: 'Recent',
-      columns: [],
-      filter: {},
+      label: 'Recent',
+      columns: [
+        {
+          name: 'firstActivity',
+          label: 'First Activity',
+          sortable: true
+        }
+      ],
+      filter: INITIAL_VIEW_RECENT_FILTER,
       sorter: {},
       active: false
     }
-  },
+  ],
   customAttributes: {},
   list: {
     ids: [],
@@ -35,7 +51,10 @@ export default {
     table: false
   },
   count: 0,
-  filter: {},
+  filter: {
+    operator: 'and',
+    attributes: {}
+  },
   pagination: {
     currentPage: 1,
     pageSize: INITIAL_PAGE_SIZE

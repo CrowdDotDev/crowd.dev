@@ -16,11 +16,11 @@
       </span>
       <template #dropdown>
         <el-dropdown-item
-          class="h-10"
           :command="{
             action: 'memberEdit',
-            member: member
+            member
           }"
+          class="h-10"
           ><i class="ri-pencil-line text-base mr-2" /><span
             class="text-xs text-gray-900"
             >Edit member</span
@@ -65,48 +65,18 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
-
-    <el-dialog
-      v-if="editing"
-      v-model="editing"
-      title="Edit Member"
-      :append-to-body="true"
-      :close-on-click-modal="false"
-      :destroy-on-close="true"
-      custom-class="el-dialog--lg"
-      @close="editing = false"
-    >
-      <app-member-form-page
-        :id="member.id"
-        @cancel="editing = false"
-      >
-      </app-member-form-page>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import { i18n } from '@/i18n'
-import { mapActions, mapGetters, mapState } from 'vuex'
-import AppMemberFormPage from './member-form-page'
+import { mapActions, mapGetters } from 'vuex'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
-import { FilterSchema } from '@/shared/form/filter-schema'
-import { MemberModel } from '@/modules/member/member-model'
 import { MemberPermissions } from '@/modules/member/member-permissions'
-
-const { fields } = MemberModel
-const filterSchema = new FilterSchema([
-  fields.username,
-  fields.tags,
-  fields.scoreRange,
-  fields.activitiesCountRange,
-  fields.reachRange
-])
 
 export default {
   name: 'AppMemberDropdown',
-  components: { AppMemberFormPage },
   props: {
     member: {
       type: Object,
@@ -117,15 +87,7 @@ export default {
       default: true
     }
   },
-  data() {
-    return {
-      editing: false
-    }
-  },
   computed: {
-    ...mapState({
-      rawFilter: (state) => state.member.rawFilter
-    }),
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'
@@ -166,7 +128,12 @@ export default {
       if (command.action === 'memberDelete') {
         return this.doDestroyWithConfirm(command.member.id)
       } else if (command.action === 'memberEdit') {
-        this.editing = true
+        this.$router.push({
+          name: 'memberEdit',
+          params: {
+            id: command.member.id
+          }
+        })
       } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {
@@ -178,8 +145,8 @@ export default {
         Message.success('Member updated successfully')
         if (this.$route.name === 'member') {
           this.doFetch({
-            rawFilter: this.rawFilter,
-            filter: filterSchema.cast(this.rawFilter)
+            filter: {},
+            keepPagination: true
           })
         } else {
           this.doFind(command.member.id)

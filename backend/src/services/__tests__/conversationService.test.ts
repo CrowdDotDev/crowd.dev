@@ -292,7 +292,7 @@ describe('ConversationService tests', () => {
       delete activity2Created.tasks
       delete activity3Created.tasks
 
-      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -345,7 +345,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -413,7 +413,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -483,7 +483,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -578,9 +578,7 @@ describe('ConversationService tests', () => {
       delete activityParentCreated.tasks
       delete activityChildCreated.tasks
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -589,7 +587,7 @@ describe('ConversationService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({...mockIRepositoryOptions, transaction}).findAndCountAll({
           filter: {
             slug: 'some-parent-activity',
           },
@@ -709,7 +707,7 @@ describe('ConversationService tests', () => {
       )
 
       // create a conversation document in the search engine
-      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       // add same documents with different ids
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
@@ -721,7 +719,7 @@ describe('ConversationService tests', () => {
       })
 
       // now try removing it
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.removeFromSearchEngine(conversationCreated.id, transaction)
 
@@ -737,7 +735,7 @@ describe('ConversationService tests', () => {
 
       expect(findById).toBeNull()
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
       // trying to remove a non existing document shouldn't throw an error
       await conversationService.removeFromSearchEngine(conversationCreated.id, transaction)
 
@@ -1143,7 +1141,7 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
-      let transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions.database)
+      let transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         githubActivityChildCreated.id,
@@ -1193,7 +1191,7 @@ describe('ConversationService tests', () => {
       )
       await SequelizeRepository.commitTransaction(transaction)
 
-      transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await new ConversationService(mockIRepositoryOptions).updateSettings({
         autoPublish: {

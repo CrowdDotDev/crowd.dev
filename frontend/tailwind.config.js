@@ -193,6 +193,7 @@ module.exports = {
       12: '3rem',
       14: '3.5rem',
       16: '4rem',
+      18: '4.5rem',
       20: '5rem',
       24: '6rem',
       28: '7rem',
@@ -515,16 +516,16 @@ module.exports = {
       ]
     },
     fontSize: {
-      '3xs': ['0.625rem', { lineHeight: '0.9375rem' }],
-      '2xs': ['0.75rem', { lineHeight: '1.125rem' }],
-      xs: ['0.8125rem', { lineHeight: '1.21875rem' }],
-      sm: ['0.875rem', { lineHeight: '1.3125rem' }],
-      base: ['1rem', { lineHeight: '1.5rem' }],
-      lg: ['1.25rem', { lineHeight: '1.875rem' }],
-      xl: ['1.5rem', { lineHeight: '2.25rem' }],
-      '2xl': ['2rem', { lineHeight: '3rem' }],
-      '3xl': ['2.5rem', { lineHeight: '3.75rem' }],
-      '4xl': ['3rem', { lineHeight: '4.5rem' }]
+      '3xs': ['0.625rem'],
+      '2xs': ['0.75rem'],
+      xs: ['0.8125rem'],
+      sm: ['0.875rem'],
+      base: ['1rem'],
+      lg: ['1.25rem'],
+      xl: ['1.5rem'],
+      '2xl': ['2rem'],
+      '3xl': ['2.5rem'],
+      '4xl': ['3rem']
     },
     fontWeight: {
       thin: '100',
@@ -810,6 +811,7 @@ module.exports = {
       0: '0',
       5: '0.05',
       10: '0.1',
+      15: '0.15',
       20: '0.2',
       25: '0.25',
       30: '0.3',

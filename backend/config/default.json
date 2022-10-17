@@ -1,0 +1,37 @@
+{
+  "api": {
+    "port": 8080,
+    "documentation": false
+  },
+  "sqs": {},
+  "s3": {},
+  "db": {
+    "dialect": "postgres",
+    "logging": false,
+    "transactions": false
+  },
+  "cubejs": {},
+  "searchEngine": {},
+  "segment": {},
+  "comprehend": {
+    "aws": {}
+  },
+  "clearbit": {},
+  "netlify": {},
+  "sendgrid": {},
+  "plans": {},
+  "devto": {},
+  "twitter": {
+    "maxRetrospectInSeconds": 7380,
+    "limitResetFrequencyDays": 30
+  },
+  "slack": {
+    "maxRetrospectInSeconds": 3600
+  },
+  "google": {},
+  "facebook": {},
+  "discord": {
+    "maxRetrospectInSeconds": 3600
+  },
+  "github": {}
+}

@@ -10,6 +10,7 @@ export default class UrlField extends StringField {
     this.hint = config.hint
     this.required = config.required
     this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
@@ -31,9 +32,12 @@ export default class UrlField extends StringField {
     return {
       name: this.name,
       label: this.label,
+      custom: this.custom,
       props: {},
-      defaultValue: [],
-      value: [],
+      defaultValue: null,
+      value: null,
+      defaultOperator: 'textContains',
+      operator: 'textContains',
       type: 'string'
     }
   }

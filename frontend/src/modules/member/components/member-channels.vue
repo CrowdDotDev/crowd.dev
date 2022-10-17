@@ -21,7 +21,7 @@
     </el-tooltip>
     <div class="flex gap-2 items-center">
       <el-tooltip
-        v-if="member.username.twitter"
+        v-if="member.username?.twitter || false"
         popper-class="custom-identity-tooltip"
         placement="top"
       >
@@ -29,17 +29,17 @@
           <span>
             Twitter Profile
             <i
-              v-if="member.attributes.url.twitter"
+              v-if="member.attributes?.url?.twitter"
               class="ri-external-link-line text-gray-400"
             ></i>
           </span>
         </template>
         <a
-          :href="member.attributes.url.twitter || null"
+          :href="member.attributes?.url?.twitter || null"
           target="_blank"
           class="btn p-2 text-base btn--twitter"
           :class="
-            member.attributes.url.twitter
+            member.attributes?.url?.twitter
               ? 'hover:cursor-pointer'
               : 'hover:cursor-auto'
           "
@@ -53,7 +53,7 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.github"
+        v-if="member.username?.github || false"
         popper-class="custom-identity-tooltip"
         placement="top"
       >
@@ -61,17 +61,17 @@
           <span>
             GitHub Profile
             <i
-              v-if="member.attributes.url.github"
+              v-if="member.attributes?.url?.github"
               class="ri-external-link-line text-gray-400"
             ></i>
           </span>
         </template>
         <a
-          :href="member.attributes.url.github || null"
+          :href="member.attributes?.url?.github || null"
           target="_blank"
           class="btn p-2 text-base bg-gray-100 border border-gray-200"
           :class="
-            member.attributes.url.github
+            member.attributes?.url?.github
               ? 'hover:cursor-pointer'
               : 'hover:cursor-auto'
           "
@@ -85,14 +85,14 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.linkedin"
+        v-if="member.username?.linkedin || false"
         placement="top"
       >
         <template #content>
           <span>
             LinkedIn Profile
             <i
-              v-if="member.attributes.url.linkedin"
+              v-if="member.attributes?.url?.linkedin"
               class="ri-external-link-line text-gray-400"
             ></i>
           </span>
@@ -102,7 +102,7 @@
           target="_blank"
           class="btn p-2 text-base btn--linkedin"
           :class="
-            member.attributes.url.linkedin
+            member.attributes?.url?.linkedin
               ? 'hover:cursor-pointer'
               : 'hover:cursor-auto'
           "
@@ -116,24 +116,24 @@
         </a>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.devto"
+        v-if="member.username?.devto || false"
         placement="top"
       >
         <template #content>
           <span>
             DEV Profile
             <i
-              v-if="member.attributes.url.devto"
+              v-if="member.attributes?.url?.devto"
               class="ri-external-link-line text-gray-400"
             ></i>
           </span>
         </template>
         <a
-          :href="member.attributes.url.devto || null"
+          :href="member.attributes?.url?.devto || null"
           target="_blank"
           class="btn p-2 text-base bg-gray-100 border border-gray-200"
           :class="
-            member.attributes.url.devto
+            member.attributes?.url?.devto
               ? 'hover:cursor-pointer'
               : 'hover:cursor-auto'
           "
@@ -148,7 +148,7 @@
       </el-tooltip>
       <!-- TODO: (TBC) Discord does not have link, is there still any tooltip? -->
       <el-tooltip
-        v-if="member.username.discord"
+        v-if="member.username?.discord || false"
         placement="top"
       >
         <template #content>Discord Profile</template>
@@ -165,7 +165,7 @@
         </span>
       </el-tooltip>
       <el-tooltip
-        v-if="member.username.slack"
+        v-if="member.username?.slack || false"
         placement="top"
       >
         <template #content>Slack Profile</template>
@@ -223,26 +223,6 @@ export default {
 .custom-identity-tooltip {
   span:first-child {
     @apply flex gap-1.5 items-center;
-  }
-}
-
-.btn {
-  &--twitter,
-  &--twitter:hover {
-    background-color: rgba(29, 155, 240, 0.15);
-    color: #1d9bf0;
-  }
-
-  &--linkedin,
-  &--linkedin:hover {
-    @apply cursor-pointer;
-    background-color: rgba(2, 116, 179, 0.1);
-    color: #0274b3;
-  }
-
-  &--discord,
-  &--discord:hover {
-    background-color: rgba(88, 101, 242, 0.15);
   }
 }
 

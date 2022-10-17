@@ -59,7 +59,7 @@ def pre_process(data):
             id=point['id'],
             combined='',
             embed=''
-        ) for point in data
+        ) for point in data if point.get('user', {}).get('username', False)
     ]
 
 

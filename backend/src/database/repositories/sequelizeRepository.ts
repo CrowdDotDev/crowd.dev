@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import { Sequelize, UniqueConstraintError } from 'sequelize'
+import { IS_TEST_ENV } from '../../config'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'
@@ -14,7 +15,7 @@ export default class SequelizeRepository {
    * Cleans the database.
    */
   static async cleanDatabase(database) {
-    if (process.env.NODE_ENV !== 'test') {
+    if (!IS_TEST_ENV) {
       throw new Error('Clean database only allowed for test!')
     }
 
@@ -56,14 +57,32 @@ export default class SequelizeRepository {
   /**
    * Creates a database transaction.
    */
-  static async createTransaction(database) {
-    return database.sequelize.transaction()
+  static async createTransaction(options) {
+    if (options.transaction) {
+      if (options.transaction.crowdNestedTransactions !== undefined) {
+        options.transaction.crowdNestedTransactions++
+      } else {
+        options.transaction.crowdNestedTransactions = 1
+      }
+
+      return options.transaction
+    }
+
+    return options.database.sequelize.transaction()
   }
 
   /**
    * Commits a database transaction.
    */
   static async commitTransaction(transaction) {
+    if (
+      transaction.crowdNestedTransactions !== undefined &&
+      transaction.crowdNestedTransactions > 0
+    ) {
+      transaction.crowdNestedTransactions--
+      return Promise.resolve()
+    }
+
     return transaction.commit()
   }
 
@@ -71,6 +90,14 @@ export default class SequelizeRepository {
    * Rolls back a database transaction.
    */
   static async rollbackTransaction(transaction) {
+    if (
+      transaction.crowdNestedTransactions !== undefined &&
+      transaction.crowdNestedTransactions > 0
+    ) {
+      transaction.crowdNestedTransactions--
+      return Promise.resolve()
+    }
+
     return transaction.rollback()
   }
 

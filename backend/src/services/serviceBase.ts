@@ -22,7 +22,7 @@ export abstract class ServiceBase<TData, TId, TCreate, TUpdate, TCriteria extend
   abstract findAndCountAll(criteria: TCriteria): Promise<PageData<TData>>
 
   protected async getTxRepositoryOptions(): Promise<IRepositoryOptions> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
     const options: IRepositoryOptions = { ...this.options }
     options.transaction = transaction
 

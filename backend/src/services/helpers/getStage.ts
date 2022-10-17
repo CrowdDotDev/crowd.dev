@@ -1,12 +1,7 @@
-import { getConfig } from '../../config'
+import { IS_PROD_ENV, IS_STAGING_ENV } from '../../config/index'
 
 export default function getStage() {
-  switch (getConfig().NODE_ENV) {
-    case 'production':
-      return 'prod'
-    case 'staging':
-      return 'staging'
-    default:
-      return 'local'
-  }
+  if (IS_PROD_ENV) return 'prod'
+  if (IS_STAGING_ENV) return 'staging'
+  return 'local'
 }

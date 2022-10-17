@@ -13,9 +13,18 @@ module.exports = {
   },
   devServer: {
     port: 8081,
-    allowedHosts: ['.localhost'],
     client: {
       webSocketURL: 'auto://0.0.0.0:0/ws'
+    },
+    proxy: {
+      '/api': {
+        target:
+          process.env.BACKEND_URL ||
+          'http://localhost:8080',
+        pathRewrite: {
+          '^/api': ''
+        }
+      }
     }
   },
   transpileDependencies: [

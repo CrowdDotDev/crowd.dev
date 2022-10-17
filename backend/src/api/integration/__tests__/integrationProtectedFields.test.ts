@@ -27,7 +27,7 @@ describe('Integration protected fields tests', () => {
         platform: PlatformType.GITHUB,
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/integration`)
+        .post(`/tenant/${tenantId}/integration`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -46,7 +46,7 @@ describe('Integration protected fields tests', () => {
         limitCount: 1,
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/integration`)
+        .post(`/tenant/${tenantId}/integration`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -73,7 +73,7 @@ describe('Integration protected fields tests', () => {
         status: 'done',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/integration/${integrationId}`)
+        .put(`/tenant/${tenantId}/integration/${integrationId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
@@ -98,7 +98,7 @@ describe('Integration protected fields tests', () => {
         limitCount: 0,
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/integration/${integrationId}`)
+        .put(`/tenant/${tenantId}/integration/${integrationId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })

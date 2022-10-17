@@ -33,7 +33,7 @@ export default async () => {
         // get parent activity
         const parentAct = await as.findById(githubActivity.parentId)
 
-        const transaction = await SequelizeRepository.createTransaction(userContext.database)
+        const transaction = await SequelizeRepository.createTransaction(userContext)
 
         await as.addToConversation(githubActivity.id, parentAct.id, transaction)
 

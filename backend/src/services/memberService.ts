@@ -160,7 +160,7 @@ export default class MemberService {
       }
     }
 
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.activities) {
@@ -453,7 +453,7 @@ export default class MemberService {
    * @returns Success/Error message
    */
   async addToMerge(memberOneId, memberTwoId) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await MemberRepository.addToMerge(memberOneId, memberTwoId, {
@@ -482,7 +482,7 @@ export default class MemberService {
    * @returns Success/Error message
    */
   async addToNoMerge(memberOneId, memberTwoId) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
@@ -514,7 +514,7 @@ export default class MemberService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.activities) {
@@ -560,7 +560,7 @@ export default class MemberService {
   }
 
   async destroyBulk(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await MemberRepository.destroyBulk(
@@ -580,7 +580,7 @@ export default class MemberService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {

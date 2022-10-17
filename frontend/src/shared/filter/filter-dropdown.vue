@@ -98,8 +98,9 @@ const computedAttributes = computed(() =>
     .filter((a) => filterFunction(a, query.value))
     .map((a) => {
       a.selected =
-        store.state[props.module].filter[a.name] !==
-        undefined
+        store.state[props.module].filter.attributes[
+          a.name
+        ] !== undefined
       return a
     })
 )
@@ -108,8 +109,10 @@ const computedCustomAttributes = computed(() =>
     .filter((a) => filterFunction(a, query.value))
     .map((a) => {
       a.selected =
-        store.state[props.module].filter[a.name] !==
-        undefined
+        store.state[props.module].filter.attributes[
+          a.name
+        ] !== undefined
+      a.custom = true
       return a
     })
 )
@@ -124,7 +127,7 @@ function handleOptionClick(v) {
   if (
     store.state[props.module].filter[v.name] === undefined
   ) {
-    store.dispatch(`${props.module}/addFilter`, {
+    store.dispatch(`${props.module}/addFilterAttribute`, {
       ...v.forFilter(),
       expanded: true
     })

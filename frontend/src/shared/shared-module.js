@@ -20,11 +20,15 @@ import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
 import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
 import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
+import FilterSearch from '@/shared/filter/filter-type-search'
 import FilterList from '@/shared/filter/filter-list.vue'
 import FilterTypeSelect from '@/shared/filter/filter-type-select'
 import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
 import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
-import FilterTypeRange from '@/shared/filter/filter-type-range'
+import FilterTypeBoolean from '@/shared/filter/filter-type-boolean'
+import FilterTypeNumber from '@/shared/filter/filter-type-number'
+import FilterTypeString from '@/shared/filter/filter-type-string'
+import FilterTypeDate from '@/shared/filter/filter-type-date'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
@@ -32,6 +36,7 @@ import Teleport from '@/shared/teleport/teleport.vue'
 import Popover from '@/shared/popover/popover.vue'
 import Pagination from '@/shared/pagination/pagination.vue'
 import PaginationSorter from '@/shared/pagination/pagination-sorter.vue'
+import InlineSelectInput from '@/shared/form/inline-select-input'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -63,8 +68,12 @@ export default {
     'app-filter-list': FilterList,
     'app-filter-type-select': FilterTypeSelect,
     'app-filter-type-keywords': FilterTypeKeywords,
-    'app-filter-type-range': FilterTypeRange,
     'app-filter-type-select-async': FilterTypeSelectAsync,
+    'app-filter-type-boolean': FilterTypeBoolean,
+    'app-filter-type-number': FilterTypeNumber,
+    'app-filter-type-string': FilterTypeString,
+    'app-filter-type-date': FilterTypeDate,
+    'app-filter-search': FilterSearch,
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
@@ -73,6 +82,7 @@ export default {
     'app-teleport': Teleport,
     'app-popover': Popover,
     'app-pagination': Pagination,
-    'app-pagination-sorter': PaginationSorter
+    'app-pagination-sorter': PaginationSorter,
+    'app-inline-select-input': InlineSelectInput
   }
 }

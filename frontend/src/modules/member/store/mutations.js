@@ -5,8 +5,7 @@ export default {
     state.list.ids = []
     state.list.loading = false
     state.count = 0
-    state.filter = { type: state.filter.type }
-    state.rawFilter = { type: state.rawFilter.type }
+    state.filter = {}
     state.pagination = {}
     state.sorter = {
       prop: 'score',
@@ -52,19 +51,25 @@ export default {
   },
 
   SORTER_CHANGED(state, payload) {
-    state.sorter = payload || {}
+    state.sorter =
+      Object.keys(payload).length > 0
+        ? payload
+        : {
+            prop: 'score',
+            order: 'descending'
+          }
   },
 
   ACTIVE_VIEW_CHANGED(state, viewId) {
     state.views = Object.values(state.views).reduce(
       (acc, item) => {
-        acc[item.id] = {
+        acc.push({
           ...item,
           active: item.id === viewId
-        }
+        })
         return acc
       },
-      {}
+      []
     )
   },
 
@@ -74,11 +79,6 @@ export default {
     if (state.table) {
       state.list.table.clearSelection()
     }
-
-    state.rawFilter =
-      payload && state.rawFilter ? state.rawFilter : {}
-    state.filter =
-      payload && payload.filter ? payload.filter : {}
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -90,7 +90,10 @@ export default {
 
   FETCH_SUCCESS(state, payload) {
     state.list.loading = false
-    state.list.ids = payload.rows
+    for (const record of payload.rows) {
+      state.records[record.id] = record
+    }
+    state.list.ids = payload.rows.map((r) => r.id)
     state.count = payload.count
   },
 
@@ -99,6 +102,14 @@ export default {
     state.list.ids = []
     state.count = 0
   },
+
+  DESTROY_CUSTOM_ATTRIBUTES_STARTED() {},
+  DESTROY_CUSTOM_ATTRIBUTES_SUCCESS() {},
+  DESTROY_CUSTOM_ATTRIBUTES_ERROR() {},
+
+  UPDATE_CUSTOM_ATTRIBUTES_STARTED() {},
+  UPDATE_CUSTOM_ATTRIBUTES_SUCCESS() {},
+  UPDATE_CUSTOM_ATTRIBUTES_ERROR() {},
 
   FETCH_CUSTOM_ATTRIBUTES_STARTED() {},
 
@@ -162,6 +173,10 @@ export default {
   CREATE_SUCCESS() {},
   CREATE_ERROR() {},
 
+  CREATE_ATTRIBUTES_STARTED() {},
+  CREATE_ATTRIBUTES_SUCCESS() {},
+  CREATE_ATTRIBUTES_ERROR() {},
+
   UPDATE_STARTED() {},
   UPDATE_SUCCESS() {},
   UPDATE_ERROR() {},
@@ -175,18 +190,32 @@ export default {
   DESTROY_ERROR() {},
 
   FIND_STARTED() {},
-  FIND_SUCCESS() {},
+  FIND_SUCCESS(state, payload) {
+    state.records[payload.id] = payload
+  },
   FIND_ERROR() {},
 
-  ADD_FILTER(state, filter) {
-    state.filter[filter.name] = filter
+  FILTER_CHANGED(state, filter) {
+    const { attributes, operator } = filter
+    state.filter = {
+      attributes: { ...attributes } || {},
+      operator: operator || 'and'
+    }
   },
 
-  UPDATE_FILTER(state, filter) {
-    state.filter[filter.name] = filter
+  FILTER_ATTRIBUTE_ADDED(state, attribute) {
+    state.filter.attributes[attribute.name] = attribute
   },
 
-  DESTROY_FILTER(state, filter) {
-    delete state.filter[filter.name]
+  FILTER_ATTRIBUTE_CHANGED(state, attribute) {
+    state.filter.attributes[attribute.name] = attribute
+  },
+
+  FILTER_ATTRIBUTE_DESTROYED(state, attribute) {
+    delete state.filter.attributes[attribute.name]
+  },
+
+  FILTER_OPERATOR_UPDATED(state, operator) {
+    state.filter.operator = operator
   }
 }
