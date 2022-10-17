@@ -80,34 +80,42 @@ export default class SampleDataService {
    * Also removes settings for attributes.sample.crowd
    */
   async deleteSampleData(): Promise<void> {
-    // deleting sample members should cascade to their activities as well
-    const memberService = new MemberService(this.options)
     const tenantService = new TenantService(this.options)
-    const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
 
-    const memberIds = await (
-      await memberService.findAndCountAll({
-        advancedFilter: { sample: true },
+    const tenant = await tenantService.findById(this.options.currentTenant.id)
+
+    if (tenant.hasSampleData){
+      const memberService = new MemberService(this.options)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
+  
+      const memberIds = await (
+        await memberService.findAndCountAll({
+          advancedFilter: { sample: true },
+        })
+      ).rows.reduce((acc, item) => {
+        acc.push(item.id)
+        return acc
+      }, [])
+  
+      // deleting sample members should cascade to their activities as well
+      await memberService.destroyBulk(memberIds)
+  
+      // delete attribute settings for attributes.sample.crowd as well
+      const sampleAttributeSettings = (
+        await memberAttributeSettingsService.findAndCountAll({
+          filter: { name: MemberAttributeName.SAMPLE },
+        })
+      ).rows[0]
+      await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
+  
+      await tenantService.update(this.options.currentTenant.id, {
+        hasSampleData: false,
       })
-    ).rows.reduce((acc, item) => {
-      acc.push(item.id)
-      return acc
-    }, [])
-
-    await memberService.destroyBulk(memberIds)
-
-    // delete attribute settings for attributes.sample.crowd as well
-    const sampleAttributeSettings = (
-      await memberAttributeSettingsService.findAndCountAll({
-        filter: { name: MemberAttributeName.SAMPLE },
-      })
-    ).rows[0]
-    await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
-
-    await tenantService.update(this.options.currentTenant.id, {
-      hasSampleData: false,
-    })
+  
+    }
 
     console.log(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
+
+    
   }
 }
