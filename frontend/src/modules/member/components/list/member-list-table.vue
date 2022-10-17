@@ -58,21 +58,25 @@
           width="220"
         >
           <template #default="scope">
-            <div v-if="scope.row.organizations.length > 0">
+            <div class="flex items-start">
               <div
-                v-for="organization of scope.row
-                  .organizations"
-                :key="organization.id"
-                class="flex-items-center"
+                v-if="scope.row.organizations.length > 0"
+                class="w-5 h-5"
               >
-                <div class="w-5 h-5">
-                  <img
-                    v-if="organization.logo"
-                    :src="organization.logo"
-                    alt=""
-                  />
-                </div>
-                <span>{{ organization.name }}</span>
+                <img
+                  v-if="organization[0].logo"
+                  :src="organization[0].logo"
+                  alt=""
+                />
+              </div>
+              <div>
+                <span
+                  v-if="scope.row.organizations.length > 0"
+                  >{{ organization[0].name }}</span
+                >
+                <span class="text-gray-500 text-2xs">{{
+                  scope.row.attributes.jobTitle
+                }}</span>
               </div>
             </div>
           </template>
