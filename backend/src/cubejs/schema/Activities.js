@@ -64,7 +64,6 @@ cube(`Activities`, {
         else: { label: `no data` },
       },
       type: `string`,
-      shown: false,
     },
 
     sourceid: {
