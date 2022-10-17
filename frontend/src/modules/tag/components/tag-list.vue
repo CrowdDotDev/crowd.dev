@@ -18,6 +18,7 @@
       v-model="model[fields.tags.name]"
       :visible="editing"
       :loading="loading"
+      :pretitle="computedPretitle"
       @cancel="editing = false"
       @submit="doSubmit"
     />
@@ -30,7 +31,6 @@ import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { MemberModel } from '@/modules/member/member-model'
-import { MemberService } from '@/modules/member/member-service'
 import AppTagPopover from '@/modules/tag/components/tag-popover'
 
 const { fields } = MemberModel
@@ -62,6 +62,11 @@ export default {
   computed: {
     fields() {
       return fields
+    },
+    computedPretitle() {
+      return this.$route.name === 'memberView'
+        ? undefined
+        : this.member.displayName
     }
   },
   watch: {
@@ -85,10 +90,10 @@ export default {
     }),
     async doSubmit() {
       this.loading = true
-      await MemberService.update(
-        this.member.id,
-        formSchema.cast(this.model)
-      )
+      await this.doUpdate({
+        id: this.member.id,
+        values: formSchema.cast(this.model)
+      })
       this.loading = false
       this.editing = false
       Message.success(
@@ -103,7 +108,7 @@ export default {
 <style lang="scss">
 .tags-form {
   .el-select {
-    @apply w-full mt-3 mb-1;
+    @apply w-full;
   }
 }
 </style>

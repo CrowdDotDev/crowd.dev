@@ -103,10 +103,7 @@
           :label="translate('entities.member.fields.tag')"
         >
           <template #default="scope">
-            <app-tag-list
-              :member="scope.row"
-              @tags-updated="doRefresh"
-            />
+            <app-tag-list :member="scope.row" />
           </template>
         </el-table-column>
 
@@ -195,10 +192,6 @@ function doChangePaginationPageSize(pageSize) {
 
 function doMountTable(tableRef) {
   store.dispatch('member/doMountTable', tableRef)
-}
-
-function doRefresh(currentPage) {
-  doChangePaginationCurrentPage(currentPage)
 }
 
 function translate(key) {

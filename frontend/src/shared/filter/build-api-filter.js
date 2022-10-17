@@ -43,6 +43,16 @@ function _buildAttributeBlock(attribute) {
         }
       ]
     }
+  } else if (attribute.operator === 'notContains') {
+    return {
+      not: {
+        [attribute.custom
+          ? `attributes.${attribute.name}.default`
+          : attribute.name]: {
+          textContains: attribute.value
+        }
+      }
+    }
   } else if (attribute.name === 'score') {
     rule = {
       in: attribute.value.reduce((acc, option) => {

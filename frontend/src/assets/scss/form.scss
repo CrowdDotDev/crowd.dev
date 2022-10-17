@@ -207,8 +207,8 @@
 
 // Select component
 .el-select {
-  --el-border-color-hover: transparent;
-  --el-select-input-focus-border-color: transparent;
+  /* --el-border-color-hover: transparent;
+  --el-select-input-focus-border-color: transparent; */
 
   &:hover {
     @apply border-gray-400;

@@ -20,6 +20,7 @@
           class="mx-2"
           @change="handleFilterChange"
           @destroy="handleFilterDestroy"
+          @reset="handleFilterReset"
         />
         <app-filter-list-operator
           v-if="
@@ -77,6 +78,12 @@ const handleFilterChange = (attribute) => {
 const handleFilterDestroy = (attribute) => {
   store.dispatch(
     `${props.module}/destroyFilterAttribute`,
+    attribute
+  )
+}
+const handleFilterReset = (attribute) => {
+  store.dispatch(
+    `${props.module}/resetFilterAttribute`,
     attribute
   )
 }
