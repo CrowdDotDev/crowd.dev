@@ -56,7 +56,7 @@ cube(`Activities`, {
     sentimentMood: {
       case: {
         when: [
-          { sql: `a.sentiment->>'sentiment' is null'`, label: `no data` },
+          { sql: `a.sentiment->>'sentiment' is null`, label: `no data` },
           { sql: `(a.sentiment->>'sentiment')::integer < 50`, label: `negative` },
           { sql: `(a.sentiment->>'sentiment')::integer > 50`, label: `positive` },
           { sql: `(a.sentiment->>'sentiment')::integer = 50`, label: `positive` },
