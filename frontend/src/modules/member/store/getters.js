@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
@@ -95,8 +96,8 @@ const filtersAreDifferent = (filter, viewFilter) => {
 }
 
 const attributeIsDifferent = (attribute) => {
-  return (
-    attribute.operator !== attribute.defaultOperator ||
-    attribute.value !== attribute.defaultValue
-  )
+  return attribute.operator !== attribute.defaultOperator ||
+    Array.isArray(attribute.value)
+    ? !_.isEqual(attribute, attribute.defaultValue)
+    : attribute.value !== attribute.defaultValue
 }

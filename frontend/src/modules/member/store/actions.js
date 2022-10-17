@@ -20,8 +20,7 @@ export default {
   async doReset({ commit, state, dispatch }) {
     commit('RESETED')
     return dispatch('doFetch', {
-      filter: state.filter,
-      keepPagination: false
+      filter: state.filter
     })
   },
 
@@ -111,7 +110,8 @@ export default {
     commit('PAGINATION_CHANGED', pagination)
     const filter = state.filter
     dispatch('doFetch', {
-      filter
+      filter,
+      keepPagination: true
     })
   },
 
@@ -122,7 +122,8 @@ export default {
     commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
     const filter = state.filter
     dispatch('doFetch', {
-      filter
+      filter,
+      keepPagination: true
     })
   },
 
@@ -133,7 +134,8 @@ export default {
     commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
     const filter = state.filter
     dispatch('doFetch', {
-      filter
+      filter,
+      keepPagination: true
     })
   },
 
@@ -141,7 +143,8 @@ export default {
     commit('SORTER_CHANGED', sorter)
     const filter = state.filter
     dispatch('doFetch', {
-      filter
+      filter,
+      keepPagination: true
     })
   },
 
