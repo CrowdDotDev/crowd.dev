@@ -166,7 +166,7 @@ export default class ActivityService {
     data.body = data.body ?? ''
     data.title = data.title ?? ''
 
-    const ALLOWED_MAX_BYTE_LENGTH = 5000
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
 
     // Concatenate title and body
     let text = `${data.title} ${data.body}`.trim()
@@ -188,7 +188,7 @@ export default class ActivityService {
    * @returns list of sentiments ordered same as input array
    */
   static async getSentimentBatch(activityArray) {
-    const ALLOWED_MAX_BYTE_LENGTH = 5000
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
     let textArray = await Promise.all(
       activityArray.map(async (i) => {
         let text = `${i.title} ${i.body}`.trim()
