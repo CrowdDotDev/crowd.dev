@@ -80,7 +80,7 @@
             </template>
             <div v-if="recentOrganizations.length === 0">
               <p class="text-xs leading-5 text-center pb-2">
-                No organizations yet
+                No new organizations during this period
               </p>
             </div>
           </div>
@@ -133,7 +133,7 @@
             />
             <div v-if="activeOrganizations.length === 0">
               <p class="text-xs leading-5 text-center pb-2">
-                No active organizations yet
+                No active organizations during this period
               </p>
             </div>
           </div>

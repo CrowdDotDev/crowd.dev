@@ -31,6 +31,8 @@
         Active
       </app-dashboard-tab>
     </div>
+
+    <!-- recent members -->
     <section v-show="tab === 'new'">
       <div
         v-if="members.loadingRecent"
@@ -78,7 +80,7 @@
             </template>
             <div v-if="recentMembers.length === 0">
               <p class="text-xs leading-5 text-center pb-2">
-                No active members yet
+                No new members during this period
               </p>
             </div>
             <div class="pt-1 flex justify-center">
@@ -137,7 +139,7 @@
             />
             <div v-if="activeMembers.length === 0">
               <p class="text-xs leading-5 text-center pb-2">
-                No active members yet
+                No new members during this period
               </p>
             </div>
             <div class="pt-1 flex justify-center">

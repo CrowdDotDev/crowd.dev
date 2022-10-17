@@ -16,7 +16,7 @@
       />
       <div v-if="recentActivities.length === 0">
         <p class="text-xs leading-5 text-center pt-1">
-          No recent activities
+          No recent activities during this period
         </p>
       </div>
     </div>

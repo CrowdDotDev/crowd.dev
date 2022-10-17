@@ -16,7 +16,7 @@
       />
       <div v-if="trendingConversations.length === 0">
         <p class="text-xs leading-5 text-center pt-4">
-          No trending conversations
+          No trending conversations during this period
         </p>
       </div>
     </div>
