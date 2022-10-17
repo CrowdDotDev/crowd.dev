@@ -95,10 +95,7 @@ export default {
       )
     },
     compileData(resultSet) {
-      // For line & area charts
-      const seriesNames = resultSet.seriesNames()
-      const pivot = resultSet.chartPivot()
-      console.log(seriesNames, pivot)
+      console.log(resultSet)
     }
   }
 }

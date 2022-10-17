@@ -15,9 +15,14 @@
       <div v-else>
         <div class="flex items-center pb-6">
           <p class="text-sm font-medium mr-2">
-            4,600 activities
+            {{ activities.total }} activities
           </p>
-          <app-dashboard-badge>+2%</app-dashboard-badge>
+          <app-dashboard-badge
+            :type="computedBadgeType(resultSet)"
+            >{{
+              computedBageLabel(resultSet)
+            }}</app-dashboard-badge
+          >
         </div>
       </div>
     </template>
@@ -42,7 +47,11 @@ export default {
   },
   computed: {
     ...mapGetters('widget', ['cubejsToken', 'cubejsApi']),
-    ...mapGetters('dashboard', ['period', 'platform'])
+    ...mapGetters('dashboard', [
+      'period',
+      'platform',
+      'activities'
+    ])
   },
   async created() {
     if (this.cubejsApi === null) {
@@ -57,6 +66,45 @@ export default {
       return (
         !resultSet || resultSet.loadResponse === undefined
       )
+    },
+    computedScore(resultSet) {
+      const seriesNames = resultSet.seriesNames()
+      const pivot = resultSet.chartPivot()
+      let count = 0
+      seriesNames.forEach((e) => {
+        const data = pivot.map((p) => p[e.key])
+        count = data.reduce((a, b) => a + b, 0)
+      })
+      return count
+    },
+    computedBadgeType(resultSet) {
+      const score = this.computedScore(resultSet)
+      if (this.activities.total > 0) {
+        if (score > 0) {
+          return 'success'
+        }
+        if (score < 0) {
+          return 'danger'
+        }
+      }
+      return 'info'
+    },
+    computedBageLabel(resultSet) {
+      const score = this.computedScore(resultSet)
+      if (this.activities.total > 0) {
+        if (score > 0) {
+          return `+${Math.round(
+            (score / this.activities.total) * 100
+          )}%`
+        }
+        if (score < 0) {
+          return `${Math.round(
+            (score / this.activities.total) * 100
+          )}%`
+        }
+      }
+
+      return '='
     }
   }
 }

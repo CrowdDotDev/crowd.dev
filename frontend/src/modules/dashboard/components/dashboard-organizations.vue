@@ -48,6 +48,7 @@
               newOrganizationChart(period, platform)
                 .settings.query
             "
+            :total="organizations.total"
           />
           <!-- Chart -->
           <app-widget-cube-renderer
@@ -103,6 +104,7 @@
               activeOrganizationChart(period, platform)
                 .settings.query
             "
+            :total="organizations.total"
           />
           <!-- Chart -->
           <app-widget-cube-renderer

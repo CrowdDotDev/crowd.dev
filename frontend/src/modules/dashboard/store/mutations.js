@@ -5,26 +5,22 @@ export default {
     state.filters.platform =
       payload.platform || state.filters.platform || 'all'
   },
-  SET_TRENDING_CONVERSATIONS(state, { rows, count }) {
+  SET_TRENDING_CONVERSATIONS(state, { rows }) {
     state.conversations.trending = rows
-    state.conversations.total = count
   },
-  SET_RECENT_ACTIVITIES(state, { rows, count }) {
+  SET_RECENT_ACTIVITIES(state, { rows }) {
     state.activities.recent = rows
-    state.activities.total = count
   },
   SET_ACTIVE_MEMBERS(state, { rows }) {
     state.members.active = rows
   },
-  SET_RECENT_MEMBERS(state, { rows, count }) {
+  SET_RECENT_MEMBERS(state, { rows }) {
     state.members.recent = rows
-    state.members.total = count
   },
   SET_ACTIVE_ORGANIZATIONS(state, { rows }) {
     state.organizations.active = rows
   },
-  SET_RECENT_ORGANIZATIONS(state, { rows, count }) {
+  SET_RECENT_ORGANIZATIONS(state, { rows }) {
     state.organizations.recent = rows
-    state.organizations.total = count
   }
 }

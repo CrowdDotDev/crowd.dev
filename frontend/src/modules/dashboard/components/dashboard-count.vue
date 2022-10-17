@@ -12,9 +12,14 @@
       ></div>
       <div v-else>
         <div class="flex items-center pb-4">
-          <h6 class="text-base leading-5 mr-2">52</h6>
-          <app-dashboard-badge type="success"
-            >+12</app-dashboard-badge
+          <h6 class="text-base leading-5 mr-2">
+            {{ total }}
+          </h6>
+          <app-dashboard-badge
+            :type="computedBadgeType(resultSet)"
+            >{{
+              computedBageLabel(resultSet)
+            }}</app-dashboard-badge
           >
         </div>
       </div>
@@ -36,6 +41,10 @@ export default {
     query: {
       required: true,
       type: Object
+    },
+    total: {
+      required: true,
+      type: Number
     }
   },
   computed: {
@@ -55,6 +64,36 @@ export default {
       return (
         !resultSet || resultSet.loadResponse === undefined
       )
+    },
+    computedScore(resultSet) {
+      const seriesNames = resultSet.seriesNames()
+      const pivot = resultSet.chartPivot()
+      let count = 0
+      seriesNames.forEach((e) => {
+        const data = pivot.map((p) => p[e.key])
+        count = data.reduce((a, b) => a + b, 0)
+      })
+      return count
+    },
+    computedBadgeType(resultSet) {
+      const score = this.computedScore(resultSet)
+      if (score > 0) {
+        return 'success'
+      }
+      if (score < 0) {
+        return 'danger'
+      }
+      return 'info'
+    },
+    computedBageLabel(resultSet) {
+      const score = this.computedScore(resultSet)
+      if (score > 0) {
+        return `+${score}`
+      }
+      if (score < 0) {
+        return score
+      }
+      return '='
     }
   }
 }

@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 export const chartOptions = {
   legend: false,
   curve: false,
@@ -47,7 +49,6 @@ export function activitiesChart(period, platform) {
 }
 
 export function newMembersChart(period, platform) {
-  console.log(platform)
   return {
     title: 'New members',
     chartOnly: true,
@@ -62,14 +63,23 @@ export function newMembersChart(period, platform) {
             granularity: 'day',
             dateRange: `Last ${period} days`
           }
-        ]
+        ],
+        filters:
+          platform !== 'all'
+            ? [
+                {
+                  member: 'Activities.platform',
+                  operator: 'equals',
+                  values: [platform]
+                }
+              ]
+            : undefined
       }
     }
   }
 }
 
 export function activeMembersChart(period, platform) {
-  console.log(platform)
   return {
     title: 'Active members',
     chartOnly: true,
@@ -84,14 +94,23 @@ export function activeMembersChart(period, platform) {
             granularity: 'day',
             dateRange: `Last ${period} days`
           }
-        ]
+        ],
+        filters:
+          platform !== 'all'
+            ? [
+                {
+                  member: 'Activities.platform',
+                  operator: 'equals',
+                  values: [platform]
+                }
+              ]
+            : undefined
       }
     }
   }
 }
 
 export function newOrganizationChart(period, platform) {
-  console.log(platform)
   return {
     title: 'New Organizations',
     chartOnly: true,
@@ -106,7 +125,17 @@ export function newOrganizationChart(period, platform) {
             granularity: 'day',
             dateRange: `Last ${period} days`
           }
-        ]
+        ],
+        filters:
+          platform !== 'all'
+            ? [
+                {
+                  member: 'Activities.platform',
+                  operator: 'equals',
+                  values: [platform]
+                }
+              ]
+            : undefined
       }
     },
     unit: 'activities'
@@ -114,7 +143,6 @@ export function newOrganizationChart(period, platform) {
 }
 
 export function activeOrganizationChart(period, platform) {
-  console.log(platform)
   return {
     title: 'Active organizations',
     chartOnly: true,
@@ -129,7 +157,17 @@ export function activeOrganizationChart(period, platform) {
             granularity: 'day',
             dateRange: `Last ${period} days`
           }
-        ]
+        ],
+        filters:
+          platform !== 'all'
+            ? [
+                {
+                  member: 'Activities.platform',
+                  operator: 'equals',
+                  values: [platform]
+                }
+              ]
+            : undefined
       }
     },
     unit: 'activities'
@@ -137,15 +175,27 @@ export function activeOrganizationChart(period, platform) {
 }
 
 export function sentimentQuery(period, platform) {
-  console.log(platform)
   return {
     measures: ['Sentiment.averageSentiment'],
     timeDimensions: [
       {
         dimension: 'Sentiment.date',
-        dateRange: `Last ${period} days`
+        dateRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ]
       }
     ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Sentiment.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined,
     dimensions: ['Sentiment.mood']
   }
 }

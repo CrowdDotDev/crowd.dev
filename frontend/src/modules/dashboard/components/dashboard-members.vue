@@ -47,6 +47,7 @@
               newMembersChart(period, platform).settings
                 .query
             "
+            :total="members.total"
           ></app-dashboard-count>
 
           <!-- Chart -->
@@ -108,6 +109,7 @@
               activeMembersChart(period, platform).settings
                 .query
             "
+            :total="members.total"
           ></app-dashboard-count>
           <!-- Chart -->
           <app-widget-cube-renderer
