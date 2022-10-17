@@ -89,11 +89,11 @@
       >
       <a
         v-if="!short"
-        :href="activity.repo"
+        :href="activity.attributes.repo"
         target="_blank"
         class="ml-1 text-red"
       >
-        {{ getRepositoryName(activity.repo) }}
+        {{ getRepositoryName(activity.attributes.repo) }}
       </a>
     </div>
   </template>
@@ -140,6 +140,15 @@ export default {
     },
     computedArgs() {
       return computedArgs(this.activity)
+    }
+  },
+  methods: {
+    getRepositoryName(repositoryUrl) {
+      const splittedUrl = repositoryUrl.split('/')
+      if (splittedUrl.length > 0) {
+        return splittedUrl[splittedUrl.length - 1]
+      }
+      return ''
     }
   }
 }

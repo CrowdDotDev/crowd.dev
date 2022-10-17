@@ -27,15 +27,17 @@ export default {
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true
-    const platform = state.filters.platform
-    const period = state.filters.period
+    const { platform, period } = state.filters
     return ConversationService.list(
       {
-        createdAtRange: [
+        lastActiveRange: [
           moment().subtract(period, 'day').toISOString(),
           moment().toISOString()
         ],
-        platform: platform !== 'all' ? platform : undefined
+        platform: {
+          jsonContains:
+            platform !== 'all' ? platform : undefined
+        }
       },
       'activityCount_DESC',
       5,
@@ -69,8 +71,7 @@ export default {
   // Fetch recent activities
   async getRecentActivities({ commit, state }) {
     state.activities.loading = true
-    const platform = state.filters.platform
-    const period = state.filters.period
+    const { platform, period } = state.filters
     return ActivityService.list(
       {
         timestampRange: [
@@ -112,9 +113,17 @@ export default {
 
   // Fetch active members
   async getActiveMembers({ commit, state }) {
+    const { platform } = state.filters
     state.members.loadingActive = true
     return MemberService.list(
-      {},
+      {
+        platform:
+          platform !== 'all'
+            ? {
+                jsonContains: 'discord'
+              }
+            : undefined
+      },
       'activityCount_DESC',
       5,
       0,
@@ -132,7 +141,21 @@ export default {
   // Fetch recent members
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true
-    return MemberService.list(null, '', 20, 0, false)
+    const { platform } = state.filters
+    return MemberService.list(
+      {
+        platform:
+          platform !== 'all'
+            ? {
+                jsonContains: 'discord'
+              }
+            : undefined
+      },
+      '',
+      20,
+      0,
+      false
+    )
       .then((data) => {
         commit('SET_RECENT_MEMBERS', data)
         return Promise.resolve(data)
@@ -141,7 +164,7 @@ export default {
         state.members.loadingRecent = false
       })
   },
-  // Fetch recent members
+  // Fetch members count
   async getMembersCount({ state }) {
     return MemberService.list(null, '', 1, 0, false)
       .then(({ count }) => {
@@ -163,11 +186,15 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
+    const { platform } = state.filters
     return OrganizationService.list(
       {
-        activityCount: {
-          gt: 4
-        }
+        platform:
+          platform !== 'all'
+            ? {
+                jsonContains: 'discord'
+              }
+            : undefined
       },
       '',
       5,
@@ -186,7 +213,21 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    return OrganizationService.list(null, '', 20, 0, false)
+    const { platform } = state.filters
+    return OrganizationService.list(
+      {
+        platform:
+          platform !== 'all'
+            ? {
+                jsonContains: 'discord'
+              }
+            : undefined
+      },
+      '',
+      20,
+      0,
+      false
+    )
       .then((data) => {
         commit('SET_RECENT_ORGANIZATIONS', data)
         return Promise.resolve(data)

@@ -71,7 +71,7 @@
                 v-if="getTimeText(oi)"
                 class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
               >
-                {{ getTimeText(mi) }}
+                {{ getTimeText(oi) }}
               </p>
               <app-dashboard-organizations-item
                 class="mb-4"
@@ -183,11 +183,11 @@ export default {
   methods: {
     getTimeText: function (index) {
       const current = this.formatTime(
-        this.recentMembers[index].createdAt
+        this.recentOrganizations[index].createdAt
       )
       if (index > 0) {
         const before = this.formatTime(
-          this.recentMembers[index - 1].createdAt
+          this.recentOrganizations[index - 1].createdAt
         )
         if (before === current) {
           return null

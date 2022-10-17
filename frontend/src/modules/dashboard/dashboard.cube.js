@@ -1,5 +1,3 @@
-import moment from 'moment'
-
 export const chartOptions = {
   legend: false,
   curve: false,
@@ -176,26 +174,23 @@ export function activeOrganizationChart(period, platform) {
 
 export function sentimentQuery(period, platform) {
   return {
-    measures: ['Sentiment.averageSentiment'],
+    measures: ['Activities.count'],
+    dimensions: ['Activities.sentimentMood'],
     timeDimensions: [
       {
-        dimension: 'Sentiment.date',
-        dateRange: [
-          moment().subtract(period, 'day').toISOString(),
-          moment().toISOString()
-        ]
+        dimension: 'Activities.date',
+        dateRange: `Last ${period} days`
       }
     ],
     filters:
       platform !== 'all'
         ? [
             {
-              member: 'Sentiment.platform',
+              member: 'Activities.platform',
               operator: 'equals',
               values: [platform]
             }
           ]
-        : undefined,
-    dimensions: ['Sentiment.mood']
+        : undefined
   }
 }

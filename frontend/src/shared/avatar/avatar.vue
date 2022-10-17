@@ -110,6 +110,10 @@ export default {
 
   &--xxs {
     @apply h-5 w-5;
+
+    span {
+      @apply text-2xs;
+    }
   }
 }
 </style>

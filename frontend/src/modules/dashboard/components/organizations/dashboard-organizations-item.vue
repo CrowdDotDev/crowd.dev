@@ -1,13 +1,14 @@
 <template>
-  <article class="flex items-center">
+  <article class="flex">
     <app-avatar :entity="entity" size="xxs" />
     <div class="flex-grow pl-3">
       <h6 class="text-xs leading-5 font-medium">
         {{ organization.name }}
       </h6>
       <p class="text-2xs leading-4 !text-gray-500">
-        <!-- TODO: add activity and member count -->
-        320 activities・16 members
+        {{ organization.memberCount }} member{{
+          organization.memberCount > 1 ? 's' : ''
+        }}
       </p>
     </div>
   </article>
@@ -28,7 +29,7 @@ export default {
     entity() {
       return {
         avatar: this.organization.logo,
-        displayName: this.organization.name
+        displayName: this.organization.name.replace('@', '')
       }
     }
   }

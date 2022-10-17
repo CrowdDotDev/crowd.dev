@@ -10,45 +10,49 @@
         v-loading="loading(resultSet)"
         class="app-page-spinner h-16 !relative !min-h-5"
       ></div>
-      <div v-else>
-        <pre>{{ compileData(resultSet) }}</pre>
-        <div class="flex w-full pb-3">
+      <div v-else :set="compileData(resultSet)">
+        <div v-if="result.negative + result.positive > 0">
+          <div class="flex w-full pb-3">
+            <div
+              class="h-2 bg-green-500 border-l border-r rounded-sm transition"
+              :style="{ width: `${result.positive}%` }"
+              :class="hoverSentimentClass('positive')"
+              @mouseover="hoveredSentiment = 'positive'"
+              @mouseleave="hoveredSentiment = ''"
+            ></div>
+            <div
+              class="h-2 bg-red-500 border-l border-r rounded-sm transition"
+              :class="hoverSentimentClass('negative')"
+              :style="{ width: `${result.negative}%` }"
+              @mouseover="hoveredSentiment = 'negative'"
+              @mouseleave="hoveredSentiment = ''"
+            ></div>
+          </div>
           <div
-            class="h-2 bg-green-500 border-l border-r rounded-sm transition"
-            :style="{ width: `${60}%` }"
+            class="flex justify-between pb-2"
             :class="hoverSentimentClass('positive')"
             @mouseover="hoveredSentiment = 'positive'"
             @mouseleave="hoveredSentiment = ''"
-          ></div>
+          >
+            <p class="text-sm font-medium">Positive</p>
+            <p class="text-xs text-gray-600 text-right">
+              {{ Math.round(result.positive) }}%
+            </p>
+          </div>
           <div
-            class="h-2 bg-red-500 border-l border-r rounded-sm transition"
+            class="flex justify-between"
             :class="hoverSentimentClass('negative')"
-            :style="{ width: `${40}%` }"
             @mouseover="hoveredSentiment = 'negative'"
             @mouseleave="hoveredSentiment = ''"
-          ></div>
+          >
+            <p class="text-sm font-medium">Negative</p>
+            <p class="text-xs text-gray-600 text-right">
+              {{ Math.round(result.negative) }}%
+            </p>
+          </div>
         </div>
-        <div
-          class="flex justify-between pb-2"
-          :class="hoverSentimentClass('positive')"
-          @mouseover="hoveredSentiment = 'positive'"
-          @mouseleave="hoveredSentiment = ''"
-        >
-          <p class="text-sm font-medium">Positive</p>
-          <p class="text-xs text-gray-600 text-right">
-            600・60%
-          </p>
-        </div>
-        <div
-          class="flex justify-between"
-          :class="hoverSentimentClass('negative')"
-          @mouseover="hoveredSentiment = 'negative'"
-          @mouseleave="hoveredSentiment = ''"
-        >
-          <p class="text-sm font-medium">Negative</p>
-          <p class="text-xs text-gray-600 text-right">
-            400・40%
-          </p>
+        <div v-else class="text-xs text-gray-500">
+          No sentiment data for this period
         </div>
       </div>
     </template>
@@ -67,7 +71,11 @@ export default {
   data() {
     return {
       hoveredSentiment: '',
-      sentimentQuery
+      sentimentQuery,
+      result: {
+        positive: 0,
+        negative: 0
+      }
     }
   },
   computed: {
@@ -95,7 +103,23 @@ export default {
       )
     },
     compileData(resultSet) {
-      console.log(resultSet)
+      const seriesNames = resultSet.seriesNames()
+      const pivot = resultSet.chartPivot()
+      let series = []
+      seriesNames.forEach((e) => {
+        const data = pivot.map((p) => [p['x'], p[e.key]])
+        console.log(data);
+        series = [...series, ...data]
+      })
+      const seriesObject = series.reduce(
+        (a, [key, value]) => ({
+          ...a,
+          [key]: value
+        }),
+        {}
+      )
+      this.result.positive = seriesObject['positive'] || 0
+      this.result.negative = seriesObject['negative'] || 0
     }
   }
 }

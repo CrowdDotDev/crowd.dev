@@ -112,7 +112,7 @@ export default {
   emits: ['duplicate', 'edit', 'delete'],
   data() {
     return {
-      dataset: {}
+      dataset: null
     }
   },
   computed: {
@@ -219,7 +219,6 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
-      console.log('done')
       this.paintDataSet()
     })
   },
@@ -228,12 +227,22 @@ export default {
   },
   methods: {
     paintDataSet() {
-      const canvas = this.$refs.widget.querySelector(
-        '.cube-widget-chart canvas'
-      )
-      if (canvas && this.chartOptions.computeDataset) {
-        this.dataset =
-          this.chartOptions.computeDataset(canvas)
+      if (
+        !this.dataset &&
+        this.$refs &&
+        this.$refs.widget
+      ) {
+        const canvas = this.$refs.widget.querySelector(
+          '.cube-widget-chart canvas'
+        )
+        if (
+          canvas &&
+          this.chartOptions &&
+          this.chartOptions.computeDataset
+        ) {
+          this.dataset =
+            this.chartOptions.computeDataset(canvas)
+        }
       }
     },
     series(resultSet) {
