@@ -58,27 +58,22 @@
           width="220"
         >
           <template #default="scope">
-            <div class="flex items-start">
-              <div
-                v-if="scope.row.organizations.length > 0"
-                class="w-5 h-5"
-              >
-                <img
-                  v-if="organization[0].logo"
-                  :src="organization[0].logo"
-                  alt=""
-                />
-              </div>
-              <div>
-                <span
-                  v-if="scope.row.organizations.length > 0"
-                  >{{ organization[0].name }}</span
-                >
-                <span class="text-gray-500 text-2xs">{{
-                  scope.row.attributes.jobTitle
-                }}</span>
-              </div>
+            <div
+              v-if="
+                scope.row.organizations.length > 0 ||
+                scope.row.attributes.jobTitle?.default
+              "
+              class="flex flex-col gap-0.5"
+            >
+              <span class="text-sm text-gray-900">{{
+                scope.row.organizations[0]?.name ?? '-'
+              }}</span>
+              <span class="text-gray-500 text-2xs">{{
+                scope.row.attributes.jobTitle?.default ??
+                '-'
+              }}</span>
             </div>
+            <div v-else class="text-gray-900">-</div>
           </template>
         </el-table-column>
         <el-table-column
