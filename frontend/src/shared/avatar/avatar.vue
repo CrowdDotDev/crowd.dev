@@ -6,7 +6,7 @@
   >
     <span
       v-if="!entity.avatar"
-      class="font-semibold text-lg uppercase"
+      class="font-semibold uppercase"
       >{{ computedInitials }}</span
     >
   </div>
@@ -95,11 +95,11 @@ export default {
   border: 1px solid #dedede;
 
   &--xl {
-    @apply h-18 w-18;
+    @apply h-18 w-18 text-xl;
   }
 
   &--lg {
-    @apply h-16 w-16;
+    @apply h-16 w-16 text-lg;
   }
 
   &--md {

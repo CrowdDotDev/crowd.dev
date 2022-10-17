@@ -397,8 +397,8 @@ export default {
   async doCreate({ commit }, values) {
     try {
       commit('CREATE_STARTED')
-      await MemberService.create(values)
-      commit('CREATE_SUCCESS')
+      const response = await MemberService.create(values)
+      commit('CREATE_SUCCESS', response)
 
       Message.success(
         i18n('entities.member.create.success')
@@ -413,9 +413,12 @@ export default {
     try {
       commit('UPDATE_STARTED')
 
-      await MemberService.update(id, values)
+      const response = await MemberService.update(
+        id,
+        values
+      )
 
-      commit('UPDATE_SUCCESS')
+      commit('UPDATE_SUCCESS', response)
       Message.success(
         i18n('entities.member.update.success')
       )
@@ -463,6 +466,13 @@ export default {
         keepPagination: false
       })
     }
+  },
+
+  resetFilterAttribute({ commit, dispatch }, filter) {
+    commit('FILTER_ATTRIBUTE_RESETED', filter)
+    dispatch('doFetch', {
+      keepPagination: false
+    })
   },
 
   updateFilterOperator({ commit, dispatch }, operator) {

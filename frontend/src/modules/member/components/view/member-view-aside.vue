@@ -72,7 +72,11 @@
           {{ attribute.label }}
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{ member.attributes[attribute.name].default }}
+          {{
+            formattedComputedAttributeValue(
+              member.attributes[attribute.name].default
+            )
+          }}
         </p>
       </div>
     </div>
@@ -94,10 +98,11 @@ import { useStore } from 'vuex'
 import { computed, defineProps, ref } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import AppMemberManageIdentitiesDrawer from '../member-manage-identities-drawer'
+import moment from 'moment'
 
 const store = useStore()
 
-defineProps({
+const props = defineProps({
   member: {
     type: Object,
     default: () => {}
@@ -110,7 +115,11 @@ const computedCustomAttributes = computed(() => {
   return Object.values(
     store.state.member.customAttributes
   ).filter((attribute) => {
-    return attribute.show && attribute.canDelete
+    return (
+      attribute.show &&
+      attribute.canDelete &&
+      props.member.attributes[attribute.name]
+    )
   })
 })
 
@@ -118,5 +127,12 @@ const findIcon = (platform) => {
   return integrationsJsonArray.find(
     (p) => p.platform === platform
   ).image
+}
+
+const formattedComputedAttributeValue = (value) => {
+  const dateFormat = 'YYYY-MM-DD'
+  return moment(value, dateFormat, true).isValid()
+    ? moment(value).format('YYYY-MM-DD')
+    : value
 }
 </script>
