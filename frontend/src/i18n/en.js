@@ -143,10 +143,12 @@ const en = {
         title: 'Members'
       },
       create: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error creating the member'
       },
       update: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error updating the member'
       },
       destroy: {
         success: 'Member successfully deleted'

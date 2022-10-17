@@ -411,9 +411,15 @@ export default {
       Message.success(
         i18n('entities.member.create.success')
       )
+
+      return true
     } catch (error) {
+      Message.error(i18n('entities.member.create.error'))
+
       Errors.handle(error)
       commit('CREATE_ERROR')
+
+      return false
     }
   },
 
@@ -430,9 +436,15 @@ export default {
       Message.success(
         i18n('entities.member.update.success')
       )
+
+      return true
     } catch (error) {
+      Message.error(i18n('entities.member.update.error'))
+
       Errors.handle(error)
       commit('UPDATE_ERROR')
+
+      return false
     }
   },
 

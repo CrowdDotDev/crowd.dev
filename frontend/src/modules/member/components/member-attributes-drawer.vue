@@ -6,7 +6,7 @@
     size="35%"
     @closed="() => (isDrawerOpen = false)"
   >
-    <template #title>
+    <template #header>
       <h5 class="text-black">Manage custom attributes</h5>
     </template>
     <template #default>
@@ -101,7 +101,7 @@
             >Cancel</el-button
           >
           <el-button
-            :disabled="!hasFormChanged"
+            :disabled="!hasFormChanged || isFormInvalid"
             class="btn btn--md btn--primary"
             @click="onSubmit"
             >Update</el-button
@@ -118,13 +118,17 @@ import {
   defineProps,
   defineEmits,
   computed,
-  reactive
+  reactive,
+  ref,
+  watch
 } from 'vue'
 import { useStore } from 'vuex'
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
+import parseCustomAttributes from '@/shared/fields/parse-custom-attributes.js'
+import cloneDeep from 'lodash/cloneDeep'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -142,30 +146,35 @@ const addedFields = reactive([])
 const deletedFields = reactive([])
 
 // Form models
-const initialModel = reactive(
-  JSON.parse(
-    JSON.stringify(
-      Object.values(store.state.member.customAttributes)
-        .filter(
-          (attribute) =>
-            attribute.canDelete && attribute.show
-        )
-        .reduce(
-          (obj, attribute) => ({
-            ...obj,
-            [attribute.name]: attribute
-          }),
-          {}
-        )
+const initialModel = ref(
+  cloneDeep(
+    parseCustomAttributes(
+      store.state.member.customAttributes
     )
   )
 )
-const model = reactive(
-  JSON.parse(JSON.stringify(initialModel))
+const model = ref(cloneDeep(initialModel.value))
+watch(
+  () => store.state.member.customAttributes,
+  (updatedStore) => {
+    onReset()
+    initialModel.value = cloneDeep(
+      parseCustomAttributes(updatedStore)
+    )
+
+    model.value = cloneDeep(
+      parseCustomAttributes(updatedStore)
+    )
+  }
 )
 
+const isFormInvalid = computed(() => {
+  return Object.entries(model.value).some(
+    ([, value]) => !value.label
+  )
+})
 const hasFormChanged = computed(() => {
-  return !isEqual(initialModel, model)
+  return !isEqual(initialModel.value, model.value)
 })
 const isDrawerOpen = computed({
   get() {
@@ -253,16 +262,17 @@ async function onSubmit() {
 function onInputChange(newValue, attribute) {
   // Logic for edited attributes
   if (
-    model[attribute.name].canDelete &&
-    newValue !== initialModel[attribute.name]?.label &&
+    model.value[attribute.name].canDelete &&
+    newValue !==
+      initialModel.value[attribute.name]?.label &&
     !editedFields.some(
       (field) => field.name === attribute.name
     )
   ) {
-    editedFields.push(model[attribute.name])
+    editedFields.push(model.value[attribute.name])
   } else if (
-    model[attribute.name].canDelete &&
-    newValue === initialModel[attribute.name]?.label
+    model.value[attribute.name].canDelete &&
+    newValue === initialModel.value[attribute.name]?.label
   ) {
     const id = editedFields.findIndex(
       (field) => field.name === attribute.name
@@ -276,10 +286,7 @@ function onReset() {
   editedFields.splice(0)
   deletedFields.splice(0)
 
-  Object.assign(
-    model,
-    JSON.parse(JSON.stringify(initialModel))
-  )
+  model.value = cloneDeep(initialModel.value)
 }
 
 function addAttribute() {
@@ -290,15 +297,15 @@ function addAttribute() {
   }
 
   addedFields.push(newAttribute)
-  model[newAttribute.name] = newAttribute
+  model.value[newAttribute.name] = newAttribute
 }
 
 function deleteAttribute(key) {
   if (
-    model[key].canDelete &&
+    model.value[key].canDelete &&
     !deletedFields.some((field) => field.name === key)
   ) {
-    deletedFields.push(model[key])
+    deletedFields.push(model.value[key])
   } else {
     const id = addedFields.findIndex((a) => a.name === key)
 
@@ -307,14 +314,14 @@ function deleteAttribute(key) {
     }
   }
 
-  delete model[key]
+  delete model.value[key]
 }
 </script>
 
 <style lang="scss">
 .member-attributes-drawer {
   & .el-drawer__header {
-    @apply p-6 m-2;
+    @apply p-6;
   }
 
   & .el-drawer__body {

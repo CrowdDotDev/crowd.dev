@@ -73,7 +73,12 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps, computed } from 'vue'
+import {
+  defineEmits,
+  defineProps,
+  computed,
+  watch
+} from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const emit = defineEmits(['update:modelValue'])
@@ -94,6 +99,17 @@ const model = computed({
   },
   set(newModel) {
     emit('update:modelValue', newModel)
+  }
+})
+
+watch(model.value.username, (username) => {
+  // Handle platform value each time username object is updated
+  const platforms = Object.keys(username || {})
+
+  if (platforms.length) {
+    model.value.platform = platforms[0]
+  } else {
+    model.value.platform = null
   }
 })
 
@@ -147,10 +163,6 @@ function findPlatform(platform) {
 }
 
 function onSwitchChange(value, key) {
-  if (value) {
-    model.value.platform = key
-  }
-
   // Add platform to username object
   if (
     (model.value.username?.[key] === null ||
