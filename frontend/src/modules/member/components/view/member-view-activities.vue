@@ -61,13 +61,10 @@
         v-loading="loading"
         class="app-page-spinner"
       ></div>
-      <div
-        v-if="!loading && activities.length <= limit"
-        class="flex justify-center"
-      >
+      <div v-if="!noMore" class="flex justify-center">
         <el-button
           class="btn btn-brand btn-brand--transparent"
-          :disabled="loading || noMore"
+          :disabled="loading"
           @click="fetchActivities"
           ><i class="ri-arrow-down-line mr-2"></i>Load
           more</el-button
@@ -142,13 +139,42 @@ let filter = {}
 const fetchActivities = async () => {
   const filterToApply = {
     memberId: props.memberId,
-    platform: platform.value ?? undefined,
-    body:
-      query.value && query.value !== ''
-        ? {
-            textContains: query.value
-          }
-        : undefined
+    platform: platform.value ?? undefined
+  }
+
+  if (query.value && query.value !== '') {
+    filterToApply.or = [
+      {
+        body: {
+          textContains: query.value
+        }
+      },
+      {
+        channel: {
+          textContains: query.value
+        }
+      },
+      {
+        url: {
+          textContains: query.value
+        }
+      },
+      {
+        body: {
+          textContains: query.value
+        }
+      },
+      {
+        title: {
+          textContains: query.value
+        }
+      },
+      {
+        type: {
+          textContains: query.value
+        }
+      }
+    ]
   }
 
   if (!_.isEqual(filter, filterToApply)) {
@@ -165,7 +191,7 @@ const fetchActivities = async () => {
   const { data } = await authAxios.post(
     `/tenant/${store.getters['auth/currentTenant'].id}/activity/query`,
     {
-      filterToApply,
+      filter: filterToApply,
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value
@@ -196,6 +222,12 @@ const debouncedQueryChange = debounce(async () => {
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
     debouncedQueryChange()
+  }
+})
+
+watch(platform, async (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    await fetchActivities()
   }
 })
 

@@ -79,6 +79,9 @@ export default {
     if (state.table) {
       state.list.table.clearSelection()
     }
+
+    state.list.ids.length = 0
+
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
