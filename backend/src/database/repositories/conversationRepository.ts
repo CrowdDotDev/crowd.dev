@@ -418,6 +418,26 @@ class ConversationRepository {
     )
   }
 
+  /**
+   * Counts distinct members in a conversation
+   * @param activities Activity list in a conversation
+   */
+  static getTotalMemberCount(activities){
+    return activities.reduce((acc, i) => {
+      if (!acc.ids) {
+        acc.ids = []
+        acc.count = 0
+      }
+
+      if (!acc.ids[i.memberId]) {
+        acc.ids[i.memberId] = true
+        acc.count += 1
+      }
+      return acc
+    }, {}).count
+
+  }
+
   static async _populateRelationsForRows(rows, lazyLoad = []) {
     if (!rows) {
       return rows
@@ -429,15 +449,30 @@ class ConversationRepository {
         for (const relationship of lazyLoad) {
           if (relationship === 'activities') {
             const allActivities = await record.getActivities({ order: [['timestamp', 'ASC']] })
-            const promises = [allActivities[0], allActivities[allActivities.length - 1]].map(
-              async (act) => {
-                const member = (await act.getMember()).get({ plain: true })
-                act = act.get({ plain: true })
-                act.member = member
-                return act
-              },
-            )
-            rec.activities = await Promise.all(promises)
+
+            rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
+
+            let neededActivities = []
+
+            if (allActivities.count > 2) {
+              neededActivities = [
+                allActivities[0],
+                allActivities[allActivities.length - 2],
+                allActivities[allActivities.length - 1],
+              ]
+            } else {
+              neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+            }
+
+            const promises = neededActivities.map(async (act) => {
+              const member = (await act.getMember()).get({ plain: true })
+              act = act.get({ plain: true })
+              act.member = member
+              return act
+            })
+            const returnedNeededActivities = await Promise.all(promises)
+            rec.conversationStarter = returnedNeededActivities[0]
+            rec.lastReplies = returnedNeededActivities.slice(1)
           } else {
             rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
               a.get({ plain: true }),
@@ -477,6 +512,7 @@ class ConversationRepository {
       transaction,
     })
 
+
     let memberPromises = output.activities.map(async (act) => {
       const member = (await act.getMember()).get({ plain: true })
       act = act.get({ plain: true })
@@ -488,27 +524,27 @@ class ConversationRepository {
 
     const CHUNK_PROMISE_SIZE = 50
 
-    if (memberPromises.length > CHUNK_PROMISE_SIZE){
-      while( memberPromises.length > CHUNK_PROMISE_SIZE){
+    if (memberPromises.length > CHUNK_PROMISE_SIZE) {
+      while (memberPromises.length > CHUNK_PROMISE_SIZE) {
         chunkedPromises.push(memberPromises.slice(0, CHUNK_PROMISE_SIZE))
         memberPromises = memberPromises.slice(CHUNK_PROMISE_SIZE)
       }
-      if (memberPromises.length > 0){
+      if (memberPromises.length > 0) {
         chunkedPromises.push(memberPromises)
       }
-    }
-    else{
+    } else {
       chunkedPromises.push(memberPromises)
     }
 
     // output.activities = await Promise.all(memberPromises)
 
-     output.activities = []
-     for (const memberPromiseChunk of chunkedPromises){
-      output.activities.push(await Promise.all(memberPromiseChunk))
-     }
- 
+    output.activities = []
+    for (const memberPromiseChunk of chunkedPromises) {
+      output.activities.push(...await Promise.all(memberPromiseChunk))
+    }
 
+    output.memberCount = ConversationRepository.getTotalMemberCount(output.activities)
+    output.conversationStarter = output.activities[0]
     output.activityCount = output.activities.length
     output.platform = null
     output.channel = null
