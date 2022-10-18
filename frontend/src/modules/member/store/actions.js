@@ -7,6 +7,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
+import { attributeIsDifferent } from '@/shared/filter/is-different'
 
 export default {
   doUnselectAll({ commit }) {
@@ -435,13 +436,17 @@ export default {
     }
   },
 
-  addFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_ADDED', filter)
+  addFilterAttribute(
+    { commit, dispatch, state },
+    attribute
+  ) {
+    commit('FILTER_ATTRIBUTE_ADDED', attribute)
 
     if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
+      attributeIsDifferent(
+        attribute,
+        state.filter.attributes[attribute.name]
+      )
     ) {
       dispatch('doFetch', {
         keepPagination: false
@@ -449,12 +454,16 @@ export default {
     }
   },
 
-  updateFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_CHANGED', filter)
+  updateFilterAttribute(
+    { commit, dispatch, state },
+    attribute
+  ) {
+    commit('FILTER_ATTRIBUTE_CHANGED', attribute)
     if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
+      attributeIsDifferent(
+        attribute,
+        state.filter.attributes[attribute.name]
+      )
     ) {
       dispatch('doFetch', {
         keepPagination: false
@@ -462,12 +471,16 @@ export default {
     }
   },
 
-  destroyFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_DESTROYED', filter)
+  destroyFilterAttribute(
+    { commit, dispatch, state },
+    attribute
+  ) {
+    commit('FILTER_ATTRIBUTE_DESTROYED', attribute)
     if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
+      attributeIsDifferent(
+        attribute,
+        state.filter.attributes[attribute.name]
+      )
     ) {
       dispatch('doFetch', {
         keepPagination: false
@@ -475,8 +488,8 @@ export default {
     }
   },
 
-  resetFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_RESETED', filter)
+  resetFilterAttribute({ commit, dispatch }, attribute) {
+    commit('FILTER_ATTRIBUTE_RESETED', attribute)
     dispatch('doFetch', {
       keepPagination: false
     })
