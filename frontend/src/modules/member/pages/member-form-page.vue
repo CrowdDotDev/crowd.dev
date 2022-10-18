@@ -345,11 +345,15 @@ async function onSubmit() {
     formModel.value.tags.length && {
       tags: formModel.value.tags.map((t) => t.id)
     },
-    formModel.value.attributes.url && {
-      url: formModel.value.attributes.url
-    },
-    Object.keys(formattedAttributes).length && {
-      attributes: formattedAttributes
+    (Object.keys(formattedAttributes).length ||
+      formModel.value.attributes) && {
+      attributes: {
+        ...(Object.keys(formattedAttributes).length &&
+          formattedAttributes),
+        ...(formModel.value.attributes.url && {
+          url: formModel.value.attributes.url
+        })
+      }
     },
     Object.keys(formModel.value.username).length && {
       username: formModel.value.username
