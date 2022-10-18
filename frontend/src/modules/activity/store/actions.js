@@ -106,8 +106,8 @@ export default {
       let response
 
       if (getters.activeView.type === 'conversations') {
-        response = await ConversationService.list(
-          state.filter,
+        response = await ConversationService.query(
+          {},
           getters.orderBy,
           getters.limit,
           getters.offset
