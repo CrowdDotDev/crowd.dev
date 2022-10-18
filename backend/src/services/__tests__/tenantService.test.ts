@@ -176,9 +176,9 @@ describe('TenantService tests', () => {
 
       expect(defaultAttributes.rows.map((i) => i.name).sort()).toEqual([
         MemberAttributeName.BIO,
+        MemberAttributeName.IS_TEAM_MEMBER,
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
-        MemberAttributeName.IS_TEAM_MEMBER,
         MemberAttributeName.URL,
       ])
     })

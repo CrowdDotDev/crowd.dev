@@ -267,7 +267,7 @@ export default class ConversationService {
         filter: {
           published: false,
         },
-        eagerLoad: ['activities'],
+        lazyLoad: ['activities'],
       },
       this.options,
     )
@@ -487,8 +487,9 @@ export default class ConversationService {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
+    const lazyLoad = ['activities']
     return ConversationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+      { advancedFilter, orderBy, limit, offset, lazyLoad },
       this.options,
     )
   }
