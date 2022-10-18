@@ -1,16 +1,22 @@
 <template>
-  <query-renderer
-    v-if="cubejsApi"
-    :cubejs-api="cubejsApi"
+  <app-cube-render
     :query="sentimentQuery(period, platform)"
   >
+    <template #loading>
+      <div class="pb-3">
+        <app-loading height="8px"></app-loading>
+      </div>
+      <div class="flex justify-between pb-2">
+        <app-loading class="py-1" height="13px" width="60px"></app-loading>
+        <app-loading class="py-1" height="13px" width="45px"></app-loading>
+      </div>
+      <div class="flex justify-between pb-2">
+        <app-loading class="py-1" height="13px" width="60px"></app-loading>
+        <app-loading class="py-1" height="13px" width="45px"></app-loading>
+      </div>
+    </template>
     <template #default="{ resultSet }">
-      <div
-        v-if="loading(resultSet)"
-        v-loading="loading(resultSet)"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      ></div>
-      <div v-else :set="compileData(resultSet)">
+      <div :set="compileData(resultSet)">
         <div v-if="result.negative + result.positive > 0">
           <div class="flex w-full pb-3">
             <div
@@ -63,22 +69,24 @@
             </p>
           </div>
         </div>
-        <div v-else class="text-xs text-gray-500">
-          No sentiment data for this period
+        <div v-else class="text-xs text-gray-500 italic text-gray-400">
+          No data
         </div>
       </div>
     </template>
-  </query-renderer>
+  </app-cube-render>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
-import { QueryRenderer } from '@cubejs-client/vue3'
+import AppCubeRender from '@/shared/cube/cube-render'
+import AppLoading from "@/shared/loading/loading-placeholder";
 export default {
   name: 'AppDashboardActivitiesSentiment',
   components: {
-    QueryRenderer
+    AppLoading,
+    AppCubeRender
   },
   data() {
     return {
@@ -91,18 +99,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('widget', ['cubejsToken', 'cubejsApi']),
     ...mapGetters('dashboard', ['period', 'platform'])
   },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
-    }
-  },
   methods: {
-    ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
-    }),
     calculatePercentage(number) {
       return Math.round(
         (number /
@@ -115,11 +114,6 @@ export default {
         this.hoveredSentiment !== ''
         ? 'opacity-50'
         : ''
-    },
-    loading(resultSet) {
-      return (
-        !resultSet || resultSet.loadResponse === undefined
-      )
     },
     compileData(resultSet) {
       const seriesNames = resultSet.seriesNames()

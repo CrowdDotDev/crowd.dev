@@ -40,10 +40,9 @@
         <app-dashboard-count
           :loading="organizations.loadingRecent"
           :query="
-            newOrganizationChart(period, platform).settings
-              .query
+            newOrganizationChart(period * 2, platform)
+              .settings.query
           "
-          :total="organizations.total"
         />
         <!-- Chart -->
         <div
@@ -109,10 +108,9 @@
         <app-dashboard-count
           :loading="organizations.loadingActive"
           :query="
-            activeOrganizationChart(period, platform)
+            activeOrganizationChart(period * 2, platform)
               .settings.query
           "
-          :total="organizations.total"
         />
         <!-- Chart -->
         <div

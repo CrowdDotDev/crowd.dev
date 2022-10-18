@@ -19,7 +19,7 @@
         <div
           v-if="activities.loading"
           v-loading="activities.loading"
-          class="app-page-spinner h-16 !relative !min-h-5"
+          class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
         ></div>
         <app-widget-cube-renderer
           v-else
@@ -111,8 +111,13 @@ export default {
 }
 .chart::v-deep {
   div {
-    line-height: inherit !important;
+    line-height: 150px !important;
     height: auto !important;
   }
+}
+
+.chart-loading {
+  @apply flex items-center justify-center;
+  height: 150px;
 }
 </style>

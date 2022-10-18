@@ -1,44 +1,48 @@
 <template>
-  <query-renderer
-    v-if="cubejsApi"
-    :cubejs-api="cubejsApi"
+  <app-cube-render
     :query="
       activitiesChart(period, platform).settings.query
     "
   >
-    <template #default="{ resultSet }">
-      <div
-        v-if="loading(resultSet)"
-        v-loading="loading(resultSet)"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      ></div>
-      <div v-else>
-        <div class="flex items-center pb-6">
-          <p class="text-sm font-medium mr-2">
-            {{ activities.total }} activities
-          </p>
-          <app-dashboard-badge
-            :type="computedBadgeType(resultSet)"
-            >{{
-              computedBageLabel(resultSet)
-            }}</app-dashboard-badge
-          >
-        </div>
+    <template #loading>
+      <div class="flex items-center pb-6">
+        <app-loading height="14px" width="80px" class="mr-2"></app-loading>
+        <app-loading
+          class="py-0.5"
+          width="22px"
+          height="16px"
+          radius="4px"
+        ></app-loading>
       </div>
     </template>
-  </query-renderer>
+    <template #default="{ resultSet }">
+      <div class="flex items-center pb-6">
+        <p class="text-sm font-medium mr-2">
+          {{ activities.total }} activities
+        </p>
+        <app-dashboard-badge
+          :type="computedBadgeType(resultSet)"
+          >{{
+            computedBageLabel(resultSet)
+          }}</app-dashboard-badge
+        >
+      </div>
+    </template>
+  </app-cube-render>
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 import { activitiesChart } from '@/modules/dashboard/dashboard.cube'
-import { QueryRenderer } from '@cubejs-client/vue3'
 import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
+import AppCubeRender from '@/shared/cube/cube-render'
+import AppLoading from "@/shared/loading/loading-placeholder";
 export default {
   name: 'AppDashboardActivitiesCount',
   components: {
+    AppLoading,
+    AppCubeRender,
     AppDashboardBadge,
-    QueryRenderer
   },
   data() {
     return {
@@ -46,27 +50,13 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('widget', ['cubejsToken', 'cubejsApi']),
     ...mapGetters('dashboard', [
       'period',
       'platform',
       'activities'
     ])
   },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
-    }
-  },
   methods: {
-    ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
-    }),
-    loading(resultSet) {
-      return (
-        !resultSet || resultSet.loadResponse === undefined
-      )
-    },
     computedScore(resultSet) {
       const seriesNames = resultSet.seriesNames()
       const pivot = resultSet.chartPivot()

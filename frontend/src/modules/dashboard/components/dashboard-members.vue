@@ -41,9 +41,9 @@
         <app-dashboard-count
           :loading="members.loadingRecent"
           :query="
-            newMembersChart(period, platform).settings.query
+            newMembersChart(period * 2, platform).settings
+              .query
           "
-          :total="members.total"
         ></app-dashboard-count>
 
         <!-- Chart -->
@@ -98,7 +98,10 @@
           </div>
           <div class="pt-1 flex justify-center">
             <router-link
-              :to="{ name: 'member' }"
+              :to="{
+                name: 'member',
+                query: { activeTab: 'active' }
+              }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
             >
@@ -115,10 +118,9 @@
         <app-dashboard-count
           :loading="members.loadingActive"
           :query="
-            activeMembersChart(period, platform).settings
-              .query
+            activeMembersChart(period * 2, platform)
+              .settings.query
           "
-          :total="members.total"
         ></app-dashboard-count>
         <!-- Chart -->
         <div
