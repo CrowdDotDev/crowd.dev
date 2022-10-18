@@ -127,6 +127,7 @@ import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
+import { OrganizationService } from '@/modules/organization/organization-service'
 
 const LoaderIcon = h(
   'i',
@@ -344,11 +345,6 @@ async function onSubmit() {
     formModel.value.tags.length && {
       tags: formModel.value.tags.map((t) => t.id)
     },
-    formModel.value.organizations && {
-      organizations: [
-        { name: formModel.value.organizations }
-      ]
-    },
     formModel.value.attributes.url && {
       url: formModel.value.attributes.url
     },
@@ -361,10 +357,31 @@ async function onSubmit() {
   )
 
   let isRequestSuccessful = false
+  let organizations = [
+    { name: formModel.value.organizations }
+  ]
 
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true
+
+    // Create organization if it doesn't exist, before updating it on member
+    if (formModel.value.organizations) {
+      const response = await OrganizationService.create({
+        name: formModel.value.organizations
+      })
+
+      if (response) {
+        organizations = [response.id]
+        Object.assign(
+          data,
+          formModel.value.organizations && {
+            organizations
+          }
+        )
+      }
+    }
+
     isRequestSuccessful = await store.dispatch(
       'member/doUpdate',
       {
@@ -373,6 +390,13 @@ async function onSubmit() {
       }
     )
   } else {
+    // Assign organizations to payload
+    Object.assign(
+      data,
+      formModel.value.organizations && {
+        organizations
+      }
+    )
     // Create new member
     isFormSubmitting.value = true
     isRequestSuccessful = await store.dispatch(
