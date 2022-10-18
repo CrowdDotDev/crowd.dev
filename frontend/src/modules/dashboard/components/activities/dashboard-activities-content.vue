@@ -10,40 +10,21 @@
       class="mt-3"
     ></div>
     <div class="content">
-      <div
+      <app-activities-discord-content
         v-if="
           activity.body && activity.platform === 'discord'
         "
-      >
-        <blockquote
-          v-if="activity.parent"
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-          v-html="activity.parent.body"
-        />
-        <span
-          class="block whitespace-pre-wrap custom-break-all"
-          v-html="activityBody"
-        />
-      </div>
-      <div
+        :activity="activity"
+        :body="activityBody"
+      />
+      <app-activities-devto-content
         v-else-if="
           activity.body && activity.platform === 'devto'
         "
-      >
-        <div v-if="activity.parent">
-          <blockquote
-            class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
-            v-html="activity.parent.body"
-          />
-        </div>
-
-        <span v-html="activityBody" />
-      </div>
-      <div
-        v-else-if="
-          activity.body && activity.platform !== 'discord'
-        "
-      >
+        :activity="activity"
+        :body="activityBody"
+      />
+      <div v-else-if="activity.body">
         <blockquote
           v-if="activity.thread"
           class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
@@ -80,9 +61,15 @@
 <script>
 import joypixels from 'emoji-toolkit'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import AppActivitiesDiscordContent from '@/modules/dashboard/components/activities/integrations/discord/activities-discord-content'
+import AppActivitiesDevtoContent from '@/modules/dashboard/components/activities/integrations/devto/activities-devto-content'
 
 export default {
   name: 'AppDashboardActivitiesContent',
+  components: {
+    AppActivitiesDevtoContent,
+    AppActivitiesDiscordContent
+  },
   props: {
     activity: {
       type: Object,

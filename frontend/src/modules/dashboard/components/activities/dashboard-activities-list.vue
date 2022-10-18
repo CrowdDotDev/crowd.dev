@@ -16,9 +16,19 @@
         }"
         :activity="activity"
       />
-      <div v-if="recentActivities.length === 0">
-        <p class="text-xs leading-5 text-center pt-1">
-          No recent activities during this period
+      <div
+        v-if="recentActivities.length === 0"
+        class="pt-1"
+      >
+        <div class="flex justify-center pt-12">
+          <i
+            class="ri-list-check-2 text-4xl h-12 text-gray-300"
+          ></i>
+        </div>
+        <p
+          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+        >
+          No activities during this period
         </p>
       </div>
     </div>

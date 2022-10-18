@@ -81,7 +81,7 @@
                     class="text-red text-xs leading-4"
                     @click.stop
                   >
-                    <app-dashboard-activity-channel
+                    <app-dashboard-activities-channel
                       :activity="
                         conversation.conversationStarter
                       "
@@ -207,18 +207,18 @@ import AppAvatar from '@/shared/avatar/avatar'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
-import AppDashboardActivityChannel from '@/modules/dashboard/components/activities/dashboard-activity-channel'
 import AppDashboardActivitiesContent from '@/modules/dashboard/components/activities/dashboard-activities-content'
 import AppDashboardConversationReply from '@/modules/dashboard/components/conversations/dashboard-conversations-reply'
 import AppLoading from '@/shared/loading/loading-placeholder'
+import AppDashboardActivitiesChannel from '@/modules/dashboard/components/activities/dashboard-activities-channel'
 
 export default {
   name: 'AppDashboardConversationsItem',
   components: {
+    AppDashboardActivitiesChannel,
     AppLoading,
     AppDashboardConversationReply,
     AppDashboardActivitiesContent,
-    AppDashboardActivityChannel,
     AppConversationDropdown,
     AppAvatar
   },

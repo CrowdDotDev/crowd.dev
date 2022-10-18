@@ -20,8 +20,15 @@
         :conversation="conversation"
       />
       <div v-if="trendingConversations.length === 0">
-        <p class="text-xs leading-5 text-center pt-4">
-          No trending conversations during this period
+        <div class="flex justify-center pt-16">
+          <i
+            class="ri-question-answer-line text-4xl h-12 text-gray-300"
+          ></i>
+        </div>
+        <p
+          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+        >
+          No conversations during this period
         </p>
       </div>
     </div>

@@ -4,7 +4,6 @@
     class="py-5 border-gray-200 relative"
   >
     <div class="flex">
-      <!-- avatar -->
       <div class="pr-3">
         <app-loading
           height="32px"
@@ -13,8 +12,7 @@
         />
       </div>
       <div class="flex-grow w-full">
-        <!-- Name -->
-        <div class="flex justify-between w-full mb-1">
+        <div class="flex justify-between w-full mb-2">
           <div>
             <app-loading
               height="16px"
@@ -24,7 +22,6 @@
             <app-loading height="16px" width="210px" />
           </div>
         </div>
-        <!-- Content -->
         <app-loading height="80px" radius="8px" />
       </div>
     </div>
@@ -90,6 +87,7 @@
         <app-dashboard-activities-content
           class="text-xs mt-4 bg-gray-50 rounded-lg p-4"
           :activity="activity"
+          :show-more="true"
         >
           <div v-if="activity.url" class="pt-6">
             <a

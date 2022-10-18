@@ -91,7 +91,7 @@ export class OrganizationService {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
-      `/tenant/${tenantId}/organization`,
+      `/tenant/${tenantId}/organization/query`,
       body
     )
 
