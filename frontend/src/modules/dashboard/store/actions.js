@@ -28,16 +28,26 @@ export default {
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true
     const { platform, period } = state.filters
-    return ConversationService.list(
+    return ConversationService.query(
       {
-        lastActiveRange: [
-          moment().subtract(period, 'day').toISOString(),
-          moment().toISOString()
-        ],
-        platform: {
-          jsonContains:
-            platform !== 'all' ? platform : undefined
-        }
+        and: [
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: {
+                    jsonContains: platform
+                  }
+                }
+              ]
+            : []),
+          {
+            lastActive: {
+              gte: moment()
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          }
+        ]
       },
       'activityCount_DESC',
       5,
@@ -157,14 +167,15 @@ export default {
     return MemberService.list(
       {
         and: [
-          {
-            platform:
-              platform !== 'all'
-                ? {
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: {
                     jsonContains: platform
                   }
-                : undefined
-          },
+                }
+              ]
+            : []),
           {
             joinedAt: {
               gte: moment()
@@ -209,13 +220,9 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
-    const { platform, period } = state.filters
-    return OrganizationService.list(
+    const { platform } = state.filters
+    return OrganizationService.query(
       {
-        lastActiveRange: [
-          moment().subtract(period, 'day').toISOString(),
-          moment().toISOString()
-        ],
         platform:
           platform !== 'all'
             ? {
@@ -240,13 +247,9 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    const { platform, period } = state.filters
-    return OrganizationService.list(
+    const { platform } = state.filters
+    return OrganizationService.query(
       {
-        lastActiveRange: [
-          moment().subtract(period, 'day').toISOString(),
-          moment().toISOString()
-        ],
         platform:
           platform !== 'all'
             ? {

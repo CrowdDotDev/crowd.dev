@@ -114,14 +114,14 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppActivityMessage from '@/modules/activity/components/activity-message'
 
 export default {
-  name: 'AppDashboardActivitiesItem',
+  name: 'AppDashboardActivityItem',
   components: {
-    AppActivityContent,
     AppActivityMessage,
+    AppActivityContent,
     AppLoading,
     AppActivityDropdown,
     AppAvatar

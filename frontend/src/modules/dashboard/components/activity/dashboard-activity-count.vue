@@ -8,9 +8,10 @@
       <div class="flex items-center pb-6">
         <app-loading
           height="14px"
-          width="80px"
+          width="25px"
           class="mr-2"
         ></app-loading>
+        <p class="text-sm font-medium mr-2">activities</p>
         <app-loading
           class="py-0.5"
           width="22px"
@@ -42,7 +43,7 @@ import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-b
 import AppCubeRender from '@/shared/cube/cube-render'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
-  name: 'AppDashboardActivitiesCount',
+  name: 'AppDashboardActivityCount',
   components: {
     AppLoading,
     AppCubeRender,

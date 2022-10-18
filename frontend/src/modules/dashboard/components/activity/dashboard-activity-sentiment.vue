@@ -102,7 +102,7 @@ import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
-  name: 'AppDashboardActivitiesSentiment',
+  name: 'AppDashboardActivitySentiment',
   components: {
     AppLoading,
     AppCubeRender
