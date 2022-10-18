@@ -4,8 +4,8 @@ import { filterIsDifferent } from '@/shared/filter/is-different'
 export default {
   rows: (state, getters) =>
     state.list.ids.map((id) => {
-      return getters.activeView.type === 'conversation'
-        ? state.records.conversation[id]
+      return getters.activeView.type === 'conversations'
+        ? state.records.conversations[id]
         : state.records.activities[id]
     }),
   hasRows: (state) => state.count > 0,
@@ -26,7 +26,7 @@ export default {
     return `${sorter.prop}_${direction}`
   },
   find: (state, getters) => (id) => {
-    return getters.activeView.type === 'conversation'
+    return getters.activeView.type === 'conversations'
       ? state.records.conversation[id]
       : state.records.activities[id]
   },
