@@ -81,7 +81,18 @@
             </div>
           </template>
         </el-table-column>
-
+        <el-table-column
+          v-for="column of extraColumns"
+          :key="column.name"
+          :prop="column.name"
+          :label="column.label"
+          width="200"
+          :sortable="column.sortable ? 'custom' : ''"
+        >
+          <template #default="scope">
+            {{ scope.row[column.name] }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="Engagement Level"
           prop="score"
@@ -158,6 +169,10 @@ import AppMemberEngagementLevel from '../member-engagement-level'
 const store = useStore()
 const router = useRouter()
 const table = ref(null)
+
+const extraColumns = computed(
+  () => store.getters['member/activeView']?.columns || []
+)
 
 const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)

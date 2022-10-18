@@ -155,6 +155,13 @@ export default {
     commit('ACTIVE_VIEW_CHANGED', activeView)
     commit('FILTER_CHANGED', getters['activeView'].filter)
     commit('SORTER_CHANGED', getters['activeView'].sorter)
+    router.push({
+      name: 'member',
+      query: {
+        activeTab:
+          activeView === 'all' ? undefined : activeView
+      }
+    })
 
     return dispatch('doFetch', {
       keepPagination: false
