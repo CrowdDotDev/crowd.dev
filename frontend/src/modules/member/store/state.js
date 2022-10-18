@@ -4,17 +4,6 @@ import {
   INITIAL_VIEW_RECENT_FILTER
 } from './constants'
 
-const activeView = () => {
-  const urlSearchParams = new URLSearchParams(
-    window.location.search
-  )
-  const params = Object.fromEntries(
-    urlSearchParams.entries()
-  )
-
-  return params['activeTab'] || 'all'
-}
-
 export default {
   records: {},
   views: [
@@ -24,7 +13,7 @@ export default {
       columns: [],
       filter: {},
       sorter: {},
-      active: activeView() === 'all'
+      active: true
     },
     {
       id: 'active',
@@ -38,7 +27,7 @@ export default {
       ],
       filter: INITIAL_VIEW_ACTIVE_FILTER,
       sorter: {},
-      active: activeView() === 'active'
+      active: false
     },
     {
       id: 'recent',
@@ -52,7 +41,7 @@ export default {
       ],
       filter: INITIAL_VIEW_RECENT_FILTER,
       sorter: {},
-      active: activeView() === 'recent'
+      active: false
     }
   ],
   customAttributes: {},
