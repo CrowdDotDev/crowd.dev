@@ -54,11 +54,11 @@
               >Activities</span
             >
             <div v-if="activitiesMemberToKeep.length > 0">
-              <app-activity-list-feed-item
+              <app-activity-item
                 v-for="activity in activitiesMemberToKeep"
                 :key="activity.id"
                 :activity="activity"
-              ></app-activity-list-feed-item>
+              ></app-activity-item>
               <div class="text-center">
                 <el-button
                   v-if="hasMoreActivitiesMemberToKeep"
@@ -108,11 +108,11 @@
                       activitiesMemberToMerge.length > 0
                     "
                   >
-                    <app-activity-list-feed-item
+                    <app-activity-item
                       v-for="activity in activitiesMemberToMerge"
                       :key="activity.id"
                       :activity="activity"
-                    ></app-activity-list-feed-item>
+                    ></app-activity-item>
                     <div class="text-center">
                       <el-button
                         v-if="
@@ -166,7 +166,7 @@ import MemberDetails from '../components/member-details'
 import MemberAutocompleteInput from '../components/member-autocomplete-input'
 import { MemberModel } from '@/modules/member/member-model'
 import { MemberService } from '@/modules/member/member-service'
-import ActivityListFeedItem from '@/modules/activity/components/list/activity-list-feed-item'
+import ActivityItem from '@/modules/activity/components/activity-item'
 
 const { fields } = MemberModel
 
@@ -177,7 +177,7 @@ export default {
     'app-member-details': MemberDetails,
     'app-member-autocomplete-input':
       MemberAutocompleteInput,
-    'app-activity-list-feed-item': ActivityListFeedItem
+    'app-activity-item': ActivityItem
   },
 
   props: {

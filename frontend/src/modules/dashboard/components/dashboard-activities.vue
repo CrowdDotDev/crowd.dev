@@ -52,13 +52,34 @@
           label="Trending conversations"
           name="trending"
         >
-          <app-dashboard-conversations-list />
+          <app-conversation-list
+            :conversations="trendingConversations"
+          />
+
+          <div class="pt-3 pb-2 flex justify-center">
+            <router-link
+              :to="{ name: 'conversation' }"
+              class="text-red font-medium text-center text-xs leading-5"
+            >
+              All conversations
+            </router-link>
+          </div>
         </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
           name="recent"
         >
-          <app-dashboard-activities-list />
+          <app-activity-list
+            :activities="recentActivities"
+          />
+          <div class="pt-3 pb-2 flex justify-center">
+            <router-link
+              :to="{ name: 'activity' }"
+              class="text-red font-medium text-center text-xs leading-5"
+            >
+              All activities
+            </router-link>
+          </div>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -66,8 +87,8 @@
 </template>
 
 <script>
-import AppDashboardActivitiesList from '@/modules/dashboard/components/activities/dashboard-activities-list'
-import AppDashboardConversationsList from '@/modules/dashboard/components/conversations/dashboard-conversations-list'
+import AppActivityList from '@/modules/activity/components/activity-list'
+import AppConversationList from '@/modules/conversation/components/conversation-list'
 import { mapGetters } from 'vuex'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
@@ -82,8 +103,8 @@ export default {
     AppDashboardActivitiesCount,
     AppDashboardActivitiesSentiment,
     AppWidgetCubeRenderer,
-    AppDashboardConversationsList,
-    AppDashboardActivitiesList
+    AppConversationList,
+    AppActivityList
   },
   data() {
     return {
@@ -97,7 +118,9 @@ export default {
     ...mapGetters('dashboard', [
       'period',
       'platform',
-      'activities'
+      'activities',
+      'recentActivities',
+      'trendingConversations'
     ])
   }
 }

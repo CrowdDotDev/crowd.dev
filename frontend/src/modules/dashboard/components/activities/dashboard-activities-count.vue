@@ -6,7 +6,11 @@
   >
     <template #loading>
       <div class="flex items-center pb-6">
-        <app-loading height="14px" width="80px" class="mr-2"></app-loading>
+        <app-loading
+          height="14px"
+          width="80px"
+          class="mr-2"
+        ></app-loading>
         <app-loading
           class="py-0.5"
           width="22px"
@@ -36,13 +40,13 @@ import { mapGetters } from 'vuex'
 import { activitiesChart } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
 import AppCubeRender from '@/shared/cube/cube-render'
-import AppLoading from "@/shared/loading/loading-placeholder";
+import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardActivitiesCount',
   components: {
     AppLoading,
     AppCubeRender,
-    AppDashboardBadge,
+    AppDashboardBadge
   },
   data() {
     return {

@@ -87,7 +87,7 @@ import joypixels from 'emoji-toolkit'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'AppDashboardActivitiesContent',
+  name: 'AppActivityContent',
   props: {
     activity: {
       type: Object,

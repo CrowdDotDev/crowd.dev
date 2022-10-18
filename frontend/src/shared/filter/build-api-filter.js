@@ -65,6 +65,7 @@ function _buildAttributeBlock(attribute) {
       }, [])
     }
   } else if (attribute.operator === 'between') {
+    // TODO: Chech if this exceptions is needed
     rule = {
       between: attribute.value
     }

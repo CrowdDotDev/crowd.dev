@@ -30,7 +30,7 @@
           :key="activity.id"
         >
           <div>
-            <app-activity-header
+            <app-activity-item
               :activity="activity"
               :show-user="false"
               :show-platform-icon="false"
@@ -84,7 +84,7 @@ export default {
 import _ from 'lodash'
 import { useStore } from 'vuex'
 import integrationsJson from '@/jsons/integrations.json'
-import AppActivityHeader from '@/modules/activity/components/activity-header'
+import AppActivityItem from '@/modules/activity/components/activity-item'
 
 import {
   defineProps,

@@ -1,8 +1,8 @@
 <template>
-  <article class="py-5 border-gray-200 relative">
+  <article :class="computedArticleClass">
     <div class="flex">
       <!-- avatar -->
-      <div class="pr-3">
+      <div v-if="showUser" class="pr-3">
         <router-link
           :to="{
             name: 'memberView',
@@ -18,16 +18,17 @@
         <div class="flex justify-between w-full">
           <div>
             <router-link
+              v-if="showUser"
               :to="{
                 name: 'memberView',
                 params: { id: activity.member.id }
               }"
-              class="text-2xs leading-4 block text-gray-600 pb-0.5"
+              class="text-2xs leading-4 block text-gray-900 pb-0.5 font-medium"
             >
               {{ activity.member.displayName }}
             </router-link>
             <div class="flex items-center">
-              <div>
+              <div v-if="showPlatformIcon">
                 <el-tooltip
                   effect="dark"
                   :content="platform.name"
@@ -40,8 +41,11 @@
                   />
                 </el-tooltip>
               </div>
-              <div class="text-2xs leading-4 pl-2 flex">
-                <app-dashboard-activities-message
+              <div
+                class="text-2xs leading-4 flex"
+                :class="showUser ? 'pl-2' : ''"
+              >
+                <app-activity-message
                   :activity="activity"
                 /><span
                   class="whitespace-nowrap text-gray-500"
@@ -56,7 +60,7 @@
           </div>
         </div>
         <!-- Content -->
-        <app-dashboard-activities-content
+        <app-activity-content
           class="text-xs"
           :activity="activity"
         />
@@ -68,26 +72,43 @@
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import AppDashboardActivitiesMessage from '@/modules/dashboard/components/activities/dashboard-activities-message'
+import AppActivityMessage from '@/modules/activity/components/activity-message'
 import computedTimeAgo from '@/utils/time-ago'
-import AppDashboardActivitiesContent from '@/modules/dashboard/components/activities/dashboard-activities-content'
+import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
 
 export default {
-  name: 'AppDashboardActivitiesItem',
+  name: 'AppActivityItem',
   components: {
     AppActivityDropdown,
-    AppDashboardActivitiesContent,
-    AppDashboardActivitiesMessage,
+    AppActivityContent,
+    AppActivityMessage,
     AppAvatar
   },
   props: {
     activity: {
       type: Object,
       required: true
+    },
+    isCard: {
+      type: Boolean,
+      default: false
+    },
+    showPlatformIcon: {
+      type: Boolean,
+      default: true
+    },
+    showUser: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {
+    computedArticleClass() {
+      return this.isCard
+        ? 'panel mb-6'
+        : 'py-5 border-gray-200 relative'
+    },
     platform() {
       return integrationsJsonArray.find(
         (i) => i.platform === this.activity.platform

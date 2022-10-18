@@ -17,7 +17,7 @@
         {{ member.displayName }}
       </h6>
       <p class="text-2xs leading-4 !text-gray-500">
-        <app-dashboard-activities-message
+        <app-activity-message
           v-if="member.lastActivity"
           :short="true"
           :activity="member.lastActivity"
@@ -29,13 +29,13 @@
 
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
-import AppDashboardActivitiesMessage from '@/modules/dashboard/components/activities/dashboard-activities-message'
+import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardMembersItem',
   components: {
     AppLoading,
-    AppDashboardActivitiesMessage,
+    AppActivityMessage,
     AppAvatar
   },
   props: {

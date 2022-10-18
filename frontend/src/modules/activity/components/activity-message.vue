@@ -121,7 +121,7 @@ import {
   computedArgs
 } from '@/modules/activity/activity.helpers'
 export default {
-  name: 'AppDashboardActivitiesMessage',
+  name: 'AppActivityMessage',
   components: { AppI18n },
   props: {
     activity: {

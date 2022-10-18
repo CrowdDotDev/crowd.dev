@@ -10,46 +10,22 @@
         <i class="ri-xl ri-more-fill"></i>
       </span>
       <template #dropdown>
-        <el-dropdown-item command="activityEdit">
-          <i class="ri-pencil-line mr1" />
-          Edit Activity</el-dropdown-item
-        >
         <el-dropdown-item command="activityDelete"
           ><i class="ri-delete-bin-line mr-1" />Delete
           Activity</el-dropdown-item
         >
       </template>
     </el-dropdown>
-    <el-dialog
-      v-if="editing"
-      v-model="editing"
-      title="Edit Activity"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      :close-on-click-modal="false"
-      custom-class="el-dialog--lg"
-      @close="editing = false"
-    >
-      <app-activity-form-page
-        :id="activity.id"
-        @cancel="editing = false"
-      >
-      </app-activity-form-page>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import { i18n } from '@/i18n'
-import ActivityFormPage from './activity-form-page'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 
 export default {
   name: 'AppActivityDropdown',
-  components: {
-    'app-activity-form-page': ActivityFormPage
-  },
   props: {
     activity: {
       type: Object,
@@ -57,11 +33,6 @@ export default {
     }
   },
   emits: ['activity-destroyed'],
-  data() {
-    return {
-      editing: false
-    }
-  },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
