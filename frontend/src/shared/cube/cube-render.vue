@@ -9,7 +9,7 @@
         <slot name="loading"></slot>
       </div>
       <div v-else>
-        <slot name="default" :result-set="resultSet"/>
+        <slot name="default" :result-set="resultSet" />
       </div>
     </template>
   </query-renderer>

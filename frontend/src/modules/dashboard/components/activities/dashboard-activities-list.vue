@@ -1,10 +1,12 @@
 <template>
   <div class="pt-3">
-    <div
-      v-if="activities.loading"
-      v-loading="activities.loading"
-      class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    <div v-if="activities.loading">
+      <app-dashboard-activities-item
+        v-for="el of new Array(3)"
+        :key="el"
+        :loading="true"
+      />
+    </div>
     <div v-else>
       <app-dashboard-activities-item
         v-for="(activity, ai) of recentActivities"

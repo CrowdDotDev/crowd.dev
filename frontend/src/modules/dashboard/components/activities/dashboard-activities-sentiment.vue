@@ -7,12 +7,28 @@
         <app-loading height="8px"></app-loading>
       </div>
       <div class="flex justify-between pb-2">
-        <app-loading class="py-1" height="13px" width="60px"></app-loading>
-        <app-loading class="py-1" height="13px" width="45px"></app-loading>
+        <app-loading
+          class="py-1"
+          height="13px"
+          width="60px"
+        ></app-loading>
+        <app-loading
+          class="py-1"
+          height="13px"
+          width="45px"
+        ></app-loading>
       </div>
       <div class="flex justify-between pb-2">
-        <app-loading class="py-1" height="13px" width="60px"></app-loading>
-        <app-loading class="py-1" height="13px" width="45px"></app-loading>
+        <app-loading
+          class="py-1"
+          height="13px"
+          width="60px"
+        ></app-loading>
+        <app-loading
+          class="py-1"
+          height="13px"
+          width="45px"
+        ></app-loading>
       </div>
     </template>
     <template #default="{ resultSet }">
@@ -69,7 +85,10 @@
             </p>
           </div>
         </div>
-        <div v-else class="text-xs text-gray-500 italic text-gray-400">
+        <div
+          v-else
+          class="text-xs text-gray-500 italic text-gray-400"
+        >
           No data
         </div>
       </div>
@@ -81,7 +100,7 @@
 import { mapGetters } from 'vuex'
 import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
-import AppLoading from "@/shared/loading/loading-placeholder";
+import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardActivitiesSentiment',
   components: {

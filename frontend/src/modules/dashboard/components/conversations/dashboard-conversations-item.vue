@@ -1,22 +1,64 @@
 <template>
   <article
+    v-if="loading || !conversation"
+    class="py-6 border-gray-200 -mx-6 px-6"
+  >
+    <div class="flex relative">
+      <div>
+        <app-loading
+          height="32px"
+          width="32px"
+          radius="50%"
+        ></app-loading>
+      </div>
+      <div class="flex-grow pl-3">
+        <div class="flex justify-between">
+          <div>
+            <app-loading
+              height="16px"
+              width="80px"
+              class="mb-0.5"
+            />
+            <div class="flex items-center">
+              <div class="pr-2">
+                <app-loading height="16px" width="16px" />
+              </div>
+              <div class="flex-grow">
+                <app-loading height="16px" width="210px" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pt-4">
+          <app-loading height="60px" class="mb-4" />
+          <app-dashboard-conversation-reply
+            class="mb-8"
+            :loading="true"
+          />
+          <app-dashboard-conversation-reply
+            :loading="true"
+          />
+        </div>
+      </div>
+    </div>
+  </article>
+  <article
+    v-else
     class="py-6 border-gray-200 hover:bg-gray-50 -mx-6 px-6"
     @click="openConversation()"
   >
     <div class="flex relative">
       <div>
-        <app-avatar
-          :entity="{ displayName: 'G' }"
-          size="xs"
-        />
+        <app-avatar :entity="member" size="xs" />
       </div>
       <div class="flex-grow pl-3">
+        <!--header -->
         <div class="flex justify-between">
           <div>
             <p
               class="text-2xs leading-4 font-medium mb-0.5"
             >
-              Willie Cruickshank
+              {{ member.displayName }}
             </p>
             <div class="flex items-center">
               <div class="pr-2">
@@ -34,9 +76,17 @@
               </div>
               <div class="flex-grow">
                 <div class="flex items-center">
-                  <a class="text-red text-xs leading-4">
-                    {{ conversation.channel }}
-                  </a>
+                  <!-- channel -->
+                  <p
+                    class="text-red text-xs leading-4"
+                    @click.stop
+                  >
+                    <app-dashboard-activity-channel
+                      :activity="
+                        conversation.conversationStarter
+                      "
+                    />
+                  </p>
                   <span
                     class="whitespace-nowrap text-xs leading-4 text-gray-500"
                   >
@@ -46,125 +96,67 @@
                     }}</span>
                     <span class="mx-1">·</span>
                   </span>
+                  <!-- sentiment -->
                   <el-tooltip
                     effect="dark"
-                    :content="`Confidence ${0}%`"
+                    :content="`Confidence ${sentiment}%`"
                     placement="top"
                   >
                     <i
+                      v-if="sentiment >= 50"
                       class="ri-emotion-happy-line text-green-600 text-base"
+                    ></i>
+                    <i
+                      v-else
+                      class="ri-emotion-unhappy-line text-red-500 text-base"
                     ></i>
                   </el-tooltip>
                 </div>
               </div>
             </div>
           </div>
-          <div>
+          <div @click.stop>
             <app-conversation-dropdown
               :conversation="conversation"
             />
           </div>
         </div>
+        <!-- body -->
         <div class="pt-4">
-          <p class="text-sm font-medium">
-            {{ conversation.title }}
-          </p>
-          <div class="py-4 flex">
+          <app-dashboard-activities-content
+            class="text-xs"
+            title-classes="text-sm font-medium"
+            :activity="conversation.conversationStarter"
+            :show-more="true"
+          />
+          <div class="pt-4 flex">
             <div
-              class="text-xs h-6 flex items-center px-3 rounded-3xl border border-gray-200 text-gray-500"
+              v-if="conversation.activityCount.length > 3"
+              class="text-xs pb-4 h-6 flex items-center px-3 rounded-3xl border border-gray-200 text-gray-500"
             >
-              9 more replies
+              {{ conversation.activityCount.length - 3 }}
+              more
+              {{
+                conversation.activityCount.length > 4
+                  ? 'replies'
+                  : 'reply'
+              }}
             </div>
           </div>
 
           <!-- replies -->
-          <article>
-            <div class="flex">
-              <div class="flex flex-col items-center">
-                <app-avatar
-                  :entity="{ displayName: 'G' }"
-                  size="xs"
-                />
-                <div
-                  class="h-4 w-0.5 bg-gray-300 my-2"
-                ></div>
-              </div>
-              <div class="flex-grow pl-3">
-                <div class="flex items-center h-5">
-                  <p
-                    class="text-2xs leading-5 text-gray-500"
-                  >
-                    <span>Joana Maia</span>
-                    <span class="mx-1">·</span>
-                    <span>{{ timeAgo(conversation) }}</span>
-                    <span class="mx-1">·</span>
-                  </p>
-                  <el-tooltip
-                    effect="dark"
-                    :content="`Confidence ${0}%`"
-                    placement="top"
-                  >
-                    <i
-                      class="ri-emotion-happy-line text-green-600 text-base"
-                    ></i>
-                  </el-tooltip>
-                </div>
-                <div
-                  class="text-xs leading-5 h-5 text-ellipsis overflow-hidden"
-                >
-                  Magna blandit laoreet porttitor proin non
-                  duis. Arcu, sagittis pharetra sit
-                  graviMagna blandit laoreet porttitor proin
-                  non duis. Arcu, sagittis pharetra sit
-                  gravi
-                </div>
-              </div>
-            </div>
-          </article>
-          <article>
-            <div class="flex">
-              <div class="flex flex-col items-center">
-                <app-avatar
-                  :entity="{ displayName: 'G' }"
-                  size="xs"
-                />
-              </div>
-              <div class="flex-grow pl-3">
-                <div
-                  class="flex flex-wrap items-center h-5"
-                >
-                  <p
-                    class="text-2xs flex flex-wrap leading-5 text-gray-500"
-                  >
-                    <span>Joana Maia</span>
-                    <span class="mx-1">·</span>
-                    <span>{{
-                      timeAgo(conversation.timestamp)
-                    }}</span>
-                    <span class="mx-1">·</span>
-                  </p>
-                  <el-tooltip
-                    effect="dark"
-                    :content="`Confidence ${0}%`"
-                    placement="top"
-                  >
-                    <i
-                      class="ri-emotion-unhappy-line text-red-500 text-base"
-                    ></i>
-                  </el-tooltip>
-                </div>
-                <div
-                  class="text-xs leading-5 h-5 text-ellipsis overflow-hidden"
-                >
-                  Magna blandit laoreet porttitor proin non
-                  duis. Arcu, sagittis pharetra sit
-                  graviMagna blandit laoreet porttitor proin
-                  non duis. Arcu, sagittis pharetra sit
-                  gravi
-                </div>
-              </div>
-            </div>
-          </article>
+          <app-dashboard-conversation-reply
+            v-for="(reply, ri) in conversation.lastReplies"
+            :key="reply.id"
+            :activity="reply"
+          >
+            <template #underAvatar>
+              <div
+                v-if="ri < conversation.length - 1"
+                class="h-4 w-0.5 bg-gray-300 my-2"
+              ></div>
+            </template>
+          </app-dashboard-conversation-reply>
         </div>
       </div>
     </div>
@@ -175,14 +167,23 @@
             class="ri-group-line text-base mr-2 text-gray-500"
           ></i>
           <p class="text-xs text-gray-600">
-            4 participants
+            {{ conversation.memberCount }} participant{{
+              conversation.memberCount > 1 ? 's' : ''
+            }}
           </p>
         </div>
         <div class="flex items-center">
           <i
             class="ri-reply-line text-base mr-2 text-gray-500"
           ></i>
-          <p class="text-xs text-gray-600">11 replies</p>
+          <p class="text-xs text-gray-600">
+            {{ conversation.activityCount - 1 }}
+            {{
+              conversation.activityCount > 2
+                ? 'replies'
+                : 'reply'
+            }}
+          </p>
         </div>
       </div>
       <div>
@@ -206,14 +207,31 @@ import AppAvatar from '@/shared/avatar/avatar'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
+import AppDashboardActivityChannel from '@/modules/dashboard/components/activities/dashboard-activity-channel'
+import AppDashboardActivitiesContent from '@/modules/dashboard/components/activities/dashboard-activities-content'
+import AppDashboardConversationReply from '@/modules/dashboard/components/conversations/dashboard-conversations-reply'
+import AppLoading from '@/shared/loading/loading-placeholder'
 
 export default {
   name: 'AppDashboardConversationsItem',
-  components: { AppConversationDropdown, AppAvatar },
+  components: {
+    AppLoading,
+    AppDashboardConversationReply,
+    AppDashboardActivitiesContent,
+    AppDashboardActivityChannel,
+    AppConversationDropdown,
+    AppAvatar
+  },
   props: {
     conversation: {
       type: Object,
-      required: true
+      required: false,
+      default: () => ({})
+    },
+    loading: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {
@@ -221,6 +239,13 @@ export default {
       return integrationsJsonArray.find(
         (i) => i.platform === this.conversation.platform
       )
+    },
+    member() {
+      return this.conversation.conversationStarter.member
+    },
+    sentiment() {
+      return this.conversation.conversationStarter.sentiment
+        .sentiment
     }
   },
   methods: {
@@ -228,7 +253,10 @@ export default {
       return computedTimeAgo(date)
     },
     openConversation() {
-      console.log('opening', this.conversation)
+      this.$router.push({
+        name: 'conversationView',
+        params: { id: this.conversation.id }
+      })
     }
   }
 }

@@ -1,14 +1,13 @@
 <template>
-  <div
-    v-if="activity.title || activity.body"
-    class="mt-4 bg-gray-50 rounded-lg p-4"
-  >
+  <div v-if="activity.title || activity.body">
     <div v-if="activity.title">
-      <span class="block">{{ activity.title }}</span>
+      <span class="block title" :class="titleClasses">{{
+        activity.title
+      }}</span>
     </div>
     <div
       v-if="activity.title && activity.body"
-      class="my-4"
+      class="mt-3"
     ></div>
     <div class="content">
       <div
@@ -23,7 +22,7 @@
         />
         <span
           class="block whitespace-pre-wrap custom-break-all"
-          v-html="activity.body"
+          v-html="activityBody"
         />
       </div>
       <div
@@ -38,7 +37,7 @@
           />
         </div>
 
-        <span v-html="activity.body" />
+        <span v-html="activityBody" />
       </div>
       <div
         v-else-if="
@@ -57,26 +56,22 @@
         <span
           v-else
           class="block whitespace-pre-wrap custom-break-all"
-          v-html="activity.body"
+          v-html="activityBody"
         />
       </div>
     </div>
-
-    <div
-      v-if="activity.url"
-      class="pt-6 flex justify-between"
-    >
-      <div></div>
+    <div class="flex justify-between items-center">
       <div>
-        <a
-          :href="activity.url"
-          class="text-2xs text-gray-600 font-medium flex items-center"
-          target="_blank"
-          ><i class="ri-lg ri-external-link-line mr-1"></i>
-          <span class="block"
-            >Open on {{ platform.name }}</span
-          ></a
+        <div
+          v-if="displayShowMore"
+          class="text-sm text-brand-500 mt-6 cursor-pointer"
+          @click.stop="more = !more"
         >
+          Show {{ more ? 'less' : 'more' }}
+        </div>
+      </div>
+      <div>
+        <slot></slot>
       </div>
     </div>
   </div>
@@ -92,6 +87,22 @@ export default {
     activity: {
       type: Object,
       required: true
+    },
+    titleClasses: {
+      type: String,
+      required: false,
+      default: ''
+    },
+    showMore: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
+  },
+  data() {
+    return {
+      more: false,
+      charLimit: 100
     }
   },
   computed: {
@@ -99,6 +110,23 @@ export default {
       return integrationsJsonArray.find(
         (i) => i.platform === this.activity.platform
       )
+    },
+    displayShowMore() {
+      return (
+        this.showMore &&
+        this.activity.body.length > this.charLimit
+      )
+    },
+    activityBody() {
+      if (this.displayShowMore) {
+        if (!this.more) {
+          return (
+            this.activity.body.slice(0, this.charLimit) +
+            '...'
+          )
+        }
+      }
+      return this.activity.body
     }
   },
   methods: {

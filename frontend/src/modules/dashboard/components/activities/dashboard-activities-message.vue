@@ -3,17 +3,11 @@
   <template
     v-if="['discord', 'slack'].includes(activity.platform)"
   >
-    <a
-      :href="activity.url"
-      target="_blank"
-      class="text-gray-900"
-    >
-      <app-i18n
-        :code="computedMessage"
-        :args="computedArgs"
-        :fallback="'entities.activity.fallback'"
-      ></app-i18n>
-    </a>
+    <app-i18n
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
     <span
       v-if="
         [
@@ -26,7 +20,7 @@
       "
       class="block ml-1"
     >
-      <span class="text-gray-900">{{
+      <span v-if="!short" class="text-gray-900">{{
         ['channel_joined', 'channel_left'].includes(
           activity.type
         )
@@ -38,17 +32,11 @@
   </template>
   <!-- devto -->
   <template v-else-if="activity.platform === 'devto'">
-    <a
-      :href="activity.url"
-      target="_blank"
-      class="text-red"
-    >
-      <app-i18n
-        code="entities.activity.devto.commented"
-        :args="computedArgs"
-        :fallback="'entities.activity.fallback'"
-      ></app-i18n>
-    </a>
+    <app-i18n
+      code="entities.activity.devto.commented"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
     <span> on a </span>
     <app-i18n
       code="entities.activity.devto.post"
@@ -66,17 +54,11 @@
   </template>
   <!-- github -->
   <template v-else-if="activity.platform === 'github'">
-    <a
-      :href="activity.url"
-      target="_blank"
-      class="text-gray-900"
-    >
-      <app-i18n
-        :code="computedMessage"
-        :args="computedArgs"
-        :fallback="'entities.activity.fallback'"
-      ></app-i18n>
-    </a>
+    <app-i18n
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
     <div class="flex items-center">
       <span
         v-if="
@@ -99,18 +81,11 @@
   </template>
   <!-- other -->
   <template v-else>
-    <a
-      v-if="!short"
-      :href="activity.url"
-      target="_blank"
-      class="text-gray-900"
-    >
-      <app-i18n
-        :code="computedMessage"
-        :args="computedArgs"
-        :fallback="'entities.activity.fallback'"
-      ></app-i18n>
-    </a>
+    <app-i18n
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
   </template>
 </template>
 

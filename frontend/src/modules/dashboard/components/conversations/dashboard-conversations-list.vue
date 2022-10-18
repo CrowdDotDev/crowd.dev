@@ -1,10 +1,15 @@
 <template>
   <div>
-    <div
-      v-if="conversations.loading"
-      v-loading="conversations.loading"
-      class="app-page-spinner h-16 !relative !min-h-5"
-    ></div>
+    <div v-if="conversations.loading">
+      <app-dashboard-conversations-item
+        v-for="(el, ci) of new Array(3)"
+        :key="el"
+        :class="{
+          'border-b': ci < trendingConversations.length - 1
+        }"
+        :loading="true"
+      />
+    </div>
     <div v-else>
       <app-dashboard-conversations-item
         v-for="(conversation, ci) of trendingConversations"

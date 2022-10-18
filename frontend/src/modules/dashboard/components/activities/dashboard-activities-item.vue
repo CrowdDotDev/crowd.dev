@@ -1,5 +1,35 @@
 <template>
-  <article class="py-5 border-gray-200 relative">
+  <article
+    v-if="loading || !activity"
+    class="py-5 border-gray-200 relative"
+  >
+    <div class="flex">
+      <!-- avatar -->
+      <div class="pr-3">
+        <app-loading
+          height="32px"
+          width="32px"
+          radius="50%"
+        />
+      </div>
+      <div class="flex-grow w-full">
+        <!-- Name -->
+        <div class="flex justify-between w-full mb-1">
+          <div>
+            <app-loading
+              height="16px"
+              width="80px"
+              class="mb-0.5"
+            />
+            <app-loading height="16px" width="210px" />
+          </div>
+        </div>
+        <!-- Content -->
+        <app-loading height="80px" radius="8px" />
+      </div>
+    </div>
+  </article>
+  <article v-else class="py-5 border-gray-200 relative">
     <div class="flex">
       <!-- avatar -->
       <div class="pr-3">
@@ -43,7 +73,8 @@
               <div class="text-2xs leading-4 pl-2 flex">
                 <app-dashboard-activities-message
                   :activity="activity"
-                /><span
+                />
+                <span
                   class="whitespace-nowrap text-gray-500"
                   ><span class="mx-1">·</span
                   >{{ timeAgo }}</span
@@ -57,9 +88,23 @@
         </div>
         <!-- Content -->
         <app-dashboard-activities-content
-          class="text-xs"
+          class="text-xs mt-4 bg-gray-50 rounded-lg p-4"
           :activity="activity"
-        />
+        >
+          <div v-if="activity.url" class="pt-6">
+            <a
+              :href="activity.url"
+              class="text-2xs text-gray-600 font-medium flex items-center"
+              target="_blank"
+              ><i
+                class="ri-lg ri-external-link-line mr-1"
+              ></i>
+              <span class="block"
+                >Open on {{ platform.name }}</span
+              ></a
+            >
+          </div>
+        </app-dashboard-activities-content>
       </div>
     </div>
   </article>
@@ -72,10 +117,12 @@ import AppDashboardActivitiesMessage from '@/modules/dashboard/components/activi
 import computedTimeAgo from '@/utils/time-ago'
 import AppDashboardActivitiesContent from '@/modules/dashboard/components/activities/dashboard-activities-content'
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
+import AppLoading from '@/shared/loading/loading-placeholder'
 
 export default {
   name: 'AppDashboardActivitiesItem',
   components: {
+    AppLoading,
     AppActivityDropdown,
     AppDashboardActivitiesContent,
     AppDashboardActivitiesMessage,
@@ -84,7 +131,13 @@ export default {
   props: {
     activity: {
       type: Object,
-      required: true
+      required: false,
+      default: () => ({})
+    },
+    loading: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {

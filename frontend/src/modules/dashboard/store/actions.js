@@ -28,16 +28,19 @@ export default {
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true
     const { platform, period } = state.filters
-    return ConversationService.list(
+    return ConversationService.query(
       {
-        lastActiveRange: [
-          moment().subtract(period, 'day').toISOString(),
-          moment().toISOString()
-        ],
-        platform: {
-          jsonContains:
-            platform !== 'all' ? platform : undefined
-        }
+        lastActive: {
+          gte: moment()
+            .subtract(period, 'day')
+            .toISOString()
+        },
+        platform:
+          platform !== 'all'
+            ? {
+                jsonContains: platform
+              }
+            : undefined
       },
       'activityCount_DESC',
       5,
