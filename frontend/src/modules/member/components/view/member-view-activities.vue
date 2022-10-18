@@ -36,11 +36,6 @@
               :show-platform-icon="false"
               class="pt-2"
             />
-            <div
-              v-if="activity.body"
-              class="block whitespace-pre-wrap custom-break-all text-xs p-4 rounded-md bg-gray-50 mt-5 w-full"
-              v-html="activity.body"
-            />
           </div>
           <template #dot>
             <span
