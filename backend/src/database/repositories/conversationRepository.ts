@@ -9,6 +9,7 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import { PlatformType } from '../../utils/platforms'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
+import BaseIterator from '../../serverless/integrations/iterators/baseIterator'
 
 const Op = Sequelize.Op
 
@@ -177,7 +178,7 @@ class ConversationRepository {
       limit = 0,
       offset = 0,
       orderBy = '',
-      eagerLoad = [],
+      lazyLoad = [],
     },
     options: IRepositoryOptions,
   ) {
@@ -393,7 +394,7 @@ class ConversationRepository {
       subQuery: false,
       distinct: true,
     })
-    rows = await this._populateRelationsForRows(rows, eagerLoad)
+    rows = await this._populateRelationsForRows(rows, lazyLoad)
     return { rows, count: count.length }
   }
 
@@ -417,7 +418,7 @@ class ConversationRepository {
     )
   }
 
-  static async _populateRelationsForRows(rows, eagerLoad = []) {
+  static async _populateRelationsForRows(rows, lazyLoad = []) {
     if (!rows) {
       return rows
     }
@@ -425,10 +426,23 @@ class ConversationRepository {
     return Promise.all(
       rows.map(async (record) => {
         const rec = record.get({ plain: true })
-        for (const relationship of eagerLoad) {
-          rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
-            a.get({ plain: true }),
-          )
+        for (const relationship of lazyLoad) {
+          if (relationship === 'activities') {
+            const allActivities = await record.getActivities({ order: [['timestamp', 'ASC']] })
+            const promises = [allActivities[0], allActivities[allActivities.length - 1]].map(
+              async (act) => {
+                const member = (await act.getMember()).get({ plain: true })
+                act = act.get({ plain: true })
+                act.member = member
+                return act
+              },
+            )
+            rec.activities = await Promise.all(promises)
+          } else {
+            rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
+              a.get({ plain: true }),
+            )
+          }
         }
         if (rec.activityCount) {
           rec.activityCount = parseInt(rec.activityCount, 10)
@@ -462,6 +476,38 @@ class ConversationRepository {
       order: [['timestamp', 'ASC']],
       transaction,
     })
+
+    let memberPromises = output.activities.map(async (act) => {
+      const member = (await act.getMember()).get({ plain: true })
+      act = act.get({ plain: true })
+      act.member = member
+      return act
+    })
+
+    const chunkedPromises = []
+
+    const CHUNK_PROMISE_SIZE = 50
+
+    if (memberPromises.length > CHUNK_PROMISE_SIZE){
+      while( memberPromises.length > CHUNK_PROMISE_SIZE){
+        chunkedPromises.push(memberPromises.slice(0, CHUNK_PROMISE_SIZE))
+        memberPromises = memberPromises.slice(CHUNK_PROMISE_SIZE)
+      }
+      if (memberPromises.length > 0){
+        chunkedPromises.push(memberPromises)
+      }
+    }
+    else{
+      chunkedPromises.push(memberPromises)
+    }
+
+    // output.activities = await Promise.all(memberPromises)
+
+     output.activities = []
+     for (const memberPromiseChunk of chunkedPromises){
+      output.activities.push(await Promise.all(memberPromiseChunk))
+     }
+ 
 
     output.activityCount = output.activities.length
     output.platform = null
