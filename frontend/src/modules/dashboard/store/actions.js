@@ -120,7 +120,7 @@ export default {
         platform:
           platform !== 'all'
             ? {
-                jsonContains: 'discord'
+                jsonContains: platform
               }
             : undefined
       },
@@ -141,15 +141,26 @@ export default {
   // Fetch recent members
   async getRecentMembers({ commit, state }) {
     state.members.loadingRecent = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return MemberService.list(
       {
-        platform:
-          platform !== 'all'
-            ? {
-                jsonContains: 'discord'
-              }
-            : undefined
+        and: [
+          {
+            platform:
+              platform !== 'all'
+                ? {
+                    jsonContains: platform
+                  }
+                : undefined
+          },
+          {
+            joinedAt: {
+              gte: moment()
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          }
+        ]
       },
       '',
       20,
@@ -186,9 +197,13 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.list(
       {
+        lastActiveRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ],
         platform:
           platform !== 'all'
             ? {
@@ -213,9 +228,13 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.list(
       {
+        lastActiveRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ],
         platform:
           platform !== 'all'
             ? {

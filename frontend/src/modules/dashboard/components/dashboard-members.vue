@@ -35,61 +35,73 @@
     <!-- recent members -->
     <section v-show="tab === 'new'">
       <div
-        v-if="members.loadingRecent"
-        v-loading="members.loadingRecent"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      ></div>
-      <div v-else>
-        <div
-          class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-        >
-          <!-- difference in period -->
-          <app-dashboard-count
-            :query="
-              newMembersChart(period, platform).settings
-                .query
-            "
-            :total="members.total"
-          ></app-dashboard-count>
+        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
+      >
+        <!-- difference in period -->
+        <app-dashboard-count
+          :loading="members.loadingRecent"
+          :query="
+            newMembersChart(period, platform).settings.query
+          "
+          :total="members.total"
+        ></app-dashboard-count>
 
-          <!-- Chart -->
-          <app-widget-cube-renderer
-            class="chart"
-            :widget="newMembersChart(period, platform)"
-            :dashboard="false"
-            :show-subtitle="false"
-            :chart-options="chartOptions"
-          ></app-widget-cube-renderer>
+        <!-- Chart -->
+        <div
+          v-if="members.loadingRecent"
+          v-loading="members.loadingRecent"
+          class="app-page-spinner !relative chart-loading"
+        ></div>
+        <app-widget-cube-renderer
+          v-else
+          class="chart"
+          :widget="newMembersChart(period, platform)"
+          :dashboard="false"
+          :show-subtitle="false"
+          :chart-options="{
+            ...chartOptions,
+            library: hideLabels
+          }"
+        ></app-widget-cube-renderer>
+      </div>
+      <div class="list -mx-5 -mb-5 p-5">
+        <div v-if="members.loadingRecent">
+          <app-dashboard-members-item
+            v-for="el of new Array(3)"
+            :key="el"
+            class="mb-4"
+            :loading="true"
+          />
         </div>
-        <div class="list -mx-5 -mb-5 p-5">
-          <div>
-            <template
-              v-for="(member, mi) of recentMembers"
-              :key="member.id"
+        <div v-else>
+          <template
+            v-for="(member, mi) of recentMembers"
+            :key="member.id"
+          >
+            <p
+              v-if="getTimeText(mi)"
+              class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
             >
-              <p
-                v-if="getTimeText(mi)"
-                class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
-              >
-                {{ getTimeText(mi) }}
-              </p>
-              <app-dashboard-members-item
-                class="mb-4"
-                :member="member"
-              />
-            </template>
-            <div v-if="recentMembers.length === 0">
-              <p class="text-xs leading-5 text-center pb-2">
-                No new members during this period
-              </p>
-            </div>
-            <div class="pt-1 flex justify-center">
-              <router-link
-                :to="{ name: 'member' }"
-                class="text-xs leading-5 font-medium text-red"
-                >View more</router-link
-              >
-            </div>
+              {{ getTimeText(mi) }}
+            </p>
+            <app-dashboard-members-item
+              class="mb-4"
+              :member="member"
+            />
+          </template>
+          <div v-if="recentMembers.length === 0">
+            <p
+              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+            >
+              No new members during this period
+            </p>
+          </div>
+          <div class="pt-1 flex justify-center">
+            <router-link
+              :to="{ name: 'member' }"
+              class="text-xs leading-5 font-medium text-red"
+              >View more</router-link
+            >
           </div>
         </div>
       </div>
@@ -97,58 +109,70 @@
 
     <section v-show="tab === 'active'">
       <div
-        v-if="members.loadingActive"
-        v-loading="members.loadingActive"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      ></div>
-      <div v-else>
+        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
+      >
+        <!-- difference in period -->
+        <app-dashboard-count
+          :loading="members.loadingActive"
+          :query="
+            activeMembersChart(period, platform).settings
+              .query
+          "
+          :total="members.total"
+        ></app-dashboard-count>
+        <!-- Chart -->
         <div
-          class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-        >
-          <!-- difference in period -->
-          <app-dashboard-count
-            :query="
-              activeMembersChart(period, platform).settings
-                .query
-            "
-            :total="members.total"
-          ></app-dashboard-count>
-          <!-- Chart -->
-          <app-widget-cube-renderer
-            v-if="!members.loadingActive"
-            class="chart"
-            :widget="activeMembersChart(period, platform)"
-            :dashboard="false"
-            :show-subtitle="false"
-            :chart-options="chartOptions"
-          ></app-widget-cube-renderer>
+          v-if="members.loadingActive"
+          v-loading="members.loadingActive"
+          class="app-page-spinner !relative chart-loading"
+        ></div>
+        <app-widget-cube-renderer
+          v-else
+          class="chart"
+          :widget="activeMembersChart(period, platform)"
+          :dashboard="false"
+          :show-subtitle="false"
+          :chart-options="{
+            ...chartOptions,
+            library: hideLabels
+          }"
+        ></app-widget-cube-renderer>
+      </div>
+      <div class="list -mx-5 -mb-5 p-5">
+        <div v-if="members.loadingActive">
+          <app-dashboard-members-item
+            v-for="el of new Array(3)"
+            :key="el"
+            class="mb-4"
+            :loading="true"
+          />
         </div>
-        <div class="list -mx-5 -mb-5 p-5">
-          <div>
+        <div v-else>
+          <p
+            v-if="activeMembers.length > 0"
+            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+          >
+            most active
+          </p>
+          <app-dashboard-members-item
+            v-for="member of activeMembers"
+            :key="member.id"
+            class="mb-4"
+            :member="member"
+          />
+          <div v-if="activeMembers.length === 0">
             <p
-              v-if="activeMembers.length > 0"
-              class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
             >
-              most active
+              No new members during this period
             </p>
-            <app-dashboard-members-item
-              v-for="member of activeMembers"
-              :key="member.id"
-              class="mb-4"
-              :member="member"
-            />
-            <div v-if="activeMembers.length === 0">
-              <p class="text-xs leading-5 text-center pb-2">
-                No new members during this period
-              </p>
-            </div>
-            <div class="pt-1 flex justify-center">
-              <router-link
-                :to="{ name: 'member' }"
-                class="text-xs leading-5 font-medium text-red"
-                >View more</router-link
-              >
-            </div>
+          </div>
+          <div class="pt-1 flex justify-center">
+            <router-link
+              :to="{ name: 'member' }"
+              class="text-xs leading-5 font-medium text-red"
+              >View more</router-link
+            >
           </div>
         </div>
       </div>
@@ -165,7 +189,8 @@ import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-
 import {
   newMembersChart,
   activeMembersChart,
-  chartOptions
+  chartOptions,
+  hideLabels
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 
@@ -182,7 +207,8 @@ export default {
       tab: 'new',
       newMembersChart,
       activeMembersChart,
-      chartOptions
+      chartOptions,
+      hideLabels
     }
   },
   computed: {
@@ -232,8 +258,13 @@ export default {
 
 .chart::v-deep {
   div {
-    line-height: inherit !important;
+    line-height: 150px !important;
     height: auto !important;
   }
+}
+
+.chart-loading {
+  @apply flex items-center justify-center;
+  height: 150px;
 }
 </style>

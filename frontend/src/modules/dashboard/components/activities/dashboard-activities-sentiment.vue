@@ -15,7 +15,11 @@
           <div class="flex w-full pb-3">
             <div
               class="h-2 bg-green-500 border-l border-r rounded-sm transition"
-              :style="{ width: `${result.positive}%` }"
+              :style="{
+                width: `${calculatePercentage(
+                  result.positive
+                )}%`
+              }"
               :class="hoverSentimentClass('positive')"
               @mouseover="hoveredSentiment = 'positive'"
               @mouseleave="hoveredSentiment = ''"
@@ -23,7 +27,11 @@
             <div
               class="h-2 bg-red-500 border-l border-r rounded-sm transition"
               :class="hoverSentimentClass('negative')"
-              :style="{ width: `${result.negative}%` }"
+              :style="{
+                width: `${calculatePercentage(
+                  result.negative
+                )}%`
+              }"
               @mouseover="hoveredSentiment = 'negative'"
               @mouseleave="hoveredSentiment = ''"
             ></div>
@@ -36,7 +44,9 @@
           >
             <p class="text-sm font-medium">Positive</p>
             <p class="text-xs text-gray-600 text-right">
-              {{ Math.round(result.positive) }}%
+              {{ result.positive }}・{{
+                calculatePercentage(result.positive)
+              }}%
             </p>
           </div>
           <div
@@ -47,7 +57,9 @@
           >
             <p class="text-sm font-medium">Negative</p>
             <p class="text-xs text-gray-600 text-right">
-              {{ Math.round(result.negative) }}%
+              {{ result.negative }}・{{
+                calculatePercentage(result.negative)
+              }}%
             </p>
           </div>
         </div>
@@ -91,6 +103,13 @@ export default {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
+    calculatePercentage(number) {
+      return Math.round(
+        (number /
+          (this.result.positive + this.result.negative)) *
+          100
+      )
+    },
     hoverSentimentClass(type) {
       return this.hoveredSentiment !== type &&
         this.hoveredSentiment !== ''
@@ -108,7 +127,6 @@ export default {
       let series = []
       seriesNames.forEach((e) => {
         const data = pivot.map((p) => [p['x'], p[e.key]])
-        console.log(data);
         series = [...series, ...data]
       })
       const seriesObject = series.reduce(

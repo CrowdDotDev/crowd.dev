@@ -5,12 +5,28 @@ export const chartOptions = {
   colors: ['#E94F2E'],
   backgroundColor: 'pink',
   loading: 'Loading...',
+  empty: 'Loading...',
   computeDataset: (canvas) => {
     const ctx = canvas.getContext('2d')
     const gradient = ctx.createLinearGradient(0, 0, 0, 150)
     gradient.addColorStop(0, 'rgba(253,237, 234,1)')
     gradient.addColorStop(1, 'rgba(253,237, 234,0)')
     return { backgroundColor: gradient }
+  }
+}
+
+export const hideLabels = {
+  scales: {
+    x: {
+      ticks: {
+        display: false
+      }
+    },
+    y: {
+      ticks: {
+        display: false
+      }
+    }
   }
 }
 

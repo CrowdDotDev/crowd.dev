@@ -250,19 +250,37 @@ export default {
       const seriesNames = resultSet.seriesNames()
       const pivot = resultSet.chartPivot()
       const series = []
+      if (seriesNames.length > 0) {
+        seriesNames.forEach((e) => {
+          const data = pivot.map((p) => [p.x, p[e.key]])
+          const { cube, dimension } = this.deconstructLabel(
+            e.key
+          )
 
-      seriesNames.forEach((e) => {
-        const data = pivot.map((p) => [p.x, p[e.key]])
-        const { cube, dimension } = this.deconstructLabel(
-          e.key
-        )
+          const name =
+            dimension && dimension !== 'unknown'
+              ? dimension
+              : i18n('widget.cubejs.cubes.' + cube)
+          series.push({ name, data })
+        })
+      } else {
+        let name = undefined
+        if (this.query.measures.length > 0) {
+          const key = this.query.measures[0]
+          const { cube, dimension } =
+            this.deconstructLabel(key)
+          name =
+            dimension && dimension !== 'unknown'
+              ? dimension
+              : i18n('widget.cubejs.cubes.' + cube)
+        }
+        const data = pivot.map((p) => [p.x, 0])
+        series.push({
+          data,
+          name
+        })
+      }
 
-        const name =
-          dimension && dimension !== 'unknown'
-            ? dimension
-            : i18n('widget.cubejs.cubes.' + cube)
-        series.push({ name, data })
-      })
       return series
     },
     pairs(resultSet) {

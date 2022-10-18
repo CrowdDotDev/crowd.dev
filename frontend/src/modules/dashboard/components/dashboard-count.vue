@@ -6,10 +6,21 @@
   >
     <template #default="{ resultSet }">
       <div
-        v-if="loading(resultSet)"
-        v-loading="loading(resultSet)"
-        class="app-page-spinner h-16 !relative !min-h-5"
-      ></div>
+        v-if="loadingData(resultSet)"
+        class="flex items-center pb-4 py-0.5"
+      >
+        <app-loading
+          width="23px"
+          height="16px"
+          radius="4px"
+          class="mr-2"
+        ></app-loading>
+        <app-loading
+          width="22px"
+          height="16px"
+          radius="4px"
+        ></app-loading>
+      </div>
       <div v-else>
         <div class="flex items-center pb-4">
           <h6 class="text-base leading-5 mr-2">
@@ -31,9 +42,11 @@
 import { mapActions, mapGetters } from 'vuex'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import AppDashboardBadge from '@/modules/dashboard/components/shared/dashboard-badge'
+import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardCount',
   components: {
+    AppLoading,
     AppDashboardBadge,
     QueryRenderer
   },
@@ -45,6 +58,11 @@ export default {
     total: {
       required: true,
       type: Number
+    },
+    loading: {
+      required: false,
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -60,9 +78,11 @@ export default {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
-    loading(resultSet) {
+    loadingData(resultSet) {
       return (
-        !resultSet || resultSet.loadResponse === undefined
+        !resultSet ||
+        resultSet.loadResponse === undefined ||
+        this.loading
       )
     },
     computedScore(resultSet) {

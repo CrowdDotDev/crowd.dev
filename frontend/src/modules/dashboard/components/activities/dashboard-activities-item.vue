@@ -43,7 +43,8 @@
               <div class="text-2xs leading-4 pl-2 flex">
                 <app-dashboard-activities-message
                   :activity="activity"
-                /><span class="whitespace-nowrap"
+                /><span
+                  class="whitespace-nowrap text-gray-500"
                   ><span class="mx-1">·</span
                   >{{ timeAgo }}</span
                 >

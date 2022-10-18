@@ -1,5 +1,12 @@
 <template>
-  <article class="flex">
+  <article v-if="loading || !organization" class="flex">
+    <app-loading height="20px" width="20px" radius="50%" />
+    <div class="flex-grow pl-3">
+      <app-loading height="13px" class="mb-1"></app-loading>
+      <app-loading height="12px"></app-loading>
+    </div>
+  </article>
+  <article v-else class="flex">
     <app-avatar :entity="entity" size="xxs" />
     <div class="flex-grow pl-3">
       <h6 class="text-xs leading-5 font-medium">
@@ -16,13 +23,20 @@
 
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
+import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
   name: 'AppDashboardOrganizationsItem',
-  components: { AppAvatar },
+  components: { AppLoading, AppAvatar },
   props: {
     organization: {
       type: Object,
-      required: true
+      required: false,
+      default: () => ({})
+    },
+    loading: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {
