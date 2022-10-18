@@ -21,7 +21,7 @@
 
 <script>
 export default {
-  name: 'AppMemberTabs'
+  name: 'AppActivityListTabs'
 }
 </script>
 
@@ -31,23 +31,23 @@ import { useStore } from 'vuex'
 
 const store = useStore()
 const showResetView = computed(
-  () => store.getters['member/showResetView']
+  () => store.getters['activity/showResetView']
 )
 const model = computed({
   get() {
-    return Object.values(store.state.member.views).find(
+    return Object.values(store.state.activity.views).find(
       (v) => v.active
     ).id
   },
   set(value) {
-    store.dispatch('member/doChangeActiveView', value)
+    store.dispatch('activity/doChangeActiveView', value)
   }
 })
 const views = computed(() => {
-  return Object.values(store.state.member.views)
+  return Object.values(store.state.activity.views)
 })
 
 const resetView = () => {
-  store.dispatch('member/doResetActiveView')
+  store.dispatch('activity/doResetActiveView')
 }
 </script>

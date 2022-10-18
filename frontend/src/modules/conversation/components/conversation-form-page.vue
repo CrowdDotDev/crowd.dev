@@ -31,7 +31,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ConversationForm from '@/modules/conversation/components/conversation-form.vue'
-import ActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'
+import ActivityListFeedItem from '@/modules/activity/components/list/activity-list-feed-item'
 
 export default {
   name: 'AppConversationFormPage',

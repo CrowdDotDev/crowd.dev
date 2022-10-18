@@ -115,7 +115,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import { FilterSchema } from '@/shared/form/filter-schema'
 import { ActivityModel } from '@/modules/activity/activity-model'
-import AppFilterToggle from '../../../shared/filter/filter-toggle'
+import AppFilterToggle from '../../../../shared/filter/filter-toggle'
 import AppPlatformAutocompleteInput from '@/shared/form/platform-autocomplete-input'
 
 const { fields } = ActivityModel

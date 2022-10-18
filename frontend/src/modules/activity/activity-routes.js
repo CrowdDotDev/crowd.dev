@@ -3,7 +3,7 @@ import Permissions from '@/security/permissions'
 
 const ActivityListPage = () =>
   import(
-    '@/modules/activity/components/activity-list-page.vue'
+    '@/modules/activity/components/list/activity-list-page.vue'
   )
 const ActivityViewPage = () =>
   import(

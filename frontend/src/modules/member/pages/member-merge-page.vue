@@ -166,7 +166,7 @@ import MemberDetails from '../components/member-details'
 import MemberAutocompleteInput from '../components/member-autocomplete-input'
 import { MemberModel } from '@/modules/member/member-model'
 import { MemberService } from '@/modules/member/member-service'
-import ActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'
+import ActivityListFeedItem from '@/modules/activity/components/list/activity-list-feed-item'
 
 const { fields } = MemberModel
 

@@ -96,8 +96,8 @@
 
 <script>
 import computedTimeAgo from '@/utils/time-ago'
-import AppActivityDropdown from './activity-dropdown'
-import AppActivityHeader from './activity-header'
+import AppActivityDropdown from '../activity-dropdown'
+import AppActivityHeader from '../activity-header'
 import joypixels from 'emoji-toolkit'
 
 export default {

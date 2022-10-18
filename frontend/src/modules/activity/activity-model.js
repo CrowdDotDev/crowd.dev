@@ -19,6 +19,10 @@ const fields = {
   type: new StringField('type', label('type'), {
     required: true
   }),
+  title: new StringField('title', label('title')),
+  body: new StringField('body', label('body')),
+  channel: new StringField('channel', label('channel')),
+  url: new StringField('url', label('url')),
   timestamp: new DateTimeField(
     'timestamp',
     label('timestamp'),
@@ -30,7 +34,10 @@ const fields = {
     required: true,
     min: 2
   }),
-  info: new JsonField('info', label('info')),
+  attributes: new JsonField(
+    'attributes',
+    label('attributes')
+  ),
   member: MemberField.relationToOne(
     'member',
     label('member'),

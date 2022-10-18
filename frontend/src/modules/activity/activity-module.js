@@ -1,5 +1,5 @@
 import routes from '@/modules/activity/activity-routes'
-import store from '@/modules/activity/activity-store'
+import store from '@/modules/activity/store'
 import ActivityAutocompleteInput from '@/modules/activity/components/activity-autocomplete-input.vue'
 
 export default {
