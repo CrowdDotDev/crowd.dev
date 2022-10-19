@@ -211,3 +211,13 @@ hr {
   line-clamp: 4;
   -webkit-box-orient: vertical;
 }
+
+// Limits text to 1 line
+.text-limit-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+}

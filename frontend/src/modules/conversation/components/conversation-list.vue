@@ -7,11 +7,8 @@
     ></div>
     <div v-else>
       <app-conversation-item
-        v-for="(conversation, ci) of conversations"
+        v-for="conversation of conversations"
         :key="conversation.id"
-        :class="{
-          'border-b': ci < conversations.length - 1
-        }"
         :conversation="conversation"
         :is-card="itemsAsCards"
       />

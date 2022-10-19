@@ -40,12 +40,12 @@
             ></i>
           </el-tooltip>
         </div>
-        <div
-          class="text-xs leading-5 h-5 text-ellipsis overflow-hidden"
-        >
+        <div>
           <app-activity-content
             :activity="activity"
-            class="text-sm"
+            :display-thread="false"
+            :display-title="false"
+            class="text-sm text-limit-1"
           />
         </div>
       </div>

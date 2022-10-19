@@ -18,7 +18,7 @@
       v-if="!short"
       :href="activity.attributes.repo"
       target="_blank"
-      class="ml-1 text-red"
+      class="ml-1 text-brand-500"
     >
       {{ getRepositoryName(activity.attributes.repo) }}
     </a>

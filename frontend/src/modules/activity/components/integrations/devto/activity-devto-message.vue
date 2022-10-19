@@ -13,7 +13,7 @@
   >&nbsp;<a
     v-if="!short"
     :href="activity.attributes.articleUrl"
-    class="text-red"
+    class="text-brand-500"
     target="_blank"
   >
     {{ activity.attributes.articleTitle }}

@@ -25,7 +25,7 @@
     }}</span>
     <span
       v-if="activity.channel || activity.attributes.channel"
-      class="text-red"
+      class="text-brand-500"
     >
       #{{
         activity.channel || activity.attributes.channel

@@ -1,25 +1,20 @@
 <template>
-  <div class="pt-3">
-    <div v-if="loading">
-      <app-activity-item
-        v-for="el of new Array(8)"
-        :key="el"
-        :loading="true"
-        class="mb-6"
-      />
-    </div>
-    <div v-else>
-      <app-activity-item
-        v-for="activity of activities"
-        :key="activity.id"
-        :activity="activity"
-        class="mb-6"
-      />
-      <div v-if="activities.length === 0">
-        <p class="text-xs leading-5 text-center pt-1">
-          No recent activities
-        </p>
-      </div>
+  <div
+    v-if="loading"
+    v-loading="loading"
+    class="app-page-spinner h-16 !relative !min-h-5"
+  ></div>
+  <div v-else>
+    <app-activity-item
+      v-for="activity of activities"
+      :key="activity.id"
+      :activity="activity"
+      class="mb-6"
+    />
+    <div v-if="activities.length === 0">
+      <p class="text-xs leading-5 text-center pt-1">
+        No recent activities
+      </p>
     </div>
   </div>
 </template>
