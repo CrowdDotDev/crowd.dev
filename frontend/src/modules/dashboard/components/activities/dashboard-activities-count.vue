@@ -15,14 +15,20 @@
     <template #default="{ resultSet }">
       <div class="flex items-center pb-6">
         <p class="text-sm font-medium mr-2">
-          {{ activities.total }} activities
+          {{ numberWithCommas(activities.total) }}
+          activities
         </p>
-        <app-dashboard-badge
-          :type="computedBadgeType(resultSet)"
-          >{{
-            computedBageLabel(resultSet)
-          }}</app-dashboard-badge
+        <el-tooltip
+          content="vs. previous same period"
+          placement="top"
         >
+          <app-dashboard-badge
+            :type="computedBadgeType(resultSet)"
+            >{{
+              computedBageLabel(resultSet)
+            }}</app-dashboard-badge
+          >
+        </el-tooltip>
       </div>
     </template>
   </app-cube-render>
@@ -92,6 +98,11 @@ export default {
       }
 
       return '='
+    },
+    numberWithCommas(x) {
+      return x
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     }
   }
 }

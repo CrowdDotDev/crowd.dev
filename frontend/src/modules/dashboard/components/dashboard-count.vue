@@ -15,8 +15,8 @@
           {{ computedScore(resultSet).current }}
         </h6>
         <el-tooltip
-          :content="`Difference from previous ${period} days`"
-          placement="right"
+          content="vs. previous same period"
+          placement="top"
         >
           <app-dashboard-badge
             :type="computedBadgeType(resultSet)"
