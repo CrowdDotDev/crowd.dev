@@ -1,5 +1,5 @@
 <template>
-  <div class="conversation-list-table panel">
+  <div class="app-list-table panel">
     <app-conversation-list-toolbar></app-conversation-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
@@ -14,31 +14,12 @@
         }"
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
+        @row-click="handleRowClick"
       >
         <el-table-column
           type="selection"
           width="75"
         ></el-table-column>
-
-        <el-table-column
-          label="Title"
-          prop="title"
-          sortable="custom"
-        >
-          <template #default="scope">
-            <router-link
-              :to="{
-                name: 'conversationView',
-                params: { id: scope.row.id }
-              }"
-              class="flex items-center text-black"
-            >
-              <div class="font-semibold truncate">
-                {{ scope.row.title }}
-              </div>
-            </router-link>
-          </template>
-        </el-table-column>
         <el-table-column width="150">
           <template #header>
             <span class="inline-flex items-center">
@@ -63,6 +44,25 @@
           </template>
         </el-table-column>
         <el-table-column
+          label="Conversation title"
+          prop="title"
+          sortable="custom"
+        >
+          <template #default="scope">
+            <router-link
+              :to="{
+                name: 'conversationView',
+                params: { id: scope.row.id }
+              }"
+              class="flex items-center text-black"
+            >
+              <div class="font-semibold truncate">
+                {{ scope.row.title }}
+              </div>
+            </router-link>
+          </template>
+        </el-table-column>
+        <el-table-column
           width="180"
           label="# of Activities"
           prop="activityCount"
@@ -84,58 +84,20 @@
         </el-table-column>
 
         <el-table-column
-          label="Platform"
+          label="Platform/channel"
           prop="platform"
-          width="150"
-        >
-          <template #default="scope">
-            <span
-              v-if="scope.row.platform === 'github'"
-              class="btn btn--circle btn--github mr-2"
-              ><img
-                :src="findIcon('github')"
-                alt="Github"
-                class="conversation-list-table--platform-icon"
-              />
-            </span>
-            <span
-              v-else-if="scope.row.platform === 'discord'"
-              class="btn btn--circle btn--discord mr-2"
-              ><img
-                :src="findIcon('discord')"
-                alt="Discord"
-                class="conversation-list-table--platform-icon"
-            /></span>
-            <span
-              v-else-if="scope.row.platform === 'slack'"
-              class="btn btn--circle btn--slack mr-2"
-              ><img
-                :src="findIcon('slack')"
-                alt="Slack"
-                class="conversation-list-table--platform-icon"
-            /></span>
-            <span
-              v-else-if="scope.row.platform === 'devto'"
-              class="btn btn--circle btn--devto mr-2"
-              ><img
-                :src="findIcon('devto')"
-                alt="DEV"
-                class="conversation-list-table--platform-icon"
-            /></span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          label="Channel"
-          prop="channel"
-          width="150"
+          width="200"
         >
           <template #header>
             <span class="inline-flex items-center">
-              <span class="inline-flex mr-1">Channel</span>
+              <span class="inline-flex mr-1"
+                >Platform/Channel</span
+              >
               <el-tooltip placement="top">
                 <template #content>
-                  Channel corresponds to channel (in Discord
-                  and Slack) or repo (in GitHub)
+                  Channel corresponds to a proper channel
+                  (in Discord and Slack) or a repo (in
+                  GitHub)
                 </template>
                 <i
                   class="ri-information-line inline-flex items-center mr-2"
@@ -144,10 +106,45 @@
             </span>
           </template>
           <template #default="scope">
-            {{ scope.row.channel }}
+            <div class="flex items-center">
+              <span
+                v-if="scope.row.platform === 'github'"
+                class="btn btn--circle btn--github mr-2"
+                ><img
+                  :src="findIcon('github')"
+                  alt="Github"
+                  class="w-4 h-4"
+                />
+              </span>
+              <span
+                v-else-if="scope.row.platform === 'discord'"
+                class="btn btn--circle btn--discord mr-2"
+                ><img
+                  :src="findIcon('discord')"
+                  alt="Discord"
+                  class="w-4 h-4"
+              /></span>
+              <span
+                v-else-if="scope.row.platform === 'slack'"
+                class="btn btn--circle btn--slack mr-2"
+                ><img
+                  :src="findIcon('slack')"
+                  alt="Slack"
+                  class="w-4 h-4"
+              /></span>
+              <span
+                v-else-if="scope.row.platform === 'devto'"
+                class="btn btn--circle btn--devto mr-2"
+                ><img
+                  :src="findIcon('devto')"
+                  alt="DEV"
+                  class="w-4 h-4"
+              /></span>
+              {{ scope.row.channel }}
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="" width="70">
+        <el-table-column label="" width="70" fixed="right">
           <template #default="scope">
             <div class="table-actions">
               <app-conversation-dropdown
@@ -158,17 +155,16 @@
         </el-table-column>
       </el-table>
 
-      <div class="el-pagination-wrapper px-3">
-        <el-pagination
-          :current-page="pagination.currentPage || 1"
-          :disabled="loading('table')"
-          :layout="paginationLayout"
+      <div v-if="!!count" class="mt-8 px-6">
+        <app-pagination
           :total="count"
-          :page-size="pagination.pageSize"
-          :page-sizes="[20, 50, 100, 200]"
-          @current-change="doChangePaginationCurrentPage"
-          @size-change="doChangePaginationPageSize"
-        ></el-pagination>
+          :page-size="Number(pagination.pageSize)"
+          :current-page="pagination.currentPage || 1"
+          @change-current-page="
+            doChangePaginationCurrentPage
+          "
+          @change-page-size="doChangePaginationPageSize"
+        />
       </div>
     </div>
   </div>
@@ -271,30 +267,14 @@ export default {
       return integrationsJsonArray.find(
         (i) => i.platform === platform
       ).image
+    },
+
+    handleRowClick(row) {
+      this.$router.push({
+        name: 'conversationView',
+        params: { id: row.id }
+      })
     }
   }
 }
 </script>
-
-<style lang="scss">
-.conversation-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    th {
-      @apply pb-4;
-    }
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-  }
-
-  &--platform-icon {
-    @apply w-4 h-4;
-  }
-}
-</style>
