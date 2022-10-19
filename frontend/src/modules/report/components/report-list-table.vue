@@ -10,6 +10,7 @@
         border
         :row-class-name="rowClass"
         @sort-change="doChangeSort"
+        @row-click="handleRowClick"
       >
         <el-table-column
           type="selection"
@@ -164,6 +165,13 @@ export default {
         this.selectedRows.find((r) => r.id === row.id) !==
         undefined
       return isSelected ? 'is-selected' : ''
+    },
+
+    handleRowClick(row) {
+      this.$router.push({
+        name: 'conversationView',
+        params: { id: row.id }
+      })
     }
   }
 }
