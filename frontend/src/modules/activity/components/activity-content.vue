@@ -1,12 +1,12 @@
 <template>
   <div v-if="activity.title || activity.body">
-    <div v-if="activity.title">
+    <div v-if="activity.title && displayTitle">
       <span class="block title" :class="titleClasses">{{
         activity.title
       }}</span>
     </div>
     <div
-      v-if="activity.title && activity.body"
+      v-if="activity.title && activity.body && displayTitle"
       class="mt-3"
     ></div>
     <div class="content">
@@ -17,6 +17,8 @@
         ref="content"
         :activity="activity"
         :limit="showMore && !more"
+        :display-body="displayBody"
+        :display-thread="displayThread"
       />
       <app-activity-devto-content
         v-else-if="
@@ -25,19 +27,24 @@
         ref="content"
         :activity="activity"
         :limit="showMore && !more"
+        :display-body="displayBody"
+        :display-thread="displayThread"
       />
       <div v-else-if="activity.body">
         <blockquote
-          v-if="activity.thread"
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
+          v-if="activity.thread && displayThread"
+          class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
           v-html="activity.thread.body"
         />
         <span
-          v-if="activity.type === 'reaction_added'"
+          v-if="
+            activity.type === 'reaction_added' &&
+            displayBody
+          "
           v-html="renderEmoji(activity.body)"
         />
         <span
-          v-else
+          v-else-if="displayBody"
           ref="body"
           class="block whitespace-pre-wrap custom-break-all activity-body"
           :class="{ 'text-limit-4': showMore && !more }"
@@ -89,10 +96,20 @@ export default {
       required: false,
       default: false
     },
-    lineHeight: {
-      type: Number,
+    displayTitle: {
+      type: Boolean,
       required: false,
-      default: 16
+      default: true
+    },
+    displayThread: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    displayBody: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   },
   data() {

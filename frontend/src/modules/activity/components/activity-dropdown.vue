@@ -20,12 +20,8 @@
         <!--          <span>Edit Activity</span></el-dropdown-item-->
         <!--        >-->
         <el-dropdown-item command="activityDelete">
-          <i
-            class="ri-delete-bin-line text-brand-500 mr-1"
-          />
-          <span class="text-brand-500"
-            >Delete Activity</span
-          >
+          <i class="ri-delete-bin-line text-red-500 mr-1" />
+          <span class="text-red-500">Delete Activity</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>

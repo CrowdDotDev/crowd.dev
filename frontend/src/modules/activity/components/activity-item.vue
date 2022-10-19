@@ -2,7 +2,7 @@
   <article v-if="loading || !activity">
     <app-loading height="85px" radius="8px" />
   </article>
-  <article v-else class="widget panel">
+  <article v-else class="panel">
     <div class="flex">
       <!-- Avatar -->
       <div class="pr-3">
@@ -79,7 +79,7 @@
           <div class="flex items-center">
             <a
               v-if="activity.conversationId"
-              class="text-xs font-medium flex items-center mr-6"
+              class="text-xs font-medium flex items-center mr-6 cursor-pointer"
               target="_blank"
               @click="
                 openConversation(activity.conversationId)
@@ -95,25 +95,36 @@
           </div>
         </div>
         <!-- member name -->
-        <app-activity-content
-          class="text-sm mt-4 bg-gray-50 rounded-lg mt-6 p-4"
-          :activity="activity"
-          :show-more="true"
+        <div
+          v-if="activity.title && activity.body"
+          class="pt-6"
         >
-          <div v-if="activity.url" class="pt-6">
-            <a
-              :href="activity.url"
-              class="text-2xs text-gray-600 font-medium flex items-center"
-              target="_blank"
-              ><i
-                class="ri-lg ri-external-link-line mr-1"
-              ></i>
-              <span class="block"
-                >Open on {{ platform.name }}</span
-              ></a
-            >
-          </div>
-        </app-activity-content>
+          <app-activity-content
+            :activity="activity"
+            :display-body="false"
+            :display-title="false"
+          />
+          <app-activity-content
+            class="text-sm bg-gray-50 rounded-lg p-4"
+            :activity="activity"
+            :show-more="true"
+            :display-thread="false"
+          >
+            <div v-if="activity.url" class="pt-6">
+              <a
+                :href="activity.url"
+                class="text-2xs text-gray-600 font-medium flex items-center"
+                target="_blank"
+                ><i
+                  class="ri-lg ri-external-link-line mr-1"
+                ></i>
+                <span class="block"
+                  >Open on {{ platform.name }}</span
+                ></a
+              >
+            </div>
+          </app-activity-content>
+        </div>
       </div>
     </div>
   </article>
@@ -164,8 +175,13 @@ export default {
   },
   methods: {
     openConversation(conversationId) {
-      // TODO: open conversation when conversation drawer is done
-      console.log(conversationId)
+      // TODO: refactor this to open conversation details drawer once its done
+      this.$router.push({
+        name: 'conversationView',
+        params: {
+          id: conversationId
+        }
+      })
     }
   }
 }

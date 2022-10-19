@@ -79,25 +79,32 @@
           </div>
         </div>
         <!-- Content -->
-        <app-activity-content
-          class="text-xs mt-4 bg-gray-50 rounded-lg p-4"
-          :activity="activity"
-          :show-more="true"
-        >
-          <div v-if="activity.url" class="pt-6">
-            <a
-              :href="activity.url"
-              class="text-2xs text-gray-600 font-medium flex items-center"
-              target="_blank"
-              ><i
-                class="ri-lg ri-external-link-line mr-1"
-              ></i>
-              <span class="block"
-                >Open on {{ platform.name }}</span
-              ></a
-            >
-          </div>
-        </app-activity-content>
+        <div class="pt-4">
+          <app-activity-content
+            :activity="activity"
+            :display-body="false"
+          />
+          <app-activity-content
+            class="text-xs bg-gray-50 rounded-lg p-4"
+            :activity="activity"
+            :show-more="true"
+            :display-thread="false"
+          >
+            <div v-if="activity.url" class="pt-6">
+              <a
+                :href="activity.url"
+                class="text-2xs text-gray-600 font-medium flex items-center"
+                target="_blank"
+                ><i
+                  class="ri-lg ri-external-link-line mr-1"
+                ></i>
+                <span class="block"
+                  >Open on {{ platform.name }}</span
+                ></a
+              >
+            </div>
+          </app-activity-content>
+        </div>
       </div>
     </div>
   </article>
