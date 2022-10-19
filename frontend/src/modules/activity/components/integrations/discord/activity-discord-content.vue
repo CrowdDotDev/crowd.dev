@@ -1,13 +1,16 @@
 <template>
   <div>
     <blockquote
-      v-if="activity.parent"
-      class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
+      v-if="activity.parent && displayThread"
+      class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
       v-html="activity.parent.body"
     />
     <span
+      v-if="displayBody"
+      ref="body"
       class="block whitespace-pre-wrap custom-break-all"
-      v-html="body"
+      :class="{ 'text-limit-4': limit }"
+      v-html="activity.body"
     />
   </div>
 </template>
@@ -20,9 +23,20 @@ export default {
       type: Object,
       required: true
     },
-    body: {
-      type: String,
-      required: true
+    limit: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    displayThread: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    displayBody: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   }
 }

@@ -2,7 +2,7 @@
   <a
     :href="activity.attributes.repo"
     target="_blank"
-    class="text-red"
+    class="text-brand-500"
   >
     {{ getRepositoryName(activity.attributes.repo) }}
   </a>

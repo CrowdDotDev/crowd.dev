@@ -5,15 +5,24 @@
       placement="bottom-end"
       trigger="click"
       @command="handleCommand"
+      @visible-change="dropdownVisible = $event"
     >
-      <span class="el-dropdown-link">
+      <div
+        class="el-dropdown-link h-6 w-6 flex items-center justify-center transition rounded"
+        :class="{ 'bg-gray-200': dropdownVisible }"
+      >
         <i class="ri-xl ri-more-fill"></i>
-      </span>
+      </div>
       <template #dropdown>
-        <el-dropdown-item command="activityDelete"
-          ><i class="ri-delete-bin-line mr-1" />Delete
-          Activity</el-dropdown-item
-        >
+        <!-- TODO: uncomment this once activity editing is done -->
+        <!--        <el-dropdown-item command="activityEdit">-->
+        <!--          <i class="ri-pencil-line text-gray-400 mr-1" />-->
+        <!--          <span>Edit Activity</span></el-dropdown-item-->
+        <!--        >-->
+        <el-dropdown-item command="activityDelete">
+          <i class="ri-delete-bin-line text-red-500 mr-1" />
+          <span class="text-red-500">Delete Activity</span>
+        </el-dropdown-item>
       </template>
     </el-dropdown>
   </div>
@@ -33,6 +42,11 @@ export default {
     }
   },
   emits: ['activity-destroyed'],
+  data() {
+    return {
+      dropdownVisible: false
+    }
+  },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',

@@ -4,7 +4,7 @@
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
   ></app-i18n>
-  <span> on a </span>
+  <span>&nbsp;on a&nbsp;</span>
   <app-i18n
     code="entities.activity.devto.post"
     :args="computedArgs"
@@ -13,7 +13,7 @@
   >&nbsp;<a
     v-if="!short"
     :href="activity.attributes.articleUrl"
-    class="text-red"
+    class="text-brand-500"
     target="_blank"
   >
     {{ activity.attributes.articleTitle }}

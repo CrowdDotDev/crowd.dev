@@ -7,17 +7,21 @@
     ></div>
     <div v-else>
       <app-conversation-item
-        v-for="(conversation, ci) of conversations"
+        v-for="conversation of conversations"
         :key="conversation.id"
-        :class="{
-          'border-b': ci < conversations.length - 1
-        }"
         :conversation="conversation"
         :is-card="itemsAsCards"
       />
       <div v-if="conversations.length === 0">
-        <p class="text-xs leading-5 text-center pt-4">
-          No trending conversations during this period
+        <div class="flex justify-center pt-16">
+          <i
+            class="ri-question-answer-line text-4xl h-12 text-gray-300"
+          ></i>
+        </div>
+        <p
+          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+        >
+          There are no conversations
         </p>
       </div>
     </div>

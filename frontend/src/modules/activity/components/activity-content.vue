@@ -1,12 +1,12 @@
 <template>
   <div v-if="activity.title || activity.body">
-    <div v-if="activity.title">
+    <div v-if="activity.title && displayTitle">
       <span class="block title" :class="titleClasses">{{
         activity.title
       }}</span>
     </div>
     <div
-      v-if="activity.title && activity.body"
+      v-if="activity.title && activity.body && displayTitle"
       class="mt-3"
     ></div>
     <div class="content">
@@ -14,30 +14,41 @@
         v-if="
           activity.body && activity.platform === 'discord'
         "
+        ref="content"
         :activity="activity"
-        :body="activityBody"
+        :limit="showMore && !more"
+        :display-body="displayBody"
+        :display-thread="displayThread"
       />
       <app-activity-devto-content
         v-else-if="
           activity.body && activity.platform === 'devto'
         "
+        ref="content"
         :activity="activity"
-        :body="activityBody"
+        :limit="showMore && !more"
+        :display-body="displayBody"
+        :display-thread="displayThread"
       />
       <div v-else-if="activity.body">
         <blockquote
-          v-if="activity.thread"
-          class="relative p-2 italic border-l-4 text-gray-500 border-gray-200 quote mb-4"
+          v-if="activity.thread && displayThread"
+          class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
           v-html="activity.thread.body"
         />
         <span
-          v-if="activity.type === 'reaction_added'"
+          v-if="
+            activity.type === 'reaction_added' &&
+            displayBody
+          "
           v-html="renderEmoji(activity.body)"
         />
         <span
-          v-else
-          class="block whitespace-pre-wrap custom-break-all"
-          v-html="activityBody"
+          v-else-if="displayBody"
+          ref="body"
+          class="block whitespace-pre-wrap custom-break-all activity-body"
+          :class="{ 'text-limit-4': showMore && !more }"
+          v-html="activity.body"
         />
       </div>
     </div>
@@ -84,12 +95,27 @@ export default {
       type: Boolean,
       required: false,
       default: false
+    },
+    displayTitle: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    displayThread: {
+      type: Boolean,
+      required: false,
+      default: true
+    },
+    displayBody: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   },
   data() {
     return {
       more: false,
-      charLimit: 100
+      displayShowMore: false
     }
   },
   computed: {
@@ -97,23 +123,24 @@ export default {
       return integrationsJsonArray.find(
         (i) => i.platform === this.activity.platform
       )
-    },
-    displayShowMore() {
-      return (
-        this.showMore &&
-        this.activity.body.length > this.charLimit
-      )
-    },
-    activityBody() {
-      if (this.displayShowMore) {
-        if (!this.more) {
-          return (
-            this.activity.body.slice(0, this.charLimit) +
-            '...'
-          )
+    }
+  },
+  mounted() {
+    if (this.showMore) {
+      if (this.$refs.body) {
+        const body = this.$refs.body
+        const height = body.clientHeight
+        const scrollHeight = body.scrollHeight
+        this.displayShowMore = scrollHeight > height
+      } else if (this.$refs.content) {
+        const content = this.$refs.content
+        if (content.$refs.body) {
+          const body = content.$refs.body
+          const height = body.clientHeight
+          const scrollHeight = body.scrollHeight
+          this.displayShowMore = scrollHeight > height
         }
       }
-      return this.activity.body
     }
   },
   methods: {
