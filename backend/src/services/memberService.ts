@@ -483,7 +483,6 @@ export default class MemberService {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
@@ -493,7 +492,6 @@ export default class MemberService {
         ...this.options,
         transaction,
       })
-
       await MemberRepository.removeToMerge(memberOneId, memberTwoId, {
         ...this.options,
         transaction,

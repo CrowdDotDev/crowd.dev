@@ -101,7 +101,7 @@
       }"
       class="row"
     >
-      {{ member.joinedAt.split('T')[0] }}
+      {{ getJoinedAt(member) }}
     </div>
     <!-- Row 7: Tags -->
     <div class="row">Tags</div>
@@ -275,6 +275,12 @@ function trackClick(channel) {
 
 function handleMakePrimary() {
   emit('makePrimary')
+}
+
+function getJoinedAt(member) {
+  return member.joinedAt.includes('1970')
+    ? '-'
+    : member.joinedAt.split('T')[0]
 }
 </script>
 

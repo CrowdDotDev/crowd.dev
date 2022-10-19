@@ -145,10 +145,6 @@ class MemberRepository {
       rowsOut.push(record)
     }
 
-    console.log(rowsOut)
-    for (const r of rowsOut) {
-      console.log(r.toMerge)
-    }
     return { rows: rowsOut, count }
   }
 
