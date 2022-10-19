@@ -7,16 +7,8 @@
     <template #loading>
       <div class="flex items-center pb-6">
         <app-loading
-          height="14px"
-          width="25px"
-          class="mr-2"
-        ></app-loading>
-        <p class="text-sm font-medium mr-2">activities</p>
-        <app-loading
-          class="py-0.5"
-          width="22px"
           height="16px"
-          radius="4px"
+          width="120px"
         ></app-loading>
       </div>
     </template>

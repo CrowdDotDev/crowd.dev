@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="conversations.loading">
+    <div v-if="conversations.loading" class="pt-3">
       <app-dashboard-conversations-item
-        v-for="(el, ci) of new Array(3)"
+        v-for="(el, ci) of new Array(2)"
         :key="el"
         :class="{
           'border-b': ci < trendingConversations.length - 1

@@ -7,27 +7,19 @@
         <app-loading height="8px"></app-loading>
       </div>
       <div class="flex justify-between pb-2">
+        <p class="text-sm font-medium">Positive</p>
         <app-loading
           class="py-1"
-          height="13px"
-          width="60px"
-        ></app-loading>
-        <app-loading
-          class="py-1"
-          height="13px"
-          width="45px"
+          height="12px"
+          width="40px"
         ></app-loading>
       </div>
       <div class="flex justify-between pb-2">
+        <p class="text-sm font-medium">Negative</p>
         <app-loading
           class="py-1"
-          height="13px"
-          width="60px"
-        ></app-loading>
-        <app-loading
-          class="py-1"
-          height="13px"
-          width="45px"
+          height="12px"
+          width="40px"
         ></app-loading>
       </div>
     </template>

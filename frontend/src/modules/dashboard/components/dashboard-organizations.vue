@@ -67,7 +67,7 @@
           <app-dashboard-organizations-item
             v-for="el of new Array(3)"
             :key="el"
-            class="mb-4"
+            class="mb-2"
             :loading="true"
           />
         </div>
@@ -137,7 +137,7 @@
           <app-dashboard-organizations-item
             v-for="el of new Array(3)"
             :key="el"
-            class="mb-4"
+            class="mb-2"
             :loading="true"
           />
         </div>

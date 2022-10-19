@@ -2,12 +2,14 @@
   <!-- loading state -->
   <article
     v-if="loading || !member"
-    class="flex items-center mb-4"
+    class="flex items-center"
   >
     <app-loading height="32px" width="32px" radius="2rem" />
     <div class="flex-grow pl-3">
-      <app-loading height="13px" class="mb-1"></app-loading>
-      <app-loading height="12px"></app-loading>
+      <app-loading
+        height="12px"
+        width="120px"
+      ></app-loading>
     </div>
   </article>
   <article v-else class="flex items-center">

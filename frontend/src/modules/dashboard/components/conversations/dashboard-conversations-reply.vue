@@ -1,19 +1,13 @@
 <template>
   <article v-if="loading || !activity">
-    <div class="flex">
+    <div class="flex items-center">
       <app-loading
         height="32px"
         width="32px"
         radius="50%"
       />
       <div class="flex-grow pl-3">
-        <div class="flex items-center h-5">
-          <app-loading height="16px" width="160px" />
-        </div>
-        <app-loading
-          height="14px"
-          width="80%"
-        ></app-loading>
+        <app-loading height="12px" width="400px" />
       </div>
     </div>
   </article>

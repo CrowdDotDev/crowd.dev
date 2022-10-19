@@ -3,15 +3,8 @@
     <template #loading>
       <div class="flex items-center pb-4 py-0.5">
         <app-loading
-          width="23px"
+          width="80px"
           height="16px"
-          radius="4px"
-          class="mr-2"
-        ></app-loading>
-        <app-loading
-          width="22px"
-          height="16px"
-          radius="4px"
         ></app-loading>
       </div>
     </template>
