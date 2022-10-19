@@ -2,6 +2,7 @@
   <el-dropdown trigger="click" @command="handleCommand">
     <span
       class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+      @click.stop
     >
       <i
         class="text-lg leading-none text-gray-600 ri-more-fill"
