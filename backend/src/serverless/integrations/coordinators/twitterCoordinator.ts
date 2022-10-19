@@ -1,7 +1,7 @@
 import { TwitterIntegrationMessage } from '../types/messageTypes'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import sendIntegrationsMessage from '../utils/integrationSQS'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 /**
  * Gets all the integrations that have an active twitter integration.

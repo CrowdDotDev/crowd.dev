@@ -6,7 +6,7 @@ import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import IntegrationService from '../../../../services/integrationService'
 import BaseIterator from '../baseIterator'
 import { SlackGrid } from '../../grid/slackGrid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 const db = null

@@ -21,7 +21,7 @@ import MicroserviceService from '../../../services/microserviceService'
 import * as microserviceTypes from '../../../database/utils/keys/microserviceTypes'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import { TWITTER_CONFIG } from '../../../config'
 

@@ -1,10 +1,8 @@
-import discordCoordinator from './coordinators/discordCoordinator'
 import slackCoordinator from './coordinators/slackCoordinator'
 import twitterCoordinator from './coordinators/twitterCoordinator'
 import twitterReachCoordinator from './coordinators/twitterReachCoordinator'
 import mainWorker from './workers/mainWorker'
 import { stepFunctions } from '../../services/aws'
-import devtoCoordinator from './coordinators/devtoCoordinator'
 
 export async function handlerTwitterCoordinator() {
   return twitterCoordinator()
@@ -14,16 +12,8 @@ export async function handlerTwitterReachCoordinator() {
   return twitterReachCoordinator()
 }
 
-export async function handlerDiscordCoordinator() {
-  return discordCoordinator()
-}
-
 export async function handlerSlackCoordinator() {
   return slackCoordinator()
-}
-
-export async function handlerDevtoCoordinator() {
-  return devtoCoordinator()
 }
 
 export async function consumer(event) {

@@ -1,12 +1,13 @@
 // TODO-kube
 
 import moment from 'moment'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../types/worketTypes'
+import { NodeWorkerMessageType } from '../../types/worketTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { KUBE_MODE, IS_TEST_ENV } from '../../../config'
 import { NodeMicroserviceMessage } from './messageTypes'
 import { sqs } from '../../../services/aws'
 import { AutomationTrigger } from '../../../types/automationTypes'
+import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 
 /**
  * Send a message to the node microservice queue
@@ -66,7 +67,7 @@ export const sendNewActivityNodeSQSMessage = async (
       trigger: AutomationTrigger.NEW_ACTIVITY,
       service: 'automation',
     }
-    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
+    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
   } else {
     await sendNodeMicroserviceMessage({
       tenant,
@@ -89,7 +90,7 @@ export const sendNewMemberNodeSQSMessage = async (
       trigger: AutomationTrigger.NEW_MEMBER,
       service: 'automation',
     }
-    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessage)
+    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
   } else {
     await sendNodeMicroserviceMessage({
       tenant,

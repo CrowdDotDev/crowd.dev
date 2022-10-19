@@ -1,6 +1,6 @@
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import IntegrationService from '../../../../services/integrationService'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 import DevtoIterator from '../devtoIterator'
 import { DevtoArticle, DevtoComment } from '../../usecases/devto/types'
 import { DevtoGrid } from '../../grid/devtoGrid'

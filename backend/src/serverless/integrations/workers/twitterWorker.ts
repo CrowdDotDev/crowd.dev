@@ -5,7 +5,7 @@ import TwitterIterator from '../iterators/twitterIterator'
 import TwitterReachIterator from '../iterators/twitterReachIterator'
 import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { TwitterMemberAttributes } from '../../../database/attributes/member/twitter'
 import { TWITTER_CONFIG } from '../../../config'
@@ -30,7 +30,9 @@ async function refreshToken(userContext) {
   const timeSinceLastReset: number = moment()
     .utc()
     .diff(moment(tweetCounterLastReset).utc(), 'days')
+
   console.log('Time since last reset: ', timeSinceLastReset, ' days')
+
   // If the time since last reset is greater than the reset time, reset the counter
   if (timeSinceLastReset >= TWITTER_CONFIG.limitResetFrequencyDays) {
     integration.limitCount = 0

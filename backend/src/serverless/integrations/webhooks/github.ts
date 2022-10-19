@@ -8,8 +8,8 @@ import ActivityService from '../../../services/activityService'
 import { AddActivitiesSingle, Member } from '../types/messageTypes'
 import getMember from '../usecases/github/graphql/members'
 import BaseIterator from '../iterators/baseIterator'
-import { PlatformType } from '../../../utils/platforms'
-import { GithubActivityType } from '../../../utils/activityTypes'
+import { PlatformType } from '../../../types/integrationEnums'
+import { GithubActivityType } from '../../../types/activityTypes'
 import { gridEntry } from '../grid/grid'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
@@ -382,8 +382,6 @@ export default class GitHubWebhook {
             return null
         }
 
-        break
-
       case 'discussion':
         switch (this.payload.action) {
           case 'edited':
@@ -417,7 +415,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'star':
         switch (this.payload.action) {
@@ -428,7 +425,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'fork':
         return this.fork()
@@ -461,12 +457,10 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       default:
         return null
     }
-    return null
   }
 
   /**

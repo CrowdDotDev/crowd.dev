@@ -1,5 +1,5 @@
 import { Transaction } from 'sequelize/types'
-import { PlatformType } from '../utils/platforms'
+import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { detectSentiment } from './aws'

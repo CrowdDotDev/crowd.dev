@@ -1,67 +1,53 @@
-/* eslint-disable no-constant-condition */
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
-import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { SQS_CONFIG } from '../config/index'
-import { createChildLogger, createServiceLogger } from '../utils/logging'
-import { sqs } from '../services/aws'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
-import { processIntegrationsMessage } from '../serverless/integrations/workDispatcher'
-import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
+import { SQS_CONFIG } from '../config'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
+import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
+import { NodeWorkerMessageType } from '../serverless/types/worketTypes'
+import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
+import { createChildLogger, getServiceLogger } from '../utils/logging'
+import { NodeWorkerIntegrationCheckMessage } from '../types/mq/nodeWorkerIntegrationCheckMessage'
+import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
+import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
+import { processIntegration, processIntegrationCheck } from './worker/integrations'
+import { deleteMessage, receiveMessage } from '../utils/sqs'
 
-const receiveMessage = (delayed?: boolean): Promise<Message | undefined> =>
-  new Promise<Message | undefined>((resolve, reject) => {
-    const params: ReceiveMessageRequest = {
-      QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-      MaxNumberOfMessages: 1,
-      WaitTimeSeconds: 15,
-      VisibilityTimeout: 15,
-      MessageAttributeNames: !delayed ? undefined : ['remainingDelaySeconds', 'tenantId'],
-    }
+/* eslint-disable no-constant-condition */
 
-    sqs.receiveMessage(params, (err, data) => {
-      if (err) {
-        reject(err)
-      } else if (data.Messages && data.Messages.length === 1) {
-        resolve(data.Messages[0])
-      } else {
-        resolve(undefined)
-      }
-    })
-  })
+const receive = (delayed?: boolean): Promise<Message | undefined> => {
+  const params: ReceiveMessageRequest = {
+    QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
+    MessageAttributeNames: !delayed ? undefined : ['remainingDelaySeconds', 'tenantId'],
+  }
 
-const deleteMessage = (receiptHandle: string, delayed?: boolean): Promise<void> =>
-  new Promise<void>((resolve, reject) => {
-    const params: DeleteMessageRequest = {
-      QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-      ReceiptHandle: receiptHandle,
-    }
+  return receiveMessage(params)
+}
 
-    sqs.deleteMessage(params, (err) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve()
-      }
-    })
-  })
+const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void> => {
+  const params: DeleteMessageRequest = {
+    QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
+    ReceiptHandle: receiptHandle,
+  }
 
-const serviceLogger = createServiceLogger()
+  return deleteMessage(params)
+}
+
+const serviceLogger = getServiceLogger()
 
 async function handleDelayedMessages() {
-  const delayedHandlerLogger = createChildLogger(serviceLogger, 'delayedMessages', {
+  const delayedHandlerLogger = createChildLogger('delayedMessages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerDelayableQueue,
   })
   delayedHandlerLogger.info('Listing for delayed messages!')
 
   // noinspection InfiniteLoopJS
   while (true) {
-    const message = await receiveMessage(true)
+    const message = await receive(true)
 
     if (message) {
-      const msg: NodeWorkerMessage = JSON.parse(message.Body)
-      const messageLogger = createChildLogger(delayedHandlerLogger, 'messageHandler', {
+      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+      const messageLogger = createChildLogger('messageHandler', serviceLogger, {
         messageId: message.MessageId,
+        receipt: message.ReceiptHandle,
         type: msg.type,
       })
 
@@ -78,7 +64,7 @@ async function handleDelayedMessages() {
         await sendNodeWorkerMessage(tenantId, msg)
       }
 
-      await deleteMessage(message.ReceiptHandle, true)
+      await removeFromQueue(message.ReceiptHandle, true)
     } else {
       delayedHandlerLogger.trace('No message received!')
     }
@@ -86,55 +72,67 @@ async function handleDelayedMessages() {
 }
 
 async function handleMessages() {
-  const handlerLogger = createChildLogger(serviceLogger, 'messages', {
+  const handlerLogger = createChildLogger('messages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerQueue,
   })
   handlerLogger.info('Listening for messages!')
 
   // noinspection InfiniteLoopJS
   while (true) {
-    const message = await receiveMessage()
+    const message = await receive()
 
     if (message) {
-      const msg: NodeWorkerMessage = JSON.parse(message.Body)
+      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
 
-      const messageLogger = createChildLogger(handlerLogger, 'messageHandler', {
+      const messageLogger = createChildLogger('messageHandler', serviceLogger, {
         messageId: message.MessageId,
+        receipt: message.ReceiptHandle,
         type: msg.type,
       })
 
-      messageLogger.info('Received a new queue message!')
+      try {
+        messageLogger.info('Received a new queue message!')
 
-      let processFunction: (msg: NodeWorkerMessage) => Promise<void>
-      let keep = false
+        let processFunction: (msg: NodeWorkerMessageBase) => Promise<void>
+        let keep = false
 
-      switch (msg.type) {
-        case NodeWorkerMessageType.INTEGRATION:
-          processFunction = processIntegrationsMessage
-          break
-        case NodeWorkerMessageType.NODE_MICROSERVICE:
-          processFunction = processNodeMicroserviceMessage
-          break
-        case NodeWorkerMessageType.DB_OPERATIONS:
-          processFunction = processDbOperationsMessage
-          break
+        switch (msg.type) {
+          case NodeWorkerMessageType.INTEGRATION_CHECK:
+            await removeFromQueue(message.ReceiptHandle)
+            await processIntegrationCheck(messageLogger, msg as NodeWorkerIntegrationCheckMessage)
+            break
+          case NodeWorkerMessageType.INTEGRATION_PROCESS:
+            await removeFromQueue(message.ReceiptHandle)
+            await processIntegration(messageLogger, msg as NodeWorkerIntegrationProcessMessage)
+            break
+          case NodeWorkerMessageType.NODE_MICROSERVICE:
+            processFunction = processNodeMicroserviceMessage
+            break
+          case NodeWorkerMessageType.DB_OPERATIONS:
+            processFunction = processDbOperationsMessage
+            break
 
-        default:
-          keep = true
-          messageLogger.error('Error while parsing queue message! Invalid type.')
-      }
-
-      if (!keep) {
-        // remove the message from the queue as it's about to be processed
-        await deleteMessage(message.ReceiptHandle)
-
-        try {
-          await processFunction(msg)
-        } catch (err) {
-          messageLogger.error(err, 'Error while processing queue message!')
+          default:
+            keep = true
+            messageLogger.error('Error while parsing queue message! Invalid type.')
         }
-      } else {
-        messageLogger.warn('Keeping the message in the queue!')
+
+        if (processFunction) {
+          if (!keep) {
+            // remove the message from the queue as it's about to be processed
+            await removeFromQueue(message.ReceiptHandle)
+
+            try {
+              await processFunction(msg)
+            } catch (err) {
+              messageLogger.error(err, 'Error while processing queue message!')
+            }
+          } else {
+            messageLogger.warn('Keeping the message in the queue!')
+          }
+        }
+      } catch (err) {
+        messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
       }
     } else {
       serviceLogger.trace('No message received!')

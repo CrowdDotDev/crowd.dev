@@ -3,12 +3,8 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import lodash from 'lodash'
-import { KUBE_MODE, GITHUB_CONFIG, IS_TEST_ENV } from '../config/index'
-import {
-  DevtoIntegrationMessage,
-  DiscordIntegrationMessage,
-  IntegrationsMessage,
-} from '../serverless/integrations/types/messageTypes'
+import { GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config'
+import { IntegrationsMessage } from '../serverless/integrations/types/messageTypes'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -16,10 +12,10 @@ import IntegrationRepository from '../database/repositories/integrationRepositor
 import Error542 from '../errors/Error542'
 import send from '../serverless/integrations/utils/integrationSQS'
 import track from '../segment/track'
-import { PlatformType } from '../utils/platforms'
+import { IntegrationType, PlatformType } from '../types/integrationEnums'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
+import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -291,11 +287,12 @@ export default class IntegrationService {
 
     // TODO-kube
     if (KUBE_MODE) {
-      const payload = {
-        type: NodeWorkerMessageType.INTEGRATION,
-        ...integrationsMessageBody,
-      }
-      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+      // TODO uros fixme
+      // const payload = {
+      //   type: NodeWorkerMessageType.INTEGRATION,
+      //   ...integrationsMessageBody,
+      // }
+      // await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
     } else {
       await send(integrationsMessageBody)
     }
@@ -309,49 +306,22 @@ export default class IntegrationService {
    * @returns integration object
    */
   async discordConnect(guildId) {
-    let integration = await this.createOrUpdate({
+    const integration = await this.createOrUpdate({
       platform: PlatformType.DISCORD,
       integrationIdentifier: guildId,
-    })
-    const isOnboarding: boolean = !('channels' in integration.settings)
-
-    const channels = isOnboarding ? [] : integration.settings.channels ?? []
-
-    integration = await this.createOrUpdate({
-      platform: PlatformType.DISCORD,
-      integrationIdentifier: guildId,
-      settings: { channels, updateMemberAttributes: true },
+      settings: { channels: [], updateMemberAttributes: true },
       status: 'in-progress',
     })
 
-    // Preparing a message to start fetching activities
-    const integrationsMessageBody: DiscordIntegrationMessage = {
-      integration: PlatformType.DISCORD,
-      state: {
-        endpoint: '',
-        page: '',
-        endpoints: [],
-      },
-      tenant: integration.tenantId.toString(),
-      sleep: 0,
-      onboarding: isOnboarding, // Full onboarding can also be deactivated from env
-      args: {
-        guildId,
-        channels,
-      },
-    }
-
-    // TODO-kube
-    if (KUBE_MODE) {
-      const payload = {
-        type: NodeWorkerMessageType.INTEGRATION,
-        ...integrationsMessageBody,
-      }
-
-      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
-    } else {
-      await send(integrationsMessageBody)
-    }
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.DISCORD,
+        integration.tenantId,
+        true,
+        integration.id,
+      ),
+    )
 
     return integration
   }
@@ -373,27 +343,15 @@ export default class IntegrationService {
       status: 'in-progress',
     })
 
-    const mqMessage: DevtoIntegrationMessage = {
-      integration: PlatformType.DEVTO,
-      sleep: 0,
-      integrationId: integration.id,
-      tenant: integration.tenantId.toString(),
-      onboarding: true,
-      state: { endpoint: '', page: '', endpoints: [] },
-      args: {},
-    }
-
-    // TODO-kube
-    if (KUBE_MODE) {
-      const payload = {
-        type: NodeWorkerMessageType.INTEGRATION,
-        ...mqMessage,
-      }
-
-      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
-    } else {
-      await send(mqMessage)
-    }
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.DEVTO,
+        integration.tenantId,
+        true,
+        integration.id,
+      ),
+    )
 
     return integration
   }
@@ -429,11 +387,12 @@ export default class IntegrationService {
 
     // TODO-kube
     if (KUBE_MODE) {
-      const payload = {
-        type: NodeWorkerMessageType.INTEGRATION,
-        ...integrationsMessageBody,
-      }
-      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+      // TODO uros fixme
+      // const payload = {
+      //   type: NodeWorkerMessageType.INTEGRATION,
+      //   ...integrationsMessageBody,
+      // }
+      // await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
     } else {
       await send(integrationsMessageBody)
     }
@@ -501,12 +460,12 @@ export default class IntegrationService {
 
     // TODO-kube
     if (KUBE_MODE) {
-      const payload = {
-        type: NodeWorkerMessageType.INTEGRATION,
-        ...integrationsMessageBody,
-      }
-
-      await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
+      // TODO uros fixme
+      // const payload = {
+      //   type: NodeWorkerMessageType.INTEGRATION,
+      //   ...integrationsMessageBody,
+      // }
+      // await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
     } else {
       await send(integrationsMessageBody)
     }

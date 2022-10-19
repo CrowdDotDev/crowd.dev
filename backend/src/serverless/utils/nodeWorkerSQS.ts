@@ -1,15 +1,15 @@
 import { MessageBodyAttributeMap } from 'aws-sdk/clients/sqs'
 import moment from 'moment'
+import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
-import { sqs } from '../../services/aws'
-import { NodeWorkerMessage } from '../types/worketTypes'
+import { sendMessage } from '../../utils/sqs'
 
 // 15 minute limit for delaying
 const limitSeconds = 10
 
 export const sendNodeWorkerMessage = async (
   tenantId: string,
-  body: NodeWorkerMessage,
+  body: NodeWorkerMessageBase,
   delaySeconds?: number,
 ): Promise<void> => {
   console.log('Sending a new nodejs worker message!', tenantId, body, delaySeconds)
@@ -54,14 +54,12 @@ export const sendNodeWorkerMessage = async (
     delayed = true
   }
 
-  await sqs
-    .sendMessage({
-      QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-      MessageGroupId: delayed ? undefined : tenantId,
-      MessageDeduplicationId: delayed ? undefined : `${tenantId}-${moment().valueOf()}`,
-      MessageBody: JSON.stringify(body),
-      MessageAttributes: attributes,
-      DelaySeconds: delay,
-    })
-    .promise()
+  await sendMessage({
+    QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
+    MessageGroupId: delayed ? undefined : tenantId,
+    MessageDeduplicationId: delayed ? undefined : `${tenantId}-${moment().valueOf()}`,
+    MessageBody: JSON.stringify(body),
+    MessageAttributes: attributes,
+    DelaySeconds: delay,
+  })
 }

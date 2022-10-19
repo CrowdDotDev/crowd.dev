@@ -6,8 +6,8 @@ import { GitHubGrid } from '../../grid/githubGrid'
 import BaseIterator from '../../iterators/baseIterator'
 import GitHubWebhook from '../github'
 import TestEvents from './events'
-import { PlatformType } from '../../../../utils/platforms'
-import { GithubActivityType } from '../../../../utils/activityTypes'
+import { PlatformType } from '../../../../types/integrationEnums'
+import { GithubActivityType } from '../../../../types/activityTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 const db = null

@@ -1,8 +1,9 @@
 import cronGenerator from 'cron-time-generator'
-import { CrowdJob } from '../../utils/jobTypes'
+import { CrowdJob } from '../../types/jobTypes'
 import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',
@@ -15,7 +16,7 @@ const job: CrowdJob = {
         type: NodeWorkerMessageType.NODE_MICROSERVICE,
         tenant: tenant.id,
         service: 'weekly-analytics-emails',
-      } as NodeWorkerMessage)
+      } as NodeWorkerMessageBase)
     }
   },
 }

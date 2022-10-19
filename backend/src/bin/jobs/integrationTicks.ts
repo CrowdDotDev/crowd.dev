@@ -1,16 +1,32 @@
 import cronGenerator from 'cron-time-generator'
-import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
-import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { CrowdJob } from '../../utils/jobTypes'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import { IntegrationProcessor } from '../../serverless/integrations/services/integrationProcessor'
+import { IServiceOptions } from '../../services/IServiceOptions'
+import { CrowdJob } from '../../types/jobTypes'
+import { getServiceLogger } from '../../utils/logging'
+
+let integrationProcessorInstance: IntegrationProcessor
+
+async function getIntegrationProcessor(): Promise<IntegrationProcessor> {
+  if (integrationProcessorInstance) return integrationProcessorInstance
+
+  const options: IServiceOptions = {
+    ...(await SequelizeRepository.getDefaultIRepositoryOptions()),
+    log: getServiceLogger(),
+  }
+
+  integrationProcessorInstance = new IntegrationProcessor(options)
+
+  return integrationProcessorInstance
+}
 
 const job: CrowdJob = {
-  name: 'DEV.to coordinator',
+  name: 'Integration Ticker',
   // every two hours
   cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
-    await sendNodeWorkerMessage('global', {
-      type: NodeWorkerMessageType.INTEGRATION_TICK,
-    })
+    const processor = await getIntegrationProcessor()
+    await processor.processTick()
   },
 }
 

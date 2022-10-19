@@ -23,7 +23,7 @@ import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOp
 import getMessagesThreads from '../usecases/chat/getMessagesThreads'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import { SLACK_CONFIG } from '../../../config'
 

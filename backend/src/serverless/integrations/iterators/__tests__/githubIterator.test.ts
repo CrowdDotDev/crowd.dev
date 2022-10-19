@@ -5,7 +5,7 @@ import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import { Repos } from '../../types/regularTypes'
 import GithubIterator from '../githubIterator'
 import IntegrationService from '../../../../services/integrationService'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 import Error400 from '../../../../errors/Error400'
 import {
   mockPullRequests,
@@ -17,7 +17,7 @@ import {
   mockDiscussions,
   mockDiscussionComments,
 } from './githubGraphqlMockResponses'
-import { GithubActivityType } from '../../../../utils/activityTypes'
+import { GithubActivityType } from '../../../../types/activityTypes'
 import { GitHubGrid } from '../../grid/githubGrid'
 import BaseIterator from '../baseIterator'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'

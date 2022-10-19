@@ -1,7 +1,7 @@
 import MemberService from '../../../../services/memberService'
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import TwitterReachIterator from '../twitterReachIterator'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 
 const db = null
 

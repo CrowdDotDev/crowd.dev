@@ -1,5 +1,5 @@
 import cronGenerator from 'cron-time-generator'
-import { CrowdJob } from '../../utils/jobTypes'
+import { CrowdJob } from '../../types/jobTypes'
 import MicroserviceRepository from '../../database/repositories/microserviceRepository'
 import { TwitterReachMessage } from '../../serverless/integrations/types/messageTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'

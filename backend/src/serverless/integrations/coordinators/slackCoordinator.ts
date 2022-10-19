@@ -1,7 +1,7 @@
 import { SlackIntegrationMessage } from '../types/messageTypes'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import sendIntegrationsMessage from '../utils/integrationSQS'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 /**
  * Gets all active Slack integrations

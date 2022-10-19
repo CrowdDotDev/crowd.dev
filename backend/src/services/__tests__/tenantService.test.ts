@@ -3,7 +3,7 @@ import TenantService from '../tenantService'
 import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
 

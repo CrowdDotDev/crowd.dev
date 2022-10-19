@@ -15,7 +15,7 @@ import { Endpoint, Endpoints, State } from '../types/regularTypes'
 import { getArticleComments } from '../usecases/devto/getArticleComments'
 import sendIntegrationsMessage from '../utils/integrationSQS'
 import BaseIterator from './baseIterator'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 
 /* eslint @typescript-eslint/no-unused-vars: 0 */

@@ -1,4 +1,4 @@
-import { PlatformType } from './platforms'
+import { PlatformType } from './integrationEnums'
 
 export const platformDisplayNames = {
   [PlatformType.GITHUB]: 'GitHub',

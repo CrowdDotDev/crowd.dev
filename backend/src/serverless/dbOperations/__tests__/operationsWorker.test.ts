@@ -5,7 +5,7 @@ import MemberService from '../../../services/memberService'
 import IntegrationService from '../../../services/integrationService'
 import MicroserviceService from '../../../services/microserviceService'
 import worker from '../operationsWorker'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 

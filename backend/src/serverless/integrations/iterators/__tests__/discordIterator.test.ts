@@ -4,7 +4,7 @@ import { DiscordGrid } from '../../grid/discordGrid'
 import { Channels } from '../../types/regularTypes'
 import BaseIterator from '../baseIterator'
 import DiscordIterator from '../discordIterator'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 describe('Discord iterator tests', () => {

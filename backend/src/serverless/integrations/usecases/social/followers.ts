@@ -2,7 +2,7 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
 import BaseIterator from '../../iterators/baseIterator'
 import isInvalid from '../isInvalid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 /**
  * Get all followers of an account
  * @param accessToken User token to access the Twitter API

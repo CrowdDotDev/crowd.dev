@@ -10,7 +10,7 @@
     "start:job-generator:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=job-generator nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/job-generator.ts\"",
     "start:nodejs-worker": "ts-node --transpile-only ./src/bin/nodejs-worker.ts",
     "start:nodejs-worker:dev": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/nodejs-worker.ts\"",
-    "start:nodejs-worker:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=nodejs-worker nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/nodejs-worker.ts\"",
+    "start:nodejs-worker:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=nodejs-worker nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"node -r ts-node/register ./src/bin/nodejs-worker.ts --transpile-only\"",
     "build": "tsc && npm run build:documentation && cp package*json dist/ && cp .sequelizerc dist/.sequelizerc ",
     "build:setenv:dev": "cp .env dist/.env",
     "build:setenv:staging": "cp .env.staging dist/.env",

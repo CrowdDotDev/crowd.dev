@@ -3,7 +3,7 @@ import OrganizationRepository from '../organizationRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 

@@ -6,7 +6,7 @@ import findPostsByMention from '../../usecases/social/postsByMention'
 import BaseIterator from '../baseIterator'
 import TwitterIterator from '../twitterIterator'
 import { TwitterGrid } from '../../grid/twitterGrid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 
 describe('Integrations worker static tests', () => {

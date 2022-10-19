@@ -2,7 +2,7 @@ import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import TaskRepository from '../taskRepository'
 
 const db = null

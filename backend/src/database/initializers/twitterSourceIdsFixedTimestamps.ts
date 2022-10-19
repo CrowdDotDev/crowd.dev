@@ -9,7 +9,7 @@ import BaseIterator from '../../serverless/integrations/iterators/baseIterator'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import TenantService from '../../services/tenantService'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import getUserContext from '../utils/getUserContext'
 
 const path = require('path')

@@ -18,7 +18,7 @@ import BaseIterator from './baseIterator'
 import MemberService from '../../../services/memberService'
 import getProfiles from '../usecases/social/profiles'
 import Operations from '../../dbOperations/operations'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { TWITTER_CONFIG } from '../../../config'
 
 export default class TwitterReachIterator extends BaseIterator {

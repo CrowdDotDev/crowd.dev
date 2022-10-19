@@ -5,7 +5,7 @@ import SlackIterator from '../iterators/slackIterator'
 import getChannels from '../usecases/chat/getChannels'
 import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../database/attributes/member/slack'
 

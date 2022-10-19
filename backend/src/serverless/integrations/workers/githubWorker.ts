@@ -1,7 +1,7 @@
 import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import GithubIterator from '../iterators/githubIterator'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { IntegrationsMessage } from '../types/messageTypes'
 import StargazersQuery from '../usecases/github/graphql/stargazers'
 import BaseIterator from '../iterators/baseIterator'

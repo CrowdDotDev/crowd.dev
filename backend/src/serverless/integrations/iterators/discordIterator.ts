@@ -15,7 +15,7 @@ import getUserContext from '../../../database/utils/getUserContext'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import Operations from '../../dbOperations/operations'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import { DISCORD_CONFIG } from '../../../config'
 
