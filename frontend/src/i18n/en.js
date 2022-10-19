@@ -400,7 +400,7 @@ const en = {
     conversation: {
       name: 'Conversations',
       label: 'Conversations',
-      menu: 'Conversations',
+      menu: 'Community Help Center',
       edit: {
         title: 'Edit Conversation'
       },
@@ -479,7 +479,7 @@ const en = {
   auth: {
     tenants: 'Workspaces',
     profile: {
-      title: 'Profile',
+      title: 'Profile settings',
       success: 'Profile successfully updated'
     },
     createAnAccount: 'Create an account',
@@ -561,9 +561,9 @@ const en = {
       roles: 'Roles',
       createdAtRange: 'Created at',
       password: 'Password',
-      oldPassword: 'Old Password',
-      newPassword: 'New Password',
-      newPasswordConfirmation: 'New Password Confirmation',
+      oldPassword: 'Old password',
+      newPassword: 'New password',
+      newPasswordConfirmation: 'Confirm new password',
       rememberMe: 'Remember me'
     },
     status: {
@@ -606,7 +606,7 @@ const en = {
   tenant: {
     name: 'tenant',
     label: 'Workspaces',
-    menu: 'Workspaces',
+    menu: 'Manage workspaces',
     list: {
       menu: 'Workspaces',
       title: 'Workspaces'
@@ -726,6 +726,9 @@ const en = {
       volcano: 'Volcano',
       yellow: 'Yellow'
     }
+  },
+  integrations: {
+    menu: 'Integrations'
   },
   dashboard: {
     menu: 'Home',
@@ -847,7 +850,7 @@ const en = {
   },
 
   external: {
-    docs: 'Docs',
+    docs: 'Documentation',
     community: 'Community'
   }
 }
