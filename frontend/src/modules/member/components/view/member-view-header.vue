@@ -137,6 +137,14 @@ defineProps({
 })
 
 const formattedDate = (timestamp) => {
+  // If the timestamp is 1970, we show "-"
+  if (
+    moment(timestamp).isBefore(
+      moment().subtract(40, 'years')
+    )
+  ) {
+    return '-'
+  }
   return moment(timestamp).format('YYYY-MM-DD')
 }
 
