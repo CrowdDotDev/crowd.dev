@@ -1,7 +1,7 @@
 <template>
   <article
     v-if="loading || !conversation"
-    class="py-6 border-gray-200 -mx-6 px-6"
+    class="py-5 border-gray-200 -mx-6 px-6"
   >
     <div class="flex relative">
       <div>
@@ -11,31 +11,17 @@
           radius="50%"
         ></app-loading>
       </div>
-      <div class="flex-grow pl-3">
-        <div class="flex justify-between">
-          <div>
-            <app-loading
-              height="16px"
-              width="80px"
-              class="mb-0.5"
-            />
-            <div class="flex items-center">
-              <div class="pr-2">
-                <app-loading height="16px" width="16px" />
-              </div>
-              <div class="flex-grow">
-                <app-loading height="16px" width="210px" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="pt-4">
-          <app-loading height="60px" class="mb-4" />
+      <div class="flex-grow pl-3 pt-2.5">
+        <app-loading
+          height="12px"
+          width="320px"
+          class="mb-3"
+        />
+        <app-loading height="12px" width="280px" />
+        <div class="pt-6">
           <app-conversation-reply
-            class="mb-8"
             :loading="true"
           />
-          <app-conversation-reply :loading="true" />
         </div>
       </div>
     </div>

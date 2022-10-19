@@ -41,7 +41,7 @@ export default {
 }
 
 .loading-placeholder {
-  @apply bg-gray-200;
+  @apply bg-gray-100;
   display: block;
   position: relative;
   overflow: hidden;

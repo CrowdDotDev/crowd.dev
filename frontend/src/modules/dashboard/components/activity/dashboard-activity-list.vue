@@ -2,7 +2,7 @@
   <div class="pt-3">
     <div v-if="activities.loading">
       <app-dashboard-activity-item
-        v-for="el of new Array(3)"
+        v-for="el of new Array(4)"
         :key="el"
         :loading="true"
       />

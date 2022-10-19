@@ -7,30 +7,28 @@
     <template #loading>
       <div class="flex items-center pb-6">
         <app-loading
-          height="14px"
-          width="25px"
-          class="mr-2"
-        ></app-loading>
-        <p class="text-sm font-medium mr-2">activities</p>
-        <app-loading
-          class="py-0.5"
-          width="22px"
           height="16px"
-          radius="4px"
+          width="120px"
         ></app-loading>
       </div>
     </template>
     <template #default="{ resultSet }">
       <div class="flex items-center pb-6">
         <p class="text-sm font-medium mr-2">
-          {{ activities.total }} activities
+          {{ numberWithCommas(activities.total) }}
+          activities
         </p>
-        <app-dashboard-badge
-          :type="computedBadgeType(resultSet)"
-          >{{
-            computedBageLabel(resultSet)
-          }}</app-dashboard-badge
+        <el-tooltip
+          content="vs. previous same period"
+          placement="top"
         >
+          <app-dashboard-badge
+            :type="computedBadgeType(resultSet)"
+            >{{
+              computedBageLabel(resultSet)
+            }}</app-dashboard-badge
+          >
+        </el-tooltip>
       </div>
     </template>
   </app-cube-render>
@@ -100,6 +98,11 @@ export default {
       }
 
       return '='
+    },
+    numberWithCommas(x) {
+      return x
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     }
   }
 }

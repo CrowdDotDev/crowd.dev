@@ -1,5 +1,5 @@
 <template>
-  <div class="widget panel">
+  <div class="widget panel !p-6">
     <!-- header -->
     <div class="flex items-center">
       <div

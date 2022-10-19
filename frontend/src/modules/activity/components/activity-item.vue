@@ -11,18 +11,13 @@
           radius="50%"
         />
       </div>
-      <div class="flex-grow w-full">
-        <div class="flex justify-between w-full mb-2">
-          <div>
-            <app-loading
-              height="16px"
-              width="80px"
-              class="mb-0.5"
-            />
-            <app-loading height="16px" width="210px" />
-          </div>
-        </div>
-        <app-loading height="80px" radius="8px" />
+      <div class="flex-grow w-full pt-2.5">
+        <app-loading
+          height="12px"
+          width="320px"
+          class="mb-3"
+        />
+        <app-loading height="12px" width="280px" />
       </div>
     </div>
   </article>

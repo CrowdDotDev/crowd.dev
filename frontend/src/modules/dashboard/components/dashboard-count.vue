@@ -3,15 +3,8 @@
     <template #loading>
       <div class="flex items-center pb-4 py-0.5">
         <app-loading
-          width="23px"
+          width="80px"
           height="16px"
-          radius="4px"
-          class="mr-2"
-        ></app-loading>
-        <app-loading
-          width="22px"
-          height="16px"
-          radius="4px"
         ></app-loading>
       </div>
     </template>
@@ -22,8 +15,8 @@
           {{ computedScore(resultSet).current }}
         </h6>
         <el-tooltip
-          :content="`Difference from previous ${period} days`"
-          placement="right"
+          content="vs. previous same period"
+          placement="top"
         >
           <app-dashboard-badge
             :type="computedBadgeType(resultSet)"
