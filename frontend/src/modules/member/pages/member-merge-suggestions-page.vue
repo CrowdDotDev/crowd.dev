@@ -28,18 +28,18 @@
             <el-table-column label="Member" min-width="150">
               <template #default="scope">
                 <div class="flex items-center">
-                  <div class="h-16">
+                  <div class="h-12">
                     <app-avatar
                       :entity="scope.row"
                       size="sm"
                       class="mr-2"
                     />
                   </div>
-                  <div class="h-16 text-gray-900">
+                  <div class="h-12 text-gray-900">
                     <div>{{ scope.row.displayName }}</div>
                     <div
                       v-if="scope.row.attributes.bio"
-                      class="text-gray-500 text-xs pr-4 line-clamp"
+                      class="text-gray-500 text-xs pr-4"
                     >
                       {{ scope.row.attributes.bio.default }}
                     </div>
@@ -84,7 +84,7 @@
                     class="btn bg-transparent mr-4"
                   >
                     <i
-                      class="ri-switch-line ri-lg text-brand-600"
+                      class="ri-arrow-up-down-line ri-lg text-brand-600"
                     ></i>
                     <span class="text-brand-600"
                       >Make primary</span
@@ -119,15 +119,47 @@
             </div>
             <el-dialog
               v-model="viewingDetails.viewing"
-              title="New Member"
+              title="Merge suggestion"
               :append-to-body="true"
               :close-on-click-modal="false"
+              :show-close="false"
               :destroy-on-close="true"
-              custom-class="el-dialog--lg"
+              class="el-dialog--2xl"
               @close="viewingDetails.viewing = false"
             >
+              <template
+                #header="{ close, titleId, titleClass }"
+              >
+                <div class="my-header">
+                  <h3 :id="titleId" :class="titleClass">
+                    Merging suggestion
+                  </h3>
+                  <div class="flex items-center">
+                    <button
+                      class="btn btn--bordered merge-suggestion-button header-merge-suggestion-button"
+                      @click="handleNotMergeClick(pair)"
+                    >
+                      Ignore suggestion
+                    </button>
+                    <button
+                      class="btn btn--primary mx-4 merge-suggestion-button header-merge-suggestion-button"
+                      @click="handleMergeClick(pair)"
+                    >
+                      Merge members
+                    </button>
+                    <button class="btn" @click="close">
+                      <i
+                        class="ri-close-line ri-lg text-gray-400"
+                      ></i>
+                    </button>
+                  </div>
+                </div>
+              </template>
               <div>
-                {{ JSON.stringify(pair) }}
+                <member-merge-suggestions-details
+                  :pair="pair"
+                  @makePrimary="makePrimary(pair)"
+                />
               </div>
             </el-dialog>
           </div>
@@ -146,10 +178,10 @@ export default {
 <script setup>
 import { ref, onMounted } from 'vue'
 import { i18n } from '@/i18n'
-import AppMemberChannels from './member-channels'
+import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
-
+import MemberMergeSuggestionsDetails from '../components/member-merge-suggestions-details.vue'
 const membersToMerge = ref([])
 const channelsWidth = ref('')
 const viewingDetails = ref({
@@ -194,15 +226,15 @@ function setViewingDetails(m1, m2) {
 
 async function handleMergeClick(members) {
   try {
-    await this.$myConfirm(
-      i18n('common.areYouSure'),
-      i18n('common.confirm'),
-      {
-        confirmButtonText: i18n('common.yes'),
-        cancelButtonText: i18n('common.no'),
-        type: 'warning'
-      }
-    )
+    // await this.$myConfirm(
+    //   i18n('common.areYouSure'),
+    //   i18n('common.confirm'),
+    //   {
+    //     confirmButtonText: i18n('common.yes'),
+    //     cancelButtonText: i18n('common.no'),
+    //     type: 'warning'
+    //   }
+    // )
 
     const response = await MemberService.merge(
       members[0],
@@ -222,6 +254,7 @@ async function handleMergeClick(members) {
 
     console.log(response)
   } catch (error) {
+    console.log(error)
     // no
   }
 }
@@ -260,14 +293,18 @@ async function handleNotMergeClick(members) {
 }
 
 function makePrimary(members) {
-  for (const ms of membersToMerge) {
+  const newToMerge = []
+  for (const ms of this.membersToMerge) {
     if (
       members[0].id === ms[0].id &&
       members[1].id === ms[1].id
     ) {
-      membersToMerge.value = []
+      newToMerge.push([ms[1], ms[0]])
+    } else {
+      newToMerge.push(ms)
     }
   }
+  this.membersToMerge = newToMerge
 }
 </script>
 <style scoped>
@@ -279,6 +316,14 @@ function makePrimary(members) {
 }
 
 .merge-suggestion-button {
-  @apply mt-4 px-2 text-sm py-3;
+  @apply mt-4 px-2 text-sm py-2;
+}
+
+.header-merge-suggestion-button {
+  @apply mt-0;
+}
+
+.my-header {
+  @apply flex justify-between items-center;
 }
 </style>

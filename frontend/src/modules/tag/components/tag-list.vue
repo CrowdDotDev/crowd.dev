@@ -8,6 +8,7 @@
         >{{ tag.name }}</span
       >
       <el-button
+        v-if="editable"
         class="btn btn-link btn-link--primary text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click.stop="editing = true"
@@ -48,6 +49,10 @@ export default {
     member: {
       type: Object,
       default: () => {}
+    },
+    editable: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['tags-updated'],
