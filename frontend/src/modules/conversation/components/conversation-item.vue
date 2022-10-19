@@ -19,9 +19,7 @@
         />
         <app-loading height="12px" width="280px" />
         <div class="pt-6">
-          <app-conversation-reply
-            :loading="true"
-          />
+          <app-conversation-reply :loading="true" />
         </div>
       </div>
     </div>
@@ -192,16 +190,16 @@ import AppConversationDropdown from '@/modules/conversation/components/conversat
 import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppConversationReply from '@/modules/conversation/components/conversation-reply'
-import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityChannel from '@/modules/activity/components/activity-channel'
+import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 
 export default {
-  name: 'AppDashboardConversationsItem',
+  name: 'AppConversationItem',
   components: {
-    AppActivityChannel,
-    AppActivityContent,
     AppConversationReply,
+    AppActivityContent,
+    AppActivityChannel,
     AppLoading,
     AppConversationDropdown,
     AppAvatar
