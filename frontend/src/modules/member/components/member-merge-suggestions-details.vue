@@ -23,8 +23,8 @@
         </div>
         <button
           v-if="member.id === pair[1].id"
-          @click="handleMakePrimary"
           class="btn bg-transparent ml-auto"
+          @click="handleMakePrimary"
         >
           <i
             class="ri-arrow-up-down-line ri-lg text-brand-600"
@@ -76,7 +76,7 @@
     >
       <app-member-organizations
         :member="member"
-        :showTitle="false"
+        :show-title="false"
       />
     </div>
     <!-- Row 4: Title -->

@@ -86,8 +86,8 @@
                   class="flex items-center justify-end"
                 >
                   <button
-                    @click="makePrimary(pair)"
                     class="btn bg-transparent mr-4"
+                    @click="makePrimary(pair)"
                   >
                     <i
                       class="ri-arrow-up-down-line ri-lg text-brand-600"
