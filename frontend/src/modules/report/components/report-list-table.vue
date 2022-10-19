@@ -169,7 +169,7 @@ export default {
 
     handleRowClick(row) {
       this.$router.push({
-        name: 'conversationView',
+        name: 'reportView',
         params: { id: row.id }
       })
     }
