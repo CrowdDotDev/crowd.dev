@@ -20,21 +20,7 @@
           type="selection"
           width="75"
         ></el-table-column>
-        <el-table-column width="150">
-          <template #header>
-            <span class="inline-flex items-center">
-              <span class="inline-flex mr-1">Status</span>
-              <el-tooltip placement="top">
-                <template #content>
-                  Published conversations will be available
-                  within community's help center
-                </template>
-                <i
-                  class="ri-information-line inline-flex items-center mr-2"
-                ></i>
-              </el-tooltip>
-            </span>
-          </template>
+        <el-table-column width="150" label="Status">
           <template #default="scope">
             <span
               v-if="scope.row.published"
@@ -97,7 +83,7 @@
               <el-tooltip placement="top">
                 <template #content>
                   Channel corresponds to a proper channel
-                  (in Discord and Slack) or a repo (in
+                  (in Discord and Slack), or a repo (in
                   GitHub)
                 </template>
                 <i
