@@ -671,12 +671,13 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed star activities that can be saved to the database.
    */
-  parseStars(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseStars(records: Array<any>, endpoint: string): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.STAR,
@@ -693,9 +694,8 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       })
-
-      return acc
-    }, [])
+    }
+    return out
   }
 
   /**
@@ -731,10 +731,19 @@ export default class GithubIterator extends BaseIterator {
       if (IS_TEST_ENV) {
         member.organizations = [{ name: 'crowd.dev' }]
       } else {
-        const company = memberFromApi.company.replace('@', '')
+        const company = memberFromApi.company.replace('@', '').trim()
         const fromAPI = await getOrganization(company, this.accessToken)
         if (fromAPI) {
-          member.organizations = [fromAPI]
+          member.organizations = [
+            {
+              name: fromAPI.name,
+              ...(fromAPI.description && { description: fromAPI.description }),
+              ...(fromAPI.location && { location: fromAPI.location }),
+              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
+              ...(fromAPI.url && { url: fromAPI.url }),
+              ...(fromAPI.twitter && { twittwe: { handle: fromAPI.twitterUsername } }),
+            },
+          ]
         } else {
           member.organizations = [{ name: company }]
         }
