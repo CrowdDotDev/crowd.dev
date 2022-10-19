@@ -5,6 +5,7 @@ import {
   IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
+  IStreamResultOperation,
   IStreamsResult,
 } from '../../../types/integration/stepResult'
 import { IntegrationType } from '../../../types/integrationEnums'
@@ -20,11 +21,15 @@ export abstract class IntegrationServiceBase {
    *
    * @param type What integration is this?
    * @param globalLimit how many records to process before we stop
+   * @param onboardingLimitModifierFactor if onboarding globalLimit will be multiplied by this factor for that run
+   * @param limitResetFrequencySeconds How many seconds between global limit reset (0 for auto reset)
    * @param ticksBetweenChecks How many ticks to skip between each integration checks (each tick is 1 minute)
    */
   protected constructor(
     public readonly type: IntegrationType,
     public readonly globalLimit: number,
+    public readonly onboardingLimitModifierFactor: number,
+    public readonly limitResetFrequencySeconds: number,
     public readonly ticksBetweenChecks: number,
   ) {}
 
@@ -32,7 +37,9 @@ export abstract class IntegrationServiceBase {
     return {}
   }
 
-  abstract createMemberAttributes(context: IStepContext): Promise<void>
+  async createMemberAttributes(context: IStepContext): Promise<void> {
+    // do nothing - override if something is needed
+  }
 
   abstract getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult>
 
@@ -41,6 +48,16 @@ export abstract class IntegrationServiceBase {
     context: IStepContext,
     metadata?: any,
   ): Promise<IProcessStreamResults>
+
+  async isProcessingFinished(
+    context: IStepContext,
+    currentStream: IIntegrationStream,
+    lastOperations: IStreamResultOperation[],
+    lastRecordTimestamp?: number,
+    metadata?: any,
+  ): Promise<boolean> {
+    return false
+  }
 
   async postprocess(
     context: IStepContext,
@@ -61,12 +78,16 @@ export abstract class IntegrationServiceBase {
 
   /**
    * Check whether the last record is over the retrospect that we are interested in
-   * @param lastRecord The last activity we got
+   * @param lastRecordTimestamp The last activity timestamp we got
    * @param startTimestamp The timestamp when we started
    * @param maxRetrospect The maximum time we want to crawl
    * @returns Whether we are over the retrospect already
    */
-  static isRetrospectOver(lastRecord: any, startTimestamp: number, maxRetrospect: number): boolean {
-    return startTimestamp - moment(lastRecord.timestamp).unix() > maxRetrospect
+  static isRetrospectOver(
+    lastRecordTimestamp: number,
+    startTimestamp: number,
+    maxRetrospect: number,
+  ): boolean {
+    return startTimestamp - moment(lastRecordTimestamp).unix() > maxRetrospect
   }
 }

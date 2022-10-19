@@ -414,70 +414,36 @@ export default class IntegrationService {
    * @returns integration object
    */
   async twitterCallback(integrationData) {
-    let { hashtags } = integrationData
     const { profileId, token, refreshToken } = integrationData
+    const hashtags = integrationData.hashtags || []
 
-    let integration = await this.createOrUpdate({
+    const integration = await this.createOrUpdate({
       platform: PlatformType.TWITTER,
       integrationIdentifier: profileId,
       token,
       refreshToken,
-    })
-
-    if (!integration.limitCount) {
-      integration.limitCount = 0
-    }
-    if (!integration.limitLastResetAt) {
-      integration.limitLastResetAt = moment().format('YYYY-MM-DD HH:mm:ss')
-    }
-
-    // Hashtags cannot be null, it should be an empty list if no hashtags were added
-    hashtags = hashtags || []
-    integration.settings.hashtags = hashtags
-    integration.settings.updateMemberAttributes = true
-
-    let isOnboarding: boolean = true
-    if (hashtags.length > 0 && lodash.isEqual(hashtags, integration.settings.hashtags)) {
-      isOnboarding = false
-    }
-
-    // Preparing a message to start fetching activities
-    const integrationsMessageBody: IntegrationsMessage = {
-      integration: PlatformType.TWITTER,
-      state: {
-        endpoint: '',
-        page: '',
-        endpoints: [],
-      },
-      tenant: integration.tenantId.toString(),
-      sleep: 0,
-      onboarding: isOnboarding, // Full onboarding can also be deactivated from env
-      args: {
-        profileId,
-        hashtags,
-      },
-    }
-
-    // TODO-kube
-    if (KUBE_MODE) {
-      // TODO uros fixme
-      // const payload = {
-      //   type: NodeWorkerMessageType.INTEGRATION,
-      //   ...integrationsMessageBody,
-      // }
-      // await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
-    } else {
-      await send(integrationsMessageBody)
-    }
-
-    integration = await this.update(integration.id, {
-      limitCount: integration.limitCount,
-      limitLastResetAt: integration.limitLastResetAt,
-      settings: integration.settings,
+      limitCount: 0,
+      limitLastResetAt: moment().format('YYYY-MM-DD HH:mm:ss'),
       status: 'in-progress',
+      settings: {
+        hashtags,
+        updateMemberAttributes: true,
+      },
     })
 
-    await send(integrationsMessageBody)
+    const isOnboarding: boolean = !(
+      hashtags.length > 0 && lodash.isEqual(hashtags, integration.settings.hashtags)
+    )
+
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.TWITTER,
+        integration.tenantId,
+        isOnboarding,
+        integration.id,
+      ),
+    )
 
     return integration
   }

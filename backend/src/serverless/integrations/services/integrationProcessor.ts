@@ -4,7 +4,7 @@ import MicroserviceRepository from '../../../database/repositories/microserviceR
 import getUserContext from '../../../database/utils/getUserContext'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { singleOrDefault } from '../../../utils/arrays'
-import { IntegrationType } from '../../../types/integrationEnums'
+import { IntegrationType, PlatformType } from '../../../types/integrationEnums'
 import { createChildLogger, Logger } from '../../../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
@@ -14,6 +14,8 @@ import { IntegrationServiceBase } from './integrationServiceBase'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
 import { IStepContext } from '../../../types/integration/stepResult'
+import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
+import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 
 export class IntegrationProcessor {
   private readonly log: Logger
@@ -25,7 +27,12 @@ export class IntegrationProcessor {
   constructor(options: IServiceOptions) {
     this.log = createChildLogger(this.constructor.name, options.log, {})
 
-    this.integrationServices = [new DevtoIntegrationService(), new DiscordIntegrationService()]
+    this.integrationServices = [
+      new DevtoIntegrationService(),
+      new DiscordIntegrationService(),
+      new TwitterIntegrationService(),
+      new TwitterReachIntegrationService(),
+    ]
 
     for (const intService of this.integrationServices) {
       this.tickTrackingMap[intService.type] = 0
@@ -87,6 +94,9 @@ export class IntegrationProcessor {
               false,
               undefined,
               microservice.id,
+              {
+                platform: PlatformType.TWITTER,
+              },
             ),
           )
         }
@@ -119,6 +129,7 @@ export class IntegrationProcessor {
     const logger = createChildLogger('process', this.log, {
       type: req.integrationType,
       integrationId: req.integrationId,
+      microserviceId: req.microserviceId,
     })
     logger.info({ req }, 'Processing integration!')
 
@@ -126,7 +137,9 @@ export class IntegrationProcessor {
     userContext.log = logger
 
     // load integration from database
-    const integration = await IntegrationRepository.findById(req.integrationId, userContext)
+    const integration = req.integrationId
+      ? await IntegrationRepository.findById(req.integrationId, userContext)
+      : await IntegrationRepository.findByPlatform(req.metadata.platform, userContext)
 
     // get the relevant integration service that is supposed to be configured already
     const intService = singleOrDefault(
@@ -141,13 +154,14 @@ export class IntegrationProcessor {
     const stepContext: IStepContext = {
       startTimestamp: moment().utc().unix(),
       limitCount: integration.limitCount || 0,
+      onboarding: req.onboarding,
       integration,
       serviceContext: userContext,
       repoContext: userContext,
     }
 
     if (integration.settings.updateMemberAttributes) {
-      logger.info('Updating member attributes!')
+      logger.trace('Updating member attributes!')
 
       await intService.createMemberAttributes(stepContext)
 
@@ -164,8 +178,28 @@ export class IntegrationProcessor {
     const failedStreams = []
 
     try {
+      // check global limit reset
+      if (intService.limitResetFrequencySeconds > 0 && integration.limitLastResetAt) {
+        const secondsSinceLastReset = moment()
+          .utc()
+          .diff(moment(integration.limitLastResetAt).utc(), 'seconds')
+
+        if (secondsSinceLastReset >= intService.limitResetFrequencySeconds) {
+          integration.limitCount = 0
+          integration.limitLastResetAt = moment().utc().toISOString()
+        }
+      }
+
       // mark integration as in process
-      await IntegrationRepository.update(integration.id, { status: 'in-progress' }, userContext)
+      await IntegrationRepository.update(
+        integration.id,
+        {
+          status: 'in-progress',
+          limitCount: integration.limitCount,
+          limitLastResetAt: integration.limitLastResetAt,
+        },
+        userContext,
+      )
 
       // preprocess if needed
       const preprocessResult = await intService.preprocess(stepContext)
@@ -209,14 +243,33 @@ export class IntegrationProcessor {
             }
 
             if (intService.globalLimit > 0 && stepContext.limitCount >= intService.globalLimit) {
-              logger.warn(
-                {
-                  limitCount: stepContext.limitCount,
-                  globalLimit: intService.globalLimit,
-                  streamsLeft: streams.length,
-                },
-                'We reached a global limit - stopping processing!',
-              )
+              // if limit reset frequency is 0 we don't need to care about limits
+              if (intService.limitResetFrequencySeconds > 0) {
+                logger.warn(
+                  {
+                    limitCount: stepContext.limitCount,
+                    globalLimit: intService.globalLimit,
+                    streamsLeft: streams.length,
+                  },
+                  'We reached a global limit - stopping processing!',
+                )
+
+                integration.limitCount = stepContext.limitCount
+                break
+              }
+            }
+
+            if (
+              !req.onboarding &&
+              (await intService.isProcessingFinished(
+                stepContext,
+                stream,
+                processStreamResult.operations,
+                processStreamResult.lastRecordTimestamp,
+                processMetadata,
+              ))
+            ) {
+              logger.warn('Integration processing finished because of service implementation!')
               break
             }
           } catch (err) {
@@ -244,7 +297,12 @@ export class IntegrationProcessor {
     } finally {
       await IntegrationRepository.update(
         integration.id,
-        { status: 'done', settings: stepContext.integration.settings },
+        {
+          status: 'done',
+          settings: stepContext.integration.settings,
+          refreshToken: stepContext.integration.refreshToken,
+          token: stepContext.integration.token,
+        },
         userContext,
       )
     }

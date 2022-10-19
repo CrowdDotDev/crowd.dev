@@ -9,6 +9,7 @@ import {
   IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
+  IStreamResultOperation,
   IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import getThreads from '../../usecases/chat/getThreads'
@@ -35,7 +36,13 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly MAX_RETROSPECT = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
   constructor() {
-    super(IntegrationType.DISCORD, DISCORD_CONFIG.globalLimit || 0, 3)
+    super(
+      IntegrationType.DISCORD,
+      DISCORD_CONFIG.globalLimit || 0,
+      1.0,
+      (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60,
+      3,
+    )
   }
 
   async preprocess(context: IStepContext): Promise<IPreprocessResult> {
@@ -144,17 +151,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           stream.metadata.page,
         )
 
-        if (
-          records.length === 0 ||
-          DiscordIntegrationService.isStreamFinished(
-            stream,
-            context.startTimestamp,
-            records[records.length - 1],
-            metadata,
-          )
-        ) {
+        const newStreams = nextPage
+          ? [{ value: stream.value, metadata: { page: nextPage } }]
+          : undefined
+        const sleep = limit <= 1 ? timeUntilReset * 1000 : undefined
+
+        if (records.length === 0) {
           return {
             operations: [],
+            newStreams,
+            sleep,
           }
         }
 
@@ -167,10 +173,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               records: activities,
             },
           ],
-          newStreams: nextPage
-            ? [{ value: stream.value, metadata: { page: nextPage } }]
-            : undefined,
-          sleep: limit <= 1 ? timeUntilReset * 1000 : undefined,
+          newStreams,
+          sleep,
         }
       } catch (err) {
         if (
@@ -192,6 +196,34 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       }
     }
     return Promise.resolve(undefined)
+  }
+
+  async isProcessingFinished(
+    context: IStepContext,
+    currentStream: IIntegrationStream,
+    lastOperations: IStreamResultOperation[],
+    lastRecordTimestamp?: number,
+    metadata?: any,
+  ): Promise<boolean> {
+    if (lastRecordTimestamp === undefined) return false
+
+    switch (currentStream.value) {
+      case 'members':
+        return IntegrationServiceBase.isRetrospectOver(
+          lastRecordTimestamp,
+          context.startTimestamp,
+          DiscordIntegrationService.MAX_RETROSPECT,
+        )
+
+      default:
+        if (metadata.channelsInfo[currentStream.value].new) return false
+
+        return IntegrationServiceBase.isRetrospectOver(
+          lastRecordTimestamp,
+          context.startTimestamp,
+          DiscordIntegrationService.MAX_RETROSPECT,
+        )
+    }
   }
 
   async postprocess(
@@ -325,31 +357,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     const mentionsText = text.replace(/<@!?[^>]*>/g, '@mention')
     // Replace several occurrences of mentions by one mention
     return mentionsText.replace(/(@mention+\s?){2,}/, '@mentions')
-  }
-
-  private static isStreamFinished(
-    stream: IIntegrationStream,
-    startTimestamp: number,
-    lastRecord: any,
-    metadata?: any,
-  ): boolean {
-    switch (stream.value) {
-      case 'members':
-        return IntegrationServiceBase.isRetrospectOver(
-          lastRecord,
-          startTimestamp,
-          DiscordIntegrationService.MAX_RETROSPECT,
-        )
-
-      default:
-        if (metadata.channelsInfo[stream.value].new) return false
-
-        return IntegrationServiceBase.isRetrospectOver(
-          lastRecord,
-          startTimestamp,
-          DiscordIntegrationService.MAX_RETROSPECT,
-        )
-    }
   }
 
   /**

@@ -9,6 +9,7 @@ export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
     public readonly onboarding: boolean,
     public readonly integrationId?: string,
     public readonly microserviceId?: string,
+    public readonly metadata?: any,
   ) {
     super(NodeWorkerMessageType.INTEGRATION_PROCESS)
   }

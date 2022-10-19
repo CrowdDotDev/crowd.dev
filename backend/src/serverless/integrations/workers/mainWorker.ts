@@ -1,11 +1,10 @@
 import {
   IntegrationsMessage,
   SlackIntegrationMessage,
-  TwitterIntegrationMessage,
   TwitterReachMessage,
   GithubIntegrationMessage,
 } from '../types/messageTypes'
-import { twitterReachWorker, twitterWorker } from './twitterWorker'
+import { twitterReachWorker } from './twitterWorker'
 import slackWorker from './slackWorker'
 import githubWorker from './githubWorker'
 import { IntegrationType } from '../../../types/integrationEnums'
@@ -15,8 +14,6 @@ async function mainWorker(event: IntegrationsMessage) {
   let { integration } = event
   integration = integration.toLowerCase()
   switch (integration) {
-    case IntegrationType.TWITTER:
-      return twitterWorker(event as TwitterIntegrationMessage)
     case IntegrationType.TWITTER_REACH:
       return twitterReachWorker(event as TwitterReachMessage)
     case IntegrationType.SLACK:

@@ -17,6 +17,7 @@ for (const job of jobs) {
     },
     null,
     true,
+    'Europe/Berlin',
   )
   if (cronJob.running) {
     log.info({ job: job.name }, 'Scheduled a job.')

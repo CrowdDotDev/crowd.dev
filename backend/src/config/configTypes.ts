@@ -118,6 +118,7 @@ export interface DiscordConfiguration {
   token: string
   maxRetrospectInSeconds: number
   globalLimit?: number
+  limitResetFrequencyDays?: number
 }
 
 export interface GithubConfiguration {

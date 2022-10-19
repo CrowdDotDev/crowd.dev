@@ -22,6 +22,7 @@ export interface IStreamResultOperation {
 
 export interface IProcessStreamResults {
   operations: IStreamResultOperation[]
+  lastRecordTimestamp?: number
   processMetadata?: any
   newStreams?: IIntegrationStream[]
   retry?: boolean
@@ -31,6 +32,7 @@ export interface IProcessStreamResults {
 export interface IStepContext {
   startTimestamp: number
   limitCount: number
+  onboarding: boolean
   integration?: any
   microservice?: any
   repoContext: IRepositoryOptions
