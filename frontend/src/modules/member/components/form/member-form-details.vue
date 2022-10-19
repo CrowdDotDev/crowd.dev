@@ -47,9 +47,9 @@
 
         <el-form-item
           class="grow"
-          :label="fieldsValue.company.label"
+          :label="fieldsValue.organizations.label"
         >
-          <el-input v-model="model.company" />
+          <el-input v-model="model.organizations" />
         </el-form-item>
       </div>
 

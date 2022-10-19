@@ -2,6 +2,9 @@
   <app-teleport to="#teleport-modal">
     <el-dialog v-model="computedVisible">
       <template #header>
+        <div v-if="pretitle" class="text-gray-600 text-2xs">
+          {{ pretitle }}
+        </div>
         <h5>Edit tags</h5>
       </template>
       <form v-if="visible" class="tags-form mb-10">
@@ -52,6 +55,10 @@ export default {
     modelValue: {
       type: Array,
       default: () => []
+    },
+    pretitle: {
+      type: String,
+      default: null
     }
   },
   emits: ['submit', 'cancel', 'update:modelValue'],

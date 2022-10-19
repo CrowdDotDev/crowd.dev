@@ -4,6 +4,9 @@
   &__title {
     @apply font-semibold;
   }
+  &__header {
+    @apply pb-0;
+  }
 
   &--lg {
     @apply max-w-2xl;

@@ -1,16 +1,15 @@
 import { i18n, init as i18nInit } from '@/i18n'
 import IdField from '@/shared/fields/id-field'
 import { GenericModel } from '@/shared/model/generic-model'
-import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
 import JsonField from '@/shared/fields/json-field'
 import { ActivityField } from '@/modules/activity/activity-field'
 import { MemberField } from '@/modules/member/member-field'
 import { TagField } from '@/modules/tag/tag-field'
-import IntegerRangeField from '@/shared/fields/integer-range-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
+import SearchField from '@/shared/fields/search-field'
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
@@ -19,7 +18,6 @@ function label(name) {
 const fields = {
   id: new IdField('id', label('id')),
   jobTitle: new StringField('jobTitle', label('jobTitle')),
-  company: new StringField('company', label('company')),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
     required: true,
@@ -89,14 +87,10 @@ const fields = {
     'Engagement Level',
     { filterable: true }
   ),
-  reachRange: new IntegerRangeField(
-    'reachRange',
-    'Reach Range'
-  ),
-  createdAtRange: new DateTimeRangeField(
-    'createdAtRange',
-    label('createdAtRange')
-  )
+  // This field is just for filtering/searching
+  search: new SearchField('search', label('search'), {
+    fields: ['displayName', 'email', 'username.default']
+  })
 }
 
 export class MemberModel extends GenericModel {

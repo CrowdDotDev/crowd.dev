@@ -58,10 +58,36 @@
           width="220"
         >
           <template #default="scope">
-            <app-member-organizations :member="scope.row" />
+            <div
+              v-if="
+                scope.row.organizations.length > 0 ||
+                scope.row.attributes.jobTitle?.default
+              "
+              class="flex flex-col gap-0.5"
+            >
+              <span class="text-sm text-gray-900">{{
+                scope.row.organizations[0]?.name ?? '-'
+              }}</span>
+              <span class="text-gray-500 text-2xs">{{
+                scope.row.attributes.jobTitle?.default ??
+                '-'
+              }}</span>
+            </div>
+            <div v-else class="text-gray-900">-</div>
           </template>
         </el-table-column>
-
+        <el-table-column
+          v-for="column of extraColumns"
+          :key="column.name"
+          :prop="column.name"
+          :label="column.label"
+          width="200"
+          :sortable="column.sortable ? 'custom' : ''"
+        >
+          <template #default="scope">
+            {{ scope.row[column.name] }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="Engagement Level"
           prop="score"
@@ -87,10 +113,7 @@
           :label="translate('entities.member.fields.tag')"
         >
           <template #default="scope">
-            <app-tag-list
-              :member="scope.row"
-              @tags-updated="doRefresh"
-            />
+            <app-tag-list :member="scope.row" />
           </template>
         </el-table-column>
 
@@ -142,6 +165,10 @@ const store = useStore()
 const router = useRouter()
 const table = ref(null)
 
+const extraColumns = computed(
+  () => store.getters['member/activeView']?.columns || []
+)
+
 const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)
 const loading = computed(
@@ -179,10 +206,6 @@ function doChangePaginationPageSize(pageSize) {
 
 function doMountTable(tableRef) {
   store.dispatch('member/doMountTable', tableRef)
-}
-
-function doRefresh(currentPage) {
-  doChangePaginationCurrentPage(currentPage)
 }
 
 function translate(key) {
