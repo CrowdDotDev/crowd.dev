@@ -5,6 +5,9 @@
   &__active-bar {
     @apply bg-brand-500;
   }
+  &__content {
+    @apply overflow-visible;
+  }
   &__item {
     @apply font-normal text-gray-900 px-4;
     transition: all 0.2s ease;

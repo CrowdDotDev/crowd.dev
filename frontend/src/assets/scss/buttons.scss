@@ -79,13 +79,13 @@
   }
 
   &--transparent {
-    @apply bg-white text-gray-600 border-none;
+    @apply bg-transparent text-gray-600 border-none;
 
     &:hover {
       @apply cursor-pointer bg-gray-100 text-gray-600;
     }
     &:focus {
-      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid;
+      @apply bg-transparent text-gray-600 border-2  border-gray-200 border-solid;
     }
     &:active {
       @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;

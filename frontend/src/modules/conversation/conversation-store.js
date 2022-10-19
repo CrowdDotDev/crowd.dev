@@ -21,7 +21,10 @@ export default {
       },
       filter: {},
       rawFilter: {},
-      pagination: {},
+      pagination: {
+        currentPage: 1,
+        pageSize: INITIAL_PAGE_SIZE
+      },
       sorter: {
         prop: 'lastActive',
         order: 'descending'

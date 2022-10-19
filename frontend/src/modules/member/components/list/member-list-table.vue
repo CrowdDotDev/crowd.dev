@@ -9,7 +9,7 @@
       @change-page-size="doChangePaginationPageSize"
     />
   </div>
-  <div class="member-list-table panel">
+  <div class="app-list-table panel">
     <app-member-list-toolbar></app-member-list-toolbar>
     <div class="-mx-6 -mt-6">
       <el-table
@@ -132,7 +132,6 @@
         <app-pagination
           :total="count"
           :page-size="Number(pagination.pageSize)"
-          :pager-count="11"
           :current-page="pagination.currentPage || 1"
           @change-current-page="
             doChangePaginationCurrentPage
@@ -227,22 +226,3 @@ function handleRowClick(row) {
   })
 }
 </script>
-
-<style lang="scss">
-.member-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-
-    .hover-row {
-      cursor: pointer;
-    }
-  }
-}
-</style>
