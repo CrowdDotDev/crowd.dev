@@ -44,7 +44,7 @@
             {{ scope.row.widgets.length }}
           </template>
         </el-table-column>
-        <el-table-column label="Public">
+        <el-table-column label="Visibility">
           <template #default="scope">
             <span
               v-if="scope.row.public"
