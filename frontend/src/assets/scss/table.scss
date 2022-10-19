@@ -89,3 +89,20 @@
   -moz-hyphens: auto;
   hyphens: auto;
 }
+
+.app-list-table {
+  @apply relative;
+  .el-table {
+    @apply mt-0 border-t-0;
+
+    .el-table-column--selection {
+      .cell {
+        @apply p-0 pl-4;
+      }
+    }
+
+    .hover-row {
+      cursor: pointer;
+    }
+  }
+}

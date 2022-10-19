@@ -481,7 +481,6 @@ export default {
         commit('UPDATE_PROFILE_SUCCESS')
         await dispatch('doRefreshCurrentUser')
         Message.success(i18n('auth.profile.success'))
-        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('UPDATE_PROFILE_ERROR')
@@ -501,7 +500,6 @@ export default {
         commit('PASSWORD_CHANGE_SUCCESS')
         await dispatch('doRefreshCurrentUser')
         Message.success(i18n('auth.passwordChange.success'))
-        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('PASSWORD_CHANGE_ERROR')
@@ -558,6 +556,7 @@ export default {
 
       AuthCurrentTenant.set(tenant)
       await dispatch('doRefreshCurrentUser')
+
       router.push('/')
     },
 

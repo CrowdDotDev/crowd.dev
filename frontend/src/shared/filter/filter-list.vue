@@ -1,6 +1,8 @@
 <template>
   <div>
     <app-filter-search
+      :module="module"
+      :filter="searchFilter"
       class="mb-6"
       @change="handleFilterChange"
     >
@@ -52,6 +54,10 @@ const props = defineProps({
   module: {
     type: String,
     required: true
+  },
+  searchFilter: {
+    type: Object,
+    default: () => {}
   }
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="user-list-table panel">
+  <div class="app-list-table panel">
     <app-user-list-toolbar></app-user-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
@@ -89,17 +89,16 @@
         </el-table-column>
       </el-table>
 
-      <div class="el-pagination-wrapper px-3">
-        <el-pagination
-          :current-page="pagination.currentPage || 1"
-          :disabled="loading"
-          :layout="paginationLayout"
+      <div v-if="!!count" class="mt-8 px-6">
+        <app-pagination
           :total="count"
-          :page-size="pagination.pageSize"
-          :page-sizes="[20, 50, 100, 200]"
-          @current-change="doChangePaginationCurrentPage"
-          @size-change="doChangePaginationPageSize"
-        ></el-pagination>
+          :page-size="Number(pagination.pageSize)"
+          :current-page="pagination.currentPage || 1"
+          @change-current-page="
+            doChangePaginationCurrentPage
+          "
+          @change-page-size="doChangePaginationPageSize"
+        />
       </div>
     </div>
   </div>
