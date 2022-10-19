@@ -62,7 +62,7 @@
         Workspaces
       </div>
       <div
-        v-for="tenant in tentantsList"
+        v-for="tenant in tenantsList"
         :key="tenant.id"
         class="popover-item"
         :class="
@@ -116,7 +116,7 @@ const isDropdownOpen = ref(false)
 const currentTenant = computed(
   () => store.getters['auth/currentTenant']
 )
-const tentantsList = computed(() => {
+const tenantsList = computed(() => {
   const rows = store.getters['tenant/list/rows']
 
   return rows.sort((x, y) => {

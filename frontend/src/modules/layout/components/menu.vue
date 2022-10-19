@@ -4,7 +4,6 @@
       class="flex flex-col h-full border-gray-200"
       :collapse="isCollapsed"
       :router="true"
-      @select="onSelect"
     >
       <!-- Menu logo header -->
       <div
@@ -55,96 +54,154 @@
 
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
         <!-- Menu items -->
-        <router-link
-          id="menu-dashboard"
-          :to="{ path: '/' }"
-          class="el-menu-item"
-          :class="classFor('/', true)"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('dashboard.menu')"
         >
-          <i class="ri-home-5-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n code="dashboard.menu"></app-i18n>
-          </span>
-        </router-link>
-        <router-link
-          v-if="
-            hasPermissionToCommunityMember ||
-            isCommunityMemberLocked
-          "
-          id="menu-members"
-          :to="{ path: '/members' }"
-          class="el-menu-item"
-          :class="classFor('/members')"
-          :disabled="isCommunityMemberLocked"
+          <router-link
+            id="menu-dashboard"
+            :to="{ path: '/' }"
+            class="el-menu-item"
+            :class="classFor('/', true)"
+          >
+            <i class="ri-home-5-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="dashboard.menu"></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.member.menu')"
         >
-          <i class="ri-contacts-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n
-              code="entities.member.menu"
-            ></app-i18n>
-          </span>
-        </router-link>
-        <router-link
-          v-if="hasPermissionToActivity || isActivityLocked"
-          id="menu-activities"
-          :to="{ path: '/activities' }"
-          class="el-menu-item"
-          :class="classFor('/activities')"
-          :disabled="isActivityLocked"
+          <router-link
+            v-if="
+              hasPermissionToCommunityMember ||
+              isCommunityMemberLocked
+            "
+            id="menu-members"
+            :to="{ path: '/members' }"
+            class="el-menu-item"
+            :class="classFor('/members')"
+            :disabled="isCommunityMemberLocked"
+          >
+            <i class="ri-contacts-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.member.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.activity.menu')"
         >
-          <i class="ri-radar-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n
-              code="entities.activity.menu"
-            ></app-i18n>
-          </span>
-        </router-link>
-        <router-link
-          v-if="hasPermissionToReport || isReportLocked"
-          id="menu-reports"
-          :to="{ path: '/reports' }"
-          class="el-menu-item"
-          :class="classFor('/reports')"
-          :disabled="isReportLocked"
+          <router-link
+            v-if="
+              hasPermissionToActivity || isActivityLocked
+            "
+            id="menu-activities"
+            :to="{ path: '/activities' }"
+            class="el-menu-item"
+            :class="classFor('/activities')"
+            :disabled="isActivityLocked"
+          >
+            <i class="ri-radar-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.activity.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.report.menu')"
         >
-          <i class="ri-bar-chart-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n
-              code="entities.report.menu"
-            ></app-i18n>
-          </span>
-        </router-link>
+          <router-link
+            v-if="hasPermissionToReport || isReportLocked"
+            id="menu-reports"
+            :to="{ path: '/reports' }"
+            class="el-menu-item"
+            :class="classFor('/reports')"
+            :disabled="isReportLocked"
+          >
+            <i class="ri-bar-chart-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.report.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <!-- External links -->
         <el-divider class="border-gray-200" />
-        <router-link
-          v-if="hasPermissionToEagleEye || isEagleEyeLocked"
-          id="menu-eagle-eye"
-          :to="{ path: '/eagle-eye' }"
-          class="el-menu-item"
-          :class="classFor('/eagle-eye')"
-          :disabled="isEagleEyeLocked"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.eagleEye.menu')"
         >
-          <i class="ri-search-eye-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n
-              code="entities.eagleEye.menu"
-            ></app-i18n>
-          </span>
-        </router-link>
-        <router-link
-          id="menu-conversations"
-          :to="{ path: '/conversations' }"
-          class="el-menu-item"
-          :class="classFor('/conversations')"
+          <router-link
+            v-if="
+              hasPermissionToEagleEye || isEagleEyeLocked
+            "
+            id="menu-eagle-eye"
+            :to="{ path: '/eagle-eye' }"
+            class="el-menu-item"
+            :class="classFor('/eagle-eye')"
+            :disabled="isEagleEyeLocked"
+          >
+            <i class="ri-search-eye-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.eagleEye.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.conversation.menu')"
         >
-          <i class="ri-question-answer-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n
-              code="entities.conversation.menu"
-            ></app-i18n>
-          </span>
-        </router-link>
+          <router-link
+            id="menu-conversations"
+            :to="{ path: '/conversations' }"
+            class="el-menu-item"
+            :class="classFor('/conversations')"
+          >
+            <i class="ri-question-answer-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.conversation.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
 
         <div class="grow"></div>
 
@@ -159,7 +216,9 @@
             placement="right"
             raw-content
             popper-class="custom-menu-tooltip"
-            content="Integrations <i class='ri-external-link-line ml-1.1'></i>"
+            :content="`${i18n(
+              'integrations.menu'
+            )} <i class='ri-external-link-line ml-1.1'></i>`"
           >
             <router-link
               :to="{
@@ -185,19 +244,30 @@
             </router-link>
           </el-tooltip>
         </li>
-        <router-link
-          v-if="hasPermissionToSettings || isSettingsLocked"
-          id="menu-settings"
-          :to="{ path: '/settings' }"
-          class="el-menu-item"
-          :class="classFor('/settings')"
-          :disabled="isSettingsLocked"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('settings.menu')"
         >
-          <i class="ri-settings-3-line"></i>
-          <span v-if="!isCollapsed">
-            <app-i18n code="settings.menu"></app-i18n
-          ></span>
-        </router-link>
+          <router-link
+            v-if="
+              hasPermissionToSettings || isSettingsLocked
+            "
+            id="menu-settings"
+            :to="{ path: '/settings' }"
+            class="el-menu-item"
+            :class="classFor('/settings')"
+            :disabled="isSettingsLocked"
+          >
+            <i class="ri-settings-3-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="settings.menu"></app-i18n
+            ></span>
+          </router-link>
+        </el-tooltip>
       </div>
 
       <!-- User Account -->
@@ -224,6 +294,7 @@ import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
 import AppWorkspaceDropdown from './workspace-dropdown'
 import { computed } from 'vue'
+import { i18n } from '@/i18n'
 
 import { RouterLink, useLink } from 'vue-router'
 
@@ -336,10 +407,6 @@ const classFor = (path, exact = false) => {
   return {
     'is-active': active
   }
-}
-
-const onSelect = (e) => {
-  console.log(e)
 }
 </script>
 
