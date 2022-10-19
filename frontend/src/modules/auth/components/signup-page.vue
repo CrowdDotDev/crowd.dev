@@ -65,6 +65,13 @@
             </router-link>
           </div>
         </el-form>
+        <a
+          :href="socialOauthLink('google')"
+          class="btn btn--secondary py-2 mt-4"
+        >
+          <i class="ri-google-fill mr-1"></i> Sign up with
+          Google
+        </a>
       </div>
     </div>
   </div>
@@ -73,6 +80,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { UserModel } from '@/premium/user/user-model'
+import config from '@/config'
 
 const { fields } = UserModel
 
@@ -131,6 +139,10 @@ export default {
         email: this.model.email,
         password: this.model.password
       })
+    },
+
+    socialOauthLink(provider) {
+      return `${config.backendUrl}/auth/social/${provider}`
     }
   }
 }
