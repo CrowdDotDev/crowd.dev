@@ -182,7 +182,14 @@ export default {
           name: 'settings',
           query: { activeTab: value }
         })
-        this.activeTab = value
+      }
+    }
+  },
+
+  watch: {
+    '$route.query.activeTab'(newActiveTab) {
+      if (newActiveTab) {
+        this.activeTab = newActiveTab
       }
     }
   },
