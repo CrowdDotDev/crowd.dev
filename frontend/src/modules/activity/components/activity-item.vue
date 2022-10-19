@@ -1,29 +1,10 @@
 <template>
-  <article
-    v-if="loading || !activity"
-    class="py-5 border-gray-200 relative"
-  >
-    <div class="flex">
-      <div class="pr-3">
-        <app-loading
-          height="32px"
-          width="32px"
-          radius="50%"
-        />
-      </div>
-      <div class="flex-grow w-full pt-2.5">
-        <app-loading
-          height="12px"
-          width="320px"
-          class="mb-3"
-        />
-        <app-loading height="12px" width="280px" />
-      </div>
-    </div>
+  <article v-if="loading || !activity">
+    <app-loading height="85px" radius="8px" />
   </article>
-  <article v-else class="py-5 border-gray-200 relative">
+  <article v-else class="widget panel">
     <div class="flex">
-      <!-- avatar -->
+      <!-- Avatar -->
       <div class="pr-3">
         <router-link
           :to="{
@@ -35,21 +16,22 @@
           <app-avatar :entity="activity.member" size="xs" />
         </router-link>
       </div>
-      <div class="flex-grow w-full">
-        <!-- Name -->
-        <div class="flex justify-between w-full">
+      <!-- activity info -->
+      <div class="flex-grow">
+        <div class="flex justify-between">
           <div>
             <router-link
               :to="{
                 name: 'memberView',
                 params: { id: activity.member.id }
               }"
-              class="text-2xs leading-4 block text-gray-600 pb-0.5"
+              class="text-2xs leading-4 text-gray-900 font-medium block pb-0.5"
             >
               {{ activity.member.displayName }}
             </router-link>
             <div class="flex items-center">
               <div>
+                <!-- platform icon -->
                 <el-tooltip
                   effect="dark"
                   :content="platform.name"
@@ -62,25 +44,59 @@
                   />
                 </el-tooltip>
               </div>
-              <div class="text-2xs leading-4 pl-2 flex">
+              <p
+                class="text-xs leading-4 pl-2 flex flex-wrap"
+              >
+                <!-- activity message -->
                 <app-activity-message
                   :activity="activity"
                 />
+                <!-- activity timestamp -->
                 <span
                   class="whitespace-nowrap text-gray-500"
                   ><span class="mx-1">·</span
                   >{{ timeAgo }}</span
                 >
-              </div>
+                <span v-if="sentiment" class="mx-1">·</span>
+                <el-tooltip
+                  v-if="sentiment"
+                  effect="dark"
+                  :content="`Confidence ${sentiment}%`"
+                  placement="top"
+                >
+                  <i
+                    v-if="sentiment >= 50"
+                    class="ri-emotion-happy-line text-green-600 text-base"
+                  ></i>
+                  <i
+                    v-else
+                    class="ri-emotion-unhappy-line text-red-500 text-base"
+                  ></i>
+                </el-tooltip>
+              </p>
             </div>
           </div>
-          <div>
+          <div class="flex items-center">
+            <a
+              v-if="activity.conversationId"
+              class="text-xs font-medium flex items-center mr-6"
+              target="_blank"
+              @click="
+                openConversation(activity.conversationId)
+              "
+              ><i
+                class="ri-lg ri-arrow-right-up-line mr-1"
+              ></i>
+              <span class="block"
+                >Open conversation</span
+              ></a
+            >
             <app-activity-dropdown :activity="activity" />
           </div>
         </div>
-        <!-- Content -->
+        <!-- member name -->
         <app-activity-content
-          class="text-xs mt-4 bg-gray-50 rounded-lg p-4"
+          class="text-sm mt-4 bg-gray-50 rounded-lg mt-6 p-4"
           :activity="activity"
           :show-more="true"
         >
@@ -141,6 +157,15 @@ export default {
     },
     timeAgo() {
       return computedTimeAgo(this.activity.timestamp)
+    },
+    sentiment() {
+      return this.activity.sentiment.sentiment
+    }
+  },
+  methods: {
+    openConversation(conversationId) {
+      // TODO: open conversation when conversation drawer is done
+      console.log(conversationId)
     }
   }
 }

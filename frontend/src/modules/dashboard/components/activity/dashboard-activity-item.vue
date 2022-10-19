@@ -62,7 +62,7 @@
                   />
                 </el-tooltip>
               </div>
-              <div class="text-2xs leading-4 pl-2 flex">
+              <p class="text-2xs leading-4 pl-2">
                 <app-activity-message
                   :activity="activity"
                 />
@@ -71,7 +71,7 @@
                   ><span class="mx-1">·</span
                   >{{ timeAgo }}</span
                 >
-              </div>
+              </p>
             </div>
           </div>
           <div>

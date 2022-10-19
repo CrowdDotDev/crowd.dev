@@ -7,7 +7,11 @@
       />
     </div>
 
-    <span v-html="body" />
+    <span
+      ref="body"
+      :class="{ 'text-limit-4': limit }"
+      v-html="activity.body"
+    />
   </div>
 </template>
 
@@ -19,9 +23,10 @@ export default {
       type: Object,
       required: true
     },
-    body: {
-      type: String,
-      required: true
+    limit: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   }
 }

@@ -6,8 +6,10 @@
       v-html="activity.parent.body"
     />
     <span
+      ref="body"
       class="block whitespace-pre-wrap custom-break-all"
-      v-html="body"
+      :class="{ 'text-limit-4': limit }"
+      v-html="activity.body"
     />
   </div>
 </template>
@@ -20,9 +22,10 @@ export default {
       type: Object,
       required: true
     },
-    body: {
-      type: String,
-      required: true
+    limit: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   }
 }

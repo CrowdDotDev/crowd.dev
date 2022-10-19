@@ -14,15 +14,17 @@
         v-if="
           activity.body && activity.platform === 'discord'
         "
+        ref="content"
         :activity="activity"
-        :body="activityBody"
+        :limit="showMore && !more"
       />
       <app-activity-devto-content
         v-else-if="
           activity.body && activity.platform === 'devto'
         "
+        ref="content"
         :activity="activity"
-        :body="activityBody"
+        :limit="showMore && !more"
       />
       <div v-else-if="activity.body">
         <blockquote
@@ -36,8 +38,10 @@
         />
         <span
           v-else
-          class="block whitespace-pre-wrap custom-break-all"
-          v-html="activityBody"
+          ref="body"
+          class="block whitespace-pre-wrap custom-break-all activity-body"
+          :class="{ 'text-limit-4': showMore && !more }"
+          v-html="activity.body"
         />
       </div>
     </div>
@@ -84,12 +88,17 @@ export default {
       type: Boolean,
       required: false,
       default: false
+    },
+    lineHeight: {
+      type: Number,
+      required: false,
+      default: 16
     }
   },
   data() {
     return {
       more: false,
-      charLimit: 100
+      displayShowMore: false
     }
   },
   computed: {
@@ -97,23 +106,24 @@ export default {
       return integrationsJsonArray.find(
         (i) => i.platform === this.activity.platform
       )
-    },
-    displayShowMore() {
-      return (
-        this.showMore &&
-        this.activity.body.length > this.charLimit
-      )
-    },
-    activityBody() {
-      if (this.displayShowMore) {
-        if (!this.more) {
-          return (
-            this.activity.body.slice(0, this.charLimit) +
-            '...'
-          )
+    }
+  },
+  mounted() {
+    if (this.showMore) {
+      if (this.$refs.body) {
+        const body = this.$refs.body
+        const height = body.clientHeight
+        const scrollHeight = body.scrollHeight
+        this.displayShowMore = scrollHeight > height
+      } else if (this.$refs.content) {
+        const content = this.$refs.content
+        if (content.$refs.body) {
+          const body = content.$refs.body
+          const height = body.clientHeight
+          const scrollHeight = body.scrollHeight
+          this.displayShowMore = scrollHeight > height
         }
       }
-      return this.activity.body
     }
   },
   methods: {
