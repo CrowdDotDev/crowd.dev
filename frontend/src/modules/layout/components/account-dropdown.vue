@@ -43,55 +43,6 @@
       v-if="currentTenant && currentTenant.onboardedAt"
       class="flex flex-col gap-1 mb-1"
     >
-      <div
-        class="uppercase text-2xs text-gray-400 tracking-wide font-semibold pl-3 mt-1 leading-6"
-      >
-        Help & Support
-      </div>
-      <div class="popover-item">
-        <a
-          class="flex grow items-center leading-none justify-between"
-          href="https://docs.crowd.dev"
-          target="_blank"
-        >
-          <div class="flex gap-2">
-            <i
-              class="text-base text-gray-400 ri-book-open-line"
-            ></i>
-            <span class="text-xs">
-              <app-i18n code="external.docs"></app-i18n
-            ></span>
-          </div>
-
-          <i
-            class="text-base ri-external-link-line text-gray-300"
-          ></i>
-        </a>
-      </div>
-
-      <div class="popover-item">
-        <a
-          class="flex grow items-center leading-none justify-between"
-          href="http://crowd.dev/discord"
-          target="_blank"
-        >
-          <div class="flex gap-2">
-            <i
-              class="text-base text-gray-400 ri-discord-line"
-            ></i>
-            <span class="text-xs">
-              <app-i18n code="external.community"></app-i18n
-            ></span>
-          </div>
-
-          <i
-            class="text-base ri-external-link-line text-gray-300"
-          ></i>
-        </a>
-      </div>
-
-      <el-divider class="border-gray-200 !my-1" />
-
       <div class="popover-item" @click="doEditProfile">
         <i
           class="text-base text-gray-400 ri-account-circle-line"
