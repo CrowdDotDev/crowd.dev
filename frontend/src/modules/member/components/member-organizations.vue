@@ -3,18 +3,26 @@
     <div
       v-for="organization of props.member.organizations"
       :key="organization.id"
-      class="flex flex-items-center"
+      class="flex items-center"
     >
-      <div :class="{ 'h-10': showTitle }">
+      <div
+        :class="{
+          'h-10': showTitle && member.attributes.jobTitle
+        }"
+      >
         <div v-if="organization.logo" class="w-5 h-5 mr-1">
           <img :src="organization.logo" alt="Logo" />
         </div>
       </div>
       <div
         class="text-gray-900"
-        :class="{ 'h-10': showTitle }"
+        :class="{
+          'h-10': showTitle && member.attributes.jobTitle
+        }"
       >
-        <div>{{ organization.name }}</div>
+        <p class="text-ellipsis truncate">
+          {{ organization.name }}
+        </p>
         <div
           v-if="
             props.member.attributes.jobTitle &&

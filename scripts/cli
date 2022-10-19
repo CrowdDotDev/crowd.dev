@@ -228,14 +228,14 @@ function apply_db_schema() {
 
 function create_s3_buckets() {
     say "Creating S3 buckets!"
-    sleep 5
+    sleep 10
 
     declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
     for i in "${BUCKETS[@]}"
     do
         say "Creating s3 bucket: $i"
         curl "http://localhost:9000/ui/$i?create"
-        sleep 3
+        sleep 8
         curl "http://localhost:9000/ui/$i?make-public"
     done
 }
