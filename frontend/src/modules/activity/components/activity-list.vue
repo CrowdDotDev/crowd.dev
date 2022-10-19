@@ -10,10 +10,18 @@
       :key="activity.id"
       :activity="activity"
       class="mb-6"
+      v-bind="cardOptions"
     />
     <div v-if="activities.length === 0">
-      <p class="text-xs leading-5 text-center pt-1">
-        No recent activities
+      <div class="flex justify-center pt-12">
+        <i
+          class="ri-list-check-2 text-4xl h-12 text-gray-300"
+        ></i>
+      </div>
+      <p
+        class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+      >
+        There are no activities
       </p>
     </div>
   </div>
@@ -32,6 +40,11 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    cardOptions: {
+      type: Object,
+      required: false,
+      default: () => ({})
     }
   }
 }

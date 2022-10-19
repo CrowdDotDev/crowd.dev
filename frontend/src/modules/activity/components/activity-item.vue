@@ -78,7 +78,10 @@
           </div>
           <div class="flex items-center">
             <a
-              v-if="activity.conversationId"
+              v-if="
+                activity.conversationId &&
+                displayConversationLink
+              "
               class="text-xs font-medium flex items-center mr-6 cursor-pointer"
               target="_blank"
               @click="
@@ -158,6 +161,11 @@ export default {
       type: Boolean,
       required: false,
       default: false
+    },
+    displayConversationLink: {
+      type: Boolean,
+      required: false,
+      default: true
     }
   },
   computed: {

@@ -19,6 +19,7 @@
       />
       <div class="font-semibold mb-2">Activities:</div>
       <app-activity-list
+        :card-options="{ displayConversationLink: false }"
         :activities="conversation.activities"
       ></app-activity-list>
     </div>
