@@ -1,5 +1,5 @@
 <template>
-  <div class="report-list-table panel">
+  <div class="app-list-table panel">
     <app-report-list-toolbar></app-report-list-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
@@ -35,11 +35,6 @@
             </router-link>
           </template>
         </el-table-column>
-        <el-table-column label="Public">
-          <template #default="scope">
-            {{ scope.row.public ? 'Yes' : 'No' }}
-          </template>
-        </el-table-column>
         <el-table-column
           label="# of Widgets"
           prop="widgetsCount"
@@ -48,7 +43,17 @@
             {{ scope.row.widgets.length }}
           </template>
         </el-table-column>
-        <el-table-column label="" width="200">
+        <el-table-column label="Public">
+          <template #default="scope">
+            <span
+              v-if="scope.row.public"
+              class="badge badge--green"
+              >Public</span
+            >
+            <span v-else class="badge">Private</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="" width="200" fixed="right">
           <template #default="scope">
             <div class="table-actions">
               <app-report-dropdown
@@ -59,17 +64,16 @@
         </el-table-column>
       </el-table>
 
-      <div class="el-pagination-wrapper px-3">
-        <el-pagination
-          :current-page="pagination.currentPage || 1"
-          :disabled="loading('table')"
-          :layout="paginationLayout"
+      <div v-if="!!count" class="mt-8 px-6">
+        <app-pagination
           :total="count"
-          :page-size="pagination.pageSize"
-          :page-sizes="[20, 50, 100, 200]"
-          @current-change="doChangePaginationCurrentPage"
-          @size-change="doChangePaginationPageSize"
-        ></el-pagination>
+          :page-size="Number(pagination.pageSize)"
+          :current-page="pagination.currentPage || 1"
+          @change-current-page="
+            doChangePaginationCurrentPage
+          "
+          @change-page-size="doChangePaginationPageSize"
+        />
       </div>
     </div>
   </div>
@@ -164,22 +168,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.report-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    th {
-      @apply pb-4;
-    }
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-  }
-}
-</style>

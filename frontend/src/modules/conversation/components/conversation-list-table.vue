@@ -36,11 +36,12 @@
             </span>
           </template>
           <template #default="scope">
-            {{
-              scope.row.published
-                ? 'Published'
-                : 'Unpublished'
-            }}
+            <span
+              v-if="scope.row.published"
+              class="badge badge--green"
+              >Published</span
+            >
+            <span v-else class="badge">Unpublished</span>
           </template>
         </el-table-column>
         <el-table-column
