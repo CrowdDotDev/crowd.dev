@@ -28,7 +28,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile.kube
     command: 'npm run start:api:dev'
-    # user: '${USER_ID}:${GROUP_ID}'
+    user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
