@@ -300,7 +300,6 @@ export default class ConversationService {
 
     let plainActivities = conversation.activities
       .map((act) => {
-        act = act.get({ plain: true })
         act.timestamp = moment(act.timestamp).unix()
         act.author = act.member.username[act.platform]
         delete act.member

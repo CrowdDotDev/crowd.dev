@@ -7,12 +7,9 @@
       @command="handleCommand"
       @visible-change="dropdownVisible = $event"
     >
-      <div
-        class="el-dropdown-link h-6 w-6 flex items-center justify-center transition rounded"
-        :class="{ 'bg-gray-200': dropdownVisible }"
-      >
+      <span class="el-dropdown-link">
         <i class="ri-xl ri-more-fill"></i>
-      </div>
+      </span>
       <template #dropdown>
         <!-- TODO: uncomment this once activity editing is done -->
         <!--        <el-dropdown-item command="activityEdit">-->

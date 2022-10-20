@@ -3,14 +3,10 @@
     trigger="click"
     placement="bottom-end"
     @command="handleCommand"
-    @visible-change="dropdownVisible = $event"
   >
-    <div
-      class="el-dropdown-link h-6 w-6 flex items-center justify-center transition rounded"
-      :class="{ 'bg-gray-200': dropdownVisible }"
-    >
+    <span class="el-dropdown-link">
       <i class="text-xl ri-more-fill"></i>
-    </div>
+    </span>
     <template #dropdown>
       <el-dropdown-item
         v-if="conversation.published"

@@ -96,11 +96,11 @@
             &nbsp;
 
             <a
-              :href="activity.articleUrl"
+              :href="activity.attributes.articleUrl"
               target="_blank"
               :class="computedActivityClass"
             >
-              {{ activity.articleTitle }}
+              {{ activity.attributes.articleTitle }}
             </a>
             <span class="mx-1">·</span>
           </template>
@@ -186,6 +186,10 @@
 import AppI18n from '../../../shared/i18n/i18n'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import {
+  computedArgs,
+  computedMessage
+} from '@/modules/activity/activity.helpers'
 
 export default {
   name: 'AppActivityHeader',
@@ -224,31 +228,10 @@ export default {
         : ''
     },
     computedMessage() {
-      if (
-        this.activity.platform === 'slack' &&
-        this.activity.type === 'message' &&
-        this.activity.thread
-      ) {
-        return `entities.activity.${this.activity.platform}.replied`
-      } else if (
-        this.activity.platform === 'discord' &&
-        this.activity.type === 'message' &&
-        this.activity.parentId
-      ) {
-        return this.activity.thread
-          ? `entities.activity.${this.activity.platform}.replied_thread`
-          : `entities.activity.${this.activity.platform}.replied`
-      } else if (this.activity.platform === 'devto') {
-        return `entities.activity.${this.activity.platform}.commented`
-      } else {
-        return `entities.activity.${this.activity.platform}.${this.activity.type}`
-      }
+      return computedMessage(this.activity)
     },
     computedArgs() {
-      if (this.activity.type === 'hashtag') {
-        return [`#${this.activity.hashtag}`]
-      }
-      return []
+      return computedArgs(this.activity)
     },
     computedPlatformIcon() {
       return integrationsJsonArray.find(

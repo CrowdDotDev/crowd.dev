@@ -618,12 +618,15 @@ export default class MemberService {
   }
 
   async query(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
     return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
       this.options,
     )
   }

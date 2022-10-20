@@ -9,7 +9,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import { PlatformType } from '../../utils/platforms'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
-import BaseIterator from '../../serverless/integrations/iterators/baseIterator'
 
 const Op = Sequelize.Op
 
@@ -309,9 +308,7 @@ class ConversationRepository {
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
-    customOrderBy = customOrderBy.concat(
-      SequelizeFilterUtils.customOrderByIfExists('platform', orderBy),
-    )
+
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('channel', orderBy),
     )
@@ -326,13 +323,29 @@ class ConversationRepository {
       options.database.Sequelize.col('activities.timestamp'),
     )
 
+    const platform = Sequelize.col('activities.platform')
+
     const parser = new QueryParser(
       {
         aggregators: {
+          ...SequelizeFilterUtils.getNativeTableFieldAggregations(
+            [
+              'id',
+              'title',
+              'slug',
+              'published',
+              'createdAt',
+              'updatedAt',
+              'tenantId',
+              'createdById',
+              'updatedById',
+            ],
+            'conversation',
+          ),
           activityCount,
           channel: Sequelize.literal(`"activities"."channel"`),
           lastActive,
-          platform: Sequelize.literal(`"activities"."platform"`),
+          platform,
         },
       },
       options,
@@ -356,32 +369,24 @@ class ConversationRepository {
     // eslint-disable-next-line prefer-const
     let { rows, count } = await options.database.conversation.findAndCountAll({
       attributes: [
-        'id',
-        'title',
-        'slug',
-        'published',
-        'createdAt',
-        'updatedAt',
-        'tenantId',
-        'createdById',
-        'updatedById',
-        [options.database.Sequelize.col('activities.platform'), 'platform'],
+        ...SequelizeFilterUtils.getLiteralProjections(
+          [
+            'id',
+            'title',
+            'slug',
+            'published',
+            'createdAt',
+            'tenantId',
+            'updatedAt',
+            'createdById',
+            'updatedById',
+          ],
+          'conversation',
+        ),
+        [platform, 'platform'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
-        [
-          Sequelize.literal(
-            `MAX(CASE
-              WHEN ( "activities"."attributes" ->> 'thread' ) IS NOT NULL AND 
-           ( "activities"."attributes" ->> 'thread' ) != 'false' AND
-             "activities".platform = '${PlatformType.DISCORD}' THEN
-              null
-              WHEN ("activities"."channel") IS NOT NULL then
-            "activities"."channel"
-              ELSE NULL
-            END)`,
-          ),
-          'channel',
-        ],
+        [Sequelize.literal(`MAX("activities"."channel")`), 'channel'],
       ],
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
@@ -422,20 +427,21 @@ class ConversationRepository {
    * Counts distinct members in a conversation
    * @param activities Activity list in a conversation
    */
-  static getTotalMemberCount(activities){
-    return activities.reduce((acc, i) => {
-      if (!acc.ids) {
-        acc.ids = []
-        acc.count = 0
-      }
+  static getTotalMemberCount(activities) {
+    return (
+      activities.reduce((acc, i) => {
+        if (!acc.ids) {
+          acc.ids = []
+          acc.count = 0
+        }
 
-      if (!acc.ids[i.memberId]) {
-        acc.ids[i.memberId] = true
-        acc.count += 1
-      }
-      return acc
-    }, {}).count
-
+        if (!acc.ids[i.memberId]) {
+          acc.ids[i.memberId] = true
+          acc.count += 1
+        }
+        return acc
+      }, {}).count ?? 0
+    )
   }
 
   static async _populateRelationsForRows(rows, lazyLoad = []) {
@@ -452,27 +458,32 @@ class ConversationRepository {
 
             rec.memberCount = ConversationRepository.getTotalMemberCount(allActivities)
 
-            let neededActivities = []
+            if (allActivities.length > 0) {
+              let neededActivities = []
 
-            if (allActivities.count > 2) {
-              neededActivities = [
-                allActivities[0],
-                allActivities[allActivities.length - 2],
-                allActivities[allActivities.length - 1],
-              ]
+              if (allActivities.length > 2) {
+                neededActivities = [
+                  allActivities[0],
+                  allActivities[allActivities.length - 2],
+                  allActivities[allActivities.length - 1],
+                ]
+              } else {
+                neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+              }
+
+              const promises = neededActivities.map(async (act) => {
+                const member = (await act.getMember()).get({ plain: true })
+                act = act.get({ plain: true })
+                act.member = member
+                return act
+              })
+              const returnedNeededActivities = await Promise.all(promises)
+              rec.conversationStarter = returnedNeededActivities[0]
+              rec.lastReplies = returnedNeededActivities.slice(1)
             } else {
-              neededActivities = [allActivities[0], allActivities[allActivities.length - 1]]
+              rec.conversationStarter = null
+              rec.lastReplies = []
             }
-
-            const promises = neededActivities.map(async (act) => {
-              const member = (await act.getMember()).get({ plain: true })
-              act = act.get({ plain: true })
-              act.member = member
-              return act
-            })
-            const returnedNeededActivities = await Promise.all(promises)
-            rec.conversationStarter = returnedNeededActivities[0]
-            rec.lastReplies = returnedNeededActivities.slice(1)
           } else {
             rec[relationship] = (await record[`get${snakeCaseNames(relationship)}`]()).map((a) =>
               a.get({ plain: true }),
@@ -512,7 +523,6 @@ class ConversationRepository {
       transaction,
     })
 
-
     let memberPromises = output.activities.map(async (act) => {
       const member = (await act.getMember()).get({ plain: true })
       act = act.get({ plain: true })
@@ -536,15 +546,13 @@ class ConversationRepository {
       chunkedPromises.push(memberPromises)
     }
 
-    // output.activities = await Promise.all(memberPromises)
-
     output.activities = []
     for (const memberPromiseChunk of chunkedPromises) {
-      output.activities.push(...await Promise.all(memberPromiseChunk))
+      output.activities.push(...(await Promise.all(memberPromiseChunk)))
     }
 
     output.memberCount = ConversationRepository.getTotalMemberCount(output.activities)
-    output.conversationStarter = output.activities[0]
+    output.conversationStarter = output.activities[0] ?? null
     output.activityCount = output.activities.length
     output.platform = null
     output.channel = null

@@ -84,23 +84,11 @@ export default {
     const { platform, period } = state.filters
     return ActivityService.list(
       {
-        operator: 'and',
-        attributes: {
-          timestamp: {
-            name: 'timestamp',
-            value: [
-              moment()
-                .subtract(period, 'day')
-                .toISOString(),
-              moment().toISOString()
-            ],
-            operator: 'between'
-          },
-          platform: {
-            name: 'platform',
-            value: platform !== 'all' ? platform : null
-          }
-        }
+        timestampRange: [
+          moment().subtract(period, 'day').toISOString(),
+          moment().toISOString()
+        ],
+        platform: platform !== 'all' ? platform : undefined
       },
       '',
       20,

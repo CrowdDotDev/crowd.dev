@@ -148,7 +148,18 @@ export default class SequelizeTestUtils {
   }
 
   static objectWithoutKey(object, key) {
-    const { [key]: _, ...otherKeys } = object
-    return otherKeys
+    let objectWithoutKeys
+    if (typeof key === 'string') {
+      const { [key]: _, ...otherKeys } = object
+      objectWithoutKeys = otherKeys
+    } else if (Array.isArray(key)) {
+      objectWithoutKeys = key.reduce((acc, i) => {
+        const { [i]: _, ...otherKeys } = acc
+        acc = otherKeys
+        return acc
+      }, object)
+    }
+
+    return objectWithoutKeys
   }
 }

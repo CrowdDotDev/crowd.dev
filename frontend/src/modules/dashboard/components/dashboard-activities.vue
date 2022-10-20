@@ -1,5 +1,5 @@
 <template>
-  <div class="panel !p-6">
+  <div class="widget panel !p-6">
     <!-- header -->
     <div class="flex items-center">
       <div
@@ -36,13 +36,13 @@
         >
           Total
         </p>
-        <app-dashboard-activity-count />
+        <app-dashboard-activities-count />
         <p
           class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
         >
           OVERALL SENTIMENT
         </p>
-        <app-dashboard-activity-sentiment />
+        <app-dashboard-activities-sentiment />
       </div>
     </div>
 
@@ -52,13 +52,13 @@
           label="Trending conversations"
           name="trending"
         >
-          <app-dashboard-conversation-list />
+          <app-dashboard-conversations-list />
         </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
           name="recent"
         >
-          <app-dashboard-activity-list />
+          <app-dashboard-activities-list />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -66,24 +66,24 @@
 </template>
 
 <script>
+import AppDashboardActivitiesList from '@/modules/dashboard/components/activities/dashboard-activities-list'
+import AppDashboardConversationsList from '@/modules/dashboard/components/conversations/dashboard-conversations-list'
 import { mapGetters } from 'vuex'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   activitiesChart,
   chartOptions
 } from '@/modules/dashboard/dashboard.cube'
-import AppDashboardActivityCount from '@/modules/dashboard/components/activity/dashboard-activity-count'
-import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
-import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
-import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
+import AppDashboardActivitiesSentiment from '@/modules/dashboard/components/activities/dashboard-activities-sentiment'
+import AppDashboardActivitiesCount from '@/modules/dashboard/components/activities/dashboard-activities-count'
 export default {
   name: 'AppDashboardActivities',
   components: {
-    AppDashboardConversationList,
-    AppDashboardActivityList,
-    AppDashboardActivitySentiment,
-    AppDashboardActivityCount,
-    AppWidgetCubeRenderer
+    AppDashboardActivitiesCount,
+    AppDashboardActivitiesSentiment,
+    AppWidgetCubeRenderer,
+    AppDashboardConversationsList,
+    AppDashboardActivitiesList
   },
   data() {
     return {
@@ -97,9 +97,7 @@ export default {
     ...mapGetters('dashboard', [
       'period',
       'platform',
-      'activities',
-      'recentActivities',
-      'trendingConversations'
+      'activities'
     ])
   }
 }

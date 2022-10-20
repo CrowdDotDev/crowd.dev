@@ -19,6 +19,7 @@ export interface QueryOutput {
 export interface ManyToManyType {
   [key: string]: {
     table: string
+    model?: string,
     relationTable: {
       name: string
       from: string

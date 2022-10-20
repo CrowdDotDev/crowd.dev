@@ -92,6 +92,9 @@ class QueryParser {
     this.aggregators = aggregators
     this.nestedFields = nestedFields
     this.whereOrHaving = 'where'
+    if (this.aggregators && Object.keys(this.aggregators).length !== 0){
+      this.whereOrHaving = 'having'
+    }
     this.manyToMany = manyToMany
     this.customOperators = customOperators
   }
@@ -200,17 +203,23 @@ class QueryParser {
     // {activityCount: {gt: 10}} (the operator would be Op.gt)
     // Or it can be equal if we had
     // {platform: github} (then we would be picking Op.eq)
-    const op = typeof value === 'object' ? QueryParser.operators[Object.keys(value)[0]] : Op.eq
+    let op = typeof value === 'object' ? QueryParser.operators[Object.keys(value)[0]] : Op.eq
+    let right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
+
+    if (typeof value === 'object' &&  Object.keys(value)[0] === "textContains"){
+      op = Op.iLike
+      right = `%${right}%`
+    }
 
     // The RHS of the query will be the value, if we had
     // {platform: github} (then we would be picking github)
     // Or it can be the value of the object, if we had
     // {activityCount: {gt: 10}} (the value would be 10)
-    const right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
 
     // We wrap everything onto a where clause and we return
     query[Op.and] = [Sequelize.where(left, op, right)]
     return query
+    
   }
 
   /**
@@ -247,12 +256,11 @@ class QueryParser {
 
     // It coudl be that we have more than 1 many to many filter, so we could need to append. For example:
     // {tags: [id1, id2], organizations: [id3, id4]}
-    if (query.id?.[Op.and]) {
-      query.id[Op.and].push({ [Op.in]: literal })
-    } else {
-      query.id = {
-        [Op.and]: [{ [Op.in]: literal }],
-      }
+    if (query[Op.and]){
+      query[Op.and].push(Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal))
+    }
+    else{
+      query[Op.and] = [Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal)]
     }
 
     return query
@@ -270,7 +278,11 @@ class QueryParser {
         query = this.replaceKeyWithNestedField(query, key)
         key = this.nestedFields[key]
       }
-      if (key === 'id') {
+      if (this.aggregators[key]) {
+        // If the key is one of the aggregators, replace by aggregator
+        query = this.replaceKeyWithAggregator(query, key)
+      }
+      else if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
       } else if (this.customOperators[key]) {
@@ -285,10 +297,7 @@ class QueryParser {
           complexOp,
           this.customOperators[key],
         )
-      } else if (this.aggregators[key]) {
-        // If the key is one of the aggregators, replace by aggregator
-        query = this.replaceKeyWithAggregator(query, key)
-      } else if (this.manyToMany[key]) {
+      }  else if (this.manyToMany[key]) {
         // If the key is a many to many field, construct the query
         query = this.replaceWithManyToMany(query, key)
       } else if (query[key] !== null && typeof query[key] === 'object') {
