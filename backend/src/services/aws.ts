@@ -108,7 +108,7 @@ export async function detectSentiment(text) {
   if (comprehendInstance) {
     const params = {
       LanguageCode: 'en',
-      Text: text,
+      Text: text.slice(0, 300),
     }
     const fromAWS = await comprehendInstance.detectSentiment(params).promise()
     const positive = 100 * fromAWS.SentimentScore.Positive

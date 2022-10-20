@@ -59,22 +59,7 @@
           width="220"
         >
           <template #default="scope">
-            <div
-              v-if="
-                scope.row.organizations.length > 0 ||
-                scope.row.attributes.jobTitle?.default
-              "
-              class="flex flex-col gap-0.5"
-            >
-              <span class="text-sm text-gray-900">{{
-                scope.row.organizations[0]?.name ?? '-'
-              }}</span>
-              <span class="text-gray-500 text-2xs">{{
-                scope.row.attributes.jobTitle?.default ??
-                '-'
-              }}</span>
-            </div>
-            <div v-else class="text-gray-900">-</div>
+            <app-member-organizations :member="scope.row" />
           </template>
         </el-table-column>
         <el-table-column
@@ -157,6 +142,7 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { computed, onMounted, ref } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
 import AppMemberChannels from '../member-channels'
 import AppTagList from '@/modules/tag/components/tag-list'

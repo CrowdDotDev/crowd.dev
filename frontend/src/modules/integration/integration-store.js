@@ -261,7 +261,7 @@ export default {
             title: 'GitHub integration created successfully'
           }
         )
-        router.push('/settings?activeTab=integrations')
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -285,7 +285,7 @@ export default {
               'Discord integration created successfully'
           }
         )
-        router.push('/settings?activeTab=integrations')
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -317,7 +317,7 @@ export default {
           }
         )
 
-        router.push('/settings?activeTab=integrations')
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')

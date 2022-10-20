@@ -106,12 +106,6 @@ export interface GoogleConfiguration {
   callbackUrl: string
 }
 
-export interface FacebookConfiguration {
-  clientId: string
-  clientSecret: string
-  callbackUrl: string
-}
-
 export interface DiscordConfiguration {
   token: string
   maxRetrospectInSeconds: number

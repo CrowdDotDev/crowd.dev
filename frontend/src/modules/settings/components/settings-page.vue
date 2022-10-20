@@ -16,14 +16,6 @@
             class="pt-4"
           />
         </el-tab-pane>
-        <el-tab-pane
-          label="Integrations"
-          name="integrations"
-        >
-          <app-integration-list-page
-            v-if="activeTab === 'integrations'"
-          />
-        </el-tab-pane>
         <el-tab-pane label="Automations" name="automations">
           <app-automation-list-page
             v-if="activeTab === 'automations'"
@@ -139,7 +131,6 @@
 <script>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import UserListPage from '@/premium/user/components/user-list-page'
-import IntegrationListPage from '@/modules/integration/components/integration-list-page'
 import AutomationListPage from '@/modules/automation/components/automation-list-page'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
@@ -153,7 +144,6 @@ export default {
   components: {
     AppPageWrapper,
     'app-user-list-page': UserListPage,
-    'app-integration-list-page': IntegrationListPage,
     'app-automation-list-page': AutomationListPage
   },
 
@@ -214,7 +204,7 @@ export default {
 
     this.activeTab = this.hasUsersModule
       ? params['activeTab'] || 'users'
-      : 'integrations'
+      : 'api-keys'
   },
 
   methods: {

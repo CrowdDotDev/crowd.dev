@@ -204,46 +204,28 @@
         </el-tooltip>
 
         <div class="grow"></div>
-
-        <li
-          id="menu-integrations"
-          role="menuitem"
-          class="custom-menu-item"
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="`${i18n(
+            'integrations.menu'
+          )} <i class='ri-external-link-line ml-1.1'></i>`"
         >
-          <el-tooltip
-            :disabled="!isCollapsed"
-            effect="dark"
-            placement="right"
-            raw-content
-            popper-class="custom-menu-tooltip"
-            :content="`${i18n(
-              'integrations.menu'
-            )} <i class='ri-external-link-line ml-1.1'></i>`"
+          <router-link
+            id="menu-integrations"
+            :to="{ path: '/integrations' }"
+            class="el-menu-item"
+            :class="classFor('/integrations')"
           >
-            <router-link
-              :to="{
-                name: 'settings',
-                query: { activeTab: 'integrations' }
-              }"
-            >
-              <div class="el-menu-item justify-between">
-                <div class="flex gap-3">
-                  <i class="ri-apps-2-line"></i>
-                  <span v-if="!isCollapsed">
-                    <app-i18n
-                      code="integrations.menu"
-                    ></app-i18n
-                  ></span>
-                </div>
-
-                <i
-                  v-if="!isCollapsed"
-                  class="item-link ri-external-link-line !text-gray-300"
-                ></i>
-              </div>
-            </router-link>
-          </el-tooltip>
-        </li>
+            <i class="ri-apps-2-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="integrations.menu"></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
           effect="dark"
@@ -268,6 +250,9 @@
             ></span>
           </router-link>
         </el-tooltip>
+
+        <!-- Support popover -->
+        <app-support-dropdown />
       </div>
 
       <!-- User Account -->
@@ -292,6 +277,7 @@ import { MemberPermissions } from '@/modules/member/member-permissions'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
+import AppSupportDropdown from './support-dropdown'
 import AppWorkspaceDropdown from './workspace-dropdown'
 import { computed } from 'vue'
 import { i18n } from '@/i18n'
