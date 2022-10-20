@@ -134,8 +134,10 @@
           >
             <template #underAvatar>
               <div
-                v-if="ri < conversation.length - 1"
-                class="h-4 w-0.5 bg-gray-300 my-2"
+                v-if="
+                  ri < conversation.lastReplies.length - 1
+                "
+                class="h-4 w-0.5 bg-gray-200 my-2"
               ></div>
             </template>
           </app-conversation-reply>

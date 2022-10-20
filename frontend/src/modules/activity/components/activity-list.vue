@@ -24,6 +24,7 @@
         :activity="activity"
         class="mb-6"
         v-bind="cardOptions"
+        @open-conversation="conversationId = $event"
       />
       <div
         v-if="activities.length && isLoadMoreVisible"
@@ -56,6 +57,11 @@
       </div>
     </div>
   </div>
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  ></app-conversation-drawer>
 </template>
 
 <script>
@@ -66,11 +72,14 @@ export default {
 
 <script setup>
 import AppActivityItem from '@/modules/activity/components/activity-item'
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 import { defineProps, computed, ref } from 'vue'
 import { useStore } from 'vuex'
+import AppPaginationSorter from "@/shared/pagination/pagination-sorter";
 
 const store = useStore()
 const sorterFilter = ref('trending')
+const conversationId = ref(null)
 
 defineProps({
   activities: {

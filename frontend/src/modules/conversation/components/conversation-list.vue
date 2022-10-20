@@ -22,7 +22,6 @@
         v-for="conversation of conversations"
         :key="conversation.id"
         :conversation="conversation"
-        :is-card="itemsAsCards"
       />
       <div
         v-if="conversations.length && isLoadMoreVisible"
