@@ -1,11 +1,11 @@
 <template>
   <div class="pt-3">
     <div
-      v-if="loading"
+      v-if="loading && !conversations.length"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
-    <div v-else>
+    <div>
       <div v-if="!!count" class="mb-4">
         <app-pagination-sorter
           v-model="sorterFilter"
@@ -28,7 +28,13 @@
         v-if="conversations.length && isLoadMoreVisible"
         class="flex grow justify-center pt-4"
       >
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner h-16 !relative !min-h-5"
+        ></div>
         <el-button
+          v-else
           class="btn btn-link btn-link--primary"
           @click="onLoadMore"
           ><i class="ri-arrow-down-line"></i
