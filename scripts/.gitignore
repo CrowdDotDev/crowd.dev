@@ -1,0 +1,2 @@
+db_dumps/*
+!db_dumps/.gitkeep

@@ -33,7 +33,8 @@ module.exports = {
         300: '#F29582',
         200: '#F6B9AB',
         100: '#FBDCD5',
-        50: '#FDEDEA'
+        50: '#FDEDEA',
+        25: '#FDF6F4'
       },
       gray: {
         900: '#111827',
@@ -720,6 +721,7 @@ module.exports = {
       tighter: '-0.05em',
       tight: '-0.025em',
       normal: '0em',
+      1: '0.0625rem',
       wide: '0.125em',
       wider: '0.05em',
       widest: '0.1em'

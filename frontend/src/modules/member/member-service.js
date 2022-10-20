@@ -79,9 +79,15 @@ export class MemberService {
     return response.data
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list(
+    filter,
+    orderBy,
+    limit,
+    offset,
+    build = true
+  ) {
     const body = {
-      filter: buildApiFilter(filter),
+      filter: build ? buildApiFilter(filter) : filter,
       orderBy,
       limit,
       offset

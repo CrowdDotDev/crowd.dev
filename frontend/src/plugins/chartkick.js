@@ -138,7 +138,7 @@ let createComponent = function (app, tagName, chartType) {
       },
       ...chartProps.reduce((acc, item) => {
         acc[item] = {
-          type: String,
+          type: [String, Number, Boolean, Array],
           default: null
         }
         return acc

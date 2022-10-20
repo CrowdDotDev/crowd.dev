@@ -1,5 +1,5 @@
 <template>
-  <div class="widget-cube">
+  <div ref="widget" class="widget-cube">
     <app-widget-table
       v-if="chartType === 'table'"
       :config="{
@@ -35,25 +35,36 @@
       @trigger-delete-widget="handleDelete"
     >
     </app-widget-number>
-    <app-widget
-      v-else
-      :config="{
-        title: widget.title,
-        subtitle: showSubtitle ? subtitle : null,
-        settings: editable ? {} : undefined,
-        loading: loading
-      }"
-      :editable="editable"
-      @trigger-duplicate-widget="handleDuplicate"
-      @trigger-edit-widget="handleEdit"
-      @trigger-delete-widget="handleDelete"
-    >
-      <component
-        :is="componentType"
-        :data="data"
-        v-bind="chartOptions"
-      ></component>
-    </app-widget>
+    <div v-else>
+      <app-widget
+        v-if="!widget.chartOnly"
+        :config="{
+          title: widget.title,
+          subtitle: showSubtitle ? subtitle : null,
+          settings: editable ? {} : undefined,
+          loading: loading
+        }"
+        :editable="editable"
+        @trigger-duplicate-widget="handleDuplicate"
+        @trigger-edit-widget="handleEdit"
+        @trigger-delete-widget="handleDelete"
+      >
+        <component
+          :is="componentType"
+          ref="chart"
+          :data="data"
+          v-bind="chartOptions"
+        ></component>
+      </app-widget>
+      <div v-else class="cube-widget-chart">
+        <component
+          :is="componentType"
+          ref="chart"
+          :data="data"
+          v-bind="{ ...chartOptions, dataset }"
+        ></component>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -99,7 +110,11 @@ export default {
     }
   },
   emits: ['duplicate', 'edit', 'delete'],
-
+  data() {
+    return {
+      dataset: null
+    }
+  },
   computed: {
     loading() {
       return (
@@ -202,26 +217,70 @@ export default {
       return data
     }
   },
-
+  mounted() {
+    this.$nextTick(() => {
+      this.paintDataSet()
+    })
+  },
+  updated() {
+    this.paintDataSet()
+  },
   methods: {
+    paintDataSet() {
+      if (
+        !this.dataset &&
+        this.$refs &&
+        this.$refs.widget
+      ) {
+        const canvas = this.$refs.widget.querySelector(
+          '.cube-widget-chart canvas'
+        )
+        if (
+          canvas &&
+          this.chartOptions &&
+          this.chartOptions.computeDataset
+        ) {
+          this.dataset =
+            this.chartOptions.computeDataset(canvas)
+        }
+      }
+    },
     series(resultSet) {
       // For line & area charts
       const seriesNames = resultSet.seriesNames()
       const pivot = resultSet.chartPivot()
       const series = []
+      if (seriesNames.length > 0) {
+        seriesNames.forEach((e) => {
+          const data = pivot.map((p) => [p.x, p[e.key]])
+          const { cube, dimension } = this.deconstructLabel(
+            e.key
+          )
 
-      seriesNames.forEach((e) => {
-        const data = pivot.map((p) => [p.x, p[e.key]])
-        const { cube, dimension } = this.deconstructLabel(
-          e.key
-        )
+          const name =
+            dimension && dimension !== 'unknown'
+              ? dimension
+              : i18n('widget.cubejs.cubes.' + cube)
+          series.push({ name, data })
+        })
+      } else {
+        let name = undefined
+        if (this.query.measures.length > 0) {
+          const key = this.query.measures[0]
+          const { cube, dimension } =
+            this.deconstructLabel(key)
+          name =
+            dimension && dimension !== 'unknown'
+              ? dimension
+              : i18n('widget.cubejs.cubes.' + cube)
+        }
+        const data = pivot.map((p) => [p.x, 0])
+        series.push({
+          data,
+          name
+        })
+      }
 
-        const name =
-          dimension && dimension !== 'unknown'
-            ? dimension
-            : i18n('widget.cubejs.cubes.' + cube)
-        series.push({ name, data })
-      })
       return series
     },
     pairs(resultSet) {

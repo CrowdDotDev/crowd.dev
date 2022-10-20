@@ -334,6 +334,13 @@ export default class IntegrationService {
       },
     }
 
+    integration = await this.createOrUpdate({
+      platform: PlatformType.DISCORD,
+      integrationIdentifier: guildId,
+      settings: { channels, updateMemberAttributes: true },
+      status: 'in-progress',
+    })
+
     // TODO-kube
     if (KUBE_MODE) {
       const payload = {
@@ -345,15 +352,6 @@ export default class IntegrationService {
     } else {
       await send(integrationsMessageBody)
     }
-
-    integration = await this.createOrUpdate({
-      platform: PlatformType.DISCORD,
-      integrationIdentifier: guildId,
-      settings: { channels, updateMemberAttributes: true },
-      status: 'in-progress',
-    })
-
-    await send(integrationsMessageBody)
 
     return integration
   }
@@ -429,6 +427,12 @@ export default class IntegrationService {
 
     integration.settings.updateMemberAttributes = true
 
+    integration = await this.createOrUpdate({
+      platform: PlatformType.SLACK,
+      status: 'in-progress',
+      settings: integration.settings,
+    })
+
     // TODO-kube
     if (KUBE_MODE) {
       const payload = {
@@ -439,14 +443,6 @@ export default class IntegrationService {
     } else {
       await send(integrationsMessageBody)
     }
-
-    integration = await this.createOrUpdate({
-      platform: PlatformType.SLACK,
-      status: 'in-progress',
-      settings: integration.settings,
-    })
-
-    await send(integrationsMessageBody)
 
     return integration
   }
@@ -501,6 +497,13 @@ export default class IntegrationService {
       },
     }
 
+    integration = await this.update(integration.id, {
+      limitCount: integration.limitCount,
+      limitLastResetAt: integration.limitLastResetAt,
+      settings: integration.settings,
+      status: 'in-progress',
+    })
+
     // TODO-kube
     if (KUBE_MODE) {
       const payload = {
@@ -512,15 +515,6 @@ export default class IntegrationService {
     } else {
       await send(integrationsMessageBody)
     }
-
-    integration = await this.update(integration.id, {
-      limitCount: integration.limitCount,
-      limitLastResetAt: integration.limitLastResetAt,
-      settings: integration.settings,
-      status: 'in-progress',
-    })
-
-    await send(integrationsMessageBody)
 
     return integration
   }
