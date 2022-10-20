@@ -143,10 +143,12 @@ const en = {
         title: 'Members'
       },
       create: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error creating the member'
       },
       update: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error updating the member'
       },
       destroy: {
         success: 'Member successfully deleted'
@@ -162,12 +164,14 @@ const en = {
         success: 'Members merged successfully'
       },
       attributes: {
-        error: 'Custom Attributes could not be created'
+        error: 'Custom Attributes could not be created',
+        success: 'Custom Attributes successfuly updated'
       },
       fields: {
         id: 'Id',
         fullName: 'Full Name',
         jobTitle: 'Job title',
+        company: 'Company',
         member: 'Member',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
@@ -396,7 +400,7 @@ const en = {
     conversation: {
       name: 'Conversations',
       label: 'Conversations',
-      menu: 'Conversations',
+      menu: 'Community Help Center',
       edit: {
         title: 'Edit Conversation'
       },
@@ -476,7 +480,7 @@ const en = {
   auth: {
     tenants: 'Workspaces',
     profile: {
-      title: 'Profile',
+      title: 'Profile settings',
       success: 'Profile successfully updated'
     },
     createAnAccount: 'Create an account',
@@ -558,9 +562,9 @@ const en = {
       roles: 'Roles',
       createdAtRange: 'Created at',
       password: 'Password',
-      oldPassword: 'Old Password',
-      newPassword: 'New Password',
-      newPasswordConfirmation: 'New Password Confirmation',
+      oldPassword: 'Old password',
+      newPassword: 'New password',
+      newPasswordConfirmation: 'Confirm new password',
       rememberMe: 'Remember me'
     },
     status: {
@@ -603,7 +607,7 @@ const en = {
   tenant: {
     name: 'tenant',
     label: 'Workspaces',
-    menu: 'Workspaces',
+    menu: 'Manage workspaces',
     list: {
       menu: 'Workspaces',
       title: 'Workspaces'
@@ -723,6 +727,9 @@ const en = {
       volcano: 'Volcano',
       yellow: 'Yellow'
     }
+  },
+  integrations: {
+    menu: 'Integrations'
   },
   dashboard: {
     menu: 'Home',
@@ -844,7 +851,7 @@ const en = {
   },
 
   external: {
-    docs: 'Docs',
+    docs: 'Documentation',
     community: 'Community'
   }
 }

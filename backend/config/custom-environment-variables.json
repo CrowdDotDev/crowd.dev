@@ -96,11 +96,7 @@
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
     "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
   },
-  "facebook": {
-    "clientId": "CROWD_FACEBOOK_CLIENT_ID",
-    "clientSecret": "CROWD_FACEBOOK_CLIENT_SECRET",
-    "callbackUrl": "CROWD_FACEBOOK_CALLBACK_URL"
-  },
+  
   "discord": {
     "token": "CROWD_DISCORD_TOKEN"
   },

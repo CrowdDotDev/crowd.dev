@@ -79,13 +79,9 @@ export class AuthService {
   }
 
   static async updateProfile(data) {
-    const body = {
-      data
-    }
-
     const response = await authAxios.put(
       '/auth/profile',
-      body
+      data
     )
 
     return response.data

@@ -31,6 +31,7 @@ import FilterTypeString from '@/shared/filter/filter-type-string'
 import FilterTypeDate from '@/shared/filter/filter-type-date'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
+import SquaredAvatar from '@/shared/avatar/squared-avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
 import Teleport from '@/shared/teleport/teleport.vue'
 import Popover from '@/shared/popover/popover.vue'
@@ -77,6 +78,7 @@ export default {
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
+    'app-squared-avatar': SquaredAvatar,
     'app-alert': Alert,
     'app-keywords-input': KeywordsInput,
     'app-teleport': Teleport,

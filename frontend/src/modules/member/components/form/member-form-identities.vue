@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-x-12 grid-cols-3">
-    <div>
+    <div v-if="showHeader">
       <h6>
         Identities <span class="text-brand-500">*</span>
       </h6>
@@ -9,7 +9,10 @@
         profiles
       </p>
     </div>
-    <div class="col-span-2 identities-form">
+    <div
+      class="identities-form"
+      :class="showHeader ? 'col-span-2' : 'col-span-3'"
+    >
       <div
         v-for="[key, value] in Object.entries(
           identitiesForm
@@ -57,6 +60,11 @@
                 ></template
               >
             </el-input>
+            <template #error>
+              <div class="el-form-item__error">
+                Identity profile is required
+              </div>
+            </template>
           </el-form-item>
         </div>
       </div>
@@ -66,10 +74,10 @@
 
 <script setup>
 import {
-  reactive,
   defineEmits,
   defineProps,
-  computed
+  computed,
+  watch
 } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
@@ -78,39 +86,10 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => {}
-  }
-})
-
-const identitiesForm = reactive({
-  devto: {
-    enabled: false,
-    urlPrefix: 'dev.to/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
   },
-  discord: {
-    enabled: false,
-    urlPrefix: 'discord.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto'
-  },
-  github: {
-    enabled: false,
-    urlPrefix: 'github.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
-  },
-  slack: {
-    enabled: false,
-    urlPrefix: 'slack.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
-  },
-  twitter: {
-    enabled: false,
-    urlPrefix: 'twitter.com/',
-    imgContainerClass:
-      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
+  showHeader: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -123,6 +102,60 @@ const model = computed({
   }
 })
 
+watch(model.value.username, (username) => {
+  // Handle platform value each time username object is updated
+  const platforms = Object.keys(username || {})
+
+  if (platforms.length) {
+    model.value.platform = platforms[0]
+  } else {
+    model.value.platform = null
+  }
+})
+
+const identitiesForm = computed(() => ({
+  devto: {
+    enabled:
+      props.modelValue.username?.devto !== undefined ||
+      false,
+    urlPrefix: 'dev.to/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+  },
+  discord: {
+    enabled:
+      props.modelValue.username?.discord !== undefined ||
+      false,
+    urlPrefix: 'discord.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--discord cursor-auto hover:cursor-auto'
+  },
+  github: {
+    enabled:
+      props.modelValue.username?.github !== undefined ||
+      false,
+    urlPrefix: 'github.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base bg-gray-100 border border-gray-200'
+  },
+  slack: {
+    enabled:
+      props.modelValue.username?.slack !== undefined ||
+      false,
+    urlPrefix: 'slack.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
+  },
+  twitter: {
+    enabled:
+      props.modelValue.username?.twitter !== undefined ||
+      false,
+    urlPrefix: 'twitter.com/',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
+  }
+}))
+
 function findPlatform(platform) {
   return integrationsJsonArray.find(
     (p) => p.platform === platform
@@ -130,8 +163,26 @@ function findPlatform(platform) {
 }
 
 function onSwitchChange(value, key) {
-  if (!props.modelValue.platform && value) {
-    model.value.platform = key
+  // Add platform to username object
+  if (
+    (model.value.username?.[key] === null ||
+      model.value.username?.[key] === undefined) &&
+    value
+  ) {
+    model.value.username[key] = ''
+    return
+  }
+
+  // Remove platform from username object
+  if (!value) {
+    delete model.value.username[key]
+    delete model.value.attributes?.url?.[key]
+  }
+
+  // Handle platfom and attributes when username profiles are removed
+  if (!Object.keys(model.value.username || {}).length) {
+    delete model.value.platform
+    delete model.value.attributes?.url
   }
 }
 
@@ -139,6 +190,7 @@ function onInputChange(newValue, key, value) {
   model.value.attributes = {
     ...props.modelValue.attributes,
     url: {
+      ...props.modelValue.attributes?.url,
       [key]: `${value.urlPrefix}${newValue}`
     }
   }

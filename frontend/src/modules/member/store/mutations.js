@@ -79,6 +79,9 @@ export default {
     if (state.table) {
       state.list.table.clearSelection()
     }
+
+    state.list.ids.length = 0
+
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -102,6 +105,14 @@ export default {
     state.list.ids = []
     state.count = 0
   },
+
+  DESTROY_CUSTOM_ATTRIBUTES_STARTED() {},
+  DESTROY_CUSTOM_ATTRIBUTES_SUCCESS() {},
+  DESTROY_CUSTOM_ATTRIBUTES_ERROR() {},
+
+  UPDATE_CUSTOM_ATTRIBUTES_STARTED() {},
+  UPDATE_CUSTOM_ATTRIBUTES_SUCCESS() {},
+  UPDATE_CUSTOM_ATTRIBUTES_ERROR() {},
 
   FETCH_CUSTOM_ATTRIBUTES_STARTED() {},
 
@@ -149,10 +160,7 @@ export default {
 
   BULK_UPDATE_MEMBERS_TAGS_SUCCESS(state, members) {
     for (const member of members) {
-      const index = state.list.ids.findIndex(
-        (r) => r.id === member.id
-      )
-      state.list.ids[index] = member
+      state.records[member.id] = member
     }
     state.list.loading = false
   },
@@ -162,7 +170,9 @@ export default {
   },
 
   CREATE_STARTED() {},
-  CREATE_SUCCESS() {},
+  CREATE_SUCCESS(state, record) {
+    state.records[record.id] = record
+  },
   CREATE_ERROR() {},
 
   CREATE_ATTRIBUTES_STARTED() {},
@@ -170,7 +180,9 @@ export default {
   CREATE_ATTRIBUTES_ERROR() {},
 
   UPDATE_STARTED() {},
-  UPDATE_SUCCESS() {},
+  UPDATE_SUCCESS(state, record) {
+    state.records[record.id] = record
+  },
   UPDATE_ERROR() {},
 
   DESTROY_ALL_STARTED() {},
@@ -182,7 +194,9 @@ export default {
   DESTROY_ERROR() {},
 
   FIND_STARTED() {},
-  FIND_SUCCESS() {},
+  FIND_SUCCESS(state, payload) {
+    state.records[payload.id] = payload
+  },
   FIND_ERROR() {},
 
   FILTER_CHANGED(state, filter) {
@@ -207,5 +221,14 @@ export default {
 
   FILTER_OPERATOR_UPDATED(state, operator) {
     state.filter.operator = operator
+  },
+
+  FILTER_ATTRIBUTE_RESETED(state, attribute) {
+    state.filter.attributes[attribute.name].value =
+      state.filter.attributes[attribute.name].defaultValue
+    state.filter.attributes[attribute.name].operator =
+      state.filter.attributes[
+        attribute.name
+      ].defaultOperator
   }
 }

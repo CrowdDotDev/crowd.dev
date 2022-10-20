@@ -15,7 +15,10 @@ export default {
     loading: false,
     filter: {},
     rawFilter: {},
-    pagination: {},
+    pagination: {
+      currentPage: 1,
+      pageSize: INITIAL_PAGE_SIZE
+    },
     sorter: {},
 
     table: null

@@ -1,6 +1,8 @@
 <template>
   <div>
     <app-filter-search
+      :module="module"
+      :filter="searchFilter"
       class="mb-6"
       @change="handleFilterChange"
     >
@@ -20,6 +22,7 @@
           class="mx-2"
           @change="handleFilterChange"
           @destroy="handleFilterDestroy"
+          @reset="handleFilterReset"
         />
         <app-filter-list-operator
           v-if="
@@ -51,6 +54,10 @@ const props = defineProps({
   module: {
     type: String,
     required: true
+  },
+  searchFilter: {
+    type: Object,
+    default: () => {}
   }
 })
 
@@ -77,6 +84,12 @@ const handleFilterChange = (attribute) => {
 const handleFilterDestroy = (attribute) => {
   store.dispatch(
     `${props.module}/destroyFilterAttribute`,
+    attribute
+  )
+}
+const handleFilterReset = (attribute) => {
+  store.dispatch(
+    `${props.module}/resetFilterAttribute`,
     attribute
   )
 }

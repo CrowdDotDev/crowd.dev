@@ -1,8 +1,11 @@
 .el-dialog {
-  @apply rounded-xl w-full max-w-xl;
+  @apply rounded-md w-full max-w-xl;
 
   &__title {
     @apply font-semibold;
+  }
+  &__header {
+    @apply pb-0;
   }
 
   &--lg {
@@ -11,5 +14,9 @@
 
   &--xl {
     @apply max-w-4xl;
+  }
+
+  &--2xl {
+    @apply max-w-5xl;
   }
 }

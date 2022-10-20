@@ -43,7 +43,7 @@
   @apply border-t-gray-300;
   bottom: -4px
 }
-.el-table .ascending .sort-caret.descending {
+.el-table .ascending .sort-caret.ascending {
   @apply border-b-gray-900;
 }
 .el-table .descending .sort-caret.descending {
@@ -88,4 +88,21 @@
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
   hyphens: auto;
+}
+
+.app-list-table {
+  @apply relative;
+  .el-table {
+    @apply mt-0 border-t-0;
+
+    .el-table-column--selection {
+      .cell {
+        @apply p-0 pl-4;
+      }
+    }
+
+    .hover-row {
+      cursor: pointer;
+    }
+  }
 }

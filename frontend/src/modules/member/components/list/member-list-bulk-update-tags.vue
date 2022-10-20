@@ -2,6 +2,7 @@
   <div class="relative inline-flex">
     <app-tag-popover
       v-model="bulkEditTagsModel"
+      pretitle="Multiple members"
       :visible="bulkEditTags"
       :loading="loading"
       @cancel="cancelBulkUpdateTags"
@@ -12,8 +13,7 @@
 
 <script>
 import AppTagPopover from '@/modules/tag/components/tag-popover'
-import { i18n } from '@/i18n'
-import { MemberModel } from '../member-model'
+import { MemberModel } from '../../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { mapActions } from 'vuex'
 
@@ -55,9 +55,7 @@ export default {
   watch: {
     modelValue: {
       handler: async function (newValue) {
-        console.log('entrei', newValue)
         if (newValue) {
-          console.log('entrei newValue', newValue)
           await this.prepareBulkUpdateTags()
         }
       }
@@ -72,16 +70,6 @@ export default {
 
     async doBulkUpdateTagsWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
-
         this.$emit('update:modelValue', false)
         this.bulkEditTags = false
 

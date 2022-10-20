@@ -177,4 +177,32 @@ export class MemberService {
 
     return response.data
   }
+
+  static async destroyCustomAttribute(id) {
+    const params = {
+      ids: [id]
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.delete(
+      `/tenant/${tenantId}/settings/members/attributes`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
+  static async updateCustomAttribute(id, data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/settings/members/attributes/${id}`,
+      data
+    )
+
+    return response.data
+  }
 }

@@ -95,7 +95,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['destroy', 'change'])
+const emit = defineEmits(['destroy', 'change', 'reset'])
 
 const isExpanded = computed(() => props.filter.expanded)
 const hasValue = computed(() =>
@@ -186,10 +186,11 @@ const handleDestroy = () => {
 }
 
 const handleReset = () => {
+  model.operator = props.filter.defaultOperator
   model.value = JSON.parse(
     JSON.stringify(props.filter.defaultValue)
   )
-  handleChange()
+  emit('reset', { ...props.filter })
 }
 
 const handleCancel = () => {

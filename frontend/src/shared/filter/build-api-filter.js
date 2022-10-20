@@ -25,23 +25,23 @@ function _buildAttributeBlock(attribute) {
 
   if (attribute.name === 'search') {
     return {
-      or: [
-        {
-          displayName: {
-            textContains: attribute.value
-          }
-        },
-        {
-          email: {
-            textContains: attribute.value
-          }
-        },
-        {
-          'username.default': {
+      or: attribute.fields.map((f) => {
+        return {
+          [f]: {
             textContains: attribute.value
           }
         }
-      ]
+      })
+    }
+  } else if (attribute.operator === 'notContains') {
+    return {
+      not: {
+        [attribute.custom
+          ? `attributes.${attribute.name}.default`
+          : attribute.name]: {
+          textContains: attribute.value
+        }
+      }
     }
   } else if (attribute.name === 'score') {
     rule = {
