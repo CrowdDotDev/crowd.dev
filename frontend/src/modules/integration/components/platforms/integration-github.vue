@@ -19,7 +19,7 @@ export default {
 }
 </script>
 <script setup>
-import AppIntegrationListItem from './integration-list-item'
+import AppIntegrationListItem from '../integration-list-item'
 import { useStore } from 'vuex'
 import { defineProps, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'

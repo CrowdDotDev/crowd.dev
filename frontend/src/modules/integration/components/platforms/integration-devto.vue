@@ -23,7 +23,7 @@ export default {
 }
 </script>
 <script setup>
-import AppIntegrationListItem from './integration-list-item'
+import AppIntegrationListItem from '../integration-list-item'
 import AppIntegrationDevtoDrawer from './integration-devto-drawer'
 import { defineProps, ref } from 'vue'
 

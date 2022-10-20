@@ -16,7 +16,7 @@ export default {
 }
 </script>
 <script setup>
-import AppIntegrationListItem from './integration-list-item'
+import AppIntegrationListItem from '../integration-list-item'
 import { defineProps } from 'vue'
 
 defineProps({

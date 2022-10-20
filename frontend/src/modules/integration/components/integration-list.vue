@@ -71,13 +71,13 @@ export default {
 import { useStore } from 'vuex'
 import { defineProps, computed, onMounted } from 'vue'
 
-import AppIntegrationGithub from './integration-github'
-import AppIntegrationSlack from './integration-slack'
-import AppIntegrationDiscord from './integration-discord'
-import AppIntegrationTwitter from './integration-twitter'
-import AppIntegrationDevto from './integration-devto'
-import AppIntegrationSoon from './integration-soon'
-import AppIntegrationCustom from './integration-custom'
+import AppIntegrationGithub from './platforms/integration-github'
+import AppIntegrationSlack from './platforms/integration-slack'
+import AppIntegrationDiscord from './platforms/integration-discord'
+import AppIntegrationTwitter from './platforms/integration-twitter'
+import AppIntegrationDevto from './platforms/integration-devto'
+import AppIntegrationSoon from './platforms/integration-soon'
+import AppIntegrationCustom from './platforms/integration-custom'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 const store = useStore()

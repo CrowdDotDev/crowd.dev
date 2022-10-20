@@ -36,7 +36,7 @@ import { useStore } from 'vuex'
 import { defineProps, computed, ref } from 'vue'
 import config from '@/config'
 import { AuthToken } from '@/modules/auth/auth-token'
-import AppIntegrationListItem from './integration-list-item'
+import AppIntegrationListItem from '../integration-list-item'
 import AppIntegrationTwitterDrawer from './integration-twitter-drawer'
 
 const props = defineProps({
