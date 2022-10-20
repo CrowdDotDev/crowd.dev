@@ -12,7 +12,8 @@
     "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vue-cli-service serve --mode localhost --port 8081",
     "start:test": "vue-cli-service serve --mode test --port 4000",
     "start:json-server": "node tests/support/json-server/index.js",
-    "test": "node tests/localhost-runner.js"
+    "test": "node tests/localhost-runner.js",
+    "tailwind:view": "tailwind-config-viewer -o"
   },
   "dependencies": {
     "@cubejs-client/core": "^0.30.60",
@@ -68,6 +69,7 @@
     "prettier": "^2.1.2",
     "sass": "^1.49.7",
     "sass-loader": "^12.6.0",
+    "tailwind-config-viewer": "^1.7.2",
     "tailwindcss": "^3.0.22",
     "wait-on": "^6.0.0"
   }
