@@ -68,7 +68,7 @@ const props = defineProps({
 
 const store = useStore()
 const operator = computed(
-  () => store.state.member.filter.operator
+  () => store.state[props.module].filter.operator
 )
 
 const filters = computed(() => {

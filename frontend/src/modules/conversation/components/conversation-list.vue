@@ -1,16 +1,4 @@
 <template>
-  <div v-if="!!count" class="mb-2">
-    <app-pagination-sorter
-      v-model="sorterFilter"
-      :page-size="Number(pagination.pageSize)"
-      :total="count"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      module="conversation"
-      position="top"
-      @change-sorter="doChangeFilter"
-    />
-  </div>
   <div class="pt-3">
     <div
       v-if="loading"
@@ -18,12 +6,35 @@
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
+      <div v-if="!!count" class="mb-2">
+        <app-pagination-sorter
+          v-model="sorterFilter"
+          :page-size="Number(pagination.pageSize)"
+          :total="count"
+          :current-page="pagination.currentPage"
+          :has-page-counter="false"
+          module="conversation"
+          position="top"
+          @change-sorter="doChangeFilter"
+        />
+      </div>
       <app-conversation-item
         v-for="conversation of conversations"
         :key="conversation.id"
         :conversation="conversation"
         :is-card="itemsAsCards"
       />
+      <div
+        v-if="conversations.length && isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
+      >
+        <el-button
+          class="btn btn-link btn-link--primary"
+          @click="onLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
+      </div>
       <div v-if="conversations.length === 0">
         <div class="flex justify-center pt-16">
           <i
@@ -73,8 +84,33 @@ const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']
 )
+const isLoadMoreVisible = computed(() => {
+  return (
+    pagination.value.currentPage *
+      pagination.value.pageSize <
+    count.value
+  )
+})
 
 function doChangeFilter(filter) {
-  console.log(filter)
+  let sorter = 'lastActive'
+
+  if (filter === 'trending') {
+    sorter = 'activityCount'
+  }
+
+  store.dispatch('activity/doChangeSort', {
+    prop: sorter,
+    order: 'descending'
+  })
+}
+
+const onLoadMore = () => {
+  const newPageSize = pagination.value.pageSize + 10
+
+  store.dispatch(
+    'activity/doChangePaginationPageSize',
+    newPageSize
+  )
 }
 </script>

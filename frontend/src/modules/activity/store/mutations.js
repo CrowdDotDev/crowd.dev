@@ -47,6 +47,7 @@ export default {
   },
 
   ACTIVE_VIEW_CHANGED(state, viewId) {
+    state.list.ids.length = 0
     state.views = Object.values(state.views).reduce(
       (acc, item) => {
         acc.push({
@@ -61,12 +62,12 @@ export default {
 
   FETCH_STARTED(state, payload) {
     state.list.loading = true
-    state.list.ids.length = 0
 
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
         : {
+            currentPage: 1,
             pageSize:
               state.pagination && state.pagination.pageSize
           }
@@ -74,10 +75,12 @@ export default {
 
   FETCH_SUCCESS(state, { rows, count, type }) {
     state.list.loading = false
+
     for (const record of rows) {
       state.records[type][record.id] = record
     }
-    state.list.ids = rows.map((r) => r.id)
+
+    state.list.ids.push(...rows.map((r) => r.id))
     state.count = count
   },
 

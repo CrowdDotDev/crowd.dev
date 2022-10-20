@@ -14,6 +14,7 @@
       {{ computedLabel }}</span
     >
     <app-inline-select-input
+      v-if="sorter"
       v-model="model"
       popper-class="sorter-popper-class"
       :placement="sorterPopperPlacement"
@@ -68,6 +69,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: () => null
+  },
+  sorter: {
+    type: Boolean,
+    default: () => true
   }
 })
 

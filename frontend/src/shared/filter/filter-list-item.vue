@@ -126,6 +126,12 @@ const valueToString = computed(() => {
         ).format('YYYY-MM-DD')
         return `${operatorLabel} ${formattedDate}`
       }
+    } else if (props.filter.type === 'select') {
+      const label = props.filter.props.options.find(
+        (o) => o.value === props.filter.value
+      )?.label
+
+      return `${operatorLabel} ${label}`
     } else if (
       props.filter.type.includes('select-multi') ||
       Array.isArray(props.filter.value)

@@ -65,7 +65,7 @@ const fields = {
       filterable: true
     }
   ),
-  date: new ActivityDateField('createdAt', label('date'), {
+  date: new ActivityDateField('timestamp', label('date'), {
     filterable: true
   }),
   platform: new ActivityPlatformField(

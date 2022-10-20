@@ -241,6 +241,7 @@ export default {
         state.filter.attributes[attribute.name]
       )
     ) {
+      state.list.ids.length = 0
       dispatch('doFetch', {
         keepPagination: false
       })
@@ -272,7 +273,7 @@ export default {
   },
 
   updateFilterOperator({ commit, dispatch }, operator) {
-    commit('FILTER_OPERATOR_CHANGED', operator)
+    commit('FILTER_OPERATOR_UPDATED', operator)
     dispatch('doFetch', {
       keepPagination: false
     })

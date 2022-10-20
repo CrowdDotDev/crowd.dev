@@ -1,22 +1,22 @@
 <template>
-  <div v-if="!!count" class="mb-2">
-    <app-pagination-sorter
-      v-model="sorterFilter"
-      :page-size="Number(pagination.pageSize)"
-      :total="count"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      module="activity"
-      position="top"
-      @change-sorter="doChangeFilter"
-    />
-  </div>
   <div
     v-if="loading"
     v-loading="loading"
     class="app-page-spinner h-16 !relative !min-h-5"
   ></div>
   <div v-else>
+    <div v-if="!!count" class="mb-2">
+      <app-pagination-sorter
+        v-model="sorterFilter"
+        :page-size="Number(pagination.pageSize)"
+        :total="count"
+        :current-page="pagination.currentPage"
+        :has-page-counter="false"
+        :sorter="false"
+        module="activity"
+        position="top"
+      />
+    </div>
     <app-activity-item
       v-for="activity of activities"
       :key="activity.id"
@@ -24,6 +24,17 @@
       class="mb-6"
       v-bind="cardOptions"
     />
+    <div
+      v-if="activities.length && isLoadMoreVisible"
+      class="flex grow justify-center pt-4"
+    >
+      <el-button
+        class="btn btn-link btn-link--primary"
+        @click="onLoadMore"
+        ><i class="ri-arrow-down-line"></i
+        ><span class="text-xs">Load more</span></el-button
+      >
+    </div>
     <div v-if="activities.length === 0">
       <div class="flex justify-center pt-12">
         <i
@@ -73,8 +84,18 @@ const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']
 )
+const isLoadMoreVisible = computed(() => {
+  return (
+    pagination.value.currentPage *
+      pagination.value.pageSize <
+    count.value
+  )
+})
 
-function doChangeFilter(filter) {
-  console.log(filter)
+const onLoadMore = () => {
+  store.dispatch(
+    'activity/doChangePaginationCurrentPage',
+    pagination.value.currentPage + 1
+  )
 }
 </script>
