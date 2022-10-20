@@ -1,23 +1,15 @@
 <template>
   <div class="relative">
-    <!--<div
+    <div
       v-if="loading"
-      class="absolute flex items-center justify-center grow flex-col w-full inset-0 z-10 rounded-lg mt-4"
-      :style="{
-        backgroundColor: 'rgba(255,255,255,0.9)'
-      }"
+      class="flex items-center justify-center"
     >
       <div
-        v-if="loading"
         v-loading="loading"
         class="app-page-spinner w-20"
       ></div>
-      <span>
-        Finishing the integration setup, please don't reload
-        the page.
-      </span>
-    </div>-->
-    <div class="grid grid-cols-3 grid-rows-4 gap-4">
+    </div>
+    <div v-else class="grid grid-cols-3 grid-rows-4 gap-4">
       <div
         v-for="integration in integrationsArray"
         :key="integration.platform"
@@ -88,6 +80,9 @@ const props = defineProps({
   }
 })
 
+const loading = computed(
+  () => store.getters['integration/loadingFetch']
+)
 const integrationsArray = computed(() => {
   return props.onboard
     ? integrationsJsonArray

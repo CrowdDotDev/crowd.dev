@@ -48,9 +48,7 @@ const connectUrl = computed(() => {
     currentUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
   }
 
-  const redirectUrl = currentUrl.includes('integrations')
-    ? currentUrl
-    : `${currentUrl}?activeTab=integrations`
+  const redirectUrl = currentUrl
 
   return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id

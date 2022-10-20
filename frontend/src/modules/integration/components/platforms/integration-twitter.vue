@@ -2,6 +2,7 @@
   <app-integration-list-item
     :integration="integration"
     :onboard="onboard"
+    @hashtags-changed="handleHashtagsChanged"
   >
     <template #connect>
       <a
@@ -20,6 +21,8 @@
       >
       <app-integration-twitter-drawer
         v-model="drawerVisible"
+        :hashtags="hashtags"
+        :connect-url="connectUrl"
         :integration="integration"
       />
     </template>
@@ -51,26 +54,18 @@ const props = defineProps({
 })
 const store = useStore()
 const drawerVisible = ref(false)
-
-const hasHashtags = computed(() => {
-  return (
-    props.integration.value &&
-    props.integration.value.settings &&
-    props.integration.value.settings.hashtags.length > 0
-  )
+const hashtags = computed(() => {
+  return props.integration.settings?.hashtags || []
 })
 
+const hasHashtags = computed(
+  () => hashtags.value.length > 0
+)
 const connectUrl = computed(() => {
-  const currentUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
-  const redirectUrl = currentUrl.includes('integrations')
-    ? currentUrl
-    : `${currentUrl}?activeTab=integrations`
+  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
 
   const encodedHashtags = hasHashtags.value
-    ? '&' +
-      props.integration.value.hashtags.map(
-        (t) => `hashtags[]=${t.id}`
-      )
+    ? '&' + hashtags.value.map((t) => `hashtags[]=${t}`)
     : ''
 
   return `${config.backendUrl}/twitter/${

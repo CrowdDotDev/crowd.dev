@@ -23,19 +23,18 @@
         </div>
       </div>
     </template>
-    <el-form class="form">
+    <el-form class="form integration-twitter-form">
       <span class="block text-sm font-medium"
         >Track hashtag</span
       >
       <el-form-item>
-        <app-autocomplete-one-input
-          v-model="hashtags[0]"
-          :fetch-fn="() => []"
-          :create-fn="createTwitterHashtag"
-          :allow-create="true"
-          class="mt-2"
-          placeholder="Enter hashtag"
-        ></app-autocomplete-one-input>
+        <el-input
+          v-model="hashtag"
+          class="hashtag-input"
+          @change="handleHashtagChange"
+        >
+          <template #prefix>#</template>
+        </el-input>
 
         <div class="app-form-hint leading-tight mt-1">
           Tip: Choose a hashtag that's specific to your
@@ -47,19 +46,16 @@
       <div>
         <el-button
           class="btn btn--md btn--bordered mr-4"
-          :disabled="loading"
           @click="isVisible = false"
         >
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
-        <el-button
+        <a
           class="btn btn--md btn--primary"
-          :disabled="connectDisabled || loading"
-          :loading="loading"
-          @click="save"
+          :href="computedConnectUrl"
         >
           <app-i18n code="common.connect"></app-i18n>
-        </el-button>
+        </a>
       </div>
     </template>
   </el-drawer>
@@ -72,13 +68,12 @@ export default {
 }
 </script>
 <script setup>
-import { useStore } from 'vuex'
 import {
   defineEmits,
   defineProps,
-  reactive,
   computed,
-  onMounted
+  onMounted,
+  ref
 } from 'vue'
 
 const props = defineProps({
@@ -89,13 +84,18 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false
+  },
+  hashtags: {
+    type: Array,
+    default: () => []
+  },
+  connectUrl: {
+    type: String,
+    default: null
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
-
-const store = useStore()
-let hashtags = reactive({})
 
 const isVisible = computed({
   get() {
@@ -106,6 +106,8 @@ const isVisible = computed({
   }
 })
 
+let hashtag = ref('')
+
 const logoUrl = computed(
   () =>
     integrationsJsonArray.find(
@@ -113,44 +115,26 @@ const logoUrl = computed(
     ).image
 )
 
-const twitterIntegration = computed(() => {
-  return store.getters['integration/active'].find(
-    (i) => i.platform === props.integration.platform
-  )
-})
-
-const hasHashtags = computed(() => {
-  return (
-    twitterIntegration.value &&
-    twitterIntegration.value.settings &&
-    twitterIntegration.value.settings.hashtags.length > 0
-  )
+const computedConnectUrl = computed(() => {
+  return hashtag.value
+    ? `${props.connectUrl}&hashtags[]=${hashtag.value}`
+    : ''
 })
 
 onMounted(() => {
-  hashtags = !hasHashtags.value
-    ? []
-    : twitterIntegration.value.settings.hashtags.map(
-        (t) => {
-          return { id: t, label: `#${t}` }
-        }
-      )
+  hashtag.value = props.hashtags[0]
 })
-
-const createTwitterHashtag = (hashtag) => {
-  // TODO: Maybe in the future it would be cool to fetch real twitter's hashtags
-  const value = hashtag.replace('#', '')
-
-  return { id: value, label: `#${value}` }
-}
 </script>
 
 <style lang="scss">
-.integration-devto-form {
+.integration-twitter-form {
   .el-form-item {
     @apply mb-3;
     &__content {
       @apply mb-0;
+      .hashtag-input .el-input__inner {
+        @apply pl-1;
+      }
     }
   }
 

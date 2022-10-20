@@ -44,7 +44,7 @@
 
 <script>
 export default {
-  name: 'AppIntegrationSoon'
+  name: 'AppIntegrationListItem'
 }
 </script>
 <script setup>
