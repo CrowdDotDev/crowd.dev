@@ -495,13 +495,10 @@ class ActivityRepository {
       {
         model: options.database.member,
         as: 'member',
-        attributes: [],
-
       },
       {
         model: options.database.activity,
         as: 'parent',
-        attributes: [],
       },
     ]
 
@@ -510,39 +507,6 @@ class ActivityRepository {
         nestedFields: {
           sentiment: 'sentiment.sentiment',
         },
-        aggregators:{
-          'sentiment.sentiment': Sequelize.literal(`("activity".sentiment->'sentiment')::float`),
-          'sentiment.positive': Sequelize.literal(`("activity".sentiment->'positive')::float`),
-          'sentiment.negative': Sequelize.literal(`("activity".sentiment->'negative')::float`),
-          'sentiment.mixed': Sequelize.literal(`("activity".sentiment->'mixed')::float`),
-          'sentiment.neutral': Sequelize.literal(`("activity".sentiment->'neutral')::float`),
-          'sentiment.label': Sequelize.literal(`("activity".sentiment->>'label')`),
-          ...SequelizeFilterUtils.getNativeTableFieldAggregations([
-            'id',
-            'type',
-            'timestamp',
-            'platform',
-            'isKeyAction',
-            'score',
-            'sourceId',
-            'sourceParentId',
-            'attributes',
-            'channel',
-            'body',
-            'title',
-            'url',
-            'importHash',
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'memberId',
-            'conversationId',
-            'parentId',
-            'createdById',
-            'updatedById'
-
-          ], 'activity')
-        }
       },
       options,
     )
@@ -561,37 +525,6 @@ class ActivityRepository {
       include,
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
-      attributes:[
-        ...SequelizeFilterUtils.getLiteralProjections(
-          [
-            'id',
-            'type',
-            'timestamp',
-            'platform',
-            'isKeyAction',
-            'score',
-            'sourceId',
-            'sourceParentId',
-            'attributes',
-            'channel',
-            'body',
-            'title',
-            'url',
-            'sentiment',
-            'importHash',
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'memberId',
-            'conversationId',
-            'parentId',
-            'createdById',
-            'updatedById'
-          ],
-          'activity',
-        ),
-      ],
-      group: ['activity.id'],
       order: parsed.order,
       limit: parsed.limit,
       offset: parsed.offset,
@@ -600,7 +533,7 @@ class ActivityRepository {
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    return { rows, count: count.length, limit: parsed.limit, offset: parsed.offset }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
