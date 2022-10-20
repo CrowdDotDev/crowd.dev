@@ -2,11 +2,7 @@
   <article v-if="loading || !conversation">
     <app-loading height="380px"></app-loading>
   </article>
-  <article
-    v-else
-    class="panel mb-6"
-    @click="openConversation()"
-  >
+  <article v-else>
     <div class="flex items-center pb-8">
       <!-- avatar conversation starter -->
       <app-avatar :entity="member" size="xs" />
@@ -79,39 +75,7 @@
         :show-more="true"
       />
     </div>
-    <div class="flex items-center py-6">
-      <div class="flex-grow border-b border-gray-200"></div>
-      <div
-        v-if="conversation.activityCount.length > 3"
-        class="text-xs h-6 flex items-center px-3 rounded-3xl border border-gray-200 text-gray-500"
-      >
-        {{ conversation.activityCount.length - 3 }}
-        more
-        {{
-          conversation.activityCount.length > 4
-            ? 'replies'
-            : 'reply'
-        }}
-      </div>
-      <div class="flex-grow border-b border-gray-200"></div>
-    </div>
-    <div class="pb-10">
-      <app-conversation-reply
-        v-for="(reply, ri) in conversation.lastReplies"
-        :key="reply.id"
-        :activity="reply"
-      >
-        <template #underAvatar>
-          <div
-            v-if="ri < conversation.lastReplies.length - 1"
-            class="h-4 w-0.5 bg-gray-200 my-2"
-          ></div>
-        </template>
-      </app-conversation-reply>
-    </div>
-    <div
-      class="-mx-6 -mb-6 px-6 py-4 flex items-center justify-between bg-gray-50"
-    >
+    <div class="pt-6">
       <div class="flex items-center">
         <div class="flex items-center mr-6">
           <i
@@ -137,29 +101,42 @@
           </p>
         </div>
       </div>
-      <div>
-        <app-activity-link
-          :activity="conversation.conversationStarter"
-        />
-      </div>
+    </div>
+
+    <div class="pt-10">
+      <app-conversation-reply
+        v-for="(reply, ri) in replies"
+        :key="reply.id"
+        :activity="reply"
+        :display-content="true"
+        :body-classes="
+          ri < replies.length - 1 ? 'pb-8' : ''
+        "
+        :show-more="true"
+      >
+        <template #underAvatar>
+          <div
+            v-if="ri < replies.length - 1"
+            class="h-full w-0.5 bg-gray-200 my-2"
+          ></div>
+        </template>
+      </app-conversation-reply>
     </div>
   </article>
 </template>
 
 <script>
+import AppActivityMessage from '@/modules/activity/components/activity-message'
+import AppConversationReply from '@/modules/conversation/components/conversation-reply'
+import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppLoading from '@/shared/loading/loading-placeholder'
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
-import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityContent from '@/modules/activity/components/activity-content'
-import AppConversationReply from '@/modules/conversation/components/conversation-reply'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
-import AppActivityLink from '@/modules/activity/components/activity-link'
 
 export default {
-  name: 'AppConversationItem',
+  name: 'AppConversationDetails',
   components: {
-    AppActivityLink,
     AppActivityMessage,
     AppConversationReply,
     AppActivityContent,
@@ -180,6 +157,7 @@ export default {
   },
   computed: {
     platform() {
+      console.log(this.conversation)
       return integrationsJsonArray.find(
         (i) => i.platform === this.conversation.platform
       )
@@ -193,18 +171,14 @@ export default {
     },
     url() {
       return this.conversation.url
+    },
+    replies() {
+      return this.conversation.activities.slice(1)
     }
   },
   methods: {
     timeAgo(date) {
       return computedTimeAgo(date)
-    },
-    openConversation() {
-      // TODO: Change this with conversation drawer once its finished
-      this.$router.push({
-        name: 'conversationView',
-        params: { id: this.conversation.id }
-      })
     }
   }
 }

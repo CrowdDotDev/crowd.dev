@@ -11,6 +11,7 @@
       :activity="activity"
       class="mb-6"
       v-bind="cardOptions"
+      @open-conversation="conversationId = $event"
     />
     <div v-if="activities.length === 0">
       <div class="flex justify-center pt-12">
@@ -25,13 +26,19 @@
       </p>
     </div>
   </div>
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  ></app-conversation-drawer>
 </template>
 
 <script>
 import AppActivityItem from '@/modules/activity/components/activity-item'
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 export default {
   name: 'AppActivityList',
-  components: { AppActivityItem },
+  components: { AppConversationDrawer, AppActivityItem },
   props: {
     activities: {
       type: Array,
@@ -45,6 +52,11 @@ export default {
       type: Object,
       required: false,
       default: () => ({})
+    }
+  },
+  data() {
+    return {
+      conversationId: null
     }
   }
 }
