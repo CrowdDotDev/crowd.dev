@@ -7,7 +7,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { attributeIsDifferent } from '@/shared/filter/is-different'
+import { attributesAreDifferent } from '@/shared/filter/is-different'
 
 export default {
   doUnselectAll({ commit }) {
@@ -448,18 +448,14 @@ export default {
     }
   },
 
-  addFilterAttribute(
-    { commit, dispatch, state },
-    attribute
-  ) {
+  addFilterAttribute({ commit, dispatch }, attribute) {
+    let shouldFetch = Array.isArray(attribute.value)
+      ? attribute.value.length > 0
+      : attribute.value !== null
+
     commit('FILTER_ATTRIBUTE_ADDED', attribute)
 
-    if (
-      attributeIsDifferent(
-        attribute,
-        state.filter.attributes[attribute.name]
-      )
-    ) {
+    if (shouldFetch) {
       dispatch('doFetch', {
         keepPagination: false
       })
@@ -470,30 +466,28 @@ export default {
     { commit, dispatch, state },
     attribute
   ) {
+    let shouldFetch = attributesAreDifferent(
+      state.filter.attributes[attribute.name],
+      attribute
+    )
+
     commit('FILTER_ATTRIBUTE_CHANGED', attribute)
-    if (
-      attributeIsDifferent(
-        attribute,
-        state.filter.attributes[attribute.name]
-      )
-    ) {
+
+    if (shouldFetch) {
       dispatch('doFetch', {
         keepPagination: false
       })
     }
   },
 
-  destroyFilterAttribute(
-    { commit, dispatch, state },
-    attribute
-  ) {
+  destroyFilterAttribute({ commit, dispatch }, attribute) {
+    let shouldFetch = Array.isArray(attribute.value)
+      ? attribute.value.length > 0
+      : attribute.value !== null
+
     commit('FILTER_ATTRIBUTE_DESTROYED', attribute)
-    if (
-      attributeIsDifferent(
-        attribute,
-        state.filter.attributes[attribute.name]
-      )
-    ) {
+
+    if (shouldFetch) {
       dispatch('doFetch', {
         keepPagination: false
       })

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-const filterIsDifferent = (filterObjA, filterObjB) => {
+const filtersAreDifferent = (filterObjA, filterObjB) => {
   if (
     Object.keys(filterObjA).length !==
     Object.keys(filterObjB).length
@@ -23,13 +23,41 @@ const filterIsDifferent = (filterObjA, filterObjB) => {
   }
 }
 
+const attributesAreDifferent = (attributeA, attributeB) => {
+  if (!attributeA || !attributeB) {
+    return true
+  } else if (attributeA.operator !== attributeB.operator) {
+    return true
+  } else if (
+    (Array.isArray(attributeA.value) &&
+      !Array.isArray(attributeB.value)) ||
+    (!Array.isArray(attributeA.value) &&
+      Array.isArray(attributeB.value))
+  ) {
+    return true
+  }
+
+  return Array.isArray(attributeA.value)
+    ? !_(attributeA.value)
+        .xorWith(attributeB.value, _.isEqual)
+        .isEmpty()
+    : attributeA.value !== attributeB.value
+}
+
 const attributeIsDifferent = (attribute) => {
-  return attribute.operator !== attribute.defaultOperator ||
-    Array.isArray(attribute.value)
+  if (attribute.operator !== attribute.defaultOperator) {
+    return true
+  }
+
+  return Array.isArray(attribute.value)
     ? !_(attribute.value)
-        .differenceWith(attribute.defaultValue, _.isEqual)
+        .xorWith(attribute.defaultValue, _.isEqual)
         .isEmpty()
     : attribute.value !== attribute.defaultValue
 }
 
-export { filterIsDifferent, attributeIsDifferent }
+export {
+  filtersAreDifferent,
+  attributesAreDifferent,
+  attributeIsDifferent
+}

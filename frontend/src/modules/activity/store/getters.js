@@ -1,5 +1,5 @@
 import { INITIAL_PAGE_SIZE } from './constants'
-import { filterIsDifferent } from '@/shared/filter/is-different'
+import { filtersAreDifferent } from '@/shared/filter/is-different'
 
 export default {
   rows: (state, getters) =>
@@ -65,7 +65,7 @@ export default {
   },
 
   showResetView: (state, getters) => {
-    return filterIsDifferent(
+    return filtersAreDifferent(
       state.filter,
       getters.activeView.filter
     )

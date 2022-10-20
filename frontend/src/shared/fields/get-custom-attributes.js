@@ -5,8 +5,9 @@ import DateField from '@/shared/fields/date-field'
 
 export default (customAttributes) => {
   return (
-    Object.values(customAttributes).map(
-      (customAttribute) => {
+    Object.values(customAttributes)
+      .filter((a) => a.show)
+      .map((customAttribute) => {
         switch (customAttribute.type) {
           case 'boolean':
             return new BooleanField(
@@ -34,7 +35,6 @@ export default (customAttributes) => {
               { custom: customAttribute.canDelete }
             )
         }
-      }
-    ) || []
+      }) || []
   )
 }
