@@ -30,7 +30,7 @@
 import AppAvatar from '@/shared/avatar/avatar'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
-  name: 'AppDashboardOrganizationsItem',
+  name: 'AppDashboardOrganizationItem',
   components: { AppLoading, AppAvatar },
   props: {
     organization: {

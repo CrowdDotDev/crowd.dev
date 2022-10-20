@@ -73,9 +73,9 @@ export default {
 <script setup>
 import AppActivityItem from '@/modules/activity/components/activity-item'
 import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
+import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
 import { defineProps, computed, ref } from 'vue'
 import { useStore } from 'vuex'
-import AppPaginationSorter from "@/shared/pagination/pagination-sorter";
 
 const store = useStore()
 const sorterFilter = ref('trending')
