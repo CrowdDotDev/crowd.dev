@@ -60,7 +60,7 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
       ],
       defaultOperator: null,
       operator: null,
-      type: 'select',
+      type: 'select-multi',
       expanded: false
     }
   }

@@ -10,22 +10,17 @@
         }}
         of
       </span>
-      {{ total.toLocaleString('en') }} members</span
+      {{ total.toLocaleString('en') }}
+      {{ computedLabel }}</span
     >
     <app-inline-select-input
-      v-model="sorterValue"
+      v-if="sorter"
+      v-model="model"
       popper-class="sorter-popper-class"
       :placement="sorterPopperPlacement"
       prefix="Show:"
-      :options="[
-        { value: 20, label: '20' },
-        { value: 50, label: '50' },
-        { value: 100, label: '100' },
-        { value: 200, label: '200' }
-      ]"
-      @change="
-        (pageSize) => emit('changePageSize', pageSize)
-      "
+      :options="computedOptions"
+      @change="onChange"
     />
   </div>
 </template>
@@ -37,14 +32,13 @@ export default {
 </script>
 
 <script setup>
-import {
-  computed,
-  defineProps,
-  defineEmits,
-  ref
-} from 'vue'
+import { computed, defineProps, defineEmits } from 'vue'
+import pluralize from 'pluralize'
 
-const emit = defineEmits(['changePageSize'])
+const emit = defineEmits([
+  'changeSorter',
+  'update:modelValue'
+])
 const props = defineProps({
   currentPage: {
     type: Number,
@@ -60,19 +54,73 @@ const props = defineProps({
   },
   position: {
     type: String,
-    required: false,
     default: 'bottom',
     validator: (propValue) =>
       propValue === 'bottom' || propValue === 'top'
   },
   hasPageCounter: {
     type: Boolean,
-    required: false,
     default: true
+  },
+  module: {
+    type: String,
+    default: () => ''
+  },
+  modelValue: {
+    type: String,
+    default: () => null
+  },
+  sorter: {
+    type: Boolean,
+    default: () => true
   }
 })
 
-const sorterValue = ref(props.pageSize)
+const model = computed({
+  get() {
+    if (
+      props.module !== 'activity' &&
+      props.module !== 'conversation'
+    ) {
+      return props.pageSize
+    }
+
+    return props.modelValue
+  },
+
+  set(value) {
+    emit('update:modelValue', value)
+  }
+})
+
+const computedOptions = computed(() => {
+  if (
+    props.module === 'activity' ||
+    props.module === 'conversation'
+  ) {
+    return [
+      {
+        value: 'trending',
+        label: 'Trending'
+      },
+      {
+        value: 'recentActivity',
+        label: 'Most recent activity'
+      }
+    ]
+  }
+
+  return [
+    { value: 20, label: '20' },
+    { value: 50, label: '50' },
+    { value: 100, label: '100' },
+    { value: 200, label: '200' }
+  ]
+})
+
+const computedLabel = computed(() => {
+  return pluralize(props.module)
+})
 
 const count = computed(() => ({
   minimum:
@@ -102,4 +150,8 @@ const sorterPopperPlacement = computed(() => {
 
   return 'bottom-end'
 })
+
+const onChange = (value) => {
+  emit('changeSorter', value)
+}
 </script>

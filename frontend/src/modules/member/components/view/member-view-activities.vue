@@ -30,16 +30,11 @@
           :key="activity.id"
         >
           <div>
-            <app-activity-header
+            <app-activity-item
               :activity="activity"
               :show-user="false"
               :show-platform-icon="false"
               class="pt-2"
-            />
-            <div
-              v-if="activity.body"
-              class="block whitespace-pre-wrap custom-break-all text-xs p-4 rounded-md bg-gray-50 mt-5 w-full"
-              v-html="activity.body"
             />
           </div>
           <template #dot>
@@ -84,7 +79,7 @@ export default {
 import _ from 'lodash'
 import { useStore } from 'vuex'
 import integrationsJson from '@/jsons/integrations.json'
-import AppActivityHeader from '@/modules/activity/components/activity-header'
+import AppActivityItem from '@/modules/activity/components/activity-item'
 
 import {
   defineProps,

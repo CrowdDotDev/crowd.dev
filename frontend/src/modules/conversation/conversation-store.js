@@ -19,7 +19,10 @@ export default {
         form: false,
         submit: false
       },
-      filter: {},
+      filter: {
+        operator: 'and',
+        attributes: {}
+      },
       rawFilter: {},
       pagination: {
         currentPage: 1,

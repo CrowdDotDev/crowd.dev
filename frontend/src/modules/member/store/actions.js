@@ -508,7 +508,7 @@ export default {
   },
 
   updateFilterOperator({ commit, dispatch }, operator) {
-    commit('FILTER_OPERATOR_CHANGED', operator)
+    commit('FILTER_OPERATOR_UPDATED', operator)
     dispatch('doFetch', {
       keepPagination: false
     })

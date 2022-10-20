@@ -2,7 +2,7 @@
   <div class="filter-type-search">
     <el-input
       v-model="model"
-      :placeholder="computedPlaceholder"
+      :placeholder="placeholder"
       :prefix-icon="SearchIcon"
       clearable
     >
@@ -13,14 +13,12 @@
   </div>
 </template>
 <script setup>
-import pluralize from 'pluralize'
 import {
   h,
   ref,
   defineEmits,
   defineProps,
-  watch,
-  computed
+  watch
 } from 'vue'
 import debounce from 'lodash/debounce'
 
@@ -32,6 +30,10 @@ const props = defineProps({
   filter: {
     type: Object,
     default: () => {}
+  },
+  placeholder: {
+    type: String,
+    required: true
   }
 })
 const emit = defineEmits(['change'])
@@ -42,9 +44,6 @@ const SearchIcon = h(
 )
 
 const model = ref('')
-const computedPlaceholder = computed(
-  () => `Search ${pluralize(props.module)}`
-)
 
 const debouncedChange = debounce(() => {
   emit('change', {

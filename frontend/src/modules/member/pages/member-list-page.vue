@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <app-member-tabs></app-member-tabs>
+      <app-member-list-tabs></app-member-list-tabs>
       <app-member-list-filter></app-member-list-filter>
       <app-member-list-table></app-member-list-table>
     </div>
@@ -61,7 +61,7 @@
 import { MemberService } from '../member-service'
 import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue'
 import MemberListTable from '@/modules/member/components/list/member-list-table.vue'
-import MemberTabs from '@/modules/member/components/member-tabs.vue'
+import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue'
 import PageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
@@ -72,7 +72,7 @@ export default {
   components: {
     'app-member-list-filter': MemberListFilter,
     'app-member-list-table': MemberListTable,
-    'app-member-tabs': MemberTabs,
+    'app-member-list-tabs': MemberListTabs,
     'app-page-wrapper': PageWrapper
   },
 

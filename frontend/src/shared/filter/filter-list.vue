@@ -3,6 +3,7 @@
     <app-filter-search
       :module="module"
       :filter="searchFilter"
+      :placeholder="placeholder"
       class="mb-6"
       @change="handleFilterChange"
     >
@@ -58,12 +59,16 @@ const props = defineProps({
   searchFilter: {
     type: Object,
     default: () => {}
+  },
+  placeholder: {
+    type: String,
+    required: true
   }
 })
 
 const store = useStore()
 const operator = computed(
-  () => store.state.member.filter.operator
+  () => store.state[props.module].filter.operator
 )
 
 const filters = computed(() => {

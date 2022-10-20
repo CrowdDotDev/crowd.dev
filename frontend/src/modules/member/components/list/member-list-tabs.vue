@@ -21,7 +21,7 @@
 
 <script>
 export default {
-  name: 'AppMemberTabs'
+  name: 'AppMemberListTabs'
 }
 </script>
 
