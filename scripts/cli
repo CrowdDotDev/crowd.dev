@@ -72,7 +72,7 @@ function build_and_publish() {
     docker build --platform linux/amd64 --tag "$REPO:$VERSION" -f "$DOCKERFILE" "$CONTEXT"
 
     if [[ ${PUSH} ]]; then
-        say "Pushing image to $REPO:$VERSION"
+        say "Pushing image $REPO version $VERSION to $REPO:$VERSION"
         docker push "$REPO:$VERSION"
     fi
 }
