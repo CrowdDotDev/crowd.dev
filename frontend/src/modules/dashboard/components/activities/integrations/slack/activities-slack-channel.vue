@@ -9,7 +9,7 @@
         'reaction_added'
       ].includes(activity.type)
     "
-    class="text-red"
+    class="text-brand-500"
   >
     #{{ activity.channel }}
   </span>

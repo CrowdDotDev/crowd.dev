@@ -12,11 +12,16 @@
   ></app-i18n
   >&nbsp;<a
     v-if="!short"
-    :href="activity.attributes.articleUrl"
-    class="text-red"
+    :href="
+      activity.articleUrl || activity.attributes.articleUrl
+    "
+    class="text-brand-500"
     target="_blank"
   >
-    {{ activity.attributes.articleTitle }}
+    {{
+      activity.articleTitle ||
+      activity.attributes.articleTitle
+    }}
   </a>
 </template>
 

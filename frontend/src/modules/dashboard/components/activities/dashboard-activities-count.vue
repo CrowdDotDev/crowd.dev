@@ -25,7 +25,7 @@
           <app-dashboard-badge
             :type="computedBadgeType(resultSet)"
             >{{
-              computedBageLabel(resultSet)
+              computedBadgeLabel(resultSet)
             }}</app-dashboard-badge
           >
         </el-tooltip>
@@ -82,7 +82,7 @@ export default {
       }
       return 'info'
     },
-    computedBageLabel(resultSet) {
+    computedBadgeLabel(resultSet) {
       const score = this.computedScore(resultSet)
       if (this.activities.total > 0) {
         if (score > 0) {

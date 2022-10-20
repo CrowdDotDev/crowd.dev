@@ -35,7 +35,7 @@
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
         :to="{ name: 'activity' }"
-        class="text-red font-medium text-center text-xs leading-5"
+        class="text-brand-500 font-medium text-center text-xs leading-5"
       >
         All activities
       </router-link>
