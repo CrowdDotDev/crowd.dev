@@ -215,6 +215,17 @@ hr {
   line-clamp: 1;
 }
 
+// Limits text to 1 line
+.text-limit-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+// Limits text to 1 line
+.text-limit-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
 // Limits text to 4 lines
 .text-limit-4 {
   -webkit-line-clamp: 4;

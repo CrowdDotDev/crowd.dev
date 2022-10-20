@@ -99,7 +99,7 @@
         </div>
         <!-- member name -->
         <div
-          v-if="activity.title && activity.body"
+          v-if="activity.title || activity.body"
           class="pt-6"
         >
           <app-activity-content
