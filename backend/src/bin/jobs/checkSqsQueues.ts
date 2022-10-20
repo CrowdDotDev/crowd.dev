@@ -4,12 +4,18 @@ import { SQS_CONFIG } from '../../config'
 import { sqs } from '../../services/aws'
 import { CrowdJob } from '../../utils/jobTypes'
 
+interface IQueueCount {
+  lastCount: number
+  increaseCount: number
+}
+
 const queues = [
   SQS_CONFIG.nodejsWorkerQueue,
   SQS_CONFIG.pythonWorkerQueue,
   SQS_CONFIG.premiumPythonWorkerQueue,
 ]
-const messageCounts: Map<string, number> = new Map<string, number>()
+
+const messageCounts: Map<string, IQueueCount> = new Map<string, IQueueCount>()
 
 const job: CrowdJob = {
   name: 'Check SQS Queues',
@@ -26,17 +32,30 @@ const job: CrowdJob = {
       if (result.Attributes) {
         const value = parseInt(result.Attributes.ApproximateNumberOfMessages, 10)
         if (messageCounts.has(queue)) {
-          // do the actual check
           const previousValue = messageCounts.get(queue)
-          if (previousValue > 100 && previousValue < value && value >= 100) {
-            // trigger warning
-            await sendSlackAlert(
-              `*Warning*: queue ${queue} has an increased amount of messages - *from ${previousValue} to ${value}*!`,
-            )
-          }
-        }
+          if (previousValue.lastCount < value) {
+            if (previousValue.increaseCount > 2) {
+              await sendSlackAlert(
+                `*Warning*: Queue ${queue} messages have *increasted #${previousValue.increaseCount} times*  - last increase was *from ${previousValue.lastCount} to ${value}*!`,
+              )
+            }
 
-        messageCounts.set(queue, value)
+            messageCounts.set(queue, {
+              lastCount: value,
+              increaseCount: previousValue.increaseCount + 1,
+            })
+          } else {
+            messageCounts.set(queue, {
+              lastCount: value,
+              increaseCount: 0,
+            })
+          }
+        } else {
+          messageCounts.set(queue, {
+            lastCount: value,
+            increaseCount: value > 0 ? 1 : 0,
+          })
+        }
       }
     }
   },
