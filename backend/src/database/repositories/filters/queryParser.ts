@@ -217,7 +217,13 @@ class QueryParser {
     // {activityCount: {gt: 10}} (the value would be 10)
 
     // We wrap everything onto a where clause and we return
-    query[Op.and] = [Sequelize.where(left, op, right)]
+    if (query[Op.and]){
+      query[Op.and].push(Sequelize.where(left, op, right))
+    }
+    else{
+      query[Op.and] = [Sequelize.where(left, op, right)]
+    }
+    
     return query
     
   }
