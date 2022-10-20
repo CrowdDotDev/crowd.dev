@@ -76,5 +76,5 @@ export default async function ({ to, store, router }) {
 }
 
 function _isGoingToIntegrationsPage(to) {
-  return to.query.activeTab === 'integrations'
+  return to.name === 'integrations'
 }

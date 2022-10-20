@@ -1,32 +1,36 @@
 <template>
-  <el-dialog
+  <el-drawer
     v-model="isVisible"
-    class="devto-integration-modal"
+    class="integration-devto-drawer"
     :close-on-click-modal="false"
     @close="cancel"
   >
     <template #header>
-      <div class="flex flex-row">
-        <img
-          :src="logoUrl"
-          class="w-10 h-10 mr-4"
-          alt="DEV logo"
-        />
-        <div class="pt-1">
-          <span
-            class="block text-gray-800 text-xs font-normal leading-none"
-            >Integration</span
-          >
-          <span class="block text-lg font-medium">DEV</span>
+      <div class="block">
+        <span
+          class="block text-gray-600 text-2xs font-normal leading-none"
+          >Integration</span
+        >
+        <div class="flex items-center pt-2">
+          <img
+            :src="logoUrl"
+            class="w-6 h-6 mr-2"
+            alt="DEV logo"
+          />
+          <div class="text-lg font-semibold text-black">
+            DEV
+          </div>
         </div>
       </div>
     </template>
-    <el-form class="form devto-integration-widget">
+    <el-form class="form integration-devto-form">
       <div class="flex flex-col">
         <span class="text-sm font-medium"
           >Track organization articles</span
         >
-        <span class="text-sm font-light mb-2 text-gray-600">
+        <span
+          class="text-2xs font-light mb-2 text-gray-600"
+        >
           Monitor all articles from organization accounts
         </span>
         <el-form-item
@@ -37,7 +41,7 @@
             'is-success': org.touched && org.valid
           }"
         >
-          <div class="flex flex-row items-center">
+          <div class="flex flex-row items-center w-full">
             <el-input
               v-model="org.username"
               class="text-green-500"
@@ -56,7 +60,7 @@
             </el-input>
             <i
               v-if="!isLastOrganization"
-              class="cursor-pointer ml-3 ri-delete-bin-line text-gray-700 text-2xl hover:text-gray-400"
+              class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
               @click="removeOrganization(org.id)"
             />
           </div>
@@ -71,10 +75,12 @@
           @click="addNewOrganization"
           >+ Add organization link</a
         >
-        <span class="text-sm font-medium mt-6"
+        <span class="text-sm font-medium mt-8"
           >Track user articles</span
         >
-        <span class="text-sm font-light mb-2 text-gray-600">
+        <span
+          class="text-2xs font-light mb-2 text-gray-600"
+        >
           Monitor articles from individual users, such as
           team members or community advocates
         </span>
@@ -86,7 +92,7 @@
             'is-success': user.touched && user.valid
           }"
         >
-          <div class="flex flex-row items-center">
+          <div class="flex flex-row items-center w-full">
             <el-input
               v-model="user.username"
               spellcheck="false"
@@ -104,7 +110,7 @@
             </el-input>
             <i
               v-if="!isLastUser"
-              class="cursor-pointer ml-3 ri-delete-bin-line text-gray-700 text-2xl hover:text-gray-400"
+              class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
               @click="removeUser(user.id)"
             />
           </div>
@@ -124,23 +130,23 @@
     <template #footer>
       <div>
         <el-button
-          class="btn btn--primary mr-2"
+          class="btn btn--md btn--secondary mr-4"
+          :disabled="loading"
+          @click="cancel"
+        >
+          <app-i18n code="common.cancel"></app-i18n>
+        </el-button>
+        <el-button
+          class="btn btn--md btn--primary"
           :disabled="connectDisabled || loading"
           :loading="loading"
           @click="save"
         >
           <app-i18n code="common.connect"></app-i18n>
         </el-button>
-        <el-button
-          class="btn btn--secondary"
-          :disabled="loading"
-          @click="cancel"
-        >
-          <app-i18n code="common.cancel"></app-i18n>
-        </el-button>
       </div>
     </template>
-  </el-dialog>
+  </el-drawer>
 </template>
 <script>
 import { mapActions } from 'vuex'
@@ -148,17 +154,21 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 import { IntegrationService } from '@/modules/integration/integration-service'
 
 export default {
-  name: 'DevtoIntegrationWidget',
+  name: 'IntegrationDevtoDrawer',
 
   props: {
     integration: {
       type: Object,
       default: null
+    },
+    modelValue: {
+      type: Boolean,
+      default: false
     }
   },
+  emits: ['update:modelValue'],
   data() {
     return {
-      isVisible: false,
       logoUrl: integrationsJsonArray.find(
         (i) => i.platform === 'devto'
       ).image,
@@ -168,6 +178,14 @@ export default {
     }
   },
   computed: {
+    isVisible: {
+      get() {
+        return this.modelValue
+      },
+      set(value) {
+        this.$emit('update:modelValue', value)
+      }
+    },
     connectDisabled() {
       if (!this.isValid) {
         return true
@@ -183,7 +201,7 @@ export default {
       const empty =
         validUsers.length + validOrgs.length === 0
 
-      if (this.integration && !empty) {
+      if (this.integration.settings && !empty) {
         return (
           validUsers.length ===
             this.integration.settings.users.length &&
@@ -281,7 +299,7 @@ export default {
       this.users = []
       this.organizations = []
 
-      if (this.integration) {
+      if (this.integration && this.integration.settings) {
         this.integration.settings.users.forEach((u) =>
           this.addNewUser(u)
         )
@@ -435,9 +453,12 @@ export default {
 }
 </script>
 <style lang="scss">
-.devto-integration-widget {
+.integration-devto-form {
   .el-form-item {
-    @apply mb-2;
+    @apply mb-3;
+    &__content {
+      @apply mb-0;
+    }
   }
 
   .el-input-group__prepend {

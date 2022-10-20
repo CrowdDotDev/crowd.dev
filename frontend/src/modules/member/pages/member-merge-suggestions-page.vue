@@ -164,7 +164,7 @@
               <div>
                 <member-merge-suggestions-details
                   :pair="pair"
-                  @makePrimary="makePrimary(pair)"
+                  @make-primary="makePrimary(pair)"
                 />
               </div>
             </el-dialog>

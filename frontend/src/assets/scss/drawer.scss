@@ -17,9 +17,7 @@
   }
 
   &__footer {
-    @apply p-6;
-    border-top: 1px solid #E5E7EB;
-    box-shadow: 0px -4px 4px rgba(0, 0, 0, 0.05);
+    @apply p-6 bg-gray-50 border-t border-gray-200;
   }
 
   &__close-btn {
