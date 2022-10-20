@@ -51,19 +51,21 @@ const computedPlaceholder = computed(() => {
 })
 
 const search = computed(() => {
-  return ActivityModel.fields.search.forFilter()
+  const fields =
+    props.module === 'activities'
+      ? ActivityModel.fields
+      : ConversationModel.fields
+
+  return fields.search.forFilter()
 })
 
 const attributes = computed(() => {
-  if (props.module === 'activities') {
-    return Object.values(ActivityModel.fields).filter(
-      (f) => f.filterable
-    )
-  }
+  const fields =
+    props.module === 'activities'
+      ? ActivityModel.fields
+      : ConversationModel.fields
 
-  return Object.values(ConversationModel.fields).filter(
-    (f) => f.filterable
-  )
+  return Object.values(fields).filter((f) => f.filterable)
 })
 
 onMounted(async () => {

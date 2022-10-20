@@ -19,7 +19,6 @@ function label(name) {
 
 i18nInit()
 
-// TODO: Missing organizations and sentiment
 const fields = {
   id: new IdField('id', label('id')),
   title: new StringField('title', label('title')),

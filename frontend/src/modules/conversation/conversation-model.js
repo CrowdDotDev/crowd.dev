@@ -9,6 +9,7 @@ import BooleanField from '@/shared/fields/boolean-field'
 import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
 import ActivityDateField from '@/modules/activity/activity-date-field'
+import SearchField from '@/shared/fields/search-field'
 
 function label(name) {
   return i18n(`entities.conversation.fields.${name}`)
@@ -16,7 +17,6 @@ function label(name) {
 
 i18nInit()
 
-// TODO: Missing last activity
 const fields = {
   id: new IdField('id', label('id')),
   title: new StringField('title', label('title'), {
@@ -49,6 +49,9 @@ const fields = {
       filterable: true
     }
   ),
+  search: new SearchField('search', label('search'), {
+    fields: ['title']
+  }),
   channel: new StringField('channel', label('channel'), {
     filterable: true
   }),
