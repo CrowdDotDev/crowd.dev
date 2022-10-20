@@ -246,13 +246,44 @@ class OrganizationRepository {
     { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
+    let customOrderBy: Array<any> = []
+
     const include = [
       {
         model: options.database.member,
         as: 'members',
-        attributes: ['id'],
+        attributes: [],
+        through: {
+          attributes: [],
+        },
+        include: [
+          {
+            model: options.database.activity,
+            as: 'activities',
+            attributes: [],
+            // through: {
+            //   attributes: [],
+            // },
+          }
+        ],
+        
+
       },
     ]
+
+    const platforms = Sequelize.literal(
+      `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
+    )
+
+    const lastActive = Sequelize.literal(
+      `MAX("members->activities".timestamp)`,
+    )
+
+    const memberCount = Sequelize.fn(
+      'COUNT',
+      Sequelize.col('members.id'),
+    )
+
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -416,6 +447,12 @@ class OrganizationRepository {
       }
     }
 
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
+    )
+
+
+
     const parser = new QueryParser(
       {
         nestedFields: {
@@ -426,9 +463,41 @@ class OrganizationRepository {
           revenueMax: 'revenueRange.max',
           revenue: 'revenueRange.min',
         },
+        aggregators: {
+          ...SequelizeFilterUtils.getNativeTableFieldAggregations(
+            [
+              'id',
+              'name',
+              'url',
+              'description',
+              'parentUrl',
+              'emails',
+              'phoneNumbers',
+              'logo',
+              'tags',
+              'twitter',
+              'linkedin',
+              'crunchbase',
+              'employees',
+              'revenueRange',
+              'importHash',
+              'createdAt',
+              'updatedAt',
+              'deletedAt',
+              'tenantId',
+              'createdById',
+              'updatedById',
+            ],
+            'organization',
+          ),
+          platforms,
+          lastActive,
+          memberCount
+        },
         manyToMany: {
           members: {
             table: 'organizations',
+            model: 'organization',
             relationTable: {
               name: 'memberOrganizations',
               from: 'organizationId',
@@ -447,22 +516,63 @@ class OrganizationRepository {
       offset,
     })
 
+    let order = parsed.order
+
+    if (customOrderBy.length > 0) {
+      order = [customOrderBy]
+    } else if (orderBy) {
+      order = [orderBy.split('_')]
+    }
+
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.organization.findAndCountAll({
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
-      order: parsed.order,
+      attributes: [
+        ...SequelizeFilterUtils.getLiteralProjections(
+          [
+            'id',
+            'name',
+            'url',
+            'description',
+            'parentUrl',
+            'emails',
+            'phoneNumbers',
+            'logo',
+            'tags',
+            'twitter',
+            'linkedin',
+            'crunchbase',
+            'employees',
+            'revenueRange',
+            'importHash',
+            'createdAt',
+            'updatedAt',
+            'deletedAt',
+            'tenantId',
+            'createdById',
+            'updatedById',
+          ],
+          'organization',
+        ),
+        [platforms, 'platforms'],
+        [lastActive, 'lastActive'],
+        [memberCount, 'memberCount']
+      ],
+      order,
       limit: parsed.limit,
       offset: parsed.offset,
       include,
+      subQuery: false,
+      group: ['organization.id'],
       transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+    return { rows, count: count.length, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -526,14 +636,10 @@ class OrganizationRepository {
       return rows
     }
 
-    return Promise.all(
-      rows.map((record) => {
+    return rows.map((record) => {
         const rec = record.get({ plain: true })
-        rec.memberCount = record.members?.length
-        delete rec.members
         return rec
-      }),
-    )
+      })
   }
 
   static async _populateRelations(record, options: IRepositoryOptions) {

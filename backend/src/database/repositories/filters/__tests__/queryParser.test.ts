@@ -324,6 +324,7 @@ describe('QueryParser tests', () => {
           manyToMany: {
             members: {
               table: 'tasks',
+              model: 'task',
               relationTable: {
                 name: 'memberTasks',
                 from: 'taskId',
@@ -332,6 +333,7 @@ describe('QueryParser tests', () => {
             },
             activities: {
               table: 'tasks',
+              model: 'task',
               relationTable: {
                 name: 'activityTasks',
                 from: 'taskId',
@@ -349,28 +351,48 @@ describe('QueryParser tests', () => {
 
       const parsed = parser.parse({
         filter: {
-          members: [mid1],
-          activities: [aid1, aid2],
+          or: [
+            {
+              members: [mid1],
+              activities: [aid1, aid2],
+            },
+            {
+              status: {
+                eq: 'some-task-name',
+              },
+            },
+          ],
         },
         orderBy: [],
       })
       const expected = {
         where: {
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          id: {
-            [Op.and]: [
-              {
-                [Op.in]: Sequelize.literal(
-                  `(SELECT "tasks".id FROM "tasks" INNER JOIN "memberTasks" ON "memberTasks"."taskId" = "tasks".id WHERE  "memberTasks"."memberId"  = '${mid1}')`,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                Sequelize.where(
+                  Sequelize.literal(`"task"."id"`),
+                  Op.in,
+                  Sequelize.literal(
+                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "memberTasks" ON "memberTasks"."taskId" = "tasks".id WHERE  "memberTasks"."memberId"  = '${mid1}')`,
+                  ),
                 ),
-              },
-              {
-                [Op.in]: Sequelize.literal(
-                  `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
+                Sequelize.where(
+                  Sequelize.literal(`"task"."id"`),
+                  Op.in,
+                  Sequelize.literal(
+                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
+                  ),
                 ),
+              ],
+            },
+            {
+              status: {
+                [Op.eq]: 'some-task-name',
               },
-            ],
-          },
+            },
+          ],
         },
         limit: 10,
         offset: 0,
@@ -396,6 +418,7 @@ describe('QueryParser tests', () => {
           manyToMany: {
             members: {
               table: 'tasks',
+              model: 'task',
               relationTable: {
                 name: 'memberTasks',
                 from: 'taskId',
@@ -404,6 +427,7 @@ describe('QueryParser tests', () => {
             },
             activities: {
               table: 'tasks',
+              model: 'task',
               relationTable: {
                 name: 'activityTasks',
                 from: 'taskId',
@@ -491,15 +515,15 @@ describe('QueryParser tests', () => {
               ],
             },
             {
-              id: {
-                [Op.and]: [
-                  {
-                    [Op.in]: Sequelize.literal(
-                      `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
-                    ),
-                  },
-                ],
-              },
+              [Op.and]: [
+                Sequelize.where(
+                  Sequelize.literal(`"task"."id"`),
+                  Op.in,
+                  Sequelize.literal(
+                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
+                  ),
+                ),
+              ],
             },
           ],
         },

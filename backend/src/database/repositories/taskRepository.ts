@@ -276,6 +276,7 @@ class TaskRepository {
         manyToMany: {
           members: {
             table: 'tasks',
+            model: 'task',
             relationTable: {
               name: 'memberTasks',
               from: 'taskId',
@@ -284,6 +285,7 @@ class TaskRepository {
           },
           activities: {
             table: 'tasks',
+            model: 'task',
             relationTable: {
               name: 'activityTasks',
               from: 'taskId',

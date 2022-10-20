@@ -371,20 +371,42 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const expectedOrganization1 = await OrganizationRepository.findById(
+      const foundOrganization1 = await OrganizationRepository.findById(
         organization1Created.id,
         mockIRepositoryOptions,
       )
 
-      const expectedOrganization2 = await OrganizationRepository.findById(
+      const foundOrganization2 = await OrganizationRepository.findById(
         organization2Created.id,
         mockIRepositoryOptions,
       )
 
-      const expectedOrganization3 = await OrganizationRepository.findById(
+      const foundOrganization3 = await OrganizationRepository.findById(
         organization3Created.id,
         mockIRepositoryOptions,
       )
+
+      const expectedOrganization1 = {
+        ...foundOrganization1,
+        memberCount: foundOrganization1.memberCount.toString(),
+        lastActive: null,
+        platforms: null
+      }
+
+      const expectedOrganization2 = {
+        ...foundOrganization2,
+        memberCount: foundOrganization2.memberCount.toString(),
+        lastActive: null,
+        platforms: null
+      }
+
+      const expectedOrganization3 = {
+        ...foundOrganization3,
+        memberCount: foundOrganization3.memberCount.toString(),
+        lastActive: null,
+        platforms: null
+      }
+
 
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations
@@ -394,7 +416,7 @@ describe('OrganizationRepository tests', () => {
       )
 
       expect(organizations.count).toEqual(2)
-      expect(organizations.rows).toStrictEqual([expectedOrganization2, expectedOrganization1])
+      expect(organizations.rows).toEqual([expectedOrganization2, expectedOrganization1])
 
       // Test filter by id
       organizations = await OrganizationRepository.findAndCountAll(
