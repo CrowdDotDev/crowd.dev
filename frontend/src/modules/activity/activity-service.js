@@ -79,9 +79,15 @@ export class ActivityService {
     return response.data
   }
 
-  static async list(filter, orderBy, limit, offset) {
+  static async list(
+    filter,
+    orderBy,
+    limit,
+    offset,
+    buildFilter = true
+  ) {
     const body = {
-      filter: buildApiFilter(filter),
+      filter: buildFilter ? buildApiFilter(filter) : filter,
       orderBy,
       limit,
       offset
