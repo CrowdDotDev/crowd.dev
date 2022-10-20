@@ -43,6 +43,7 @@ export default {
           {
             lastActive: {
               gte: moment()
+                .startOf('day')
                 .subtract(period, 'day')
                 .toISOString()
             }
@@ -85,7 +86,10 @@ export default {
     return ActivityService.list(
       {
         timestampRange: [
-          moment().subtract(period, 'day').toISOString(),
+          moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString(),
           moment().toISOString()
         ],
         platform: platform !== 'all' ? platform : undefined
@@ -123,18 +127,24 @@ export default {
 
   // Fetch active members
   async getActiveMembers({ commit, state }) {
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     state.members.loadingActive = true
     return MemberService.list(
       {
-        platform:
+        identities:
           platform !== 'all'
             ? {
-                jsonContains: platform
+                contains: [platform]
               }
-            : undefined
+            : undefined,
+        lastActive: {
+          gte: moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString()
+        }
       },
-      'activityCount_DESC',
+      'lastActive_DESC',
       5,
       0,
       false
@@ -154,24 +164,18 @@ export default {
     const { platform, period } = state.filters
     return MemberService.list(
       {
-        and: [
-          ...(platform !== 'all'
-            ? [
-                {
-                  platform: {
-                    jsonContains: platform
-                  }
-                }
-              ]
-            : []),
-          {
-            joinedAt: {
-              gte: moment()
-                .subtract(period, 'day')
-                .toISOString()
-            }
-          }
-        ]
+        identities:
+          platform !== 'all'
+            ? {
+                contains: [platform]
+              }
+            : undefined,
+        createdAt: {
+          gte: moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString()
+        }
       },
       '',
       20,
@@ -208,17 +212,23 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platform:
+        platforms:
           platform !== 'all'
             ? {
-                jsonContains: 'discord'
+                contains: [platform]
               }
-            : undefined
+            : undefined,
+        lastActive: {
+          gte: moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString()
+        }
       },
-      '',
+      'lastActive_DESC',
       5,
       0,
       false
@@ -235,15 +245,21 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platform:
+        platforms:
           platform !== 'all'
             ? {
-                jsonContains: 'discord'
+                contains: [platform]
               }
-            : undefined
+            : undefined,
+        createdAt: {
+          gte: moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString()
+        }
       },
       '',
       20,
