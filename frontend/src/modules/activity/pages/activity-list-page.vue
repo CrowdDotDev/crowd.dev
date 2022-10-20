@@ -39,11 +39,13 @@ import AppActivityList from '@/modules/activity/components/activity-list'
 import AppConversationList from '@/modules/conversation/components/conversation-list'
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs'
 import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue'
+import AppI18n from '@/shared/i18n/i18n'
 
 export default {
   name: 'AppActivityListPage',
 
   components: {
+    AppI18n,
     AppActivityList,
     AppConversationList,
     AppActivityListTabs,

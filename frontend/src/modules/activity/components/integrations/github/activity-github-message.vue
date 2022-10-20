@@ -16,11 +16,15 @@
     >
     <a
       v-if="!short"
-      :href="activity.attributes.repo"
+      :href="activity.repo || activity.attributes.repo"
       target="_blank"
-      class="ml-1 text-red"
+      class="ml-1 text-brand-500"
     >
-      {{ getRepositoryName(activity.attributes.repo) }}
+      {{
+        getRepositoryName(
+          activity.repo || activity.attributes.repo
+        )
+      }}
     </a>
   </div>
 </template>

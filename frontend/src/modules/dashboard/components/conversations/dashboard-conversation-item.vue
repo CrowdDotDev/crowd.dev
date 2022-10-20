@@ -170,8 +170,8 @@
       </div>
       <div>
         <a
-          v-if="conversation.url"
-          :href="conversation.url"
+          v-if="url"
+          :href="url"
           class="text-2xs text-gray-600 font-medium flex items-center"
           target="_blank"
           ><i class="ri-lg ri-external-link-line mr-1"></i>
@@ -228,6 +228,12 @@ export default {
     sentiment() {
       return this.conversation.conversationStarter.sentiment
         .sentiment
+    },
+    url() {
+      return (
+        this.conversation.url ||
+        this.conversation.conversationStarter.url
+      )
     }
   },
   methods: {

@@ -1,13 +1,16 @@
 <template>
-  <el-dropdown trigger="click" @command="handleCommand">
-    <span
-      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
-      @click.stop
+  <el-dropdown
+    trigger="click"
+    placement="bottom-end"
+    @command="handleCommand"
+    @visible-change="dropdownVisible = $event"
+  >
+    <div
+      class="el-dropdown-link h-6 w-6 flex items-center justify-center transition rounded"
+      :class="{ 'bg-gray-200': dropdownVisible }"
     >
-      <i
-        class="text-lg leading-none text-gray-600 ri-more-fill"
-      ></i>
-    </span>
+      <i class="text-xl ri-more-fill"></i>
+    </div>
     <template #dropdown>
       <el-dropdown-item
         v-if="conversation.published"
@@ -50,8 +53,10 @@
           action: 'conversationDelete',
           conversation: conversation
         }"
-        ><i class="ri-delete-bin-line mr-1" />Delete
-        Conversation</el-dropdown-item
+        ><i class="ri-delete-bin-line mr-1 text-red" /><span
+          class="text-red"
+          >Delete Conversation</span
+        ></el-dropdown-item
       >
     </template>
   </el-dropdown>
@@ -73,6 +78,11 @@ export default {
     showViewConversation: {
       type: Boolean,
       default: true
+    }
+  },
+  data() {
+    return {
+      dropdownVisible: false
     }
   },
   computed: {
