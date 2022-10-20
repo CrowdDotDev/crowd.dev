@@ -31,25 +31,26 @@ export default {
     return ConversationService.query(
       {
         and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
           ...(platform !== 'all'
             ? [
                 {
                   platform: {
-                    jsonContains: platform
+                    eq: platform
                   }
                 }
               ]
-            : []),
-          {
-            lastActive: {
-              gte: moment()
-                .subtract(period, 'day')
-                .toISOString()
-            }
-          }
+            : [])
         ]
       },
-      'activityCount_DESC',
+      'lastActive_DESC',
       5,
       0
     )
@@ -85,12 +86,15 @@ export default {
     return ActivityService.list(
       {
         timestampRange: [
-          moment().subtract(period, 'day').toISOString(),
+          moment()
+            .startOf('day')
+            .subtract(period, 'day')
+            .toISOString(),
           moment().toISOString()
         ],
         platform: platform !== 'all' ? platform : undefined
       },
-      '',
+      'timestamp_DESC',
       20,
       0
     )
@@ -123,18 +127,31 @@ export default {
 
   // Fetch active members
   async getActiveMembers({ commit, state }) {
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     state.members.loadingActive = true
     return MemberService.list(
       {
-        platform:
-          platform !== 'all'
-            ? {
-                jsonContains: platform
-              }
-            : undefined
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  identities: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
-      'activityCount_DESC',
+      'lastActive_DESC',
       5,
       0,
       false
@@ -155,25 +172,26 @@ export default {
     return MemberService.list(
       {
         and: [
-          ...(platform !== 'all'
-            ? [
-                {
-                  platform: {
-                    jsonContains: platform
-                  }
-                }
-              ]
-            : []),
           {
             joinedAt: {
               gte: moment()
+                .startOf('day')
                 .subtract(period, 'day')
                 .toISOString()
             }
-          }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  identities: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
         ]
       },
-      '',
+      'joinedAt_DESC',
       20,
       0,
       false
@@ -208,17 +226,30 @@ export default {
   // Fetch active orgnizations
   async getActiveOrganizations({ commit, state }) {
     state.organizations.loadingActive = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platform:
-          platform !== 'all'
-            ? {
-                jsonContains: 'discord'
-              }
-            : undefined
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platforms: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
-      '',
+      'lastActive_DESC',
       5,
       0,
       false
@@ -235,17 +266,30 @@ export default {
   // Fetch recent organizations
   async getRecentOrganizations({ commit, state }) {
     state.organizations.loadingRecent = true
-    const { platform } = state.filters
+    const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platform:
-          platform !== 'all'
-            ? {
-                jsonContains: 'discord'
-              }
-            : undefined
+        and: [
+          {
+            createdAt: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platforms: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
-      '',
+      'createdAt_DESC',
       20,
       0,
       false
