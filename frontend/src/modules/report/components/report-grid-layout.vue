@@ -1,6 +1,6 @@
 <template>
   <div
-    class="report-grid-layout"
+    class="report-grid-layout flex-grow"
     :class="
       editable ? 'report-grid-layout--editing' : '-m-2'
     "
