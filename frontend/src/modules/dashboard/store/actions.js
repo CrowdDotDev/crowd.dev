@@ -31,15 +31,6 @@ export default {
     return ConversationService.query(
       {
         and: [
-          ...(platform !== 'all'
-            ? [
-                {
-                  platform: {
-                    jsonContains: platform
-                  }
-                }
-              ]
-            : []),
           {
             lastActive: {
               gte: moment()
@@ -47,10 +38,19 @@ export default {
                 .subtract(period, 'day')
                 .toISOString()
             }
-          }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: {
+                    eq: platform
+                  }
+                }
+              ]
+            : [])
         ]
       },
-      'activityCount_DESC',
+      'lastActive_DESC',
       5,
       0
     )
@@ -94,7 +94,7 @@ export default {
         ],
         platform: platform !== 'all' ? platform : undefined
       },
-      '',
+      'timestamp_DESC',
       20,
       0
     )
@@ -131,18 +131,25 @@ export default {
     state.members.loadingActive = true
     return MemberService.list(
       {
-        identities:
-          platform !== 'all'
-            ? {
-                contains: [platform]
-              }
-            : undefined,
-        lastActive: {
-          gte: moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString()
-        }
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  identities: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
       'lastActive_DESC',
       5,
@@ -164,20 +171,27 @@ export default {
     const { platform, period } = state.filters
     return MemberService.list(
       {
-        identities:
-          platform !== 'all'
-            ? {
-                contains: [platform]
-              }
-            : undefined,
-        createdAt: {
-          gte: moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString()
-        }
+        and: [
+          {
+            joinedAt: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  identities: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
-      '',
+      'joinedAt_DESC',
       20,
       0,
       false
@@ -215,18 +229,25 @@ export default {
     const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platforms:
-          platform !== 'all'
-            ? {
-                contains: [platform]
-              }
-            : undefined,
-        lastActive: {
-          gte: moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString()
-        }
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platforms: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
       'lastActive_DESC',
       5,
@@ -248,20 +269,27 @@ export default {
     const { platform, period } = state.filters
     return OrganizationService.query(
       {
-        platforms:
-          platform !== 'all'
-            ? {
-                contains: [platform]
-              }
-            : undefined,
-        createdAt: {
-          gte: moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString()
-        }
+        and: [
+          {
+            createdAt: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platforms: {
+                    contains: [platform]
+                  }
+                }
+              ]
+            : [])
+        ]
       },
-      '',
+      'createdAt_DESC',
       20,
       0,
       false
