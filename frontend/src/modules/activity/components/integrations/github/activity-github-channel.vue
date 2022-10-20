@@ -1,10 +1,14 @@
 <template>
   <a
-    :href="activity.attributes.repo"
+    :href="activity.repo || activity.attributes.repo"
     target="_blank"
     class="text-brand-500"
   >
-    {{ getRepositoryName(activity.attributes.repo) }}
+    {{
+      getRepositoryName(
+        activity.repo || activity.attributes.repo
+      )
+    }}
   </a>
 </template>
 
