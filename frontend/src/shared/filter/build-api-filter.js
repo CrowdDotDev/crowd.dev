@@ -9,7 +9,9 @@ export default (filter) => {
         if (
           Array.isArray(item.value)
             ? item.value.length > 0
-            : item.value !== '' && item.value !== null
+            : item.value !== '' &&
+              item.value !== null &&
+              item.value !== {}
         ) {
           acc.push(_buildAttributeBlock(item))
         }
@@ -23,7 +25,18 @@ export default (filter) => {
 function _buildAttributeBlock(attribute) {
   let rule = {}
 
-  if (attribute.name === 'search') {
+  if (attribute.name === 'type') {
+    return {
+      and: [
+        {
+          [attribute.value.type]: attribute.value.key
+        },
+        {
+          type: attribute.value.value
+        }
+      ]
+    }
+  } else if (attribute.name === 'search') {
     return {
       or: attribute.fields.map((f) => {
         return {

@@ -2,6 +2,7 @@
   <div class="member-filter">
     <app-filter-list
       module="member"
+      placeholder="Search members..."
       :search-filter="memberSearch"
     >
       <template #dropdown>
@@ -43,9 +44,8 @@ const memberSearch = computed(() => {
 })
 
 async function doFetch() {
-  const filter = {
-    ...store.state.member.filter
-  }
+  const { filter } = store.state.member
+
   await store.dispatch('member/doFetch', {
     filter,
     keepPagination: true

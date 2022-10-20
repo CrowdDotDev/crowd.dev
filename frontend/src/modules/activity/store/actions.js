@@ -5,6 +5,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { attributeIsDifferent } from '@/shared/filter/is-different'
 import { ConversationService } from '@/modules/conversation/conversation-service'
+import buildApiFilter from '@/shared/filter/build-api-filter'
 
 export default {
   async doReset({ commit, state, dispatch }) {
@@ -107,7 +108,7 @@ export default {
 
       if (getters.activeView.type === 'conversations') {
         response = await ConversationService.query(
-          {},
+          buildApiFilter(state.filter),
           getters.orderBy,
           getters.limit,
           getters.offset

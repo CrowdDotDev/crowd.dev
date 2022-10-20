@@ -3,6 +3,7 @@
     <app-filter-search
       :module="module"
       :filter="searchFilter"
+      :placeholder="placeholder"
       class="mb-6"
       @change="handleFilterChange"
     >
@@ -58,6 +59,10 @@ const props = defineProps({
   searchFilter: {
     type: Object,
     default: () => {}
+  },
+  placeholder: {
+    type: String,
+    required: true
   }
 })
 

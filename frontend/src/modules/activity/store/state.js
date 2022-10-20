@@ -9,7 +9,7 @@ export default {
     {
       id: 'activities',
       type: 'activities',
-      label: 'All activities',
+      label: 'Recent activities',
       filter: {},
       sorter: {
         prop: 'timestamp',

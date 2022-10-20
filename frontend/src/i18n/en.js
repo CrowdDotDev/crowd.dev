@@ -243,7 +243,7 @@ const en = {
       },
       fields: {
         id: 'Id',
-        type: 'Type',
+        type: 'Activity type',
         timestampRange: 'Timestamp',
         timestamp: 'Timestamp',
         platform: 'Platform',
@@ -254,6 +254,7 @@ const en = {
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
+        date: 'Date',
         createdAtRange: 'Created at'
       },
       enumerators: {},
@@ -431,7 +432,10 @@ const en = {
         title: 'Title',
         platform: 'Platform',
         channel: 'Channel',
-        published: 'Published'
+        published: 'Published',
+        activityCount: '# of activities',
+        createdAt: 'Date started',
+        lastActive: 'Last activity'
       }
     }
   },

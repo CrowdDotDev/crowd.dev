@@ -12,6 +12,9 @@
       </div>
 
       <app-activity-list-tabs></app-activity-list-tabs>
+      <app-activity-list-filter
+        :module="activeView.type"
+      ></app-activity-list-filter>
       <app-activity-list
         v-if="activeView.type === 'activities'"
         :activities="recordsArray"
@@ -29,12 +32,13 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppActivityList from '@/modules/activity/components/activity-list'
 import AppConversationList from '@/modules/conversation/components/conversation-list'
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs'
+import AppActivityListFilter from '@/modules/activity/components/list/activity-list-filter.vue'
 
 export default {
   name: 'AppActivityListPage',
@@ -43,7 +47,8 @@ export default {
     AppActivityList,
     AppConversationList,
     AppActivityListTabs,
-    AppPageWrapper
+    AppPageWrapper,
+    AppActivityListFilter
   },
 
   data() {
@@ -69,16 +74,8 @@ export default {
     }
   },
 
-  async created() {
-    await this.doFetch({ keepPagination: true })
-  },
-
   async mounted() {
     window.analytics.page('Activities')
-  },
-
-  methods: {
-    ...mapActions('activity', ['doFetch'])
   }
 }
 </script>

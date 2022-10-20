@@ -70,6 +70,7 @@
           :total="count"
           :page-size="Number(pagination.pageSize)"
           :current-page="pagination.currentPage || 1"
+          module="report"
           @change-current-page="
             doChangePaginationCurrentPage
           "

@@ -1,5 +1,17 @@
 <template>
-  <div>
+  <div v-if="!!count" class="mb-2">
+    <app-pagination-sorter
+      v-model="sorterFilter"
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      module="conversation"
+      position="top"
+      @change-sorter="doChangeFilter"
+    />
+  </div>
+  <div class="pt-3">
     <div
       v-if="loading"
       v-loading="loading"
@@ -25,23 +37,40 @@
 </template>
 
 <script>
-import AppConversationItem from '@/modules/conversation/components/conversation-item'
 export default {
-  name: 'AppConversationsList',
-  components: { AppConversationItem },
-  props: {
-    conversations: {
-      type: Array,
-      default: () => {}
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    itemsAsCards: {
-      type: Boolean,
-      default: false
-    }
+  name: 'AppConversationsList'
+}
+</script>
+
+<script setup>
+import AppConversationItem from '@/modules/conversation/components/conversation-item'
+import { defineProps, computed, ref } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
+const sorterFilter = ref('trending')
+
+defineProps({
+  conversations: {
+    type: Array,
+    default: () => {}
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  itemsAsCards: {
+    type: Boolean,
+    default: false
   }
+})
+
+const count = computed(() => store.state.activity.count)
+const pagination = computed(
+  () => store.getters['activity/pagination']
+)
+
+function doChangeFilter(filter) {
+  console.log(filter)
 }
 </script>

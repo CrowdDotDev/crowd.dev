@@ -5,8 +5,9 @@
       :total="count"
       :current-page="pagination.currentPage"
       :has-page-counter="false"
+      module="member"
       position="top"
-      @change-page-size="doChangePaginationPageSize"
+      @change-sorter="doChangePaginationPageSize"
     />
   </div>
   <div class="app-list-table panel">
@@ -133,6 +134,7 @@
           :total="count"
           :page-size="Number(pagination.pageSize)"
           :current-page="pagination.currentPage || 1"
+          module="member"
           @change-current-page="
             doChangePaginationCurrentPage
           "

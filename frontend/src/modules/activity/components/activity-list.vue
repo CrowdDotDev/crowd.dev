@@ -1,4 +1,16 @@
 <template>
+  <div v-if="!!count" class="mb-2">
+    <app-pagination-sorter
+      v-model="sorterFilter"
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      module="activity"
+      position="top"
+      @change-sorter="doChangeFilter"
+    />
+  </div>
   <div class="pt-3">
     <div
       v-if="loading"
@@ -25,23 +37,40 @@
 </template>
 
 <script>
-import AppActivityItem from '@/modules/activity/components/activity-item'
 export default {
-  name: 'AppActivityList',
-  components: { AppActivityItem },
-  props: {
-    activities: {
-      type: Array,
-      default: () => {}
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    itemsAsCards: {
-      type: Boolean,
-      default: false
-    }
+  name: 'AppActivityList'
+}
+</script>
+
+<script setup>
+import AppActivityItem from '@/modules/activity/components/activity-item'
+import { defineProps, computed, ref } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
+const sorterFilter = ref('trending')
+
+defineProps({
+  activities: {
+    type: Array,
+    default: () => {}
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  itemsAsCards: {
+    type: Boolean,
+    default: false
   }
+})
+
+const count = computed(() => store.state.activity.count)
+const pagination = computed(
+  () => store.getters['activity/pagination']
+)
+
+function doChangeFilter(filter) {
+  console.log(filter)
 }
 </script>

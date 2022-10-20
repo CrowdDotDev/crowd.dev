@@ -7,6 +7,11 @@ import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
 import { MemberField } from '@/modules/member/member-field'
 import JsonField from '@/shared/fields/json-field'
+import SearchField from '@/shared/fields/search-field'
+import ActivitySentimentField from './activity-sentiment-field'
+import ActivityPlatformField from './activity-platform-field'
+import ActivityDateField from './activity-date-field'
+import ActivityTypeField from './activity-type-field'
 
 function label(name) {
   return i18n(`entities.activity.fields.${name}`)
@@ -14,11 +19,9 @@ function label(name) {
 
 i18nInit()
 
+// TODO: Missing organizations and sentiment
 const fields = {
   id: new IdField('id', label('id')),
-  type: new StringField('type', label('type'), {
-    required: true
-  }),
   title: new StringField('title', label('title')),
   body: new StringField('body', label('body')),
   channel: new StringField('channel', label('channel')),
@@ -30,29 +33,14 @@ const fields = {
       required: true
     }
   ),
-  platform: new StringField('platform', label('platform'), {
-    required: true,
-    min: 2
-  }),
   attributes: new JsonField(
     'attributes',
     label('attributes')
-  ),
-  member: MemberField.relationToOne(
-    'member',
-    label('member'),
-    {
-      required: true
-    }
   ),
   isKeyAction: new BooleanField(
     'isKeyAction',
     label('isKeyAction'),
     {}
-  ),
-  createdAt: new DateTimeField(
-    'createdAt',
-    label('createdAt')
   ),
   updatedAt: new DateTimeField(
     'updatedAt',
@@ -65,6 +53,38 @@ const fields = {
   timestampRange: new DateTimeRangeField(
     'timestampRange',
     label('timestampRange')
+  ),
+  search: new SearchField('search', label('search'), {
+    fields: ['title', 'body']
+  }),
+  member: MemberField.relationToOne(
+    'memberId',
+    label('member'),
+    {
+      required: true,
+      filterable: true
+    }
+  ),
+  date: new ActivityDateField('createdAt', label('date'), {
+    filterable: true
+  }),
+  platform: new ActivityPlatformField(
+    'platform',
+    label('platform'),
+    {
+      required: true,
+      min: 2,
+      filterable: true
+    }
+  ),
+  type: new ActivityTypeField('type', label('type'), {
+    required: true,
+    filterable: true
+  }),
+  sentiment: new ActivitySentimentField(
+    'sentiment',
+    'Sentiment',
+    { filterable: true }
   )
 }
 

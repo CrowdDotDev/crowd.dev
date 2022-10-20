@@ -1,6 +1,6 @@
-import IntegerRangeField from '@/shared/fields/integer-range-field'
+import StringField from '@/shared/fields/string-field'
 
-export default class MemberEngagementLevelField extends IntegerRangeField {
+export default class ActivityPlatformField extends StringField {
   constructor(name, label, config = {}) {
     super(name, label)
 
@@ -15,24 +15,24 @@ export default class MemberEngagementLevelField extends IntegerRangeField {
   dropdownOptions() {
     return [
       {
-        value: [0, 1],
-        label: 'Silent'
+        value: 'github',
+        label: 'GitHub'
       },
       {
-        value: [2, 3],
-        label: 'Quiet'
+        value: 'discord',
+        label: 'Discord'
       },
       {
-        value: [4, 6],
-        label: 'Engaged'
+        value: 'slack',
+        label: 'Slack'
       },
       {
-        value: [7, 8],
-        label: 'Fan'
+        value: 'twitter',
+        label: 'Twitter'
       },
       {
-        value: [9, 10],
-        label: 'Ultra'
+        value: 'devto',
+        label: 'DEV'
       }
     ]
   }

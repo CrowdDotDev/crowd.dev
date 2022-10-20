@@ -23,6 +23,8 @@ import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
 import FilterSearch from '@/shared/filter/filter-type-search'
 import FilterList from '@/shared/filter/filter-list.vue'
 import FilterTypeSelect from '@/shared/filter/filter-type-select'
+import FilterTypeSelectMulti from '@/shared/filter/filter-type-select-multi'
+import FilterTypeSelectGroup from '@/shared/filter/filter-type-select-group'
 import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
 import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
 import FilterTypeBoolean from '@/shared/filter/filter-type-boolean'
@@ -68,6 +70,8 @@ export default {
     'app-filter-preview': FilterPreview,
     'app-filter-list': FilterList,
     'app-filter-type-select': FilterTypeSelect,
+    'app-filter-type-select-multi': FilterTypeSelectMulti,
+    'app-filter-type-select-group': FilterTypeSelectGroup,
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-select-async': FilterTypeSelectAsync,
     'app-filter-type-boolean': FilterTypeBoolean,

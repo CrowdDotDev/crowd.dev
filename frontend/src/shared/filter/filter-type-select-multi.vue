@@ -9,12 +9,12 @@
     >
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">
+          <el-checkbox
+            :model-value="option.selected"
+            class="filter-checkbox"
+          />
           {{ option.label }}
         </div>
-        <i
-          v-if="option.selected"
-          class="ri-check-line text-brand-600 absolute right-0 mr-4"
-        ></i>
       </div>
     </div>
   </div>
@@ -22,7 +22,7 @@
 
 <script>
 export default {
-  name: 'AppFilterTypeSelect'
+  name: 'AppFilterTypeSelectMulti'
 }
 </script>
 
@@ -35,8 +35,8 @@ const props = defineProps({
     default: () => []
   },
   value: {
-    type: String,
-    default: () => ''
+    type: Array,
+    default: () => []
   },
   isExpanded: {
     type: Boolean,
@@ -48,7 +48,9 @@ const computedOptions = computed(() => {
   return props.options.map((o) => {
     return {
       ...o,
-      selected: model.value === o.value
+      selected: model.value.some((i) =>
+        valuesEqual(o.value, i.value)
+      )
     }
   })
 })
@@ -62,45 +64,27 @@ const model = computed({
 })
 
 const handleOptionClick = (option) => {
-  model.value = option.value
-}
-</script>
-
-<style lang="scss">
-.filter-type-select {
-  &-option {
-    @apply flex items-center text-black px-4 py-3 text-xs cursor-pointer;
-    border-radius: 4px;
-
-    &:not(:last-of-type) {
-      @apply mb-1;
-    }
-
-    i {
-      @apply mr-2;
-    }
-
-    i:not(.ri-delete-bin-line) {
-      @apply text-gray-400;
-    }
-
-    &:focus,
-    &:not(.is-disabled):hover,
-    &:not(.is-disabled):focus {
-      @apply text-black bg-gray-50;
-    }
-
-    &.is-selected,
-    &:focus.is-selected {
-      background-color: #fff5f4;
-      @apply relative;
-      i {
-        @apply mr-3 text-brand-600;
-      }
-      &:hover {
-        @apply bg-brand-50;
-      }
-    }
+  if (
+    !props.value.some((item) =>
+      valuesEqual(item.value, option.value)
+    )
+  ) {
+    model.value.push(option)
+  } else {
+    const index = model.value.findIndex((o) =>
+      valuesEqual(o.value, option.value)
+    )
+    model.value.splice(index, 1)
   }
 }
-</style>
+
+const valuesEqual = (valueA, valueB) => {
+  if (Array.isArray(valueA)) {
+    return (
+      valueA[0] === valueB[0] && valueA[1] === valueB[1]
+    )
+  } else {
+    return valueA === valueB
+  }
+}
+</script>
