@@ -699,7 +699,7 @@ class MemberRepository {
       options.database.Sequelize.col('activities.timestamp'),
     )
 
-    const platforms = Sequelize.literal(`array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`)
+    const identities = Sequelize.literal(`array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 
@@ -719,7 +719,7 @@ class MemberRepository {
           activityCount,
           lastActive,
           averageSentiment,
-          platforms,
+          identities,
           ...dynamicAttributesLiterals,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
@@ -814,7 +814,7 @@ class MemberRepository {
           ],
           'member',
         ),
-        [platforms, 'identities'],
+        [identities, 'identities'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
