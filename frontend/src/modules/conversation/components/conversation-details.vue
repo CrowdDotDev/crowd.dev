@@ -1,6 +1,30 @@
 <template>
   <article v-if="loading || !conversation">
-    <app-loading height="380px"></app-loading>
+    <div class="flex relative">
+      <div>
+        <app-loading
+          height="32px"
+          width="32px"
+          radius="50%"
+        ></app-loading>
+      </div>
+      <div class="flex-grow pl-3 pt-2.5">
+        <app-loading
+          height="12px"
+          width="320px"
+          class="mb-3"
+        />
+        <app-loading height="12px" width="280px" />
+      </div>
+    </div>
+    <div class="pt-6">
+      <app-conversation-reply
+        v-for="el of Array(3)"
+        :key="el"
+        class="mb-4"
+        :loading="true"
+      />
+    </div>
   </article>
   <article v-else>
     <div class="flex items-center pb-8">

@@ -50,6 +50,7 @@
               'text-limit-1': !displayContent && !showMore
             }"
             :show-more="showMore"
+            :limit="limit"
           />
         </div>
       </div>
@@ -86,10 +87,20 @@ export default {
       required: false,
       default: ''
     },
+    displayContent: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
     showMore: {
       type: Boolean,
       required: false,
       default: false
+    },
+    limit: {
+      type: Number,
+      required: false,
+      default: 4
     }
   },
   computed: {

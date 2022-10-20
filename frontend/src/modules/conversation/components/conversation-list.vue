@@ -10,6 +10,7 @@
         v-for="conversation of conversations"
         :key="conversation.id"
         :conversation="conversation"
+        @details="conversationId = conversation.id"
       />
       <div v-if="conversations.length === 0">
         <div class="flex justify-center pt-16">
@@ -25,13 +26,22 @@
       </div>
     </div>
   </div>
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  ></app-conversation-drawer>
 </template>
 
 <script>
 import AppConversationItem from '@/modules/conversation/components/conversation-item'
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 export default {
   name: 'AppConversationsList',
-  components: { AppConversationItem },
+  components: {
+    AppConversationDrawer,
+    AppConversationItem
+  },
   props: {
     conversations: {
       type: Array,
@@ -44,6 +54,11 @@ export default {
     itemsAsCards: {
       type: Boolean,
       default: false
+    }
+  },
+  data() {
+    return {
+      conversationId: null
     }
   }
 }

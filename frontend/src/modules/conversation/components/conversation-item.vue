@@ -4,7 +4,7 @@
   </article>
   <article
     v-else
-    class="panel mb-6"
+    class="panel mb-6 cursor-pointer"
     @click="openConversation()"
   >
     <div class="flex items-center pb-8">
@@ -178,6 +178,7 @@ export default {
       default: false
     }
   },
+  emits: ['details'],
   computed: {
     platform() {
       return integrationsJsonArray.find(
@@ -200,11 +201,7 @@ export default {
       return computedTimeAgo(date)
     },
     openConversation() {
-      // TODO: Change this with conversation drawer once its finished
-      this.$router.push({
-        name: 'conversationView',
-        params: { id: this.conversation.id }
-      })
+      this.$emit('details', this.conversation.id)
     }
   }
 }

@@ -26,7 +26,7 @@
   </article>
   <article
     v-else
-    class="py-6 border-gray-200 hover:bg-gray-50 -mx-6 px-6"
+    class="py-6 border-gray-200 hover:bg-gray-50 -mx-6 px-6 cursor-pointer"
     @click="openConversation()"
   >
     <div class="flex relative">
@@ -218,6 +218,7 @@ export default {
       default: false
     }
   },
+  emits: ['details'],
   computed: {
     platform() {
       return integrationsJsonArray.find(
@@ -243,10 +244,7 @@ export default {
       return computedTimeAgo(date)
     },
     openConversation() {
-      this.$router.push({
-        name: 'conversationView',
-        params: { id: this.conversation.id }
-      })
+      this.$emit('details', this.conversation.id)
     }
   }
 }

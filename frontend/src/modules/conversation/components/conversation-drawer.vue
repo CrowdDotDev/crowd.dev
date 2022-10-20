@@ -30,9 +30,27 @@
     </template>
     <template #default>
       <app-conversation-details
-        v-if="conversation"
-        :conversation="conversation"
+        v-if="loading"
+        :loading="true"
       />
+      <div v-else>
+        <app-conversation-details
+          v-if="conversation"
+          :conversation="conversation"
+        />
+        <div v-else>
+          <div class="flex justify-center pt-4">
+            <i
+              class="ri-question-answer-line text-4xl h-12 text-gray-300"
+            ></i>
+          </div>
+          <p
+            class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+          >
+            There was an error loading conversation
+          </p>
+        </div>
+      </div>
     </template>
   </el-drawer>
 </template>
@@ -84,9 +102,13 @@ export default {
   methods: {
     fetchConversation(conversationId) {
       this.loading = true
+      this.conversation = null
       ConversationService.find(conversationId)
         .then((conversation) => {
           this.conversation = conversation
+        })
+        .catch(() => {
+          this.conversation = null
         })
         .finally(() => {
           this.loading = false
