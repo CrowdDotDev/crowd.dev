@@ -25,7 +25,21 @@ export default (filter) => {
 function _buildAttributeBlock(attribute) {
   let rule = {}
 
-  if (attribute.name === 'type') {
+  if (attribute.name === 'platform') {
+    return {
+      or: attribute.value.map((a) => {
+        return {
+          platform: a.value
+        }
+      })
+    }
+  } else if (attribute.name === 'sentiment') {
+    return {
+      'sentiment.label': {
+        eq: attribute.value.map((a) => a.value).join('/')
+      }
+    }
+  } else if (attribute.name === 'type') {
     return {
       and: [
         {

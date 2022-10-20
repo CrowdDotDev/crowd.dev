@@ -1,51 +1,53 @@
 <template>
-  <div
-    v-if="loading"
-    v-loading="loading"
-    class="app-page-spinner h-16 !relative !min-h-5"
-  ></div>
-  <div v-else>
-    <div v-if="!!count" class="mb-2">
-      <app-pagination-sorter
-        v-model="sorterFilter"
-        :page-size="Number(pagination.pageSize)"
-        :total="count"
-        :current-page="pagination.currentPage"
-        :has-page-counter="false"
-        :sorter="false"
-        module="activity"
-        position="top"
-      />
-    </div>
-    <app-activity-item
-      v-for="activity of activities"
-      :key="activity.id"
-      :activity="activity"
-      class="mb-6"
-      v-bind="cardOptions"
-    />
+  <div class="pt-3">
     <div
-      v-if="activities.length && isLoadMoreVisible"
-      class="flex grow justify-center pt-4"
-    >
-      <el-button
-        class="btn btn-link btn-link--primary"
-        @click="onLoadMore"
-        ><i class="ri-arrow-down-line"></i
-        ><span class="text-xs">Load more</span></el-button
-      >
-    </div>
-    <div v-if="activities.length === 0">
-      <div class="flex justify-center pt-12">
-        <i
-          class="ri-list-check-2 text-4xl h-12 text-gray-300"
-        ></i>
+      v-if="loading"
+      v-loading="loading"
+      class="app-page-spinner h-16 !relative !min-h-5"
+    ></div>
+    <div v-else>
+      <div v-if="!!count" class="mb-4">
+        <app-pagination-sorter
+          v-model="sorterFilter"
+          :page-size="Number(pagination.pageSize)"
+          :total="count"
+          :current-page="pagination.currentPage"
+          :has-page-counter="false"
+          :sorter="false"
+          module="activity"
+          position="top"
+        />
       </div>
-      <p
-        class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+      <app-activity-item
+        v-for="activity of activities"
+        :key="activity.id"
+        :activity="activity"
+        class="mb-6"
+        v-bind="cardOptions"
+      />
+      <div
+        v-if="activities.length && isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
       >
-        There are no activities
-      </p>
+        <el-button
+          class="btn btn-link btn-link--primary"
+          @click="onLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
+      </div>
+      <div v-if="activities.length === 0">
+        <div class="flex justify-center pt-12">
+          <i
+            class="ri-list-check-2 text-4xl h-12 text-gray-300"
+          ></i>
+        </div>
+        <p
+          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+        >
+          There are no activities
+        </p>
+      </div>
     </div>
   </div>
 </template>

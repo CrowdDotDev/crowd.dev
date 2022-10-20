@@ -6,7 +6,7 @@
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
-      <div v-if="!!count" class="mb-2">
+      <div v-if="!!count" class="mb-4">
         <app-pagination-sorter
           v-model="sorterFilter"
           :page-size="Number(pagination.pageSize)"

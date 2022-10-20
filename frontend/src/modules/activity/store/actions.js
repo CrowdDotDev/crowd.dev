@@ -69,9 +69,11 @@ export default {
   doChangeSort({ commit, state, dispatch }, sorter) {
     commit('SORTER_CHANGED', sorter)
     const filter = state.filter
+
+    state.list.ids.length = 0
     dispatch('doFetch', {
       filter,
-      keepPagination: true
+      keepPagination: false
     })
   },
 
