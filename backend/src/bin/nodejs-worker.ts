@@ -101,7 +101,7 @@ setImmediate(async () => {
         processMessage(message).then(removeWorkerJob).catch(removeWorkerJob)
       }
     } else {
-      await timeout(1000)
+      await timeout(200)
     }
   }
 })
