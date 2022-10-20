@@ -200,12 +200,12 @@ export default {
       try {
         commit('DESTROY_STARTED')
 
-        const response =
-          await IntegrationService.destroyAll([
-            integrationId
-          ])
+        await IntegrationService.destroyAll([integrationId])
+        Message.success(
+          'Integration was disconnected successfully'
+        )
 
-        commit('DESTROY_SUCCESS', response)
+        commit('DESTROY_SUCCESS', integrationId)
       } catch (error) {
         Errors.handle(error)
         commit('DESTROY_ERROR')

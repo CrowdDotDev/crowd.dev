@@ -22,7 +22,7 @@
             >
             <app-member-organizations
               :member="member"
-              :showTitle="false"
+              :show-title="false"
             />
           </div>
         </div>
