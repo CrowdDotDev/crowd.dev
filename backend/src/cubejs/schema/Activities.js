@@ -9,7 +9,6 @@ cube(`Activities`, {
         Activities.type,
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Activities.tenantId,
         Tags.name,
@@ -54,6 +53,19 @@ cube(`Activities`, {
       shown: false,
     },
 
+    sentimentMood: {
+      case: {
+        when: [
+          { sql: `${CUBE}.sentiment->>'sentiment' is null`, label: `no data` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer < 50`, label: `negative` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer > 50`, label: `positive` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer = 50`, label: `positive` },
+        ],
+        else: { label: `no data` },
+      },
+      type: `string`,
+    },
+
     sourceid: {
       sql: `${CUBE}."sourceId"`,
       type: `string`,
@@ -77,12 +89,6 @@ cube(`Activities`, {
       primaryKey: true,
     },
 
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
-
     type: {
       sql: `type`,
       type: `string`,
@@ -100,12 +106,6 @@ cube(`Activities`, {
       shown: false,
     },
 
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
-    },
-
     parentid: {
       sql: `${CUBE}."parentId"`,
       type: `string`,
@@ -114,12 +114,6 @@ cube(`Activities`, {
 
     createdbyid: {
       sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    importhash: {
-      sql: `${CUBE}."importHash"`,
       type: `string`,
       shown: false,
     },

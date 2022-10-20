@@ -10,30 +10,32 @@ cube(`Members`, {
 		 
 		  AS time_to_first_interaction FROM "members" m
 LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
-WHERE m.type ='member'
 GROUP BY m.id`,
 
   preAggregations: {
+    /*
     Members: {
       measures: [Members.count],
-      dimensions: [Members.score, Members.location, Members.organisation, Members.tenantId],
+      dimensions: [Members.score, Members.location, Members.tenantId],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,
       },
     },
+    */
 
     ActiveMembers: {
       measures: [Members.count],
       dimensions: [
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Tags.name,
+        // Activities.date
       ],
-      timeDimension: Activities.date,
+      // timeDimension: Activities.date,
+      timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
         every: `10 minute`,
@@ -71,6 +73,11 @@ GROUP BY m.id`,
       sql: `${CUBE}.id = ${MemberTags}."memberId"`,
       relationship: `belongsTo`,
     },
+
+    MemberOrganizations: {
+      sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
+      relationship: `belongsTo`,
+    },
   },
 
   measures: {
@@ -86,12 +93,6 @@ GROUP BY m.id`,
   },
 
   dimensions: {
-    bio: {
-      sql: `bio`,
-      type: `string`,
-      shown: false,
-    },
-
     email: {
       sql: `email`,
       type: `string`,
@@ -105,7 +106,12 @@ GROUP BY m.id`,
     },
 
     location: {
-      sql: `location`,
+      sql: `COALESCE(${CUBE}.attributes->'location'->>'default', '')`,
+      type: `string`,
+    },
+
+    bio: {
+      sql: `COALESCE(${CUBE}.attributes->'bio'->>'default', '')`,
       type: `string`,
     },
 
@@ -121,43 +127,14 @@ GROUP BY m.id`,
       primaryKey: true,
     },
 
-    type: {
-      sql: `type`,
-      type: `string`,
-      shown: false,
-    },
-
-    organisation: {
-      sql: `organisation`,
-      type: `string`,
-    },
-
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
-    },
-
-    importhash: {
-      sql: `${CUBE}."importHash"`,
-      type: `string`,
-      shown: false,
-    },
-
     updatedbyid: {
       sql: `${CUBE}."updatedById"`,
       type: `string`,
       shown: false,
     },
 
-    signals: {
-      sql: `signals`,
-      type: `string`,
-      shown: false,
-    },
-
     username: {
-      sql: `username`,
+      sql: `${CUBE}."displayName"`,
       type: `string`,
       shown: false,
     },

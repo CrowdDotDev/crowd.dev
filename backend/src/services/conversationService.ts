@@ -267,7 +267,7 @@ export default class ConversationService {
         filter: {
           published: false,
         },
-        eagerLoad: ['activities'],
+        lazyLoad: ['activities'],
       },
       this.options,
     )
@@ -300,7 +300,6 @@ export default class ConversationService {
 
     let plainActivities = conversation.activities
       .map((act) => {
-        act = act.get({ plain: true })
         act.timestamp = moment(act.timestamp).unix()
         act.author = act.member.username[act.platform]
         delete act.member
@@ -487,8 +486,9 @@ export default class ConversationService {
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
+    const lazyLoad = ['activities']
     return ConversationRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+      { advancedFilter, orderBy, limit, offset, lazyLoad },
       this.options,
     )
   }

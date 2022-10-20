@@ -441,7 +441,8 @@ const en = {
       cubes: {
         Activities: '[Activities] Count',
         Members: '[Members] Count',
-        Conversations: '[Conversations] Count'
+        Conversations: '[Conversations] Count',
+        Organizations: '[Organizations] Count'
       },
       Activities: {
         count: '[Activities] Count',

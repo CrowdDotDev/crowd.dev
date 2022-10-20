@@ -341,6 +341,13 @@ export default class IntegrationService {
       },
     }
 
+    integration = await this.createOrUpdate({
+      platform: PlatformType.DISCORD,
+      integrationIdentifier: guildId,
+      settings: { channels, updateMemberAttributes: true },
+      status: 'in-progress',
+    })
+
     // TODO-kube
     if (KUBE_MODE) {
       const payload = {

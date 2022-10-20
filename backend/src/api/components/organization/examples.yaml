@@ -31,8 +31,8 @@ components:
           max: 50
           min: 10
         importHash: null
-        createdAt: "2022-10-03T16:15:21.812Z"
-        updatedAt: "2022-10-03T16:15:21.812Z"
+        createdAt: '2022-10-03T16:15:21.812Z'
+        updatedAt: '2022-10-03T16:15:21.812Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -70,14 +70,13 @@ components:
           max: 50
           min: 10
         importHash: null
-        createdAt: "2022-10-03T16:15:21.812Z"
-        updatedAt: "2022-10-03T16:15:21.812Z"
+        createdAt: '2022-10-03T16:15:21.812Z'
+        updatedAt: '2022-10-03T16:15:21.812Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         memberCount: 2
-
 
     Organization2:
       value:
@@ -109,8 +108,8 @@ components:
           max: 500
           min: 100
         importHash: null
-        createdAt: "2022-10-05T12:03:11.228Z"
-        updatedAt: "2022-10-05T12:03:11.228Z"
+        createdAt: '2022-10-05T12:03:11.228Z'
+        updatedAt: '2022-10-05T12:03:11.228Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75

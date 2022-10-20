@@ -5,8 +5,8 @@ components:
         id: 39c850f6-fb96-4d16-8e8c-cd7072e33925
         body: Refused to have a user feedback call
         importHash: null
-        createdAt: "2022-10-03T16:00:57.867Z"
-        updatedAt: "2022-10-03T16:00:57.867Z"
+        createdAt: '2022-10-03T16:00:57.867Z'
+        updatedAt: '2022-10-03T16:00:57.867Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -32,14 +32,14 @@ components:
             displayName: Gilfoyle
             email: gilfoyle@piedpiper.io
             score: -1
-            joinedAt: "2022-10-03T15:17:03.540Z"
+            joinedAt: '2022-10-03T15:17:03.540Z'
             importHash: null
             reach:
               total: 10000
               github: 5000
               twitter: 5000
-            createdAt: "2022-10-03T15:17:03.547Z"
-            updatedAt: "2022-10-03T15:17:27.073Z"
+            createdAt: '2022-10-03T15:17:03.547Z'
+            updatedAt: '2022-10-03T15:17:27.073Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -50,8 +50,8 @@ components:
         id: 196c07da-14e0-419e-bd9a-5f15c721a694
         body: Likes frunks
         importHash: null
-        createdAt: "2022-10-05T11:58:30.977Z"
-        updatedAt: "2022-10-05T11:58:30.977Z"
+        createdAt: '2022-10-05T11:58:30.977Z'
+        updatedAt: '2022-10-05T11:58:30.977Z'
         deletedAt: null
         tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
@@ -77,14 +77,14 @@ components:
             displayName: Dinesh
             email: dinesh@piedpiper.io
             score: 9
-            joinedAt: "2022-10-03T15:30:55.672Z"
+            joinedAt: '2022-10-03T15:30:55.672Z'
             importHash: null
             reach:
               total: 100
               github: 60
               twitter: 40
-            createdAt: "2022-10-03T15:30:55.679Z"
-            updatedAt: "2022-10-05T11:39:58.095Z"
+            createdAt: '2022-10-03T15:30:55.679Z'
+            updatedAt: '2022-10-05T11:39:58.095Z'
             deletedAt: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75

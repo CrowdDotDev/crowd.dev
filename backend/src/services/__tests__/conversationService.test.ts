@@ -587,7 +587,7 @@ describe('ConversationService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService({...mockIRepositoryOptions, transaction}).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           filter: {
             slug: 'some-parent-activity',
           },

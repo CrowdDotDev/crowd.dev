@@ -1,5 +1,6 @@
 <template>
   <div
+    v-if="entity"
     class="avatar"
     :class="computedClass"
     :style="computedStyle"
@@ -54,13 +55,13 @@ export default {
   computed: {
     computedBackgroundColor() {
       return this.backgroundColors[
-        this.entity.displayName.length %
+        (this.entity.displayName || '').length %
           this.backgroundColors.length
       ]
     },
     computedTextColor() {
       return this.textColors[
-        this.entity.displayName.length %
+        (this.entity.displayName || '').length %
           this.textColors.length
       ]
     },
@@ -116,6 +117,14 @@ export default {
 
   &--xs {
     @apply h-8 w-8;
+  }
+
+  &--xxs {
+    @apply h-5 w-5;
+
+    span {
+      @apply text-2xs;
+    }
   }
 }
 </style>

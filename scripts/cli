@@ -77,6 +77,34 @@ function build_and_publish() {
     fi
 }
 
+function db_backup() {
+    [[ -z "$1" ]] && error "Dump name has to be provided as first parameter!" && exit 1
+
+    say "Cloning local database to $CLI_HOME/db_dumps/$1.dump!"
+    docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_dump -F c -d crowd-web -U postgres > /$1.dump"
+    docker cp ${PROJECT_NAME}_db_1:/$1.dump $CLI_HOME/db_dumps/$1.dump
+
+    say "All done!"
+}
+
+function restore_db_backup() {
+    [[ -z "$1" ]] && error "Dump name has to be provided as first parameter!" && exit 1
+
+    say "First we need to clean up the scaffold!"
+    scaffold_destroy
+    up_scaffold
+
+    say "Sleeping for 5 seconds for the database container to start up!"
+    sleep 5
+
+    say "Restoring dump from $CLI_HOME/db_dumps/$1.dump"
+    docker cp $CLI_HOME/db_dumps/$1.dump ${PROJECT_NAME}_db_1:/backup.dump
+    # docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example dropdb -U postgres crowd-web && PGPASSWORD=example createdb -U postgres crowd-web"
+    docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_restore --clean -U postgres -d crowd-web backup.dump && rm -f backup.dump"
+
+    say "All done!"
+}
+
 function scaffold() {
     HELP="${RESET}\nUsage:\n ./cli scaffold [ up | down | destroy | reset ]\n"
 
@@ -416,6 +444,14 @@ do
         build-and-push)
             PUSH=1
             build $2 $3
+            exit;
+        ;;
+        db-backup)
+            db_backup $2
+            exit;
+        ;;
+        db-restore)
+            restore_db_backup $2
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"

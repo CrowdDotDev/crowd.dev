@@ -59,4 +59,29 @@ export default class SequelizeFilterUtils {
 
     return []
   }
+
+
+
+  static getFieldLiteral(field, model){
+    return Sequelize.literal(`"${model}"."${field}"`)
+  }
+
+  static getLiteralProjections(fields, model){
+
+    return fields.reduce((acc, field) => {
+      acc.push([
+        SequelizeFilterUtils.getFieldLiteral(field,model),
+        field,
+      ])
+      return acc
+    }, [])
+
+  }
+
+  static getNativeTableFieldAggregations(fields, model){
+      return fields.reduce((acc, field) => {
+        acc[field] = SequelizeFilterUtils.getFieldLiteral(field, model)
+        return acc
+      }, {})
+  }
 }

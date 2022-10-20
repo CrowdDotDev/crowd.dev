@@ -2,6 +2,7 @@
   <div>
     <el-dropdown
       v-if="!isReadOnly"
+      placement="bottom-end"
       trigger="click"
       @command="handleCommand"
     >
