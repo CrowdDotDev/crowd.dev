@@ -1,8 +1,18 @@
 <template>
   <app-page-wrapper>
     <h4>Integrations</h4>
-    <div class="text-xs text-gray-500">
-      Available sources to fetch community data
+    <div class="flex items-center justify-between">
+      <div class="text-xs text-gray-500">
+        Connect with all data sources that are relevant to
+        your community
+      </div>
+      <div class="text-xs text-gray-900">
+        <span class="text-base">🧐</span> Missing something?
+        <a
+          href="https://8vcqnrnp5it.typeform.com/to/EvtXce0q"
+          >Contact us</a
+        >
+      </div>
     </div>
     <div class="mt-10">
       <app-alert
