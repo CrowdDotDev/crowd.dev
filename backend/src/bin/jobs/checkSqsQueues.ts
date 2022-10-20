@@ -28,7 +28,7 @@ const job: CrowdJob = {
         if (messageCounts.has(queue)) {
           // do the actual check
           const previousValue = messageCounts.get(queue)
-          if (previousValue < value) {
+          if (previousValue < value && value >= 100) {
             // trigger warning
             await sendSlackAlert(
               `Warning: queue ${queue} has an increased amount of messages - *from ${previousValue} to ${value}*!`,
