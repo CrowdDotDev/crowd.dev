@@ -31,11 +31,13 @@ cube(`MemberIdentities`, {
       identityName: {
         sql: `${CUBE}."identityName"`,
         type: `string`,
+        shown: false
       },
   
       memberId: {
         sql: `${CUBE}."memberId"`,
         type: `string`,
+        shown: false
       },
   
     },
