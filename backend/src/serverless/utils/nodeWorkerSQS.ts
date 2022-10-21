@@ -4,8 +4,8 @@ import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
 import { sendMessage } from '../../utils/sqs'
 
-// 15 minute limit for delaying
-const limitSeconds = 10
+// 15 minute limit for delaying is max for SQS
+const limitSeconds = 15 * 60
 
 export const sendNodeWorkerMessage = async (
   tenantId: string,
