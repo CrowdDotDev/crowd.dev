@@ -78,6 +78,11 @@ cube(`Members`, {
       sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
       relationship: `belongsTo`,
     },
+
+    MemberIdentities: {
+      sql: `${CUBE}.id = ${MemberIndentities}."memberId"`,
+      relationship: `belongsTo`,
+    },
   },
 
   measures: {
