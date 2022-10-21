@@ -15,7 +15,7 @@
         </div>
       </div>
       <app-eagle-eye-tabs class="mt-10" />
-      <app-eagle-eye-search />
+      <app-eagle-eye-filter />
       <div
         v-if="shouldRenderInboxEmptyState"
         class="flex flex-col items-center justify-center w-full py-10"
@@ -62,7 +62,7 @@ import AppEagleEyeTabs from './eagle-eye-tabs'
 import AppEagleEyeList from './eagle-eye-list'
 import AppEagleEyeCounter from './eagle-eye-counter'
 import AppEagleEyeSorter from './eagle-eye-sorter'
-import AppEagleEyeSearch from './eagle-eye-search'
+import AppEagleEyeFilter from './eagle-eye-filter'
 
 import { useStore } from 'vuex'
 import { computed } from 'vue'

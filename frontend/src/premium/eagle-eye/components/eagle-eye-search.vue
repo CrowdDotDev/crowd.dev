@@ -4,20 +4,15 @@
       v-model="selectedKeywords"
       placeholder="Enter keywords, or topics..."
     />
-    <app-eagle-eye-filter />
   </div>
 </template>
 
 <script>
-import AppEagleEyeFilter from './eagle-eye-filter'
 import { mapGetters, mapActions, mapState } from 'vuex'
 import _ from 'lodash'
 
 export default {
   name: 'AppEagleEyeSearch',
-  components: {
-    AppEagleEyeFilter
-  },
   data() {
     return {
       selectedKeywords: []
@@ -40,7 +35,13 @@ export default {
             .isEmpty()
         ) {
           this.updateFilterAttribute({
-            ...this.filter.attributes['keywords'],
+            name: 'keywords',
+            label: 'Keywords',
+            defaultValue: [],
+            show: false,
+            operator: 'textContains',
+            defaultOperator: 'textContains',
+            type: 'custom',
             value: newValue
           })
         }
@@ -64,7 +65,16 @@ export default {
         : []
 
     if (savedKeywords) {
-      await this.doFetch({ keepPagination: false })
+      this.updateFilterAttribute({
+        name: 'keywords',
+        label: 'Keywords',
+        defaultValue: [],
+        show: false,
+        operator: 'textContains',
+        defaultOperator: 'textContains',
+        type: 'custom',
+        value: savedKeywords
+      })
     }
   },
   methods: {
@@ -76,15 +86,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.eagle-eye-search {
-  @apply flex mt-6;
-  .app-keywords-input {
-    @apply flex-grow;
-    .el-keywords-input-wrapper {
-      @apply rounded-r-none;
-    }
-  }
-}
-</style>

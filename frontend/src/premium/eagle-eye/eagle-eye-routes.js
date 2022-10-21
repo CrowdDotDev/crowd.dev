@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
+import { store } from '@/store'
 
 const EagleEyePage = () =>
   import(
@@ -22,6 +23,18 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.eagleEyeRead
+        },
+        beforeEnter: (to) => {
+          if (
+            to.query.activeTab !== undefined &&
+            store.getters['activity/activeView'].id !==
+              to.query.activeTab
+          ) {
+            store.dispatch(
+              'activity/doChangeActiveView',
+              to.query.activeTab
+            )
+          }
         }
       }
     ]

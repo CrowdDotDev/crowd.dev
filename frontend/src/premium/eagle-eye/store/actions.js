@@ -10,12 +10,13 @@ export default {
   ) {
     try {
       if (
+        state.filter.attributes.keywords &&
         state.filter.attributes.keywords.value &&
         state.filter.attributes.keywords.value.length > 0
       ) {
         await dispatch('doPopulate', {
           keywords: state.filter.attributes.keywords.value,
-          nDays: state.filter.attributes.nDays.value
+          nDays: state.filter.attributes.nDays?.value || 1
         })
       }
       commit('FETCH_STARTED', {
@@ -30,6 +31,7 @@ export default {
       )
 
       if (
+        state.filter.attributes.keywords &&
         state.filter.attributes.keywords.value?.length > 0
       ) {
         localStorage.setItem(

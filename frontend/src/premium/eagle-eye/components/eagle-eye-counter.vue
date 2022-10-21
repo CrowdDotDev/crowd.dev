@@ -8,7 +8,7 @@
           ? 'found'
           : ''
       }}
-      <span v-if="activeTab === 'inbox'"
+      <span v-if="activeView === 'inbox'"
         >・ {{ timeframe }}</span
       >
     </div>
@@ -28,11 +28,11 @@ export default {
       activeView: 'eagleEye/activeView'
     }),
     typeOfPostsFound() {
-      if (this.activeTab === 'inbox') {
+      if (this.activeView === 'inbox') {
         return this.hasKeywords ? 'relevant' : 'recommended'
-      } else if (this.activeTab === 'rejected') {
+      } else if (this.activeView === 'rejected') {
         return 'excluded'
-      } else if (this.activeTab === 'engaged') {
+      } else if (this.activeView === 'engaged') {
         return 'engaged'
       } else {
         return ''

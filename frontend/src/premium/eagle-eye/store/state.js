@@ -32,33 +32,7 @@ export default {
   count: 0,
   filter: {
     operator: 'and',
-    attributes: {
-      keywords: {
-        name: 'keywords',
-        label: 'Keywords',
-        value: [],
-        defaultValue: [],
-        show: false,
-        operator: 'textContains',
-        defaultOperator: 'textContains'
-      },
-      platforms: {
-        name: 'platforms',
-        label: 'Platform',
-        value: [],
-        defaultValue: [],
-        operator: 'in',
-        defaultOperator: 'in'
-      },
-      nDays: {
-        name: 'nDays',
-        label: 'Date published',
-        value: 1,
-        defaultValue: 1,
-        operator: 'gt',
-        defaultOperator: 'gt'
-      }
-    }
+    attributes: {}
   },
   pagination: {
     currentPage: 1,
