@@ -16,7 +16,7 @@ export default {
       ) {
         await dispatch('doPopulate', {
           keywords: state.filter.attributes.keywords.value,
-          nDays: state.filter.attributes.nDays?.value || 1
+          nDays: state.filter.attributes.nDays?.value
         })
       }
       commit('FETCH_STARTED', {

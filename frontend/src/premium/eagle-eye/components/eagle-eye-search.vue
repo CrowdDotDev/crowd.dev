@@ -63,23 +63,9 @@ export default {
       savedKeywords && savedKeywords !== ''
         ? savedKeywords.split(',')
         : []
-
-    if (savedKeywords) {
-      this.updateFilterAttribute({
-        name: 'keywords',
-        label: 'Keywords',
-        defaultValue: [],
-        show: false,
-        operator: 'textContains',
-        defaultOperator: 'textContains',
-        type: 'custom',
-        value: savedKeywords
-      })
-    }
   },
   methods: {
     ...mapActions({
-      doFetch: 'eagleEye/doFetch',
       updateFilterAttribute:
         'eagleEye/updateFilterAttribute'
     })

@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 
 export class EagleEyeService {
   static async find(id) {
@@ -14,7 +15,7 @@ export class EagleEyeService {
 
   static async list(filter, orderBy, limit, offset) {
     const params = {
-      filter: _transformFilter(filter),
+      filter: buildApiPayload(filter),
       orderBy,
       limit,
       offset
@@ -22,8 +23,8 @@ export class EagleEyeService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/eagleEyeContent`,
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/eagleEyeContent/query`,
       {
         params
       }
@@ -42,7 +43,7 @@ export class EagleEyeService {
 
     await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent`,
-      { data }
+      data
     )
   }
 
@@ -84,19 +85,4 @@ export class EagleEyeService {
 
     return response.data
   }
-}
-
-const _transformFilter = (filter) => {
-  // TODO: this needs to be updated once the API of eagle also gets update to new query/filter format
-
-  return Object.keys(filter.attributes).reduce(
-    (acc, item) => {
-      const value = filter.attributes[item].value
-      acc[item] = Array.isArray(value)
-        ? value.join(',')
-        : value
-      return acc
-    },
-    {}
-  )
 }

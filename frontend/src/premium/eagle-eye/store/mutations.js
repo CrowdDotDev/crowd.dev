@@ -1,17 +1,17 @@
 import sharedMutations from '@/shared/store/mutations'
 
 export default {
-  ...sharedMutations,
+  ...sharedMutations(),
   POPULATE_STARTED(state) {
-    state.loading = true
+    state.list.loading = true
   },
 
   POPULATE_SUCCESS(state) {
-    state.loading = true
+    state.list.loading = true
   },
 
   POPULATE_ERROR(state) {
-    state.loading = false
+    state.list.loading = false
   },
 
   ENGAGE_STARTED() {},

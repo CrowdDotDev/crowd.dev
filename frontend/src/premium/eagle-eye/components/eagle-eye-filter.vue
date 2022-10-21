@@ -18,30 +18,13 @@ export default {
 </script>
 
 <script setup>
-import { useStore } from 'vuex'
-import { onMounted } from 'vue'
 import { EagleEyeModel } from '@/premium/eagle-eye/eagle-eye-model'
 import AppEagleEyeSearch from '@/premium/eagle-eye/components/eagle-eye-search'
 import AppFilterList from '@/shared/filter/components/filter-list'
 
-const store = useStore()
-
 const eagleEyeAttributes = Object.values(
   EagleEyeModel.fields
 ).filter((f) => f.filterable)
-
-async function doFetch() {
-  const { filter } = store.state.eagleEye
-
-  await store.dispatch('eagleEye/doFetch', {
-    filter,
-    keepPagination: true
-  })
-}
-
-onMounted(async () => {
-  await doFetch()
-})
 </script>
 
 <style lang="scss">
