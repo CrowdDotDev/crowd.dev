@@ -13,14 +13,37 @@ export default {
     {
       id: 'engaged',
       label: 'Engaged',
-      filter: {},
+      filter: {
+        operator: 'and',
+        attributes: {
+          status: {
+            name: 'status',
+            operator: 'eq',
+            defaultOperator: 'eq',
+            defaultValue: 'engaged',
+            value: 'engaged',
+            show: false
+          }
+        }
+      },
       sorter: {},
       active: false
     },
     {
       id: 'rejected',
       label: 'Excluded',
-      filter: {},
+      filter: {
+        attributes: {
+          status: {
+            name: 'status',
+            operator: 'eq',
+            defaultOperator: 'eq',
+            defaultValue: 'rejected',
+            value: 'rejected',
+            show: false
+          }
+        }
+      },
       sorter: {},
       active: false
     }

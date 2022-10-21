@@ -27,11 +27,11 @@ export default [
         beforeEnter: (to) => {
           if (
             to.query.activeTab !== undefined &&
-            store.getters['activity/activeView'].id !==
+            store.getters['eagleEye/activeView'].id !==
               to.query.activeTab
           ) {
             store.dispatch(
-              'activity/doChangeActiveView',
+              'eagleEye/doChangeActiveView',
               to.query.activeTab
             )
           }
