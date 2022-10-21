@@ -3,101 +3,12 @@ import Errors from '@/shared/error/errors'
 import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
-import { attributesAreDifferent } from '@/shared/filter/is-different'
 import { ConversationService } from '@/modules/conversation/conversation-service'
-import buildApiFilter from '@/shared/filter/build-api-filter'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import genericActions from '@/modules/generic/store/actions'
 
 export default {
-  async doReset({ commit, state, dispatch }) {
-    commit('RESETED')
-    return dispatch('doFetch', {
-      filter: state.filter
-    })
-  },
-
-  async doResetActiveView({
-    commit,
-    state,
-    dispatch,
-    getters
-  }) {
-    const activeView = getters.activeView
-    commit('FILTER_CHANGED', activeView.filter)
-    commit('SORTER_CHANGED', activeView.sorter)
-    return dispatch('doFetch', {
-      filter: state.filter,
-      keepPagination: false
-    })
-  },
-
-  doChangePagination(
-    { commit, state, dispatch },
-    pagination
-  ) {
-    commit('PAGINATION_CHANGED', pagination)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter,
-      keepPagination: true
-    })
-  },
-
-  doChangePaginationPageSize(
-    { commit, state, dispatch },
-    pageSize
-  ) {
-    commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter,
-      keepPagination: true
-    })
-  },
-
-  doChangePaginationCurrentPage(
-    { commit, state, dispatch },
-    currentPage
-  ) {
-    commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter,
-      keepPagination: true
-    })
-  },
-
-  doChangeSort({ commit, state, dispatch }, sorter) {
-    commit('SORTER_CHANGED', sorter)
-    const filter = state.filter
-
-    state.list.ids.length = 0
-    dispatch('doFetch', {
-      filter,
-      keepPagination: false
-    })
-  },
-
-  doChangeActiveView(
-    { commit, dispatch, getters },
-    activeView
-  ) {
-    commit('ACTIVE_VIEW_CHANGED', activeView)
-    commit('FILTER_CHANGED', getters['activeView'].filter)
-    commit('SORTER_CHANGED', getters['activeView'].sorter)
-    router.push({
-      name: 'activity',
-      query: {
-        activeTab:
-          activeView === 'activities'
-            ? undefined
-            : activeView
-      }
-    })
-
-    return dispatch('doFetch', {
-      keepPagination: false
-    })
-  },
+  ...genericActions(),
 
   async doFetch(
     { commit, getters, state },
@@ -110,7 +21,7 @@ export default {
 
       if (getters.activeView.type === 'conversations') {
         response = await ConversationService.query(
-          buildApiFilter(state.filter),
+          buildApiPayload(state.filter),
           getters.orderBy,
           getters.limit,
           getters.offset
@@ -212,65 +123,5 @@ export default {
       Errors.handle(error)
       commit('DESTROY_ALL_ERROR')
     }
-  },
-
-  addFilterAttribute({ commit, dispatch }, attribute) {
-    let shouldFetch = Array.isArray(attribute.value)
-      ? attribute.value.length > 0
-      : attribute.value !== null
-
-    commit('FILTER_ATTRIBUTE_ADDED', attribute)
-
-    if (shouldFetch) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  updateFilterAttribute(
-    { commit, dispatch, state },
-    attribute
-  ) {
-    let shouldFetch = attributesAreDifferent(
-      state.filter.attributes[attribute.name],
-      attribute
-    )
-
-    commit('FILTER_ATTRIBUTE_CHANGED', attribute)
-
-    if (shouldFetch) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  destroyFilterAttribute({ commit, dispatch }, attribute) {
-    let shouldFetch = Array.isArray(attribute.value)
-      ? attribute.value.length > 0
-      : attribute.value !== null
-
-    commit('FILTER_ATTRIBUTE_DESTROYED', attribute)
-
-    if (shouldFetch) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  resetFilterAttribute({ commit, dispatch }, attribute) {
-    commit('FILTER_ATTRIBUTE_RESETED', attribute)
-    dispatch('doFetch', {
-      keepPagination: false
-    })
-  },
-
-  updateFilterOperator({ commit, dispatch }, operator) {
-    commit('FILTER_OPERATOR_UPDATED', operator)
-    dispatch('doFetch', {
-      keepPagination: false
-    })
   }
 }

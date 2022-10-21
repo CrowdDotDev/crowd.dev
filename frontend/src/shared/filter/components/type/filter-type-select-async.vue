@@ -73,7 +73,8 @@ import {
   watch,
   onMounted
 } from 'vue'
-import filterFunction from '@/shared/filter/filter-function'
+
+import queryFilterFunction from '@/shared/filter/helpers/query-filter'
 
 const props = defineProps({
   value: {
@@ -109,7 +110,7 @@ const options = reactive([])
 const computedOptions = computed(() => {
   return options.filter((o) => {
     return (
-      filterFunction(o, query.value) &&
+      queryFilterFunction(o, query.value) &&
       model.value.findIndex((i) => i.id === o.id) === -1
     )
   })
