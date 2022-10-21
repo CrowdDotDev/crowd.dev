@@ -78,6 +78,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
+        activeOn: [],
         reach: { total: -1 },
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         tags: [],
@@ -181,6 +182,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
+        activeOn: [],
         reach: { total: -1 },
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         notes: [],
@@ -316,6 +318,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
+        activeOn: [],
         reach: { total: -1 },
         notes: [],
         tasks: [],
@@ -499,6 +502,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.averageSentiment
       delete member1Returned.activityCount
       delete member1Returned.lastActivity
+      delete member1Returned.activeOn
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -589,6 +593,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activityCount
       delete member1Returned.averageSentiment
       delete member1Returned.lastActivity
+      delete member1Returned.activeOn
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1275,6 +1280,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         notes: [],
         tasks: [],
+        activeOn: [],
         joinedAt: new Date(updateFields.joinedAt),
         tags: [],
         noMerge: [],
@@ -1419,6 +1425,7 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         notes: [],
         tasks: [],
+        activeOn: [],
         joinedAt: new Date(member1.joinedAt),
         tags: [tag1Plain, tag2Plain],
         noMerge: [],
@@ -1492,6 +1499,7 @@ describe('MemberRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
+        activeOn: [],
         activities: [],
         reach: { total: -1 },
         joinedAt: new Date(member1.joinedAt),

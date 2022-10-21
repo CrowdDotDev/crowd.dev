@@ -1743,6 +1743,7 @@ describe('MemberService tests', () => {
           ...member1.attributes,
           ...member2.attributes,
         },
+        activeOn: [activityCreated.platform],
         email: null,
         score: -1,
         importHash: null,
@@ -2185,6 +2186,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
+      delete returnedMember1.activeOn
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2293,6 +2295,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
+      delete returnedMember1.activeOn
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },

@@ -269,7 +269,7 @@ class OrganizationRepository {
       },
     ]
 
-    const platforms = Sequelize.literal(
+    const activeOn = Sequelize.literal(
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
@@ -480,7 +480,7 @@ class OrganizationRepository {
             ],
             'organization',
           ),
-          platforms,
+          activeOn,
           lastActive,
           memberCount,
         },
@@ -547,7 +547,7 @@ class OrganizationRepository {
           ],
           'organization',
         ),
-        [platforms, 'platforms'],
+        [activeOn, 'activeOn'],
         [lastActive, 'lastActive'],
         [memberCount, 'memberCount'],
       ],
@@ -628,6 +628,7 @@ class OrganizationRepository {
 
     return rows.map((record) => {
       const rec = record.get({ plain: true })
+      rec.activeOn = rec.activeOn ?? []
       return rec
     })
   }
@@ -643,11 +644,20 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.memberCount = (
-      await record.getMembers({
-        transaction,
-      })
-    ).length
+    const members = await record.getMembers({
+      include: ['activities'],
+      transaction,
+    })
+
+    output.activeOn = [
+      ...new Set(
+        members
+          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+          .map((a) => a.platform),
+      ),
+    ]
+
+    output.memberCount = members.length
 
     return output
   }

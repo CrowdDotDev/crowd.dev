@@ -700,7 +700,7 @@ class MemberRepository {
       options.database.Sequelize.col('activities.timestamp'),
     )
 
-    const identities = Sequelize.literal(
+    const activeOn = Sequelize.literal(
       `array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`,
     )
 
@@ -722,7 +722,7 @@ class MemberRepository {
           activityCount,
           lastActive,
           averageSentiment,
-          identities,
+          activeOn,
           ...dynamicAttributesLiterals,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
@@ -817,7 +817,7 @@ class MemberRepository {
           ],
           'member',
         ),
-        [identities, 'identities'],
+        [activeOn, 'activeOn'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
@@ -939,6 +939,8 @@ class MemberRepository {
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
 
+        plainRecord.activeOn = plainRecord.activeOn ?? []
+
         for (const attribute of attributesSettings) {
           if (Object.prototype.hasOwnProperty.call(plainRecord, attribute.name)) {
             delete plainRecord[attribute.name]
@@ -988,6 +990,8 @@ class MemberRepository {
     output.lastActivity = output.activities[0]?.get({ plain: true }) ?? null
 
     output.lastActive = output.activities[0]?.timestamp ?? null
+
+    output.activeOn = [...new Set(output.activities.map((i) => i.platform))]
 
     output.activityCount = output.activities.length
 

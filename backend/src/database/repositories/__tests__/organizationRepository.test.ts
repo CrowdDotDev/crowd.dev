@@ -91,6 +91,7 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activeOn: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
