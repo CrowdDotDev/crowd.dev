@@ -7,8 +7,8 @@
   >
     <span
       v-if="!entity.avatar"
-      class="font-semibold text-lg uppercase"
-      >{{ entity.displayName[0] }}</span
+      class="font-semibold uppercase"
+      >{{ computedInitials }}</span
     >
   </div>
 </template>
@@ -76,6 +76,16 @@ export default {
     },
     computedClass() {
       return `avatar--${this.size}`
+    },
+    computedInitials() {
+      const names = this.entity.displayName
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+
+      return names.length > 1
+        ? names[0][0] + names[1][0]
+        : names[0][0]
     }
   }
 }
@@ -90,11 +100,11 @@ export default {
   border: 1px solid #dedede;
 
   &--xl {
-    @apply h-20 w-20;
+    @apply h-18 w-18 text-xl;
   }
 
   &--lg {
-    @apply h-16 w-16;
+    @apply h-16 w-16 text-lg;
   }
 
   &--md {

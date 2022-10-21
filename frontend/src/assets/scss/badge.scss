@@ -1,0 +1,7 @@
+.badge {
+  @apply bg-gray-200 text-gray-900 px-2.5 text-xs py-1 rounded-md;
+
+  &--green {
+    @apply bg-green-100 text-green-900;
+  }
+}

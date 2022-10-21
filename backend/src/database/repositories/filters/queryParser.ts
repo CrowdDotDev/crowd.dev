@@ -233,6 +233,7 @@ class QueryParser {
     }
 
     return query
+    
   }
 
   /**

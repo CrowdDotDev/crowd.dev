@@ -7,38 +7,10 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
+import sharedActions from '@/shared/store/actions'
 
 export default {
-  doUnselectAll({ commit }) {
-    commit('UNSELECT_ALL')
-  },
-
-  doMountTable({ commit }, table) {
-    commit('TABLE_MOUNTED', table)
-  },
-
-  async doReset({ commit, state, dispatch }) {
-    commit('RESETED')
-    return dispatch('doFetch', {
-      filter: state.filter,
-      keepPagination: false
-    })
-  },
-
-  async doResetActiveView({
-    commit,
-    state,
-    dispatch,
-    getters
-  }) {
-    const activeView = getters.activeView
-    commit('FILTER_CHANGED', activeView.filter)
-    commit('SORTER_CHANGED', activeView.sorter)
-    return dispatch('doFetch', {
-      filter: state.filter,
-      keepPagination: false
-    })
-  },
+  ...sharedActions(MemberService),
 
   async doExport({ commit, state, getters }) {
     try {
@@ -104,81 +76,37 @@ export default {
     }
   },
 
-  doChangePagination(
-    { commit, state, dispatch },
-    pagination
-  ) {
-    commit('PAGINATION_CHANGED', pagination)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter
-    })
-  },
-
-  doChangePaginationPageSize(
-    { commit, state, dispatch },
-    pageSize
-  ) {
-    commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter
-    })
-  },
-
-  doChangePaginationCurrentPage(
-    { commit, state, dispatch },
-    currentPage
-  ) {
-    commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter
-    })
-  },
-
-  doChangeSort({ commit, state, dispatch }, sorter) {
-    commit('SORTER_CHANGED', sorter)
-    const filter = state.filter
-    dispatch('doFetch', {
-      filter
-    })
-  },
-
-  doChangeActiveView(
-    { commit, dispatch, getters },
-    activeView
-  ) {
-    commit('ACTIVE_VIEW_CHANGED', activeView)
-    commit('FILTER_CHANGED', getters['activeView'].filter)
-    commit('SORTER_CHANGED', getters['activeView'].sorter)
-
-    return dispatch('doFetch', {
-      keepPagination: false
-    })
-  },
-
-  async doFetch(
-    { commit, getters, state },
-    { keepPagination = false }
+  async doDestroyCustomAttributes(
+    { commit, dispatch },
+    id
   ) {
     try {
-      commit('FETCH_STARTED', { keepPagination })
+      commit('DESTROY_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.destroyCustomAttribute(id)
+      commit('DESTROY_CUSTOM_ATTRIBUTES_SUCCESS', response)
 
-      const response = await MemberService.list(
-        state.filter,
-        getters.orderBy,
-        getters.limit,
-        getters.offset
-      )
-
-      commit('FETCH_SUCCESS', {
-        rows: response.rows,
-        count: response.count
-      })
+      dispatch('doFetchCustomAttributes')
     } catch (error) {
       Errors.handle(error)
-      commit('FETCH_ERROR')
+      commit('DESTROY_CUSTOM_ATTRIBUTES_ERROR')
+    }
+  },
+
+  async doUpdateCustomAttributes(
+    { commit, dispatch },
+    { id, data }
+  ) {
+    try {
+      commit('UPDATE_CUSTOM_ATTRIBUTES_STARTED')
+      const response =
+        await MemberService.updateCustomAttribute(id, data)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_SUCCESS', response)
+
+      dispatch('doFetchCustomAttributes')
+    } catch (error) {
+      Errors.handle(error)
+      commit('UPDATE_CUSTOM_ATTRIBUTES_ERROR')
     }
   },
 
@@ -194,16 +122,23 @@ export default {
     }
   },
 
-  async doCreateCustomAttributes({ commit }, values) {
+  async doCreateCustomAttributes(
+    { commit, dispatch },
+    values
+  ) {
     try {
       commit('CREATE_ATTRIBUTES_STARTED')
       const response =
         await MemberService.createCustomAttributes(values)
+
+      dispatch('doFetchCustomAttributes')
       commit('CREATE_ATTRIBUTES_SUCCESS')
 
       return response
     } catch (error) {
-      Errors.handle(error)
+      if (error.response.status !== 500) {
+        Errors.handle(error)
+      }
       commit('CREATE_ATTRIBUTES_ERROR')
 
       Message.error(
@@ -285,154 +220,5 @@ export default {
       Errors.handle(error)
       commit('BULK_UPDATE_MEMBERS_TAGS_ERROR')
     }
-  },
-
-  async doFind({ commit }, id) {
-    try {
-      commit('FIND_STARTED')
-      const record = await MemberService.find(id)
-      commit('FIND_SUCCESS', record)
-    } catch (error) {
-      Errors.handle(error)
-      commit('FIND_ERROR')
-      router.push('/members')
-    }
-  },
-
-  async doDestroy({ commit, dispatch }, id) {
-    try {
-      commit('DESTROY_STARTED')
-
-      await MemberService.destroyAll([id])
-
-      commit('DESTROY_SUCCESS')
-
-      Message.success(
-        i18n('entities.member.destroy.success')
-      )
-
-      router.push('/members')
-
-      dispatch('doFetch', {
-        keepPagination: true
-      })
-    } catch (error) {
-      Errors.handle(error)
-      commit('DESTROY_ERROR')
-    }
-  },
-
-  async doDestroyAll({ commit, dispatch }, ids) {
-    try {
-      commit('DESTROY_ALL_STARTED')
-
-      await MemberService.destroyAll(ids)
-
-      commit('DESTROY_ALL_SUCCESS')
-
-      dispatch(`member/doUnselectAll`, null, {
-        root: true
-      })
-
-      Message.success(
-        i18n('entities.member.destroyAll.success')
-      )
-
-      router.push('/members')
-
-      dispatch('doFetch', {
-        keepPagination: true
-      })
-    } catch (error) {
-      Errors.handle(error)
-      commit('DESTROY_ALL_ERROR')
-    }
-  },
-
-  async doCreate({ commit }, values) {
-    try {
-      commit('CREATE_STARTED')
-      await MemberService.create(values)
-      commit('CREATE_SUCCESS')
-      Message.success(
-        i18n('entities.member.create.success')
-      )
-      router.push('/members')
-    } catch (error) {
-      Errors.handle(error)
-      commit('CREATE_ERROR')
-    }
-  },
-
-  async doUpdate({ commit, dispatch }, { id, values }) {
-    try {
-      commit('UPDATE_STARTED')
-
-      await MemberService.update(id, values)
-
-      commit('UPDATE_SUCCESS')
-      Message.success(
-        i18n('entities.member.update.success')
-      )
-      if (router.currentRoute.name === 'member') {
-        dispatch('doFetch', {
-          keepPagination: true
-        })
-      } else {
-        dispatch('member/doFind', id, {
-          root: true
-        })
-      }
-    } catch (error) {
-      Errors.handle(error)
-      commit('UPDATE_ERROR')
-    }
-  },
-
-  addFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_ADDED', filter)
-
-    if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
-    ) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  updateFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_CHANGED', filter)
-    if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
-    ) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  destroyFilterAttribute({ commit, dispatch }, filter) {
-    commit('FILTER_ATTRIBUTE_DESTROYED', filter)
-    if (
-      Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== null
-    ) {
-      dispatch('doFetch', {
-        keepPagination: false
-      })
-    }
-  },
-
-  updateFilterOperator({ commit, dispatch }, operator) {
-    commit('FILTER_OPERATOR_CHANGED', operator)
-    dispatch('doFetch', {
-      keepPagination: false
-    })
   }
 }

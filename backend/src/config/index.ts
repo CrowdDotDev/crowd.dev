@@ -8,7 +8,6 @@ import {
   ApiConfiguration,
   SlackConfiguration,
   GoogleConfiguration,
-  FacebookConfiguration,
   DiscordConfiguration,
   ServiceType,
   SearchEngineConfiguration,
@@ -156,14 +155,6 @@ export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
       clientId: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_ID,
       clientSecret: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_SECRET,
       callbackUrl: process.env.AUTH_SOCIAL_GOOGLE_CALLBACK_URL,
-    }
-
-export const FACEBOOK_CONFIG: FacebookConfiguration = KUBE_MODE
-  ? config.get<FacebookConfiguration>('facebook')
-  : {
-      clientId: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_SECRET,
-      callbackUrl: process.env.AUTH_SOCIAL_FACEBOOK_CALLBACK_URL,
     }
 
 export const DISCORD_CONFIG: DiscordConfiguration = KUBE_MODE

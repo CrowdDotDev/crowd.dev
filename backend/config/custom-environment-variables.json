@@ -13,6 +13,7 @@
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
+    "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
     "aws": {
       "accountId": "CROWD_SQS_AWS_ACCOUNT_ID",
       "accessKeyId": "CROWD_SQS_AWS_ACCESS_KEY_ID",
@@ -89,18 +90,16 @@
   },
   "slack": {
     "clientId": "CROWD_SLACK_CLIENT_ID",
-    "clientSecret": "CROWD_SLACK_CLIENT_SECRET"
+    "clientSecret": "CROWD_SLACK_CLIENT_SECRET",
+    "reporterToken": "CROWD_SLACK_REPORTER_TOKEN",
+    "reporterChannel": "CROWD_SLACK_REPORTER_CHANNEL"
   },
   "google": {
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
     "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
   },
-  "facebook": {
-    "clientId": "CROWD_FACEBOOK_CLIENT_ID",
-    "clientSecret": "CROWD_FACEBOOK_CLIENT_SECRET",
-    "callbackUrl": "CROWD_FACEBOOK_CALLBACK_URL"
-  },
+  
   "discord": {
     "token": "CROWD_DISCORD_TOKEN"
   },

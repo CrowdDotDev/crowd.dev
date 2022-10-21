@@ -20,8 +20,13 @@ class BaseQuery {
     }`
 
   static ORGANIZATION_SELECT = `{
-    description
+    email
+    location
+    name
+    twitterUsername
     websiteUrl
+    description
+    avatarUrl
   }`
 
   static PAGE_SELECT = `{

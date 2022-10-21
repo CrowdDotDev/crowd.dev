@@ -3,11 +3,14 @@
     placement="right-end"
     :width="230"
     trigger="click"
-    popper-class="workspace-popover"
+    popper-class="account-popover"
+    @show="isDropdownOpen = true"
+    @hide="isDropdownOpen = false"
   >
     <template #reference>
       <div
-        class="cursor-pointer flex w-full h-16 items-center bg-white hover:bg-gray-50 account-btn"
+        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-50 account-btn"
+        :class="isDropdownOpen ? 'bg-gray-50' : 'bg-white'"
       >
         <div class="flex items-center">
           <app-avatar
@@ -36,36 +39,17 @@
     </template>
 
     <!-- Popover content -->
-    <div v-if="currentTenant && currentTenant.onboardedAt">
+    <div
+      v-if="currentTenant && currentTenant.onboardedAt"
+      class="flex flex-col gap-1 mb-1"
+    >
       <div class="popover-item" @click="doEditProfile">
-        <i class="text-base text-gray-400 ri-user-line"></i>
+        <i
+          class="text-base text-gray-400 ri-account-circle-line"
+        ></i>
         <span class="text-xs text-gray-900"
           ><app-i18n code="auth.profile.title"></app-i18n
         ></span>
-      </div>
-      <div class="popover-item" @click="doPasswordChange">
-        <i
-          class="text-base text-gray-400 ri-lock-password-line"
-        ></i>
-        <span class="text-xs text-gray-900"
-          ><app-i18n
-            code="auth.passwordChange.title"
-          ></app-i18n
-        ></span>
-      </div>
-      <div
-        v-if="
-          ['multi', 'multi-with-subdomain'].includes(
-            tenantMode
-          ) && hasTenantModule
-        "
-        class="popover-item"
-        @click="doSwitchTenants"
-      >
-        <i class="text-base text-gray-400 ri-apps-line"></i>
-        <span class="text-xs text-gray-900"
-          >Workspaces</span
-        >
       </div>
     </div>
     <div class="popover-item" @click="doSignout">
@@ -80,79 +64,67 @@
 </template>
 
 <script>
-import config from '@/config'
-import { mapGetters, mapActions } from 'vuex'
-import { i18n } from '@/i18n'
-
 export default {
-  name: 'AppAccountDropdown',
+  name: 'AppAccountDropdown'
+}
+</script>
 
-  computed: {
-    ...mapGetters({
-      isCollapsed: 'layout/menuCollapsed',
-      currentUserNameOrEmailPrefix:
-        'auth/currentUserNameOrEmailPrefix',
-      currentUserAvatar: 'auth/currentUserAvatar',
-      currentTenant: 'auth/currentTenant',
-      isMobile: 'layout/isMobile'
-    }),
+<script setup>
+import { useStore } from 'vuex'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-    hasTenantModule() {
-      return config.edition === 'crowd-hosted'
-        ? true
-        : config.communityPremium === 'true'
-    },
+const store = useStore()
+const router = useRouter()
 
-    tenantMode() {
-      return config.tenantMode
-    },
+const isDropdownOpen = ref(false)
 
-    computedAvatarEntity() {
-      return {
-        avatar: this.currentUserAvatar,
-        displayName: this.currentUserNameOrEmailPrefix
-      }
-    }
-  },
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed']
+)
+const currentUserNameOrEmailPrefix = computed(
+  () => store.getters['auth/currentUserNameOrEmailPrefix']
+)
+const currentUserAvatar = computed(
+  () => store.getters['auth/currentUserAvatar']
+)
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant']
+)
 
-  methods: {
-    ...mapActions({
-      doSignout: 'auth/doSignout'
-    }),
+const computedAvatarEntity = computed(() => ({
+  avatar: currentUserAvatar.value,
+  displayName: currentUserNameOrEmailPrefix.value
+}))
 
-    i18n(key, args) {
-      return i18n(key, args)
-    },
+function doSignout() {
+  store.dispatch('auth/doSignout')
+}
 
-    doEditProfile() {
-      return this.$router.push('/auth/edit-profile')
-    },
-
-    doPasswordChange() {
-      return this.$router.push('/password-change')
-    },
-
-    doSwitchTenants() {
-      return this.$router.push('/tenant')
-    }
-  }
+function doEditProfile() {
+  return router.push('/auth/edit-profile')
 }
 </script>
 
 <style lang="scss">
 .popover-item {
-  @apply h-12 hover:cursor-pointer flex items-center gap-3 px-4 hover:bg-gray-50;
+  @apply h-10 hover:cursor-pointer flex items-center gap-2 px-3 rounded hover:bg-gray-50;
+
+  a,
+  a[href]:hover {
+    @apply text-gray-900;
+  }
 
   &:hover {
-    i {
+    i:not(.ri-external-link-line) {
       @apply text-gray-500;
     }
   }
 }
 
 // Override inline style in popover
-.workspace-popover {
-  padding: 8px 0 !important;
+.account-popover {
+  padding: 8px !important;
   left: 1px !important;
   bottom: 10px !important;
   border-radius: 8px !important;
@@ -164,6 +136,10 @@ export default {
 .app-menu {
   .account-btn {
     @apply justify-between px-3;
+
+    &:hover .ri-more-2-fill {
+      @apply text-gray-400;
+    }
   }
 
   :not(.horizontal-collapse-transition).el-menu--collapse {

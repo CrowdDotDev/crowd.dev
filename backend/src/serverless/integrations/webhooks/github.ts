@@ -12,6 +12,7 @@ import { PlatformType } from '../../../utils/platforms'
 import { GithubActivityType } from '../../../utils/activityTypes'
 import { gridEntry } from '../grid/grid'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import getOrganization from '../usecases/github/graphql/organizations'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -314,7 +315,7 @@ export default class GitHubWebhook {
     }
     const member = await getMember(login, token)
     if (member) {
-      return GitHubWebhook.parseMember(member)
+      return GitHubWebhook.parseMember(member, token)
     }
     return member
   }
@@ -324,7 +325,7 @@ export default class GitHubWebhook {
    * @param member User object coming from the GitHub API
    * @returns The parsed member
    */
-  static parseMember(member: any): Member {
+  static async parseMember(member: any, token): Promise<Member> {
     const parsedMember: Member = {
       username: { [PlatformType.GITHUB]: member.login },
       attributes: {
@@ -350,6 +351,29 @@ export default class GitHubWebhook {
         [MemberAttributeName.URL]: `https://twitter.com/${member.twitterUsername}`,
       }
       parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
+    }
+
+    if (member.company) {
+      if (IS_TEST_ENV) {
+        parsedMember.organizations = [{ name: 'crowd.dev' }]
+      } else {
+        const company = member.company.replace('@', '').trim()
+        const fromAPI = await getOrganization(company, token)
+        if (fromAPI) {
+          parsedMember.organizations = [
+            {
+              name: fromAPI.name,
+              ...(fromAPI.description && { description: fromAPI.description }),
+              ...(fromAPI.location && { location: fromAPI.location }),
+              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
+              ...(fromAPI.url && { url: fromAPI.url }),
+              ...(fromAPI.twitter && { twittwe: { handle: fromAPI.twitterUsername } }),
+            },
+          ]
+        } else {
+          parsedMember.organizations = [{ name: company }]
+        }
+      }
     }
 
     return parsedMember

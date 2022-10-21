@@ -1,163 +1,395 @@
 <template>
-  <div>
-    <h1 class="app-content-title">
-      <app-i18n code="auth.profile.title"></app-i18n>
-    </h1>
-    <div class="panel">
-      <el-form
-        ref="form"
-        :label-position="labelPosition"
-        :label-width="labelWidthForm"
-        :model="model"
-        :rules="rules"
-        class="form"
-        @submit.prevent="doSubmit"
+  <app-page-wrapper
+    :container-class="'md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-10'"
+  >
+    <div class="profile-form-page">
+      <h4 class="mt-4 mb-6">
+        <app-i18n code="auth.profile.title"></app-i18n>
+      </h4>
+      <el-container
+        class="bg-white rounded-lg shadow shadow-black/15"
       >
-        <el-form-item
-          :label="fields.email.label"
-          :prop="fields.email.name"
-          :required="fields.email.required"
-        >
-          <el-col :lg="11" :md="16" :sm="24">
-            <el-input
-              ref="focus"
-              v-model="model[fields.email.name]"
-              disabled
-            />
-          </el-col>
-        </el-form-item>
-        <el-form-item
-          :label="fields.firstName.label"
-          :prop="fields.firstName.name"
-          :required="fields.firstName.required"
-        >
-          <el-col :lg="11" :md="16" :sm="24">
-            <el-input
-              ref="focus"
-              v-model="model[fields.firstName.name]"
-            />
-          </el-col>
-        </el-form-item>
+        <el-main class="p-6">
+          <el-form
+            ref="profileFormRef"
+            label-position="top"
+            :model="profileModel"
+            :rules="profileRules"
+            class="form"
+            @submit.prevent="doSubmit"
+          >
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Personal details</h6>
+              <div class="col-span-2">
+                <el-form-item
+                  :label="computedFields.email.label"
+                  :prop="computedFields.email.name"
+                  :required="computedFields.email.required"
+                >
+                  <el-input
+                    ref="focus"
+                    v-model="
+                      profileModel[
+                        computedFields.email.name
+                      ]
+                    "
+                    disabled
+                  />
+                </el-form-item>
+                <div class="flex gap-6">
+                  <el-form-item
+                    class="grow"
+                    :label="computedFields.firstName.label"
+                    :prop="computedFields.firstName.name"
+                    :required="
+                      computedFields.firstName.required
+                    "
+                  >
+                    <el-input
+                      ref="focus"
+                      v-model="
+                        profileModel[
+                          computedFields.firstName.name
+                        ]
+                      "
+                    />
+                  </el-form-item>
 
-        <el-form-item
-          :label="fields.lastName.label"
-          :prop="fields.lastName.name"
-          :required="fields.lastName.required"
-        >
-          <el-col :lg="11" :md="16" :sm="24">
-            <el-input
-              v-model="model[fields.lastName.name]"
-            />
-          </el-col>
-        </el-form-item>
+                  <el-form-item
+                    class="grow"
+                    :label="computedFields.lastName.label"
+                    :prop="computedFields.lastName.name"
+                    :required="
+                      computedFields.lastName.required
+                    "
+                  >
+                    <el-input
+                      v-model="
+                        profileModel[
+                          computedFields.lastName.name
+                        ]
+                      "
+                    />
+                  </el-form-item>
+                </div>
+              </div>
+            </div>
+          </el-form>
 
-        <el-form-item>
-          <div class="form-buttons">
+          <el-divider
+            class="!mb-6 !mt-10 !border-gray-200"
+          />
+
+          <el-form
+            ref="passwordFormRef"
+            label-position="top"
+            :model="passwordModel"
+            :rules="passwordRules"
+            class="form"
+            @submit.prevent="doSubmit"
+          >
+            <div class="grid gap-x-12 grid-cols-3">
+              <h6>Change password</h6>
+              <div class="col-span-2">
+                <el-form-item
+                  :label="computedFields.oldPassword.label"
+                  :prop="computedFields.oldPassword.name"
+                  :required="
+                    computedFields.oldPassword.required
+                  "
+                >
+                  <el-input
+                    ref="focus"
+                    v-model="
+                      passwordModel[
+                        computedFields.oldPassword.name
+                      ]
+                    "
+                    type="password"
+                  />
+                </el-form-item>
+
+                <el-form-item
+                  :label="computedFields.newPassword.label"
+                  :prop="computedFields.newPassword.name"
+                  :required="
+                    computedFields.newPassword.required
+                  "
+                  type="password"
+                >
+                  <el-input
+                    v-model="
+                      passwordModel[
+                        computedFields.newPassword.name
+                      ]
+                    "
+                    type="password"
+                  />
+                </el-form-item>
+
+                <el-form-item
+                  :label="
+                    computedFields.newPasswordConfirmation
+                      .label
+                  "
+                  :prop="
+                    computedFields.newPasswordConfirmation
+                      .name
+                  "
+                  :required="
+                    computedFields.newPasswordConfirmation
+                      .required
+                  "
+                  type="password"
+                >
+                  <el-input
+                    v-model="
+                      passwordModel[
+                        computedFields
+                          .newPasswordConfirmation.name
+                      ]
+                    "
+                    type="password"
+                  />
+                </el-form-item>
+              </div>
+            </div>
+          </el-form>
+        </el-main>
+        <el-footer
+          class="bg-gray-50 flex items-center p-6 h-fit rounded-b-lg"
+          :class="
+            hasFormChanged
+              ? 'justify-between'
+              : 'justify-end'
+          "
+        >
+          <el-button
+            v-if="hasFormChanged"
+            class="btn btn-link btn-link--primary"
+            :disabled="saveLoading"
+            @click="doReset"
+            ><i class="ri-arrow-go-back-line"></i>
+            <span>Reset changes</span></el-button
+          >
+          <div class="flex gap-4">
             <el-button
               :disabled="saveLoading"
-              class="btn btn--primary mr-2"
+              class="btn btn--md btn--bordered"
+              @click="doCancel"
+            >
+              Cancel
+            </el-button>
+            <el-button
+              class="btn btn--md btn--primary"
+              :disabled="
+                saveLoading ||
+                !hasFormChanged ||
+                !isFormValid
+              "
               @click="doSubmit"
             >
-              <i class="ri-lg ri-save-line mr-1" />
               <app-i18n code="common.save"></app-i18n>
             </el-button>
-
-            <el-button
-              :disabled="saveLoading"
-              class="btn btn--secondary mr-2"
-              @click="doReset"
-            >
-              <i class="ri-lg ri-arrow-go-back-line mr-1" />
-              <app-i18n code="common.reset"></app-i18n>
-            </el-button>
-
-            <router-link
-              :to="{ path: '/' }"
-              class="inline-flex"
-            >
-              <el-button
-                :disabled="saveLoading"
-                class="btn btn--secondary"
-              >
-                <i class="ri-lg ri-close-line mr-1" />
-                <app-i18n code="common.cancel"></app-i18n>
-              </el-button>
-            </router-link>
           </div>
-        </el-form-item>
-      </el-form>
+        </el-footer>
+      </el-container>
     </div>
-  </div>
+  </app-page-wrapper>
 </template>
-
 <script>
+export default {
+  name: 'AppProfileFormPage'
+}
+</script>
+
+<script setup>
 import { UserModel } from '@/premium/user/user-model'
-import { mapGetters, mapActions } from 'vuex'
+import { useStore } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
+import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import { ref, computed, onBeforeMount } from 'vue'
+import { i18n } from '@/i18n'
+import isEqual from 'lodash/isEqual'
+import { useRouter } from 'vue-router'
 
 const { fields } = UserModel
+const store = useStore()
+const router = useRouter()
 
-const formSchema = new FormSchema([
-  fields.email,
-  fields.firstName,
-  fields.lastName
-])
+const profileFormSchema = computed(
+  () =>
+    new FormSchema([
+      fields.email,
+      fields.firstName,
+      fields.lastName
+    ])
+)
+const passwordFormSchema = computed(
+  () =>
+    new FormSchema([
+      fields.oldPassword,
+      fields.newPassword,
+      fields.newPasswordConfirmation
+    ])
+)
 
-export default {
-  name: 'AppProfileFormPage',
+const currentUser = computed(
+  () => store.getters['auth/currentUser']
+)
+const saveLoading = computed(
+  () =>
+    store.getters['auth/loadingUpdateProfile'] ||
+    store.getters['auth/loadingPasswordChange']
+)
 
-  data() {
-    return {
-      rules: formSchema.rules(),
-      model: null,
-      mystorage: {
-        id: 'slackHistory',
-        folder: 'integrations/slack/:tenantId/',
-        maxSizeInBytes: 5000000000,
-        bypassWritingPermissions: true,
-        publicRead: false
-      }
-    }
-  },
+const computedFields = computed(() => fields)
 
-  computed: {
-    ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm',
-      currentUser: 'auth/currentUser',
-      saveLoading: 'auth/loadingUpdateProfile'
-    }),
+// Form references
+const profileFormRef = ref(null)
+const passwordFormRef = ref(null)
 
-    fields() {
-      return fields
-    }
-  },
+// Form models
+const profileModel = ref(null)
+const passwordModel = ref(null)
 
-  async created() {
-    this.model = formSchema.initialValues(this.currentUser)
-  },
+// Form rules
+const profileRules = ref(profileFormSchema.value.rules())
+const passwordRules = computed(() => {
+  const rules = passwordFormSchema.value.rules()
 
-  methods: {
-    ...mapActions({
-      doUpdateProfile: 'auth/doUpdateProfile'
-    }),
-
-    doReset() {
-      this.model = formSchema.initialValues(
-        this.currentUser
+  const passwordConfirmationValidator = (
+    _rule,
+    value,
+    callback
+  ) => {
+    if (
+      value !== passwordModel.value[fields.newPassword.name]
+    ) {
+      callback(
+        new Error(i18n('auth.passwordChange.mustMatch'))
       )
-    },
-
-    async doSubmit() {
-      try {
-        await this.$refs.form.validate()
-      } catch (error) {
-        return
-      }
-
-      const values = formSchema.cast(this.model)
-      this.doUpdateProfile(values)
+    } else {
+      callback()
     }
+  }
+
+  return {
+    ...rules,
+    [fields.newPasswordConfirmation.name]: [
+      ...rules[fields.newPasswordConfirmation.name],
+      {
+        validator: passwordConfirmationValidator,
+        trigger: 'blur'
+      }
+    ]
+  }
+})
+
+// Form validations
+const hasProfileModelChanged = computed(() => {
+  return !isEqual(
+    profileFormSchema.value.initialValues(
+      currentUser.value
+    ),
+    profileModel.value
+  )
+})
+const hasPasswordModelChanged = computed(
+  () =>
+    !isEqual(
+      passwordFormSchema.value.initialValues(
+        currentUser.value
+      ),
+      passwordModel.value
+    )
+)
+const hasFormChanged = computed(
+  () =>
+    hasProfileModelChanged.value ||
+    hasPasswordModelChanged.value
+)
+
+const isProfileFormValid = computed(() =>
+  profileFormSchema.value.isValidSync(profileModel.value)
+)
+const isPasswordFormValid = computed(() =>
+  passwordFormSchema.value.isValidSync(passwordModel.value)
+)
+
+const isFormValid = computed(
+  () =>
+    ((hasPasswordModelChanged.value &&
+      isPasswordFormValid.value) ||
+      !hasPasswordModelChanged.value) &&
+    ((hasProfileModelChanged.value &&
+      isProfileFormValid.value) ||
+      !hasProfileModelChanged.value)
+)
+
+onBeforeMount(() => {
+  profileModel.value =
+    profileFormSchema.value.initialValues(currentUser.value)
+  passwordModel.value =
+    passwordFormSchema.value.initialValues(
+      currentUser.value
+    )
+})
+
+const doCancel = () => {
+  router.push({ path: '/' })
+}
+
+const doReset = () => {
+  profileModel.value =
+    profileFormSchema.value.initialValues(currentUser.value)
+
+  passwordModel.value =
+    passwordFormSchema.value.initialValues(
+      currentUser.value
+    )
+}
+
+const doSubmit = async () => {
+  // Submit for profile changes
+  if (hasProfileModelChanged.value) {
+    try {
+      await profileFormRef.value.validate()
+    } catch (error) {
+      return
+    }
+
+    const values = profileFormSchema.value.cast(
+      profileModel.value
+    )
+
+    store.dispatch('auth/doUpdateProfile', values)
+    router.push('/')
+  }
+
+  // Submit for password changes
+  if (hasPasswordModelChanged.value) {
+    try {
+      await passwordFormRef.value.validate()
+    } catch (error) {
+      return
+    }
+
+    const values = passwordFormSchema.value.cast(
+      passwordModel.value
+    )
+
+    store.dispatch('auth/doChangePassword', values)
   }
 }
 </script>
+
+<style lang="scss">
+.profile-form-page {
+  .el-form .el-form-item__content,
+  .el-form--default.el-form--label-top
+    .el-form-item__content {
+    @apply mb-6;
+  }
+}
+</style>

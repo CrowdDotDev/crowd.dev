@@ -5,7 +5,7 @@
         Team member
       </div>
     </div>
-    <div v-else>
+    <div v-else class="leading-none">
       <div
         v-if="computedEngagementLevel.value === -1"
         class="inline-flex items-center justify-center"

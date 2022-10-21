@@ -91,10 +91,10 @@ const model = computed({
     emit('change', value)
   }
 })
-const modelLabel = computed(
-  () =>
-    props.options.find((o) => o.value === model.value).label
-)
+const modelLabel = computed(() => {
+  return props.options.find((o) => o.value === model.value)
+    ?.label
+})
 
 const dropdownExpanded = ref(false)
 const handleDropdownVisibleChange = (value) => {

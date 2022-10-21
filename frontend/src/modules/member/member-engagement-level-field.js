@@ -50,7 +50,7 @@ export default class MemberEngagementLevelField extends IntegerRangeField {
       value: [],
       defaultOperator: null,
       operator: null,
-      type: 'select'
+      type: 'select-multi'
     }
   }
 }
