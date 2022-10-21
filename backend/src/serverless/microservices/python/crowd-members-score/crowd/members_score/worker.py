@@ -6,4 +6,4 @@ def members_score_worker(tenant_id):
 
 
 if __name__ == "__main__":
-    members_score_worker("ab1d6621-9d56-411a-92ad-cd24a2185cd7")
+    members_score_worker("93e9e110-622f-45a3-96eb-4ab9e0581e50")

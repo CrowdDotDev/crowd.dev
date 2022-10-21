@@ -3,9 +3,6 @@ import logging
 __version__ = "0.0.6"
 from .base_controller import BaseController  # noqa
 from .members_controller import MembersController  # noqa
-from .activities_controller import ActivitiesController  # noqa
-from .integrations_controller import IntegrationsController  # noqa
-from .microservices_controller import MicroservicesController  # noqa
 from ..infrastructure.config import KUBE_MODE
 
 # TODO-kube
