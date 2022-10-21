@@ -80,7 +80,7 @@ cube(`Members`, {
     },
 
     MemberIdentities: {
-      sql: `${CUBE}.id = ${MemberIndentities}."memberId"`,
+      sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
       relationship: `belongsTo`,
     },
   },
