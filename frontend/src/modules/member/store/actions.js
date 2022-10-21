@@ -7,10 +7,10 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import genericActions from '@/shared/store/actions'
+import sharedActions from '@/shared/store/actions'
 
 export default {
-  ...genericActions(MemberService),
+  ...sharedActions(MemberService),
 
   async doExport({ commit, state, getters }) {
     try {

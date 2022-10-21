@@ -1,7 +1,7 @@
-import genericMutations from '@/shared/store/mutations'
+import sharedMutations from '@/shared/store/mutations'
 
 export default {
-  ...genericMutations,
+  ...sharedMutations,
 
   DESTROY_CUSTOM_ATTRIBUTES_STARTED() {},
   DESTROY_CUSTOM_ATTRIBUTES_SUCCESS() {},

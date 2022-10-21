@@ -1,5 +1,5 @@
-import genericGetters from '@/shared/store/getters'
+import sharedGetters from '@/shared/store/getters'
 
 export default {
-  ...genericGetters
+  ...sharedGetters
 }

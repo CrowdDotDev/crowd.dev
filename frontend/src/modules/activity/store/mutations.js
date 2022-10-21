@@ -1,7 +1,7 @@
-import genericMutations from '@/shared/store/mutations'
+import sharedMutations from '@/shared/store/mutations'
 
 export default {
-  ...genericMutations,
+  ...sharedMutations,
 
   FETCH_SUCCESS(state, { rows, count, type }) {
     state.list.loading = false

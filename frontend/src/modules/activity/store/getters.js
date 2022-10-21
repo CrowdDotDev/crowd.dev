@@ -1,7 +1,7 @@
-import genericGetters from '@/shared/store/getters'
+import sharedGetters from '@/shared/store/getters'
 
 export default {
-  ...genericGetters,
+  ...sharedGetters,
   rows: (state, getters) =>
     state.list.ids.map((id) => {
       console.log(getters.activeView)
