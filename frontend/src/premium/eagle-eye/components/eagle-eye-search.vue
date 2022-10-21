@@ -39,8 +39,8 @@ export default {
             label: 'Keywords',
             defaultValue: [],
             show: false,
-            operator: 'textContains',
-            defaultOperator: 'textContains',
+            operator: 'overlap',
+            defaultOperator: 'overlap',
             type: 'custom',
             value: newValue
           })

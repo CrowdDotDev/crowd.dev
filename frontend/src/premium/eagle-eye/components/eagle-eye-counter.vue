@@ -8,9 +8,6 @@
           ? 'found'
           : ''
       }}
-      <span v-if="activeView === 'inbox'"
-        >・ {{ timeframe }}</span
-      >
     </div>
   </div>
 </template>
@@ -40,19 +37,6 @@ export default {
     },
     hasKeywords() {
       return Object.keys(this.filter).includes('keywords')
-    },
-    timeframe() {
-      if (this.filter.nDays === 1) {
-        return 'Last 24 hours'
-      } else if (this.filter.nDays === 3) {
-        return 'Last 3 days'
-      } else if (this.filter.nDays === 7) {
-        return 'Last 7 days'
-      } else if (this.filter.nDays === 30) {
-        return 'Last 30 days'
-      } else {
-        return ''
-      }
     }
   }
 }

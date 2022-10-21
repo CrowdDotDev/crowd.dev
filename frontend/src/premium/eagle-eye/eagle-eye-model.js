@@ -24,7 +24,7 @@ const fields = {
       filterable: true
     }
   ),
-  date: new EagleEyeDateField('nDays', label('date'), {
+  date: new EagleEyeDateField('timestamp', label('date'), {
     filterable: true
   })
 }

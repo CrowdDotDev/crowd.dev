@@ -15,8 +15,7 @@ export default {
         state.filter.attributes.keywords.value.length > 0
       ) {
         await dispatch('doPopulate', {
-          keywords: state.filter.attributes.keywords.value,
-          nDays: state.filter.attributes.nDays?.value
+          keywords: state.filter.attributes.keywords.value
         })
       }
       commit('FETCH_STARTED', {
@@ -50,18 +49,16 @@ export default {
     }
   },
 
-  async doPopulate({ commit }, { keywords, nDays }) {
+  async doPopulate({ commit }, { keywords }) {
     try {
       commit('POPULATE_STARTED', {
-        keywords,
-        nDays
+        keywords
       })
 
-      await EagleEyeService.populate(keywords, nDays)
+      await EagleEyeService.populate(keywords)
 
       commit('POPULATE_SUCCESS', {
-        keywords,
-        nDays
+        keywords
       })
     } catch (error) {
       Errors.handle(error)

@@ -14,7 +14,7 @@ export class EagleEyeService {
   }
 
   static async list(filter, orderBy, limit, offset) {
-    const params = {
+    const body = {
       filter: buildApiPayload(filter),
       orderBy,
       limit,
@@ -25,18 +25,15 @@ export class EagleEyeService {
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/query`,
-      {
-        params
-      }
+      body
     )
 
     return response.data
   }
 
-  static async populate(keywords, nDays) {
+  static async populate(keywords) {
     const data = {
-      keywords,
-      nDays
+      keywords
     }
 
     const tenantId = AuthCurrentTenant.get()
