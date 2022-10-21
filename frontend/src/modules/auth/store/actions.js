@@ -11,25 +11,28 @@ import { TenantService } from '@/modules/tenant/tenant-service'
 
 export default {
   async doInit({ commit, dispatch }) {
-    try {
-      const token = AuthToken.get()
-      let currentUser = null
-
-      if (token) {
-        currentUser = await AuthService.fetchMe()
-      }
-
-      commit('AUTH_INIT_SUCCESS', { currentUser })
-      ProgressBar.done()
-    } catch (error) {
-      console.error(error)
-      commit('AUTH_INIT_ERROR')
-      await dispatch('doSignout')
-      ProgressBar.done()
+    const token = AuthToken.get()
+    if (token) {
+      return AuthService.fetchMe()
+        .then((currentUser) => {
+          commit('AUTH_INIT_SUCCESS', { currentUser })
+          ProgressBar.done()
+          return currentUser
+        })
+        .catch((error) => {
+          console.error(error)
+          commit('AUTH_INIT_ERROR')
+          dispatch('doSignout')
+          ProgressBar.done()
+          return null
+        })
     }
+    commit('AUTH_INIT_SUCCESS', { currentUser: null })
+    ProgressBar.done()
+    return Promise.resolve(null)
   },
 
-  async doWaitUntilInit({ getters }) {
+  doWaitUntilInit({ getters }) {
     if (!getters.loadingInit) {
       return Promise.resolve()
     }
@@ -44,23 +47,25 @@ export default {
     })
   },
 
-  async doSendEmailConfirmation({ commit }) {
-    try {
-      commit('EMAIL_CONFIRMATION_START')
+  doSendEmailConfirmation({ commit }) {
+    commit('EMAIL_CONFIRMATION_START')
 
-      await AuthService.sendEmailVerification()
-
-      Message.success(i18n('auth.verificationEmailSuccess'))
-
-      commit('EMAIL_CONFIRMATION_SUCCESS')
-    } catch (error) {
-      Errors.handle(error)
-      commit('EMAIL_CONFIRMATION_ERROR')
-    }
+    return AuthService.sendEmailVerification()
+      .then(() => {
+        Message.success(
+          i18n('auth.verificationEmailSuccess')
+        )
+        commit('EMAIL_CONFIRMATION_SUCCESS')
+      })
+      .catch((error) => {
+        Errors.handle(error)
+        commit('EMAIL_CONFIRMATION_ERROR')
+      })
   },
 
-  async doSendPasswordResetEmail({ commit }, email) {
+  doSendPasswordResetEmail({ commit }, email) {
     commit('PASSWORD_RESET_EMAIL_START')
+
     return AuthService.sendPasswordResetEmail(email)
       .then((data) => {
         Message.success(
@@ -76,164 +81,164 @@ export default {
       })
   },
 
-  async doRegisterEmailAndPassword(
+  doRegisterEmailAndPassword(
     { commit },
     { email, password }
   ) {
-    try {
-      commit('AUTH_START')
+    commit('AUTH_START')
+    return AuthService.registerWithEmailAndPassword(
+      email,
+      password
+    )
+      .then((token) => {
+        AuthToken.set(token, true)
 
-      const token =
-        await AuthService.registerWithEmailAndPassword(
-          email,
-          password
-        )
-
-      AuthToken.set(token, true)
-
-      const currentUser = await AuthService.fetchMe()
-
-      commit('AUTH_SUCCESS', {
-        currentUser
+        return AuthService.fetchMe()
       })
+      .then((currentUser) => {
+        commit('AUTH_SUCCESS', {
+          currentUser
+        })
 
-      router.push('/')
-    } catch (error) {
-      await AuthService.signout()
-      Errors.handle(error)
-      commit('AUTH_ERROR')
-    }
+        router.push('/')
+      })
+      .catch((error) => {
+        AuthService.signout()
+        Errors.handle(error)
+        commit('AUTH_ERROR')
+      })
   },
 
-  async doSigninWithEmailAndPassword(
+  doSigninWithEmailAndPassword(
     { commit },
     { email, password, rememberMe }
   ) {
-    try {
-      commit('AUTH_START')
-
-      let currentUser = null
-
-      const token =
-        await AuthService.signinWithEmailAndPassword(
-          email,
-          password
-        )
-
-      AuthToken.set(token, rememberMe)
-      currentUser = await AuthService.fetchMe()
-
-      commit('AUTH_SUCCESS', {
-        currentUser
+    commit('AUTH_START')
+    return AuthService.signinWithEmailAndPassword(
+      email,
+      password
+    )
+      .then((token) => {
+        AuthToken.set(token, rememberMe)
+        return AuthService.fetchMe()
       })
-
-      router.push('/')
-    } catch (error) {
-      await AuthService.signout()
-      Errors.handle(error)
-      commit('AUTH_ERROR')
-    }
+      .then((currentUser) => {
+        commit('AUTH_SUCCESS', {
+          currentUser: currentUser || null
+        })
+        router.push('/')
+      })
+      .catch((error) => {
+        AuthService.signout()
+        Errors.handle(error)
+        commit('AUTH_ERROR')
+      })
   },
 
   async doSignout({ commit }) {
-    try {
-      commit('AUTH_START')
-      await AuthService.signout()
+    commit('AUTH_START')
+    AuthService.signout()
+    commit('AUTH_SUCCESS', {
+      currentUser: null
+    })
+    router.push('/auth/signin')
+  },
 
-      commit('AUTH_SUCCESS', {
-        currentUser: null
+  doRefreshCurrentUser({ commit }) {
+    const token = AuthToken.get()
+    if (token) {
+      return AuthService.fetchMe()
+        .then((currentUser) => {
+          commit('CURRENT_USER_REFRESH_SUCCESS', {
+            currentUser
+          })
+          return currentUser
+        })
+        .catch((error) => {
+          AuthService.signout()
+          Errors.handle(error)
+
+          commit('CURRENT_USER_REFRESH_ERROR', error)
+          return null
+        })
+    }
+    commit('CURRENT_USER_REFRESH_SUCCESS', {
+      currentUser: null
+    })
+    return Promise.resolve(null)
+  },
+
+  doUpdateProfile({ commit, dispatch }, data) {
+    commit('UPDATE_PROFILE_START')
+    return AuthService.updateProfile(data)
+      .then(() => {
+        commit('UPDATE_PROFILE_SUCCESS')
+        return dispatch('doRefreshCurrentUser')
       })
-
-      router.push('/auth/signin')
-    } catch (error) {
-      Errors.handle(error)
-      commit('AUTH_ERROR')
-    }
-  },
-
-  async doRefreshCurrentUser({ commit }) {
-    try {
-      let currentUser = null
-      const token = AuthToken.get()
-
-      if (token) {
-        currentUser = await AuthService.fetchMe()
-      }
-
-      commit('CURRENT_USER_REFRESH_SUCCESS', {
-        currentUser
+      .then(() => {
+        Message.success(i18n('auth.profile.success'))
       })
-    } catch (error) {
-      AuthService.signout()
-      Errors.handle(error)
-
-      commit('CURRENT_USER_REFRESH_ERROR', error)
-    }
+      .catch((error) => {
+        Errors.handle(error)
+        commit('UPDATE_PROFILE_ERROR')
+      })
   },
 
-  async doUpdateProfile({ commit, dispatch }, data) {
-    try {
-      commit('UPDATE_PROFILE_START')
-
-      await AuthService.updateProfile(data)
-
-      commit('UPDATE_PROFILE_SUCCESS')
-      await dispatch('doRefreshCurrentUser')
-      Message.success(i18n('auth.profile.success'))
-    } catch (error) {
-      Errors.handle(error)
-      commit('UPDATE_PROFILE_ERROR')
-    }
-  },
-
-  async doChangePassword(
+  doChangePassword(
     { commit, dispatch },
     { oldPassword, newPassword }
   ) {
-    try {
-      commit('PASSWORD_CHANGE_START')
-      await AuthService.changePassword(
-        oldPassword,
-        newPassword
-      )
-      commit('PASSWORD_CHANGE_SUCCESS')
-      await dispatch('doRefreshCurrentUser')
-      Message.success(i18n('auth.passwordChange.success'))
-    } catch (error) {
-      Errors.handle(error)
-      commit('PASSWORD_CHANGE_ERROR')
-    }
+    commit('PASSWORD_CHANGE_START')
+    return AuthService.changePassword(
+      oldPassword,
+      newPassword
+    )
+      .then(() => {
+        commit('PASSWORD_CHANGE_SUCCESS')
+        return dispatch('doRefreshCurrentUser')
+      })
+      .then(() => {
+        Message.success(i18n('auth.passwordChange.success'))
+      })
+      .catch((error) => {
+        Errors.handle(error)
+        commit('PASSWORD_CHANGE_ERROR')
+      })
   },
 
-  async doVerifyEmail({ commit, dispatch }, token) {
-    try {
-      commit('EMAIL_VERIFY_START')
-      await AuthService.verifyEmail(token)
-      Message.success(i18n('auth.verifyEmail.success'))
-      await dispatch('doRefreshCurrentUser')
-      commit('EMAIL_VERIFY_SUCCESS')
-      router.push('/')
-    } catch (error) {
-      Errors.handle(error)
-      commit('EMAIL_VERIFY_ERROR')
-      await dispatch('doSignout')
-    }
+  doVerifyEmail({ commit, dispatch }, token) {
+    commit('EMAIL_VERIFY_START')
+    return AuthService.verifyEmail(token)
+      .then(() => {
+        Message.success(i18n('auth.verifyEmail.success'))
+        return dispatch('doRefreshCurrentUser')
+      })
+      .then(() => {
+        commit('EMAIL_VERIFY_SUCCESS')
+        router.push('/')
+      })
+      .catch((error) => {
+        Errors.handle(error)
+        commit('EMAIL_VERIFY_ERROR')
+        dispatch('doSignout')
+      })
   },
 
-  async doResetPassword(
+  doResetPassword(
     { commit, dispatch },
     { token, password }
   ) {
-    try {
-      commit('PASSWORD_RESET_START')
-      await AuthService.passwordReset(token, password)
-      Message.success(i18n('auth.passwordResetSuccess'))
-      commit('PASSWORD_RESET_SUCCESS')
-    } catch (error) {
-      Errors.handle(error)
-      commit('PASSWORD_RESET_ERROR')
-      await dispatch('doSignout')
-    }
+    commit('PASSWORD_RESET_START')
+    return AuthService.passwordReset(token, password)
+      .then(() => {
+        Message.success(i18n('auth.passwordResetSuccess'))
+        commit('PASSWORD_RESET_SUCCESS')
+      })
+      .catch((error) => {
+        Errors.handle(error)
+        commit('PASSWORD_RESET_ERROR')
+        dispatch('doSignout')
+      })
   },
 
   async doSelectTenant({ dispatch }, tenant) {
@@ -241,30 +246,28 @@ export default {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url)
       return
     }
-    await dispatch(
-      'widget/doResetStore',
-      {},
-      { root: true }
-    )
-    await dispatch(
-      'report/doResetStore',
-      {},
-      { root: true }
-    )
-
-    AuthCurrentTenant.set(tenant)
-    await dispatch('doRefreshCurrentUser')
-
-    router.push('/')
+    return Promise.all([
+      dispatch('widget/doResetStore', {}, { root: true }),
+      dispatch('report/doResetStore', {}, { root: true })
+    ])
+      .then(() => {
+        AuthCurrentTenant.set(tenant)
+        return dispatch('doRefreshCurrentUser')
+      })
+      .then(() => {
+        router.push('/')
+      })
   },
 
   async doFinishOnboard({ dispatch, getters }) {
-    await TenantService.update(getters.currentTenant.id, {
+    return TenantService.update(getters.currentTenant.id, {
       onboardedAt: new Date()
     })
-
-    await dispatch('doRefreshCurrentUser')
-
-    router.push('/')
+      .then(() => {
+        return dispatch('doRefreshCurrentUser')
+      })
+      .then(() => {
+        router.push('/')
+      })
   }
 }
