@@ -204,24 +204,34 @@ class QueryParser {
     // Or it can be equal if we had
     // {platform: github} (then we would be picking Op.eq)
     let op = typeof value === 'object' ? QueryParser.operators[Object.keys(value)[0]] : Op.eq
-    let right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
-
-    if (typeof value === 'object' &&  Object.keys(value)[0] === "textContains"){
-      op = Op.iLike
-      right = `%${right}%`
-    }
 
     // The RHS of the query will be the value, if we had
     // {platform: github} (then we would be picking github)
     // Or it can be the value of the object, if we had
     // {activityCount: {gt: 10}} (the value would be 10)
+    let right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
 
+    // handle textContains for literals
+    if (typeof value === 'object' &&  Object.keys(value)[0] === "textContains"){
+      op = Op.iLike
+      right = `%${right}%`
+    }
     // We wrap everything onto a where clause and we return
+    let where = Sequelize.where(left, op, right)
+    
+    // When we feed arrays directly in sequelize literals, it tries to cast 
+    // it to a postgres array.
+    // This is not needed in `Op.in` queries. Simple lists are enough
+    if ( op === Op.in ){
+     where = Sequelize.where(left, op, Sequelize.literal(`(${right.toString()})`))
+    }
+
+
     if (query[Op.and]){
-      query[Op.and].push(Sequelize.where(left, op, right))
+      query[Op.and].push(where)
     }
     else{
-      query[Op.and] = [Sequelize.where(left, op, right)]
+      query[Op.and] = [where]
     }
     
     return query

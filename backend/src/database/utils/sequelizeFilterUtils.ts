@@ -63,7 +63,7 @@ export default class SequelizeFilterUtils {
 
 
   static getFieldLiteral(field, model){
-    return Sequelize.literal(`"${model}"."${field}"`)
+    return Sequelize.col(`"${model}"."${field}"`)
   }
 
   static getLiteralProjections(fields, model){
