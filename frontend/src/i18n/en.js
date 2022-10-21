@@ -512,7 +512,7 @@ const en = {
       message: `You have no permissions yet. Wait for the admin to grant you privileges.`
     },
     passwordResetEmail: {
-      message: 'Send password reset email',
+      message: 'Send password reset e-mail',
       error: `Email not recognized`
     },
     passwordReset: {
@@ -552,7 +552,7 @@ const en = {
     fields: {
       id: 'Id',
       avatars: 'Avatar',
-      email: 'Email',
+      email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',
       firstName: 'First Name',
@@ -566,6 +566,7 @@ const en = {
       roles: 'Roles',
       createdAtRange: 'Created at',
       password: 'Password',
+      passwordConfirmation: 'Confirm password',
       oldPassword: 'Old password',
       newPassword: 'New password',
       newPasswordConfirmation: 'Confirm new password',

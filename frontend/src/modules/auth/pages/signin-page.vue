@@ -1,0 +1,194 @@
+<template>
+  <div>
+    <h3 class="text-2xl leading-12 font-semibold mb-1">
+      👋 Welcome back
+    </h3>
+    <p class="text-gray-500 text-xs leading-5">
+      Please enter your credentials
+    </p>
+    <div class="pt-10">
+      <el-form
+        ref="form"
+        :model="model"
+        :rules="rules"
+        class="form"
+        label-position="left"
+        label-width="0px"
+        @submit.prevent="doSubmit"
+      >
+        <el-form-item
+          :prop="fields.email.name"
+          class="mb-0"
+        >
+          <label
+            class="text-xs mb-1 font-semibold leading-5"
+            >{{ fields.email.label }}</label
+          >
+          <el-input
+            id="email"
+            ref="focus"
+            v-model="model[fields.email.name]"
+            :placeholder="fields.email.label"
+            autocomplete="email"
+            type="email"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item
+          :prop="fields.password.name"
+          class="mb-0"
+        >
+          <label
+            class="text-xs mb-1 font-semibold leading-5"
+            >{{ fields.password.label }}</label
+          >
+          <el-input
+            id="password"
+            v-model="model[fields.password.name]"
+            :placeholder="fields.password.label"
+            autocomplete="current-password"
+            type="password"
+            :show-password="true"
+          ></el-input>
+        </el-form-item>
+
+        <div
+          class="pt-2 flex justify-between items-center pb-8"
+        >
+          <el-checkbox
+            id="remember-me"
+            v-model="model[fields.rememberMe.name]"
+          >
+            <span class="text-sm text-gray-900">{{
+              fields.rememberMe.label
+            }}</span></el-checkbox
+          >
+          <router-link
+            :to="{ name: 'forgotPassword' }"
+            class="text-brand-500 text-sm leading-5"
+          >
+            <app-i18n code="auth.forgotPassword"></app-i18n>
+          </router-link>
+        </div>
+
+        <el-form-item class="mb-0">
+          <el-button
+            id="submit"
+            :loading="loading"
+            native-type="submit"
+            class="w-100 btn btn--primary btn--lg"
+          >
+            <app-i18n code="auth.signin"></app-i18n>
+          </el-button>
+        </el-form-item>
+
+        <!-- <div class="other-actions">
+                <router-link :to="{ path: '/auth/signup' }">
+                  <el-button type="text">
+                    <app-i18n
+                      code="auth.createAnAccount"
+                    ></app-i18n>
+                  </el-button>
+                </router-link>
+              </div> -->
+      </el-form>
+      <div class="flex items-center">
+        <div class="flex-grow border-b border-gray-200" />
+        <div
+          class="py-0.5 px-3 text-xs leading-5 text-gray-500"
+        >
+          OR
+        </div>
+        <div class="flex-grow border-b border-gray-200" />
+      </div>
+      <div class="pt-6 pb-16">
+        <a
+          :href="socialOauthLink('google')"
+          class="btn btn--secondary btn--lg w-full"
+        >
+          <app-svg name="google" class="h-5 w-5" />
+          <span class="pl-3">Sign up with Google</span>
+        </a>
+      </div>
+      <div class="flex justify-center">
+        <p class="text-sm leading-5 text-center">
+          Don’t have an account yet?
+          <router-link :to="{ name: 'signup' }"
+            >Sign up</router-link
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapGetters, mapActions } from 'vuex'
+import { UserModel } from '@/premium/user/user-model'
+
+const { fields } = UserModel
+
+import { i18n } from '@/i18n'
+import Message from '@/shared/message/message'
+import config from '@/config'
+import AppI18n from '@/shared/i18n/i18n'
+import AppSvg from '@/shared/svg/svg'
+
+export default {
+  name: 'AppSigninPage',
+  components: { AppSvg, AppI18n },
+  data() {
+    return {
+      rules: {
+        email: fields.email.forFormRules(),
+        password: fields.password.forFormRules(),
+        rememberMe: fields.rememberMe.forFormRules()
+      },
+      model: {
+        rememberMe: true
+      }
+    }
+  },
+
+  computed: {
+    ...mapGetters('auth', ['loading']),
+
+    fields() {
+      return fields
+    }
+  },
+
+  created() {
+    const { socialErrorCode } = this.$route.query
+
+    if (socialErrorCode) {
+      if (socialErrorCode === 'generic') {
+        Message.error(i18n('errors.defaultErrorMessage'))
+      } else {
+        Message.error(
+          i18n(`auth.social.errors.${socialErrorCode}`)
+        )
+      }
+    }
+  },
+
+  methods: {
+    ...mapActions('auth', ['doSigninWithEmailAndPassword']),
+    doSubmit() {
+      this.$refs.form.validate().then(() => {
+        return this.doSigninWithEmailAndPassword({
+          email: this.model.email,
+          password: this.model.password,
+          rememberMe: this.model.rememberMe
+        })
+      })
+    },
+
+    socialOauthLink(provider) {
+      return `${config.backendUrl}/auth/social/${provider}`
+    }
+  }
+}
+</script>
+
+<style></style>

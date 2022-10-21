@@ -34,7 +34,8 @@ export class AuthService {
 
   static async registerWithEmailAndPassword(
     email,
-    password
+    password,
+    data = {}
   ) {
     const invitationToken = AuthInvitationToken.get()
 
@@ -42,6 +43,7 @@ export class AuthService {
       email,
       password,
       invitationToken,
+      ...data,
       tenantId: tenantSubdomain.isSubdomain
         ? AuthCurrentTenant.get()
         : undefined

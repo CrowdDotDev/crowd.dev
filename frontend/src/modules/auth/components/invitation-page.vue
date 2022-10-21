@@ -84,9 +84,9 @@ export default {
   },
 
   created() {
-    return this.doAcceptFromAuth({
-      token: this.$route.query.token
-    })
+    // return this.doAcceptFromAuth({
+    //   token: this.$route.query.token
+    // })
   },
 
   methods: {

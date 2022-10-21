@@ -77,15 +77,26 @@ const fields = {
     'firstName',
     label('firstName'),
     {
-      max: 80
+      max: 80,
+      required: true
     }
   ),
   lastName: new StringField('lastName', label('lastName'), {
-    max: 175
-  }),
-  password: new StringField('password', label('password'), {
+    max: 175,
     required: true
   }),
+  password: new StringField('password', label('password'), {
+    required: true,
+    min: 8
+  }),
+  passwordConfirmation: new StringField(
+    'passwordConfirmation',
+    label('passwordConfirmation'),
+    {
+      required: true,
+      min: 8
+    }
+  ),
   oldPassword: new StringField(
     'oldPassword',
     label('oldPassword'),

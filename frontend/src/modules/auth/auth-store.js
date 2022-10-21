@@ -364,17 +364,20 @@ export default {
     },
 
     async doSendPasswordResetEmail({ commit }, email) {
-      try {
-        commit('PASSWORD_RESET_EMAIL_START')
-        await AuthService.sendPasswordResetEmail(email)
-        Message.success(
-          i18n('auth.passwordResetEmailSuccess')
-        )
-        commit('PASSWORD_RESET_EMAIL_SUCCESS')
-      } catch (error) {
-        Errors.handle(error)
-        commit('PASSWORD_RESET_EMAIL_ERROR')
-      }
+      commit('PASSWORD_RESET_EMAIL_START')
+      return AuthService.sendPasswordResetEmail(email)
+        .then((data) => {
+          Message.success(
+            i18n('auth.passwordResetEmailSuccess')
+          )
+          commit('PASSWORD_RESET_EMAIL_SUCCESS')
+          return Promise.resolve(data)
+        })
+        .catch((error) => {
+          Errors.handle(error)
+          commit('PASSWORD_RESET_EMAIL_ERROR')
+          return Promise.reject(error)
+        })
     },
 
     async doRegisterEmailAndPassword(
@@ -530,7 +533,6 @@ export default {
         await AuthService.passwordReset(token, password)
         Message.success(i18n('auth.passwordResetSuccess'))
         commit('PASSWORD_RESET_SUCCESS')
-        router.push('/')
       } catch (error) {
         Errors.handle(error)
         commit('PASSWORD_RESET_ERROR')
