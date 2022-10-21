@@ -15,10 +15,7 @@ cube(`MemberIdentities`, {
     },
   
     measures: {
-      count: {
-        type: `count`,
-        drillMembers: [identityName, memberId],
-      },
+
     },
   
     dimensions: {
