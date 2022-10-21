@@ -662,15 +662,20 @@ class OrganizationRepository {
       ),
     ]
 
-    output.lastActive =  Math.min(members.reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), []).map(i => i.timestamp))
-    
+    output.lastActive = Math.min(
+      members
+        .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+        .map((i) => i.timestamp),
+    )
+
     // Math.min returns 0 for an empty array
     output.lastActive = output.lastActive === 0 ? null : output.lastActive
 
-    output.identities = [... new Set(members.reduce(
-      (acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)),
-      [],
-    ))]
+    output.identities = [
+      ...new Set(
+        members.reduce((acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)), []),
+      ),
+    ]
 
     output.memberCount = members.length
 
