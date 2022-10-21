@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 cube(`Identities`, {
-    sql: `select distinct unnest(ARRAY(SELECT jsonb_object_keys(m.username))) AS name
-    from members m	`,
+    sql: `select distinct unnest(ARRAY(SELECT jsonb_object_keys(m.username))) AS name, "m"."tenantId" as "tenantId"
+    from members m`,
     preAggregations: {
       // Pre-Aggregations definitions go here
       // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started
