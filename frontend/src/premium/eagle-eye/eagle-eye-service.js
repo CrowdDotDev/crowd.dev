@@ -91,7 +91,10 @@ const _transformFilter = (filter) => {
 
   return Object.keys(filter.attributes).reduce(
     (acc, item) => {
-      acc[item] = filter.attributes[item].value
+      const value = filter.attributes[item].value
+      acc[item] = Array.isArray(value)
+        ? value.join(',')
+        : value
       return acc
     },
     {}

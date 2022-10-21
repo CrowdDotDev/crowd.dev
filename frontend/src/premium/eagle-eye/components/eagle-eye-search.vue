@@ -39,7 +39,6 @@ export default {
             .xorWith(oldValue, _.isEqual)
             .isEmpty()
         ) {
-          console.log(newValue)
           this.updateFilterAttribute({
             ...this.filter.attributes['keywords'],
             value: newValue
