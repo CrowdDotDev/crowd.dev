@@ -86,7 +86,8 @@ import {
 } from 'vue'
 import moment from 'moment'
 import lodash from 'lodash'
-import filterOperators from './filter-operators'
+import filterOperators from '../helpers/operators'
+import { attributesAreDifferent } from '../helpers/different-util'
 
 const props = defineProps({
   filter: {
@@ -264,6 +265,17 @@ watch(
     }, 500)
   },
   { immediate: true }
+)
+
+watch(
+  () => props.filter,
+  (newValue) => {
+    if (attributesAreDifferent(model, newValue)) {
+      model.value = newValue.value
+      model.operator = newValue.operator
+    }
+  },
+  { deep: true }
 )
 </script>
 

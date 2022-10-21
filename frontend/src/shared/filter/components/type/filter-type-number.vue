@@ -52,7 +52,7 @@ import {
   watch,
   ref
 } from 'vue'
-import filterOperators from '@/shared/filter/filter-operators'
+import operators from '@/shared/filter/helpers/operators'
 
 const props = defineProps({
   value: {
@@ -111,14 +111,12 @@ const operator = computed({
   }
 })
 const computedOperatorOptions = computed(() => {
-  return Object.keys(filterOperators.number.operator).map(
-    (o) => {
-      return {
-        value: o,
-        label: filterOperators.number.operator[o]
-      }
+  return Object.keys(operators.number.operator).map((o) => {
+    return {
+      value: o,
+      label: operators.number.operator[o]
     }
-  )
+  })
 })
 const expanded = computed(() => props.isExpanded)
 const inputRef = ref(null)

@@ -4,10 +4,10 @@
     :onboard="onboard"
   >
     <template #connect>
-      <el-button
+      <a
         class="btn btn--secondary btn--md"
         :href="connectUrl"
-        >Connect</el-button
+        >Connect</a
       >
     </template>
   </app-integration-list-item>
@@ -20,13 +20,8 @@ export default {
 </script>
 <script setup>
 import AppIntegrationListItem from '../integration-list-item'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
-import { defineProps, computed, onMounted } from 'vue'
+import { defineProps, computed } from 'vue'
 import config from '@/config'
-
-const store = useStore()
-const router = useRouter()
 
 defineProps({
   integration: {
@@ -41,14 +36,5 @@ defineProps({
 
 const connectUrl = computed(() => {
   return config.discordInstallationUrl
-})
-
-onMounted(async () => {
-  const guildId = router.currentRoute.query?.guild_id
-  if (guildId) {
-    await store.dispatch('integration/doDiscordConnect', {
-      guildId
-    })
-  }
 })
 </script>

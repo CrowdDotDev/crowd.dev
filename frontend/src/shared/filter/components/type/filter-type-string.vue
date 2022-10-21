@@ -3,30 +3,25 @@
     <app-inline-select-input
       v-model="operator"
       popper-placement="bottom-start"
-      prefix="Date:"
+      prefix="Text:"
       class="mb-2"
       :options="computedOperatorOptions"
     />
-    <el-date-picker
+    <el-input
       ref="inputRef"
       v-model="model"
-      placeholder="Select a date"
-      value-format="YYYY-MM-DD"
-      format="YYYY-MM-DD"
-      class="custom-date-picker"
-      popper-class="date-picker-popper"
-      v-bind="betweenProps"
+      placeholder="Enter a value"
       :disabled="
         operator === 'is_empty' ||
         operator === 'is_not_empty'
       "
-    ></el-date-picker>
+    ></el-input>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AppFilterTypeDate'
+  name: 'AppFilterTypeString'
 }
 </script>
 
@@ -38,8 +33,7 @@ import {
   watch,
   ref
 } from 'vue'
-
-import filterOperators from './filter-operators'
+import filterOperators from '../../helpers/operators'
 
 const props = defineProps({
   value: {
@@ -60,18 +54,6 @@ const emit = defineEmits([
   'update:value',
   'update:operator'
 ])
-
-const betweenProps = computed(() => {
-  return operator.value !== 'between'
-    ? {}
-    : {
-        type: 'daterange',
-        'range-separator': 'To',
-        'start-placeholder': 'Start date',
-        'end-placeholder': 'End date'
-      }
-})
-
 const model = computed({
   get() {
     return props.value
@@ -90,11 +72,11 @@ const operator = computed({
 })
 const expanded = computed(() => props.isExpanded)
 const computedOperatorOptions = computed(() => {
-  return Object.keys(filterOperators.date.operator).map(
+  return Object.keys(filterOperators.string.operator).map(
     (o) => {
       return {
         value: o,
-        label: filterOperators.date.operator[o]
+        label: filterOperators.string.operator[o]
       }
     }
   )
@@ -102,10 +84,8 @@ const computedOperatorOptions = computed(() => {
 const inputRef = ref(null)
 
 watch(expanded, async (newValue) => {
-  setTimeout(() => {
-    if (newValue) {
-      inputRef.value.handleOpen()
-    }
-  }, 500)
+  if (newValue) {
+    inputRef.value.focus()
+  }
 })
 </script>

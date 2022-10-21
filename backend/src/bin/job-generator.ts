@@ -14,6 +14,7 @@ for (const job of jobs) {
     },
     null,
     true,
+    'Europe/Berlin',
   )
   if (cronJob.running) {
     console.log(`Scheduled job: ${job.name}!`)

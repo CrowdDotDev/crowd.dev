@@ -109,6 +109,36 @@ const mapper = (integration) => {
 }
 
 onMounted(async () => {
-  await store.dispatch('integration/doFetch')
+  if (store.state.integration.count === 0) {
+    await store.dispatch('integration/doFetch')
+  }
+
+  const params = new URLSearchParams(window.location.search)
+  // GitHub redirects back here. This might have to be changed.
+  // It is giving us a code for Oauth and and Install ID in the URL,
+  // we need those things to authenticate the app and to perform the Oauth
+  const code = params.get('code')
+  const install_id = params.get('installation_id')
+
+  // If the URL parameters are present (we have been redirected from GitHub):
+  // do the authentication and the Oauth.
+  const setupAction = params.get('setup_action')
+
+  // Get the source. If none we use GitHub.
+  const source = params.get('source')
+
+  if (code) {
+    if (source === 'discord') {
+      await store.dispatch('integration/doDiscordConnect', {
+        guildId: params.get('guild_id')
+      })
+    } else {
+      await store.dispatch('integration/doGithubConnect', {
+        code,
+        install_id,
+        setupAction
+      })
+    }
+  }
 })
 </script>
