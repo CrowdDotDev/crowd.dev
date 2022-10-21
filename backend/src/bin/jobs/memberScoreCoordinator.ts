@@ -5,7 +5,7 @@ import { PythonWorkerMessageType } from '../../serverless/types/workerTypes'
 
 const job: CrowdJob = {
   name: 'Member Score Coordinator',
-  cronTime: cronGenerator.every(2).hours(),
+  cronTime: cronGenerator.every(10).minutes(),
   onTrigger: async () => {
     await sendPythonWorkerMessage('global', {
       type: PythonWorkerMessageType.MEMBERS_SCORE,
