@@ -110,7 +110,9 @@ There are many ways you can contribute to crowd.dev! Here are a few options:
 - Create issues every time you feel something is missing or goes wrong.
 - Upvote issues with 👍 reaction so we know what's the demand for particular issue to prioritize it within roadmap.
 
-If you would like to contribute to the development of the project please reach out first (e.g. via Discord). All contributions are highly appreciated. 🙏
+If you would like to contribute to the development of the project **please reach out first** (e.g. via Discord). 
+
+All contributions are highly appreciated. 🙏
 
 ## ⚖️ License
 
