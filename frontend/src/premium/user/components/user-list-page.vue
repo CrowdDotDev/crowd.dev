@@ -77,9 +77,5 @@ export default {
   .el-form-item {
     @apply mb-0;
   }
-
-  .copy-input .el-input__wrapper {
-    border-radius: 4px 0 0 4px !important;
-  }
 }
 </style>

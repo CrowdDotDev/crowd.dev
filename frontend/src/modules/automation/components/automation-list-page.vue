@@ -13,7 +13,7 @@
         <div>
           <el-button
             class="btn btn--primary"
-            @click="newAutomationModal = true"
+            @click="isAutomationDrawerOpen = true"
           >
             <i class="ri-lg ri-add-line mr-1"></i>
             New webhook
@@ -26,40 +26,28 @@
       v-else
       class="flex flex-col items-center justify-center pt-20 pb-10"
     >
-      <img
-        src="/images/automations-empty-state.svg"
-        alt=""
-        class="w-80"
-      />
-      <div class="text-xl font-medium mt-10">
-        Start to automate manual tasks
-      </div>
-      <div class="text-gray-600 text-sm mt-6">
+      <i class="ri-flow-chart empty-list-icon mb-8"></i>
+
+      <h5>Start to automate manual tasks</h5>
+      <div
+        class="text-gray-600 text-sm mt-4 w-6/12 text-center"
+      >
         Create webhook actions for when a new activity
         happens, or a new member joins your community
       </div>
       <el-button
-        class="btn btn--primary mt-10"
-        @click="newAutomationModal = true"
+        class="btn btn--primary btn--md mt-8"
+        @click="isAutomationDrawerOpen = true"
       >
-        <i class="ri-lg ri-add-line mr-1"></i>
-        New webhook
+        Add webhook
       </el-button>
     </div>
-    <el-dialog
-      v-model="newAutomationModal"
-      title="New webhook"
-      :close-on-click-modal="false"
-      :destroy-on-close="true"
-      custom-class="el-dialog--lg"
-      @close="newAutomationModal = false"
-    >
-      <app-webhook-form
-        v-model="newAutomation"
-        @success="handleSuccess"
-        @cancel="newAutomationModal = false"
-      />
-    </el-dialog>
+    <app-webhook-form
+      v-model="newAutomation"
+      :is-drawer-open="isAutomationDrawerOpen"
+      @success="handleSuccess"
+      @cancel="isAutomationDrawerOpen = false"
+    />
   </div>
 </template>
 
@@ -80,7 +68,7 @@ export default {
         type: 'webhook',
         settings: {}
       },
-      newAutomationModal: false
+      isAutomationDrawerOpen: false
     }
   },
   computed: {
@@ -105,8 +93,15 @@ export default {
         type: 'webhook',
         settings: {}
       }
-      this.newAutomationModal = false
+      this.isAutomationDrawerOpen = false
     }
   }
 }
 </script>
+
+<style lang="scss">
+.empty-list-icon {
+  font-size: 160px;
+  @apply leading-none text-gray-200;
+}
+</style>

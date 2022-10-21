@@ -1,12 +1,11 @@
 .el-overlay {
-  background-color: rgba(0,0,0,0.15);
+  background-color: rgba(0, 0, 0, 0.15);
 }
 
 .el-drawer {
   @apply opacity-100;
   --el-drawer-padding-primary: 24px;
   box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.05);
-
 
   &__header {
     @apply mb-4;
