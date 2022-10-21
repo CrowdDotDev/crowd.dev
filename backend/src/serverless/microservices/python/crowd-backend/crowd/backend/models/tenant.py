@@ -30,6 +30,7 @@ class Tenant(Base):
     activities = relationship("Activity", back_populates="parentTenant")
     members = relationship("Member", back_populates="parentTenant")
     microservices = relationship("Microservice", back_populates="parentTenant")
+    integrations = relationship("Integration", back_populates="parentTenant")
 
     # validation
     @validates("name")

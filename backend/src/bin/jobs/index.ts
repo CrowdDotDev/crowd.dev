@@ -5,9 +5,7 @@ import twitterReachCoordinator from './twitterReachCoordinator'
 import discordCoordinator from './discordCoordinator'
 import slackCoordinator from './slackCoordinator'
 import weeklyAnalyticsEmailsCoordinator from './weeklyAnalyticsEmailsCoordinator'
-import checkMemberScoresCoordinator from './checkMemberScoresCoordinator'
-import checkMembersToMergeCoordinator from './checkMembersToMergeCoordinator'
-import checkSqsQueues from './checkSqsQueues'
+import memberScoreCoordinator from './memberScoreCoordinator'
 
 const jobs: CrowdJob[] = [
   devtoCoordinator,
@@ -16,9 +14,7 @@ const jobs: CrowdJob[] = [
   discordCoordinator,
   slackCoordinator,
   weeklyAnalyticsEmailsCoordinator,
-  checkMemberScoresCoordinator,
-  checkMembersToMergeCoordinator,
-  checkSqsQueues,
+  memberScoreCoordinator,
 ]
 
 export default jobs

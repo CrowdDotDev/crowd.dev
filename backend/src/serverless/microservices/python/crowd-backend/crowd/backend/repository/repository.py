@@ -243,7 +243,7 @@ class Repository(object):
             table (Base): class of the entity
 
         Returns:
-            [type]: [description]
+            Array: Members
         """
         if not query:
             query = {}
@@ -259,8 +259,6 @@ class Repository(object):
         for attr, value in query.items():
             search_query = search_query.filter(getattr(Member, attr) == value)
 
-        # Find members that are of type member
-        search_query = search_query.filter(Member.type == "member")
         # Find members that are new
         # We use a security padding of 5 minutes
         search_query = search_query.filter(

@@ -25,23 +25,23 @@ while True:
 
         if service == Services.CHECK_MERGE.value:
             sqs.delete_message(msg_receipt)
-
             print("triggering check_merge")
             check_merge_members_worker(tenant_id, microservice_id, params)
+
         elif service == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)
-
             print("triggering members_score")
             members_score_worker(tenant_id)
+
         elif msg_type == Services.CHECK_MERGE.value:
             sqs.delete_message(msg_receipt)
-
             print("triggering check_merge coordinator")
             base_coordinator(str(Services.CHECK_MERGE.value))
+
         elif msg_type == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)
-
             print("triggering members_score coordinator")
             base_coordinator(str(Services.MEMBERS_SCORE.value))
+
         else:
             print("Error while processing a queue message! Unrecognized message format: ", body)

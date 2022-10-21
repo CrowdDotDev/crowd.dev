@@ -4,11 +4,11 @@ import { sendPythonWorkerMessage } from '../../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../../serverless/types/worketTypes'
 
 const job: CrowdJob = {
-  name: 'Check Members to Merge coordinator',
+  name: 'Member Score Coordinator',
   cronTime: cronGenerator.every(2).hours(),
   onTrigger: async () => {
     await sendPythonWorkerMessage('global', {
-      type: PythonWorkerMessageType.CHECK_MERGE,
+      type: PythonWorkerMessageType.MEMBERS_SCORE,
     })
   },
 }

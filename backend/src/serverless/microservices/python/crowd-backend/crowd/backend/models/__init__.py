@@ -6,6 +6,7 @@ from .activity import Activity  # noqa
 from .member import Member  # noqa
 from .tenant import Tenant
 from .microservice import Microservice
+from .integration import Integration
 from ..infrastructure import KUBE_MODE
 
 # from .repo import Repo  # noqa

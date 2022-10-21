@@ -15,4 +15,5 @@ export enum PythonWorkerMessageType {
 
 export interface PythonWorkerMessage {
   type: PythonWorkerMessageType
+  member?: string
 }
