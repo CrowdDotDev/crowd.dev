@@ -144,6 +144,9 @@ function handleOptionClick(v) {
       @apply shadow-none;
     }
   }
+
+  &-trigger.el-button,
+  &-trigger.el-button:focus:not(.is-expanded),
   .el-input-group__append &-trigger.el-button,
   .el-input-group__append
     &-trigger.el-button:focus:not(.is-expanded) {

@@ -16,14 +16,16 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 export default {
   name: 'AppEagleEyeCounter',
   computed: {
+    ...mapState({
+      count: (state) => state.eagleEye.count,
+      filter: (state) => state.eagleEye.filter
+    }),
     ...mapGetters({
-      count: 'eagleEye/count',
-      filter: 'eagleEye/filter',
-      activeTab: 'eagleEye/activeTab'
+      activeView: 'eagleEye/activeView'
     }),
     typeOfPostsFound() {
       if (this.activeTab === 'inbox') {

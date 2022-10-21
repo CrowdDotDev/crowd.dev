@@ -14,7 +14,7 @@ export class EagleEyeService {
 
   static async list(filter, orderBy, limit, offset) {
     const params = {
-      filter,
+      filter: _transformFilter(filter),
       orderBy,
       limit,
       offset
@@ -33,7 +33,7 @@ export class EagleEyeService {
   }
 
   static async populate(keywords, nDays) {
-    const params = {
+    const data = {
       keywords,
       nDays
     }
@@ -42,9 +42,7 @@ export class EagleEyeService {
 
     await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent`,
-      {
-        data: params
-      }
+      { data }
     )
   }
 
@@ -54,9 +52,7 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: 'rejected'
-        }
+        status: 'rejected'
       }
     )
 
@@ -69,9 +65,7 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: 'engaged'
-        }
+        status: 'engaged'
       }
     )
 
@@ -84,12 +78,22 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: null
-        }
+        status: null
       }
     )
 
     return response.data
   }
+}
+
+const _transformFilter = (filter) => {
+  // TODO: this needs to be updated once the API of eagle also gets update to new query/filter format
+
+  return Object.keys(filter.attributes).reduce(
+    (acc, item) => {
+      acc[item] = filter.attributes[item].value
+      return acc
+    },
+    {}
+  )
 }

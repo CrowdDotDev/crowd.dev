@@ -1,24 +1,17 @@
 <template>
   <div class="eagle-eye-search">
-    <div class="grow mx-3">
-      <app-keywords-input
-        v-model="selectedKeywords"
-        placeholder="Enter keywords, or topics..."
-      />
-    </div>
+    <app-keywords-input
+      v-model="selectedKeywords"
+      placeholder="Enter keywords, or topics..."
+    />
     <app-eagle-eye-filter />
-    <el-button
-      class="btn btn--primary mx-3"
-      @click="doSearch"
-    >
-      Search
-    </el-button>
   </div>
 </template>
 
 <script>
 import AppEagleEyeFilter from './eagle-eye-filter'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
+import _ from 'lodash'
 
 export default {
   name: 'AppEagleEyeSearch',
@@ -31,13 +24,30 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      filter: (state) => state.eagleEye.filter
+    }),
     ...mapGetters({
-      filter: 'eagleEye/filter',
-      activeTab: 'eagleEye/activeTab'
+      activeView: 'eagleEye/activeView'
     })
   },
   watch: {
-    activeTab: {
+    selectedKeywords: {
+      async handler(newValue, oldValue) {
+        if (
+          !_(newValue)
+            .xorWith(oldValue, _.isEqual)
+            .isEmpty()
+        ) {
+          console.log(newValue)
+          this.updateFilterAttribute({
+            ...this.filter.attributes['keywords'],
+            value: newValue
+          })
+        }
+      }
+    },
+    activeView: {
       handler(newValue, oldValue) {
         if (newValue !== oldValue) {
           this.selectedKeywords = []
@@ -55,30 +65,27 @@ export default {
         : []
 
     if (savedKeywords) {
-      await this.doSearch()
+      await this.doFetch({ keepPagination: false })
     }
   },
   methods: {
     ...mapActions({
-      doPopulate: 'eagleEye/doPopulate',
-      doFetch: 'eagleEye/doFetch'
-    }),
-    async doSearch() {
-      const filtersToApply = {
-        ...this.filter,
-        keywords: this.selectedKeywords.join(',')
-      }
-      await this.doFetch({
-        rawFilter: filtersToApply,
-        filter: filtersToApply
-      })
-    }
+      doFetch: 'eagleEye/doFetch',
+      updateFilterAttribute:
+        'eagleEye/updateFilterAttribute'
+    })
   }
 }
 </script>
 
 <style lang="scss">
 .eagle-eye-search {
-  @apply -mx-3 flex items-start mt-6;
+  @apply flex mt-6;
+  .app-keywords-input {
+    @apply flex-grow;
+    .el-keywords-input-wrapper {
+      @apply rounded-r-none;
+    }
+  }
 }
 </style>
