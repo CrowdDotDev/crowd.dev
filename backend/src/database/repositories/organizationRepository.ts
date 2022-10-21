@@ -278,7 +278,7 @@ class OrganizationRepository {
     )
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.fn('COUNT', Sequelize.col('members.id'))
+    const memberCount = Sequelize.literal(`COUNT("members".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -662,10 +662,15 @@ class OrganizationRepository {
       ),
     ]
 
-    output.identities = members.reduce(
+    output.lastActive =  Math.min(members.reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), []).map(i => i.timestamp))
+    
+    // Math.min returns 0 for an empty array
+    output.lastActive = output.lastActive === 0 ? null : output.lastActive
+
+    output.identities = [... new Set(members.reduce(
       (acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)),
       [],
-    )
+    ))]
 
     output.memberCount = members.length
 
