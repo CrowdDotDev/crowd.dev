@@ -55,7 +55,7 @@ components:
           - new-internet
           - making-the-world-a-better-place
           - not-like-hooli
-        identities: 
+        identities:
           - github
           - twitter
         activeOn:
@@ -98,7 +98,7 @@ components:
           - hooli
           - tethics
           - not-google
-        identities: 
+        identities:
           - devto
           - github
           - twitter

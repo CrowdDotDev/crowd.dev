@@ -176,10 +176,10 @@ cube(`Members`, {
       sql: `${CUBE}."score"`,
       type: `number`,
     },
-    
+
     identities: {
       sql: `${CUBE}."identities"`,
       type: `string`,
-    }, 
+    },
   },
 })

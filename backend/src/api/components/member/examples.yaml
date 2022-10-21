@@ -291,7 +291,7 @@ components:
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-            identities: 
+            identities:
               - github
               - twitter
             activeOn:

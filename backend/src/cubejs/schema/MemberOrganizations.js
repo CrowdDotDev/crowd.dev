@@ -30,25 +30,25 @@ cube(`MemberOrganizations`, {
     organizationid: {
       sql: `${CUBE}."organizationId"`,
       type: `string`,
-      shown:false
+      shown: false,
     },
 
     memberid: {
       sql: `${CUBE}."memberId"`,
       type: `string`,
-      shown:false
+      shown: false,
     },
 
     createdat: {
       sql: `${CUBE}."createdAt"`,
       type: `time`,
-      shown:false
+      shown: false,
     },
 
     updatedat: {
       sql: `${CUBE}."updatedAt"`,
       type: `time`,
-      shown:false
+      shown: false,
     },
   },
 })

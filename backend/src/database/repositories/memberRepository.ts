@@ -704,9 +704,7 @@ class MemberRepository {
       `array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`,
     )
 
-    const identities = Sequelize.literal (
-      `ARRAY(SELECT jsonb_object_keys("member".username))`
-    )
+    const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member".username))`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 

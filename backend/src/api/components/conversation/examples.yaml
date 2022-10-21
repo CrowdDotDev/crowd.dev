@@ -140,69 +140,69 @@ components:
               createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
               updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         conversationStarter:
-            id: 89a136ed-336d-4586-8842-790775465212
-            type: message
-            timestamp: '2020-06-27T14:13:30.000Z'
-            platform: discord
-            isKeyAction: true
-            score: 1
-            sourceId: d42
-            sourceParentId: null
-            attributes: {}
-            channel: piedpiper
-            body: Sooner or later Gilfoyle's servers are going to fail and then it's all done
-            title: null
-            url: github.com/piedpiper/piedpier
-            sentiment:
-              label: negative
-              mixed: 3.6482997238636017
-              neutral: 19.5749893784523
-              negative: 75.36468505859375
-              positive: 1.4120269566774368
-              sentiment: 2
+          id: 89a136ed-336d-4586-8842-790775465212
+          type: message
+          timestamp: '2020-06-27T14:13:30.000Z'
+          platform: discord
+          isKeyAction: true
+          score: 1
+          sourceId: d42
+          sourceParentId: null
+          attributes: {}
+          channel: piedpiper
+          body: Sooner or later Gilfoyle's servers are going to fail and then it's all done
+          title: null
+          url: github.com/piedpiper/piedpier
+          sentiment:
+            label: negative
+            mixed: 3.6482997238636017
+            neutral: 19.5749893784523
+            negative: 75.36468505859375
+            positive: 1.4120269566774368
+            sentiment: 2
+          importHash: null
+          createdAt: '2022-10-05T12:09:44.414Z'
+          updatedAt: '2022-10-05T12:21:53.279Z'
+          deletedAt: null
+          memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+          conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
+          parentId: null
+          tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+          createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+          member:
+            id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+            username:
+              github: gilfoyle
+              twitter: gilfoyle
+            attributes:
+              bio:
+                github: Systems engineer at Pied Piper
+                default: It's not magic. It's talent and sweat
+                twitter: It's not magic. It's talent and sweat
+              url:
+                github: https://github.com/gilfoyle
+                default: https://t.co/g
+                twitter: https://t.co/g
+              location:
+                custom: Erlich's house
+                github: Palo alto
+                default: Erlich's house
+            displayName: Gilfoyle
+            email: gilfoyle@piedpiper.io
+            score: 8
+            joinedAt: '2022-10-03T15:17:03.540Z'
             importHash: null
-            createdAt: '2022-10-05T12:09:44.414Z'
-            updatedAt: '2022-10-05T12:21:53.279Z'
+            reach:
+              total: 10000
+              github: 5000
+              twitter: 5000
+            createdAt: '2022-10-03T15:17:03.547Z'
+            updatedAt: '2022-10-05T11:40:32.560Z'
             deletedAt: null
-            memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-            conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
-            parentId: null
             tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
             createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-            member:
-              id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-              username:
-                github: gilfoyle
-                twitter: gilfoyle
-              attributes:
-                bio:
-                  github: Systems engineer at Pied Piper
-                  default: It's not magic. It's talent and sweat
-                  twitter: It's not magic. It's talent and sweat
-                url:
-                  github: https://github.com/gilfoyle
-                  default: https://t.co/g
-                  twitter: https://t.co/g
-                location:
-                  custom: Erlich's house
-                  github: Palo alto
-                  default: Erlich's house
-              displayName: Gilfoyle
-              email: gilfoyle@piedpiper.io
-              score: 8
-              joinedAt: '2022-10-03T15:17:03.540Z'
-              importHash: null
-              reach:
-                total: 10000
-                github: 5000
-                twitter: 5000
-              createdAt: '2022-10-03T15:17:03.547Z'
-              updatedAt: '2022-10-05T11:40:32.560Z'
-              deletedAt: null
-              tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
-              createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-              updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         activityCount: 2
         memberCount: 2
         platform: discord
@@ -225,69 +225,69 @@ components:
             activityCount: 3
             lastActive: '2021-07-27T20:23:30.000Z'
             conversationStarter:
-                id: 89a136ed-336d-4586-8842-790775465212
-                type: message
-                timestamp: '2020-06-27T14:13:30.000Z'
-                platform: discord
-                isKeyAction: true
-                score: 1
-                sourceId: d42
-                sourceParentId: null
-                attributes: {}
-                channel: piedpiper
-                body: Sooner or later Gilfoyle's servers are going to fail and then it's all done
-                title: null
-                url: github.com/piedpiper/piedpier
-                sentiment:
-                  label: negative
-                  mixed: 3.6482997238636017
-                  neutral: 19.5749893784523
-                  negative: 75.36468505859375
-                  positive: 1.4120269566774368
-                  sentiment: 2
+              id: 89a136ed-336d-4586-8842-790775465212
+              type: message
+              timestamp: '2020-06-27T14:13:30.000Z'
+              platform: discord
+              isKeyAction: true
+              score: 1
+              sourceId: d42
+              sourceParentId: null
+              attributes: {}
+              channel: piedpiper
+              body: Sooner or later Gilfoyle's servers are going to fail and then it's all done
+              title: null
+              url: github.com/piedpiper/piedpier
+              sentiment:
+                label: negative
+                mixed: 3.6482997238636017
+                neutral: 19.5749893784523
+                negative: 75.36468505859375
+                positive: 1.4120269566774368
+                sentiment: 2
+              importHash: null
+              createdAt: '2022-10-05T12:09:44.414Z'
+              updatedAt: '2022-10-05T12:21:53.279Z'
+              deletedAt: null
+              memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+              conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
+              parentId: null
+              tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+              createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+              updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+              member:
+                id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+                username:
+                  github: gilfoyle
+                  twitter: gilfoyle
+                attributes:
+                  bio:
+                    github: Systems engineer at Pied Piper
+                    default: It's not magic. It's talent and sweat
+                    twitter: It's not magic. It's talent and sweat
+                  url:
+                    github: https://github.com/gilfoyle
+                    default: https://t.co/g
+                    twitter: https://t.co/g
+                  location:
+                    custom: Erlich's house
+                    github: Palo alto
+                    default: Erlich's house
+                displayName: Gilfoyle
+                email: gilfoyle@piedpiper.io
+                score: 8
+                joinedAt: '2022-10-03T15:17:03.540Z'
                 importHash: null
-                createdAt: '2022-10-05T12:09:44.414Z'
-                updatedAt: '2022-10-05T12:21:53.279Z'
+                reach:
+                  total: 10000
+                  github: 5000
+                  twitter: 5000
+                createdAt: '2022-10-03T15:17:03.547Z'
+                updatedAt: '2022-10-05T11:40:32.560Z'
                 deletedAt: null
-                memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-                conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
-                parentId: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
                 updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-                member:
-                  id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-                  username:
-                    github: gilfoyle
-                    twitter: gilfoyle
-                  attributes:
-                    bio:
-                      github: Systems engineer at Pied Piper
-                      default: It's not magic. It's talent and sweat
-                      twitter: It's not magic. It's talent and sweat
-                    url:
-                      github: https://github.com/gilfoyle
-                      default: https://t.co/g
-                      twitter: https://t.co/g
-                    location:
-                      custom: Erlich's house
-                      github: Palo alto
-                      default: Erlich's house
-                  displayName: Gilfoyle
-                  email: gilfoyle@piedpiper.io
-                  score: 8
-                  joinedAt: '2022-10-03T15:17:03.540Z'
-                  importHash: null
-                  reach:
-                    total: 10000
-                    github: 5000
-                    twitter: 5000
-                  createdAt: '2022-10-03T15:17:03.547Z'
-                  updatedAt: '2022-10-05T11:40:32.560Z'
-                  deletedAt: null
-                  tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
-                  createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-                  updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             lastReplies:
               - id: c39dc046-da1d-4a25-8624-6b78aad00f30
                 type: message
@@ -368,69 +368,69 @@ components:
             activityCount: 1
             lastActive: '2020-06-29T15:13:30.000Z'
             conversationStarter:
-                id: 89a136ed-336d-4586-8842-790775465212
-                type: message
-                timestamp: '2020-05-27T14:13:30.000Z'
-                platform: discord
-                isKeyAction: true
-                score: 1
-                sourceId: d42
-                sourceParentId: null
-                attributes: {}
-                channel: piedpiper
-                body: Best of Dinesh and gilfoyle
-                title: null
-                url: github.com/piedpiper/piedpier
-                sentiment:
-                  label: negative
-                  mixed: 1.6482997238636017
-                  neutral: 12.5749893784523
-                  negative: 62.36468505859375
-                  positive: 1.4120269566774368
-                  sentiment: 2
+              id: 89a136ed-336d-4586-8842-790775465212
+              type: message
+              timestamp: '2020-05-27T14:13:30.000Z'
+              platform: discord
+              isKeyAction: true
+              score: 1
+              sourceId: d42
+              sourceParentId: null
+              attributes: {}
+              channel: piedpiper
+              body: Best of Dinesh and gilfoyle
+              title: null
+              url: github.com/piedpiper/piedpier
+              sentiment:
+                label: negative
+                mixed: 1.6482997238636017
+                neutral: 12.5749893784523
+                negative: 62.36468505859375
+                positive: 1.4120269566774368
+                sentiment: 2
+              importHash: null
+              createdAt: '2022-10-05T12:09:44.414Z'
+              updatedAt: '2022-10-05T12:21:53.279Z'
+              deletedAt: null
+              memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+              conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
+              parentId: null
+              tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
+              createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+              updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
+              member:
+                id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
+                username:
+                  github: gilfoyle
+                  twitter: gilfoyle
+                attributes:
+                  bio:
+                    github: Systems engineer at Pied Piper
+                    default: It's not magic. It's talent and sweat
+                    twitter: It's not magic. It's talent and sweat
+                  url:
+                    github: https://github.com/gilfoyle
+                    default: https://t.co/g
+                    twitter: https://t.co/g
+                  location:
+                    custom: Erlich's house
+                    github: Palo alto
+                    default: Erlich's house
+                displayName: Gilfoyle
+                email: gilfoyle@piedpiper.io
+                score: 8
+                joinedAt: '2022-10-03T15:17:03.540Z'
                 importHash: null
-                createdAt: '2022-10-05T12:09:44.414Z'
-                updatedAt: '2022-10-05T12:21:53.279Z'
+                reach:
+                  total: 10000
+                  github: 5000
+                  twitter: 5000
+                createdAt: '2022-10-03T15:17:03.547Z'
+                updatedAt: '2022-10-05T11:40:32.560Z'
                 deletedAt: null
-                memberId: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-                conversationId: 24bdea79-3125-4950-bb38-07fa4a555012
-                parentId: null
                 tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
                 createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
                 updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-                member:
-                  id: ab7a9fe9-4576-46b1-a710-8b8eaeff87a5
-                  username:
-                    github: gilfoyle
-                    twitter: gilfoyle
-                  attributes:
-                    bio:
-                      github: Systems engineer at Pied Piper
-                      default: It's not magic. It's talent and sweat
-                      twitter: It's not magic. It's talent and sweat
-                    url:
-                      github: https://github.com/gilfoyle
-                      default: https://t.co/g
-                      twitter: https://t.co/g
-                    location:
-                      custom: Erlich's house
-                      github: Palo alto
-                      default: Erlich's house
-                  displayName: Gilfoyle
-                  email: gilfoyle@piedpiper.io
-                  score: 8
-                  joinedAt: '2022-10-03T15:17:03.540Z'
-                  importHash: null
-                  reach:
-                    total: 10000
-                    github: 5000
-                    twitter: 5000
-                  createdAt: '2022-10-03T15:17:03.547Z'
-                  updatedAt: '2022-10-05T11:40:32.560Z'
-                  deletedAt: null
-                  tenantId: 8642a2bd-965e-4acd-be8c-dfedc83ef0af
-                  createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
-                  updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
             lastReplies:
               - id: c39dc046-da1d-4a25-8624-6b78aad00f30
                 type: message
