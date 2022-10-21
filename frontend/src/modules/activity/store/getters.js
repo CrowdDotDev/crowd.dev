@@ -1,9 +1,11 @@
-import genericGetters from '@/modules/generic/store/getters'
+import genericGetters from '@/shared/store/getters'
 
 export default {
   ...genericGetters,
   rows: (state, getters) =>
     state.list.ids.map((id) => {
+      console.log(getters.activeView)
+      console.log(state.records)
       return getters.activeView.type === 'conversations'
         ? state.records.conversations[id]
         : state.records.activities[id]

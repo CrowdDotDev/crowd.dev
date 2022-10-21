@@ -5,7 +5,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { ConversationService } from '@/modules/conversation/conversation-service'
 import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
-import genericActions from '@/modules/generic/store/actions'
+import genericActions from '@/shared/store/actions'
 
 export default {
   ...genericActions(),

@@ -1,4 +1,4 @@
-import genericMutations from '@/modules/generic/store/mutations'
+import genericMutations from '@/shared/store/mutations'
 
 export default {
   ...genericMutations,
