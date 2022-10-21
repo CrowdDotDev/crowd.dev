@@ -1,6 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
+import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
 
 export class MemberService {
   static async update(id, data) {
