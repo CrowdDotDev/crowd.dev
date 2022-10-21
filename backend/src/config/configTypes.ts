@@ -22,6 +22,7 @@ export interface SQSConfiguration {
   port?: number
   nodejsWorkerQueue: string
   pythonWorkerQueue: string
+  premiumPythonWorkerQueue: string
   aws: AwsCredentials
 }
 
@@ -86,6 +87,8 @@ export interface SlackConfiguration {
   clientSecret: string
   globalLimit?: number
   maxRetrospectInSeconds: number
+  reporterToken?: string
+  reporterChannel?: string
 }
 
 export interface GoogleConfiguration {
