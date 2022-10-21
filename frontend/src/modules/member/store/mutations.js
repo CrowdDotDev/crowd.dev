@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
@@ -202,7 +203,7 @@ export default {
   FILTER_CHANGED(state, filter) {
     const { attributes, operator } = filter
     state.filter = {
-      attributes: { ...attributes } || {},
+      attributes: _.cloneDeep(attributes) || {},
       operator: operator || 'and'
     }
   },

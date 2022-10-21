@@ -10,7 +10,10 @@ export default {
       id: 'activities',
       type: 'activities',
       label: 'Recent activities',
-      filter: {},
+      filter: {
+        operator: 'and',
+        attributes: {}
+      },
       sorter: {
         prop: 'timestamp',
         order: 'desc'
@@ -21,7 +24,10 @@ export default {
       id: 'conversations',
       type: 'conversations',
       label: 'Conversations',
-      filter: {},
+      filter: {
+        operator: 'and',
+        attributes: {}
+      },
       sorter: {
         prop: 'activityCount',
         order: 'desc'

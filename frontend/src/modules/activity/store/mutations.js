@@ -1,4 +1,5 @@
 import { INITIAL_PAGE_SIZE } from './constants'
+import _ from 'lodash'
 
 export default {
   RESETED(state) {
@@ -63,6 +64,10 @@ export default {
   FETCH_STARTED(state, payload) {
     state.list.loading = true
 
+    if (payload.keepPagination === false) {
+      state.list.ids.length = 0
+    }
+
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -107,7 +112,7 @@ export default {
   FILTER_CHANGED(state, filter) {
     const { attributes, operator } = filter
     state.filter = {
-      attributes: { ...attributes } || {},
+      attributes: _.cloneDeep(attributes) || {},
       operator: operator || 'and'
     }
   },

@@ -87,6 +87,7 @@ import {
 import moment from 'moment'
 import lodash from 'lodash'
 import filterOperators from './filter-operators'
+import { attributesAreDifferent } from './is-different'
 
 const props = defineProps({
   filter: {
@@ -264,6 +265,17 @@ watch(
     }, 500)
   },
   { immediate: true }
+)
+
+watch(
+  () => props.filter,
+  (newValue) => {
+    if (attributesAreDifferent(model, newValue)) {
+      model.value = newValue.value
+      model.operator = newValue.operator
+    }
+  },
+  { deep: true }
 )
 </script>
 

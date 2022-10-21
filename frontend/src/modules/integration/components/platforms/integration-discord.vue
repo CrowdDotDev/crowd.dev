@@ -4,10 +4,10 @@
     :onboard="onboard"
   >
     <template #connect>
-      <el-button
+      <a
         class="btn btn--secondary btn--md"
         :href="connectUrl"
-        >Connect</el-button
+        >Connect</a
       >
     </template>
   </app-integration-list-item>
