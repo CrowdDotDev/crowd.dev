@@ -31,6 +31,12 @@ cube(`Identities`, {
         type: `string`,
         primaryKey: true,
       },
+      tenantId: {
+        sql: `${CUBE}."tenantId"`,
+        type: `string`,
+        shown: false,
+      },
+  
     },
   })
   
