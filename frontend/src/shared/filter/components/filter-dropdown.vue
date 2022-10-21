@@ -66,7 +66,7 @@ export default {
 <script setup>
 import { defineProps, computed, h, ref } from 'vue'
 import { useStore } from 'vuex'
-import filterFunction from './filter-function'
+import queryFilterFunction from '@/shared/filter/helpers/query-filter'
 
 const store = useStore()
 const props = defineProps({
@@ -95,7 +95,7 @@ const isExpanded = ref(false)
 
 const computedAttributes = computed(() =>
   props.attributes
-    .filter((a) => filterFunction(a, query.value))
+    .filter((a) => queryFilterFunction(a, query.value))
     .map((a) => {
       a.selected =
         store.state[props.module].filter.attributes[
@@ -106,7 +106,7 @@ const computedAttributes = computed(() =>
 )
 const computedCustomAttributes = computed(() =>
   props.customAttributes
-    .filter((a) => filterFunction(a, query.value))
+    .filter((a) => queryFilterFunction(a, query.value))
     .map((a) => {
       a.selected =
         store.state[props.module].filter.attributes[
