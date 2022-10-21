@@ -1,7 +1,7 @@
 import sharedMutations from '@/shared/store/mutations'
 
 export default {
-  ...sharedMutations,
+  ...sharedMutations(),
 
   FETCH_SUCCESS(state, { rows, count, type }) {
     state.list.loading = false
