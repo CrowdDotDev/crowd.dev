@@ -445,16 +445,25 @@ describe('ConversationRepository tests', () => {
         ...conversation1Created,
         conversationStarter: {
           ...SequelizeTestUtils.objectWithoutKey(activity1Created, ['parent', 'tasks']),
-          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
         },
         lastReplies: [
           {
             ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['parent', 'tasks']),
-            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
           },
           {
             ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['parent', 'tasks']),
-            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
           },
         ],
       }
@@ -463,12 +472,18 @@ describe('ConversationRepository tests', () => {
         ...conversation2Created,
         conversationStarter: {
           ...SequelizeTestUtils.objectWithoutKey(activity4Created, ['parent', 'tasks']),
-          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
         },
         lastReplies: [
           {
             ...SequelizeTestUtils.objectWithoutKey(activity5Created, ['parent', 'tasks']),
-            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
           },
         ],
       }
@@ -477,12 +492,18 @@ describe('ConversationRepository tests', () => {
         ...conversation3Created,
         conversationStarter: {
           ...SequelizeTestUtils.objectWithoutKey(activity6Created, ['parent', 'tasks']),
-          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
         },
         lastReplies: [
           {
             ...SequelizeTestUtils.objectWithoutKey(activity7Created, ['parent', 'tasks']),
-            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, ['activeOn', 'identities']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
           },
         ],
       }

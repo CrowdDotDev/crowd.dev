@@ -137,7 +137,7 @@ describe('OrganizationRepository tests', () => {
         memberCount: 2,
         lastActive: null,
         activeOn: [],
-        identities: [ "github" ],
+        identities: ['github'],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -394,7 +394,6 @@ describe('OrganizationRepository tests', () => {
         organization3Created.id,
         mockIRepositoryOptions,
       )
-
 
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations
@@ -783,7 +782,7 @@ describe('OrganizationRepository tests', () => {
       const memberId = await (
         await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
       ).rows[0].id
-      
+
       const found = await OrganizationRepository.findAndCountAll(
         {
           filter: {
