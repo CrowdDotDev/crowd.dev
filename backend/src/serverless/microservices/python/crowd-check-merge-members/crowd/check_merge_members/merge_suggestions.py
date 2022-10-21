@@ -1,6 +1,7 @@
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member, Integration
+import time
 import logging
 import re
 import fuzzy
@@ -40,14 +41,20 @@ class MergeSuggestions:
 
         self.test = test
 
-    def run(self, member_to_check):
+    def run(self, member_to_check_id):
         """
         Gets all members of the tenant,
         Creates a hash out of same crowdUsernames for easy access
         Generates membersToMerge field out of hash -checks is_mergeable as well-
         """
 
-        member_to_check = self.repository.find_by_id(Member, member_to_check)
+        # We moght need to try a few times to allow the db to be from write to read replicas
+        member_to_check = None
+        attempts = 0
+        while not member_to_check and attempts < 10:
+            time.sleep(1)
+            member_to_check = self.repository.find_by_id(Member, member_to_check_id)
+            attempts += 1
 
         # Check if tenant has only 1 integration
         tenant_integrations = self.repository.find_in_table(Integration, {'tenantId': self.tenant_id}, many=True)
@@ -147,7 +154,6 @@ class MergeSuggestions:
 
         top_member_scores = []
         top_members = []
-        print("Same platform", same_platform)
         for i in range(len(members)):
             # Avoiding self comparison
             if members[i].id != member.id:
