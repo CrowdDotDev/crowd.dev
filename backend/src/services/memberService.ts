@@ -281,6 +281,7 @@ export default class MemberService {
           fillRelations,
         )
 
+        console.log('Sent merge suggestion for member ', record.displayName)
         await sendPythonWorkerMessage(this.options.currentTenant.id, {
           type: PythonWorkerMessageType.CHECK_MERGE,
           member: record.id,

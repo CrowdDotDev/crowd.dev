@@ -58,7 +58,7 @@ class Repository(object):
                     host = os.environ.get("DATABASE_HOST_READ")
                     self.db_url = f'postgresql://{username}:{password}@{host}/{database}'
 
-        self.db_url = 'postgresql://postgres:example@localhost:5432/crowd-web'
+        # self.db_url = 'postgresql://postgres:example@localhost:5432/crowd-web'
 
         self.engine = create_engine(
             self.db_url, pool_pre_ping=True, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True},
