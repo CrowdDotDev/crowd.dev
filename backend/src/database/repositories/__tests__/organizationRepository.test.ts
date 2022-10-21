@@ -390,23 +390,22 @@ describe('OrganizationRepository tests', () => {
         ...foundOrganization1,
         memberCount: foundOrganization1.memberCount.toString(),
         lastActive: null,
-        platforms: null
+        platforms: null,
       }
 
       const expectedOrganization2 = {
         ...foundOrganization2,
         memberCount: foundOrganization2.memberCount.toString(),
         lastActive: null,
-        platforms: null
+        platforms: null,
       }
 
       const expectedOrganization3 = {
         ...foundOrganization3,
         memberCount: foundOrganization3.memberCount.toString(),
         lastActive: null,
-        platforms: null
+        platforms: null,
       }
-
 
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations

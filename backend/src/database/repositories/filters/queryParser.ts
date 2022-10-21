@@ -92,7 +92,7 @@ class QueryParser {
     this.aggregators = aggregators
     this.nestedFields = nestedFields
     this.whereOrHaving = 'where'
-    if (this.aggregators && Object.keys(this.aggregators).length !== 0){
+    if (this.aggregators && Object.keys(this.aggregators).length !== 0) {
       this.whereOrHaving = 'having'
     }
     this.manyToMany = manyToMany
@@ -212,30 +212,27 @@ class QueryParser {
     let right = typeof value === 'object' ? value[Object.keys(value)[0]] : value
 
     // handle textContains for literals
-    if (typeof value === 'object' &&  Object.keys(value)[0] === "textContains"){
+    if (typeof value === 'object' && Object.keys(value)[0] === 'textContains') {
       op = Op.iLike
       right = `%${right}%`
     }
     // We wrap everything onto a where clause and we return
     let where = Sequelize.where(left, op, right)
-    
-    // When we feed arrays directly in sequelize literals, it tries to cast 
+
+    // When we feed arrays directly in sequelize literals, it tries to cast
     // it to a postgres array.
     // This is not needed in `Op.in` queries. Simple lists are enough
-    if ( op === Op.in ){
-     where = Sequelize.where(left, op, Sequelize.literal(`(${right.toString()})`))
+    if (op === Op.in) {
+      where = Sequelize.where(left, op, Sequelize.literal(`(${right.toString()})`))
     }
 
-
-    if (query[Op.and]){
+    if (query[Op.and]) {
       query[Op.and].push(where)
-    }
-    else{
+    } else {
       query[Op.and] = [where]
     }
-    
+
     return query
-    
   }
 
   /**
@@ -272,11 +269,14 @@ class QueryParser {
 
     // It coudl be that we have more than 1 many to many filter, so we could need to append. For example:
     // {tags: [id1, id2], organizations: [id3, id4]}
-    if (query[Op.and]){
-      query[Op.and].push(Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal))
-    }
-    else{
-      query[Op.and] = [Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal)]
+    if (query[Op.and]) {
+      query[Op.and].push(
+        Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal),
+      )
+    } else {
+      query[Op.and] = [
+        Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal),
+      ]
     }
 
     return query
@@ -297,8 +297,7 @@ class QueryParser {
       if (this.aggregators[key]) {
         // If the key is one of the aggregators, replace by aggregator
         query = this.replaceKeyWithAggregator(query, key)
-      }
-      else if (key === 'id') {
+      } else if (key === 'id') {
         // When an ID is sent, we validate it.
         query[key] = QueryParser.uuid(query[key])
       } else if (this.customOperators[key]) {
@@ -313,7 +312,7 @@ class QueryParser {
           complexOp,
           this.customOperators[key],
         )
-      }  else if (this.manyToMany[key]) {
+      } else if (this.manyToMany[key]) {
         // If the key is a many to many field, construct the query
         query = this.replaceWithManyToMany(query, key)
       } else if (query[key] !== null && typeof query[key] === 'object') {
