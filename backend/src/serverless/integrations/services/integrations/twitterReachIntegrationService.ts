@@ -1,7 +1,3 @@
-/* eslint class-methods-use-this: 0 */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import lodash from 'lodash'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
@@ -20,11 +16,15 @@ import { Updates } from '../../types/messageTypes'
 import MemberService from '../../../../services/memberService'
 import Operations from '../../../dbOperations/operations'
 
+/* eslint class-methods-use-this: 0 */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 export class TwitterReachIntegrationService extends IntegrationServiceBase {
   static readonly TWITTER_API_MAX_USERNAME_LENGTH = 15
 
   constructor() {
-    super(IntegrationType.TWITTER_REACH, 0, 1.0, 0, 2)
+    super(IntegrationType.TWITTER_REACH, 2)
   }
 
   async preprocess(context: IStepContext): Promise<IPreprocessResult> {
@@ -109,6 +109,7 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     currentStream: IIntegrationStream,
     lastOperations: IStreamResultOperation[],
+    lastRecord?: any,
     lastRecordTimestamp?: number,
     metadata?: any,
   ): Promise<boolean> {

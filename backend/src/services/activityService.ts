@@ -128,11 +128,9 @@ export default class ActivityService {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (!existing) {
-        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
-          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
-          .catch((err) =>
-            console.log(`Error triggering new activity automation - ${record.id}!`, err),
-          )
+        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id).catch((err) =>
+          console.log(`Error triggering new activity automation - ${record.id}!`, err),
+        )
       }
 
       return record

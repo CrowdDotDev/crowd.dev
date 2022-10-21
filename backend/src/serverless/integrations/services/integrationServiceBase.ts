@@ -17,21 +17,34 @@ import { IS_TEST_ENV } from '../../../config'
 
 export abstract class IntegrationServiceBase {
   /**
+   * How many records to process before we stop
+   */
+  public globalLimit: number
+
+  /**
+   * If onboarding globalLimit will be multiplied by this factor for that run
+   */
+  public onboardingLimitModifierFactor: number
+
+  /**
+   * How many seconds between global limit reset (0 for auto reset)
+   */
+  public limitResetFrequencySeconds: number
+
+  /**
    * Every new integration should extend this class and implement its methods.
    *
    * @param type What integration is this?
-   * @param globalLimit how many records to process before we stop
-   * @param onboardingLimitModifierFactor if onboarding globalLimit will be multiplied by this factor for that run
-   * @param limitResetFrequencySeconds How many seconds between global limit reset (0 for auto reset)
    * @param ticksBetweenChecks How many ticks to skip between each integration checks (each tick is 1 minute)
    */
   protected constructor(
     public readonly type: IntegrationType,
-    public readonly globalLimit: number,
-    public readonly onboardingLimitModifierFactor: number,
-    public readonly limitResetFrequencySeconds: number,
     public readonly ticksBetweenChecks: number,
-  ) {}
+  ) {
+    this.globalLimit = 0
+    this.onboardingLimitModifierFactor = 1.0
+    this.limitResetFrequencySeconds = 0
+  }
 
   async preprocess(context: IStepContext): Promise<IPreprocessResult> {
     return {}
@@ -53,6 +66,7 @@ export abstract class IntegrationServiceBase {
     context: IStepContext,
     currentStream: IIntegrationStream,
     lastOperations: IStreamResultOperation[],
+    lastRecord?: any,
     lastRecordTimestamp?: number,
     metadata?: any,
   ): Promise<boolean> {

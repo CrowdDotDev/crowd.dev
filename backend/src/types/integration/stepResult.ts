@@ -22,6 +22,7 @@ export interface IStreamResultOperation {
 
 export interface IProcessStreamResults {
   operations: IStreamResultOperation[]
+  lastRecord?: any
   lastRecordTimestamp?: number
   processMetadata?: any
   newStreams?: IIntegrationStream[]

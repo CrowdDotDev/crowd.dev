@@ -292,11 +292,9 @@ export default class MemberService {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (!existing) {
-        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
-          .then(() => console.log(`New member automation triggered - ${record.id}!`))
-          .catch((err) =>
-            console.log(`Error triggering new member automation - ${record.id}!`, err),
-          )
+        sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id).catch((err) =>
+          console.log(`Error triggering new member automation - ${record.id}!`, err),
+        )
       }
 
       return record

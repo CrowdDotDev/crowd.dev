@@ -33,13 +33,11 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   static maxRetrospect: number = TWITTER_CONFIG.maxRetrospectInSeconds || 7380
 
   constructor() {
-    super(
-      IntegrationType.TWITTER,
-      TWITTER_CONFIG.globalLimit || 0,
-      0.7,
-      (TWITTER_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60,
-      2,
-    )
+    super(IntegrationType.TWITTER, 2)
+
+    this.globalLimit = TWITTER_CONFIG.globalLimit || 0
+    this.onboardingLimitModifierFactor = 0.7
+    this.limitResetFrequencySeconds = (TWITTER_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
   }
 
   async preprocess(context: IStepContext): Promise<IPreprocessResult> {
@@ -103,6 +101,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
 
     const activities = this.parseActivities(context, records, stream, metadata)
 
+    const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
+
     return {
       operations: [
         {
@@ -110,6 +110,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
           records: activities,
         },
       ],
+      lastRecord,
+      lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
       newStreams,
       sleep,
     }
@@ -119,11 +121,10 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     currentStream: IIntegrationStream,
     lastOperations: IStreamResultOperation[],
+    lastRecord?: any,
     lastRecordTimestamp?: number,
     metadata?: any,
   ): Promise<boolean> {
-    if (lastRecordTimestamp === undefined) return true
-
     switch (currentStream.value) {
       case 'followers':
         return TwitterIntegrationService.isJoin(
@@ -135,6 +136,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
         )
 
       default:
+        if (lastRecordTimestamp === undefined) return true
+
         return IntegrationServiceBase.isRetrospectOver(
           lastRecordTimestamp,
           context.startTimestamp,

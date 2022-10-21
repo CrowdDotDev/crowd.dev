@@ -362,46 +362,26 @@ export default class IntegrationService {
    * @returns integration object
    */
   async slackCallback(integrationData) {
-    let integration = await this.createOrUpdate({
+    integrationData.settings = integrationData.settings || {}
+    integrationData.settings.updateMemberAttributes = true
+
+    const integration = await this.createOrUpdate({
       platform: PlatformType.SLACK,
       ...integrationData,
+      status: 'in-progress',
     })
 
     const isOnboarding: boolean = !('channels' in integration.settings)
 
-    // Preparing a message to start fetching activities
-    const integrationsMessageBody: IntegrationsMessage = {
-      integration: PlatformType.SLACK,
-      state: {
-        endpoint: '',
-        page: '',
-        endpoints: [],
-      },
-      tenant: integration.tenantId.toString(),
-      sleep: 0,
-      onboarding: isOnboarding, // Full onboarding can also be deactivated from env
-      args: {},
-    }
-
-    integration.settings.updateMemberAttributes = true
-
-    integration = await this.createOrUpdate({
-      platform: PlatformType.SLACK,
-      status: 'in-progress',
-      settings: integration.settings,
-    })
-
-    // TODO-kube
-    if (KUBE_MODE) {
-      // TODO uros fixme
-      // const payload = {
-      //   type: NodeWorkerMessageType.INTEGRATION,
-      //   ...integrationsMessageBody,
-      // }
-      // await sendNodeWorkerMessage(integration.tenantId.toString(), payload as NodeWorkerMessage)
-    } else {
-      await send(integrationsMessageBody)
-    }
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.SLACK,
+        integration.tenantId,
+        isOnboarding,
+        integration.id,
+      ),
+    )
 
     return integration
   }

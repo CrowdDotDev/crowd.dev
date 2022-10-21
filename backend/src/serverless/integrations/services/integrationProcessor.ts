@@ -16,6 +16,7 @@ import { DiscordIntegrationService } from './integrations/discordIntegrationServ
 import { IStepContext } from '../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
+import { SlackIntegrationService } from './integrations/slackIntegrationService'
 
 export class IntegrationProcessor {
   private readonly log: Logger
@@ -32,6 +33,7 @@ export class IntegrationProcessor {
       new DiscordIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
+      new SlackIntegrationService(),
     ]
 
     for (const intService of this.integrationServices) {
@@ -228,6 +230,13 @@ export class IntegrationProcessor {
             processMetadata = processStreamResult.processMetadata || processMetadata
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
+              logger.info(
+                {
+                  newStreamCount: processStreamResult.newStreams.length,
+                  newTotalStreamCount: processStreamResult.newStreams.length + streams.length,
+                },
+                'Detected new streams to process!',
+              )
               streams.push(...processStreamResult.newStreams)
             }
 
@@ -289,6 +298,7 @@ export class IntegrationProcessor {
 
           // TODO implement retries for failed streams
         }
+        logger.info('Done processing integration!')
       } else {
         logger.warn('No streams detected!')
       }

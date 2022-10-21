@@ -1,23 +1,26 @@
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
-import { timeout } from '../utils/timing'
+import moment from 'moment'
 import { SQS_CONFIG } from '../config'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { NodeWorkerMessageType } from '../serverless/types/worketTypes'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { createChildLogger, getServiceLogger } from '../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
+import { createChildLogger, getServiceLogger } from '../utils/logging'
+import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
+import { timeout } from '../utils/timing'
 import { processIntegration, processIntegrationCheck } from './worker/integrations'
-import { deleteMessage, receiveMessage } from '../utils/sqs'
 
 /* eslint-disable no-constant-condition */
 
 const receive = (delayed?: boolean): Promise<Message | undefined> => {
   const params: ReceiveMessageRequest = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
-    MessageAttributeNames: !delayed ? undefined : ['remainingDelaySeconds', 'tenantId'],
+    MessageAttributeNames: !delayed
+      ? undefined
+      : ['remainingDelaySeconds', 'tenantId', 'targetQueueUrl'],
   }
 
   return receiveMessage(params)
@@ -61,8 +64,20 @@ async function handleDelayedMessages() {
       } else {
         // just emit to the normal queue for processing
         const tenantId = message.MessageAttributes.tenantId.StringValue
-        messageLogger.info({ tenantId }, 'Successfully delayed a message!')
-        await sendNodeWorkerMessage(tenantId, msg)
+
+        if (message.MessageAttributes.targetQueueUrl) {
+          const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
+          messageLogger.info({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
+          await sendMessage({
+            QueueUrl: targetQueueUrl,
+            MessageGroupId: tenantId,
+            MessageDeduplicationId: `${tenantId}-${moment().valueOf()}`,
+            MessageBody: JSON.stringify(msg),
+          })
+        } else {
+          messageLogger.info({ tenantId }, 'Successfully delayed a message!')
+          await sendNodeWorkerMessage(tenantId, msg)
+        }
       }
 
       await removeFromQueue(message.ReceiptHandle, true)

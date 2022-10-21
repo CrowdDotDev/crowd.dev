@@ -11,6 +11,7 @@ export const sendNodeWorkerMessage = async (
   tenantId: string,
   body: NodeWorkerMessageBase,
   delaySeconds?: number,
+  targetQueueUrl?: string,
 ): Promise<void> => {
   console.log('Sending a new nodejs worker message!', tenantId, body, delaySeconds)
   if (IS_TEST_ENV) {
@@ -39,6 +40,9 @@ export const sendNodeWorkerMessage = async (
           DataType: 'Number',
           StringValue: `${remainedSeconds}`,
         },
+        targetQueueUrl: targetQueueUrl
+          ? { DataType: 'String', StringValue: targetQueueUrl }
+          : undefined,
       }
       delay = limitSeconds
     } else {
@@ -47,6 +51,9 @@ export const sendNodeWorkerMessage = async (
           DataType: 'String',
           StringValue: tenantId,
         },
+        targetQueueUrl: targetQueueUrl
+          ? { DataType: 'String', StringValue: targetQueueUrl }
+          : undefined,
       }
       delay = delaySeconds
     }

@@ -36,13 +36,10 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly MAX_RETROSPECT = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
   constructor() {
-    super(
-      IntegrationType.DISCORD,
-      DISCORD_CONFIG.globalLimit || 0,
-      1.0,
-      (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60,
-      3,
-    )
+    super(IntegrationType.DISCORD, 3)
+
+    this.globalLimit = DISCORD_CONFIG.globalLimit || 0
+    this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
   }
 
   async preprocess(context: IStepContext): Promise<IPreprocessResult> {
@@ -166,6 +163,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
         const activities = this.parseActivities(stream, context, records, metadata)
 
+        const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
         return {
           operations: [
             {
@@ -173,6 +171,8 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               records: activities,
             },
           ],
+          lastRecord,
+          lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
           newStreams,
           sleep,
         }
@@ -202,6 +202,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     currentStream: IIntegrationStream,
     lastOperations: IStreamResultOperation[],
+    lastRecord?: any,
     lastRecordTimestamp?: number,
     metadata?: any,
   ): Promise<boolean> {

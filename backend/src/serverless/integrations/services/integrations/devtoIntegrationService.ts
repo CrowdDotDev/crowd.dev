@@ -31,7 +31,7 @@ import Operations from '../../../dbOperations/operations'
 
 export class DevtoIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.DEVTO, 0, 1.0, 0, 3)
+    super(IntegrationType.DEVTO, 3)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
@@ -140,6 +140,8 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       )
     }
 
+    const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
+
     return {
       operations: [
         {
@@ -147,6 +149,8 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
           records: activities,
         },
       ],
+      lastRecord,
+      lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
     }
   }
 
