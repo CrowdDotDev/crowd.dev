@@ -491,7 +491,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by title
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { title: 'a cool title' } , lazyLoad: ['activities']},
+        { filter: { title: 'a cool title' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -500,7 +500,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by slug
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { slug: 'a-cool-title-2' } , lazyLoad: ['activities']},
+        { filter: { slug: 'a-cool-title-2' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -509,7 +509,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by published
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { published: true } , lazyLoad: ['activities']},
+        { filter: { published: true }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -518,15 +518,19 @@ describe('ConversationRepository tests', () => {
 
       // filter by activityCount only start input
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { activityCountRange: [2] } , lazyLoad: ['activities']},
+        { filter: { activityCountRange: [2] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
       expect(conversations.count).toEqual(3)
-      expect(conversations.rows).toStrictEqual([conversation3Expected, conversation2Expected, conversation1Expected])
+      expect(conversations.rows).toStrictEqual([
+        conversation3Expected,
+        conversation2Expected,
+        conversation1Expected,
+      ])
 
       // filter by activityCount start and end inputs
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { activityCountRange: [0, 1] } , lazyLoad: ['activities']},
+        { filter: { activityCountRange: [0, 1] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
       expect(conversations.count).toEqual(0)
@@ -534,7 +538,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by platform
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { platform: PlatformType.DISCORD } , lazyLoad: ['activities']},
+        { filter: { platform: PlatformType.DISCORD }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -552,7 +556,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by channel (repo)
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { channel: 'general' } , lazyLoad: ['activities']},
+        { filter: { channel: 'general' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -561,7 +565,7 @@ describe('ConversationRepository tests', () => {
 
       // filter by lastActive only start
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z'] } , lazyLoad: ['activities']},
+        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z'] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
@@ -570,7 +574,10 @@ describe('ConversationRepository tests', () => {
 
       // filter by lastActive start and end
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z', '2020-06-04T15:13:30Z'] } , lazyLoad: ['activities']},
+        {
+          filter: { lastActiveRange: ['2020-06-03T15:13:30Z', '2020-06-04T15:13:30Z'] },
+          lazyLoad: ['activities'],
+        },
         mockIRepositoryOptions,
       )
 
@@ -582,7 +589,7 @@ describe('ConversationRepository tests', () => {
         {
           filter: {},
           orderBy: 'lastActive_DESC',
-          lazyLoad: ['activities']
+          lazyLoad: ['activities'],
         },
         mockIRepositoryOptions,
       )

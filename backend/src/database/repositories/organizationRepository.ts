@@ -264,10 +264,8 @@ class OrganizationRepository {
             // through: {
             //   attributes: [],
             // },
-          }
+          },
         ],
-        
-
       },
     ]
 
@@ -275,15 +273,9 @@ class OrganizationRepository {
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
-    const lastActive = Sequelize.literal(
-      `MAX("members->activities".timestamp)`,
-    )
+    const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.fn(
-      'COUNT',
-      Sequelize.col('members.id'),
-    )
-
+    const memberCount = Sequelize.fn('COUNT', Sequelize.col('members.id'))
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -451,8 +443,6 @@ class OrganizationRepository {
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
 
-
-
     const parser = new QueryParser(
       {
         nestedFields: {
@@ -492,7 +482,7 @@ class OrganizationRepository {
           ),
           platforms,
           lastActive,
-          memberCount
+          memberCount,
         },
         manyToMany: {
           members: {
@@ -559,7 +549,7 @@ class OrganizationRepository {
         ),
         [platforms, 'platforms'],
         [lastActive, 'lastActive'],
-        [memberCount, 'memberCount']
+        [memberCount, 'memberCount'],
       ],
       order,
       limit: parsed.limit,
@@ -637,9 +627,9 @@ class OrganizationRepository {
     }
 
     return rows.map((record) => {
-        const rec = record.get({ plain: true })
-        return rec
-      })
+      const rec = record.get({ plain: true })
+      return rec
+    })
   }
 
   static async _populateRelations(record, options: IRepositoryOptions) {

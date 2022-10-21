@@ -2775,7 +2775,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'anil',
           [PlatformType.DISCORD]: 'anil',
-          [PlatformType.TWITTER]: 'anil'
+          [PlatformType.TWITTER]: 'anil',
         },
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
@@ -2824,7 +2824,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'michaelScott',
           [PlatformType.DISCORD]: 'michaelScott',
-          [PlatformType.TWITTER]: 'michaelScott'
+          [PlatformType.TWITTER]: 'michaelScott',
         },
         platform: PlatformType.GITHUB,
         email: 'michael@mifflin.com',
@@ -2873,7 +2873,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'jimHalpert',
           [PlatformType.DISCORD]: 'jimHalpert',
-          [PlatformType.TWITTER]: 'jimHalpert'
+          [PlatformType.TWITTER]: 'jimHalpert',
         },
         platform: PlatformType.GITHUB,
         email: 'jim@mifflin.com',
