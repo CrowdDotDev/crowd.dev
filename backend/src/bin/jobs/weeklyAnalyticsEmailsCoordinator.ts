@@ -1,4 +1,3 @@
-import cronGenerator from 'cron-time-generator'
 import { CrowdJob } from '../../utils/jobTypes'
 import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
@@ -6,7 +5,7 @@ import { NodeWorkerMessage, NodeWorkerMessageType } from '../../serverless/types
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',
-  cronTime: cronGenerator.everyMondayAt(8),
+  cronTime: '0 8 * * MON',
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
 

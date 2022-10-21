@@ -24,10 +24,6 @@ const VerifyEmailPage = () =>
   import('@/modules/auth/components/verify-email-page.vue')
 const InvitationPage = () =>
   import('@/modules/auth/components/invitation-page.vue')
-const PasswordChangeFormPage = () =>
-  import(
-    '@/modules/auth/components/password-change-form-page.vue'
-  )
 const EmptyPermissionsPage = () =>
   import(
     '@/modules/auth/components/empty-permissions-page.vue'
@@ -96,12 +92,6 @@ export default [
         name: 'editProfile',
         path: '/auth/edit-profile',
         component: ProfileFormPage,
-        meta: { auth: true }
-      },
-      {
-        name: 'passwordChange',
-        path: '/password-change',
-        component: PasswordChangeFormPage,
         meta: { auth: true }
       }
     ]

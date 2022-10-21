@@ -11,7 +11,10 @@ export default {
       id: 'all',
       label: 'All members',
       columns: [],
-      filter: {},
+      filter: {
+        operator: 'and',
+        attributes: {}
+      },
       sorter: {},
       active: true
     },

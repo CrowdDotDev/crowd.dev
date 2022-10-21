@@ -18,12 +18,10 @@
         @unpublish="handleUnpublish"
       />
       <div class="font-semibold mb-2">Activities:</div>
-      <app-activity-list-feed-item
-        v-for="activity in conversation.activities"
-        :key="activity.id"
-        :activity="activity"
-        :belongs-to-conversation="true"
-      ></app-activity-list-feed-item>
+      <app-activity-list
+        :card-options="{ displayConversationLink: false }"
+        :activities="conversation.activities"
+      ></app-activity-list>
     </div>
   </div>
 </template>
@@ -31,14 +29,14 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ConversationForm from '@/modules/conversation/components/conversation-form.vue'
-import ActivityListFeedItem from '@/modules/activity/components/activity-list-feed-item'
+import ActivityList from '@/modules/activity/components/activity-list'
 
 export default {
   name: 'AppConversationFormPage',
 
   components: {
     'app-conversation-form': ConversationForm,
-    'app-activity-list-feed-item': ActivityListFeedItem
+    'app-activity-list': ActivityList
   },
 
   props: {

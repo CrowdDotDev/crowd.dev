@@ -45,6 +45,29 @@ if (KUBE_MODE) {
         region: COMPREHEND_CONFIG.aws.region,
       })
     : undefined
+
+  comprehendInstance = undefined
+
+  if (COMPREHEND_CONFIG.aws.accessKeyId) {
+    comprehendInstance = new AWS.Comprehend({
+      accessKeyId: COMPREHEND_CONFIG.aws.accessKeyId,
+      secretAccessKey: COMPREHEND_CONFIG.aws.secretAccessKey,
+      region: COMPREHEND_CONFIG.aws.region,
+    })
+  } else if (
+    process.env.AWS_ACCESS_KEY_ID !== 'aws-key-id' &&
+    process.env.AWS_ACCESS_KEY_ID !== 'none' &&
+    process.env.AWS_SECRET_ACCESS_KEY !== 'aws-secret-access-key' &&
+    process.env.AWS_SECRET_ACCESS_KEY !== 'none' &&
+    process.env.AWS_ACCESS_KEY_ID !== undefined &&
+    process.env.AWS_SECRET_ACCESS_KEY !== undefined
+  ) {
+    comprehendInstance = new AWS.Comprehend({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region: process.env.AWS_REGION,
+    })
+  }
 } else {
   if (process.env.SERVICE === 'default') {
     AWS.config.update({
@@ -108,7 +131,7 @@ export async function detectSentiment(text) {
   if (comprehendInstance) {
     const params = {
       LanguageCode: 'en',
-      Text: text,
+      Text: text.slice(0, 300),
     }
     const fromAWS = await comprehendInstance.detectSentiment(params).promise()
     const positive = 100 * fromAWS.SentimentScore.Positive

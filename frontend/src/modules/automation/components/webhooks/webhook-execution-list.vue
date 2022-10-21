@@ -172,10 +172,6 @@ export default {
 
 <style lang="scss">
 .webhook-executions-drawer {
-  .el-drawer__title {
-    @apply text-lg text-black font-medium;
-  }
-
   .webhook-execution-list {
     @apply p-0 m-0;
     list-style: none;

@@ -79,13 +79,13 @@
   }
 
   &--transparent {
-    @apply bg-white text-gray-600 border-none;
+    @apply bg-transparent text-gray-600 border-none;
 
     &:hover {
       @apply cursor-pointer bg-gray-100 text-gray-600;
     }
     &:focus {
-      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid;
+      @apply bg-transparent text-gray-600 border-2  border-gray-200 border-solid;
     }
     &:active {
       @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
@@ -101,7 +101,8 @@
       @apply bg-brand-500 text-white border-none;
 
       &:hover {
-        @apply cursor-pointer bg-brand-600 text-white;
+        @apply cursor-pointer bg-brand-600;
+        color: white !important;
       }
       &:focus {
         @apply outline outline-1 outline-gray-900 outline-offset-2 bg-brand-500 text-white;
@@ -269,6 +270,10 @@
     @apply w-full;
   }
 
+  &--circle {
+    @apply rounded-full;
+  }
+
   &[disabled] {
     opacity: 0.75;
     cursor: default;
@@ -311,5 +316,10 @@
   &--discord,
   &--discord:hover {
     background-color: rgba(88, 101, 242, 0.15);
+  }
+
+  &--slack,
+  &--slack:hover {
+    @apply bg-white;
   }
 }

@@ -1,7 +1,34 @@
+.el-overlay {
+  background-color: rgba(0,0,0,0.15);
+}
+
 .el-drawer {
+  @apply opacity-100;
   --el-drawer-padding-primary: 24px;
+  box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.05);
+
 
   &__header {
     @apply mb-4;
+  }
+
+  &__title {
+    @apply text-lg text-black font-medium;
+  }
+
+  &__footer {
+    @apply p-6 bg-gray-50 border-t border-gray-200;
+  }
+
+  &__close-btn {
+    i {
+      transition: color 0.2s ease;
+      @apply text-gray-400;
+    }
+
+    &:hover i,
+    &:focus i {
+      @apply text-gray-600;
+    }
   }
 }

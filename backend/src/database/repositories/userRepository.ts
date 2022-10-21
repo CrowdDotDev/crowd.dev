@@ -799,7 +799,7 @@ export default class UserRepository {
       email: user.email,
       roles,
       status,
-      invitationToken: tenantUser.invitationToken,
+      invitationToken: tenantUser?.invitationToken,
     }
   }
 }

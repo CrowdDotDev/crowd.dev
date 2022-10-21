@@ -8,7 +8,7 @@
     >
       <span
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
-        @click="handleClick"
+        @click.stop
       >
         <i
           class="text-lg leading-none text-gray-600 ri-more-fill"
@@ -16,11 +16,11 @@
       </span>
       <template #dropdown>
         <el-dropdown-item
-          class="h-10"
           :command="{
             action: 'memberEdit',
-            member: member
+            member
           }"
+          class="h-10"
           ><i class="ri-pencil-line text-base mr-2" /><span
             class="text-xs text-gray-900"
             >Edit member</span
@@ -65,37 +65,18 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
-
-    <el-dialog
-      v-if="editing"
-      v-model="editing"
-      title="Edit Member"
-      :append-to-body="true"
-      :close-on-click-modal="false"
-      :destroy-on-close="true"
-      custom-class="el-dialog--lg"
-      @close="editing = false"
-    >
-      <app-member-form-page
-        :id="member.id"
-        @cancel="editing = false"
-      >
-      </app-member-form-page>
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import { i18n } from '@/i18n'
 import { mapActions, mapGetters } from 'vuex'
-import AppMemberFormPage from './member-form-page'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 
 export default {
   name: 'AppMemberDropdown',
-  components: { AppMemberFormPage },
   props: {
     member: {
       type: Object,
@@ -104,11 +85,6 @@ export default {
     showViewMember: {
       type: Boolean,
       default: true
-    }
-  },
-  data() {
-    return {
-      editing: false
     }
   },
   computed: {
@@ -152,7 +128,12 @@ export default {
       if (command.action === 'memberDelete') {
         return this.doDestroyWithConfirm(command.member.id)
       } else if (command.action === 'memberEdit') {
-        this.editing = true
+        this.$router.push({
+          name: 'memberEdit',
+          params: {
+            id: command.member.id
+          }
+        })
       } else if (
         command.action === 'memberMarkAsTeamMember'
       ) {
@@ -176,9 +157,6 @@ export default {
           params: { id: command.member.id }
         })
       }
-    },
-    handleClick(event) {
-      event.stopPropagation()
     }
   }
 }

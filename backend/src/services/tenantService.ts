@@ -504,23 +504,17 @@ export default class TenantService {
     const memberService = new MemberService(this.options)
     const { rows } = await memberService.findMembersWithMergeSuggestions()
 
-    return rows
-      .map((item) => {
-        item.toMerge = item.toMerge.map((i) => i.get({ plain: true }))
-
-        return item.get({ plain: true })
-      })
-      .reduce((acc, item) => {
-        for (const toMergeMember of item.toMerge) {
-          const tp = [toMergeMember, item]
-          if (
-            lodash.find(acc, (pair) => pair[0].id === tp[0].id && pair[1].id === tp[1].id) ===
-            undefined
-          ) {
-            acc.push([item, toMergeMember])
-          }
+    return rows.reduce((acc, item) => {
+      for (const toMergeMember of item.toMerge) {
+        const tp = [toMergeMember, item]
+        if (
+          lodash.find(acc, (pair) => pair[0].id === tp[0].id && pair[1].id === tp[1].id) ===
+          undefined
+        ) {
+          acc.push([item, toMergeMember])
         }
-        return acc
-      }, [])
+      }
+      return acc
+    }, [])
   }
 }

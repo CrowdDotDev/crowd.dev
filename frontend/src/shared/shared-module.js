@@ -19,18 +19,21 @@ import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue
 import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
 import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
 import FilterPreview from '@/shared/filter/filter-preview.vue'
-import FilterDropdown from '@/shared/filter/filter-dropdown.vue'
-import FilterSearch from '@/shared/filter/filter-type-search'
-import FilterList from '@/shared/filter/filter-list.vue'
-import FilterTypeSelect from '@/shared/filter/filter-type-select'
-import FilterTypeSelectAsync from '@/shared/filter/filter-type-select-async'
-import FilterTypeKeywords from '@/shared/filter/filter-type-keywords'
-import FilterTypeBoolean from '@/shared/filter/filter-type-boolean'
-import FilterTypeNumber from '@/shared/filter/filter-type-number'
-import FilterTypeString from '@/shared/filter/filter-type-string'
-import FilterTypeDate from '@/shared/filter/filter-type-date'
+import FilterDropdown from '@/shared/filter/components/filter-dropdown.vue'
+import FilterSearch from '@/shared/filter/components/type/filter-type-search'
+import FilterList from '@/shared/filter/components/filter-list.vue'
+import FilterTypeSelect from '@/shared/filter/components/type/filter-type-select'
+import FilterTypeSelectMulti from '@/shared/filter/components/type/filter-type-select-multi'
+import FilterTypeSelectGroup from '@/shared/filter/components/type/filter-type-select-group'
+import FilterTypeSelectAsync from '@/shared/filter/components/type/filter-type-select-async'
+import FilterTypeKeywords from '@/shared/filter/components/type/filter-type-keywords'
+import FilterTypeBoolean from '@/shared/filter/components/type/filter-type-boolean'
+import FilterTypeNumber from '@/shared/filter/components/type/filter-type-number'
+import FilterTypeString from '@/shared/filter/components/type/filter-type-string'
+import FilterTypeDate from '@/shared/filter/components/type/filter-type-date'
 import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
+import SquaredAvatar from '@/shared/avatar/squared-avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
 import Teleport from '@/shared/teleport/teleport.vue'
 import Popover from '@/shared/popover/popover.vue'
@@ -67,6 +70,8 @@ export default {
     'app-filter-preview': FilterPreview,
     'app-filter-list': FilterList,
     'app-filter-type-select': FilterTypeSelect,
+    'app-filter-type-select-multi': FilterTypeSelectMulti,
+    'app-filter-type-select-group': FilterTypeSelectGroup,
     'app-filter-type-keywords': FilterTypeKeywords,
     'app-filter-type-select-async': FilterTypeSelectAsync,
     'app-filter-type-boolean': FilterTypeBoolean,
@@ -77,6 +82,7 @@ export default {
     'app-filter-dropdown': FilterDropdown,
     'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
+    'app-squared-avatar': SquaredAvatar,
     'app-alert': Alert,
     'app-keywords-input': KeywordsInput,
     'app-teleport': Teleport,

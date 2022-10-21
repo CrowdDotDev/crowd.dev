@@ -1,6 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-
 export class ConversationService {
   static async update(id, data) {
     const body = {

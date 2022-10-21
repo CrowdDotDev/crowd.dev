@@ -29,7 +29,6 @@
     "maxRetrospectInSeconds": 3600
   },
   "google": {},
-  "facebook": {},
   "discord": {
     "maxRetrospectInSeconds": 3600
   },

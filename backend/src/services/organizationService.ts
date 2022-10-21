@@ -37,7 +37,7 @@ export default class OrganizationService {
         : null
       if (existingByName) {
         await SequelizeRepository.commitTransaction(transaction)
-        return existingByName
+        return await this.update(existingByName.id, data)
       }
 
       const existingByUrl = data.url
@@ -48,7 +48,7 @@ export default class OrganizationService {
         : null
       if (existingByUrl) {
         await SequelizeRepository.commitTransaction(transaction)
-        return existingByUrl
+        return await this.update(existingByName.id, data)
       }
 
       if (shouldDoEnrich) {

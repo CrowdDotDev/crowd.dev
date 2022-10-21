@@ -5,8 +5,8 @@
     "color": "#E5E7EB",
     "borderColor": "#E5E7EB",
     "active": true,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
   },
   {
     "platform": "discord",
@@ -14,8 +14,8 @@
     "color": "#dee0fc",
     "borderColor": "#dee0fc",
     "active": true,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
   },
   {
     "platform": "slack",
@@ -23,8 +23,8 @@
     "color": "#FFFFFF",
     "borderColor": "#E5E7EB",
     "active": true,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/3800/3800024.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn-icons-png.flaticon.com/512/3800/3800024.png"
   },
   {
     "platform": "twitter",
@@ -32,8 +32,8 @@
     "color": "#d2ebfc",
     "borderColor": "#d2ebfc",
     "active": true,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/733/733579.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn-icons-png.flaticon.com/512/733/733579.png"
   },
   {
     "platform": "devto",
@@ -41,6 +41,7 @@
     "color": "#E5E7EB",
     "borderColor": "#E5E7EB",
     "active": true,
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
     "image": "https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
   },
   {
@@ -48,54 +49,53 @@
     "name": "Discourse",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/92_Discourse-512.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/92_Discourse-512.png"
   },
   {
     "platform": "stackoverflow",
     "name": "Stack Overflow",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
   },
   {
     "platform": "reddit",
     "name": "Reddit",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/2111/2111589.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "/images/reddit.svg"
   },
   {
     "platform": "linkedin",
     "name": "LinkedIn",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://cdn-icons-png.flaticon.com/512/145/145807.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "/images/linkedin.svg"
   },
   {
     "platform": "zapier",
     "name": "Zapier",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png"
   },
   {
-    "platform": "integromat",
-    "name": "Integromat",
+    "platform": "make",
+    "name": "Make",
     "color": "#FFFFFF",
     "active": false,
-    "image":
-    "https://gdm-catalog-fmapi-prod.imgix.net/ProductLogo/92eb55a6-42df-488e-860e-1e1611c3bd11.png?auto=format&q=50&fit=fill"
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "/images/make.svg"
   },
   {
-    "platform": "other",
-    "name": "Miss something?",
-    "active": false,
-    "color": "#ffffff",
-    "image": "/images/icon-black.png"
+    "platform": "custom",
+    "name": "Build your own",
+    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "image": "/images/custom-integration.svg"
   }
 ]

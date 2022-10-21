@@ -18,7 +18,8 @@
       :page-size="pageSize"
       :total="total"
       :current-page="currentPage"
-      @change-page-size="
+      :module="module"
+      @change-sorter="
         (pageSize) => emit('changePageSize', pageSize)
       "
     />
@@ -63,13 +64,13 @@ defineProps({
     type: Number,
     required: true
   },
-  pagerCount: {
-    type: Number,
-    required: true
-  },
   total: {
     type: Number,
     required: true
+  },
+  module: {
+    type: String,
+    default: () => ''
   }
 })
 </script>

@@ -317,6 +317,13 @@ export default class IntegrationService {
 
     const channels = isOnboarding ? [] : integration.settings.channels ?? []
 
+    integration = await this.createOrUpdate({
+      platform: PlatformType.DISCORD,
+      integrationIdentifier: guildId,
+      settings: { channels, updateMemberAttributes: true },
+      status: 'in-progress',
+    })
+
     // Preparing a message to start fetching activities
     const integrationsMessageBody: DiscordIntegrationMessage = {
       integration: PlatformType.DISCORD,

@@ -22,28 +22,15 @@
       class="btn btn--secondary btn--secondary--orange"
       @click="doOpenModal()"
     ></el-button>
-    <app-teleport to="#teleport-modal">
-      <app-member-form-modal
-        v-if="dialogVisible"
-        :visible="dialogVisible"
-        @close="onModalClose"
-        @success="onModalSuccess"
-      ></app-member-form-modal>
-    </app-teleport>
   </div>
 </template>
 
 <script>
-import MemberFormModal from '@/modules/member/components/member-form-modal.vue'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'AppMemberAutocompleteInput',
-
-  components: {
-    'app-member-form-modal': MemberFormModal
-  },
   props: {
     modelValue: {
       type: Object,

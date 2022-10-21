@@ -398,12 +398,17 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed discussion activities that can be saved to the database.
    */
-  parseDiscussions(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseDiscussions(
+    records: Array<any>,
+    endpoint: string,
+  ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -428,9 +433,8 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.discussionOpened.score,
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       })
-
-      return acc
-    }, [])
+    }
+    return out
   }
 
   /**
@@ -443,8 +447,10 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.ISSUE_OPENED,
@@ -462,9 +468,9 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.issueOpened.score,
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       })
+    }
 
-      return acc
-    }, [])
+    return out
   }
 
   /**
@@ -477,8 +483,10 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.FORK,
@@ -490,9 +498,9 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       })
+    }
 
-      return acc
-    }, [])
+    return out
   }
 
   /**
@@ -509,8 +517,10 @@ export default class GithubIterator extends BaseIterator {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -528,9 +538,9 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       })
+    }
 
-      return acc
-    }, [])
+    return out
   }
 
   /**
@@ -548,11 +558,12 @@ export default class GithubIterator extends BaseIterator {
   ): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
+    const out = []
 
-    return records.reduce(async (acc, record) => {
+    for (const record of records) {
       const commentId = record.id
 
-      acc.push({
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -572,10 +583,9 @@ export default class GithubIterator extends BaseIterator {
           : GitHubGrid.comment.isKeyAction,
       })
 
-      const replies = []
       for (const reply of record.replies.nodes) {
         const member = await this.parseMember(reply.author)
-        replies.push({
+        out.push({
           tenant,
           platform: PlatformType.GITHUB,
           type: GithubActivityType.DISCUSSION_COMMENT,
@@ -590,11 +600,9 @@ export default class GithubIterator extends BaseIterator {
           isKeyAction: GitHubGrid.comment.isKeyAction,
         })
       }
+    }
 
-      acc = acc.concat(replies)
-
-      return acc
-    }, [])
+    return out
   }
 
   /**
@@ -671,12 +679,13 @@ export default class GithubIterator extends BaseIterator {
    * @param endpoint Current endpoint
    * @returns parsed star activities that can be saved to the database.
    */
-  parseStars(records: Array<any>, endpoint: string): Array<AddActivitiesSingle> {
+  async parseStars(records: Array<any>, endpoint: string): Promise<Array<AddActivitiesSingle>> {
     const { tenant } = this
     const { repo } = this.getSplitEndpointInfo(endpoint)
 
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out = []
+    for (const record of records) {
+      out.push({
         tenant,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.STAR,
@@ -693,9 +702,8 @@ export default class GithubIterator extends BaseIterator {
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       })
-
-      return acc
-    }, [])
+    }
+    return out
   }
 
   /**
@@ -731,10 +739,19 @@ export default class GithubIterator extends BaseIterator {
       if (IS_TEST_ENV) {
         member.organizations = [{ name: 'crowd.dev' }]
       } else {
-        const company = memberFromApi.company.replace('@', '')
+        const company = memberFromApi.company.replace('@', '').trim()
         const fromAPI = await getOrganization(company, this.accessToken)
         if (fromAPI) {
-          member.organizations = [fromAPI]
+          member.organizations = [
+            {
+              name: fromAPI.name,
+              ...(fromAPI.description && { description: fromAPI.description }),
+              ...(fromAPI.location && { location: fromAPI.location }),
+              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
+              ...(fromAPI.url && { url: fromAPI.url }),
+              ...(fromAPI.twitter && { twittwe: { handle: fromAPI.twitterUsername } }),
+            },
+          ]
         } else {
           member.organizations = [{ name: company }]
         }

@@ -56,6 +56,7 @@
       :close-on-click-modal="false"
       title="Webhook executions"
       custom-class="webhook-executions-drawer"
+      size="600px"
     >
       <app-webhook-execution-list :webhook="automation" />
     </el-drawer>

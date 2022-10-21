@@ -1,32 +1,25 @@
 <template>
   <div>
-    <el-tooltip
-      content="Double click to edit"
-      effect="dark"
-      placement="top"
-    >
-      <div
-        class="inline-flex items-center flex-wrap"
-        @click.stop
-        @dblclick="editing = true"
+    <div class="inline-flex items-center flex-wrap">
+      <span
+        v-for="tag in member.tags"
+        :key="tag.id"
+        class="tag mr-2 my-1"
+        >{{ tag.name }}</span
       >
-        <span
-          v-for="tag in member.tags"
-          :key="tag.id"
-          class="tag mr-2 my-1"
-          >{{ tag.name }}</span
-        >
-        <span
-          v-if="member.tags.length === 0"
-          class="text-gray-400 italic"
-          >No tags added</span
-        >
-      </div>
-    </el-tooltip>
+      <el-button
+        v-if="editable"
+        class="btn btn-link btn-link--primary text-2xs"
+        :class="member.tags.length > 0 ? 'ml-2' : ''"
+        @click.stop="editing = true"
+        >Edit tags</el-button
+      >
+    </div>
     <app-tag-popover
       v-model="model[fields.tags.name]"
       :visible="editing"
       :loading="loading"
+      :pretitle="computedPretitle"
       @cancel="editing = false"
       @submit="doSubmit"
     />
@@ -39,7 +32,6 @@ import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { MemberModel } from '@/modules/member/member-model'
-import { MemberService } from '@/modules/member/member-service'
 import AppTagPopover from '@/modules/tag/components/tag-popover'
 
 const { fields } = MemberModel
@@ -57,6 +49,10 @@ export default {
     member: {
       type: Object,
       default: () => {}
+    },
+    editable: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['tags-updated'],
@@ -71,6 +67,11 @@ export default {
   computed: {
     fields() {
       return fields
+    },
+    computedPretitle() {
+      return this.$route.name === 'memberView'
+        ? undefined
+        : this.member.displayName
     }
   },
   watch: {
@@ -94,10 +95,10 @@ export default {
     }),
     async doSubmit() {
       this.loading = true
-      await MemberService.update(
-        this.member.id,
-        formSchema.cast(this.model)
-      )
+      await this.doUpdate({
+        id: this.member.id,
+        values: formSchema.cast(this.model)
+      })
       this.loading = false
       this.editing = false
       Message.success(
@@ -112,7 +113,7 @@ export default {
 <style lang="scss">
 .tags-form {
   .el-select {
-    @apply w-full mt-3 mb-1;
+    @apply w-full;
   }
 }
 </style>

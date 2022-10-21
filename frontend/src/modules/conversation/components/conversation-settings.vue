@@ -2,7 +2,7 @@
   <div class="conversation-settings">
     <el-button
       v-if="buttonVisible && hasPermissionToEdit"
-      class="btn btn--secondary"
+      class="btn btn--transparent btn--md"
       @click="$emit('open')"
     >
       <i class="ri-lg ri-settings-2-line mr-1" />
