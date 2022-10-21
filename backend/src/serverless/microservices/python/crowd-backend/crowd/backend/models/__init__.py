@@ -1,6 +1,5 @@
 import logging
 
-__version__ = "0.0.6"
 
 from .activity import Activity  # noqa
 from .member import Member  # noqa

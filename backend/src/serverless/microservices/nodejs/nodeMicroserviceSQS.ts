@@ -1,7 +1,7 @@
 // TODO-kube
 
 import moment from 'moment'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../types/worketTypes'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { KUBE_MODE, IS_TEST_ENV } from '../../../config'
 import { NodeMicroserviceMessage } from './messageTypes'

@@ -4,7 +4,7 @@ import IntegrationRepository from '../../database/repositories/integrationReposi
 import { DevtoIntegrationMessage } from '../../serverless/integrations/types/messageTypes'
 import { CrowdJob } from '../../utils/jobTypes'
 import { PlatformType } from '../../utils/platforms'
-import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 
 const job: CrowdJob = {
   name: 'DEV.to coordinator',

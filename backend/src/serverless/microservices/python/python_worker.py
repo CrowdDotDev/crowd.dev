@@ -4,7 +4,7 @@ from crowd.backend.enums import Services
 from crowd.backend.infrastructure import SQS
 from crowd.backend.infrastructure.config import PYTHON_WORKER_QUEUE
 from crowd.backend.utils.coordinator import base_coordinator
-from crowd.check_merge_members import check_merge_members_worker
+from crowd.check_merge_members.merge_suggestions_worker import merge_suggestions_worker
 from crowd.members_score import members_score_worker
 
 sqs = SQS(PYTHON_WORKER_QUEUE)
@@ -21,12 +21,13 @@ while True:
         service = body.get('service', '')
         tenant_id = body.get('tenant', '')
         microservice_id = body.get('microservice_id', '')
+        member = body.get('member', '')
         params = body.get('params', None)
 
         if service == Services.CHECK_MERGE.value:
             sqs.delete_message(msg_receipt)
-            print("triggering check_merge")
-            check_merge_members_worker(tenant_id, microservice_id, params)
+            print("triggering merge_suggestions_worker")
+            merge_suggestions_worker(tenant_id, member, params)
 
         elif service == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)
@@ -35,8 +36,8 @@ while True:
 
         elif msg_type == Services.CHECK_MERGE.value:
             sqs.delete_message(msg_receipt)
-            print("triggering check_merge coordinator")
-            base_coordinator(str(Services.CHECK_MERGE.value))
+            print("triggering merge_suggestions_worker")
+            merge_suggestions_worker(tenant_id, member, params)
 
         elif msg_type == Services.MEMBERS_SCORE.value:
             sqs.delete_message(msg_receipt)

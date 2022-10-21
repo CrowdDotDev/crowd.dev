@@ -1,6 +1,5 @@
 import logging
 
-__version__ = "0.0.6"
 from .base_controller import BaseController  # noqa
 from .members_controller import MembersController  # noqa
 from ..infrastructure.config import KUBE_MODE
