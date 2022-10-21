@@ -1,7 +1,30 @@
 <template>
+  <div
+    class="flex items-center py-1 mb-3 mt-2"
+    :class="count ? 'justify-between' : 'justify-end'"
+  >
+    <app-pagination-sorter
+      v-if="!!count"
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      :sorter="false"
+      module="user"
+      position="top"
+    />
+
+    <el-button
+      class="btn btn--primary btn--sm"
+      @click.prevent="() => $emit('invite')"
+    >
+      <i class="ri-lg ri-mail-line mr-1" />
+      <span class="leading-5">Invite user</span>
+    </el-button>
+  </div>
   <div class="app-list-table panel">
     <app-user-list-toolbar></app-user-list-toolbar>
-    <div class="-mx-6 -mt-4">
+    <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
         v-loading="loading"
@@ -17,6 +40,18 @@
         ></el-table-column>
 
         <el-table-column
+          :width="250"
+          :label="fields.fullName.label"
+          :prop="fields.fullName.name"
+          sortable="custom"
+        >
+          <template #default="scope">
+            {{ presenter(scope.row, 'fullName') ?? '-' }}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          :width="400"
           :label="fields.email.label"
           :prop="fields.email.name"
           sortable="custom"
@@ -27,16 +62,7 @@
         </el-table-column>
 
         <el-table-column
-          :label="fields.fullName.label"
-          :prop="fields.fullName.name"
-          sortable="custom"
-        >
-          <template #default="scope">
-            {{ presenter(scope.row, 'fullName') }}
-          </template>
-        </el-table-column>
-
-        <el-table-column
+          :width="100"
           :label="fields.roles.label"
           :prop="fields.roles.name"
         >
@@ -59,18 +85,18 @@
           :prop="fields.status.name"
         >
           <template #default="scope">
-            <el-tag
-              :type="
-                scope.row[fields.status.name] === 'invited'
-                  ? 'warning'
-                  : scope.row[fields.status.name] ===
-                    'empty-permissions'
-                  ? 'danger'
-                  : 'success'
-              "
+            <span
+              class="badge"
+              :class="{
+                'badge--green':
+                  scope.row[fields.status.name] ===
+                  'active',
+                'badge--red':
+                  scope.row[fields.status.name] ===
+                  'empty-permissions'
+              }"
+              >{{ presenter(scope.row, 'status') }}</span
             >
-              {{ presenter(scope.row, 'status') }}
-            </el-tag>
           </template>
         </el-table-column>
 
@@ -123,6 +149,8 @@ export default {
     AppUserDropdown,
     'app-user-list-toolbar': UserListToolbar
   },
+
+  emits: ['invite'],
 
   computed: {
     ...mapGetters({

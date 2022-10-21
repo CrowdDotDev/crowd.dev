@@ -9,43 +9,35 @@
       selected</span
     >
 
-    <el-tooltip
-      v-if="hasPermissionToDestroy"
-      :content="destroyButtonTooltip"
-      :disabled="!destroyButtonTooltip"
-    >
-      <span>
-        <el-button
-          :disabled="destroyButtonDisabled"
-          class="btn btn--secondary mr-2"
-          @click="doDestroyAllWithConfirm()"
-        >
-          <i class="ri-lg ri-delete-bin-line mr-1" />
-          <app-i18n code="common.destroy"></app-i18n>
-        </el-button>
-      </span>
-    </el-tooltip>
-
-    <el-tooltip
-      :content="exportButtonTooltip"
-      :disabled="!exportButtonTooltip"
-    >
-      <span>
-        <el-button
+    <el-dropdown trigger="click" @command="handleCommand">
+      <button class="btn btn--bordered btn--sm">
+        <span class="mr-2">Actions</span>
+        <i class="ri-xl ri-arrow-down-s-line"></i>
+      </button>
+      <template #dropdown>
+        <el-dropdown-item
+          command="export"
           :disabled="exportButtonDisabled"
-          class="btn btn--secondary mr-2"
-          @click="doExport()"
         >
-          <i class="ri-lg ri-file-excel-2-line mr-1" />
-          <app-i18n code="common.export"></app-i18n>
-        </el-button>
-      </span>
-    </el-tooltip>
+          <i class="ri-lg ri-file-download-line mr-1" />
+          Export to CSV
+        </el-dropdown-item>
+        <el-dropdown-item
+          v-if="hasPermissionToDestroy"
+          command="destroyAll"
+          :disabled="destroyButtonDisabled"
+        >
+          <div class="text-red-500 flex items-center">
+            <i class="ri-lg ri-delete-bin-line mr-2" />
+            <app-i18n code="common.destroy"></app-i18n>
+          </div>
+        </el-dropdown-item>
+      </template>
+    </el-dropdown>
   </div>
 </template>
 
 <script>
-import { AuditLogPermissions } from '@/modules/audit-log/audit-log-permissions'
 import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import { i18n } from '@/i18n'
@@ -63,20 +55,6 @@ export default {
       selectedRows: 'user/list/selectedRows'
     }),
 
-    hasPermissionToAuditLogs() {
-      return new AuditLogPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
-
-    hasPermissionToEdit() {
-      return new UserPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).edit
-    },
-
     hasPermissionToDestroy() {
       return new UserPermissions(
         this.currentTenant,
@@ -90,20 +68,8 @@ export default {
       )
     },
 
-    exportButtonTooltip() {
-      return !this.hasRows
-        ? i18n('common.noDataToExport')
-        : null
-    },
-
     destroyButtonDisabled() {
       return !this.selectedRows.length || this.loading
-    },
-
-    destroyButtonTooltip() {
-      return !this.selectedRows.length
-        ? i18n('common.mustSelectARow')
-        : null
     }
   },
 
@@ -112,6 +78,14 @@ export default {
       doExport: 'user/list/doExport',
       doDestroyAll: 'user/destroy/doDestroyAll'
     }),
+
+    async handleCommand(command) {
+      if (command === 'export') {
+        await this.handleDoExport()
+      } else if (command === 'destroyAll') {
+        await this.doDestroyAllWithConfirm()
+      }
+    },
 
     async doDestroyAllWithConfirm() {
       try {
@@ -131,6 +105,14 @@ export default {
       } catch (error) {
         // no
       }
+    },
+
+    async handleDoExport() {
+      try {
+        await this.doExport()
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 }
@@ -138,7 +120,8 @@ export default {
 
 <style lang="scss">
 .user-list-toolbar {
-  @apply flex items-center justify-end absolute h-16 top-0 mt-1 right-0 z-10 bg-white rounded-tr-xl p-2;
+  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
+  height: calc(56px - 1px);
   width: calc(100% - 75px);
 }
 </style>

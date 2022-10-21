@@ -2,6 +2,7 @@
   <div v-if="isReadOnly">
     <el-button
       class="btn btn--secondary"
+      placement="bottom-end"
       @click="copyToClipboard(report.id)"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
@@ -45,13 +46,17 @@
           ><i class="ri-pencil-line mr-1" />Edit
           Report</el-dropdown-item
         >
+        <el-divider class="border-gray-200" />
         <el-dropdown-item
           :command="{
             action: 'reportDelete',
             report: report
           }"
-          ><i class="ri-delete-bin-line mr-1" />Delete
-          Report</el-dropdown-item
+          ><i
+            class="ri-delete-bin-line text-base mr-2 text-red-500"
+          /><span class="text-xs text-red-500"
+            >Delete Report</span
+          ></el-dropdown-item
         >
       </template>
     </el-dropdown>

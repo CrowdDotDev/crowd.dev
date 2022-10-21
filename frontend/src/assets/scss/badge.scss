@@ -4,4 +4,12 @@
   &--green {
     @apply bg-green-100 text-green-900;
   }
+
+  &--red {
+    @apply bg-red-100 text-green-900;
+  }
+
+  &--yellow {
+    @apply bg-yellow-100 text-green-900;
+  }
 }
