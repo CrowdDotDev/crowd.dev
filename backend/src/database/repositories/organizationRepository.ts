@@ -273,6 +273,9 @@ class OrganizationRepository {
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
+    const identities = Sequelize.literal (
+      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg("members".username))))`
+    )
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
     const memberCount = Sequelize.fn('COUNT', Sequelize.col('members.id'))
@@ -481,6 +484,7 @@ class OrganizationRepository {
             'organization',
           ),
           activeOn,
+          identities,
           lastActive,
           memberCount,
         },
@@ -548,6 +552,7 @@ class OrganizationRepository {
           'organization',
         ),
         [activeOn, 'activeOn'],
+        [identities, 'identities'],
         [lastActive, 'lastActive'],
         [memberCount, 'memberCount'],
       ],
@@ -656,6 +661,8 @@ class OrganizationRepository {
           .map((a) => a.platform),
       ),
     ]
+
+    output.identities = members.reduce((acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)), [])
 
     output.memberCount = members.length
 

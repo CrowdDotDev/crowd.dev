@@ -704,6 +704,10 @@ class MemberRepository {
       `array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`,
     )
 
+    const identities = Sequelize.literal (
+      `ARRAY(SELECT jsonb_object_keys("member".username))`
+    )
+
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
@@ -723,6 +727,7 @@ class MemberRepository {
           lastActive,
           averageSentiment,
           activeOn,
+          identities,
           ...dynamicAttributesLiterals,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
@@ -818,6 +823,7 @@ class MemberRepository {
           'member',
         ),
         [activeOn, 'activeOn'],
+        [identities, 'identities'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
@@ -992,6 +998,8 @@ class MemberRepository {
     output.lastActive = output.activities[0]?.timestamp ?? null
 
     output.activeOn = [...new Set(output.activities.map((i) => i.platform))]
+
+    output.identities = Object.keys(output.username)
 
     output.activityCount = output.activities.length
 

@@ -55,6 +55,11 @@ components:
           - new-internet
           - making-the-world-a-better-place
           - not-like-hooli
+        identities: 
+          - github
+          - twitter
+        activeOn:
+          - github
         twitter:
           bio: The internet we deserve
           handle: PiedPiper
@@ -93,6 +98,12 @@ components:
           - hooli
           - tethics
           - not-google
+        identities: 
+          - devto
+          - github
+          - twitter
+        activeOn:
+          - devto
         twitter:
           bio: Hooli is an international corporation founded by Gavin Belson and Peter Gregory
           handle: hooli
