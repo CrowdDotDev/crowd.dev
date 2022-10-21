@@ -67,6 +67,9 @@ describe('MemberRepository tests', () => {
         displayName: member2add.displayName,
         email: member2add.email,
         score: member2add.score,
+        identities: [
+          "github"
+        ],
         organizations: [],
         notes: [],
         tasks: [],
@@ -172,6 +175,9 @@ describe('MemberRepository tests', () => {
         displayName: member2add.displayName,
         organizations: [],
         attributes: {},
+        identities: [
+          "github"
+        ],
         email: null,
         score: -1,
         importHash: null,
@@ -306,6 +312,9 @@ describe('MemberRepository tests', () => {
         id: memberCreated.id,
         username: member2add.username,
         displayName: member2add.displayName,
+        identities: [
+          "github"
+        ],
         attributes: {},
         email: null,
         score: -1,
@@ -503,6 +512,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activityCount
       delete member1Returned.lastActivity
       delete member1Returned.activeOn
+      delete member1Returned.identities
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -594,6 +604,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.averageSentiment
       delete member1Returned.lastActivity
       delete member1Returned.activeOn
+      delete member1Returned.identities
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1264,6 +1275,9 @@ describe('MemberRepository tests', () => {
       const expectedMemberCreated = {
         id: returnedMember.id,
         username: updateFields.username,
+        identities: [
+          "github"
+        ],
         displayName: returnedMember.displayName,
         attributes: updateFields.attributes,
         email: updateFields.email,
@@ -1410,6 +1424,9 @@ describe('MemberRepository tests', () => {
         id: member1.id,
         username: member1.username,
         displayName: member1.displayName,
+        identities: [
+          'discord'
+        ],
         attributes: {},
         email: member1.email,
         score: member1.score,
@@ -1488,6 +1505,9 @@ describe('MemberRepository tests', () => {
         id: member1.id,
         username: member1.username,
         displayName: member1.displayName,
+        identities: [
+          'discord'
+        ],
         attributes: {},
         email: member1.email,
         score: member1.score,
@@ -1503,7 +1523,7 @@ describe('MemberRepository tests', () => {
         activities: [],
         reach: { total: -1 },
         joinedAt: new Date(member1.joinedAt),
-        organizations: [org1Plain, org2Plain],
+        organizations: [SequelizeTestUtils.objectWithoutKey(org1Plain, ['lastActive', 'identities', 'activeOn']), SequelizeTestUtils.objectWithoutKey(org2Plain, ['lastActive', 'identities', 'activeOn'])],
         noMerge: [],
         toMerge: [],
         notes: [],

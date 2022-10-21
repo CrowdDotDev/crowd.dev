@@ -274,7 +274,7 @@ class OrganizationRepository {
     )
 
     const identities = Sequelize.literal(
-      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg("members".username))))`,
+      `array( select jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 

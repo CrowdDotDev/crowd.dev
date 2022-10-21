@@ -783,7 +783,7 @@ describe('OrganizationRepository tests', () => {
       const memberId = await (
         await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
       ).rows[0].id
-
+      
       const found = await OrganizationRepository.findAndCountAll(
         {
           filter: {
@@ -934,6 +934,9 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activeOn: [],
+        identities: [],
+        lastActive: null,
         name: organizationUpdated.name,
         importHash: null,
         createdAt: organizationCreated.createdAt,
