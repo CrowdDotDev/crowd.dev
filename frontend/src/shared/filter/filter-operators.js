@@ -21,7 +21,8 @@ export default {
     operator: {
       eq: 'is',
       ne: 'is not',
-      textContains: 'contains'
+      textContains: 'contains',
+      notContains: 'not contains'
     }
   }
 }

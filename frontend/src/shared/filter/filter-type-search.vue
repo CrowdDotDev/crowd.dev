@@ -2,7 +2,7 @@
   <div class="filter-type-search">
     <el-input
       v-model="model"
-      placeholder="Search members"
+      :placeholder="placeholder"
       :prefix-icon="SearchIcon"
       clearable
     >
@@ -13,9 +13,29 @@
   </div>
 </template>
 <script setup>
-import { h, ref, defineEmits, watch } from 'vue'
+import {
+  h,
+  ref,
+  defineEmits,
+  defineProps,
+  watch
+} from 'vue'
 import debounce from 'lodash/debounce'
 
+const props = defineProps({
+  module: {
+    type: String,
+    default: null
+  },
+  filter: {
+    type: Object,
+    default: () => {}
+  },
+  placeholder: {
+    type: String,
+    required: true
+  }
+})
 const emit = defineEmits(['change'])
 const SearchIcon = h(
   'i', // type
@@ -27,12 +47,8 @@ const model = ref('')
 
 const debouncedChange = debounce(() => {
   emit('change', {
-    name: 'search',
-    value: model.value,
-    defaultValue: '',
-    operator: null,
-    defaultOperator: null,
-    type: 'search'
+    ...props.filter,
+    value: model.value
   })
 }, 300)
 

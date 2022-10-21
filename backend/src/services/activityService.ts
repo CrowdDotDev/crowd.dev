@@ -1,8 +1,9 @@
 import { Transaction } from 'sequelize/types'
+import { Blob } from 'buffer'
 import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
-import { detectSentiment } from './aws'
+import { detectSentiment, detectSentimentBatch } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
@@ -146,6 +147,7 @@ export default class ActivityService {
 
   /**
    * Get the sentiment of an activity from its body and title.
+   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
    * @param data Activity data. Includes body and title.
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
@@ -161,9 +163,67 @@ export default class ActivityService {
       }
     }
 
+    data.body = data.body ?? ''
+    data.title = data.title ?? ''
+
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
+
     // Concatenate title and body
-    const text = `${data.title} ${data.body}`.trim()
-    return detectSentiment(text)
+    let text = `${data.title} ${data.body}`.trim()
+
+    // Check text byte size
+    let blob = new Blob([text])
+    if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
+      blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
+      text = await blob.text()
+    }
+
+    return text === '' ? {} : detectSentiment(text)
+  }
+
+  /**
+   * Get the sentiment of an array of activities form its' body and title
+   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
+   * @param activityArray activity array
+   * @returns list of sentiments ordered same as input array
+   */
+  static async getSentimentBatch(activityArray) {
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
+    let textArray = await Promise.all(
+      activityArray.map(async (i) => {
+        let text = `${i.title} ${i.body}`.trim()
+        let blob = new Blob([text])
+        if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
+          blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
+          text = await blob.text()
+        }
+        return text
+      }),
+    )
+
+    const MAX_BATCH_SIZE = 25
+
+    const promiseArray = []
+
+    if (textArray.length > MAX_BATCH_SIZE) {
+      while (textArray.length > MAX_BATCH_SIZE) {
+        promiseArray.push(detectSentimentBatch(textArray.slice(0, MAX_BATCH_SIZE)))
+        textArray = textArray.slice(MAX_BATCH_SIZE)
+      }
+      // insert last small chunk
+      if (textArray.length > 0) promiseArray.push(detectSentimentBatch(textArray))
+    } else {
+      promiseArray.push(textArray)
+    }
+
+    console.time('sentiment-api-request')
+    const values = await Promise.all(promiseArray)
+    console.timeEnd('sentiment-api-request')
+
+    return values.reduce((acc, i) => {
+      acc.push(...i)
+      return acc
+    }, [])
   }
 
   /**

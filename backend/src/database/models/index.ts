@@ -28,7 +28,7 @@ function models() {
         write: { host: DB_CONFIG.writeHost },
       },
       pool: {
-        max: 200,
+        max: SERVICE === configTypes.ServiceType.API ? 200 : 20,
         min: 0,
         acquire: 30000,
         idle: 10000,

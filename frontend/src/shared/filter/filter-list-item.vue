@@ -87,6 +87,7 @@ import {
 import moment from 'moment'
 import lodash from 'lodash'
 import filterOperators from './filter-operators'
+import { attributesAreDifferent } from './is-different'
 
 const props = defineProps({
   filter: {
@@ -95,7 +96,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['destroy', 'change'])
+const emit = defineEmits(['destroy', 'change', 'reset'])
 
 const isExpanded = computed(() => props.filter.expanded)
 const hasValue = computed(() =>
@@ -126,10 +127,28 @@ const valueToString = computed(() => {
         ).format('YYYY-MM-DD')
         return `${operatorLabel} ${formattedDate}`
       }
-    } else if (props.filter.type.includes('select')) {
+    } else if (props.filter.type === 'select') {
+      const label = props.filter.props.options.find(
+        (o) => o.value === props.filter.value
+      )?.label
+
+      return `${operatorLabel} ${label}`
+    } else if (
+      props.filter.type.includes('select-multi') ||
+      Array.isArray(props.filter.value)
+    ) {
       return props.filter.value
         .map((o) => o.label || o)
         .join(', ')
+    } else if (props.filter.type.includes('select-group')) {
+      const { displayKey, displayValue } =
+        props.filter.value
+
+      if (displayKey && displayValue) {
+        return `${displayKey} - ${displayValue}`
+      }
+
+      return ''
     } else {
       return `${operatorLabel} ${props.filter.value}`
     }
@@ -186,10 +205,11 @@ const handleDestroy = () => {
 }
 
 const handleReset = () => {
+  model.operator = props.filter.defaultOperator
   model.value = JSON.parse(
     JSON.stringify(props.filter.defaultValue)
   )
-  handleChange()
+  emit('reset', { ...props.filter })
 }
 
 const handleCancel = () => {
@@ -245,6 +265,17 @@ watch(
     }, 500)
   },
   { immediate: true }
+)
+
+watch(
+  () => props.filter,
+  (newValue) => {
+    if (attributesAreDifferent(model, newValue)) {
+      model.value = newValue.value
+      model.operator = newValue.operator
+    }
+  },
+  { deep: true }
 )
 </script>
 

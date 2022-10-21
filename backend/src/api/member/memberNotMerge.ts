@@ -5,11 +5,10 @@ import MemberService from '../../services/memberService'
 
 export default async (req, res) => {
   try {
-    new PermissionChecker(req).validateHas(Permissions.values.memberRead)
-    const { data } = req.body
+    new PermissionChecker(req).validateHas(Permissions.values.memberAttributesEdit)
     const payload = await new MemberService(req).addToNoMerge(
       req.params.memberId,
-      data.memberToNotMerge,
+      req.body.memberToNotMerge,
     )
 
     await ApiResponseHandler.success(req, res, payload)

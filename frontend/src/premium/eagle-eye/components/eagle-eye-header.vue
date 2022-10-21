@@ -1,41 +1,38 @@
 <template>
   <div class="eagle-eye-header">
-    <div class="container">
-      <div class="flex items-start">
-        <h2 class="text-2xl font-medium">Eagle Eye</h2>
-        <span
-          class="text-sm font-medium text-brand-500 ml-2"
-          >Free trial</span
-        >
-      </div>
-      <div class="text-gray-600 mt-2 text-sm">
-        Discover and engage with relevant content across
-        various community platforms.
-      </div>
-      <el-tabs
-        v-model="computedActiveTab"
-        class="eagle-eye-header-tabs"
+    <div class="flex items-start">
+      <h4>Eagle Eye</h4>
+      <span class="text-sm font-medium text-brand-500 ml-2"
+        >Free trial</span
       >
-        <el-tab-pane
-          label="Inbox"
-          name="inbox"
-          label-class="app-content-title"
-        >
-        </el-tab-pane>
-        <el-tab-pane
-          label="Engaged"
-          name="engaged"
-          label-class="app-content-title"
-        >
-        </el-tab-pane>
-        <el-tab-pane
-          label="Excluded"
-          name="rejected"
-          label-class="app-content-title"
-        >
-        </el-tab-pane>
-      </el-tabs>
     </div>
+    <div class="text-xs text-gray-500">
+      Discover and engage with relevant content across
+      various community platforms.
+    </div>
+    <el-tabs
+      v-model="computedActiveTab"
+      class="eagle-eye-header-tabs"
+    >
+      <el-tab-pane
+        label="Inbox"
+        name="inbox"
+        label-class="app-content-title"
+      >
+      </el-tab-pane>
+      <el-tab-pane
+        label="Engaged"
+        name="engaged"
+        label-class="app-content-title"
+      >
+      </el-tab-pane>
+      <el-tab-pane
+        label="Excluded"
+        name="rejected"
+        label-class="app-content-title"
+      >
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -70,14 +67,8 @@ export default {
 
 <style lang="scss">
 .eagle-eye-header {
-  @apply bg-white pt-8 shadow-sm;
-
   &-tabs {
     @apply mt-8;
-
-    .el-tabs__nav-wrap::after {
-      @apply hidden;
-    }
   }
 }
 </style>

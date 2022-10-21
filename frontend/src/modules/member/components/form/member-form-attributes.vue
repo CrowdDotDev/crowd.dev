@@ -51,6 +51,8 @@
               class="custom-date-picker"
               popper-class="date-picker-popper"
               type="date"
+              value-format="YYYY-MM-DD"
+              format="YYYY-MM-DD"
               placeholder="YYYY-MM-DD"
             />
             <el-select

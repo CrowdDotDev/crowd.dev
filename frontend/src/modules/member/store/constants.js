@@ -5,19 +5,7 @@ export const INITIAL_PAGE_SIZE = 20
 export const INITIAL_VIEW_ACTIVE_FILTER = {
   operator: 'and',
   attributes: {
-    activityCount: {
-      name: 'activityCount',
-      label: '# of activities',
-      custom: false,
-      props: {},
-      defaultValue: 100,
-      value: 100,
-      defaultOperator: 'gt',
-      operator: 'gt',
-      type: 'number',
-      expanded: false
-    }
-    /*score: {
+    score: {
       name: 'score',
       label: 'Engagement Level',
       custom: false,
@@ -46,13 +34,19 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
         ],
         multiple: true
       },
-      defaultValue: [],
-      value: [
+      defaultValue: [
         {
-          value: [4, 6],
-          label: 'Engaged',
+          value: [7, 8],
+          label: 'Fan',
           selected: false
         },
+        {
+          value: [9, 10],
+          label: 'Ultra',
+          selected: false
+        }
+      ],
+      value: [
         {
           value: [7, 8],
           label: 'Fan',
@@ -66,9 +60,9 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
       ],
       defaultOperator: null,
       operator: null,
-      type: 'select',
+      type: 'select-multi',
       expanded: false
-    }*/
+    }
   }
 }
 export const INITIAL_VIEW_RECENT_FILTER = {

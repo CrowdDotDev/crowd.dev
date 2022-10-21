@@ -9,7 +9,9 @@ export default (filter) => {
         if (
           Array.isArray(item.value)
             ? item.value.length > 0
-            : item.value !== '' && item.value !== null
+            : item.value !== '' &&
+              item.value !== null &&
+              item.value !== {}
         ) {
           acc.push(_buildAttributeBlock(item))
         }
@@ -23,25 +25,50 @@ export default (filter) => {
 function _buildAttributeBlock(attribute) {
   let rule = {}
 
-  if (attribute.name === 'search') {
+  if (attribute.name === 'platform') {
     return {
-      or: [
+      or: attribute.value.map((a) => {
+        return {
+          platform: a.value
+        }
+      })
+    }
+  } else if (attribute.name === 'sentiment') {
+    return {
+      'sentiment.label': {
+        eq: attribute.value.map((a) => a.value).join('/')
+      }
+    }
+  } else if (attribute.name === 'type') {
+    return {
+      and: [
         {
-          displayName: {
-            textContains: attribute.value
-          }
+          [attribute.value.type]: attribute.value.key
         },
         {
-          email: {
-            textContains: attribute.value
-          }
-        },
-        {
-          'username.default': {
+          type: attribute.value.value
+        }
+      ]
+    }
+  } else if (attribute.name === 'search') {
+    return {
+      or: attribute.fields.map((f) => {
+        return {
+          [f]: {
             textContains: attribute.value
           }
         }
-      ]
+      })
+    }
+  } else if (attribute.operator === 'notContains') {
+    return {
+      not: {
+        [attribute.custom
+          ? `attributes.${attribute.name}.default`
+          : attribute.name]: {
+          textContains: attribute.value
+        }
+      }
     }
   } else if (attribute.name === 'score') {
     rule = {
@@ -55,6 +82,7 @@ function _buildAttributeBlock(attribute) {
       }, [])
     }
   } else if (attribute.operator === 'between') {
+    // TODO: Chech if this exceptions is needed
     rule = {
       between: attribute.value
     }

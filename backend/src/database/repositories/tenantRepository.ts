@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -358,6 +358,28 @@ class TenantRepository {
    */
   static getCurrentTenant(options: IRepositoryOptions) {
     return SequelizeRepository.getCurrentTenant(options)
+  }
+
+  static async getAvailablePlatforms(id, options: IRepositoryOptions) {
+    const query = `
+        SELECT
+        DISTINCT platform
+      FROM (
+        SELECT jsonb_object_keys(username) AS platform
+        FROM members
+        where "tenantId" = :tenantId
+      ) AS subquery
+    `
+    const parameters: any = {
+      tenantId: id,
+    }
+
+    const platforms = await options.database.sequelize.query(query, {
+      replacements: parameters,
+      type: QueryTypes.SELECT,
+    })
+
+    return platforms
   }
 }
 

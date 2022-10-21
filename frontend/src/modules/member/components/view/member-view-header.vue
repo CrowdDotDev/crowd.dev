@@ -9,7 +9,7 @@
         />
         <div>
           <h5>{{ member.displayName }}</h5>
-          <div class="flex items-center">
+          <div class="flex items-center mt-2">
             <span
               v-if="
                 member.attributes?.jobTitle?.default ||
@@ -20,15 +20,10 @@
                 member.attributes.jobTitle.default
               }}</span
             >
-            <span class="ml-2">
-              <img
-                v-if="
-                  member.organizations?.length > 0 || false
-                "
-                :src="member.organizations[0].logo"
-                alt=""
-              />
-            </span>
+            <app-member-organizations
+              :member="member"
+              :show-title="false"
+            />
           </div>
         </div>
       </div>
@@ -127,6 +122,8 @@ import moment from 'moment/moment'
 import AppMemberSentiment from '@/modules/member/components/member-sentiment'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberDropdown from '@/modules/member/components/member-dropdown'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
+
 import AppTags from '@/modules/tag/components/tag-list'
 
 defineProps({
@@ -137,6 +134,14 @@ defineProps({
 })
 
 const formattedDate = (timestamp) => {
+  // If the timestamp is 1970, we show "-"
+  if (
+    moment(timestamp).isBefore(
+      moment().subtract(40, 'years')
+    )
+  ) {
+    return '-'
+  }
   return moment(timestamp).format('YYYY-MM-DD')
 }
 

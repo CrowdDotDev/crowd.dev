@@ -385,6 +385,12 @@ export default class IntegrationService {
 
     integration.settings.updateMemberAttributes = true
 
+    integration = await this.createOrUpdate({
+      platform: PlatformType.SLACK,
+      status: 'in-progress',
+      settings: integration.settings,
+    })
+
     // TODO-kube
     if (KUBE_MODE) {
       // TODO uros fixme
@@ -396,14 +402,6 @@ export default class IntegrationService {
     } else {
       await send(integrationsMessageBody)
     }
-
-    integration = await this.createOrUpdate({
-      platform: PlatformType.SLACK,
-      status: 'in-progress',
-      settings: integration.settings,
-    })
-
-    await send(integrationsMessageBody)
 
     return integration
   }

@@ -11,6 +11,11 @@
       ref="inputRef"
       v-model="model"
       placeholder="Select a date"
+      value-format="YYYY-MM-DD"
+      format="YYYY-MM-DD"
+      class="custom-date-picker"
+      popper-class="date-picker-popper"
+      v-bind="betweenProps"
       :disabled="
         operator === 'is_empty' ||
         operator === 'is_not_empty'
@@ -55,6 +60,18 @@ const emit = defineEmits([
   'update:value',
   'update:operator'
 ])
+
+const betweenProps = computed(() => {
+  return operator.value !== 'between'
+    ? {}
+    : {
+        type: 'daterange',
+        'range-separator': 'To',
+        'start-placeholder': 'Start date',
+        'end-placeholder': 'End date'
+      }
+})
+
 const model = computed({
   get() {
     return props.value

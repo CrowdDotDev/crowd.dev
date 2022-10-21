@@ -72,11 +72,11 @@
               Cancel
             </el-button>
             <el-button
-              :disabled="!isFormValid || isFormSubmitting"
+              :disabled="isSubmitBtnDisabled"
               :loading="isFormSubmitting"
               :loading-icon="LoaderIcon"
               class="btn btn--md btn--primary"
-              @click="doSubmit"
+              @click="onSubmit"
             >
               {{
                 isEditPage ? 'Update member' : 'Add member'
@@ -127,6 +127,7 @@ import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
+import { OrganizationService } from '@/modules/organization/organization-service'
 
 const LoaderIcon = h(
   'i',
@@ -153,6 +154,7 @@ const formSchema = computed(
       fields.tags,
       fields.username,
       fields.platform,
+      fields.organizations,
       fields.attributes,
       ...getCustomAttributes(
         store.state.member.customAttributes
@@ -170,21 +172,29 @@ const formModel = ref(getInitialModel())
 
 const isPageLoading = ref(true)
 const isFormSubmitting = ref(false)
-const hasFormSubmitted = ref(false)
+const wasFormSubmittedSuccessfuly = ref(false)
 const isDrawerOpen = ref(false)
 
 const rules = reactive(formSchema.value.rules())
 
+const computedFields = computed(() => fields)
 const computedAttributes = computed(() =>
   Object.values(store.state.member.customAttributes).filter(
     (attribute) => attribute.show
   )
 )
+
+// UI Validations
 const isEditPage = computed(() => !!route.params.id)
-const computedFields = computed(() => fields)
 const isFormValid = computed(() => {
   return formSchema.value.isValidSync(formModel.value)
 })
+const isSubmitBtnDisabled = computed(
+  () =>
+    !isFormValid.value ||
+    isFormSubmitting.value ||
+    (isEditPage.value && !hasFormChanged.value)
+)
 const hasFormChanged = computed(() => {
   const initialModel = isEditPage.value
     ? getInitialModel(record.value)
@@ -194,8 +204,12 @@ const hasFormChanged = computed(() => {
 })
 
 // Prevent lost data on route change
-onBeforeRouteLeave(() => {
-  if (hasFormChanged.value && !hasFormSubmitted.value) {
+onBeforeRouteLeave((to) => {
+  if (
+    hasFormChanged.value &&
+    !wasFormSubmittedSuccessfuly.value &&
+    to.fullPath !== '/500'
+  ) {
     return ConfirmDialog({})
       .then(() => {
         return true
@@ -240,12 +254,15 @@ onUnmounted(() => {
   )
 })
 
-// Once form is submitted, update route
-watch(hasFormSubmitted, (isFormSubmitted) => {
-  if (isFormSubmitted) {
-    router.push({ name: 'member' })
+// Once form is submitted successfuly, update route
+watch(
+  wasFormSubmittedSuccessfuly,
+  (isFormSubmittedSuccessfuly) => {
+    if (isFormSubmittedSuccessfuly) {
+      router.push({ name: 'member' })
+    }
   }
-})
+)
 
 function getInitialModel(record) {
   const attributes = Object.entries(
@@ -261,18 +278,25 @@ function getInitialModel(record) {
     }
   }, {})
 
-  return formSchema.value.initialValues({
-    displayName: record ? record.displayName : '',
-    email: record ? record.email : '',
-    joinedAt: record ? record.joinedAt : '',
-    attributes: record ? record.attributes : {},
-    ...attributes,
-    tags: record ? record.tags : [],
-    username: record ? record.username : {},
-    platform: record
-      ? record.username[Object.keys(record.username)[0]]
-      : ''
-  })
+  return JSON.parse(
+    JSON.stringify(
+      formSchema.value.initialValues({
+        displayName: record ? record.displayName : '',
+        email: record ? record.email : '',
+        joinedAt: record ? record.joinedAt : '',
+        attributes: record ? record.attributes : {},
+        organizations: record?.organizations.length
+          ? record.organizations[0].name
+          : '',
+        ...attributes,
+        tags: record ? record.tags : [],
+        username: record ? record.username : {},
+        platform: record
+          ? record.username[Object.keys(record.username)[0]]
+          : ''
+      })
+    )
+  )
 }
 
 async function onReset() {
@@ -280,14 +304,14 @@ async function onReset() {
     ? getInitialModel(record.value)
     : getInitialModel()
 
-  Object.assign(formModel.value, initialModel)
+  formModel.value = initialModel
 }
 
 async function onCancel() {
   router.push({ name: 'member' })
 }
 
-async function doSubmit() {
+async function onSubmit() {
   const formattedAttributes =
     computedAttributes.value.reduce((obj, attribute) => {
       if (!formModel.value[attribute.name]) {
@@ -303,35 +327,94 @@ async function doSubmit() {
       }
     }, {})
 
-  const data = {
-    displayName: formModel.value.displayName,
-    email: formModel.value.email,
-    joinedAt: formModel.value.joinedAt,
-    attributes: formattedAttributes,
-    tags: formModel.value.tags.map((t) => t.id),
-    username: formModel.value.username,
-    platform: formModel.value.platform
-  }
+  // Remove any existent empty data
+  const data = Object.assign(
+    {},
+    formModel.value.displayName && {
+      displayName: formModel.value.displayName
+    },
+    formModel.value.email && {
+      email: formModel.value.email
+    },
+    formModel.value.joinedAt && {
+      joinedAt: formModel.value.joinedAt
+    },
+    formModel.value.platform && {
+      platform: formModel.value.platform
+    },
+    formModel.value.tags.length && {
+      tags: formModel.value.tags.map((t) => t.id)
+    },
+    (Object.keys(formattedAttributes).length ||
+      formModel.value.attributes) && {
+      attributes: {
+        ...(Object.keys(formattedAttributes).length &&
+          formattedAttributes),
+        ...(formModel.value.attributes.url && {
+          url: formModel.value.attributes.url
+        })
+      }
+    },
+    Object.keys(formModel.value.username).length && {
+      username: formModel.value.username
+    }
+  )
+
+  let isRequestSuccessful = false
+  let organizations = [
+    { name: formModel.value.organizations }
+  ]
 
   // Edit member
   if (isEditPage.value) {
     isFormSubmitting.value = true
-    await store.dispatch('member/doUpdate', {
-      id: record.value.id,
-      values: data
-    })
 
-    isFormSubmitting.value = false
-    hasFormSubmitted.value = true
+    // Create organization if it doesn't exist, before updating it on member
+    if (formModel.value.organizations) {
+      const response = await OrganizationService.create({
+        name: formModel.value.organizations
+      })
+
+      if (response) {
+        organizations = [response.id]
+        Object.assign(
+          data,
+          formModel.value.organizations && {
+            organizations
+          }
+        )
+      }
+    }
+
+    isRequestSuccessful = await store.dispatch(
+      'member/doUpdate',
+      {
+        id: record.value.id,
+        values: data
+      }
+    )
   } else {
+    // Assign organizations to payload
+    Object.assign(
+      data,
+      formModel.value.organizations && {
+        organizations
+      }
+    )
     // Create new member
     isFormSubmitting.value = true
-    await store.dispatch('member/doCreate', {
-      data
-    })
+    isRequestSuccessful = await store.dispatch(
+      'member/doCreate',
+      {
+        data
+      }
+    )
+  }
 
-    isFormSubmitting.value = false
-    hasFormSubmitted.value = true
+  isFormSubmitting.value = false
+
+  if (isRequestSuccessful) {
+    wasFormSubmittedSuccessfuly.value = true
   }
 }
 </script>

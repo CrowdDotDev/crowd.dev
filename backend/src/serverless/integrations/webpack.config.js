@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 const path = require('path')
 const slsw = require('serverless-webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')

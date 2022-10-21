@@ -1,4 +1,5 @@
 import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/clients/sqs'
+import { timeout } from '../utils/timing'
 import { SQS_CONFIG } from '../config'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
@@ -71,71 +72,85 @@ async function handleDelayedMessages() {
   }
 }
 
+let processingMessages = 5
+const isWorkerAvailable = (): boolean => processingMessages <= 5
+const addWorkerJob = (): number => processingMessages++
+const removeWorkerJob = (): number => processingMessages--
+
 async function handleMessages() {
   const handlerLogger = createChildLogger('messages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerQueue,
   })
   handlerLogger.info('Listening for messages!')
 
+  const processSingleMessage = async (message: Message): Promise<void> => {
+    const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
+
+    const messageLogger = createChildLogger('messageHandler', serviceLogger, {
+      messageId: message.MessageId,
+      receipt: message.ReceiptHandle,
+      type: msg.type,
+    })
+
+    try {
+      messageLogger.info('Received a new queue message!')
+
+      let processFunction: (msg: NodeWorkerMessageBase) => Promise<void>
+      let keep = false
+
+      switch (msg.type) {
+        case NodeWorkerMessageType.INTEGRATION_CHECK:
+          await removeFromQueue(message.ReceiptHandle)
+          await processIntegrationCheck(messageLogger, msg as NodeWorkerIntegrationCheckMessage)
+          break
+        case NodeWorkerMessageType.INTEGRATION_PROCESS:
+          await removeFromQueue(message.ReceiptHandle)
+          await processIntegration(messageLogger, msg as NodeWorkerIntegrationProcessMessage)
+          break
+        case NodeWorkerMessageType.NODE_MICROSERVICE:
+          processFunction = processNodeMicroserviceMessage
+          break
+        case NodeWorkerMessageType.DB_OPERATIONS:
+          processFunction = processDbOperationsMessage
+          break
+
+        default:
+          keep = true
+          messageLogger.error('Error while parsing queue message! Invalid type.')
+      }
+
+      if (processFunction) {
+        if (!keep) {
+          // remove the message from the queue as it's about to be processed
+          await removeFromQueue(message.ReceiptHandle)
+
+          try {
+            await processFunction(msg)
+          } catch (err) {
+            messageLogger.error(err, 'Error while processing queue message!')
+          }
+        } else {
+          messageLogger.warn('Keeping the message in the queue!')
+        }
+      }
+    } catch (err) {
+      messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
+    }
+  }
+
   // noinspection InfiniteLoopJS
   while (true) {
-    const message = await receive()
+    if (isWorkerAvailable()) {
+      const message = await receive()
 
-    if (message) {
-      const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
-
-      const messageLogger = createChildLogger('messageHandler', serviceLogger, {
-        messageId: message.MessageId,
-        receipt: message.ReceiptHandle,
-        type: msg.type,
-      })
-
-      try {
-        messageLogger.info('Received a new queue message!')
-
-        let processFunction: (msg: NodeWorkerMessageBase) => Promise<void>
-        let keep = false
-
-        switch (msg.type) {
-          case NodeWorkerMessageType.INTEGRATION_CHECK:
-            await removeFromQueue(message.ReceiptHandle)
-            await processIntegrationCheck(messageLogger, msg as NodeWorkerIntegrationCheckMessage)
-            break
-          case NodeWorkerMessageType.INTEGRATION_PROCESS:
-            await removeFromQueue(message.ReceiptHandle)
-            await processIntegration(messageLogger, msg as NodeWorkerIntegrationProcessMessage)
-            break
-          case NodeWorkerMessageType.NODE_MICROSERVICE:
-            processFunction = processNodeMicroserviceMessage
-            break
-          case NodeWorkerMessageType.DB_OPERATIONS:
-            processFunction = processDbOperationsMessage
-            break
-
-          default:
-            keep = true
-            messageLogger.error('Error while parsing queue message! Invalid type.')
-        }
-
-        if (processFunction) {
-          if (!keep) {
-            // remove the message from the queue as it's about to be processed
-            await removeFromQueue(message.ReceiptHandle)
-
-            try {
-              await processFunction(msg)
-            } catch (err) {
-              messageLogger.error(err, 'Error while processing queue message!')
-            }
-          } else {
-            messageLogger.warn('Keeping the message in the queue!')
-          }
-        }
-      } catch (err) {
-        messageLogger.error(err, { payload: msg }, 'Error while processing queue message!')
+      if (message) {
+        addWorkerJob()
+        processSingleMessage(message).then(removeWorkerJob).catch(removeWorkerJob)
+      } else {
+        serviceLogger.trace('No message received!')
       }
     } else {
-      serviceLogger.trace('No message received!')
+      await timeout(200)
     }
   }
 }

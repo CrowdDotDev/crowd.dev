@@ -9,15 +9,10 @@
     >
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">
-          <el-checkbox
-            v-if="multiple"
-            :model-value="option.selected"
-            class="filter-checkbox"
-          />
           {{ option.label }}
         </div>
         <i
-          v-if="!multiple && option.selected"
+          v-if="option.selected"
           class="ri-check-line text-brand-600 absolute right-0 mr-4"
         ></i>
       </div>
@@ -40,14 +35,10 @@ const props = defineProps({
     default: () => []
   },
   value: {
-    type: Array,
-    default: () => []
+    type: String,
+    default: () => ''
   },
   isExpanded: {
-    type: Boolean,
-    default: false
-  },
-  multiple: {
     type: Boolean,
     default: false
   }
@@ -57,9 +48,7 @@ const computedOptions = computed(() => {
   return props.options.map((o) => {
     return {
       ...o,
-      selected: model.value.some((i) =>
-        valuesEqual(o.value, i.value)
-      )
+      selected: model.value === o.value
     }
   })
 })
@@ -73,31 +62,7 @@ const model = computed({
 })
 
 const handleOptionClick = (option) => {
-  if (
-    !props.value.some((item) =>
-      valuesEqual(item.value, option.value)
-    ) &&
-    props.multiple
-  ) {
-    model.value.push(option)
-  } else if (props.multiple) {
-    const index = model.value.findIndex((o) =>
-      valuesEqual(o.value, option.value)
-    )
-    model.value.splice(index, 1)
-  } else {
-    model.value = [option]
-  }
-}
-
-const valuesEqual = (valueA, valueB) => {
-  if (Array.isArray(valueA)) {
-    return (
-      valueA[0] === valueB[0] && valueA[1] === valueB[1]
-    )
-  } else {
-    return valueA === valueB
-  }
+  model.value = option.value
 }
 </script>
 

@@ -36,15 +36,11 @@ export class OrganizationService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/organization`,
-      body
+      data
     )
 
     return response.data
@@ -75,6 +71,24 @@ export class OrganizationService {
       {
         params
       }
+    )
+
+    return response.data
+  }
+
+  static async query(filter, orderBy, limit, offset) {
+    const body = {
+      filter,
+      orderBy,
+      limit,
+      offset
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/query`,
+      body
     )
 
     return response.data

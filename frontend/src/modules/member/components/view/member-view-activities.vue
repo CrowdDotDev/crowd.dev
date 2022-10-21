@@ -30,16 +30,11 @@
           :key="activity.id"
         >
           <div>
-            <app-activity-header
+            <app-activity-item
               :activity="activity"
               :show-user="false"
               :show-platform-icon="false"
               class="pt-2"
-            />
-            <div
-              v-if="activity.body"
-              class="block whitespace-pre-wrap custom-break-all text-xs p-4 rounded-md bg-gray-50 mt-5 w-full"
-              v-html="activity.body"
             />
           </div>
           <template #dot>
@@ -61,13 +56,10 @@
         v-loading="loading"
         class="app-page-spinner"
       ></div>
-      <div
-        v-if="!loading && activities.length <= limit"
-        class="flex justify-center"
-      >
+      <div v-if="!noMore" class="flex justify-center">
         <el-button
           class="btn btn-brand btn-brand--transparent"
-          :disabled="loading || noMore"
+          :disabled="loading"
           @click="fetchActivities"
           ><i class="ri-arrow-down-line mr-2"></i>Load
           more</el-button
@@ -87,7 +79,7 @@ export default {
 import _ from 'lodash'
 import { useStore } from 'vuex'
 import integrationsJson from '@/jsons/integrations.json'
-import AppActivityHeader from '@/modules/activity/components/activity-header'
+import AppActivityItem from '@/modules/activity/components/activity-item'
 
 import {
   defineProps,
@@ -142,13 +134,42 @@ let filter = {}
 const fetchActivities = async () => {
   const filterToApply = {
     memberId: props.memberId,
-    platform: platform.value ?? undefined,
-    body:
-      query.value && query.value !== ''
-        ? {
-            textContains: query.value
-          }
-        : undefined
+    platform: platform.value ?? undefined
+  }
+
+  if (query.value && query.value !== '') {
+    filterToApply.or = [
+      {
+        body: {
+          textContains: query.value
+        }
+      },
+      {
+        channel: {
+          textContains: query.value
+        }
+      },
+      {
+        url: {
+          textContains: query.value
+        }
+      },
+      {
+        body: {
+          textContains: query.value
+        }
+      },
+      {
+        title: {
+          textContains: query.value
+        }
+      },
+      {
+        type: {
+          textContains: query.value
+        }
+      }
+    ]
   }
 
   if (!_.isEqual(filter, filterToApply)) {
@@ -165,7 +186,7 @@ const fetchActivities = async () => {
   const { data } = await authAxios.post(
     `/tenant/${store.getters['auth/currentTenant'].id}/activity/query`,
     {
-      filterToApply,
+      filter: filterToApply,
       orderBy: 'timestamp_DESC',
       limit: limit.value,
       offset: offset.value
@@ -196,6 +217,12 @@ const debouncedQueryChange = debounce(async () => {
 watch(query, (newValue, oldValue) => {
   if (newValue !== oldValue) {
     debouncedQueryChange()
+  }
+})
+
+watch(platform, async (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    await fetchActivities()
   }
 })
 

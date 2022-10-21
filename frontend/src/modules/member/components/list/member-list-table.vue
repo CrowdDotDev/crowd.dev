@@ -5,11 +5,12 @@
       :total="count"
       :current-page="pagination.currentPage"
       :has-page-counter="false"
+      module="member"
       position="top"
-      @change-page-size="doChangePaginationPageSize"
+      @change-sorter="doChangePaginationPageSize"
     />
   </div>
-  <div class="member-list-table panel">
+  <div class="app-list-table panel">
     <app-member-list-toolbar></app-member-list-toolbar>
     <div class="-mx-6 -mt-6">
       <el-table
@@ -58,26 +59,21 @@
           width="220"
         >
           <template #default="scope">
-            <div v-if="scope.row.organizations.length > 0">
-              <div
-                v-for="organization of scope.row
-                  .organizations"
-                :key="organization.id"
-                class="flex-items-center"
-              >
-                <div class="w-5 h-5">
-                  <img
-                    v-if="organization.logo"
-                    :src="organization.logo"
-                    alt=""
-                  />
-                </div>
-                <span>{{ organization.name }}</span>
-              </div>
-            </div>
+            <app-member-organizations :member="scope.row" />
           </template>
         </el-table-column>
-
+        <el-table-column
+          v-for="column of extraColumns"
+          :key="column.name"
+          :prop="column.name"
+          :label="column.label"
+          width="200"
+          :sortable="column.sortable ? 'custom' : ''"
+        >
+          <template #default="scope">
+            {{ scope.row[column.name] }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="Engagement Level"
           prop="score"
@@ -103,10 +99,7 @@
           :label="translate('entities.member.fields.tag')"
         >
           <template #default="scope">
-            <app-tag-list
-              :member="scope.row"
-              @tags-updated="doRefresh"
-            />
+            <app-tag-list :member="scope.row" />
           </template>
         </el-table-column>
 
@@ -125,8 +118,8 @@
         <app-pagination
           :total="count"
           :page-size="Number(pagination.pageSize)"
-          :pager-count="11"
           :current-page="pagination.currentPage || 1"
+          module="member"
           @change-current-page="
             doChangePaginationCurrentPage
           "
@@ -149,6 +142,7 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { computed, onMounted, ref } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
 import AppMemberChannels from '../member-channels'
 import AppTagList from '@/modules/tag/components/tag-list'
@@ -157,6 +151,10 @@ import AppMemberEngagementLevel from '../member-engagement-level'
 const store = useStore()
 const router = useRouter()
 const table = ref(null)
+
+const extraColumns = computed(
+  () => store.getters['member/activeView']?.columns || []
+)
 
 const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)
@@ -197,10 +195,6 @@ function doMountTable(tableRef) {
   store.dispatch('member/doMountTable', tableRef)
 }
 
-function doRefresh(currentPage) {
-  doChangePaginationCurrentPage(currentPage)
-}
-
 function translate(key) {
   return i18n(key)
 }
@@ -220,22 +214,3 @@ function handleRowClick(row) {
   })
 }
 </script>
-
-<style lang="scss">
-.member-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-
-    .hover-row {
-      cursor: pointer;
-    }
-  }
-}
-</style>

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { INITIAL_PAGE_SIZE } from './constants'
 
 export default {
@@ -79,6 +80,9 @@ export default {
     if (state.table) {
       state.list.table.clearSelection()
     }
+
+    state.list.ids.length = 0
+
     state.pagination =
       payload && payload.keepPagination
         ? state.pagination
@@ -157,10 +161,7 @@ export default {
 
   BULK_UPDATE_MEMBERS_TAGS_SUCCESS(state, members) {
     for (const member of members) {
-      const index = state.list.ids.findIndex(
-        (r) => r.id === member.id
-      )
-      state.list.ids[index] = member
+      state.records[member.id] = member
     }
     state.list.loading = false
   },
@@ -170,7 +171,9 @@ export default {
   },
 
   CREATE_STARTED() {},
-  CREATE_SUCCESS() {},
+  CREATE_SUCCESS(state, record) {
+    state.records[record.id] = record
+  },
   CREATE_ERROR() {},
 
   CREATE_ATTRIBUTES_STARTED() {},
@@ -178,7 +181,9 @@ export default {
   CREATE_ATTRIBUTES_ERROR() {},
 
   UPDATE_STARTED() {},
-  UPDATE_SUCCESS() {},
+  UPDATE_SUCCESS(state, record) {
+    state.records[record.id] = record
+  },
   UPDATE_ERROR() {},
 
   DESTROY_ALL_STARTED() {},
@@ -198,7 +203,7 @@ export default {
   FILTER_CHANGED(state, filter) {
     const { attributes, operator } = filter
     state.filter = {
-      attributes: { ...attributes } || {},
+      attributes: _.cloneDeep(attributes) || {},
       operator: operator || 'and'
     }
   },
@@ -217,5 +222,14 @@ export default {
 
   FILTER_OPERATOR_UPDATED(state, operator) {
     state.filter.operator = operator
+  },
+
+  FILTER_ATTRIBUTE_RESETED(state, attribute) {
+    state.filter.attributes[attribute.name].value =
+      state.filter.attributes[attribute.name].defaultValue
+    state.filter.attributes[attribute.name].operator =
+      state.filter.attributes[
+        attribute.name
+      ].defaultOperator
   }
 }

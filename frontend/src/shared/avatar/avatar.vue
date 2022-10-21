@@ -1,12 +1,13 @@
 <template>
   <div
+    v-if="entity"
     class="avatar"
     :class="computedClass"
     :style="computedStyle"
   >
     <span
       v-if="!entity.avatar"
-      class="font-semibold text-lg uppercase"
+      class="font-semibold uppercase"
       >{{ computedInitials }}</span
     >
   </div>
@@ -54,13 +55,13 @@ export default {
   computed: {
     computedBackgroundColor() {
       return this.backgroundColors[
-        this.entity.displayName.length %
+        (this.entity.displayName || '').length %
           this.backgroundColors.length
       ]
     },
     computedTextColor() {
       return this.textColors[
-        this.entity.displayName.length %
+        (this.entity.displayName || '').length %
           this.textColors.length
       ]
     },
@@ -77,7 +78,11 @@ export default {
       return `avatar--${this.size}`
     },
     computedInitials() {
-      const names = this.entity.displayName.split(' ')
+      const names = this.entity.displayName
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+
       return names.length > 1
         ? names[0][0] + names[1][0]
         : names[0][0]
@@ -95,11 +100,11 @@ export default {
   border: 1px solid #dedede;
 
   &--xl {
-    @apply h-18 w-18;
+    @apply h-18 w-18 text-xl;
   }
 
   &--lg {
-    @apply h-16 w-16;
+    @apply h-16 w-16 text-lg;
   }
 
   &--md {
@@ -112,6 +117,14 @@ export default {
 
   &--xs {
     @apply h-8 w-8;
+  }
+
+  &--xxs {
+    @apply h-5 w-5;
+
+    span {
+      @apply text-2xs;
+    }
   }
 }
 </style>

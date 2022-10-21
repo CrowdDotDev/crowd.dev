@@ -9,16 +9,32 @@
       class="mb-2"
       :options="computedOperatorOptions"
     />
-    <el-input
-      ref="inputRef"
-      v-model="model"
-      type="number"
-      placeholder="Enter a value"
-      :disabled="
-        operator === 'is_empty' ||
-        operator === 'is_not_empty'
-      "
-    ></el-input>
+    <div class="flex -mx-1">
+      <el-input
+        ref="inputRef"
+        v-model="model"
+        type="number"
+        :placeholder="
+          operator === 'between' ? 'From' : 'Enter a value'
+        "
+        :disabled="
+          operator === 'is_empty' ||
+          operator === 'is_not_empty'
+        "
+        class="mx-1"
+      ></el-input>
+      <el-input
+        v-if="operator === 'between'"
+        v-model="rangeModel"
+        type="number"
+        placeholder="To"
+        :disabled="
+          operator === 'is_empty' ||
+          operator === 'is_not_empty'
+        "
+        class="mx-1"
+      ></el-input>
+    </div>
   </div>
 </template>
 
@@ -40,7 +56,7 @@ import filterOperators from '@/shared/filter/filter-operators'
 
 const props = defineProps({
   value: {
-    type: String,
+    type: [Array, Number],
     default: null
   },
   operator: {
@@ -57,14 +73,35 @@ const emit = defineEmits([
   'update:value',
   'update:operator'
 ])
+
 const model = computed({
   get() {
+    if (operator.value === 'between') {
+      return Array.isArray(props.value)
+        ? props.value[0]
+        : props.value
+    }
     return props.value
   },
   set(v) {
-    emit('update:value', Number(v))
+    emit(
+      'update:value',
+      operator.value === 'between'
+        ? [Number(v), Number(rangeModel.value)]
+        : Number(v)
+    )
   }
 })
+
+const rangeModel = computed({
+  get() {
+    return props.value[1]
+  },
+  set(v) {
+    emit('update:value', [Number(model.value), Number(v)])
+  }
+})
+
 const operator = computed({
   get() {
     return props.operator

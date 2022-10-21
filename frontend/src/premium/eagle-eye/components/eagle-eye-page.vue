@@ -1,7 +1,7 @@
 <template>
-  <div class="eagle-eye">
-    <app-eagle-eye-header />
-    <div class="container">
+  <app-page-wrapper>
+    <div class="eagle-eye">
+      <app-eagle-eye-header />
       <app-eagle-eye-search />
       <div
         v-if="shouldRenderEmptyState"
@@ -34,10 +34,11 @@
         <app-eagle-eye-list />
       </div>
     </div>
-  </div>
+  </app-page-wrapper>
 </template>
 
 <script>
+import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppEagleEyeHeader from './eagle-eye-header'
 import AppEagleEyeList from './eagle-eye-list'
 import AppEagleEyeCounter from './eagle-eye-counter'
@@ -49,6 +50,7 @@ import { mapGetters } from 'vuex'
 export default {
   name: 'AppEagleEye',
   components: {
+    AppPageWrapper,
     AppEagleEyeHeader,
     AppEagleEyeList,
     AppEagleEyeCounter,
@@ -71,12 +73,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.eagle-eye {
-  @apply -m-6;
-  .container {
-    @apply block;
-  }
-}
-</style>

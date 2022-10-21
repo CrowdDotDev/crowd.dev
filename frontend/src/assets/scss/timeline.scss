@@ -16,5 +16,9 @@
     &__wrapper {
       @apply top-0 pl-4 w-full;
     }
+
+    &:last-of-type {
+      @apply pb-0;
+    }
   }
 }

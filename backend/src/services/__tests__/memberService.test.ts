@@ -2772,7 +2772,11 @@ describe('MemberService tests', () => {
       await mas.create(attribute2)
 
       const member1 = {
-        username: 'anil',
+        username: {
+          [PlatformType.GITHUB]: 'anil',
+          [PlatformType.DISCORD]: 'anil',
+          [PlatformType.TWITTER]: 'anil'
+        },
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
         score: 10,
@@ -2817,7 +2821,11 @@ describe('MemberService tests', () => {
       }
 
       const member2 = {
-        username: 'michaelScott',
+        username: {
+          [PlatformType.GITHUB]: 'michaelScott',
+          [PlatformType.DISCORD]: 'michaelScott',
+          [PlatformType.TWITTER]: 'michaelScott'
+        },
         platform: PlatformType.GITHUB,
         email: 'michael@mifflin.com',
         score: 10,
@@ -2862,7 +2870,11 @@ describe('MemberService tests', () => {
       }
 
       const member3 = {
-        username: 'jimHalpert',
+        username: {
+          [PlatformType.GITHUB]: 'jimHalpert',
+          [PlatformType.DISCORD]: 'jimHalpert',
+          [PlatformType.TWITTER]: 'jimHalpert'
+        },
         platform: PlatformType.GITHUB,
         email: 'jim@mifflin.com',
         score: 10,

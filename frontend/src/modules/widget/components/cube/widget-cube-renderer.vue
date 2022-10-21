@@ -1,5 +1,6 @@
 <template>
   <query-renderer
+    v-if="cubejsApi"
     :cubejs-api="cubejsApi"
     :query="widget.settings.query"
   >

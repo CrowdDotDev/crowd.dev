@@ -452,8 +452,18 @@ class AuthService {
     try {
       email = email.toLowerCase()
       let user = await UserRepository.findByEmail(email, options)
-
-      if (user && (user.provider !== provider || user.providerId !== providerId)) {
+      // If there was no provider, we can link it to the provider
+      if (user && (user.provider === undefined || user.provider === null)) {
+        await UserRepository.update(
+          user.id,
+          {
+            provider,
+            providerId,
+          },
+          options,
+        )
+        console.log(user)
+      } else if (user && (user.provider !== provider || user.providerId !== providerId)) {
         throw new Error('auth-invalid-provider')
       }
 
@@ -468,7 +478,6 @@ class AuthService {
           options,
         )
       }
-
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
       })

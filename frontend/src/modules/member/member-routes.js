@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
+import { store } from '@/store'
 
 const MemberListPage = () =>
   import('@/modules/member/pages/member-list-page.vue')
@@ -28,6 +29,19 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.memberRead
+        },
+        beforeEnter: (to) => {
+          if (
+            to.query.activeTab !== undefined &&
+            Object.keys(
+              store.state.member.filter.attributes
+            ).length === 0
+          ) {
+            store.dispatch(
+              'member/doChangeActiveView',
+              to.query.activeTab
+            )
+          }
         }
       },
       {

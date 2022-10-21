@@ -85,6 +85,23 @@
             </router-link>
           </div> -->
         </el-form>
+        <a
+          :href="socialOauthLink('google')"
+          class="btn btn--secondary py-2"
+        >
+          <i class="ri-google-fill mr-1"></i> Sign in with
+          Google
+        </a>
+
+        <div class="other-actions">
+          <router-link :to="{ path: '/auth/signup' }">
+            <el-button type="text">
+              <app-i18n
+                code="auth.createAnAccount"
+              ></app-i18n>
+            </el-button>
+          </router-link>
+        </div>
       </div>
     </div>
   </div>

@@ -212,6 +212,34 @@ export default class MemberService {
         data.username = { [platform]: data.username }
       }
 
+      // If organizations are sent
+      if (data.organizations) {
+        // Collect IDs for relation
+        const organizationsIds = []
+        for (const organization of data.organizations) {
+          if (typeof organization === 'string' && validator.isUUID(organization)) {
+            // If an ID was already sent, we simply push it to the list
+            organizationsIds.push(organization)
+          } else {
+            // Otherwise, either another string or an object was sent
+            const organizationService = new OrganizationService(this.options)
+            let data = {}
+            if (typeof organization === 'string') {
+              // If a string was sent, we assume it is the name of the organization
+              data = { name: organization }
+            } else {
+              // Otherwise, we assume it is an object with the data of the organization
+              data = organization
+            }
+            // We findOrCreate the organization and add it to the list of IDs
+            const organizationRecord = await organizationService.findOrCreate(data)
+            organizationsIds.push(organizationRecord.id)
+          }
+        }
+        // Remove dups
+        data.organizations = [...new Set(organizationsIds)]
+      }
+
       const fillRelations = false
 
       let record
@@ -240,34 +268,6 @@ export default class MemberService {
         // because otherwise the performance is greatly decreased in integrations
         if (data.attributes) {
           data.attributes = await this.setAttributesDefaultValues(data.attributes)
-        }
-
-        // If organizations are sent
-        if (data.organizations) {
-          // Collect IDs for relation
-          const organizationsIds = []
-          for (const organization of data.organizations) {
-            if (typeof organization === 'string' && validator.isUUID(organization)) {
-              // If an ID was already sent, we simply push it to the list
-              organizationsIds.push(organization)
-            } else {
-              // Otherwise, either another string or an object was sent
-              const organizationService = new OrganizationService(this.options)
-              let data = {}
-              if (typeof organization === 'string') {
-                // If a string was sent, we assume it is the name of the organization
-                data = { name: organization }
-              } else {
-                // Otherwise, we assume it is an object with the data of the organization
-                data = organization
-              }
-              // We findOrCreate the organization and add it to the list of IDs
-              const organizationRecord = await organizationService.findOrCreate(data)
-              organizationsIds.push(organizationRecord.id)
-            }
-          }
-          // Remove dups
-          data.organizations = [...new Set(organizationsIds)]
         }
 
         record = await MemberRepository.create(
@@ -483,7 +483,6 @@ export default class MemberService {
    */
   async addToNoMerge(memberOneId, memberTwoId) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
-
     try {
       await MemberRepository.addNoMerge(memberOneId, memberTwoId, {
         ...this.options,
@@ -493,7 +492,6 @@ export default class MemberService {
         ...this.options,
         transaction,
       })
-
       await MemberRepository.removeToMerge(memberOneId, memberTwoId, {
         ...this.options,
         transaction,
@@ -620,12 +618,15 @@ export default class MemberService {
   }
 
   async query(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
     return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
       this.options,
     )
   }

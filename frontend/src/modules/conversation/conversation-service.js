@@ -1,6 +1,5 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-
 export class ConversationService {
   static async update(id, data) {
     const body = {
@@ -109,6 +108,24 @@ export class ConversationService {
       {
         params
       }
+    )
+
+    return response.data
+  }
+
+  static async query(filter, orderBy, limit, offset) {
+    const body = {
+      filter,
+      orderBy,
+      limit,
+      offset
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/conversation/query`,
+      body
     )
 
     return response.data

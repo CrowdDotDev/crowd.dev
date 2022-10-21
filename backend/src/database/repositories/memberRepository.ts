@@ -10,6 +10,8 @@ import { AttributeData } from '../attributes/attribute'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
+import { AttributeType } from '../attributes/types'
+import TenantRepository from './tenantRepository'
 
 const { Op } = Sequelize
 
@@ -97,8 +99,55 @@ class MemberRepository {
       include,
       transaction,
     })
+    const rowsOut = []
+    for (let record of rows) {
+      let organizations =
+        (await record.getOrganizations({
+          transaction,
+          joinTableAttributes: [],
+        })) || []
 
-    return { rows, count }
+      organizations = organizations.map((organization) => organization.get({ plain: true }))
+
+      let tags =
+        (await record.getTags({
+          transaction,
+          joinTableAttributes: [],
+        })) || []
+
+      tags = tags.map((tag) => tag.get({ plain: true }))
+
+      const newToMerge = []
+      for (const toMergeRecord of record.toMerge) {
+        const organizations =
+          (await toMergeRecord.getOrganizations({
+            transaction,
+            joinTableAttributes: [],
+          })) || []
+
+        const tags =
+          (await toMergeRecord.getTags({
+            transaction,
+            joinTableAttributes: [],
+          })) || []
+
+        const toMergeRecordOut = toMergeRecord.get({ plain: true })
+
+        toMergeRecordOut.organizations = organizations.map((organization) =>
+          organization.get({ plain: true }),
+        )
+        toMergeRecordOut.tags = tags.map((tag) => tag.get({ plain: true }))
+
+        newToMerge.push(toMergeRecordOut)
+      }
+      record = record.get({ plain: true })
+      record.organizations = organizations
+      record.tags = tags
+      record.toMerge = newToMerge
+      rowsOut.push(record)
+    }
+
+    return { rows: rowsOut, count }
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -435,6 +484,9 @@ class MemberRepository {
       },
     ]
 
+    // get possible platforms for a tenant
+    const availableDynamicAttributePlatformKeys = ['default', 'custom', ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(p => p.platform)]
+
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
     )
@@ -641,6 +693,49 @@ class MemberRepository {
       return acc
     }, {})
 
+    const dynamicAttributesLiterals = attributesSettings.reduce((acc, attribute) => {
+
+      for (const key of availableDynamicAttributePlatformKeys){
+        if (attribute.type === AttributeType.NUMBER){
+          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+            `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
+          )
+        }
+        else if (attribute.type === AttributeType.BOOLEAN){
+          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+            `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
+          )
+        }
+        else{
+          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+            `"member"."attributes"#>>'{${attribute.name},${key}}'`,
+          )
+        }
+      }
+    
+      return acc
+    }, {})
+
+    const dynamicAttributesProjection = attributesSettings.reduce((acc, attribute) => {
+
+      for (const key of availableDynamicAttributePlatformKeys){
+        if (key === "default"){
+          acc.push([
+            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},default}'`),
+            attribute.name,
+          ])
+        }
+        else{
+          acc.push([
+            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},${key}}'`),
+            `${attribute.name}.${key}`,
+          ])
+        }
+      }
+  
+      return acc
+    }, [])
+
     const activityCount = options.database.Sequelize.fn(
       'COUNT',
       options.database.Sequelize.col('activities.id'),
@@ -650,6 +745,8 @@ class MemberRepository {
       'MAX',
       options.database.Sequelize.col('activities.timestamp'),
     )
+
+    const identities = Sequelize.literal(`array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 
@@ -669,10 +766,32 @@ class MemberRepository {
           activityCount,
           lastActive,
           averageSentiment,
+          identities,
+          ...dynamicAttributesLiterals,
+          'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
+          ...SequelizeFilterUtils.getNativeTableFieldAggregations(
+            [
+              'id',
+              'username',
+              'attributes',
+              'displayName',
+              'email',
+              'score',
+              'joinedAt',
+              'importHash',
+              'reach',
+              'createdAt',
+              'updatedAt',
+              'createdById',
+              'updatedById',
+            ],
+            'member',
+          ),
         },
         manyToMany: {
           tags: {
             table: 'members',
+            model: 'member',
             relationTable: {
               name: 'memberTags',
               from: 'memberId',
@@ -681,6 +800,7 @@ class MemberRepository {
           },
           organizations: {
             table: 'members',
+            model: 'member',
             relationTable: {
               name: 'memberOrganizations',
               from: 'memberId',
@@ -723,26 +843,32 @@ class MemberRepository {
       having: parsed.having ? parsed.having : {},
       include,
       attributes: [
-        'id',
-        'username',
-        'attributes',
-        'displayName',
-        'email',
-        'score',
-        'joinedAt',
-        'importHash',
-        'reach',
-        'createdAt',
-        'updatedAt',
-        'deletedAt',
-        'tenantId',
-        'createdById',
-        'updatedById',
+        ...SequelizeFilterUtils.getLiteralProjections(
+          [
+            'id',
+            'username',
+            'attributes',
+            'displayName',
+            'email',
+            'tenantId',
+            'score',
+            'joinedAt',
+            'importHash',
+            'createdAt',
+            'updatedAt',
+            'createdById',
+            'updatedById',
+          ],
+          'member',
+        ),
+        [identities, 'identities'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
+        [Sequelize.literal(`("member".reach->'total')::int`), 'reach'],
+        ...dynamicAttributesProjection,
       ],
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
@@ -752,7 +878,7 @@ class MemberRepository {
       distinct: true,
     })
 
-    rows = await this._populateRelationsForRows(rows)
+    rows = await this._populateRelationsForRows(rows, attributesSettings)
 
     return { rows, count: count.length }
   }
@@ -818,7 +944,7 @@ class MemberRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows) {
+  static async _populateRelationsForRows(rows, attributesSettings) {
     if (!rows) {
       return rows
     }
@@ -834,6 +960,7 @@ class MemberRepository {
         const plainRecord = record.get({ plain: true })
         plainRecord.noMerge = plainRecord.noMergeIds ? plainRecord.noMergeIds.split(',') : []
         plainRecord.toMerge = plainRecord.toMergeIds ? plainRecord.toMergeIds.split(',') : []
+
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
         return plainRecord
@@ -855,6 +982,15 @@ class MemberRepository {
           : null
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
+
+        for (const attribute of attributesSettings){
+          if (Object.prototype.hasOwnProperty.call(plainRecord, attribute.name)){
+            delete plainRecord[attribute.name]
+          }
+        }
+
+        delete plainRecord.company
+       
         plainRecord.organizations = await record.getOrganizations({
           joinTableAttributes: [],
         })
