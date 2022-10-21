@@ -1,26 +1,34 @@
 <template>
-  <div>
+  <div class="pt-4">
     <div
       v-if="loading('table') && count === 0"
       v-loading="loading('table')"
       class="app-page-spinner"
     ></div>
     <div v-else-if="count > 0">
-      <div class="flex items-center justify-between mt-6">
-        <div class="text-gray-600 text-sm">
+      <div
+        class="flex items-center py-1 mb-3 mt-2"
+        :class="count ? 'justify-between' : 'justify-end'"
+      >
+        <div class="text-gray-500 text-sm">
           {{ count }} webhook{{ count === 1 ? '' : 's' }}
         </div>
         <div>
           <el-button
-            class="btn btn--primary"
+            class="btn btn--primary btn--sm !h-8"
             @click="isAutomationDrawerOpen = true"
           >
-            <i class="ri-lg ri-add-line mr-1"></i>
-            New webhook
+            Add webhook
           </el-button>
         </div>
       </div>
-      <app-automation-list-table class="mt-6" />
+      <app-automation-list-table
+        class="pt-4"
+        @open-executions-drawer="onOpenExecutionsDrawer"
+        @open-edit-automation-drawer="
+          onOpenEditAutomationDrawer
+        "
+      />
     </div>
     <div
       v-else
@@ -42,12 +50,28 @@
         Add webhook
       </el-button>
     </div>
+
+    <!-- Add/Edit Webhook form drawer -->
     <app-webhook-form
+      v-if="isAutomationDrawerOpen"
       v-model="newAutomation"
       :is-drawer-open="isAutomationDrawerOpen"
-      @success="handleSuccess"
-      @cancel="isAutomationDrawerOpen = false"
+      @success="onCloseAutomationDrawer"
+      @cancel="onCloseAutomationDrawer"
     />
+
+    <!-- Executions Drawer -->
+    <el-drawer
+      v-model="isExecutionsDrawerOpen"
+      :destroy-on-close="true"
+      :close-on-click-modal="false"
+      title="Webhook executions"
+      custom-class="webhook-executions-drawer"
+      size="600px"
+      @closed="onCloseExecutionsDrawer"
+    >
+      <app-webhook-execution-list :webhook="automation" />
+    </el-drawer>
   </div>
 </template>
 
@@ -55,10 +79,12 @@
 import AppAutomationListTable from './automation-list-table'
 import AppWebhookForm from './webhooks/webhook-form'
 import { mapGetters, mapActions } from 'vuex'
+import AppWebhookExecutionList from './webhooks/webhook-execution-list'
 
 export default {
   name: 'AppAutomationListPage',
   components: {
+    AppWebhookExecutionList,
     AppAutomationListTable,
     AppWebhookForm
   },
@@ -68,7 +94,9 @@ export default {
         type: 'webhook',
         settings: {}
       },
-      isAutomationDrawerOpen: false
+      isAutomationDrawerOpen: false,
+      isExecutionsDrawerOpen: false,
+      automation: null
     }
   },
   computed: {
@@ -88,12 +116,24 @@ export default {
     ...mapActions({
       doFetch: 'automation/doFetch'
     }),
-    handleSuccess() {
+    onOpenEditAutomationDrawer(automation) {
+      this.isAutomationDrawerOpen = true
+      this.newAutomation = { ...automation }
+    },
+    onCloseAutomationDrawer() {
       this.newAutomation = {
         type: 'webhook',
         settings: {}
       }
       this.isAutomationDrawerOpen = false
+    },
+    onOpenExecutionsDrawer(automation) {
+      this.isExecutionsDrawerOpen = true
+      this.automation = automation
+    },
+    onCloseExecutionsDrawer() {
+      this.isExecutionsDrawerOpen = false
+      this.automation = null
     }
   }
 }

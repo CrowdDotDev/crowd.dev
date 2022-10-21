@@ -3,16 +3,9 @@
     class="flex items-center py-1 mb-3 mt-2"
     :class="count ? 'justify-between' : 'justify-end'"
   >
-    <app-pagination-sorter
-      v-if="!!count"
-      :page-size="Number(pagination.pageSize)"
-      :total="count"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      :sorter="false"
-      module="user"
-      position="top"
-    />
+    <div class="text-gray-500 text-sm">
+      {{ count }} user{{ count === 1 ? '' : 's' }}
+    </div>
 
     <el-button
       class="btn btn--primary btn--sm"

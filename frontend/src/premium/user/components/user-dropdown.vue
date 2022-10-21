@@ -17,15 +17,20 @@
         <el-dropdown-item
           v-if="user.status === 'invited'"
           command="userInviteTokenClipboard"
-          ><i class="ri-file-copy-line mr-2" />Copy Invite
-          Link</el-dropdown-item
+          ><i class="ri-file-copy-line mr-2" /><span
+            class="text-xs"
+            >Copy invite link</span
+          ></el-dropdown-item
         >
         <el-dropdown-item command="userEdit">
-          <i class="ri-pencil-line mr-2" />{{
-            user.status === 'invited'
-              ? 'Edit Invite'
-              : 'Edit User'
-          }}</el-dropdown-item
+          <i class="ri-pencil-line mr-2" /><span
+            class="text-xs"
+            >{{
+              user.status === 'invited'
+                ? 'Edit invite'
+                : 'Edit user'
+            }}</span
+          ></el-dropdown-item
         >
         <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item command="userDelete"
@@ -38,8 +43,8 @@
             "
           /><span class="text-xs text-red-500">{{
             user.status === 'invited'
-              ? 'Cancel Invite'
-              : 'Delete User'
+              ? 'Cancel invite'
+              : 'Delete user'
           }}</span></el-dropdown-item
         >
       </template>

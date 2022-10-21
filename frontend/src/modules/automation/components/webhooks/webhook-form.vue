@@ -7,7 +7,9 @@
     @closed="doCancel"
   >
     <template #header>
-      <h5 class="text-black">Add webhook</h5>
+      <h5 class="text-black">
+        {{ isEditing ? 'Edit webhook' : 'Add webhook' }}
+      </h5>
     </template>
     <template #default>
       <el-form
@@ -73,10 +75,10 @@
               title="Filter options"
               name="activityFilters"
             >
-              <div class="flex -mx-2">
+              <div class="flex items-end gap-4 mb-2">
                 <el-form-item
                   label="Matching activity platform(s)"
-                  class="w-full lg:w-1/2 mx-2"
+                  class="grow"
                 >
                   <el-select
                     v-model="model.settings.platforms"
@@ -93,7 +95,7 @@
                 </el-form-item>
                 <el-form-item
                   label="Matching activity type(s)"
-                  class="w-full lg:w-1/2 mx-2"
+                  class="grow"
                 >
                   <el-select
                     v-model="model.settings.types"
@@ -113,16 +115,16 @@
                 </el-form-item>
               </div>
               <el-form-item label="Including keyword(s)">
-                <div class="-mb-4">
-                  <app-keywords-input
-                    v-model="model.settings.keywords"
-                  />
-                </div>
+                <app-keywords-input
+                  v-model="model.settings.keywords"
+                  class="w-full"
+                />
               </el-form-item>
               <el-checkbox
                 v-model="
                   model.settings.teamMemberActivities
                 "
+                class="text-gray-900"
                 label="Include activities from team members"
               ></el-checkbox>
             </el-collapse-item>
@@ -186,22 +188,37 @@
       </el-form>
     </template>
     <template #footer>
-      <div class="flex gap-4 w-full justify-end">
+      <div
+        class="flex grow items-center"
+        :class="
+          isEditing ? 'justify-between' : 'justify-end'
+        "
+      >
         <el-button
-          :disabled="saveLoading"
-          class="btn btn--md btn--bordered"
-          @click="doCancel"
+          v-if="isEditing"
+          class="btn btn-link btn-link--primary"
+          @click="doReset"
+          ><i class="ri-arrow-go-back-line"></i>
+          <span>Reset changes</span></el-button
         >
-          <app-i18n code="common.cancel"></app-i18n>
-        </el-button>
 
-        <el-button
-          :disabled="saveLoading || !isFilled || !isDirty"
-          class="btn btn--md btn--primary"
-          @click="doSubmit"
-        >
-          {{ isEditing ? 'Update' : 'Add' }} webhook
-        </el-button>
+        <div class="flex gap-4">
+          <el-button
+            :disabled="saveLoading"
+            class="btn btn--md btn--bordered"
+            @click="doCancel"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+
+          <el-button
+            :disabled="saveLoading || !isFilled || !isDirty"
+            class="btn btn--md btn--primary"
+            @click="doSubmit"
+          >
+            {{ isEditing ? 'Update' : 'Add webhook' }}
+          </el-button>
+        </div>
       </div>
     </template>
   </el-drawer>
@@ -242,17 +259,18 @@ export default {
   data() {
     return {
       rules: formSchema.rules(),
+      newActivityFilters: 'activityFilters',
+      newMemberFilters: 'memberFilters',
+      loadingIntegrations: false,
       model: {
         ...this.modelValue,
         settings: {
           ...this.modelValue.settings
         }
-      },
-      newActivityFilters: 'activityFilters',
-      newMemberFilters: 'memberFilters',
-      loadingIntegrations: false
+      }
     }
   },
+
   computed: {
     isDrawerOpenComputed: {
       get() {
@@ -378,13 +396,15 @@ export default {
 <style lang="scss">
 .automation-form {
   .el-collapse {
-    @apply border border-gray-100 rounded p-4;
-    background-color: #f3f4f6;
+    @apply border-none bg-gray-50 rounded p-4;
     overflow: unset;
 
+    .el-collapse-item {
+      @apply bg-gray-50;
+    }
+
     .el-collapse-item__header {
-      @apply text-brand-500 text-sm flex flex-row-reverse justify-end leading-tight h-6 font-medium;
-      background-color: #f3f4f6;
+      @apply text-gray-600 bg-gray-50 text-xs flex flex-row-reverse justify-end leading-tight h-6 font-medium border-none;
       .el-collapse-item__arrow {
         margin: 0 8px 0 0;
       }
@@ -393,8 +413,7 @@ export default {
       @apply pb-0 pt-6 leading-none;
     }
     .el-collapse-item__wrap {
-      @apply border-none leading-none;
-      background-color: #f3f4f6;
+      @apply border-none leading-none bg-gray-50;
     }
   }
   .el-form-item {
