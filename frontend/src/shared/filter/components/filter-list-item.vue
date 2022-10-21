@@ -86,8 +86,8 @@ import {
 } from 'vue'
 import moment from 'moment'
 import lodash from 'lodash'
-import filterOperators from './filter-operators'
-import { attributesAreDifferent } from './is-different'
+import filterOperators from '../helpers/operators'
+import { attributesAreDifferent } from '../helpers/different-util'
 
 const props = defineProps({
   filter: {
