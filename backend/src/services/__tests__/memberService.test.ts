@@ -1738,6 +1738,7 @@ describe('MemberService tests', () => {
           [PlatformType.DISCORD]: member2.username.discord,
         },
         displayName: member1.displayName,
+        identities: [ PlatformType.GITHUB, PlatformType.DISCORD ],
         activities: [activityCreated],
         attributes: {
           ...member1.attributes,
@@ -1758,7 +1759,7 @@ describe('MemberService tests', () => {
         tags: [t1, t2, t3],
         tasks: [task1, task2, task3],
         notes: [note1, note2, note3],
-        organizations: [o1, o2, o3],
+        organizations: [SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive']), SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive']), SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive'])],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
         activityCount: 1,
@@ -2187,6 +2188,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
       delete returnedMember1.activeOn
+      delete returnedMember1.identities
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2296,6 +2298,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
       delete returnedMember1.activeOn
+      delete returnedMember1.identities
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
