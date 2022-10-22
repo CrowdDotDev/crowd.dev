@@ -8,6 +8,23 @@
           :record="record"
         />
       </transition-group>
+      <div
+        v-if="rows.length && isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
+      >
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner h-16 !relative !min-h-5"
+        ></div>
+        <el-button
+          v-else
+          class="btn btn-link btn-link--primary"
+          @click="handleLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
+      </div>
     </div>
     <div
       v-else
@@ -36,7 +53,19 @@ const store = useStore()
 
 const count = computed(() => store.state.eagleEye.count)
 const rows = computed(() => store.getters['eagleEye/rows'])
-
+const loading = computed(
+  () => store.state.eagleEye.list.loading
+)
+const pagination = computed(
+  () => store.getters['activity/pagination']
+)
+const isLoadMoreVisible = computed(() => {
+  return (
+    pagination.value.currentPage *
+      pagination.value.pageSize <
+    count.value
+  )
+})
 const computedEmptyStateCopy = computed(() => {
   if (
     store.state.eagleEye.filter.keywords &&
@@ -55,4 +84,10 @@ const computedEmptyStateCopy = computed(() => {
     return 'No posts found'
   }
 })
+
+const handleLoadMore = async () => {
+  await store.dispatch('eagleEye/doFetch', {
+    keepPagination: true
+  })
+}
 </script>

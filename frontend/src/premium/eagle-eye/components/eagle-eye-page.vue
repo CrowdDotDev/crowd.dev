@@ -38,7 +38,7 @@
         class="app-page-spinner"
       ></div>
       <div v-else>
-        <div class="flex justify-between items-center pt-4">
+        <div class="flex justify-between items-center py-3">
           <app-eagle-eye-counter />
           <app-eagle-eye-sorter
             v-if="activeView === 'inbox'"
@@ -73,7 +73,7 @@ const loading = computed(
   () => store.state.eagleEye.list.loading
 )
 const activeView = computed(
-  () => store.getters['eagleEye/activeView']
+  () => store.getters['eagleEye/activeView'].id
 )
 const shouldRenderInboxEmptyState = computed(() => {
   return (

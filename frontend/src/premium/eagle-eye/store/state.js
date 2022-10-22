@@ -1,13 +1,39 @@
 import { INITIAL_PAGE_SIZE } from './constants'
 
+const savedKeywords = localStorage.getItem(
+  'eagleEye_keywords'
+)
+
+const savedKeywordsArray =
+  savedKeywords && savedKeywords !== ''
+    ? savedKeywords.split(',')
+    : []
+
 export default {
   records: {},
   views: [
     {
       id: 'inbox',
       label: 'Inbox',
-      filter: {},
-      sorter: {},
+      filter: {
+        operator: 'and',
+        attributes: {
+          keywords: {
+            name: 'keywords',
+            label: 'Keywords',
+            show: false,
+            operator: 'overlap',
+            defaultOperator: 'overlap',
+            type: 'custom',
+            value: savedKeywordsArray,
+            defaultValue: savedKeywordsArray
+          }
+        }
+      },
+      sorter: {
+        prop: 'similarityScore',
+        order: 'descending'
+      },
       active: true
     },
     {
@@ -55,7 +81,18 @@ export default {
   count: 0,
   filter: {
     operator: 'and',
-    attributes: {}
+    attributes: {
+      keywords: {
+        name: 'keywords',
+        label: 'Keywords',
+        show: false,
+        operator: 'overlap',
+        defaultOperator: 'overlap',
+        type: 'custom',
+        value: savedKeywordsArray,
+        defaultValue: savedKeywordsArray
+      }
+    }
   },
   pagination: {
     currentPage: 1,
