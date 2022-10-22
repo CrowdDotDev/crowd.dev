@@ -1,10 +1,23 @@
 <template>
   <app-page-wrapper>
     <div class="eagle-eye">
-      <app-eagle-eye-header />
-      <app-eagle-eye-search />
+      <div class="eagle-eye-header">
+        <div class="flex items-start">
+          <h4>Eagle Eye</h4>
+          <span
+            class="text-sm font-medium text-brand-500 ml-2"
+            >Free trial</span
+          >
+        </div>
+        <div class="text-xs text-gray-500">
+          Discover and engage with relevant content across
+          various community platforms.
+        </div>
+      </div>
+      <app-eagle-eye-tabs class="mt-10" />
+      <app-eagle-eye-filter />
       <div
-        v-if="shouldRenderEmptyState"
+        v-if="shouldRenderInboxEmptyState"
         class="flex flex-col items-center justify-center w-full py-10"
       >
         <img
@@ -25,10 +38,10 @@
         class="app-page-spinner"
       ></div>
       <div v-else>
-        <div class="flex justify-between items-center pt-4">
+        <div class="flex justify-between items-center py-3">
           <app-eagle-eye-counter />
           <app-eagle-eye-sorter
-            v-if="activeTab === 'inbox'"
+            v-if="activeView === 'inbox'"
           />
         </div>
         <app-eagle-eye-list />
@@ -38,38 +51,35 @@
 </template>
 
 <script>
+export default {
+  name: 'AppEagleEye'
+}
+</script>
+
+<script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppEagleEyeHeader from './eagle-eye-header'
+import AppEagleEyeTabs from './eagle-eye-tabs'
 import AppEagleEyeList from './eagle-eye-list'
 import AppEagleEyeCounter from './eagle-eye-counter'
 import AppEagleEyeSorter from './eagle-eye-sorter'
-import AppEagleEyeSearch from './eagle-eye-search'
+import AppEagleEyeFilter from './eagle-eye-filter'
 
-import { mapGetters } from 'vuex'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
 
-export default {
-  name: 'AppEagleEye',
-  components: {
-    AppPageWrapper,
-    AppEagleEyeHeader,
-    AppEagleEyeList,
-    AppEagleEyeCounter,
-    AppEagleEyeSorter,
-    AppEagleEyeSearch
-  },
-  computed: {
-    ...mapGetters({
-      activeTab: 'eagleEye/activeTab',
-      loading: 'eagleEye/loading'
-    }),
-    shouldRenderEmptyState() {
-      return (
-        localStorage.getItem('eagleEye_keywords') ===
-          null &&
-        !this.loading &&
-        this.activeTab === 'inbox'
-      )
-    }
-  }
-}
+const store = useStore()
+
+const loading = computed(
+  () => store.state.eagleEye.list.loading
+)
+const activeView = computed(
+  () => store.getters['eagleEye/activeView'].id
+)
+const shouldRenderInboxEmptyState = computed(() => {
+  return (
+    localStorage.getItem('eagleEye_keywords') === null &&
+    !loading.value &&
+    activeView.value.id === 'inbox'
+  )
+})
 </script>

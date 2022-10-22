@@ -69,7 +69,7 @@ const handleOptionClick = (option) => {
 <style lang="scss">
 .filter-type-select {
   &-option {
-    @apply flex items-center text-black px-4 py-3 text-xs cursor-pointer;
+    @apply flex items-center text-black px-4 py-3 text-xs cursor-pointer relative;
     border-radius: 4px;
 
     &:not(:last-of-type) {
@@ -88,6 +88,10 @@ const handleOptionClick = (option) => {
     &:not(.is-disabled):hover,
     &:not(.is-disabled):focus {
       @apply text-black bg-gray-50;
+    }
+
+    &.is-disabled {
+      @apply cursor-not-allowed;
     }
 
     &.is-selected,
