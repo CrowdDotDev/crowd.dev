@@ -9,13 +9,18 @@
       v-if="
         !['fork', 'star', 'unstar'].includes(
           activity.type
-        ) && !short
+        ) &&
+        !short &&
+        (activity.repo || activity.attributes.repo)
       "
       class="ml-1"
       >in</span
     >
     <a
-      v-if="!short"
+      v-if="
+        !short &&
+        (activity.repo || activity.attributes.repo)
+      "
       :href="activity.repo || activity.attributes.repo"
       target="_blank"
       class="ml-1 text-brand-500"
@@ -56,6 +61,9 @@ export default {
   },
   methods: {
     getRepositoryName(repositoryUrl) {
+      if (!repositoryUrl) {
+        return
+      }
       const splittedUrl = repositoryUrl.split('/')
       if (splittedUrl.length > 0) {
         return splittedUrl[splittedUrl.length - 1]
