@@ -16,17 +16,15 @@ const EmailUnverifiedPage = () =>
 const AuthTenantPage = () =>
   import('@/modules/auth/components/tenant-page.vue')
 const ProfileFormPage = () =>
-  import('@/modules/auth/components/profile-form-page.vue')
+  import('@/modules/auth/pages/profile-form-page.vue')
 const PasswordResetPage = () =>
   import('@/modules/auth/pages/password-reset-page.vue')
 const VerifyEmailPage = () =>
   import('@/modules/auth/pages/verify-email-page.vue')
 const InvitationPage = () =>
-  import('@/modules/auth/components/invitation-page.vue')
+  import('@/modules/auth/pages/invitation-page.vue')
 const EmptyPermissionsPage = () =>
-  import(
-    '@/modules/auth/components/empty-permissions-page.vue'
-  )
+  import('@/modules/auth/pages/empty-permissions-page.vue')
 
 export default [
   {
@@ -68,28 +66,28 @@ export default [
         name: 'verifyEmail',
         path: 'verify-email',
         component: VerifyEmailPage
+      },
+      {
+        name: 'emptyPermissions',
+        path: 'empty-permissions',
+        component: EmptyPermissionsPage,
+        meta: { auth: true, notEmptyPermissions: true }
+      },
+      {
+        name: 'invitation',
+        path: 'invitation',
+        component: InvitationPage,
+        meta: {}
       }
     ]
   },
+  // TODO: remove this if unused
   {
     name: 'authTenant',
     path: '/auth/tenant',
     component: AuthTenantPage,
     meta: { auth: true, notEmptyTenant: true }
   },
-  {
-    name: 'emptyPermissions',
-    path: '/auth/empty-permissions',
-    component: EmptyPermissionsPage,
-    meta: { auth: true, notEmptyPermissions: true }
-  },
-  {
-    name: 'invitation',
-    path: '/auth/invitation',
-    component: InvitationPage,
-    meta: {}
-  },
-
   {
     name: '',
     path: '',

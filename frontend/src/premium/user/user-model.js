@@ -86,13 +86,13 @@ const fields = {
     required: true
   }),
   password: new StringField('password', label('password'), {
-    required: true,
+    required: true
   }),
   passwordConfirmation: new StringField(
     'passwordConfirmation',
     label('passwordConfirmation'),
     {
-      required: true,
+      required: true
     }
   ),
   oldPassword: new StringField(
