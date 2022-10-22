@@ -144,7 +144,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  identities: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -242,7 +242,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -282,7 +282,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  identities: {
                     contains: [platform]
                   }
                 }

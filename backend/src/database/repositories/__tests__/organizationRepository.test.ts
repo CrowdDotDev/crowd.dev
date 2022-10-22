@@ -91,7 +91,10 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activeOn: [],
+        identities: [],
         importHash: null,
+        lastActive: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -132,6 +135,9 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 2,
+        lastActive: null,
+        activeOn: [],
+        identities: ['github'],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -165,6 +171,9 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activeOn: [],
+        identities: [],
+        lastActive: null,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -386,28 +395,6 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      const expectedOrganization1 = {
-        ...foundOrganization1,
-        memberCount: foundOrganization1.memberCount.toString(),
-        lastActive: null,
-        platforms: null
-      }
-
-      const expectedOrganization2 = {
-        ...foundOrganization2,
-        memberCount: foundOrganization2.memberCount.toString(),
-        lastActive: null,
-        platforms: null
-      }
-
-      const expectedOrganization3 = {
-        ...foundOrganization3,
-        memberCount: foundOrganization3.memberCount.toString(),
-        lastActive: null,
-        platforms: null
-      }
-
-
       // Test filter by name
       // Current findAndCountAll uses wildcarded like statement so it matches both organizations
       let organizations = await OrganizationRepository.findAndCountAll(
@@ -416,7 +403,7 @@ describe('OrganizationRepository tests', () => {
       )
 
       expect(organizations.count).toEqual(2)
-      expect(organizations.rows).toEqual([expectedOrganization2, expectedOrganization1])
+      expect(organizations.rows).toEqual([foundOrganization2, foundOrganization1])
 
       // Test filter by id
       organizations = await OrganizationRepository.findAndCountAll(
@@ -425,7 +412,7 @@ describe('OrganizationRepository tests', () => {
       )
 
       expect(organizations.count).toEqual(1)
-      expect(organizations.rows).toStrictEqual([expectedOrganization1])
+      expect(organizations.rows).toStrictEqual([foundOrganization1])
 
       // Test filter by createdAt - find all between organization1.createdAt and organization3.createdAt
       organizations = await OrganizationRepository.findAndCountAll(
@@ -439,9 +426,9 @@ describe('OrganizationRepository tests', () => {
 
       expect(organizations.count).toEqual(3)
       expect(organizations.rows).toStrictEqual([
-        expectedOrganization3,
-        expectedOrganization2,
-        expectedOrganization1,
+        foundOrganization3,
+        foundOrganization2,
+        foundOrganization1,
       ])
 
       // Test filter by createdAt - find all where createdAt < organization2.createdAt
@@ -454,7 +441,7 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       expect(organizations.count).toEqual(2)
-      expect(organizations.rows).toStrictEqual([expectedOrganization2, expectedOrganization1])
+      expect(organizations.rows).toStrictEqual([foundOrganization2, foundOrganization1])
 
       // Test filter by createdAt - find all where createdAt < organization1.createdAt
       organizations = await OrganizationRepository.findAndCountAll(
@@ -466,7 +453,7 @@ describe('OrganizationRepository tests', () => {
         mockIRepositoryOptions,
       )
       expect(organizations.count).toEqual(1)
-      expect(organizations.rows).toStrictEqual([expectedOrganization1])
+      expect(organizations.rows).toStrictEqual([foundOrganization1])
     })
   })
 
@@ -857,7 +844,6 @@ describe('OrganizationRepository tests', () => {
         ).count,
       ).toEqual(1)
 
-      // Fucky
       expect(
         (
           await OrganizationRepository.findAndCountAll(
@@ -891,7 +877,6 @@ describe('OrganizationRepository tests', () => {
         ).count,
       ).toEqual(2)
 
-      // Fucky 2
       expect(
         (
           await OrganizationRepository.findAndCountAll(
@@ -948,6 +933,9 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activeOn: [],
+        identities: [],
+        lastActive: null,
         name: organizationUpdated.name,
         importHash: null,
         createdAt: organizationCreated.createdAt,
