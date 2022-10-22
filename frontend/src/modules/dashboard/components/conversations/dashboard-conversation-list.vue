@@ -18,6 +18,7 @@
           'border-b': ci < trendingConversations.length - 1
         }"
         :conversation="conversation"
+        @details="conversationId = conversation.id"
       />
       <div v-if="trendingConversations.length === 0">
         <div class="flex justify-center pt-16">
@@ -42,15 +43,29 @@
       </router-link>
     </div>
   </div>
+
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  ></app-conversation-drawer>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import AppDashboardConversationItem from '@/modules/dashboard/components/conversations/dashboard-conversation-item'
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 export default {
   name: 'AppDashboardConversationList',
-  components: { AppDashboardConversationItem },
-  emits: { count: null },
+  components: {
+    AppConversationDrawer,
+    AppDashboardConversationItem
+  },
+  data() {
+    return {
+      conversationId: null
+    }
+  },
   computed: {
     ...mapGetters('dashboard', [
       'trendingConversations',

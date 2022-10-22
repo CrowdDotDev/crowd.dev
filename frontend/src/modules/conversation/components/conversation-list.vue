@@ -22,7 +22,7 @@
         v-for="conversation of conversations"
         :key="conversation.id"
         :conversation="conversation"
-        :is-card="itemsAsCards"
+        @details="conversationId = conversation.id"
       />
       <div
         v-if="conversations.length && isLoadMoreVisible"
@@ -55,6 +55,11 @@
       </div>
     </div>
   </div>
+  <app-conversation-drawer
+    :expand="conversationId != null"
+    :conversation-id="conversationId"
+    @close="conversationId = null"
+  ></app-conversation-drawer>
 </template>
 
 <script>
@@ -65,11 +70,14 @@ export default {
 
 <script setup>
 import AppConversationItem from '@/modules/conversation/components/conversation-item'
+import AppConversationDrawer from '@/modules/conversation/components/conversation-drawer'
+import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
 import { defineProps, computed, ref } from 'vue'
 import { useStore } from 'vuex'
 
 const store = useStore()
 const sorterFilter = ref('trending')
+const conversationId = ref(null)
 
 defineProps({
   conversations: {

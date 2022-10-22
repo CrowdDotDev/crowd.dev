@@ -17,7 +17,7 @@
         <app-avatar :entity="member" size="xs" />
         <slot name="underAvatar"></slot>
       </div>
-      <div class="flex-grow pl-3">
+      <div class="flex-grow pl-3" :class="bodyClasses">
         <div class="flex items-center h-5">
           <p class="text-2xs leading-5 text-gray-500">
             <span>{{ member.displayName }}</span>
@@ -45,7 +45,12 @@
             :activity="activity"
             :display-thread="false"
             :display-title="false"
-            class="text-sm text-limit-1"
+            class="text-sm"
+            :class="{
+              'text-limit-1': !displayContent && !showMore
+            }"
+            :show-more="showMore"
+            :limit="limit"
           />
         </div>
       </div>
@@ -76,6 +81,26 @@ export default {
       type: Boolean,
       required: false,
       default: false
+    },
+    bodyClasses: {
+      type: String,
+      required: false,
+      default: ''
+    },
+    displayContent: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    showMore: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    limit: {
+      type: Number,
+      required: false,
+      default: 4
     }
   },
   computed: {

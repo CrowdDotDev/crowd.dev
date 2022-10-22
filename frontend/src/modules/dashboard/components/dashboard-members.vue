@@ -87,7 +87,7 @@
             >
               {{ getTimeText(mi) }}
             </p>
-            <app-dashboard-members-item
+            <app-dashboard-member-item
               class="mb-4"
               :member="member"
             />
@@ -159,7 +159,7 @@
           >
             most active
           </p>
-          <app-dashboard-members-item
+          <app-dashboard-member-item
             v-for="member of activeMembers"
             :key="member.id"
             class="mb-4"
@@ -187,7 +187,6 @@
 
 <script>
 import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab'
-import AppDashboardMembersItem from '@/modules/dashboard/components/members/dashboard-members-item'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
@@ -198,13 +197,14 @@ import {
   hideLabels
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
+import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
 
 export default {
-  name: 'AppDashboardMembers',
+  name: 'AppDashboardMember',
   components: {
+    AppDashboardMemberItem,
     AppDashboardCount,
     AppWidgetCubeRenderer,
-    AppDashboardMembersItem,
     AppDashboardTab
   },
   data() {
