@@ -1713,8 +1713,11 @@ describe('MemberService tests', () => {
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
       o1 = SequelizeTestUtils.objectWithoutKey(o1, 'memberCount')
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'joinedAt')
       o2 = SequelizeTestUtils.objectWithoutKey(o2, 'memberCount')
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'joinedAt')
       o3 = SequelizeTestUtils.objectWithoutKey(o3, 'memberCount')
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'joinedAt')
 
       // remove tasks->member and tasks->activity relations as well (we should be only checking 1-deep relations)
       task1 = SequelizeTestUtils.objectWithoutKey(task1, 'members')
