@@ -21,9 +21,10 @@ components:
         orderBy:
           type: string
           enum:
-            - activitiesCount_DESC
+            - activityCount_ASC
+            - activityCount_DESC
             - score_ASC
-            - score_ASC
+            - score_DESC
             - joinedAt_ASC
             - joinedAt_DESC
             - createdAt_ASC

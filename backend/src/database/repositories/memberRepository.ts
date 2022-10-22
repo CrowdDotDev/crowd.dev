@@ -485,7 +485,13 @@ class MemberRepository {
     ]
 
     // get possible platforms for a tenant
-    const availableDynamicAttributePlatformKeys = ['default', 'custom', ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(p => p.platform)]
+    const availableDynamicAttributePlatformKeys = [
+      'default',
+      'custom',
+      ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
+        (p) => p.platform,
+      ),
+    ]
 
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
@@ -694,45 +700,38 @@ class MemberRepository {
     }, {})
 
     const dynamicAttributesLiterals = attributesSettings.reduce((acc, attribute) => {
-
-      for (const key of availableDynamicAttributePlatformKeys){
-        if (attribute.type === AttributeType.NUMBER){
+      for (const key of availableDynamicAttributePlatformKeys) {
+        if (attribute.type === AttributeType.NUMBER) {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
           )
-        }
-        else if (attribute.type === AttributeType.BOOLEAN){
+        } else if (attribute.type === AttributeType.BOOLEAN) {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
           )
-        }
-        else{
+        } else {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `"member"."attributes"#>>'{${attribute.name},${key}}'`,
           )
         }
       }
-    
       return acc
     }, {})
 
     const dynamicAttributesProjection = attributesSettings.reduce((acc, attribute) => {
-
-      for (const key of availableDynamicAttributePlatformKeys){
-        if (key === "default"){
+      for (const key of availableDynamicAttributePlatformKeys) {
+        if (key === 'default') {
           acc.push([
             Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},default}'`),
             attribute.name,
           ])
-        }
-        else{
+        } else {
           acc.push([
             Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},${key}}'`),
             `${attribute.name}.${key}`,
           ])
         }
       }
-  
       return acc
     }, [])
 
@@ -746,7 +745,11 @@ class MemberRepository {
       options.database.Sequelize.col('activities.timestamp'),
     )
 
-    const identities = Sequelize.literal(`array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`)
+    const activeOn = Sequelize.literal(
+      `array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`,
+    )
+
+    const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member".username))`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 
@@ -766,6 +769,7 @@ class MemberRepository {
           activityCount,
           lastActive,
           averageSentiment,
+          activeOn,
           identities,
           ...dynamicAttributesLiterals,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
@@ -861,6 +865,7 @@ class MemberRepository {
           ],
           'member',
         ),
+        [activeOn, 'activeOn'],
         [identities, 'identities'],
         [activityCount, 'activityCount'],
         [lastActive, 'lastActive'],
@@ -983,14 +988,15 @@ class MemberRepository {
         delete plainRecord.toMergeIds
         delete plainRecord.noMergeIds
 
-        for (const attribute of attributesSettings){
-          if (Object.prototype.hasOwnProperty.call(plainRecord, attribute.name)){
+        plainRecord.activeOn = plainRecord.activeOn ?? []
+
+        for (const attribute of attributesSettings) {
+          if (Object.prototype.hasOwnProperty.call(plainRecord, attribute.name)) {
             delete plainRecord[attribute.name]
           }
         }
 
         delete plainRecord.company
-       
         plainRecord.organizations = await record.getOrganizations({
           joinTableAttributes: [],
         })
@@ -1032,6 +1038,10 @@ class MemberRepository {
     output.lastActivity = output.activities[0]?.get({ plain: true }) ?? null
 
     output.lastActive = output.activities[0]?.timestamp ?? null
+
+    output.activeOn = [...new Set(output.activities.map((i) => i.platform))]
+
+    output.identities = Object.keys(output.username)
 
     output.activityCount = output.activities.length
 

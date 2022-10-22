@@ -85,14 +85,23 @@ export default {
     const { platform, period } = state.filters
     return ActivityService.list(
       {
-        timestampRange: [
-          moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString(),
-          moment().toISOString()
-        ],
-        platform: platform !== 'all' ? platform : undefined
+        and: [
+          {
+            timestamp: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: platform
+                }
+              ]
+            : [])
+        ]
       },
       'timestamp_DESC',
       20,
@@ -144,7 +153,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  identities: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -242,7 +251,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -282,7 +291,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  identities: {
                     contains: [platform]
                   }
                 }

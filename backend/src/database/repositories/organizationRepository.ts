@@ -264,26 +264,21 @@ class OrganizationRepository {
             // through: {
             //   attributes: [],
             // },
-          }
+          },
         ],
-        
-
       },
     ]
 
-    const platforms = Sequelize.literal(
+    const activeOn = Sequelize.literal(
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
-    const lastActive = Sequelize.literal(
-      `MAX("members->activities".timestamp)`,
+    const identities = Sequelize.literal(
+      `array( select jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
+    const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.fn(
-      'COUNT',
-      Sequelize.col('members.id'),
-    )
-
+    const memberCount = Sequelize.literal(`COUNT("members".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -451,8 +446,6 @@ class OrganizationRepository {
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
 
-
-
     const parser = new QueryParser(
       {
         nestedFields: {
@@ -490,9 +483,10 @@ class OrganizationRepository {
             ],
             'organization',
           ),
-          platforms,
+          activeOn,
+          identities,
           lastActive,
-          memberCount
+          memberCount,
         },
         manyToMany: {
           members: {
@@ -557,9 +551,10 @@ class OrganizationRepository {
           ],
           'organization',
         ),
-        [platforms, 'platforms'],
+        [activeOn, 'activeOn'],
+        [identities, 'identities'],
         [lastActive, 'lastActive'],
-        [memberCount, 'memberCount']
+        [memberCount, 'memberCount'],
       ],
       order,
       limit: parsed.limit,
@@ -637,9 +632,10 @@ class OrganizationRepository {
     }
 
     return rows.map((record) => {
-        const rec = record.get({ plain: true })
-        return rec
-      })
+      const rec = record.get({ plain: true })
+      rec.activeOn = rec.activeOn ?? []
+      return rec
+    })
   }
 
   static async _populateRelations(record, options: IRepositoryOptions) {
@@ -653,11 +649,35 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.memberCount = (
-      await record.getMembers({
-        transaction,
-      })
-    ).length
+    const members = await record.getMembers({
+      include: ['activities'],
+      transaction,
+    })
+
+    output.activeOn = [
+      ...new Set(
+        members
+          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+          .map((a) => a.platform),
+      ),
+    ]
+
+    output.lastActive = Math.min(
+      members
+        .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+        .map((i) => i.timestamp),
+    )
+
+    // Math.min returns 0 for an empty array
+    output.lastActive = output.lastActive === 0 ? null : output.lastActive
+
+    output.identities = [
+      ...new Set(
+        members.reduce((acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)), []),
+      ),
+    ]
+
+    output.memberCount = members.length
 
     return output
   }

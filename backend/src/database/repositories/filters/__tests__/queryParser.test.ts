@@ -288,10 +288,11 @@ describe('QueryParser tests', () => {
           [Op.or]: [
             {
               [Op.and]: [
-                Sequelize.where(Sequelize.literal(`"activities"."platform"`), Op.in, [
-                  'discord',
-                  'github',
-                ]),
+                Sequelize.where(
+                  Sequelize.literal(`"activities"."platform"`),
+                  Op.in,
+                  Sequelize.literal(`(discord,github)`),
+                ),
               ],
             },
             {
@@ -494,10 +495,11 @@ describe('QueryParser tests', () => {
               [Op.and]: [
                 {
                   [Op.and]: [
-                    Sequelize.where(Sequelize.literal(`"activities"."platform"`), Op.in, [
-                      'discord',
-                      'github',
-                    ]),
+                    Sequelize.where(
+                      Sequelize.literal(`"activities"."platform"`),
+                      Op.in,
+                      Sequelize.literal(`(discord,github)`),
+                    ),
                   ],
                 },
                 {
