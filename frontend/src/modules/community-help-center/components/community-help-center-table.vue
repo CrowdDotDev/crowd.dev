@@ -147,6 +147,11 @@
         />
       </div>
     </div>
+    <app-conversation-drawer
+      :expand="drawerConversationId !== null"
+      :conversation-id="drawerConversationId"
+      @close="drawerConversationId = null"
+    ></app-conversation-drawer>
   </div>
 </template>
 
@@ -159,6 +164,7 @@ import ConversationDropdown from '../../conversation/components/conversation-dro
 import CommunityHelpCenterToolbar from '../../community-help-center/components/community-help-center-toolbar'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import ConversationDrawer from '@/modules/conversation/components/conversation-drawer'
 
 const { fields } = ConversationModel
 
@@ -167,7 +173,14 @@ export default {
   components: {
     'app-conversation-dropdown': ConversationDropdown,
     'app-community-help-center-toolbar':
-      CommunityHelpCenterToolbar
+      CommunityHelpCenterToolbar,
+    'app-conversation-drawer': ConversationDrawer
+  },
+
+  data() {
+    return {
+      drawerConversationId: null
+    }
   },
 
   computed: {
@@ -252,7 +265,7 @@ export default {
     },
 
     handleRowClick(row) {
-      console.log(row)
+      this.drawerConversationId = row.id
     }
   }
 }

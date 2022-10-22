@@ -22,15 +22,6 @@
         Url</el-dropdown-item
       >
       <el-dropdown-item
-        v-if="showViewConversation"
-        :command="{
-          action: 'conversationView',
-          conversation: conversation
-        }"
-        ><i class="ri-eye-line mr-1" />View
-        Conversation</el-dropdown-item
-      >
-      <el-dropdown-item
         v-if="!conversation.published"
         :command="{
           action: 'conversationPublish',
@@ -137,11 +128,6 @@ export default {
         this.editing = false
         await this.doUnpublish({
           id: command.conversation.id
-        })
-      } else {
-        return this.$router.push({
-          name: command.action,
-          params: { id: command.conversation.id }
         })
       }
     }

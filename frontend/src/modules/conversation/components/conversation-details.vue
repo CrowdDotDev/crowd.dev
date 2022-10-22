@@ -172,7 +172,6 @@ export default {
   },
   computed: {
     platform() {
-      console.log(this.conversation)
       return integrationsJsonArray.find(
         (i) => i.platform === this.conversation.platform
       )
