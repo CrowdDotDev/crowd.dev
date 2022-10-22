@@ -98,10 +98,11 @@ class OrganizationRepository {
         transaction,
       },
     )
-
-    await record.setMembers(data.members || [], {
-      transaction,
-    })
+    if (data.members) {
+      await record.setMembers(data.members || [], {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -274,11 +275,11 @@ class OrganizationRepository {
     )
 
     const identities = Sequelize.literal(
-      `array( select jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
+      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.literal(`COUNT("members".id)::integer`)
+    const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
