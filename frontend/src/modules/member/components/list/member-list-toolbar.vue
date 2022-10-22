@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="selectedRows.length > 0"
-    class="app-page-toolbar member-list-toolbar"
+    class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
@@ -149,11 +149,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.member-list-toolbar {
-  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
-  height: calc(56px - 1px);
-  width: calc(100% - 75px);
-}
-</style>

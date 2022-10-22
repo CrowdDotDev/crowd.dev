@@ -7,7 +7,7 @@
           <app-conversation-settings
             :visible="hasConversationsSettingsVisible"
             class="mr-2"
-            @open="doOpenSettingsModal"
+            @open="doOpenSettingsDrawer"
             @close="doCloseSettingsModal"
           />
           <a
@@ -65,8 +65,8 @@ export default {
 
   methods: {
     ...mapActions({
-      doOpenSettingsModal:
-        'conversation/doOpenSettingsModal',
+      doOpenSettingsDrawer:
+        'conversation/doOpenSettingsDrawer',
       doCloseSettingsModal:
         'conversation/doCloseSettingsModal'
     })

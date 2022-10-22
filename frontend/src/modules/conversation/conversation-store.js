@@ -709,7 +709,7 @@ export default {
       }
     },
 
-    doOpenSettingsModal({ commit }) {
+    doOpenSettingsDrawer({ commit }) {
       commit('OPEN_SETTINGS_MODAL')
     },
 

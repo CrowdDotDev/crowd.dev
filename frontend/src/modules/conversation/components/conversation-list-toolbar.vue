@@ -1,62 +1,55 @@
 <template>
   <div
     v-if="selectedRows.length > 0"
-    class="app-page-toolbar conversation-list-toolbar"
+    class="app-list-table-bulk-actions"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'rows' : 'row' }}
+      {{
+        selectedRows.length > 1
+          ? 'conversations'
+          : 'conversation'
+      }}
       selected</span
     >
-
-    <el-tooltip
-      v-if="hasPermissionToEdit && hasUnpublishedSelected"
-      :content="publishButtonTooltip"
-      :disabled="!publishButtonTooltip"
-    >
-      <span>
-        <el-button
-          :disabled="publishButtonDisabled"
-          class="btn btn--secondary btn--secondary--orange mr-2"
+    <el-dropdown trigger="click">
+      <button class="btn btn--bordered btn--sm">
+        <span class="mr-2">Actions</span>
+        <i class="ri-xl ri-arrow-down-s-line"></i>
+      </button>
+      <template #dropdown>
+        <el-dropdown-item
+          v-if="
+            hasPermissionToEdit && hasUnpublishedSelected
+          "
+          :disabled="isReadOnly"
           @click="doPublishAllWithConfirm"
         >
           <i class="ri-lg ri-upload-cloud-2-line mr-1" />
           Publish Conversations
-        </el-button>
-      </span>
-    </el-tooltip>
-    <el-tooltip
-      v-if="hasPermissionToEdit && hasPublishedSelected"
-      :content="publishButtonTooltip"
-      :disabled="!publishButtonTooltip"
-    >
-      <span>
-        <el-button
-          :disabled="publishButtonDisabled"
-          class="btn btn--secondary mr-2"
+        </el-dropdown-item>
+        <el-dropdown-item
+          v-if="hasPermissionToEdit && hasPublishedSelected"
+          :disabled="isReadOnly"
           @click="doUnpublishAllWithConfirm"
         >
           <i class="ri-lg ri-arrow-go-back-line mr-1" />
           Unpublish Conversations
-        </el-button>
-      </span>
-    </el-tooltip>
-    <el-tooltip
-      v-if="hasPermissionToDestroy"
-      :content="destroyButtonTooltip"
-      :disabled="!destroyButtonTooltip"
-    >
-      <span>
-        <el-button
-          :disabled="destroyButtonDisabled"
-          class="btn btn--secondary mr-2"
+        </el-dropdown-item>
+        <hr class="border-gray-200 my-1 mx-2" />
+        <el-dropdown-item
+          v-if="hasPermissionToDestroy"
+          command="destroyAll"
+          :disabled="isReadOnly"
           @click="doDestroyAllWithConfirm"
         >
-          <i class="ri-lg ri-delete-bin-line mr-1" />
-          <app-i18n code="common.destroy"></app-i18n>
-        </el-button>
-      </span>
-    </el-tooltip>
+          <div class="text-red-500 flex items-center">
+            <i class="ri-lg ri-delete-bin-line mr-1" />
+            <app-i18n code="common.destroy"></app-i18n>
+          </div>
+        </el-dropdown-item>
+      </template>
+    </el-dropdown>
   </div>
 </template>
 
@@ -79,6 +72,15 @@ export default {
         'conversation/isConfigured'
     }),
 
+    isReadOnly() {
+      return (
+        new ConversationPermissions(
+          this.currentTenant,
+          this.currentUser
+        ).edit === false
+      )
+    },
+
     hasPublishedSelected() {
       return (
         this.selectedRows.filter(
@@ -100,22 +102,6 @@ export default {
         this.currentTenant,
         this.currentUser
       ).edit
-    },
-
-    publishButtonDisabled() {
-      return (
-        !this.selectedRows.length ||
-        this.loading('submit') ||
-        this.loading('table')
-      )
-    },
-
-    publishButtonTooltip() {
-      if (this.publishButtonDisabled) {
-        return i18n('common.mustSelectARow')
-      }
-
-      return null
     },
 
     hasPermissionToDestroy() {
@@ -147,8 +133,8 @@ export default {
       doDestroyAll: 'conversation/doDestroyAll',
       doPublishAll: 'conversation/doPublishAll',
       doUnpublishAll: 'conversation/doUnpublishAll',
-      doOpenSettingsModal:
-        'conversation/doOpenSettingsModal'
+      doOpenSettingsDrawer:
+        'conversation/doOpenSettingsDrawer'
     }),
 
     async doDestroyAllWithConfirm() {
@@ -172,7 +158,7 @@ export default {
     },
     async doPublishAllWithConfirm() {
       if (!this.hasConversationsConfigured) {
-        return this.doOpenSettingsModal()
+        return this.doOpenSettingsDrawer()
       }
       try {
         await this.$myConfirm(
