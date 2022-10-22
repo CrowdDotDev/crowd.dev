@@ -96,7 +96,8 @@ export default {
       },
       'timestamp_DESC',
       20,
-      0
+      0,
+      false
     )
       .then((data) => {
         commit('SET_RECENT_ACTIVITIES', data)

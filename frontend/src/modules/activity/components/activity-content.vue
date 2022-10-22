@@ -16,9 +16,11 @@
         "
         ref="content"
         :activity="activity"
-        :limit="showMore && !more"
         :display-body="displayBody"
         :display-thread="displayThread"
+        :body-class="
+          showMore && !more ? `text-limit-${limit}` : ''
+        "
       />
       <app-activity-devto-content
         v-else-if="
@@ -26,9 +28,11 @@
         "
         ref="content"
         :activity="activity"
-        :limit="showMore && !more"
         :display-body="displayBody"
         :display-thread="displayThread"
+        :body-class="
+          showMore && !more ? `text-limit-${limit}` : ''
+        "
       />
       <div v-else-if="activity.body">
         <blockquote
@@ -47,7 +51,9 @@
           v-else-if="displayBody"
           ref="body"
           class="block whitespace-pre-wrap custom-break-all activity-body"
-          :class="{ 'text-limit-4': showMore && !more }"
+          :class="
+            showMore && !more ? `text-limit-${limit}` : ''
+          "
           v-html="activity.body"
         />
       </div>
@@ -86,26 +92,37 @@ export default {
       type: Object,
       required: true
     },
+    // classes to bind to title
     titleClasses: {
       type: String,
       required: false,
       default: ''
     },
+    // if display show more and limit content
     showMore: {
       type: Boolean,
       required: false,
       default: false
     },
+    // number of lines limited when showMore is enabled
+    limit: {
+      type: Number,
+      required: false,
+      default: 4
+    },
+    // if title is displayed
     displayTitle: {
       type: Boolean,
       required: false,
       default: true
     },
+    // if thread is displayed
     displayThread: {
       type: Boolean,
       required: false,
       default: true
     },
+    // if body is displayed
     displayBody: {
       type: Boolean,
       required: false,
