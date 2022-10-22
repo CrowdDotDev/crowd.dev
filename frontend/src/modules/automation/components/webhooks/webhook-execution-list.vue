@@ -8,7 +8,7 @@
           )
         }}
       </div>
-      <div class="text-gray-600">
+      <div class="text-gray-500 text-2xs">
         {{ webhook.settings.url }}
       </div>
     </div>
@@ -18,17 +18,17 @@
       class="app-page-spinner"
     ></div>
     <div
-      v-else
+      v-if="executions.length"
       class="webhook-executions-list-wrapper mt-8"
     >
       <div class="flex items-center mb-3">
         <div
-          class="font-semibold text-sm w-20 text-gray-600"
+          class="font-semibold tracking-wide uppercase text-2xs w-20 text-gray-400"
         >
           Status
         </div>
         <div
-          class="font-semibold text-sm w-40 text-gray-600"
+          class="font-semibold tracking-wide uppercase text-2xs w-40 text-gray-400"
         >
           Timestamp
         </div>
@@ -79,13 +79,24 @@
             </el-dialog>
           </li>
         </ul>
-        <div v-else>No executions yet</div>
       </div>
       <div
         v-if="loading"
         v-loading="loading"
         class="app-page-spinner"
       ></div>
+    </div>
+    <div v-else class="mt-4">
+      <div class="flex justify-center pt-12">
+        <i
+          class="ri-flow-chart text-4xl h-12 text-gray-300"
+        ></i>
+      </div>
+      <p
+        class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+      >
+        There are no executions
+      </p>
     </div>
   </div>
 </template>
@@ -178,9 +189,7 @@ export default {
     height: calc(100vh - 300px);
 
     &-header {
-      @apply p-3 rounded text-sm;
-      background-color: #f8fafc;
-      border: 1px solid #e2e8f0;
+      @apply p-4 rounded-md text-sm bg-gray-50 text-gray-900;
     }
 
     &-item {

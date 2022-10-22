@@ -9,18 +9,17 @@
     <el-form
       v-if="model"
       ref="form"
-      :label-position="labelPosition"
-      :label-width="labelWidthForm"
+      label-position="top"
       :model="model"
       :rules="rules"
       class="form"
       @submit.prevent="doSubmit"
     >
-      <div class="flex items-center -mx-2">
+      <div class="grid grid-cols-3 gap-4 px-6 pb-4">
         <el-form-item
           :label="fields.email.label"
           :prop="fields.email.name"
-          class="w-full lg:w-1/2 mx-2"
+          class="col-span-2"
         >
           <el-input
             v-model="model[fields.email.name]"
@@ -32,7 +31,6 @@
           :label="fields.roles.label"
           :prop="fields.roles.name"
           :required="fields.roles.required"
-          class="w-full lg:w-1/2 mx-2"
         >
           <el-select
             v-model="model[fields.roles.name]"
@@ -48,34 +46,34 @@
         </el-form-item>
       </div>
 
-      <div class="form-buttons mt-12">
+      <el-footer class="el-dialog__footer">
         <el-button
           :disabled="saveLoading"
-          class="btn btn--primary mr-2"
-          @click="doSubmit"
-        >
-          <i class="ri-lg ri-save-line mr-1" />
-          <app-i18n code="common.save"></app-i18n>
-        </el-button>
-
-        <el-button
-          :disabled="saveLoading"
-          class="btn btn--secondary mr-2"
+          class="btn btn-link btn-link--primary"
           @click="doReset"
         >
-          <i class="ri-lg ri-arrow-go-back-line mr-1" />
-          <app-i18n code="common.reset"></app-i18n>
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
         </el-button>
 
-        <el-button
-          :disabled="saveLoading"
-          class="btn btn--secondary"
-          @click="$emit('cancel')"
-        >
-          <i class="ri-lg ri-close-line mr-1" />
-          <app-i18n code="common.cancel"></app-i18n>
-        </el-button>
-      </div>
+        <div class="flex gap-4">
+          <el-button
+            :disabled="saveLoading"
+            class="btn btn--md btn--bordered"
+            @click="$emit('cancel')"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+
+          <el-button
+            :disabled="saveLoading"
+            class="btn btn--md btn--primary"
+            @click="doSubmit"
+          >
+            Update invite
+          </el-button>
+        </div>
+      </el-footer>
     </el-form>
   </div>
 </template>
@@ -112,8 +110,6 @@ export default {
 
   computed: {
     ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm',
       record: 'user/form/record',
       initLoading: 'user/form/initLoading',
       saveLoading: 'user/form/saveLoading'

@@ -94,7 +94,7 @@
     </div>
 
     <!-- Manage Custom Attributes Drawer-->
-    <AppMemberAttributesDrawer
+    <app-member-attributes-drawer
       v-if="computedAttributes.length"
       v-model="isDrawerOpen"
     />

@@ -1,31 +1,37 @@
 <template>
   <div>
-    <div class="flex items-center justify-end mb-4">
-      <div id="teleport-user-filter-toggle"></div>
-
-      <el-button
-        class="btn btn--primary ml-2"
-        @click.prevent="inviting = true"
-      >
-        <i class="ri-lg ri-mail-line mr-1" />
-        Invite
-      </el-button>
-    </div>
-
     <el-dialog
       v-model="inviting"
       :close-on-click-modal="false"
-      title="Invite User"
       :append-to-body="true"
       :destroy-on-close="true"
-      custom-class="el-dialog--lg"
+      :show-close="false"
+      custom-class="el-dialog--lg user-invite-dialog"
       @close="inviting = false"
     >
+      <template #header="{ close, titleId, titleClass }">
+        <div class="flex grow justify-between items-center">
+          <h5 :id="titleId" :class="titleClass">
+            Invite User
+          </h5>
+          <el-button
+            class="btn btn--transparent btn--xs w-8 !h-8"
+            @click="close"
+          >
+            <i
+              class="ri-close-line text-lg text-gray-400"
+            ></i>
+          </el-button>
+        </div>
+      </template>
       <app-user-new-page @cancel="inviting = false">
       </app-user-new-page>
     </el-dialog>
+    <!-- TODO: Check if filter button is to be removed -->
     <app-user-list-filter></app-user-list-filter>
-    <app-user-list-table></app-user-list-table>
+    <app-user-list-table
+      @invite="inviting = true"
+    ></app-user-list-table>
   </div>
 </template>
 
@@ -66,4 +72,10 @@ export default {
 }
 </script>
 
-<style></style>
+<style lang="scss">
+.user-invite-dialog {
+  .el-form-item {
+    @apply mb-0;
+  }
+}
+</style>

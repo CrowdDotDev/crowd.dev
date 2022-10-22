@@ -19,6 +19,24 @@
   color: inherit;
 }
 
+.el-input-group--append {
+  .el-input__wrapper {
+    border-radius: 4px 0 0 4px !important;
+  }
+
+  .el-input-group__append {
+    @apply bg-white h-10 w-10 hover:bg-gray-50;
+
+    & button {
+      @apply p-0 flex items-center justify-center;
+    }
+
+    & i {
+      @apply text-gray-600 text-lg;
+    }
+  }
+}
+
 // Form
 .el-form,
 .el-form--default.el-form--label-top {

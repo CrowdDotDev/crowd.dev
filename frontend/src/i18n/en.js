@@ -573,7 +573,7 @@ const en = {
     },
     status: {
       active: 'Active',
-      invited: 'Invited',
+      invited: 'Invite sent',
       'empty-permissions': 'Waiting for Permissions'
     },
     invite: 'Invite',
