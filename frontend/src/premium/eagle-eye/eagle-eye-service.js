@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 
 export class EagleEyeService {
   static async find(id) {
@@ -13,8 +14,8 @@ export class EagleEyeService {
   }
 
   static async list(filter, orderBy, limit, offset) {
-    const params = {
-      filter,
+    const body = {
+      filter: buildApiPayload(filter),
       orderBy,
       limit,
       offset
@@ -22,29 +23,24 @@ export class EagleEyeService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/eagleEyeContent`,
-      {
-        params
-      }
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/eagleEyeContent/query`,
+      body
     )
 
     return response.data
   }
 
-  static async populate(keywords, nDays) {
-    const params = {
-      keywords,
-      nDays
+  static async populate(keywords) {
+    const data = {
+      keywords
     }
 
     const tenantId = AuthCurrentTenant.get()
 
     await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent`,
-      {
-        data: params
-      }
+      data
     )
   }
 
@@ -54,9 +50,7 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: 'rejected'
-        }
+        status: 'rejected'
       }
     )
 
@@ -69,9 +63,7 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: 'engaged'
-        }
+        status: 'engaged'
       }
     )
 
@@ -84,9 +76,7 @@ export class EagleEyeService {
     const response = await authAxios.put(
       `/tenant/${tenantId}/eagleEyeContent/${id}`,
       {
-        data: {
-          status: null
-        }
+        status: null
       }
     )
 
