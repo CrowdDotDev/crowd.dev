@@ -725,79 +725,79 @@ describe('MemberService tests', () => {
       })
     })
 
-    it('Should create non existent member - several organizations with enrichment', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
-
-      const member1 = {
-        username: 'anil',
-        platform: PlatformType.GITHUB,
-        email: 'lala@l.com',
-        score: 10,
-        attributes: {},
-        reach: 10,
-        bio: 'Computer Science',
-        organizations: [
-          { name: 'crowd.dev', url: 'https://crowd.dev', description: 'Here' },
-          { url: 'crowd.dev' },
-        ],
-        joinedAt: '2020-05-28T15:13:30Z',
-        location: 'Istanbul',
-      }
-
-      const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
-
-      memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
-      memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
-
-      const organization = (await OrganizationRepository.findAndCountAll({}, mockIServiceOptions))
-        .rows[0]
-
-      const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
-
-      const o1 = foundMember.organizations[0].dataValues
-      delete o1.createdAt
-      delete o1.updatedAt
-
-      expect(o1).toStrictEqual({
-        id: organization.id,
-        name: 'Crowd.dev',
-        url: 'crowd.dev',
-        description:
-          'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
-        parentUrl: null,
-        emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
-        phoneNumbers: ['+42 424242'],
-        logo: 'https://logo.clearbit.com/crowd.dev',
-        tags: [],
-        twitter: {
-          id: '1362101830923259908',
-          bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
-          site: 'https://t.co/GRLDhqFWk4',
-          avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
-          handle: 'CrowdDotDev',
-          location: '🌍 remote',
-          followers: 107,
-          following: 0,
-        },
-        linkedin: {
-          handle: 'company/crowddevhq',
-        },
-        crunchbase: {
-          handle: null,
-        },
-        employees: 5,
-        revenueRange: {
-          max: 1,
-          min: 0,
-        },
-        importHash: null,
-        deletedAt: null,
-        tenantId: mockIServiceOptions.currentTenant.id,
-        createdById: mockIServiceOptions.currentUser.id,
-        updatedById: mockIServiceOptions.currentUser.id,
-      })
-    })
-
+    //  it('Should create non existent member - several organizations with enrichment', async () => {
+    //    const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+    //
+    //    const member1 = {
+    //      username: 'anil',
+    //      platform: PlatformType.GITHUB,
+    //      email: 'lala@l.com',
+    //      score: 10,
+    //      attributes: {},
+    //      reach: 10,
+    //      bio: 'Computer Science',
+    //      organizations: [
+    //        { name: 'crowd.dev', url: 'https://crowd.dev', description: 'Here' },
+    //        { url: 'crowd.dev' },
+    //      ],
+    //      joinedAt: '2020-05-28T15:13:30Z',
+    //      location: 'Istanbul',
+    //    }
+    //
+    //    const memberCreated = await new MemberService(mockIServiceOptions).upsert(member1)
+    //
+    //    memberCreated.createdAt = memberCreated.createdAt.toISOString().split('T')[0]
+    //    memberCreated.updatedAt = memberCreated.updatedAt.toISOString().split('T')[0]
+    //
+    //    const organization = (await OrganizationRepository.findAndCountAll({}, mockIServiceOptions))
+    //      .rows[0]
+    //
+    //    const foundMember = await MemberRepository.findById(memberCreated.id, mockIServiceOptions)
+    //
+    //    const o1 = foundMember.organizations[0].dataValues
+    //    delete o1.createdAt
+    //    delete o1.updatedAt
+    //
+    //    expect(o1).toStrictEqual({
+    //      id: organization.id,
+    //      name: 'Crowd.dev',
+    //      url: 'crowd.dev',
+    //      description:
+    //        'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
+    //      parentUrl: null,
+    //      emails: ['hello@crowd.dev', 'jonathan@crowd.dev', 'careers@crowd.dev'],
+    //      phoneNumbers: ['+42 424242'],
+    //      logo: 'https://logo.clearbit.com/crowd.dev',
+    //      tags: [],
+    //      twitter: {
+    //        id: '1362101830923259908',
+    //        bio: 'Community-led Growth for Developer-first Companies.\nJoin our private beta. 👇',
+    //        site: 'https://t.co/GRLDhqFWk4',
+    //        avatar: 'https://pbs.twimg.com/profile_images/1419741008716251141/6exZe94-_normal.jpg',
+    //        handle: 'CrowdDotDev',
+    //        location: '🌍 remote',
+    //        followers: 107,
+    //        following: 0,
+    //      },
+    //      linkedin: {
+    //        handle: 'company/crowddevhq',
+    //      },
+    //      crunchbase: {
+    //        handle: null,
+    //      },
+    //      employees: 5,
+    //      revenueRange: {
+    //        max: 1,
+    //        min: 0,
+    //      },
+    //      importHash: null,
+    //      deletedAt: null,
+    //      tenantId: mockIServiceOptions.currentTenant.id,
+    //      createdById: mockIServiceOptions.currentUser.id,
+    //      updatedById: mockIServiceOptions.currentUser.id,
+    //    })
+    //  })
+    //
     it('Should update existent member succesfully - simple', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
@@ -1738,11 +1738,13 @@ describe('MemberService tests', () => {
           [PlatformType.DISCORD]: member2.username.discord,
         },
         displayName: member1.displayName,
+        identities: [PlatformType.GITHUB, PlatformType.DISCORD],
         activities: [activityCreated],
         attributes: {
           ...member1.attributes,
           ...member2.attributes,
         },
+        activeOn: [activityCreated.platform],
         email: null,
         score: -1,
         importHash: null,
@@ -1757,7 +1759,11 @@ describe('MemberService tests', () => {
         tags: [t1, t2, t3],
         tasks: [task1, task2, task3],
         notes: [note1, note2, note3],
-        organizations: [o1, o2, o3],
+        organizations: [
+          SequelizeTestUtils.objectWithoutKey(o1, ['activeOn', 'identities', 'lastActive']),
+          SequelizeTestUtils.objectWithoutKey(o2, ['activeOn', 'identities', 'lastActive']),
+          SequelizeTestUtils.objectWithoutKey(o3, ['activeOn', 'identities', 'lastActive']),
+        ],
         noMerge: [returnedMember3.id],
         toMerge: [returnedMember4.id],
         activityCount: 1,
@@ -2185,6 +2191,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
+      delete returnedMember1.activeOn
+      delete returnedMember1.identities
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2293,6 +2301,8 @@ describe('MemberService tests', () => {
       delete returnedMember1.averageSentiment
       delete returnedMember1.lastActive
       delete returnedMember1.lastActivity
+      delete returnedMember1.activeOn
+      delete returnedMember1.identities
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },
@@ -2775,7 +2785,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'anil',
           [PlatformType.DISCORD]: 'anil',
-          [PlatformType.TWITTER]: 'anil'
+          [PlatformType.TWITTER]: 'anil',
         },
         platform: PlatformType.GITHUB,
         email: 'lala@l.com',
@@ -2824,7 +2834,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'michaelScott',
           [PlatformType.DISCORD]: 'michaelScott',
-          [PlatformType.TWITTER]: 'michaelScott'
+          [PlatformType.TWITTER]: 'michaelScott',
         },
         platform: PlatformType.GITHUB,
         email: 'michael@mifflin.com',
@@ -2873,7 +2883,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: 'jimHalpert',
           [PlatformType.DISCORD]: 'jimHalpert',
-          [PlatformType.TWITTER]: 'jimHalpert'
+          [PlatformType.TWITTER]: 'jimHalpert',
         },
         platform: PlatformType.GITHUB,
         email: 'jim@mifflin.com',

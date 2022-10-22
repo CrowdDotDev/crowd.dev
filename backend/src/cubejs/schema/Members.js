@@ -1,16 +1,16 @@
 cube(`Members`, {
   sql: `SELECT M.*, 
-		  case 
-		 	when DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP) < 0 THEN 0
-		 	WHEN MIN(M."joinedAt") < '1980-01-01' THEN 0
-		 	WHEN MIN(a.timestamp) IS NULL THEN DATE_PART('day', NOW()::timestamp - M."joinedAt"::TIMESTAMP)
-		 	else
-		 	DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP)
-		 	end
-		 
-		  AS time_to_first_interaction FROM "members" m
-LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
-GROUP BY m.id`,
+		  CASE 
+		 	    WHEN DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP) < 0 THEN 0
+		 	    WHEN MIN(M."joinedAt") < '1980-01-01' THEN 0
+		 	    WHEN MIN(a.timestamp) IS NULL THEN DATE_PART('day', NOW()::timestamp - M."joinedAt"::TIMESTAMP)
+		 	ELSE
+		 	    DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP)
+		 	END AS time_to_first_interaction,
+      ARRAY_TO_STRING(ARRAY(SELECT jsonb_object_keys(m.username)), '|') AS identities
+      FROM "members" m
+      LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
+      GROUP BY m.id`,
 
   preAggregations: {
     /*
@@ -76,6 +76,11 @@ GROUP BY m.id`,
 
     MemberOrganizations: {
       sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
+      relationship: `belongsTo`,
+    },
+
+    MemberIdentities: {
+      sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
       relationship: `belongsTo`,
     },
   },
@@ -170,6 +175,11 @@ GROUP BY m.id`,
     score: {
       sql: `${CUBE}."score"`,
       type: `number`,
+    },
+
+    identities: {
+      sql: `${CUBE}."identities"`,
+      type: `string`,
     },
   },
 })
