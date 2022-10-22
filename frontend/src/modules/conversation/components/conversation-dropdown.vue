@@ -78,14 +78,18 @@ export default {
   },
   computed: {
     ...mapGetters({
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
+      communityHelpCenterConfigured:
+        'communityHelpCenter/isConfigured'
     })
   },
   methods: {
     ...mapActions({
-      doDestroy: 'conversation/doDestroy',
-      doPublish: 'conversation/doPublish',
-      doUnpublish: 'conversation/doUnpublish'
+      doDestroy: 'communityHelpCenter/doDestroy',
+      doPublish: 'communityHelpCenter/doPublish',
+      doUnpublish: 'communityHelpCenter/doUnpublish',
+      doOpenSettingsDrawer:
+        'communityHelpCenter/doOpenSettingsDrawer'
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -118,7 +122,9 @@ export default {
           'Conversation Public URL successfully copied to your clipboard'
         )
       } else if (command.action === 'conversationPublish') {
-        this.editing = false
+        if (!this.communityHelpCenterConfigured) {
+          return this.doOpenSettingsDrawer()
+        }
         await this.doPublish({
           id: command.conversation.id
         })
