@@ -4,11 +4,13 @@
     placement="bottom-end"
     @command="handleCommand"
   >
-    <span
-      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+    <button
+      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+      type="button"
+      @click.stop
     >
       <i class="text-xl ri-more-fill"></i>
-    </span>
+    </button>
     <template #dropdown>
       <el-dropdown-item
         v-if="conversation.published"
