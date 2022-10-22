@@ -291,14 +291,14 @@ describe('OrganizationService tests', () => {
     // it('Should not re-create when existing: enrich and name', async () => {
     //   const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
     //   const service = new OrganizationService(mockIServiceOptions)
-// 
+    //
     //   const toAdd = {
     //     name: 'crowd.dev',
     //   }
-// 
+    //
     //   await service.findOrCreate(toAdd)
-// 
-    //   
+    //
+    //
     //   const added = await service.findOrCreate(SequelizeTestUtils.objectWithoutKey(toAdd, 'url'))
     //   expect(added.url).toEqual('crowd.dev')
     //   expect(added.name).toEqual(expectedEnriched.name)
@@ -313,7 +313,7 @@ describe('OrganizationService tests', () => {
     //   expect(added.crunchbase).toStrictEqual(expectedEnriched.crunchbase)
     //   expect(added.employees).toEqual(expectedEnriched.employees)
     //   expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
-// 
+    //
     //   const foundAll = await service.findAndCountAll({ filter: {} })
     //   expect(foundAll.count).toBe(1)
     // })
