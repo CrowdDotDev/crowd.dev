@@ -18,9 +18,7 @@
     class="text-brand-500"
     target="_blank"
   >
-    {{
-      activity.channel || activity.attributes.articleTitle
-    }}
+    {{ activity.title || activity.attributes.articleTitle }}
   </a>
 </template>
 
@@ -46,7 +44,6 @@ export default {
       return `entities.activity.${this.activity.platform}.commented`
     },
     computedArgs() {
-      console.log(this.activity)
       return computedArgs(this.activity)
     }
   }
