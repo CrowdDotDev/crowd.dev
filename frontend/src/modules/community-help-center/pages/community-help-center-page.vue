@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between">
         <h4>Community Help Center</h4>
         <div class="flex items-center">
-          <app-conversation-settings
+          <app-community-help-center-settings-drawer
             :visible="hasConversationsSettingsVisible"
             class="mr-2"
             @open="doOpenSettingsDrawer"
@@ -23,17 +23,19 @@
         Overview of all members from your community
       </div>
     </div>
-    <app-conversation-list-filter></app-conversation-list-filter>
-    <app-conversation-list-table />
+    <app-community-help-center-tabs />
+    <app-community-help-center-filter />
+    <app-community-help-center-table />
   </app-page-wrapper>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import ConversationListTable from '@/modules/conversation/components/conversation-list-table.vue'
-import ConversationListFilter from '@/modules/conversation/components/conversation-list-filter.vue'
-import ConversationSettings from '@/modules/conversation/components/conversation-settings.vue'
+import AppCommunityHelpCenterTable from '@/modules/community-help-center/components/community-help-center-table'
+import AppCommunityHelpCenterTabs from '@/modules/community-help-center/components/community-help-center-tabs'
+import AppCommunityHelpCenterFilter from '@/modules/community-help-center/components/community-help-center-filter'
+import AppCommunityHelpCenterSettingsDrawer from '@/modules/community-help-center/components/community-help-center-settings-drawer.vue'
 import config from '@/config'
 
 export default {
@@ -41,18 +43,18 @@ export default {
 
   components: {
     AppPageWrapper,
-    'app-conversation-list-table': ConversationListTable,
-    'app-conversation-list-filter': ConversationListFilter,
-    'app-conversation-settings': ConversationSettings
+    AppCommunityHelpCenterTable,
+    AppCommunityHelpCenterTabs,
+    AppCommunityHelpCenterFilter,
+    AppCommunityHelpCenterSettingsDrawer
   },
 
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      hasConversationsConfigured:
-        'conversation/isConfigured',
-      hasConversationsSettingsVisible:
-        'conversation/hasSettingsVisible'
+      isConfigured: 'community-help-center/isConfigured',
+      hasSettingsVisible:
+        'community-help-center/hasSettingsVisible'
     }),
     computedCrowdOpenLink() {
       return `${config.conversationPublicUrl}/${this.currentTenant.url}`
@@ -60,15 +62,15 @@ export default {
   },
 
   async mounted() {
-    window.analytics.page('Conversations')
+    window.analytics.page('Community Help Center')
   },
 
   methods: {
     ...mapActions({
       doOpenSettingsDrawer:
-        'conversation/doOpenSettingsDrawer',
+        'community-help-center/doOpenSettingsDrawer',
       doCloseSettingsModal:
-        'conversation/doCloseSettingsModal'
+        'community-help-center/doCloseSettingsModal'
     })
   }
 }

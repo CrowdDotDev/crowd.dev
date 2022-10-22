@@ -1,5 +1,6 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 export class ConversationService {
   static async update(id, data) {
     const body = {
@@ -94,8 +95,8 @@ export class ConversationService {
   }
 
   static async list(filter, orderBy, limit, offset) {
-    const params = {
-      filter,
+    const body = {
+      filter: buildApiPayload(filter),
       orderBy,
       limit,
       offset
@@ -103,11 +104,9 @@ export class ConversationService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/conversation`,
-      {
-        params
-      }
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/conversation/query`,
+      body
     )
 
     return response.data

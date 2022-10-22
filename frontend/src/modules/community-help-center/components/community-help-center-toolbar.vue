@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
 
@@ -62,14 +62,17 @@ export default {
   name: 'AppConversationListToolbar',
 
   computed: {
+    ...mapState({
+      loading: (state) =>
+        state.communityHelpCenter.list.loading
+    }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      hasRows: 'conversation/hasRows',
-      loading: 'conversation/loading',
-      selectedRows: 'conversation/selectedRows',
+      hasRows: 'communityHelpCenter/hasRows',
+      selectedRows: 'communityHelpCenter/selectedRows',
       hasConversationsConfigured:
-        'conversation/isConfigured'
+        'communityHelpCenter/isConfigured'
     }),
 
     isReadOnly() {
@@ -115,7 +118,7 @@ export default {
       return (
         !this.selectedRows.length ||
         this.loading('submit') ||
-        this.loading('table')
+        this.loading
       )
     },
 
@@ -130,11 +133,11 @@ export default {
 
   methods: {
     ...mapActions({
-      doDestroyAll: 'conversation/doDestroyAll',
-      doPublishAll: 'conversation/doPublishAll',
-      doUnpublishAll: 'conversation/doUnpublishAll',
+      doDestroyAll: 'communityHelpCenter/doDestroyAll',
+      doPublishAll: 'communityHelpCenter/doPublishAll',
+      doUnpublishAll: 'communityHelpCenter/doUnpublishAll',
       doOpenSettingsDrawer:
-        'conversation/doOpenSettingsDrawer'
+        'communityHelpCenter/doOpenSettingsDrawer'
     }),
 
     async doDestroyAllWithConfirm() {
