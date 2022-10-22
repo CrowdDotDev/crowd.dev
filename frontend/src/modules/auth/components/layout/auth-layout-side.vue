@@ -26,7 +26,7 @@
         />
       </div>
     </div>
-    <div>
+    <div class="pt-28">
       <div class="bg-brand-500 rounded-lg p-6">
         <p class="text-white text-base font-medium pb-6">
           “Building and engaging community is my top

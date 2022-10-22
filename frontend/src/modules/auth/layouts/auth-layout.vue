@@ -28,14 +28,16 @@ export default {
 
 <style lang="scss" scoped>
 .auth-side {
-  flex-shrink: 1;
   background: linear-gradient(
     154.2deg,
     #ffffff 0%,
     #f8efed 57.5%
   );
   width: 28rem;
-  min-height: calc(100vh - 3rem);
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  height: calc(100vh - 48px);
 
   @media (max-width: 991px) {
     display: none;
@@ -45,12 +47,11 @@ export default {
 main {
   flex-shrink: 1;
   min-height: calc(100vh - 3rem);
-  width: calc(100% - 28rem);
-  padding: 4.75rem 2rem;
+  width: 100%;
+  padding: 4.75rem 2rem 4.75rem 32.5rem;
 
   @media (max-width: 991px) {
-    width: 100%;
-    padding: 3rem 0;
+    padding: 6rem 0;
   }
 
   .auth-content {
