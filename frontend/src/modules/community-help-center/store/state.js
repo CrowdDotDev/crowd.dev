@@ -79,5 +79,6 @@ export default {
   sorter: {
     prop: 'activityCount',
     order: 'descending'
-  }
+  },
+  settingsVisible: false
 }

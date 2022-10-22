@@ -13,6 +13,10 @@ export default {
     )
   },
 
+  publishedRows: (state, getters) => {
+    return getters.rows.filter((c) => c.published)
+  },
+
   hasSettingsVisible: (state) => {
     return state.settingsVisible
   }

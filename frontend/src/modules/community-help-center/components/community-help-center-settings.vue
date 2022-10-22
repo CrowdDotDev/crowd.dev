@@ -8,14 +8,24 @@
       <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
-    <!-- TODO: Update this component with app-dialog -->
-    <el-dialog
+    <el-drawer
       v-model="computedVisible"
       title="Community Help Center Settings"
       :close-on-click-modal="false"
       width="100%"
       @close="$emit('close')"
     >
+      <template #header>
+        <div>
+          <span
+            class="block text-gray-600 text-2xs font-normal leading-none"
+            >Community Help Center</span
+          >
+          <div class="text-lg font-semibold text-black">
+            Settings
+          </div>
+        </div>
+      </template>
       <el-form
         v-if="visible"
         ref="form"
@@ -430,7 +440,7 @@
           </el-button>
         </div>
       </el-form>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -485,17 +495,17 @@ export default {
 
   computed: {
     ...mapGetters({
-      publishedConversations: 'conversation/publishedRows',
+      publishedConversations:
+        'communityHelpCenter/publishedRows',
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       currentSettings: 'auth/currentSettings',
-      conversationSettings: 'auth/conversationSettings',
+      conversationSettings:
+        'auth/communityHelpCenterSettings',
       loadedIntegrations: 'integration/loaded',
       activeIntegrationsList: 'integration/activeList',
       hasConversationsConfigured:
-        'conversation/isConfigured',
-      rawFilter: 'conversation/rawFilter',
-      filter: 'conversation/filter'
+        'communityHelpCenter/isConfigured'
     }),
     computedVisible: {
       get() {
@@ -608,7 +618,7 @@ export default {
   methods: {
     ...mapActions({
       fetchIntegrations: 'integration/doFetch',
-      fetchConversations: 'conversation/doFetch',
+      fetchConversations: 'communityHelpCenter/doFetch',
       doRefreshCurrentUser: 'auth/doRefreshCurrentUser'
     }),
     async doSubmit() {
@@ -674,11 +684,7 @@ export default {
         )
         await this.doRefreshCurrentUser()
         await this.fetchIntegrations()
-        await this.fetchConversations({
-          filter: this.filter,
-          rawFilter: this.rawFilter,
-          keepPagination: true
-        })
+        await this.fetchConversations({})
         this.setModels()
         this.loading = false
         this.$emit('close')
@@ -757,11 +763,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.conversation-settings {
-  .el-dialog {
-    max-width: 60rem;
-  }
-}
-</style>

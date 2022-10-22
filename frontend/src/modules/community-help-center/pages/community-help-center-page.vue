@@ -4,11 +4,11 @@
       <div class="flex items-center justify-between">
         <h4>Community Help Center</h4>
         <div class="flex items-center">
-          <app-community-help-center-settings-drawer
-            :visible="hasConversationsSettingsVisible"
+          <app-community-help-center-settings
             class="mr-2"
+            :visible="hasSettingsVisible"
             @open="doOpenSettingsDrawer"
-            @close="doCloseSettingsModal"
+            @close="doCloseSettingsDrawer"
           />
           <a
             :href="computedCrowdOpenLink"
@@ -35,7 +35,7 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppCommunityHelpCenterTable from '@/modules/community-help-center/components/community-help-center-table'
 import AppCommunityHelpCenterTabs from '@/modules/community-help-center/components/community-help-center-tabs'
 import AppCommunityHelpCenterFilter from '@/modules/community-help-center/components/community-help-center-filter'
-import AppCommunityHelpCenterSettingsDrawer from '@/modules/community-help-center/components/community-help-center-settings-drawer.vue'
+import AppCommunityHelpCenterSettings from '@/modules/community-help-center/components/community-help-center-settings'
 import config from '@/config'
 
 export default {
@@ -46,15 +46,15 @@ export default {
     AppCommunityHelpCenterTable,
     AppCommunityHelpCenterTabs,
     AppCommunityHelpCenterFilter,
-    AppCommunityHelpCenterSettingsDrawer
+    AppCommunityHelpCenterSettings
   },
 
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      isConfigured: 'community-help-center/isConfigured',
+      isConfigured: 'communityHelpCenter/isConfigured',
       hasSettingsVisible:
-        'community-help-center/hasSettingsVisible'
+        'communityHelpCenter/hasSettingsVisible'
     }),
     computedCrowdOpenLink() {
       return `${config.conversationPublicUrl}/${this.currentTenant.url}`
@@ -68,9 +68,9 @@ export default {
   methods: {
     ...mapActions({
       doOpenSettingsDrawer:
-        'community-help-center/doOpenSettingsDrawer',
-      doCloseSettingsModal:
-        'community-help-center/doCloseSettingsModal'
+        'communityHelpCenter/doOpenSettingsDrawer',
+      doCloseSettingsDrawer:
+        'communityHelpCenter/doCloseSettingsDrawer'
     })
   }
 }

@@ -34,11 +34,11 @@ export default {
     state.loading.submit = false
   },
 
-  OPEN_SETTINGS_MODAL(state) {
+  OPEN_SETTINGS_DRAWER(state) {
     state.settingsVisible = true
   },
 
-  CLOSE_SETTINGS_MODAL(state) {
+  CLOSE_SETTINGS_DRAWER(state) {
     state.settingsVisible = false
   }
 }

@@ -99,10 +99,10 @@ export default {
   },
 
   doOpenSettingsDrawer({ commit }) {
-    commit('OPEN_SETTINGS_MODAL')
+    commit('OPEN_SETTINGS_DRAWER')
   },
 
-  doCloseSettingsModal({ commit }) {
-    commit('CLOSE_SETTINGS_MODAL')
+  doCloseSettingsDrawer({ commit }) {
+    commit('CLOSE_SETTINGS_DRAWER')
   }
 }
