@@ -281,7 +281,7 @@ export default {
       {
         and: [
           {
-            createdAt: {
+            joinedAt: {
               gte: moment()
                 .startOf('day')
                 .subtract(period, 'day')

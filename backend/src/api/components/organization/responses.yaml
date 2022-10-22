@@ -22,6 +22,24 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Member'
+        activeOn:
+          description: The platforms where the organization is active.
+          type: array
+          items:
+            type: string
+        identities:
+          description: The list of identities of the members in the organization.
+          type: array
+          items:
+            type: string
+        lastActive:
+          description: The last time the organization was active.
+          type: string
+          format: date-time
+        joinedAt:
+          description: The date the first member from the organization joined the community.
+          type: string
+          format: date-time
 
     OrganizationResponse:
       description: A organization of your community.
