@@ -24,8 +24,8 @@ export default {
   },
   methods: {
     getRepositoryName(repositoryUrl) {
-      if(!repositoryUrl){
-        return;
+      if (!repositoryUrl) {
+        return
       }
       const splittedUrl = repositoryUrl.split('/')
       if (splittedUrl.length > 0) {
