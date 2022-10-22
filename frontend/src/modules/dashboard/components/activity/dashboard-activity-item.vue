@@ -83,6 +83,7 @@
           <app-activity-content
             :activity="activity"
             :display-body="false"
+            :display-title="false"
           />
           <app-activity-content
             class="text-xs bg-gray-50 rounded-lg p-4"

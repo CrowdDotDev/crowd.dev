@@ -19,8 +19,7 @@
     target="_blank"
   >
     {{
-      activity.articleTitle ||
-      activity.attributes.articleTitle
+      activity.channel || activity.attributes.articleTitle
     }}
   </a>
 </template>
@@ -47,6 +46,7 @@ export default {
       return `entities.activity.${this.activity.platform}.commented`
     },
     computedArgs() {
+      console.log(this.activity)
       return computedArgs(this.activity)
     }
   }

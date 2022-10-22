@@ -23,13 +23,8 @@
         ? ''
         : 'in channel'
     }}</span>
-    <span
-      v-if="activity.channel || activity.attributes.channel"
-      class="text-brand-500"
-    >
-      #{{
-        activity.channel || activity.attributes.channel
-      }}</span
+    <span v-if="activity.channel" class="text-brand-500">
+      #{{ activity.channel }}</span
     >
   </span>
 </template>
