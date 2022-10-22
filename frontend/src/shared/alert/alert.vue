@@ -1,6 +1,6 @@
 <template>
   <div
-    class="rounded-lg mt-4 p-4 border"
+    class="rounded-lg mb-6 p-4 border"
     :class="alertClass"
   >
     <div class="flex items-start">
