@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { sqs } from '../../services/aws'
 import { IS_TEST_ENV, KUBE_MODE, SQS_CONFIG } from '../../config'
-import { PythonWorkerMessage } from '../types/worketTypes'
+import { PythonWorkerMessage } from '../types/workerTypes'
 
 export const sendPythonWorkerMessage = async (
   tenantId: string,

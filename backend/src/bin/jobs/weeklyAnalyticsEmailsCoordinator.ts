@@ -1,7 +1,7 @@
 import { CrowdJob } from '../../utils/jobTypes'
 import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',

@@ -19,7 +19,7 @@ import track from '../segment/track'
 import { PlatformType } from '../utils/platforms'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/workerTypes'
 
 export default class IntegrationService {
   options: IServiceOptions
