@@ -202,22 +202,34 @@ hr {
   flex-wrap: wrap;
 }
 
-// Limits text to 4 lines
-.text-limit-4 {
+[class^='text-limit'], [class*=' text-limit']{
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
   -webkit-box-orient: vertical;
 }
 
 // Limits text to 1 line
 .text-limit-1 {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
   -webkit-line-clamp: 1;
   line-clamp: 1;
-  -webkit-box-orient: vertical;
 }
+
+// Limits text to 1 line
+.text-limit-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+// Limits text to 1 line
+.text-limit-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+// Limits text to 4 lines
+.text-limit-4 {
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+

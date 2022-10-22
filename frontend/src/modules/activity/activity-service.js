@@ -84,10 +84,10 @@ export class ActivityService {
     orderBy,
     limit,
     offset,
-    buildFilters = true
+    buildFilter = true
   ) {
     const body = {
-      filter: buildFilters
+      filter: buildFilter
         ? buildApiPayload(filter)
         : filter,
       orderBy,
