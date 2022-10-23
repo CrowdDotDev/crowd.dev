@@ -139,7 +139,6 @@ export default {
         .filter(({ count }) => count > 0)
 
       this.total = this.result.reduce((a, b) => {
-        console.log(a, b.count, b.type)
         return a + b.count
       }, 0)
     }
