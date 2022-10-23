@@ -30,6 +30,15 @@ export default (sequelize, DataTypes) => {
           len: [0, 50],
         },
       },
+      platforms: {
+        type: DataTypes.ARRAY(DataTypes.STRING(50)),
+      },
+      communitySize: {
+        type: DataTypes.STRING(50),
+        validate: {
+          isIn: [['<200', '200-1000', '1000-5000', '5000-25000', '>25000']],
+        },
+      },
       plan: {
         type: DataTypes.STRING(255),
         allowNull: false,
