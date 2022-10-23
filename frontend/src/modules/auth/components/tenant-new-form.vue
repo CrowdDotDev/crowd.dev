@@ -87,7 +87,7 @@ export default {
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      loading: 'tenant/form/saveLoading',
+      loading: 'tenant/saveLoading',
       invitedTenants: 'auth/invitedTenants'
     }),
 
@@ -106,7 +106,7 @@ export default {
 
   methods: {
     ...mapActions({
-      doCreate: 'tenant/form/doCreate'
+      doCreate: 'tenant/doCreate'
     }),
 
     onTenantNameChange() {
