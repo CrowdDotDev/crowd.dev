@@ -30,7 +30,7 @@ export default (sequelize, DataTypes) => {
           len: [0, 50],
         },
       },
-      platforms: {
+      integrationsRequired: {
         type: DataTypes.ARRAY(DataTypes.STRING(50)),
       },
       communitySize: {
