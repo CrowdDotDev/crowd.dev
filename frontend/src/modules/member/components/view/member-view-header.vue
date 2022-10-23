@@ -9,22 +9,11 @@
         />
         <div>
           <h5>{{ member.displayName }}</h5>
-          <div class="flex items-center mt-2">
-            <span
-              v-if="
-                member.attributes?.jobTitle?.default ||
-                false
-              "
-              class="text-gray-600 text-2xs"
-              >{{
-                member.attributes.jobTitle.default
-              }}</span
-            >
-            <app-member-organizations
-              :member="member"
-              :show-title="false"
-            />
-          </div>
+          <app-member-organizations
+            class="mt-2"
+            :member="member"
+            orientation="horizontal"
+          />
         </div>
       </div>
       <div class="flex items-center">
