@@ -71,7 +71,10 @@
           v-show="tab === 1"
           @saved="tab = 2"
         />
-        <app-onboard-integrations v-show="tab === 2" />
+        <app-onboard-integrations
+          v-show="tab === 2"
+          @previous="tab = 1"
+        />
       </div>
     </section>
   </div>
@@ -95,6 +98,16 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['currentUser', 'currentTenant'])
+  },
+  watch: {
+    currentTenant: {
+      immediate: true,
+      handler(tenant) {
+        if (tenant) {
+          this.tab = 2
+        }
+      }
+    }
   }
 }
 </script>
