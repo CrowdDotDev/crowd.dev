@@ -1,0 +1,5 @@
+.el-radio-group {
+  .el-radio-button__inner {
+    @apply mr-3 mb-3 border border-solid border-gray-300 h-10 px-3 rounded-md flex items-center;
+  }
+}

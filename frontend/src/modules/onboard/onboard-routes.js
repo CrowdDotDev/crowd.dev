@@ -1,14 +1,22 @@
+import OnboardLayout from '@/modules/onboard/layouts/onboard-layout.vue'
+
 const OnboardPage = () =>
-  import('@/modules/onboard/components/onboard-page.vue')
+  import('@/modules/onboard/pages/onboard-page.vue')
 
 export default [
   {
-    name: 'onboard',
     path: '/onboard',
-    component: OnboardPage,
-    exact: true,
-    meta: {
-      auth: true
-    }
+    component: OnboardLayout,
+
+    children: [
+      {
+        name: 'onboard',
+        path: '',
+        component: OnboardPage,
+        meta: {
+          auth: true
+        }
+      }
+    ]
   }
 ]
