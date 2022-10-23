@@ -18,7 +18,15 @@ import track from '../../segment/track'
 const BCRYPT_SALT_ROUNDS = 12
 
 class AuthService {
-  static async signup(email, password, invitationToken, tenantId, options: any = {}) {
+  static async signup(
+    email,
+    password,
+    invitationToken,
+    tenantId,
+    firstName,
+    lastName,
+    options: any = {},
+  ) {
     const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
@@ -105,9 +113,14 @@ class AuthService {
         return token
       }
 
+      firstName = firstName || email.split('@')[0]
+      lastName = lastName || ''
+      const fullName = `${firstName} ${lastName}`.trim()
       const newUser = await UserRepository.createFromAuth(
         {
-          firstName: email.split('@')[0],
+          firstName,
+          lastName,
+          fullName,
           password: hashedPassword,
           email,
         },

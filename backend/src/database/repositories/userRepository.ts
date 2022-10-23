@@ -101,6 +101,8 @@ export default class UserRepository {
       {
         email: data.email,
         firstName: data.firstName,
+        lastName: data.lastName,
+        fullName: data.fullName,
         password: data.password,
       },
       { transaction },
