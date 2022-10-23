@@ -18,12 +18,7 @@ cube(`MemberOrganizations`, {
     },
   },
 
-  measures: {
-    count: {
-      type: `count`,
-      drillMembers: [organizationid, memberid, createdat, updatedat],
-    },
-  },
+  measures: {},
 
   dimensions: {
     id: {
@@ -35,21 +30,25 @@ cube(`MemberOrganizations`, {
     organizationid: {
       sql: `${CUBE}."organizationId"`,
       type: `string`,
+      shown: false,
     },
 
     memberid: {
       sql: `${CUBE}."memberId"`,
       type: `string`,
+      shown: false,
     },
 
     createdat: {
       sql: `${CUBE}."createdAt"`,
       type: `time`,
+      shown: false,
     },
 
     updatedat: {
       sql: `${CUBE}."updatedAt"`,
       type: `time`,
+      shown: false,
     },
   },
 })

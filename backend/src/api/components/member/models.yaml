@@ -25,6 +25,28 @@ components:
           description: Date of joining the community
           type: string
           format: date-time
+        activeOn:
+          description: List of platforms the member is active on.
+          type: array
+          items:
+            type: string
+        identities:
+          description: List of platforms the member has identities in.
+          type: array
+          items:
+            type: string
+        activityCount:
+          description: Number of activities member has.
+          type: integer
+        averageSentiment:
+          description: Averge sentiment of member's activities.
+          type: number
+        lastActivity:
+          description: The last activity of a member
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Activity'
+
         score:
           description: Engagement score of the member. From 0 to 10. Set -1 for not yet calculated.
           type: number

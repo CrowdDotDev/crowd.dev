@@ -10,7 +10,7 @@
     <span
       v-if="displayBody"
       ref="body"
-      :class="{ 'text-limit-4': limit }"
+      :class="bodyClass"
       v-html="activity.body"
     />
   </div>
@@ -24,10 +24,10 @@ export default {
       type: Object,
       required: true
     },
-    limit: {
-      type: Boolean,
+    bodyClass: {
+      type: String,
       required: false,
-      default: false
+      default: ''
     },
     displayThread: {
       type: Boolean,

@@ -67,7 +67,7 @@
       </div>
       <div class="list -mx-5 -mb-5 p-5">
         <div v-if="organizations.loadingRecent">
-          <app-dashboard-organizations-item
+          <app-dashboard-organization-item
             v-for="el of new Array(3)"
             :key="el"
             class="mb-2"
@@ -87,7 +87,7 @@
             >
               {{ getTimeText(oi) }}
             </p>
-            <app-dashboard-organizations-item
+            <app-dashboard-organization-item
               class="mb-4"
               :organization="organization"
             />
@@ -137,7 +137,7 @@
       </div>
       <div class="list -mx-5 -mb-5 p-5">
         <div v-if="organizations.loadingActive">
-          <app-dashboard-organizations-item
+          <app-dashboard-organization-item
             v-for="el of new Array(3)"
             :key="el"
             class="mb-2"
@@ -151,7 +151,7 @@
           >
             Most active
           </p>
-          <app-dashboard-organizations-item
+          <app-dashboard-organization-item
             v-for="organization of activeOrganizations"
             :key="organization.id"
             class="mb-4"
@@ -174,7 +174,6 @@
 import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import AppDashboardOrganizationsItem from '@/modules/dashboard/components/organizations/dashboard-organizations-item'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   newOrganizationChart,
@@ -183,12 +182,13 @@ import {
   hideLabels
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
+import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item'
 export default {
   name: 'AppDashboardOrganizations',
   components: {
+    AppDashboardOrganizationItem,
     AppDashboardCount,
     AppWidgetCubeRenderer,
-    AppDashboardOrganizationsItem,
     AppDashboardTab
   },
   data() {

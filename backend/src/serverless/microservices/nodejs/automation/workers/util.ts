@@ -1,4 +1,4 @@
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../../../types/worketTypes'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { KUBE_MODE } from '../../../../../config'
 import sendNodeMicroserviceMessage from '../../nodeMicroserviceSQS'

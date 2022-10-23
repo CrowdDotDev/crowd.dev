@@ -85,18 +85,28 @@ export default {
     const { platform, period } = state.filters
     return ActivityService.list(
       {
-        timestampRange: [
-          moment()
-            .startOf('day')
-            .subtract(period, 'day')
-            .toISOString(),
-          moment().toISOString()
-        ],
-        platform: platform !== 'all' ? platform : undefined
+        and: [
+          {
+            timestamp: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: platform
+                }
+              ]
+            : [])
+        ]
       },
       'timestamp_DESC',
       20,
-      0
+      0,
+      false
     )
       .then((data) => {
         commit('SET_RECENT_ACTIVITIES', data)
@@ -143,7 +153,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  identities: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -241,7 +251,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  activeOn: {
                     contains: [platform]
                   }
                 }
@@ -271,7 +281,7 @@ export default {
       {
         and: [
           {
-            createdAt: {
+            joinedAt: {
               gte: moment()
                 .startOf('day')
                 .subtract(period, 'day')
@@ -281,7 +291,7 @@ export default {
           ...(platform !== 'all'
             ? [
                 {
-                  platforms: {
+                  identities: {
                     contains: [platform]
                   }
                 }

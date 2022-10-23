@@ -4,7 +4,7 @@ import IntegrationRepository from '../../database/repositories/integrationReposi
 import { PlatformType } from '../../utils/platforms'
 import { SlackIntegrationMessage } from '../../serverless/integrations/types/messageTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 
 const job: CrowdJob = {
   name: 'Slack coordinator',

@@ -1,7 +1,7 @@
 import sharedMutations from '@/shared/store/mutations'
 
 export default {
-  ...sharedMutations,
+  ...sharedMutations(),
 
   DESTROY_CUSTOM_ATTRIBUTES_STARTED() {},
   DESTROY_CUSTOM_ATTRIBUTES_SUCCESS() {},

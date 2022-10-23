@@ -4,29 +4,23 @@
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
   ></app-i18n>
-  <div class="flex items-center">
-    <span
-      v-if="
-        !['fork', 'star', 'unstar'].includes(
-          activity.type
-        ) && !short
-      "
-      class="ml-1"
-      >in</span
-    >
-    <a
-      v-if="!short"
-      :href="activity.repo || activity.attributes.repo"
-      target="_blank"
-      class="ml-1 text-brand-500"
-    >
-      {{
-        getRepositoryName(
-          activity.repo || activity.attributes.repo
-        )
-      }}
-    </a>
-  </div>
+  <span
+    v-if="
+      !['fork', 'star', 'unstar'].includes(activity.type) &&
+      !short &&
+      activity.channel
+    "
+    class="ml-1"
+    >in</span
+  >
+  <a
+    v-if="!short && activity.channel"
+    :href="activity.channel"
+    target="_blank"
+    class="ml-1 text-brand-500"
+  >
+    {{ getRepositoryName(activity.channel) }}
+  </a>
 </template>
 
 <script>
@@ -56,6 +50,9 @@ export default {
   },
   methods: {
     getRepositoryName(repositoryUrl) {
+      if (!repositoryUrl) {
+        return
+      }
       const splittedUrl = repositoryUrl.split('/')
       if (splittedUrl.length > 0) {
         return splittedUrl[splittedUrl.length - 1]

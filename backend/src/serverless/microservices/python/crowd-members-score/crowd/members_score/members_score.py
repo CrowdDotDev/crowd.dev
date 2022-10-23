@@ -26,7 +26,7 @@ class MembersScore:
 
         self.fetch_scores()
         self.team_members = [
-            member.id for member in self.repository.find_all(Member, query={"crowdInfo.team": True})
+            member.id for member in self.repository.find_all(Member, query={"attributes.team.default": True})
         ]
 
         self.send = send
@@ -69,9 +69,9 @@ class MembersScore:
                 ) FullDates \
                 left join (select "memberId" as cm_id, count(*) as e, sum(score) as s, date("timestamp") as "timestamp"  \
                 from public.activities where "activities"."tenantId" = CAST(\'{id}\' as uuid) \
-                group by "communityMemberId", date("timestamp")) T on T."cm_id"=FullDates."communityMemberId" and T."timestamp" = FullDates.MyJoinDate\
-                group by FullDates."communityMemberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
-                ) Daily group by "communityMemberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
+                group by "memberId", date("timestamp")) T on T."cm_id"=FullDates."memberId" and T."timestamp" = FullDates.MyJoinDate\
+                group by FullDates."memberId", FullDates.MyJoinDate order by FullDates.MyJoinDate asc\
+                ) Daily group by "memberId", extract(month from MyJoinDate), extract(year from MyJoinDate)'
             ).fetchall()
 
     def _calculate_months(self, date):
@@ -218,6 +218,9 @@ class MembersScore:
         logger.info("Normalising scores...")
         scores_to_update = self.normalise(self.scores)
         logger.info("Done")
+
+        logger.info("Scored to update")
+        logger.info(scores_to_update)
 
         length = len(scores_to_update)
         changed = 0

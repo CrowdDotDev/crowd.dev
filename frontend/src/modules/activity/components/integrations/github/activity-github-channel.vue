@@ -1,14 +1,11 @@
 <template>
   <a
-    :href="activity.repo || activity.attributes.repo"
+    v-if="activity.channel"
+    :href="activity.channel"
     target="_blank"
     class="text-brand-500"
   >
-    {{
-      getRepositoryName(
-        activity.repo || activity.attributes.repo
-      )
-    }}
+    {{ getRepositoryName(activity.channel) }}
   </a>
 </template>
 
@@ -23,6 +20,9 @@ export default {
   },
   methods: {
     getRepositoryName(repositoryUrl) {
+      if (!repositoryUrl) {
+        return
+      }
       const splittedUrl = repositoryUrl.split('/')
       if (splittedUrl.length > 0) {
         return splittedUrl[splittedUrl.length - 1]

@@ -1,6 +1,7 @@
 <template>
   <div>
     <app-filter-search
+      v-if="search"
       :module="module"
       :filter="searchFilter"
       :placeholder="placeholder"
@@ -63,6 +64,10 @@ const props = defineProps({
   placeholder: {
     type: String,
     required: true
+  },
+  search: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -76,7 +81,7 @@ const filters = computed(() => {
 })
 const filtersArray = computed(() =>
   Object.values(filters.value).filter(
-    (a) => a.type !== 'search'
+    (a) => a.type !== 'search' && a.show !== false
   )
 )
 

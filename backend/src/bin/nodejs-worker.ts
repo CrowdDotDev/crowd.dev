@@ -2,7 +2,7 @@ import { DeleteMessageRequest, Message, ReceiveMessageRequest } from 'aws-sdk/cl
 import { timeout } from '../utils/timing'
 import { sqs } from '../services/aws'
 import { SQS_CONFIG } from '../config'
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/worketTypes'
+import { NodeWorkerMessage, NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { processIntegrationsMessage } from '../serverless/integrations/workDispatcher'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
@@ -47,7 +47,7 @@ const deleteMessage = (receiptHandle: string): Promise<void> =>
 
 async function processMessage(message: Message): Promise<void> {
   const msg: NodeWorkerMessage = JSON.parse(message.Body)
-  console.log('Received a new queue message: ', message.MessageId, msg.type)
+  // console.log('Received a new queue message: ', message.MessageId, msg.type)
 
   let processFunction: (msg: NodeWorkerMessage) => Promise<void>
   let keep = false

@@ -15,7 +15,7 @@
           placement="right"
           raw-content
           popper-class="custom-support-menu-tooltip"
-          :content="currentTenant.name"
+          content="Support"
         >
           <div
             class="cursor-pointer flex w-full items-center bg-white hover:bg-gray-50"
@@ -86,22 +86,15 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const store = useStore()
 
 const isDropdownOpen = ref(false)
 
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
 const isCollapsed = computed(
   () => store.getters['layout/menuCollapsed']
 )
-
-onMounted(async () => {
-  await store.dispatch('tenant/list/doFetch')
-})
 </script>
 
 <style lang="scss">

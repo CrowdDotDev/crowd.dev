@@ -27,9 +27,11 @@
           @click="handleMakePrimary"
         >
           <i
-            class="ri-arrow-up-down-line ri-lg text-brand-600"
+            class="ri-arrow-left-right-line ri-lg text-brand-600"
           ></i>
-          <span class="text-brand-600">Make primary</span>
+          <span class="text-brand-600 text-xs"
+            >Make primary</span
+          >
         </button>
       </div>
       <span

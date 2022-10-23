@@ -36,13 +36,13 @@
         >
           Total
         </p>
-        <app-dashboard-activities-count />
+        <app-dashboard-activity-count />
         <p
           class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
         >
           OVERALL SENTIMENT
         </p>
-        <app-dashboard-activities-sentiment />
+        <app-dashboard-activity-sentiment />
       </div>
     </div>
 
@@ -52,13 +52,13 @@
           label="Trending conversations"
           name="trending"
         >
-          <app-dashboard-conversations-list />
+          <app-dashboard-conversation-list />
         </el-tab-pane>
         <el-tab-pane
           label="Recent activities"
           name="recent"
         >
-          <app-dashboard-activities-list />
+          <app-dashboard-activity-list />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -66,24 +66,24 @@
 </template>
 
 <script>
-import AppDashboardActivitiesList from '@/modules/dashboard/components/activities/dashboard-activities-list'
-import AppDashboardConversationsList from '@/modules/dashboard/components/conversations/dashboard-conversations-list'
 import { mapGetters } from 'vuex'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   activitiesChart,
   chartOptions
 } from '@/modules/dashboard/dashboard.cube'
-import AppDashboardActivitiesSentiment from '@/modules/dashboard/components/activities/dashboard-activities-sentiment'
-import AppDashboardActivitiesCount from '@/modules/dashboard/components/activities/dashboard-activities-count'
+import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
+import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
+import AppDashboardActivityCount from '@/modules/dashboard/components/activity/dashboard-activity-count'
+import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
 export default {
   name: 'AppDashboardActivities',
   components: {
-    AppDashboardActivitiesCount,
-    AppDashboardActivitiesSentiment,
-    AppWidgetCubeRenderer,
-    AppDashboardConversationsList,
-    AppDashboardActivitiesList
+    AppDashboardActivitySentiment,
+    AppDashboardActivityCount,
+    AppDashboardActivityList,
+    AppDashboardConversationList,
+    AppWidgetCubeRenderer
   },
   data() {
     return {
