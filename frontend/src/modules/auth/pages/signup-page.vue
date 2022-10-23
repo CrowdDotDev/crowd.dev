@@ -198,8 +198,10 @@ export default {
         return this.doRegisterEmailAndPassword({
           email: this.model.email,
           password: this.model.password,
-          firstName: this.model.firstName,
-          lastName: this.model.lastName
+          data: {
+            firstName: this.model.firstName,
+            lastName: this.model.lastName
+          }
         })
       })
     },

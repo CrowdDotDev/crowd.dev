@@ -29,6 +29,7 @@
       </el-form-item>
 
       <el-form-item
+        ref="tenantPlatforms"
         :prop="fields.tenantPlatforms.name"
         class="mb-2"
       >
@@ -54,7 +55,7 @@
           :filterable="true"
           :reserve-keyword="false"
           placeholder="Select option(s)"
-          @change="selectedPlatforms = $event"
+          @blur="$refs.tenantPlatforms.validate()"
         >
           <el-option
             v-for="integration in integrationsJsonArray"
@@ -131,7 +132,6 @@ import { FormSchema } from '@/shared/form/form-schema'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import { mapActions, mapGetters } from 'vuex'
 import config from '@/config'
-import { urlfy } from '@/shared/urlfy'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 
@@ -150,7 +150,9 @@ export default {
       integrationsJsonArray,
       tenantCommunitySize,
       rules: formSchema.rules(),
-      model: {},
+      model: {
+        [fields.tenantPlatforms.name]: []
+      },
       selectedPlatforms: []
     }
   },
@@ -180,10 +182,6 @@ export default {
   methods: {
     ...mapActions('tenant', ['doCreate', 'doUpdate']),
 
-    onTenantNameChange() {
-      this.model.url = urlfy(this.model.name)
-    },
-
     platformEnabled(platform) {
       if (this.selectedPlatforms) {
         return this.selectedPlatforms.includes(platform)
@@ -198,15 +196,10 @@ export default {
           if (this.currentTenant) {
             return this.doUpdate({
               id: this.currentTenant.id,
-              values: {
-                ...this.model
-              }
+              values: this.model
             })
           }
-          return this.doCreate({
-            ...this.model,
-            url: urlfy(this.model.name)
-          })
+          return this.doCreate(this.model)
         })
         .then(() => {
           this.$emit('saved')
