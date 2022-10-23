@@ -5,8 +5,9 @@ cube(`Sentiment`, {
   a."timestamp" ,
   (a.sentiment->>'sentiment')::integer as sentiment,
   case
-      when (a.sentiment->>'sentiment')::integer < 50 then 'negative'
-      else 'positive'
+      when (a.sentiment->>'sentiment')::integer < 34 then 'negative'
+      when (a.sentiment->>'sentiment')::integer > 66 then 'positive'
+      else 'neutral'
   end as mood
 from
   activities a
