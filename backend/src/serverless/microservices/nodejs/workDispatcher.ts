@@ -1,4 +1,4 @@
-import { NodeWorkerMessage } from '../../types/worketTypes'
+import { NodeWorkerMessage } from '../../types/workerTypes'
 import { NodeMicroserviceMessage } from './messageTypes'
 import workerFactory from './workerFactory'
 

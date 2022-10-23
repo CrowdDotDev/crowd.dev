@@ -1,16 +1,11 @@
 import logging
 
-__version__ = "0.0.6"
 
 from .activity import Activity  # noqa
 from .member import Member  # noqa
-from .tenant_user import TenantUser
 from .tenant import Tenant
-from .user import User
-from .report import Report
-from .widget import Widget
-from .integration import Integration
 from .microservice import Microservice
+from .integration import Integration
 from ..infrastructure import KUBE_MODE
 
 # from .repo import Repo  # noqa

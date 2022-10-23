@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import moment from 'moment'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -98,10 +99,11 @@ class OrganizationRepository {
         transaction,
       },
     )
-
-    await record.setMembers(data.members || [], {
-      transaction,
-    })
+    if (data.members) {
+      await record.setMembers(data.members || [], {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -274,11 +276,12 @@ class OrganizationRepository {
     )
 
     const identities = Sequelize.literal(
-      `array( select jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
+      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
+    const joinedAt = Sequelize.literal(`MIN("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.literal(`COUNT("members".id)::integer`)
+    const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -445,6 +448,9 @@ class OrganizationRepository {
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('joinedAt', orderBy),
+    )
 
     const parser = new QueryParser(
       {
@@ -486,6 +492,7 @@ class OrganizationRepository {
           activeOn,
           identities,
           lastActive,
+          joinedAt,
           memberCount,
         },
         manyToMany: {
@@ -554,6 +561,7 @@ class OrganizationRepository {
         [activeOn, 'activeOn'],
         [identities, 'identities'],
         [lastActive, 'lastActive'],
+        [joinedAt, 'joinedAt'],
         [memberCount, 'memberCount'],
       ],
       order,
@@ -662,14 +670,13 @@ class OrganizationRepository {
       ),
     ]
 
-    output.lastActive = Math.min(
-      members
-        .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-        .map((i) => i.timestamp),
-    )
+    const activities = members
+      .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+      .map((i) => i.timestamp)
 
-    // Math.min returns 0 for an empty array
-    output.lastActive = output.lastActive === 0 ? null : output.lastActive
+    output.lastActive = activities.length > 0 ? moment(Math.max(activities)).toDate() : null
+
+    output.joinedAt = activities.length > 0 ? moment(Math.min(activities)).toDate() : null
 
     output.identities = [
       ...new Set(

@@ -1512,8 +1512,18 @@ describe('MemberRepository tests', () => {
         reach: { total: -1 },
         joinedAt: new Date(member1.joinedAt),
         organizations: [
-          SequelizeTestUtils.objectWithoutKey(org1Plain, ['lastActive', 'identities', 'activeOn']),
-          SequelizeTestUtils.objectWithoutKey(org2Plain, ['lastActive', 'identities', 'activeOn']),
+          SequelizeTestUtils.objectWithoutKey(org1Plain, [
+            'lastActive',
+            'identities',
+            'activeOn',
+            'joinedAt',
+          ]),
+          SequelizeTestUtils.objectWithoutKey(org2Plain, [
+            'lastActive',
+            'identities',
+            'activeOn',
+            'joinedAt',
+          ]),
         ],
         noMerge: [],
         toMerge: [],

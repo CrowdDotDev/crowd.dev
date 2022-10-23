@@ -60,6 +60,8 @@ components:
           - twitter
         activeOn:
           - github
+        lastActive: '2022-10-03T16:15:21.812Z'
+        joinedAt: '2022-05-03T11:16:32.812Z'
         twitter:
           bio: The internet we deserve
           handle: PiedPiper
@@ -104,6 +106,8 @@ components:
           - twitter
         activeOn:
           - devto
+        lastActive: '2022-10-04'
+        joinedAt: '2020-01-30'
         twitter:
           bio: Hooli is an international corporation founded by Gavin Belson and Peter Gregory
           handle: hooli

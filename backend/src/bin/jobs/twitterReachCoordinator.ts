@@ -3,7 +3,7 @@ import { CrowdJob } from '../../utils/jobTypes'
 import MicroserviceRepository from '../../database/repositories/microserviceRepository'
 import { TwitterReachMessage } from '../../serverless/integrations/types/messageTypes'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 
 const job: CrowdJob = {
   name: 'Twitter Reach coordinator',

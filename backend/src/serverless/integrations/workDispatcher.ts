@@ -1,4 +1,4 @@
-import { NodeWorkerMessage } from '../types/worketTypes'
+import { NodeWorkerMessage } from '../types/workerTypes'
 import { IntegrationsMessage } from './types/messageTypes'
 import mainWorker from './workers/mainWorker'
 

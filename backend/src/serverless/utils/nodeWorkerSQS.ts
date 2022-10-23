@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
 import { sqs } from '../../services/aws'
-import { NodeWorkerMessage } from '../types/worketTypes'
+import { NodeWorkerMessage } from '../types/workerTypes'
 
 export const sendNodeWorkerMessage = async (
   tenantId: string,

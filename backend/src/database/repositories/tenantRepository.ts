@@ -38,7 +38,14 @@ class TenantRepository {
 
     const record = await options.database.tenant.create(
       {
-        ...lodash.pick(data, ['id', 'name', 'url', 'importHash']),
+        ...lodash.pick(data, [
+          'id',
+          'name',
+          'url',
+          'communitySize',
+          'integrationsRequired',
+          'importHash',
+        ]),
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -92,7 +99,16 @@ class TenantRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['id', 'name', 'url', 'onboardedAt', 'hasSampleData', 'importHash']),
+        ...lodash.pick(data, [
+          'id',
+          'name',
+          'url',
+          'communitySize',
+          'integrationsRequired',
+          'onboardedAt',
+          'hasSampleData',
+          'importHash',
+        ]),
         updatedById: currentUser.id,
       },
       {
