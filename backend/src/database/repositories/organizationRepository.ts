@@ -670,27 +670,13 @@ class OrganizationRepository {
       ),
     ]
 
-    output.lastActive = moment(
-      Math.max(
-        ...members
-          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-          .map((i) => i.timestamp),
-      ),
-    ).toDate()
+    const activities = members
+      .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+      .map((i) => i.timestamp)
 
-    // Math.min returns 0 for an empty array
-    output.lastActive = output.lastActive === 0 ? null : output.lastActive
+    output.lastActive = activities.length > 0 ? moment(Math.max(activities)).toDate() : null
 
-    output.joinedAt = moment(
-      Math.min(
-        ...members
-          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
-          .map((i) => i.timestamp),
-      ),
-    ).toDate()
-
-    // Math.min returns 0 for an empty array
-    output.joinedAt = output.joinedAt === 0 ? null : output.joinedAt
+    output.joinedAt = activities.length > 0 ? moment(Math.min(activities)).toDate() : null
 
     output.identities = [
       ...new Set(
