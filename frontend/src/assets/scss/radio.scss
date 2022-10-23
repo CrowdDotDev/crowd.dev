@@ -1,5 +1,17 @@
-.el-radio-group {
-  .el-radio-button__inner {
-    @apply mr-3 mb-3 border border-solid border-gray-300 h-10 px-3 rounded-md flex items-center;
+.el-radio-group.radio-chips {
+  .el-radio-button {
+    @apply mr-3 mb-3;
+    .el-radio-button__inner {
+      @apply border border-solid shadow-none border-gray-300 h-10 px-3 rounded-md flex items-center font-normal transition text-black;
+      &:hover{
+        @apply bg-gray-50 text-black
+      }
+    }
+
+    &.is-active{
+      .el-radio-button__inner {
+        @apply border border-l-brand-500 shadow-none border-brand-500 rounded-md font-medium text-black bg-brand-50;
+      }
+    }
   }
 }

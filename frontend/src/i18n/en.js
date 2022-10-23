@@ -619,13 +619,13 @@ const en = {
     },
     create: {
       button: 'Create Workspace',
-      success: 'Workspace successfully saved'
+      success: 'Community has been created'
     },
     update: {
-      success: 'Workspace successfully saved'
+      success: 'Community has been updated'
     },
     destroy: {
-      success: 'Workspace successfully deleted'
+      success: 'Community successfully deleted'
     },
     destroyAll: {
       success: 'Workspace(s) successfully deleted'

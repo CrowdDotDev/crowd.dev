@@ -31,15 +31,19 @@ const fields = {
     max: 50
   }),
   tenantPlatforms: new StringArrayField(
-    'platforms',
+    'integrationsRequired',
     label('tenantPlatforms'),
     {
       required: true
     }
   ),
-  tenantSize: new StringField('size', label('tenantSize'), {
-    required: true
-  }),
+  tenantSize: new StringField(
+    'communitySize',
+    label('tenantSize'),
+    {
+      required: true
+    }
+  ),
   plan: new StringField('plan', label('plan')),
   tenantId: new IdField('id', label('tenantId')),
   createdAt: new DateTimeField(

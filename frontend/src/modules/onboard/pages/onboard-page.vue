@@ -12,7 +12,9 @@
       </div>
       <div>
         <h3 class="text-2xl font-semibold leading-12 mb-1">
-          Howdie, Jonathan
+          Howdie<span v-if="currentUser"
+            >, {{ currentUser.firstName }}</span
+          >
         </h3>
         <p class="text-sm text-gray-600 leading-5">
           Let’s setup your community
@@ -21,7 +23,11 @@
     </div>
     <section class="panel !p-8">
       <div class="-mx-3 flex">
-        <div class="w-1/2 px-3">
+        <div
+          class="w-1/2 px-3"
+          :class="{ 'cursor-pointer': currentTenant }"
+          @click="tab = currentTenant ? 1 : tab"
+        >
           <div
             class="h-1 w-full rounded mb-3"
             :class="
@@ -39,7 +45,11 @@
             Tell us about your community
           </p>
         </div>
-        <div class="w-1/2 px-3">
+        <div
+          class="w-1/2 px-3"
+          :class="{ 'cursor-pointer': currentTenant }"
+          @click="tab = currentTenant ? 2 : tab"
+        >
           <div
             class="h-1 w-full rounded mb-3"
             :class="
@@ -47,7 +57,7 @@
             "
           ></div>
           <p
-            class="text-xs leading-5 font-semibold text-gray-400"
+            class="text-xs leading-5 font-semibold"
             :class="
               tab !== 1 ? 'text-brand-500' : 'text-gray-400'
             "
@@ -57,8 +67,11 @@
         </div>
       </div>
       <div class="pt-16">
-        <app-onboard-community v-if="tab === 1" />
-        <app-onboard-integrations v-else />
+        <app-onboard-community
+          v-show="tab === 1"
+          @saved="tab = 2"
+        />
+        <app-onboard-integrations v-show="tab === 2" />
       </div>
     </section>
   </div>
@@ -67,6 +80,7 @@
 <script>
 import AppOnboardCommunity from '@/modules/onboard/components/onboard-community'
 import AppOnboardIntegrations from '@/modules/onboard/components/onboard-integrations'
+import { mapGetters } from 'vuex'
 export default {
   name: 'OnboardPage',
   components: {
@@ -75,8 +89,12 @@ export default {
   },
   data() {
     return {
-      tab: 1
+      tab: 1,
+      created: false
     }
+  },
+  computed: {
+    ...mapGetters('auth', ['currentUser', 'currentTenant'])
   }
 }
 </script>
