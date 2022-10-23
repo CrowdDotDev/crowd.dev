@@ -1,5 +1,5 @@
 <template>
-  <div class="conversation-settings">
+  <div class="community-help-center-settings">
     <el-button
       v-if="buttonVisible && hasPermissionToEdit"
       class="btn btn--transparent btn--md"
@@ -12,18 +12,33 @@
       v-model="computedVisible"
       title="Community Help Center Settings"
       :close-on-click-modal="false"
-      width="100%"
+      :show-close="false"
+      size="600px"
       @close="$emit('close')"
     >
       <template #header>
         <div>
-          <span
-            class="block text-gray-600 text-2xs font-normal leading-none"
-            >Community Help Center</span
-          >
-          <div class="text-lg font-semibold text-black">
-            Settings
+          <div class="flex items-center justify-between">
+            <div>
+              <span
+                class="block text-gray-600 text-2xs font-normal leading-none"
+                >Community Help Center</span
+              >
+              <div class="text-lg font-semibold text-black">
+                Settings
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn btn--transparent btn--md"
+            >
+              <i
+                class="ri-lg w-3 h-3 ri-close-line flex items-center justify-center"
+              ></i>
+            </button>
           </div>
+
+          <toggle v-model="model.enabled" class="mt-6" />
         </div>
       </template>
       <el-form
@@ -32,12 +47,13 @@
         class="w-full form"
         :model="model"
         :rules="rules"
+        label-position="top"
         @submit.prevent="doSubmit"
       >
-        <app-alert
+        <!--<app-alert
           v-if="!hasConversationsConfigured"
           type="info"
-          class="mb-8"
+          class="mb-8 mt-0"
         >
           <template #title>
             Please configure your Community Help Center
@@ -54,392 +70,61 @@
             >
             and <span class="font-semibold">Website</span>.
           </template>
-        </app-alert>
-        <div
-          class="font-semibold text-sm text-gray-200 mb-1"
-        >
-          General
-        </div>
-        <hr class="pb-2" />
-        <div class="flex items-center -mx-2">
-          <el-form-item
-            label="Community Name"
-            prop="tenantName"
-            :required="true"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.tenantName"
-              placeholder="Crowd.dev"
-            />
-            <div class="app-form-hint">
-              Display name of your community/company
-            </div>
-          </el-form-item>
-          <el-form-item
-            label="Community Slug"
-            prop="tenantSlug"
-            :required="true"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.tenantSlug"
-              :readonly="publishedConversations.length > 0"
-              placeholder="crowd-dev"
-            />
-            <div class="app-form-hint">
-              Unique identifier —
-              <strong>can't be changed</strong>
-            </div>
-          </el-form-item>
-        </div>
-        <div
-          class="font-semibold text-sm text-gray-200 mb-1 mt-12"
-        >
-          Community links
-        </div>
-        <hr class="pb-2" />
-        <div class="flex items-start flex-wrap -mx-2">
-          <el-form-item
-            label="Website"
-            prop="website"
-            :required="true"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.website"
-              placeholder="https://crowd.dev"
-            />
-            <div class="app-form-hint">
-              URL of your community/company
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="activeIntegrations.includes('discord')"
-            label="Discord URL"
-            prop="discordInviteLink"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.discordInviteLink"
-              placeholder="https://invite.discord.url"
-            />
-            <div class="app-form-hint flex items-center">
-              Permanent Discord invite link
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="activeIntegrations.includes('slack')"
-            label="Slack URL"
-            prop="slackInviteLink"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.slackInviteLink"
-              placeholder="https://invite.slack.url"
-            />
-            <div class="app-form-hint">
-              Permanent Slack invite link
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="activeIntegrations.includes('github')"
-            label="GitHub URL"
-            prop="githubInviteLink"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.githubInviteLink"
-              placeholder="https://github.com/CrowdHQ"
-            />
-            <div class="app-form-hint">
-              GitHub's organization URL
-            </div>
-          </el-form-item>
-        </div>
-        <div
-          class="font-semibold text-sm text-gray-200 mb-1 mt-12"
-        >
-          Auto-publishing
-        </div>
-        <hr class="pb-2" />
-        <div class="flex items-start -mx-2">
-          <el-form-item
-            label="Publish from"
-            prop="status"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-select v-model="model.autoPublish.status">
-              <el-option
-                key="all"
-                label="All channels"
-                value="all"
-              ></el-option>
-              <el-option
-                key="custom"
-                label="Specific channels"
-                value="custom"
-              ></el-option>
-              <el-option
-                key="disabled"
-                label="None"
-                value="disabled"
-              ></el-option>
-            </el-select>
-            <div class="app-form-hint leading-normal pt-2">
-              <span
-                v-if="model.autoPublish.status === 'all'"
-                >All conversations will automatically be
-                published.</span
-              >
-              <span
-                v-if="model.autoPublish.status === 'custom'"
-                >All conversations, from specific channels,
-                will automatically be published.</span
-              >
-              <span
-                v-if="
-                  model.autoPublish.status === 'disabled'
-                "
-                >No conversation is going to be published
-                automatically.</span
-              >
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="model.autoPublish.status === 'custom'"
-            label="Channels"
-            prop="channels"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-select
-              v-model="model.autoPublish.channels"
-              class="w-full"
-              placeholder="Select channels"
-              :filterable="true"
-              :multiple="true"
-            >
-              <el-option
-                v-for="channel in computedChannelsList"
-                :key="channel.value"
-                :label="channel.label"
-                :value="channel.value"
-              ></el-option>
-            </el-select>
-          </el-form-item>
-        </div>
-        <div
-          class="font-semibold text-sm text-gray-200 mb-1 mt-12"
-        >
-          Theming
-        </div>
-        <hr class="pb-2" />
-        <div class="flex items-center -mx-2">
-          <el-form-item
-            label="Logo URL"
-            prop="logoUrl"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.logoUrl"
-              placeholder="https://logourl.com"
-            />
-            <div class="app-form-hint">
-              Recommended size: 240x60 pixels
-            </div>
-          </el-form-item>
-          <el-form-item
-            label="Favicon URL"
-            prop="faviconUrl"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <el-input
-              v-model="model.faviconUrl"
-              placeholder="https://faviconurl.com"
-            />
-            <div class="app-form-hint">
-              Recommended size: 32x32 pixels
-            </div>
-          </el-form-item>
-        </div>
-        <div class="flex -mx-2">
-          <el-form-item
-            label="Brand Colors"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Primary</span
-              >
-              <el-color-picker
-                v-model="model.theme.primary"
-                size="mini"
-              />
-            </div>
-          </el-form-item>
-          <el-form-item
-            label="Text Colors"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Primary</span
-              >
-              <el-color-picker
-                v-model="model.theme.text"
-                size="mini"
-              />
-            </div>
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Secondary</span
-              >
-              <el-color-picker
-                v-model="model.theme.textSecondary"
-                size="mini"
-              />
-            </div>
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600">CTA</span>
-              <el-color-picker
-                v-model="model.theme.textCta"
-                size="mini"
-              />
-            </div>
-          </el-form-item>
-
-          <el-form-item
-            label="Background Colors"
-            class="w-full lg:w-1/3 px-2"
-          >
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Normal</span
-              >
-              <el-color-picker
-                v-model="model.theme.bg"
-                size="mini"
-              />
-            </div>
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Highlight</span
-              >
-              <el-color-picker
-                v-model="model.theme.bgHighlight"
-                size="mini"
-              />
-            </div>
-            <div
-              class="flex items-center justify-between leading-normal"
-            >
-              <span class="text-xs text-gray-600"
-                >Navigation</span
-              >
-              <el-color-picker
-                v-model="model.theme.bgNav"
-                size="mini"
-              />
-            </div>
-          </el-form-item>
-        </div>
-        <div
-          class="font-semibold text-sm text-gray-200 mb-1 mt-12 flex items-center justify-between"
-        >
-          Custom URL
-          <span
-            class="flex items-center uppercase ml-4 text-xs text-brand-500 font-semibold"
-            ><i class="ri-information-line mr-1"></i>Premium
-            Only</span
-          >
-        </div>
-        <hr class="pb-2" />
+        </app-alert>-->
         <div class="relative">
-          <div v-if="!hasPermissionToCustomize">
-            <div
-              class="absolute w-full inset-0 z-10 -mx-4 bg-white"
-            ></div>
-            <div
-              class="absolute inset-0 flex items-center justify-center flex-col pt-8 z-20"
-            >
-              <span class="text-gray-600 text-center">
-                If you want to customize the URL of your
-                Public
-                <br />
-                Community Help Center, you need to switch to
-                a paid plan.
-              </span>
-              <a
-                href="mailto:help@crowd.dev"
-                class="btn btn--secondary btn--secondary--orange mt-4"
-                >Contact crowd.dev</a
-              >
-            </div>
-          </div>
-          <div class="flex items-center -mx-2">
-            <el-form-item
-              label="Custom Domain"
-              prop="customUrl"
-              class="w-full lg:w-1/3 px-2"
-            >
-              <el-input
-                v-model="model.customUrl"
-                placeholder="https://help.crowd.dev"
-                :disabled="!hasPermissionToCustomize"
-              />
-              <div class="app-form-hint">
-                Custom domain/url for the help center —
-                <a
-                  href="https://docs.crowd.dev/docs/conversations#4-set-up-custom-domain-premium-only"
-                  target="_blank"
-                  class="font-semibold"
-                  >see docs</a
-                >
-              </div>
-            </el-form-item>
-          </div>
-        </div>
-        <div class="form-buttons mt-12">
-          <el-button
-            :disabled="loading"
-            class="btn btn--primary mr-2"
-            @click="doSubmit"
-          >
-            <i class="ri-lg ri-save-line mr-1" />
-            <app-i18n code="common.save"></app-i18n>
-          </el-button>
-
-          <el-button
-            :disabled="loading"
-            class="btn btn--secondary mr-2"
-            @click="doReset"
-          >
-            <i class="ri-lg ri-arrow-go-back-line mr-1" />
-            <app-i18n code="common.reset"></app-i18n>
-          </el-button>
-
-          <el-button
-            :disabled="loading"
-            class="btn btn--secondary"
-            @click="$emit('close')"
-          >
-            <i class="ri-lg ri-close-line mr-1" />
-            <app-i18n code="common.cancel"></app-i18n>
-          </el-button>
+          <div
+            v-if="!model.enabled"
+            class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
+          ></div>
+          <general
+            v-model:tenantSlug="model.tenantslug"
+            v-model:tenantName="model.tenantName"
+            v-model:customUrl="model.customUrl"
+            :disabled="!model.enabled"
+          />
+          <links
+            v-model:website="model.website"
+            v-model:discordInviteLink="
+              model.discordInviteLink
+            "
+            v-model:slackInviteLink="model.slackInviteLink"
+            v-model:githubInviteLink="
+              model.githubInviteLink
+            "
+            :disabled="!model.enabled"
+          />
+          <auto-publish
+            v-model:status="model.autoPublish.status"
+            v-model:channels="model.autoPublish.channels"
+            :disabled="!model.enabled"
+          />
+          <theming
+            v-model:theme="model.theme"
+            v-model:logoUrl="model.logoUrl"
+            v-model:faviconUrl="model.faviconUrl"
+            :disabled="!model.enabled"
+          />
         </div>
       </el-form>
+      <template #footer>
+        <div class="form-buttons">
+          <el-button
+            :disabled="loading"
+            class="btn btn--bordered btn--md mr-4"
+            @click="$emit('close')"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+
+          <el-button
+            :disabled="loading"
+            class="btn btn--primary btn--md"
+            @click="doSubmit"
+          >
+            Update
+          </el-button>
+        </div>
+      </template>
     </el-drawer>
   </div>
 </template>
@@ -454,6 +139,11 @@ import authAxios from '@/shared/axios/auth-axios'
 import Message from '@/shared/message/message'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
+import AutoPublish from '@/modules/community-help-center/components/settings/_auto-publish'
+import General from '@/modules/community-help-center/components/settings/_general'
+import Theming from '@/modules/community-help-center/components/settings/_theming'
+import Toggle from '@/modules/community-help-center/components/settings/_toggle'
+import Links from '@/modules/community-help-center/components/settings/_links'
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),
@@ -469,6 +159,14 @@ const formSchema = new FormSchema([
 
 export default {
   name: 'AppConversationSettings',
+  components: {
+    General,
+    AutoPublish,
+    Theming,
+    Toggle,
+    Links
+  },
+
   props: {
     visible: {
       type: Boolean,
@@ -495,17 +193,15 @@ export default {
 
   computed: {
     ...mapGetters({
-      publishedConversations:
-        'communityHelpCenter/publishedRows',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      currentSettings: 'auth/currentSettings',
-      conversationSettings:
-        'auth/communityHelpCenterSettings',
       loadedIntegrations: 'integration/loaded',
       activeIntegrationsList: 'integration/activeList',
       hasConversationsConfigured:
-        'communityHelpCenter/isConfigured'
+        'communityHelpCenter/isConfigured',
+      currentUser: 'auth/currentUser',
+      currentTenant: 'auth/currentTenant',
+      currentSettings: 'auth/currentSettings',
+      communityHelpCenterSettings:
+        'auth/communityHelpCenterSettings'
     }),
     computedVisible: {
       get() {
@@ -518,9 +214,6 @@ export default {
           this.$emit('close')
         }
       }
-    },
-    activeIntegrations() {
-      return Object.keys(this.activeIntegrationsList)
     },
     slackIntegration() {
       return (
@@ -543,51 +236,11 @@ export default {
         }
       )
     },
-    hasPermissionToCustomize() {
-      return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).customize
-    },
     hasPermissionToEdit() {
       return new ConversationPermissions(
         this.currentTenant,
         this.currentUser
       ).edit
-    },
-    computedChannelsList() {
-      return Object.values(
-        this.activeIntegrationsList
-      ).reduce((acc, item) => {
-        if (
-          item.platform === 'github' &&
-          item.settings.repos &&
-          item.settings.repos.length > 0
-        ) {
-          for (const repo of item.settings.repos) {
-            acc.push({
-              value: `${item.platform}.${repo.name}`,
-              label: `[GitHub] ${repo.name}`
-            })
-          }
-        } else if (
-          (item.platform === 'slack' ||
-            item.platform === 'discord') &&
-          item.settings.channels &&
-          item.settings.channels.length > 0
-        ) {
-          for (const channel of item.settings.channels) {
-            acc.push({
-              value: `${item.platform}.${channel.name}`,
-              label: `[${
-                item.platform.charAt(0).toUpperCase() +
-                item.platform.slice(1)
-              }] ${channel.name}`
-            })
-          }
-        }
-        return acc
-      }, [])
     },
     shouldConfirmAutoPublish() {
       if (this.model.autoPublish.status === 'disabled') {
@@ -598,10 +251,11 @@ export default {
         this.model.autoPublish.status === 'all' ||
         this.model.autoPublish.status === 'custom'
 
-      if (this.conversationSettings.autoPublish) {
+      if (this.communityHelpCenterSettings.autoPublish) {
         shouldConfirm =
           this.model.autoPublish.status !==
-          this.conversationSettings.autoPublish.status
+          this.communityHelpCenterSettings.autoPublish
+            .status
       }
 
       return shouldConfirm
@@ -701,11 +355,13 @@ export default {
     },
     setModels() {
       this.initialModel = {
+        enabled:
+          this.communityHelpCenterSettings.enabled || false,
         website: this.currentSettings.website,
         tenantName: this.currentTenant.name,
         tenantSlug: this.currentTenant.url,
-        theme: this.conversationSettings.theme
-          ? this.conversationSettings.theme
+        theme: this.communityHelpCenterSettings.theme
+          ? this.communityHelpCenterSettings.theme
           : {
               primary: '#E94F2E',
               secondary: '#140505',
@@ -716,16 +372,19 @@ export default {
               bgHighlight: '#fff',
               bgNav: '#140505'
             },
-        customUrl: this.conversationSettings.customUrl,
-        logoUrl: this.conversationSettings.logoUrl,
-        faviconUrl: this.conversationSettings.faviconUrl,
+        customUrl:
+          this.communityHelpCenterSettings.customUrl,
+        logoUrl: this.communityHelpCenterSettings.logoUrl,
+        faviconUrl:
+          this.communityHelpCenterSettings.faviconUrl,
         discordInviteLink:
           this.discordIntegration.settings.inviteLink,
         slackInviteLink:
           this.slackIntegration.settings.inviteLink,
         githubInviteLink:
           this.githubIntegration.settings.inviteLink,
-        autoPublish: !this.conversationSettings.autoPublish
+        autoPublish: !this.communityHelpCenterSettings
+          .autoPublish
           ? {
               status: 'all',
               channels: [],
@@ -733,14 +392,14 @@ export default {
             }
           : {
               status:
-                this.conversationSettings.autoPublish
+                this.communityHelpCenterSettings.autoPublish
                   .status,
               channels: Object.keys(
-                this.conversationSettings.autoPublish
+                this.communityHelpCenterSettings.autoPublish
                   .channelsByPlatform
               ).reduce((acc, platform) => {
                 acc = acc.concat(
-                  this.conversationSettings.autoPublish.channelsByPlatform[
+                  this.communityHelpCenterSettings.autoPublish.channelsByPlatform[
                     platform
                   ].map(
                     (channel) => `${platform}.${channel}`
@@ -749,7 +408,7 @@ export default {
                 return acc
               }, []),
               channelsByPlatform:
-                this.conversationSettings.autoPublish
+                this.communityHelpCenterSettings.autoPublish
                   .channelsByPlatform
             }
       }
@@ -763,3 +422,13 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.community-help-center-settings {
+  .el-drawer {
+    &__header {
+      @apply mb-0;
+    }
+  }
+}
+</style>
