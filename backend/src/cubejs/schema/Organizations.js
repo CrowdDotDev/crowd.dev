@@ -23,7 +23,6 @@ cube(`Organizations`, {
       type: `count`,
       drillMembers: [updatedbyid, id, name, createdbyid, tenantId, createdat, updatedat],
     },
-
   },
   dimensions: {
     emails: {
