@@ -74,6 +74,7 @@ import { mapActions, mapGetters } from 'vuex'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
 import { MemberPermissions } from '@/modules/member/member-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppMemberDropdown',
@@ -109,15 +110,12 @@ export default {
     }),
     async doDestroyWithConfirm(id) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroy(id)
       } catch (error) {

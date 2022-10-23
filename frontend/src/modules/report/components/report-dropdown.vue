@@ -64,6 +64,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Message from '@/shared/message/message'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppReportDropdown',
@@ -97,15 +98,12 @@ export default {
     }),
     async doDestroyWithConfirm(id) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroy(id)
       } catch (error) {

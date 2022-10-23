@@ -69,6 +69,7 @@ import { AutomationPermissions } from '@/modules/automation/automation-permissio
 import AppWebhookForm from './webhooks/webhook-form'
 import AppWebhookExecutionList from './webhooks/webhook-execution-list'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppAutomationDropdown',
@@ -109,15 +110,12 @@ export default {
     }),
     async doDestroyWithConfirm(id) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroy(id)
       } catch (error) {

@@ -57,6 +57,7 @@ import { mapGetters, mapActions, mapState } from 'vuex'
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
 import { i18n } from '@/i18n'
 import { MemberPermissions } from '@/modules/member/member-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppMemberListToolbar',
@@ -117,15 +118,12 @@ export default {
 
     async doDestroyAllWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await this.doDestroyAll(
           this.selectedRows.map((item) => item.id)

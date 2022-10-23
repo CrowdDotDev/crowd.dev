@@ -133,6 +133,7 @@ import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-ren
 import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder'
 import { WidgetService } from '@/modules/widget/widget-service'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'ReportGridLayout',
@@ -272,15 +273,12 @@ export default {
     },
     async handleWidgetDelete(widget) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await WidgetService.destroyAll([widget.id])
         const index = this.model.widgets.findIndex(
