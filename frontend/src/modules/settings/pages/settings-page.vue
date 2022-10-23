@@ -34,8 +34,8 @@
 <script>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page'
-import UserListPage from '@/premium/user/components/user-list-page'
-import AutomationListPage from '@/modules/automation/components/automation-list-page'
+import UserListPage from '@/premium/user/pages/user-list-page'
+import AutomationListPage from '@/modules/automation/pages/automation-list-page'
 import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
 

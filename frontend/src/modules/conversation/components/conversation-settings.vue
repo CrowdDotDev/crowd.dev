@@ -8,6 +8,7 @@
       <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
+    <!-- TODO: Update this component with app-dialog -->
     <el-dialog
       v-model="computedVisible"
       title="Community Help Center Settings"

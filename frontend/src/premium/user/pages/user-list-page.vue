@@ -1,32 +1,16 @@
 <template>
   <div>
-    <el-dialog
+    <app-dialog
       v-model="inviting"
-      :close-on-click-modal="false"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      :show-close="false"
-      custom-class="el-dialog--lg user-invite-dialog"
-      @close="inviting = false"
+      title="Invite user"
+      custom-class="user-invite-dialog"
     >
-      <template #header="{ close, titleId, titleClass }">
-        <div class="flex grow justify-between items-center">
-          <h5 :id="titleId" :class="titleClass">
-            Invite User
-          </h5>
-          <el-button
-            class="btn btn--transparent btn--xs w-8 !h-8"
-            @click="close"
-          >
-            <i
-              class="ri-close-line text-lg text-gray-400"
-            ></i>
-          </el-button>
-        </div>
+      <template #content>
+        <app-user-new-page @cancel="inviting = false">
+        </app-user-new-page>
       </template>
-      <app-user-new-page @cancel="inviting = false">
-      </app-user-new-page>
-    </el-dialog>
+    </app-dialog>
+
     <!-- TODO: Check if filter button is to be removed -->
     <app-user-list-filter></app-user-list-filter>
     <app-user-list-table
@@ -37,9 +21,9 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import UserListFilter from '@/premium/user/components/user-list-filter.vue'
-import UserListTable from '@/premium/user/components/user-list-table.vue'
-import UserNewPage from '@/premium/user/components/user-new-page.vue'
+import UserListFilter from '@/premium/user/components/list/user-list-filter.vue'
+import UserListTable from '@/premium/user/components/list/user-list-table.vue'
+import UserNewPage from '@/premium/user/pages/user-new-page.vue'
 import { UserPermissions } from '@/premium/user/user-permissions'
 
 export default {

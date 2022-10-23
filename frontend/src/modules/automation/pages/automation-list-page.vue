@@ -76,10 +76,10 @@
 </template>
 
 <script>
-import AppAutomationListTable from './automation-list-table'
-import AppWebhookForm from './webhooks/webhook-form'
+import AppAutomationListTable from '@/modules/automation/components/list/automation-list-table'
+import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form'
+import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list'
 import { mapGetters, mapActions } from 'vuex'
-import AppWebhookExecutionList from './webhooks/webhook-execution-list'
 
 export default {
   name: 'AppAutomationListPage',

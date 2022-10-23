@@ -1,37 +1,38 @@
 <template>
   <app-teleport to="#teleport-modal">
-    <el-dialog v-model="computedVisible">
-      <template #header>
-        <div v-if="pretitle" class="text-gray-600 text-2xs">
-          {{ pretitle }}
+    <app-dialog
+      v-model="computedVisible"
+      :pretitle="pretitle"
+    >
+      <template #content>
+        <div class="px-6 pb-6">
+          <form v-if="visible" class="tags-form">
+            <app-tag-autocomplete-input
+              v-model="model"
+              :fetch-fn="fields.tags.fetchFn"
+              :mapper-fn="fields.tags.mapperFn"
+              :create-if-not-found="true"
+              placeholder="Type to search/create tags"
+            ></app-tag-autocomplete-input>
+          </form>
         </div>
-        <h5>Edit tags</h5>
-      </template>
-      <form v-if="visible" class="tags-form mb-10">
-        <app-tag-autocomplete-input
-          v-model="model"
-          :fetch-fn="fields.tags.fetchFn"
-          :mapper-fn="fields.tags.mapperFn"
-          :create-if-not-found="true"
-          placeholder="Type to search/create tags"
-        ></app-tag-autocomplete-input>
-      </form>
 
-      <div
-        class="bg-gray-50 rounded-b-md -mx-5 -mb-8 py-5 px-5 flex items-center justify-end"
-      >
-        <el-button
-          class="btn btn--bordered btn--md mr-3"
-          @click="handleCancel"
-          >Cancel</el-button
+        <div
+          class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
         >
-        <el-button
-          class="btn btn--primary btn--md"
-          @click="handleSubmit"
-          >Submit</el-button
-        >
-      </div>
-    </el-dialog>
+          <el-button
+            class="btn btn--bordered btn--md mr-3"
+            @click="handleCancel"
+            >Cancel</el-button
+          >
+          <el-button
+            class="btn btn--primary btn--md"
+            @click="handleSubmit"
+            >Submit</el-button
+          >
+        </div>
+      </template>
+    </app-dialog>
   </app-teleport>
 </template>
 

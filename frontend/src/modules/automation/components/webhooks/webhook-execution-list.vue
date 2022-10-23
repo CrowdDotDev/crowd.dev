@@ -60,7 +60,7 @@
             <div class="text-gray-900">
               {{ formattedDate(execution.executedAt) }}
             </div>
-            <div class="flex justify-end flex-grow j">
+            <div class="flex justify-end flex-grow mr-1">
               <el-button
                 class="btn btn-brand--transparent btn--sm !h-8"
                 @click="modals[execution.id] = true"
@@ -68,17 +68,16 @@
               >
             </div>
 
-            <el-dialog
+            <app-dialog
               v-model="modals[execution.id]"
               title="Execution log"
-              :destroy-on-close="true"
-              :close-on-click-modal="false"
-              @close="modals[execution.id] = false"
             >
-              <app-webhook-execution
-                :execution="execution"
-              />
-            </el-dialog>
+              <template #content>
+                <app-webhook-execution
+                  :execution="execution"
+                />
+              </template>
+            </app-dialog>
           </li>
         </ul>
       </div>
