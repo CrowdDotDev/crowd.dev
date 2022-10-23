@@ -18,12 +18,13 @@
       <i class="el-icon-plus"></i>
     </el-upload>
 
-    <el-dialog
-      v-model="dialogVisible"
-      :close-on-click-modal="false"
-    >
-      <img :src="dialogImageUrl" alt width="100%" />
-    </el-dialog>
+    <app-dialog v-model="dialogVisible">
+      <template #content>
+        <div class="p-6">
+          <img :src="dialogImageUrl" alt width="100%" />
+        </div>
+      </template>
+    </app-dialog>
   </div>
 </template>
 

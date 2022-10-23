@@ -175,8 +175,8 @@
 
           <el-form-item
             label="Webhook URL"
+            required
             prop="settings.url"
-            :required="true"
           >
             <el-input
               v-model="model.settings.url"
@@ -191,11 +191,13 @@
       <div
         class="flex grow items-center"
         :class="
-          isEditing ? 'justify-between' : 'justify-end'
+          isEditing && isDirty
+            ? 'justify-between'
+            : 'justify-end'
         "
       >
         <el-button
-          v-if="isEditing"
+          v-if="isEditing && isDirty"
           class="btn btn-link btn-link--primary"
           @click="doReset"
           ><i class="ri-arrow-go-back-line"></i>
@@ -232,15 +234,18 @@ import { i18n } from '@/i18n'
 import integrationsJson from '@/jsons/integrations.json'
 import activityTypesJson from '@/jsons/activity-types.json'
 import UrlField from '@/shared/fields/url-field'
-import _ from 'lodash'
+import isEqual from 'lodash/isEqual'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
+  fields.id,
   fields.type,
   fields.trigger,
   fields.status,
   fields.settings,
-  new UrlField('settings.url', 'Webhook URL')
+  new UrlField('settings.url', 'Webhook URL', {
+    required: true
+  })
 ])
 
 export default {
@@ -262,12 +267,9 @@ export default {
       newActivityFilters: 'activityFilters',
       newMemberFilters: 'memberFilters',
       loadingIntegrations: false,
-      model: {
-        ...this.modelValue,
-        settings: {
-          ...this.modelValue.settings
-        }
-      }
+      model: formSchema.initialValues(
+        JSON.parse(JSON.stringify(this.modelValue))
+      )
     }
   },
 
@@ -298,13 +300,11 @@ export default {
       return this.model.trigger && this.model.settings.url
     },
     isDirty() {
-      return (
-        this.modelValue.url !== this.model.url ||
-        this.modelValue.trigger !== this.model.trigger ||
-        !_.isEqual(
-          this.modelValue.settings,
-          this.model.settings
-        )
+      return !isEqual(
+        formSchema.initialValues(
+          JSON.parse(JSON.stringify(this.modelValue))
+        ),
+        this.model
       )
     },
     computedPlatformOptions() {
@@ -383,7 +383,9 @@ export default {
       this.$emit('success')
     },
     doReset() {
-      this.model = formSchema.initialValues(this.modelValue)
+      this.model = formSchema.initialValues(
+        JSON.parse(JSON.stringify(this.modelValue))
+      )
     },
 
     doCancel() {

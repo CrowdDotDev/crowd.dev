@@ -1,7 +1,6 @@
 <template>
   <div
-    class="flex items-center py-1 mb-3 mt-2"
-    :class="count ? 'justify-between' : 'justify-end'"
+    class="flex items-center py-1 mb-3 mt-2 justify-between"
   >
     <div class="text-gray-500 text-sm">
       {{ count }} user{{ count === 1 ? '' : 's' }}
@@ -94,7 +93,7 @@
         </el-table-column>
 
         <el-table-column
-          :fixed="isMobile ? undefined : 'right'"
+          fixed="right"
           align="center"
           width="120"
         >
@@ -107,19 +106,6 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <div v-if="!!count" class="mt-8 px-6">
-        <app-pagination
-          :total="count"
-          :page-size="Number(pagination.pageSize)"
-          :current-page="pagination.currentPage || 1"
-          module="user"
-          @change-current-page="
-            doChangePaginationCurrentPage
-          "
-          @change-page-size="doChangePaginationPageSize"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -128,10 +114,10 @@
 import { UserModel } from '@/premium/user/user-model'
 import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
-import UserListToolbar from '@/premium/user/components/user-list-toolbar.vue'
+import UserListToolbar from '@/premium/user/components/list/user-list-toolbar.vue'
 import Roles from '@/security/roles'
 import { i18n } from '@/i18n'
-import AppUserDropdown from './user-dropdown'
+import AppUserDropdown from '../user-dropdown'
 
 const { fields } = UserModel
 
@@ -151,11 +137,8 @@ export default {
       count: 'user/list/count',
       loading: 'user/list/loading',
       selectedRows: 'user/list/selectedRows',
-      pagination: 'user/list/pagination',
-      isMobile: 'layout/isMobile',
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      paginationLayout: 'layout/paginationLayout'
+      currentTenant: 'auth/currentTenant'
     }),
 
     hasPermissionToDestroy() {
@@ -184,10 +167,6 @@ export default {
   methods: {
     ...mapActions({
       doChangeSort: 'user/list/doChangeSort',
-      doChangePaginationCurrentPage:
-        'user/list/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'user/list/doChangePaginationPageSize',
       doMountTable: 'user/list/doMountTable',
       doDestroy: 'user/destroy/doDestroy'
     }),

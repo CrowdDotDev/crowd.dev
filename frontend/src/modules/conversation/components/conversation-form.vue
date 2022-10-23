@@ -118,6 +118,7 @@
           </div>
         </el-form-item>
       </div>
+      <!-- TODO: Update this component with app-dialog -->
       <el-dialog
         v-model="publishModal"
         v-model:visible="publishModal"

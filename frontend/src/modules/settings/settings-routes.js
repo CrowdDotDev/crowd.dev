@@ -2,7 +2,7 @@ import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 
 const SettingsPage = () =>
-  import('@/modules/settings/components/settings-page.vue')
+  import('@/modules/settings/pages/settings-page.vue')
 
 export default [
   {

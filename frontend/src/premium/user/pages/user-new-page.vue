@@ -1,22 +1,21 @@
 <template>
-  <app-user-new-form
+  <app-user-form
     :save-loading="saveLoading"
     :invitation-token="invitationToken"
-    :single="true"
     @cancel="doCancel"
     @submit="doSubmit"
-  ></app-user-new-form>
+  ></app-user-form>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import UserNewForm from '@/premium/user/components/user-new-form.vue'
+import AppUserForm from '@/premium/user/components/form/user-form.vue'
 
 export default {
   name: 'AppUserNewPage',
 
   components: {
-    'app-user-new-form': UserNewForm
+    'app-user-form': AppUserForm
   },
   emits: ['cancel'],
 
@@ -50,6 +49,8 @@ export default {
       try {
         const response = await this.doAdd(payload.values)
         this.invitationToken = response[0].token
+
+        this.$emit('cancel')
       } catch (error) {
         console.log(error)
       }

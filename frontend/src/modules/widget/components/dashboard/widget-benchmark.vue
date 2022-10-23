@@ -31,19 +31,19 @@
         }
       }"
     />
-    <el-dialog
+    <app-dialog
       v-model="modal"
       :title="`${config.title} Settings`"
-      :close-on-click-modal="false"
-      @close="modal = false"
     >
-      <app-benchmark-settings
-        v-if="config.type === 'benchmark'"
-        :widget="widget"
-        :timeframe-options="timeframeOptions"
-        @submit="handleSettingsSubmit"
-      />
-    </el-dialog>
+      <template #content>
+        <app-benchmark-settings
+          v-if="config.type === 'benchmark'"
+          :widget="widget"
+          :timeframe-options="timeframeOptions"
+          @submit="handleSettingsSubmit"
+        />
+      </template>
+    </app-dialog>
   </app-widget>
 </template>
 
