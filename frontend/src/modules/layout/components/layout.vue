@@ -33,6 +33,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppLayout',
@@ -91,15 +92,13 @@ export default {
     }),
 
     async handleDeleteSampleDataClick() {
-      await this.$myConfirm(
-        i18n('common.areYouSure'),
-        i18n('common.confirm'),
-        {
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no'),
-          type: 'warning'
-        }
-      )
+      await ConfirmDialog({
+        title: i18n('common.confirm'),
+        message: i18n('common.areYouSure'),
+        confirmButtonText: i18n('common.yes'),
+        cancelButtonText: i18n('common.no')
+      })
+
       this.loading = true
       await TenantService.deleteSampleData(
         this.currentTenant.id

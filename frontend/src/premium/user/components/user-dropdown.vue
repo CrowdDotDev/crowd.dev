@@ -75,6 +75,7 @@ import { i18n } from '@/i18n'
 import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppUserDropdown',
@@ -126,15 +127,12 @@ export default {
     },
     async doDestroyWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await this.doDestroy(this.user.id)
         this.$emit('user-destroyed', this.user.id)

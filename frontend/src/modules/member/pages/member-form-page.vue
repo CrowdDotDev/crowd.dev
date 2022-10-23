@@ -259,7 +259,16 @@ watch(
   wasFormSubmittedSuccessfuly,
   (isFormSubmittedSuccessfuly) => {
     if (isFormSubmittedSuccessfuly) {
-      router.push({ name: 'member' })
+      if (isEditPage.value) {
+        return router.push({
+          name: 'memberView',
+          params: {
+            id: record.value.id
+          }
+        })
+      }
+
+      return router.push({ name: 'member' })
     }
   }
 )
