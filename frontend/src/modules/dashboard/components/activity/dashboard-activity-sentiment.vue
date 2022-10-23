@@ -25,56 +25,41 @@
     </template>
     <template #default="{ resultSet }">
       <div :set="compileData(resultSet)">
-        <div v-if="result.negative + result.positive > 0">
+        <div v-if="total > 0">
           <div class="flex w-full pb-3">
             <div
+              v-for="data of result"
+              :key="data.type"
               class="h-2 bg-green-500 border-l border-r rounded-sm transition"
               :style="{
-                width: `${calculatePercentage(
-                  result.positive
-                )}%`
+                width: `${calculatePercentage(data.count)}%`
               }"
-              :class="hoverSentimentClass('positive')"
-              @mouseover="hoveredSentiment = 'positive'"
+              :class="[
+                hoverSentimentClass(data.type),
+                typeClasses[data.type]
+              ]"
+              @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
             ></div>
+          </div>
+          <div>
             <div
-              class="h-2 bg-red-500 border-l border-r rounded-sm transition"
-              :class="hoverSentimentClass('negative')"
-              :style="{
-                width: `${calculatePercentage(
-                  result.negative
-                )}%`
-              }"
-              @mouseover="hoveredSentiment = 'negative'"
+              v-for="data of result"
+              :key="data.type"
+              class="flex justify-between pb-2"
+              :class="hoverSentimentClass(data.type)"
+              @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
-            ></div>
-          </div>
-          <div
-            class="flex justify-between pb-2"
-            :class="hoverSentimentClass('positive')"
-            @mouseover="hoveredSentiment = 'positive'"
-            @mouseleave="hoveredSentiment = ''"
-          >
-            <p class="text-sm font-medium">Positive</p>
-            <p class="text-xs text-gray-600 text-right">
-              {{ result.positive }}・{{
-                calculatePercentage(result.positive)
-              }}%
-            </p>
-          </div>
-          <div
-            class="flex justify-between"
-            :class="hoverSentimentClass('negative')"
-            @mouseover="hoveredSentiment = 'negative'"
-            @mouseleave="hoveredSentiment = ''"
-          >
-            <p class="text-sm font-medium">Negative</p>
-            <p class="text-xs text-gray-600 text-right">
-              {{ result.negative }}・{{
-                calculatePercentage(result.negative)
-              }}%
-            </p>
+            >
+              <p class="text-sm font-medium capitalize">
+                {{ data.type }}
+              </p>
+              <p class="text-xs text-gray-600 text-right">
+                {{ data.count }}・{{
+                  calculatePercentage(data.count)
+                }}%
+              </p>
+            </div>
           </div>
         </div>
         <div
@@ -103,9 +88,12 @@ export default {
     return {
       hoveredSentiment: '',
       sentimentQuery,
-      result: {
-        positive: 0,
-        negative: 0
+      result: [],
+      total: 0,
+      typeClasses: {
+        positive: 'bg-green-500',
+        negative: 'bg-red-500',
+        neutral: 'bg-yellow-500'
       }
     }
   },
@@ -113,12 +101,8 @@ export default {
     ...mapGetters('dashboard', ['period', 'platform'])
   },
   methods: {
-    calculatePercentage(number) {
-      return Math.round(
-        (number /
-          (this.result.positive + this.result.negative)) *
-          100
-      )
+    calculatePercentage(count) {
+      return Math.round((count / this.total) * 100)
     },
     hoverSentimentClass(type) {
       return this.hoveredSentiment !== type &&
@@ -141,8 +125,23 @@ export default {
         }),
         {}
       )
-      this.result.positive = seriesObject['positive'] || 0
-      this.result.negative = seriesObject['negative'] || 0
+      const result = {
+        positive: seriesObject['positive'] || 0,
+        negative: seriesObject['negative'] || 0,
+        neutral: seriesObject['neutral'] || 0
+      }
+      this.result = Object.entries(result)
+        .sort(([, a], [, b]) => b - a)
+        .map(([type, count]) => ({
+          type,
+          count
+        }))
+        .filter(({ count }) => count > 0)
+
+      this.total = this.result.reduce((a, b) => {
+        console.log(a, b.count, b.type)
+        return a + b.count
+      }, 0)
     }
   }
 }
