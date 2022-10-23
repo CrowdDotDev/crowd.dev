@@ -1,32 +1,15 @@
 <template>
-  <app-integration-list-item
+  <app-integration-twitter-drawer
+    v-model="drawerVisible"
+    :hashtags="hashtags"
+    :connect-url="connectUrl"
     :integration="integration"
-    :onboard="onboard"
-    @hashtags-changed="handleHashtagsChanged"
-  >
-    <template #connect>
-      <a
-        class="btn btn--secondary btn--md"
-        :href="connectUrl"
-        >Connect</a
-      >
-    </template>
-    <template #settings>
-      <el-button
-        v-if="isConnected"
-        class="btn btn--transparent btn--md"
-        @click="drawerVisible = true"
-        ><i class="ri-settings-2-line mr-2"></i
-        >Settings</el-button
-      >
-      <app-integration-twitter-drawer
-        v-model="drawerVisible"
-        :hashtags="hashtags"
-        :connect-url="connectUrl"
-        :integration="integration"
-      />
-    </template>
-  </app-integration-list-item>
+  />
+  <slot
+    :connect="connect"
+    :settings="settings"
+    :has-settings="true"
+  />
 </template>
 
 <script>
@@ -39,7 +22,6 @@ import { useStore } from 'vuex'
 import { defineProps, computed, ref } from 'vue'
 import config from '@/config'
 import { AuthToken } from '@/modules/auth/auth-token'
-import AppIntegrationListItem from '../integration-list-item'
 import AppIntegrationTwitterDrawer from './integration-twitter-drawer'
 
 const props = defineProps({
@@ -73,7 +55,11 @@ const connectUrl = computed(() => {
   }/connect?redirectUrl=${redirectUrl}${encodedHashtags}&crowdToken=${AuthToken.get()}`
 })
 
-const isConnected = computed(() => {
-  return props.integration.status !== undefined
-})
+const connect = () => {
+  window.open(connectUrl.value, '_self')
+}
+
+const settings = () => {
+  drawerVisible.value = true
+}
 </script>

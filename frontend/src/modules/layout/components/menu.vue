@@ -50,7 +50,7 @@
       </div>
 
       <!-- Workspace Dropdown -->
-      <app-workspace-dropdown />
+      <app-workspace-dropdown v-if="currentTenant" />
 
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
         <!-- Menu items -->

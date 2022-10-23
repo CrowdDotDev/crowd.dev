@@ -14,40 +14,9 @@
         v-for="integration in integrationsArray"
         :key="integration.platform"
       >
-        <app-integration-github
-          v-if="integration.platform === 'github'"
+        <app-integration-list-item
           :integration="integration"
           :onboard="onboard"
-        />
-        <app-integration-twitter
-          v-else-if="integration.platform === 'twitter'"
-          :integration="integration"
-          :onboard="onboard"
-        />
-        <app-integration-devto
-          v-else-if="integration.platform === 'devto'"
-          :integration="integration"
-          :onboard="onboard"
-        />
-        <app-integration-discord
-          v-else-if="integration.platform === 'discord'"
-          :integration="integration"
-          :onboard="onboard"
-        />
-        <app-integration-slack
-          v-else-if="integration.platform === 'slack'"
-          :integration="integration"
-          :onboard="onboard"
-        />
-        <app-integration-custom
-          v-else-if="
-            integration.platform === 'custom' && !onboard
-          "
-          :integration="integration"
-        />
-        <app-integration-soon
-          v-else-if="!onboard"
-          :integration="integration"
         />
       </div>
     </div>
@@ -63,14 +32,8 @@ export default {
 import { useStore } from 'vuex'
 import { defineProps, computed, onMounted } from 'vue'
 
-import AppIntegrationGithub from './platforms/integration-github'
-import AppIntegrationSlack from './platforms/integration-slack'
-import AppIntegrationDiscord from './platforms/integration-discord'
-import AppIntegrationTwitter from './platforms/integration-twitter'
-import AppIntegrationDevto from './platforms/integration-devto'
-import AppIntegrationSoon from './platforms/integration-soon'
-import AppIntegrationCustom from './platforms/integration-custom'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import AppIntegrationListItem from '@/modules/integration/components/integration-list-item'
 
 const store = useStore()
 const props = defineProps({

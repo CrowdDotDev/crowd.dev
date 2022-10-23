@@ -199,8 +199,7 @@ export default {
             return this.doUpdate({
               id: this.currentTenant.id,
               values: {
-                ...this.model,
-                url: urlfy(this.model.name)
+                ...this.model
               }
             })
           }

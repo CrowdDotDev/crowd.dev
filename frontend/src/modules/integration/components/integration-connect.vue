@@ -94,13 +94,13 @@ export default {
 <script setup>
 import { computed, defineProps } from 'vue'
 
-import AppIntegrationGithub from './platforms2/integration-github'
-import AppIntegrationSlack from './platforms2/integration-slack'
-import AppIntegrationDiscord from './platforms2/integration-discord'
-import AppIntegrationTwitter from './platforms2/integration-twitter'
-import AppIntegrationDevto from './platforms2/integration-devto'
-import AppIntegrationSoon from './platforms2/integration-soon'
-import AppIntegrationCustom from './platforms2/integration-custom'
+import AppIntegrationGithub from './platforms/integration-github'
+import AppIntegrationSlack from './platforms/integration-slack'
+import AppIntegrationDiscord from './platforms/integration-discord'
+import AppIntegrationTwitter from './platforms/integration-twitter'
+import AppIntegrationDevto from './platforms/integration-devto'
+import AppIntegrationSoon from './platforms/integration-soon'
+import AppIntegrationCustom from './platforms/integration-custom'
 
 const props = defineProps({
   onboard: {

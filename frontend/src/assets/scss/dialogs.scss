@@ -41,4 +41,14 @@
   &__footer {
     @apply bg-gray-50 flex items-center px-6 py-4 h-fit rounded-b-lg justify-between;
   }
+
+  &.plain{
+    .el-dialog__header{
+      @apply p-0
+    }
+  }
+
+  &--sm{
+    max-width: 400px;
+  }
 }

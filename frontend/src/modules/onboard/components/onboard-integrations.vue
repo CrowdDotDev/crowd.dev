@@ -47,18 +47,56 @@
         <span class="ri-arrow-left-s-line text-xl"></span>
         <span class="pl-3">Previous step</span>
       </el-button>
-      <el-button class="btn btn--lg btn--primary">
+      <el-button
+        class="btn btn--lg btn--primary"
+        @click="finish()"
+      >
         <span class="pr-3">Finish setup</span>
         <span class="ri-arrow-right-s-line text-xl"></span>
       </el-button>
     </div>
   </div>
+  <el-dialog
+    v-model="populateDataModal"
+    class="plain el-dialog--sm"
+    :show-close="false"
+  >
+    <template #header><div></div></template>
+    <div class="p-6">
+      <p class="text-2xl leading-12 pb-2">👀</p>
+      <h4
+        class="text-base leading-6 font-semibold pb-2 text-gray-1000"
+      >
+        Not ready to sync your own data?
+      </h4>
+      <p class="text-sm leading-5 text-gray-500 pb-8">
+        Get to know the product with a set of sample data
+        that we prepared for you
+      </p>
+      <el-button
+        :loading="populatingData"
+        class="btn btn--primary btn--md mb-3 w-full"
+        @click="populateData()"
+      >
+        Continue with sample data
+      </el-button>
+      <div class="flex justify-center">
+        <div
+          class="text-sm font-medium p-2 text-brand-600 cursor-pointer"
+          @click="populateDataModal = false"
+        >
+          Back to setup
+        </div>
+      </div>
+    </div>
+  </el-dialog>
 </template>
 
 <script>
 import integrations from '@/jsons/integrations.json'
 import { mapActions, mapGetters } from 'vuex'
 import AppOnboardIntegrationsConnect from '@/modules/onboard/components/onboard-integrations-connect'
+import { TenantService } from '@/modules/tenant/tenant-service'
 
 export default {
   name: 'AppOnboardIntegrations',
@@ -66,11 +104,18 @@ export default {
     AppOnboardIntegrationsConnect
   },
   emits: ['previous'],
+  data() {
+    return {
+      populateDataModal: false,
+      populatingData: false
+    }
+  },
   computed: {
     ...mapGetters('integration', [
       'findByPlatform',
       'count'
     ]),
+    ...mapGetters('auth', ['currentTenant']),
     activeIntegrations() {
       return integrations
         .filter((integration) => integration.active)
@@ -118,11 +163,27 @@ export default {
       'doDiscordConnect',
       'doGithubConnect'
     ]),
+    ...mapActions('auth', ['doFinishOnboard']),
     mapper(integration) {
       return {
         ...integration,
         ...this.findByPlatform(integration.platform)
       }
+    },
+    finish() {
+      if (this.count > 0) {
+        this.doFinishOnboard()
+        return
+      }
+      this.populateDataModal = true
+    },
+    populateData() {
+      this.populatingData = true
+      TenantService.populateSampleData(
+        this.currentTenant.id
+      ).then(() => {
+        return this.doFinishOnboard()
+      })
     }
   }
 }

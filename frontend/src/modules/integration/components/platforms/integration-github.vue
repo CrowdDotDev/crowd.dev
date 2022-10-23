@@ -1,16 +1,5 @@
 <template>
-  <app-integration-list-item
-    :integration="integration"
-    :onboard="onboard"
-  >
-    <template #connect>
-      <a
-        class="btn btn--secondary btn--md"
-        :href="githubConnectUrl"
-        >Connect</a
-      >
-    </template>
-  </app-integration-list-item>
+  <slot :connect="connect"></slot>
 </template>
 
 <script>
@@ -19,7 +8,6 @@ export default {
 }
 </script>
 <script setup>
-import AppIntegrationListItem from '../integration-list-item'
 import { defineProps, computed } from 'vue'
 
 import config from '@/config'
@@ -34,6 +22,10 @@ defineProps({
     default: false
   }
 })
+
+const connect = () => {
+  window.open(githubConnectUrl.value, '_self')
+}
 
 const githubConnectUrl = computed(() => {
   // We have 3 GitHub apps: test, test-local and prod
