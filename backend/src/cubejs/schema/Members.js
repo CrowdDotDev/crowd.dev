@@ -90,6 +90,12 @@ cube(`Members`, {
       type: `count`,
     },
 
+    earliestJoinedAt: {
+      type: `min`,
+      sql: `${Members}."joinedAt"`,
+      shown: false,
+    },
+
     averageTimeToFirstInteraction: {
       type: 'avg',
       sql: `time_to_first_interaction`,
