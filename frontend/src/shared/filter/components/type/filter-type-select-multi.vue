@@ -4,7 +4,9 @@
       v-for="option of computedOptions"
       :key="option.name"
       class="filter-type-select-option"
-      :class="option.selected ? 'is-selected' : ''"
+      :class="`${option.selected ? 'is-selected' : ''} ${
+        option.soon ? 'is-disabled' : ''
+      }`"
       @click="handleOptionClick(option)"
     >
       <div class="flex items-center justify-between h-4">
@@ -12,8 +14,14 @@
           <el-checkbox
             :model-value="option.selected"
             class="filter-checkbox"
+            :disabled="option.soon"
           />
           {{ option.label }}
+          <span
+            v-if="option.soon"
+            class="absolute right-0 inset-y-0 text-gray-400 italic text-xs flex items-center"
+            >Soon</span
+          >
         </div>
       </div>
     </div>
@@ -64,6 +72,10 @@ const model = computed({
 })
 
 const handleOptionClick = (option) => {
+  if (option.soon) {
+    return
+  }
+
   if (
     !props.value.some((item) =>
       valuesEqual(item.value, option.value)

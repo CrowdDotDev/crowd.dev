@@ -93,7 +93,7 @@ function _buildAttributeBlock(attribute) {
   } else {
     rule = {
       [attribute.operator]: Array.isArray(attribute.value)
-        ? attribute.value.map((o) => o.id || o.value)
+        ? attribute.value.map((o) => o.id || o.value || o)
         : attribute.value
     }
   }
