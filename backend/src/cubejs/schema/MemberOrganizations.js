@@ -18,7 +18,9 @@ cube(`MemberOrganizations`, {
     },
   },
 
-  measures: {},
+  measures: {
+
+  },
 
   dimensions: {
     id: {
