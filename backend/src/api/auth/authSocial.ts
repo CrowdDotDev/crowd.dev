@@ -55,6 +55,7 @@ export default (app, routes) => {
                 emailVerified,
                 firstName,
                 lastName,
+                displayName,
                 { database },
               )
             })

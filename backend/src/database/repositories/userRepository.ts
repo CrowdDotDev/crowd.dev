@@ -648,6 +648,7 @@ export default class UserRepository {
     emailVerified,
     firstName,
     lastName,
+    fullName,
     options,
   ) {
     const data = {
@@ -657,6 +658,7 @@ export default class UserRepository {
       provider,
       firstName,
       lastName,
+      fullName,
     }
 
     const transaction = SequelizeRepository.getTransaction(options)

@@ -454,6 +454,7 @@ class AuthService {
     emailVerified,
     firstName,
     lastName,
+    fullName,
     options: any = {},
   ) {
     if (!email) {
@@ -488,6 +489,7 @@ class AuthService {
           emailVerified,
           firstName,
           lastName,
+          fullName,
           options,
         )
       }
