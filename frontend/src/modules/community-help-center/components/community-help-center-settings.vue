@@ -31,6 +31,7 @@
             <button
               type="button"
               class="btn btn--transparent btn--md"
+              @click="$emit('close')"
             >
               <i
                 class="ri-lg w-3 h-3 ri-close-line flex items-center justify-center"
