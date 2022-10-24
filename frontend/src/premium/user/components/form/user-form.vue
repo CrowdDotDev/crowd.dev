@@ -27,9 +27,8 @@
           :required="fields.roles.required"
         >
           <el-select
-            v-model="model[fields.roles.name]"
-            multiple
-            placeholder="Select the roles"
+            v-model="model[fields.roles.name][0]"
+            placeholder="Select a role"
           >
             <el-option
               v-for="option in fields.roles.options"

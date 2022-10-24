@@ -55,7 +55,7 @@
 
         <el-table-column
           :width="100"
-          :label="fields.roles.label"
+          :label="fields.role.label"
           :prop="fields.roles.name"
         >
           <template #default="scope">
