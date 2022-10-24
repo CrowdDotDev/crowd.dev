@@ -198,7 +198,8 @@ const en = {
         joinedAt: 'Member since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
+        identities: 'Identities'
       },
       enumerators: {},
       placeholders: {},
