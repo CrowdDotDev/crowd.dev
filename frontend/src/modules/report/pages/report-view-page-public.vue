@@ -2,8 +2,8 @@
   <div class="report-view-public">
     <div class="report-view-public-content">
       <div
-        v-if="loading('view') || !report"
-        v-loading="loading('view') || !report"
+        v-if="loading || !report"
+        v-loading="loading || !report"
         class="app-page-spinner"
       ></div>
       <div v-else>
@@ -65,7 +65,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import ReportGridLayout from './report-grid-layout'
+import ReportGridLayout from '../components/report-grid-layout'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export default {
@@ -86,10 +86,15 @@ export default {
     }
   },
 
+  data() {
+    return {
+      loading: false
+    }
+  },
+
   computed: {
     ...mapGetters({
-      reportFind: 'report/find',
-      loading: 'report/loading'
+      reportFind: 'report/find'
     }),
     report() {
       return this.reportFind(this.id)
@@ -97,11 +102,13 @@ export default {
   },
 
   async created() {
+    this.loading = true
     await AuthCurrentTenant.set({ id: this.tenantId })
     await this.doFind({
       id: this.id,
       tenantId: this.tenantId
     })
+    this.loading = false
   },
 
   methods: {

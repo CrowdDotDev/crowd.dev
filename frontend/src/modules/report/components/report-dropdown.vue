@@ -20,7 +20,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="report.public"
+          v-if="report.public && showViewReportPublic"
           :command="{
             action: 'reportPublicUrl',
             report: report
@@ -38,6 +38,7 @@
           Report</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="showEditReport"
           :command="{
             action: 'reportEdit',
             report: report
@@ -45,7 +46,10 @@
           ><i class="ri-pencil-line mr-1" />Edit
           Report</el-dropdown-item
         >
-        <el-divider class="border-gray-200" />
+        <el-divider
+          v-if="showEditReport"
+          class="border-gray-200"
+        />
         <el-dropdown-item
           :command="{
             action: 'reportDelete',
@@ -78,6 +82,14 @@ export default {
       default: () => {}
     },
     showViewReport: {
+      type: Boolean,
+      default: true
+    },
+    showEditReport: {
+      type: Boolean,
+      default: true
+    },
+    showViewReportPublic: {
       type: Boolean,
       default: true
     }

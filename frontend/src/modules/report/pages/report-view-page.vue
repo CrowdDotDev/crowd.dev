@@ -1,8 +1,8 @@
 <template>
   <div class="report-view-page">
     <div
-      v-if="loading('view')"
-      v-loading="loading('view')"
+      v-if="loading"
+      v-loading="loading"
       class="app-page-spinner"
     ></div>
     <div v-else>
@@ -25,8 +25,8 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import ReportGridLayout from './report-grid-layout'
-import ReportDropdown from './report-dropdown'
+import ReportGridLayout from '../components/report-grid-layout'
+import ReportDropdown from '../components/report-dropdown'
 
 export default {
   name: 'AppReportViewPage',
@@ -43,6 +43,12 @@ export default {
     }
   },
 
+  data() {
+    return {
+      loading: false
+    }
+  },
+
   computed: {
     ...mapGetters({
       reportFind: 'report/find',
@@ -54,7 +60,9 @@ export default {
   },
 
   async created() {
+    this.loading = true
     await this.doFind(this.id)
+    this.loading = false
   },
 
   methods: {

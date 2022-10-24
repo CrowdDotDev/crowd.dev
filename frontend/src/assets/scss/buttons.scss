@@ -81,7 +81,7 @@
   &--transparent {
     @apply bg-transparent text-gray-600 border-none;
 
-    &:hover {
+    &:hover, &:hover:is(a) {
       @apply cursor-pointer bg-gray-100 text-gray-600;
     }
     &:focus {

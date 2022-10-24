@@ -14,7 +14,7 @@
     <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
-        v-loading="loading('table')"
+        v-loading="loading"
         :data="reports"
         row-key="id"
         border
@@ -36,7 +36,9 @@
             <router-link
               :to="{
                 name: 'reportView',
-                params: { id: scope.row.id }
+                params: {
+                  id: scope.row.id
+                }
               }"
               class="flex items-center text-black"
             >
@@ -93,7 +95,7 @@
 
 <script>
 import { ReportModel } from '@/modules/report/report-model'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
 import ReportDropdown from './report-dropdown'
@@ -109,10 +111,12 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      count: (state) => state.report.count,
+      loading: (state) => state.report.loading
+    }),
     ...mapGetters({
       rows: 'report/rows',
-      count: 'report/count',
-      loading: 'report/loading',
       pagination: 'report/pagination',
       selectedRows: 'report/selectedRows',
       isMobile: 'layout/isMobile',
