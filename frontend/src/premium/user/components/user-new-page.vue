@@ -1,13 +1,11 @@
 <template>
-  <div>
-    <app-user-new-form
-      :save-loading="saveLoading"
-      :invitation-token="invitationToken"
-      :single="true"
-      @cancel="doCancel"
-      @submit="doSubmit"
-    ></app-user-new-form>
-  </div>
+  <app-user-new-form
+    :save-loading="saveLoading"
+    :invitation-token="invitationToken"
+    :single="true"
+    @cancel="doCancel"
+    @submit="doSubmit"
+  ></app-user-new-form>
 </template>
 
 <script>

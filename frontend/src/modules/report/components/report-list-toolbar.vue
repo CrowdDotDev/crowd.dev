@@ -5,7 +5,7 @@
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'rows' : 'row' }}
+      {{ selectedRows.length > 1 ? 'reports' : 'report' }}
       selected</span
     >
 
@@ -99,7 +99,8 @@ export default {
 
 <style lang="scss">
 .report-list-toolbar {
-  @apply flex items-center justify-end absolute h-16 top-0 mt-1 right-0 z-10 bg-white rounded-tr-xl p-2;
+  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
+  height: calc(56px - 1px);
   width: calc(100% - 75px);
 }
 </style>
