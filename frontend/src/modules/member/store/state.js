@@ -43,7 +43,7 @@ export default {
       label: 'Recent',
       columns: [
         {
-          name: 'firstActivity',
+          name: 'joinedAt',
           label: 'First Activity',
           sortable: true
         }
