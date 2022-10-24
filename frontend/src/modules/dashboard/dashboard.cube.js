@@ -62,6 +62,28 @@ export function activitiesChart(period, platform) {
   }
 }
 
+export function activitiesCount(dateRange, platform) {
+  return {
+    measures: ['Activities.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
+  }
+}
+
 export function newMembersChart(period, platform) {
   return {
     title: 'New members',

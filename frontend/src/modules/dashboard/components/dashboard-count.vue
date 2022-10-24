@@ -77,6 +77,11 @@ export default {
       required: false,
       type: Boolean,
       default: false
+    },
+    percentage: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {
@@ -130,12 +135,26 @@ export default {
       const currentScore = this.computedScore(current)
       const previousScore = this.computedScore(previous)
       const diff = currentScore - previousScore
-      if (diff > 0) {
-        return `+${diff}`
+      if (this.percentage) {
+        if (diff > 0) {
+          return `+${Math.round(
+            (diff / previousScore) * 100
+          )}%`
+        }
+        if (diff < 0) {
+          return `${Math.round(
+            (diff / previousScore) * 100
+          )}%`
+        }
+      } else {
+        if (diff > 0) {
+          return `+${diff}`
+        }
+        if (diff < 0) {
+          return diff
+        }
       }
-      if (diff < 0) {
-        return diff
-      }
+
       return '='
     }
   }
