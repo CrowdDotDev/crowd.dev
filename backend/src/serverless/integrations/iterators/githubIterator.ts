@@ -731,6 +731,9 @@ export default class GithubIterator extends BaseIterator {
         [MemberAttributeName.LOCATION]: {
           [PlatformType.GITHUB]: memberFromApi.location || '',
         },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
+        },
       },
       email: memberFromApi.email || '',
     }

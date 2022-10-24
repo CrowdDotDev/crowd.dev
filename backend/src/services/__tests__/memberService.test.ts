@@ -192,7 +192,7 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: '#twitterId',
             [PlatformType.DISCORD]: '#discordId',
           },
-          [MemberAttributeName.IMAGE_URL]: {
+          [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.TWITTER]: 'https://some-image-url',
           },
         },
@@ -219,9 +219,10 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: attributes[MemberAttributeName.SOURCE_ID][PlatformType.TWITTER],
             default: attributes[MemberAttributeName.SOURCE_ID][PlatformType.TWITTER],
           },
-          [MemberAttributeName.IMAGE_URL]: {
-            [PlatformType.TWITTER]: attributes[MemberAttributeName.IMAGE_URL][PlatformType.TWITTER],
-            default: attributes[MemberAttributeName.IMAGE_URL][PlatformType.TWITTER],
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.TWITTER]:
+              attributes[MemberAttributeName.AVATAR_URL][PlatformType.TWITTER],
+            default: attributes[MemberAttributeName.AVATAR_URL][PlatformType.TWITTER],
           },
           [MemberAttributeName.NAME]: {
             [PlatformType.GITHUB]: attributes[MemberAttributeName.NAME][PlatformType.GITHUB],
@@ -1557,7 +1558,7 @@ describe('MemberService tests', () => {
             [PlatformType.GITHUB]: 'Michael Scott',
             default: 'Michael Scott',
           },
-          [MemberAttributeName.COMPANY]: {
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Crowd.dev',
             default: 'Crowd.dev',
           },
@@ -2494,7 +2495,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
         },
       }
@@ -2550,7 +2551,7 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
           custom: 'a custom bio',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
           custom: 'a custom image url',
         },
@@ -2575,7 +2576,7 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
           custom: 'a custom bio',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
           custom: 'a custom image url',
         },
@@ -2598,7 +2599,7 @@ describe('MemberService tests', () => {
         [MemberAttributeName.URL]: {
           [PlatformType.GITHUB]: 'https://some-github-url',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
         },
         'non-existing-attribute': {
@@ -2629,7 +2630,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: 'https://some-github-url',
           [PlatformType.TWITTER]: 'https://some-twitter-url',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
         },
       }
@@ -2668,7 +2669,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
         },
       }
@@ -2688,9 +2689,9 @@ describe('MemberService tests', () => {
           [PlatformType.DEVTO]: attributes[MemberAttributeName.NAME][PlatformType.DEVTO],
           default: attributes[MemberAttributeName.NAME][PlatformType.GITHUB],
         },
-        [MemberAttributeName.IMAGE_URL]: {
-          [PlatformType.TWITTER]: attributes[MemberAttributeName.IMAGE_URL][PlatformType.TWITTER],
-          default: attributes[MemberAttributeName.IMAGE_URL][PlatformType.TWITTER],
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.TWITTER]: attributes[MemberAttributeName.AVATAR_URL][PlatformType.TWITTER],
+          default: attributes[MemberAttributeName.AVATAR_URL][PlatformType.TWITTER],
         },
         [MemberAttributeName.BIO]: {
           [PlatformType.GITHUB]: attributes[MemberAttributeName.BIO][PlatformType.GITHUB],
@@ -2742,7 +2743,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: 'Assistant to the Regional Manager',
           [PlatformType.DEVTO]: 'Assistant Regional Manager',
         },
-        [MemberAttributeName.IMAGE_URL]: {
+        [MemberAttributeName.AVATAR_URL]: {
           [PlatformType.TWITTER]: 'https://some-image-url',
         },
       }
@@ -2821,7 +2822,7 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: '#twitterId2',
             [PlatformType.DISCORD]: '#discordId1',
           },
-          [MemberAttributeName.IMAGE_URL]: {
+          [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/anil/image',
           },
           aNumberAttribute: {
@@ -2870,7 +2871,7 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: '#twitterId2',
             [PlatformType.DISCORD]: '#discordId2',
           },
-          [MemberAttributeName.IMAGE_URL]: {
+          [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/michael/image',
           },
           aNumberAttribute: {
@@ -2919,7 +2920,7 @@ describe('MemberService tests', () => {
             [PlatformType.TWITTER]: '#twitterId3',
             [PlatformType.DISCORD]: '#discordId3',
           },
-          [MemberAttributeName.IMAGE_URL]: {
+          [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.TWITTER]: 'https://twitter.com/jim/image',
           },
           aNumberAttribute: {

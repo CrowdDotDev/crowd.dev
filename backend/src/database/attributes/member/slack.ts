@@ -8,6 +8,6 @@ export const SlackMemberAttributes: Attribute[] = [
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
     type: AttributeType.STRING,
     canDelete: false,
-    show: true,
+    show: false,
   },
 ]

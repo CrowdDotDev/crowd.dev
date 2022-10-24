@@ -39,17 +39,17 @@ export const GithubMemberAttributes: Attribute[] = [
     show: true,
   },
   {
-    name: MemberAttributes[MemberAttributeName.COMPANY].name,
-    label: MemberAttributes[MemberAttributeName.COMPANY].label,
-    type: AttributeType.STRING,
-    canDelete: false,
-    show: true,
-  },
-  {
     name: MemberAttributes[MemberAttributeName.LOCATION].name,
     label: MemberAttributes[MemberAttributeName.LOCATION].label,
     type: AttributeType.STRING,
     canDelete: false,
     show: true,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.AVATAR_URL].name,
+    label: MemberAttributes[MemberAttributeName.AVATAR_URL].label,
+    type: AttributeType.URL,
+    canDelete: false,
+    show: false,
   },
 ]

@@ -8,14 +8,14 @@ export const TwitterMemberAttributes: Attribute[] = [
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
     type: AttributeType.STRING,
     canDelete: false,
-    show: true,
+    show: false,
   },
   {
-    name: MemberAttributes[MemberAttributeName.IMAGE_URL].name,
-    label: MemberAttributes[MemberAttributeName.IMAGE_URL].label,
+    name: MemberAttributes[MemberAttributeName.AVATAR_URL].name,
+    label: MemberAttributes[MemberAttributeName.AVATAR_URL].label,
     type: AttributeType.URL,
     canDelete: false,
-    show: true,
+    show: false,
   },
   {
     name: MemberAttributes[MemberAttributeName.URL].name,

@@ -335,6 +335,7 @@ export default class GitHubWebhook {
           [MemberAttributeName.URL]: member.url,
           [MemberAttributeName.BIO]: member.bio || '',
           [MemberAttributeName.LOCATION]: member.location || '',
+          [MemberAttributeName.AVATAR_URL]: member.avatarUrl,
         },
       },
       email: member.email || '',

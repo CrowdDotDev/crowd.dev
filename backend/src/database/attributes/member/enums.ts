@@ -4,7 +4,7 @@ export enum MemberAttributeName {
   IS_HIREABLE = 'isHireable',
   URL = 'url',
   NAME = 'name',
-  IMAGE_URL = 'imageUrl',
+  AVATAR_URL = 'avatarUrl',
   LOCATION = 'location',
   BIO = 'bio',
   COMPANY = 'company',
@@ -35,9 +35,9 @@ export const MemberAttributes = {
     name: MemberAttributeName.NAME,
     label: 'Name',
   },
-  [MemberAttributeName.IMAGE_URL]: {
-    name: MemberAttributeName.IMAGE_URL,
-    label: 'Image url',
+  [MemberAttributeName.AVATAR_URL]: {
+    name: MemberAttributeName.AVATAR_URL,
+    label: 'Avatar url',
   },
   [MemberAttributeName.LOCATION]: {
     name: MemberAttributeName.LOCATION,
@@ -46,10 +46,6 @@ export const MemberAttributes = {
   [MemberAttributeName.BIO]: {
     name: MemberAttributeName.BIO,
     label: 'Bio',
-  },
-  [MemberAttributeName.COMPANY]: {
-    name: MemberAttributeName.COMPANY,
-    label: 'Company',
   },
   [MemberAttributeName.WEBSITE_URL]: {
     name: MemberAttributeName.WEBSITE_URL,

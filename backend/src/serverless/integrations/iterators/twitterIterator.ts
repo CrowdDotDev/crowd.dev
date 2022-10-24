@@ -295,7 +295,7 @@ export default class TwitterIterator extends BaseIterator {
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: record.id,
           },
-          [MemberAttributeName.IMAGE_URL]: {
+          [MemberAttributeName.AVATAR_URL]: {
             [PlatformType.TWITTER]: record.imageUrl,
           },
           [MemberAttributeName.URL]: {
