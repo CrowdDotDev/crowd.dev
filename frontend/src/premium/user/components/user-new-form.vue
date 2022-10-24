@@ -2,20 +2,19 @@
   <div>
     <el-form
       ref="form"
-      :label-position="labelPosition"
-      :label-width="labelWidthForm"
+      label-position="top"
       :model="model"
       :rules="rules"
       class="form"
       @submit.prevent="doSubmit"
     >
-      <div class="flex items-center -mx-2">
+      <div class="grid grid-cols-3 gap-4 px-6 pb-4">
         <el-form-item
           v-if="!single"
           :label="fields.emails.label"
           :prop="fields.emails.name"
           :required="fields.emails.required"
-          class="w-full lg:w-1/2 mx-2"
+          class="col-span-2"
         >
           <app-user-invite-autocomplete
             v-model="model[fields.emails.name]"
@@ -27,7 +26,7 @@
           :label="fields.email.label"
           :prop="fields.email.name"
           :required="fields.email.required"
-          class="w-full lg:w-1/2 mx-2"
+          class="col-span-2"
         >
           <el-input
             ref="focus"
@@ -39,7 +38,6 @@
           :label="fields.roles.label"
           :prop="fields.roles.name"
           :required="fields.roles.required"
-          class="w-full lg:w-1/2 mx-2"
         >
           <el-select
             v-model="model[fields.roles.name]"
@@ -56,9 +54,9 @@
         </el-form-item>
       </div>
 
-      <div v-if="invitationToken">
+      <div v-if="invitationToken" class="p-6">
         <div
-          class="flex items-center text-green-500 text-sm"
+          class="flex items-center text-green-600 text-sm"
         >
           <i class="ri-lg ri-check-line mr-1"></i>An invite
           has been sent to
@@ -70,60 +68,62 @@
           Alternatively you could also copy the following
           invite link and send it directly.
         </div>
-        <el-form-item class="w-full">
+        <el-form-item>
           <el-input
+            class="copy-input"
             :value="computedInviteLink"
             :readonly="true"
           >
-            <el-tooltip
-              content="Copy to Clipboard"
-              placement="top"
-            >
-              <el-button @click="copyToClipboard('token')"
-                ><i class="ri-clipboard-line"></i
-              ></el-button>
-            </el-tooltip>
+            <template #append>
+              <el-tooltip
+                content="Copy to Clipboard"
+                placement="top"
+              >
+                <el-button
+                  class="append-icon"
+                  @click="copyToClipboard('token')"
+                  ><i class="ri-clipboard-line"></i
+                ></el-button>
+              </el-tooltip>
+            </template>
           </el-input>
         </el-form-item>
       </div>
-
-      <div
-        v-if="!invitationToken"
-        class="form-buttons mt-12"
+    </el-form>
+    <el-footer
+      v-if="!invitationToken"
+      class="el-dialog__footer"
+    >
+      <el-button
+        class="btn btn-link btn-link--primary"
+        @click="doReset"
       >
-        <el-button
-          :disabled="saveLoading"
-          class="btn btn--primary mr-2"
-          @click="doSubmit"
-        >
-          <i class="ri-lg ri-mail-send-line mr-1" />
-          Invite
-        </el-button>
+        <i class="ri-arrow-go-back-line"></i>
+        <span>Reset changes</span>
+      </el-button>
 
+      <div class="flex gap-4">
         <el-button
           :disabled="saveLoading"
-          class="btn btn--secondary mr-2"
-          @click="doReset"
-        >
-          <i class="ri-lg ri-arrow-go-back-line mr-1" />
-          <app-i18n code="common.reset"></app-i18n>
-        </el-button>
-
-        <el-button
-          :disabled="saveLoading"
-          class="btn btn--secondary"
+          class="btn btn--md btn--bordered"
           @click="doCancel"
         >
-          <i class="ri-lg ri-close-line mr-1" />
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
+
+        <el-button
+          :disabled="saveLoading"
+          class="btn btn--md btn--primary"
+          @click="doSubmit"
+        >
+          Send invite
+        </el-button>
       </div>
-    </el-form>
+    </el-footer>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { UserModel } from '@/premium/user/user-model'
 import { i18n } from '@/i18n'
@@ -183,11 +183,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm'
-    }),
-
     computedInviteLink() {
       return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.invitationToken}`
     },

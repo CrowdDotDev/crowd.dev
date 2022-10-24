@@ -19,8 +19,15 @@
   color: inherit;
 }
 
-
 .el-input-group--append {
+  .el-input__wrapper {
+    border-radius: 4px 0 0 4px !important;
+  }
+
+  .append-icon {
+    @apply w-10;
+  }
+
   .el-input-group__append {
     @apply bg-white h-10 hover:bg-gray-50;
 
