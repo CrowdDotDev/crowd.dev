@@ -97,7 +97,7 @@
           class="btn btn--secondary btn--lg w-full"
         >
           <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3">Sign up with Google</span>
+          <span class="pl-3">Sign in with Google</span>
         </a>
       </div>
       <div class="flex justify-center">
