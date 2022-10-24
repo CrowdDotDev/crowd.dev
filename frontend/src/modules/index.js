@@ -14,7 +14,7 @@ import tag from '@/modules/tag/tag-module'
 import activity from '@/modules/activity/activity-module'
 import widget from '@/modules/widget/widget-module'
 import report from '@/modules/report/report-module'
-import conversation from '@/modules/conversation/conversation-module'
+import communityHelpCenter from '@/modules/community-help-center/community-help-center-module'
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module'
 import automation from '@/modules/automation/automation-module'
 import organization from '@/modules/organization/organization-module'
@@ -36,7 +36,7 @@ const modules = {
   tag,
   widget,
   report,
-  conversation,
+  communityHelpCenter,
   eagleEye,
   automation,
   organization

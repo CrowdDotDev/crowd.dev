@@ -115,13 +115,13 @@ export default {
       : AuthCurrentTenant.getSettings()
   },
 
-  conversationSettings: (state, getters) => {
+  communityHelpCenterSettings: (state, getters) => {
     // I know, this is weird, but it is a hack
     // so Vue refreshed the backgroundImageUrl getter
     // based on the currentTenant on the store
     return getters.currentTenant
-      ? AuthCurrentTenant.getConversationSettings()
-      : AuthCurrentTenant.getConversationSettings()
+      ? AuthCurrentTenant.getCommunityHelpCenterSettings()
+      : AuthCurrentTenant.getCommunityHelpCenterSettings()
   },
 
   backgroundImageUrl: (state, getters) => {

@@ -3,7 +3,7 @@
     <div class="logo absolute top-6 left-6">
       <img
         class="h-6 w-auto"
-        src="/images/logo-black.png"
+        src="/images/crowd-logo.svg"
         alt="crowd.dev logo"
       />
     </div>
@@ -37,7 +37,7 @@ export default {
   position: fixed;
   top: 24px;
   left: 24px;
-  height: calc(100vh - 48px);
+  min-height: calc(100vh - 48px);
 
   @media (max-width: 991px) {
     display: none;

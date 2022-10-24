@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative report-form-page">
     <h1 class="app-content-title pt-2">
       <app-i18n
         v-if="isEditing"
@@ -83,4 +83,14 @@ export default {
 }
 </script>
 
-<style></style>
+<style lang="scss">
+.report-form-page {
+  .el-form-item {
+    display: block;
+
+    &__content {
+      display: block;
+    }
+  }
+}
+</style>

@@ -41,42 +41,82 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import AppI18n from '@/shared/i18n/i18n'
+import AuthInvitationToken from '@/modules/auth/auth-invitation-token'
+import { router } from '@/router'
+import { TenantService } from '@/modules/tenant/tenant-service'
+import Errors from '@/shared/error/errors'
 
 export default {
   name: 'AppInvitationPage',
   components: { AppI18n },
   data() {
-    return {}
+    return {
+      loading: false,
+      warningMessage: null
+    }
   },
 
   computed: {
-    ...mapGetters('tenant/invitation', [
-      'warningMessage',
-      'loading'
-    ]),
-
+    ...mapGetters('auth', ['signedIn']),
     token() {
       return this.$route.query.token
     }
   },
 
   created() {
-    this.doAcceptFromAuth({
-      token: this.token
-    })
+    this.doAcceptFromAuth(this.token)
   },
 
   methods: {
-    ...mapActions('tenant/invitation', [
-      'doAcceptFromAuth'
-    ]),
-    ...mapActions('auth', ['doSignout']),
+    ...mapActions('auth', ['doSignout', 'doSelectTenant']),
 
     doAcceptWithWrongEmail() {
-      return this.doAcceptFromAuth({
-        token: this.token,
-        forceAcceptOtherEmail: true
-      })
+      this.doAcceptFromAuth(this.token, true)
+    },
+    doAcceptFromAuth(token, forceAcceptOtherEmail = false) {
+      if (this.loading) {
+        return
+      }
+
+      if (!this.signedIn) {
+        AuthInvitationToken.set(token)
+        router.push('/auth/signup')
+        return
+      }
+
+      this.warningMessage = null
+      this.loading = true
+
+      TenantService.acceptInvitation(
+        token,
+        forceAcceptOtherEmail
+      )
+        .then((tenant) => {
+          return this.doSelectTenant(tenant)
+        })
+        .then(() => {
+          this.warningMessage = null
+          this.loading = false
+        })
+        .catch((error) => {
+          if (Errors.errorCode(error) === 404) {
+            this.loading = false
+            router.push('/')
+            return
+          }
+
+          if (Errors.errorCode(error) === 400) {
+            this.warningMessage =
+              Errors.selectMessage(error)
+            this.loading = false
+            return
+          }
+
+          Errors.handle(error)
+          this.warningMessage = null
+          this.loading = false
+          router.push('/')
+        })
     }
   }
 }

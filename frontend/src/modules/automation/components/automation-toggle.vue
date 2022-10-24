@@ -6,9 +6,10 @@
         --el-switch-on-color: #22c55e;
         --el-switch-off-color: #cbd5e1;
       "
+      class="!grow-0 !ml-0"
       @change="handleChange"
     />
-    <span class="ml-2">
+    <span class="ml-2 text-gray-900 text-sm">
       {{ automation.state === 'active' ? 'On' : 'Off' }}
     </span>
   </div>

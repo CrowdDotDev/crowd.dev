@@ -6,8 +6,7 @@ import { i18n } from '@/i18n'
 
 export default {
   ...sharedActions(TenantService),
-  async doCreate({ dispatch, commit, state }, values) {
-    state.saveLoading = true
+  async doCreate({ dispatch, commit }, values) {
     commit('CREATE_STARTED')
     return TenantService.create(values)
       .then((tenant) => {
@@ -17,11 +16,9 @@ export default {
         })
       })
       .then(() => {
-        state.saveLoading = false
         return true
       })
       .catch((error) => {
-        state.saveLoading = false
         Errors.handle(error)
         commit('CREATE_ERROR')
         return false

@@ -62,6 +62,28 @@ export function activitiesChart(period, platform) {
   }
 }
 
+export function activitiesCount(dateRange, platform) {
+  return {
+    measures: ['Activities.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
+  }
+}
+
 export function newMembersChart(period, platform) {
   return {
     title: 'New members',
@@ -93,6 +115,28 @@ export function newMembersChart(period, platform) {
   }
 }
 
+export function newMembersCount(dateRange, platform) {
+  return {
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dimension: 'Members.joinedAt',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
+  }
+}
+
 export function activeMembersChart(period, platform) {
   return {
     title: 'Active members',
@@ -121,6 +165,28 @@ export function activeMembersChart(period, platform) {
             : undefined
       }
     }
+  }
+}
+
+export function activeMembersCount(dateRange, platform) {
+  return {
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 
@@ -156,6 +222,28 @@ export function newOrganizationChart(period, platform) {
   }
 }
 
+export function newOrganizationCount(dateRange, platform) {
+  return {
+    measures: ['Organizations.count'],
+    timeDimensions: [
+      {
+        dimension: 'Organizations.joinedAt',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
+  }
+}
+
 export function activeOrganizationChart(period, platform) {
   return {
     title: 'Active organizations',
@@ -185,6 +273,31 @@ export function activeOrganizationChart(period, platform) {
       }
     },
     unit: 'activities'
+  }
+}
+
+export function activeOrganizationCount(
+  dateRange,
+  platform
+) {
+  return {
+    measures: ['Organizations.count'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
   }
 }
 

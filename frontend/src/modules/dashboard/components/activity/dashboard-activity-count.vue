@@ -15,8 +15,7 @@
     <template #default="{ resultSet }">
       <div class="flex items-center pb-6">
         <p class="text-sm font-medium mr-2">
-          {{ numberWithCommas(activities.total) }}
-          activities
+          {{ computedScore(resultSet) }}
         </p>
         <el-tooltip
           content="vs. previous same period"

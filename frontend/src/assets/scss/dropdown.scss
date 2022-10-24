@@ -2,8 +2,9 @@
   @apply max-h-100 overflow-auto;
 }
 
-.el-dropdown-menu__item, .el-dropdown-menu__item a {
-  @apply flex items-center text-black px-4 py-3 text-xs;
+.el-dropdown-menu__item,
+.el-dropdown-menu__item a {
+  @apply flex items-center text-black px-4 h-10 text-xs;
   border-radius: 4px;
 
   &:not(:last-of-type) {
@@ -18,11 +19,14 @@
     @apply text-gray-400;
   }
 
-  &:focus, &:not(.is-disabled):hover, &:not(.is-disabled):focus {
+  &:focus,
+  &:not(.is-disabled):hover,
+  &:not(.is-disabled):focus {
     @apply text-black bg-gray-50;
   }
 
-  &.is-selected, &:focus.is-selected {
+  &.is-selected,
+  &:focus.is-selected {
     background-color: #fff5f4;
     @apply relative;
     i {

@@ -2,8 +2,7 @@
   <div class="gap-x-4 px-6 lg:container lg:px-10">
     <div>
       <app-dashboard-header />
-      <app-dashboard-filters />
-      <div class="flex flex-wrap -mx-3">
+      <div class="flex flex-wrap -mx-3 pt-6">
         <div class="w-full md:w-2/3 lg:w-3/4 px-3">
           <app-dashboard-activities class="mb-6" />
         </div>
@@ -23,12 +22,10 @@ import AppDashboardActivities from '@/modules/dashboard/components/dashboard-act
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members'
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations'
 import AppDashboardHeader from '@/modules/dashboard/components/dashboard-header'
-import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
 
 export default {
   name: 'AppDashboardPage',
   components: {
-    AppDashboardFilters,
     AppDashboardHeader,
     AppDashboardOrganizations,
     AppDashboardMembers,

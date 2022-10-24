@@ -1,6 +1,10 @@
 const forgotPasswordEndpoint =
   Cypress.env('apiUrl') + '/auth/send-password-reset-email'
 
+Cypress.on('uncaught:exception', () => {
+  return false
+})
+
 describe('Forgot password tests', function () {
   beforeEach(function () {
     cy.visit('/auth/forgot-password')

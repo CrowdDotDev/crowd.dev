@@ -97,7 +97,9 @@ const props = defineProps({
 
 const computedClass = computed(() => {
   return {
-    panel: !props.onboard
+    panel: !props.onboard,
+    'integration-custom':
+      props.integration.platform === 'custom'
   }
 })
 
@@ -120,3 +122,13 @@ const handleDisconnect = async () => {
   loadingDisconnect.value = false
 }
 </script>
+<style lang="scss">
+.integration-custom {
+  background: linear-gradient(
+      117.72deg,
+      #fdedea 0%,
+      rgba(253, 237, 234, 0) 100%
+    ),
+    #ffffff;
+}
+</style>

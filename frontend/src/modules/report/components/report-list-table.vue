@@ -1,7 +1,17 @@
 <template>
+  <div v-if="!!count" class="mb-2">
+    <app-pagination-sorter
+      :page-size="Number(pagination.pageSize)"
+      :total="count"
+      :current-page="pagination.currentPage"
+      :has-page-counter="false"
+      module="report"
+      position="top"
+    />
+  </div>
   <div class="app-list-table panel">
     <app-report-list-toolbar></app-report-list-toolbar>
-    <div class="-mx-6 -mt-4">
+    <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
         v-loading="loading('table')"

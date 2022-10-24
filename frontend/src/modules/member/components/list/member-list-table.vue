@@ -107,7 +107,8 @@
             <app-member-reach :member="scope.row" />
           </template>
         </el-table-column>
-        <el-table-column label="Identities" width="200">
+
+        <el-table-column label="Identities" width="220">
           <template #default="scope">
             <app-member-channels
               :member="scope.row"

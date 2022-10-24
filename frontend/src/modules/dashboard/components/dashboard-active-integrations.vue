@@ -37,7 +37,7 @@
       placement="top"
     >
       <router-link
-        :to="{ name: 'settings' }"
+        :to="{ name: 'integration' }"
         class="w-8 h-8 m-1 rounded-full border border-gray-400 hover:bg-brand-50 hover:border-brand-500 transition group border-dashed flex items-center justify-center"
         route
       >

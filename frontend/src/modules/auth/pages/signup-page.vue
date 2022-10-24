@@ -96,7 +96,7 @@
             >{{ fields.passwordConfirmation.label }}</label
           >
           <el-input
-            id="password"
+            id="passwordConfirmation"
             v-model="
               model[fields.passwordConfirmation.name]
             "
