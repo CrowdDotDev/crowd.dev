@@ -3,7 +3,7 @@
     <div class="logo absolute top-6 left-6">
       <img
         class="h-6 w-auto"
-        src="/images/logo-black.png"
+        src="/images/crowd-logo.svg"
         alt="crowd.dev logo"
       />
     </div>

@@ -6,7 +6,7 @@
       <div>
         <img
           class="h-6 w-auto"
-          src="/images/logo-black.png"
+          src="/images/crowd-logo.svg"
           alt="crowd.dev logo"
         />
       </div>
