@@ -157,7 +157,7 @@
     <app-conversation-settings
       :visible="hasConversationsSettingsVisible"
       :button-visible="false"
-      @open="doOpenSettingsModal"
+      @open="doOpenSettingsDrawer"
       @close="doCloseSettingsModal"
     />
   </div>
@@ -242,8 +242,8 @@ export default {
 
   methods: {
     ...mapActions({
-      doOpenSettingsModal:
-        'conversation/doOpenSettingsModal',
+      doOpenSettingsDrawer:
+        'conversation/doOpenSettingsDrawer',
       doCloseSettingsModal:
         'conversation/doCloseSettingsModal'
     }),
@@ -266,7 +266,7 @@ export default {
 
     async triggerPublishModal() {
       if (!this.hasConversationsConfigured) {
-        return this.doOpenSettingsModal()
+        return this.doOpenSettingsDrawer()
       }
       this.publishModal = true
     },

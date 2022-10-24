@@ -3,11 +3,12 @@ const IS_STAGING_ENV = process.env.NODE_ENV === 'staging'
 const IS_PROD_ENV = process.env.NODE_ENV === 'production'
 
 const dbEnvVars = {
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_DATABASE,
-  host: process.env.DATABASE_HOST_WRITE,
-  dialect: process.env.DATABASE_DIALECT,
+  username: process.env.CROWD_DB_USERNAME,
+  password: process.env.CROWD_DB_PASSWORD,
+  database: process.env.CROWD_DB_DATABASE,
+  host: process.env.CROWD_DB_WRITE_HOST,
+  port: process.env.CROWD_DB_PORT,
+  dialect: 'postgres',
 }
 
 let currentEnvironmentVariables = {}

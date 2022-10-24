@@ -1,10 +1,10 @@
 <template>
   <div class="app-list-table panel">
-    <app-conversation-list-toolbar></app-conversation-list-toolbar>
+    <app-community-help-center-toolbar></app-community-help-center-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
         ref="table"
-        v-loading="loading('table')"
+        v-loading="loading"
         :data="conversations"
         row-key="id"
         border
@@ -36,17 +36,9 @@
           sortable="custom"
         >
           <template #default="scope">
-            <router-link
-              :to="{
-                name: 'conversationView',
-                params: { id: scope.row.id }
-              }"
-              class="flex items-center text-black"
-            >
-              <div class="font-semibold truncate">
-                {{ scope.row.title }}
-              </div>
-            </router-link>
+            <div class="font-semibold truncate">
+              {{ scope.row.title }}
+            </div>
           </template>
         </el-table-column>
         <el-table-column
@@ -155,36 +147,52 @@
         />
       </div>
     </div>
+    <app-community-help-center-conversation-drawer
+      :expanded="drawerConversationId !== null"
+      :conversation-id="drawerConversationId"
+      @close="drawerConversationId = null"
+    ></app-community-help-center-conversation-drawer>
   </div>
 </template>
 
 <script>
 import { ConversationModel } from '@/modules/conversation/conversation-model'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
-import ConversationDropdown from './conversation-dropdown'
-import ConversationListDropdown from './conversation-list-toolbar'
+import ConversationDropdown from '../../conversation/components/conversation-dropdown'
+import CommunityHelpCenterToolbar from '../../community-help-center/components/community-help-center-toolbar'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import AppCommunityHelpCenterConversationDrawer from '@/modules/community-help-center/components/community-help-center-conversation-drawer'
 
 const { fields } = ConversationModel
 
 export default {
   name: 'AppConversationListTable',
   components: {
+    AppCommunityHelpCenterConversationDrawer,
     'app-conversation-dropdown': ConversationDropdown,
-    'app-conversation-list-toolbar':
-      ConversationListDropdown
+    'app-community-help-center-toolbar':
+      CommunityHelpCenterToolbar
+  },
+
+  data() {
+    return {
+      drawerConversationId: null
+    }
   },
 
   computed: {
+    ...mapState({
+      loading: (state) =>
+        state.communityHelpCenter.list.loading,
+      count: (state) => state.communityHelpCenter.list.count
+    }),
     ...mapGetters({
-      rows: 'conversation/rows',
-      count: 'conversation/count',
-      loading: 'conversation/loading',
-      pagination: 'conversation/pagination',
-      selectedRows: 'conversation/selectedRows',
+      rows: 'communityHelpCenter/rows',
+      pagination: 'communityHelpCenter/pagination',
+      selectedRows: 'communityHelpCenter/selectedRows',
       isMobile: 'layout/isMobile',
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
@@ -220,13 +228,12 @@ export default {
 
   methods: {
     ...mapActions({
-      doChangeSort: 'conversation/doChangeSort',
+      doChangeSort: 'communityHelpCenter/doChangeSort',
       doChangePaginationCurrentPage:
-        'conversation/doChangePaginationCurrentPage',
+        'communityHelpCenter/doChangePaginationCurrentPage',
       doChangePaginationPageSize:
-        'conversation/doChangePaginationPageSize',
-      doMountTable: 'conversation/doMountTable',
-      doDestroy: 'member/doDestroy'
+        'communityHelpCenter/doChangePaginationPageSize',
+      doMountTable: 'communityHelpCenter/doMountTable'
     }),
 
     doRefresh() {
@@ -258,10 +265,7 @@ export default {
     },
 
     handleRowClick(row) {
-      this.$router.push({
-        name: 'conversationView',
-        params: { id: row.id }
-      })
+      this.drawerConversationId = row.id
     }
   }
 }

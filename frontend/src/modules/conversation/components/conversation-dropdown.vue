@@ -4,11 +4,13 @@
     placement="bottom-end"
     @command="handleCommand"
   >
-    <span
-      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+    <button
+      class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+      type="button"
+      @click.stop
     >
       <i class="text-xl ri-more-fill"></i>
-    </span>
+    </button>
     <template #dropdown>
       <el-dropdown-item
         v-if="conversation.published"
@@ -18,15 +20,6 @@
         }"
         ><i class="ri-link mr-1" />Copy Public
         Url</el-dropdown-item
-      >
-      <el-dropdown-item
-        v-if="showViewConversation"
-        :command="{
-          action: 'conversationView',
-          conversation: conversation
-        }"
-        ><i class="ri-eye-line mr-1" />View
-        Conversation</el-dropdown-item
       >
       <el-dropdown-item
         v-if="!conversation.published"
@@ -85,14 +78,18 @@ export default {
   },
   computed: {
     ...mapGetters({
-      currentTenant: 'auth/currentTenant'
+      currentTenant: 'auth/currentTenant',
+      communityHelpCenterConfigured:
+        'communityHelpCenter/isConfigured'
     })
   },
   methods: {
     ...mapActions({
-      doDestroy: 'conversation/doDestroy',
-      doPublish: 'conversation/doPublish',
-      doUnpublish: 'conversation/doUnpublish'
+      doDestroy: 'communityHelpCenter/doDestroy',
+      doPublish: 'communityHelpCenter/doPublish',
+      doUnpublish: 'communityHelpCenter/doUnpublish',
+      doOpenSettingsDrawer:
+        'communityHelpCenter/doOpenSettingsDrawer'
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -125,7 +122,9 @@ export default {
           'Conversation Public URL successfully copied to your clipboard'
         )
       } else if (command.action === 'conversationPublish') {
-        this.editing = false
+        if (!this.communityHelpCenterConfigured) {
+          return this.doOpenSettingsDrawer()
+        }
         await this.doPublish({
           id: command.conversation.id
         })
@@ -135,11 +134,6 @@ export default {
         this.editing = false
         await this.doUnpublish({
           id: command.conversation.id
-        })
-      } else {
-        return this.$router.push({
-          name: command.action,
-          params: { id: command.conversation.id }
         })
       }
     }

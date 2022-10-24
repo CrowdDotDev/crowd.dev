@@ -190,9 +190,9 @@
         >
           <router-link
             id="menu-conversations"
-            :to="{ path: '/conversations' }"
+            :to="{ path: '/community-help-center' }"
             class="el-menu-item"
-            :class="classFor('/conversations')"
+            :class="classFor('/community-help-center')"
           >
             <i class="ri-question-answer-line"></i>
             <span v-if="!isCollapsed">

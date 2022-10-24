@@ -7,6 +7,10 @@ export default (sequelize) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     customUrl: {
       type: DataTypes.TEXT,
     },

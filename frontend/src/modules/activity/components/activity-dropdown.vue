@@ -7,11 +7,13 @@
       @command="handleCommand"
       @visible-change="dropdownVisible = $event"
     >
-      <span
-        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
+        @click.stop
       >
-        <i class="ri-xl ri-more-fill"></i>
-      </span>
+        <i class="text-xl ri-more-fill"></i>
+      </button>
       <template #dropdown>
         <!-- TODO: uncomment this once activity editing is done -->
         <!--        <el-dropdown-item command="activityEdit">-->
