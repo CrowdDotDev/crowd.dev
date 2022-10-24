@@ -147,11 +147,11 @@
         />
       </div>
     </div>
-    <app-conversation-drawer
-      :expand="drawerConversationId !== null"
+    <app-community-help-center-conversation-drawer
+      :expanded="drawerConversationId !== null"
       :conversation-id="drawerConversationId"
       @close="drawerConversationId = null"
-    ></app-conversation-drawer>
+    ></app-community-help-center-conversation-drawer>
   </div>
 </template>
 
@@ -164,17 +164,17 @@ import ConversationDropdown from '../../conversation/components/conversation-dro
 import CommunityHelpCenterToolbar from '../../community-help-center/components/community-help-center-toolbar'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import ConversationDrawer from '@/modules/conversation/components/conversation-drawer'
+import AppCommunityHelpCenterConversationDrawer from '@/modules/community-help-center/components/community-help-center-conversation-drawer'
 
 const { fields } = ConversationModel
 
 export default {
   name: 'AppConversationListTable',
   components: {
+    AppCommunityHelpCenterConversationDrawer,
     'app-conversation-dropdown': ConversationDropdown,
     'app-community-help-center-toolbar':
-      CommunityHelpCenterToolbar,
-    'app-conversation-drawer': ConversationDrawer
+      CommunityHelpCenterToolbar
   },
 
   data() {

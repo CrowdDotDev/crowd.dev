@@ -27,7 +27,7 @@
     </div>
   </article>
   <article v-else>
-    <div class="flex items-center pb-8">
+    <div v-if="!editing" class="flex items-center pb-8">
       <!-- avatar conversation starter -->
       <app-avatar :entity="member" size="xs" />
       <!-- conversation info-->
@@ -76,7 +76,7 @@
         </div>
       </div>
     </div>
-    <div>
+    <div v-if="!editing">
       <app-activity-content
         :class="
           conversation.conversationStarter.title
@@ -87,6 +87,20 @@
         :activity="conversation.conversationStarter"
         :show-more="true"
       />
+    </div>
+    <div v-else>
+      <div class="flex items-center justify-between">
+        <div class="text-base flex-shrink mr-4">
+          {{ conversation.title }}
+        </div>
+        <button
+          class="btn btn--transparent w-8 !h-8 flex-shrink-0"
+          type="button"
+          @click.stop="$emit('edit-title')"
+        >
+          <i class="ri-lg ri-pencil-line"></i>
+        </button>
+      </div>
     </div>
     <div class="pt-6">
       <div class="flex items-center">
@@ -164,12 +178,17 @@ export default {
       required: false,
       default: () => ({})
     },
+    editing: {
+      type: Boolean,
+      default: false
+    },
     loading: {
       type: Boolean,
       required: false,
       default: false
     }
   },
+  emits: ['edit-title'],
   computed: {
     platform() {
       return integrationsJsonArray.find(
@@ -187,7 +206,9 @@ export default {
       return this.conversation.url
     },
     replies() {
-      return this.conversation.activities.slice(1)
+      return this.editing
+        ? this.conversation.activities
+        : this.conversation.activities.slice(1)
     }
   },
   methods: {

@@ -106,7 +106,7 @@ export default (moduleService = null) => {
               i18n('entities.member.create.success')
             )
 
-            return true
+            return response
           } catch (error) {
             Message.error(
               i18n('entities.member.create.error')
@@ -133,7 +133,7 @@ export default (moduleService = null) => {
               i18n('entities.member.update.success')
             )
 
-            return true
+            return response
           } catch (error) {
             Message.error(
               i18n('entities.member.update.error')

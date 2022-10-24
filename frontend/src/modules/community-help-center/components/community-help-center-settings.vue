@@ -30,11 +30,11 @@
             </div>
             <button
               type="button"
-              class="btn btn--transparent btn--md"
+              class="btn btn--transparent btn--md w-10"
               @click="$emit('close')"
             >
               <i
-                class="ri-lg w-3 h-3 ri-close-line flex items-center justify-center"
+                class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
               ></i>
             </button>
           </div>
