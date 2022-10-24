@@ -967,6 +967,7 @@ describe('ConversationService tests', () => {
         id: mockIServiceOptions.currentTenant.id,
         tenantName: updateSettings.tenant.name,
         tenantSlug: updateSettings.tenant.url,
+        enabled: false,
         inviteLinks: {
           [PlatformType.DISCORD]: updateSettings.inviteLinks.discord,
           [PlatformType.SLACK]: updateSettings.inviteLinks.slack,
@@ -1071,6 +1072,7 @@ describe('ConversationService tests', () => {
       expectedSettingsDocuments = {
         id: mockIServiceOptions.currentTenant.id,
         tenantName: updateSettings2.tenant.name,
+        enabled: false,
         tenantSlug: updateSettings.tenant.url,
         inviteLinks: {
           [PlatformType.DISCORD]: updateSettings2.inviteLinks.discord,
