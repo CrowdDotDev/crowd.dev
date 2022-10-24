@@ -145,6 +145,7 @@ import General from '@/modules/community-help-center/components/settings/_genera
 import Theming from '@/modules/community-help-center/components/settings/_theming'
 import Toggle from '@/modules/community-help-center/components/settings/_toggle'
 import Links from '@/modules/community-help-center/components/settings/_links'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),
@@ -282,19 +283,16 @@ export default {
         await this.$refs.form.validate()
 
         if (this.shouldConfirmAutoPublish) {
-          await this.$myConfirm(
-            `Are you sure you want to enable auto-publishing for ${
+          await ConfirmDialog({
+            title: i18n('common.confirm'),
+            message: `Are you sure you want to enable auto-publishing for ${
               this.model.autoPublish.status === 'all'
                 ? 'all channels'
                 : 'selected channels'
             }?`,
-            i18n('common.confirm'),
-            {
-              confirmButtonText: i18n('common.yes'),
-              cancelButtonText: i18n('common.no'),
-              type: 'warning'
-            }
-          )
+            confirmButtonText: i18n('common.yes'),
+            cancelButtonText: i18n('common.no')
+          })
         }
 
         await authAxios.post(

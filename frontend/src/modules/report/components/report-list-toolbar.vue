@@ -32,6 +32,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppReportListToolbar',
@@ -76,15 +77,12 @@ export default {
 
     async doDestroyAllWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroyAll(
           this.selectedRows.map((item) => item.id)

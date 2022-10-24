@@ -167,6 +167,7 @@ import MemberAutocompleteInput from '../components/member-autocomplete-input'
 import { MemberModel } from '@/modules/member/member-model'
 import { MemberService } from '@/modules/member/member-service'
 import ActivityItem from '@/modules/activity/components/activity-item'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 const { fields } = MemberModel
 
@@ -309,15 +310,12 @@ export default {
 
     async handleMergeSubmit() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         this.loadingSubmit = true
 

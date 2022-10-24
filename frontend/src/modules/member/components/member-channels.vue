@@ -98,7 +98,7 @@
           </span>
         </template>
         <a
-          href="https://linkedin.com"
+          :href="member.attributes?.url?.linkedin || null"
           target="_blank"
           class="btn p-2 text-base btn--linkedin"
           :class="
