@@ -6,7 +6,7 @@ import Errors from '@/shared/error/errors'
 export default {
   ...sharedActions(ConversationService),
   async doPublishAll(
-    { commit, dispatch, rootGetters },
+    { commit, dispatch },
     conversationIds
   ) {
     try {
@@ -19,13 +19,7 @@ export default {
       Message.success(
         'Conversations published successfully'
       )
-      dispatch(
-        `conversation/doFetch`,
-        rootGetters[`conversation/filter`],
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', { keepPagination: true })
     } catch (error) {
       Errors.handle(error)
       commit('PUBLISH_ALL_ERROR')
@@ -33,7 +27,7 @@ export default {
   },
 
   async doUnpublishAll(
-    { commit, dispatch, rootGetters },
+    { commit, dispatch },
     conversationIds
   ) {
     try {
@@ -48,13 +42,7 @@ export default {
       Message.success(
         'Conversations unpublished successfully'
       )
-      dispatch(
-        `conversation/doFetch`,
-        rootGetters[`conversation/filter`],
-        {
-          root: true
-        }
-      )
+      dispatch('doFetch', { keepPagination: true })
     } catch (error) {
       Errors.handle(error)
       commit('UNPUBLISH_ALL_ERROR')

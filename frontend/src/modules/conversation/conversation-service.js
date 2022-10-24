@@ -3,16 +3,11 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 export class ConversationService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/conversation/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -27,9 +22,7 @@ export class ConversationService {
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/conversation`,
-      {
-        params
-      }
+      params
     )
 
     return response.data
@@ -39,15 +32,12 @@ export class ConversationService {
     const tenantId = AuthCurrentTenant.get()
 
     for (const id of ids) {
-      const body = {
-        id,
-        data: {
-          published: true
-        }
+      const data = {
+        published: true
       }
       await authAxios.put(
         `/tenant/${tenantId}/conversation/${id}`,
-        body
+        data
       )
     }
   }
@@ -56,29 +46,23 @@ export class ConversationService {
     const tenantId = AuthCurrentTenant.get()
 
     for (const id of ids) {
-      const body = {
-        id,
-        data: {
-          published: false
-        }
+      const data = {
+        published: false
       }
+
       await authAxios.put(
         `/tenant/${tenantId}/conversation/${id}`,
-        body
+        data
       )
     }
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/conversation`,
-      body
+      data
     )
 
     return response.data

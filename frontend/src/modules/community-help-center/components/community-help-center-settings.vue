@@ -78,7 +78,7 @@
             class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
           ></div>
           <general
-            v-model:tenantSlug="model.tenantslug"
+            v-model:tenantSlug="model.tenantSlug"
             v-model:tenantName="model.tenantName"
             v-model:customUrl="model.customUrl"
             :disabled="!model.enabled"
@@ -300,40 +300,35 @@ export default {
         await authAxios.post(
           `/tenant/${this.currentTenant.id}/conversation/settings`,
           {
-            data: {
-              tenant: {
-                name: this.model.tenantName,
-                url:
-                  this.publishedConversations.length === 0
-                    ? this.model.tenantSlug
-                    : undefined
-              },
-              inviteLinks: {
-                discord: this.model.discordInviteLink,
-                slack: this.model.slackInviteLink,
-                github: this.model.githubInviteLink
-              },
-              website: this.model.website,
-              customUrl: this.model.customUrl || undefined,
-              logoUrl: this.model.logoUrl || undefined,
-              faviconUrl:
-                this.model.faviconUrl || undefined,
-              theme: this.model.theme || undefined,
-              autoPublish: {
-                status: this.model.autoPublish.status,
-                channelsByPlatform:
-                  this.model.autoPublish.channels.reduce(
-                    (acc, item) => {
-                      const [platform, channel] =
-                        item.split('.')
-                      acc[platform] = acc[platform]
-                        ? [...acc[platform], channel]
-                        : [channel]
-                      return acc
-                    },
-                    {}
-                  )
-              }
+            tenant: {
+              name: this.model.tenantName,
+              url: this.model.tenantSlug
+            },
+            enabled: this.model.enabled,
+            inviteLinks: {
+              discord: this.model.discordInviteLink,
+              slack: this.model.slackInviteLink,
+              github: this.model.githubInviteLink
+            },
+            website: this.model.website,
+            customUrl: this.model.customUrl || undefined,
+            logoUrl: this.model.logoUrl || undefined,
+            faviconUrl: this.model.faviconUrl || undefined,
+            theme: this.model.theme || undefined,
+            autoPublish: {
+              status: this.model.autoPublish.status,
+              channelsByPlatform:
+                this.model.autoPublish.channels.reduce(
+                  (acc, item) => {
+                    const [platform, channel] =
+                      item.split('.')
+                    acc[platform] = acc[platform]
+                      ? [...acc[platform], channel]
+                      : [channel]
+                    return acc
+                  },
+                  {}
+                )
             }
           }
         )
