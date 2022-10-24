@@ -43,10 +43,7 @@
         <!-- difference in period -->
         <app-dashboard-count
           :loading="members.loadingRecent"
-          :query="
-            newMembersChart(period * 2, platform).settings
-              .query
-          "
+          :query="newMembersCount"
         ></app-dashboard-count>
 
         <!-- Chart -->
@@ -69,7 +66,7 @@
       </div>
       <div class="list -mx-5 -mb-5 p-5">
         <div v-if="members.loadingRecent">
-          <app-dashboard-members-item
+          <app-dashboard-member-item
             v-for="el of new Array(3)"
             :key="el"
             class="mb-2"
@@ -120,10 +117,7 @@
         <!-- difference in period -->
         <app-dashboard-count
           :loading="members.loadingActive"
-          :query="
-            activeMembersChart(period * 2, platform)
-              .settings.query
-          "
+          :query="activeMembersCount"
         ></app-dashboard-count>
         <!-- Chart -->
         <div
@@ -145,7 +139,7 @@
       </div>
       <div class="list -mx-5 -mb-5 p-5">
         <div v-if="members.loadingActive">
-          <app-dashboard-members-item
+          <app-dashboard-member-item
             v-for="el of new Array(3)"
             :key="el"
             class="mb-2"
@@ -169,7 +163,7 @@
             <p
               class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
             >
-              No new members during this period
+              No active members during this period
             </p>
           </div>
           <div class="pt-1 flex justify-center">
@@ -193,8 +187,10 @@ import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-
 import {
   newMembersChart,
   activeMembersChart,
+  activeMembersCount,
   chartOptions,
-  hideLabels
+  hideLabels,
+  newMembersCount
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
@@ -211,7 +207,9 @@ export default {
     return {
       tab: 'new',
       newMembersChart,
+      newMembersCount,
       activeMembersChart,
+      activeMembersCount,
       chartOptions,
       hideLabels
     }
