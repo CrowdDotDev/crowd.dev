@@ -17,10 +17,7 @@
         ref="table"
         v-loading="loading"
         :data="rows"
-        :default-sort="{
-          prop: 'lastActive',
-          order: 'descending'
-        }"
+        :default-sort="defaultSort"
         row-key="id"
         border
         :row-class-name="rowClass"
@@ -67,11 +64,15 @@
           :key="column.name"
           :prop="column.name"
           :label="column.label"
-          width="200"
+          :width="column.width || 200"
           :sortable="column.sortable ? 'custom' : ''"
         >
           <template #default="scope">
-            {{ scope.row[column.name] }}
+            {{
+              column.formatter
+                ? column.formatter(scope.row[column.name])
+                : scope.row[column.name]
+            }}
           </template>
         </el-table-column>
         <el-table-column
@@ -179,6 +180,22 @@ const table = ref(null)
 const extraColumns = computed(
   () => store.getters['member/activeView']?.columns || []
 )
+
+const activeView = computed(
+  () => store.getters['member/activeView']
+)
+
+const defaultSort = computed(() => {
+  if (activeView.value?.sorter) {
+    return activeView.value.sorter
+  }
+
+  return {
+    field: 'lastActive',
+    order: 'descending'
+  }
+})
+
 const integrations = computed(
   () => store.getters['integration/activeList'] || {}
 )

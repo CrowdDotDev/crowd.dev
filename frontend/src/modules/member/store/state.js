@@ -1,3 +1,4 @@
+import moment from 'moment'
 import {
   INITIAL_PAGE_SIZE,
   INITIAL_VIEW_ACTIVE_FILTER,
@@ -44,12 +45,21 @@ export default {
       columns: [
         {
           name: 'joinedAt',
-          label: 'First Activity',
-          sortable: true
+          label: 'Joined at',
+          sortable: true,
+          formatter: (value) => {
+            return value
+              ? moment(value).format('DD-MM-YYYY')
+              : ''
+          },
+          width: 150
         }
       ],
       filter: INITIAL_VIEW_RECENT_FILTER,
-      sorter: {},
+      sorter: {
+        prop: 'joinedAt',
+        order: 'descending'
+      },
       active: false
     }
   ],
