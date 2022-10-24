@@ -1,12 +1,7 @@
 export default {
   loading: (state) => Boolean(state.loading),
   warningMessage: (state) => state.warningMessage,
-  invitationToken(
-    state,
-    getters,
-    rootState,
-    rootGetters
-  ) {
+  invitationToken(state, getters, rootState, rootGetters) {
     return (tenant) => {
       const currentUser = rootGetters['auth/currentUser']
 
