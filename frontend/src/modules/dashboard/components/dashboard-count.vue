@@ -136,6 +136,9 @@ export default {
       const previousScore = this.computedScore(previous)
       const diff = currentScore - previousScore
       if (this.percentage) {
+        if (previousScore === 0) {
+          return `+100%`
+        }
         if (diff > 0) {
           return `+${Math.round(
             (diff / previousScore) * 100
