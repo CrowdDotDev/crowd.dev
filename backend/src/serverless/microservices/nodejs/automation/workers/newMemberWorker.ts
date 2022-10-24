@@ -66,7 +66,7 @@ export const prepareMemberPayload = (member: any): any => {
  * @param memberId community member unique ID
  */
 export default async (tenantId: string, memberId: string): Promise<void> => {
-  console.log(`New member automation trigger detected with member id: ${memberId}!`)
+  // console.log(`New member automation trigger detected with member id: ${memberId}!`)
 
   const userContext = await getUserContext(tenantId)
 
@@ -100,7 +100,7 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
         }
       }
     } else {
-      console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
+      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
     console.log('Error while processing new member automation trigger!', error)

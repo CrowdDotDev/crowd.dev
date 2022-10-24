@@ -3,11 +3,9 @@ import sanitizeHtml from 'sanitize-html'
 import { SLACK_CONFIG } from '../../../../config'
 import {
   IIntegrationStream,
-  IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -41,22 +39,11 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     this.globalLimit = SLACK_CONFIG.globalLimit || 0
   }
 
-  async preprocess(context: IStepContext): Promise<IPreprocessResult> {
-    return {
-      processMetadata: {
-        superface: IntegrationServiceBase.superfaceClient(),
-      },
-    }
-  }
+  async preprocess(context: IStepContext): Promise<void> {
+    const superface = IntegrationServiceBase.superfaceClient()
 
-  async createMemberAttributes(context: IStepContext): Promise<void> {
-    const service = new MemberAttributeSettingsService(context.repoContext)
-    await service.createPredefined(SlackMemberAttributes)
-  }
-
-  async getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult> {
     let channelsFromSlackAPI: Channels = await getChannels(
-      metadata.superface,
+      superface,
       PlatformType.SLACK,
       { types: ['public'] },
       context.integration.token,
@@ -75,41 +62,44 @@ export class SlackIntegrationService extends IntegrationServiceBase {
 
     const members = context.integration.settings.members ? context.integration.settings.members : {}
 
-    const streams: IIntegrationStream[] = channelsFromSlackAPI
+    context.pipelineData = {
+      superface,
+      members,
+      channels: channelsFromSlackAPI,
+      channelsInfo: channelsFromSlackAPI.reduce((acc, channel) => {
+        acc[channel.id] = {
+          name: channel.name,
+          new: !!channel.new,
+        }
+        return acc
+      }, {}),
+    }
+  }
+
+  async createMemberAttributes(context: IStepContext): Promise<void> {
+    const service = new MemberAttributeSettingsService(context.repoContext)
+    await service.createPredefined(SlackMemberAttributes)
+  }
+
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+    return context.pipelineData.channels
       .map((c) => c.id)
       .concat(['members'])
       .map((c) => ({
         value: c,
         metadata: { page: '' },
       }))
-
-    return {
-      streams,
-      processMetadata: {
-        ...metadata,
-        members,
-        channels: channelsFromSlackAPI,
-        channelsInfo: channelsFromSlackAPI.reduce((acc, channel) => {
-          acc[channel.id] = {
-            name: channel.name,
-            new: !!channel.new,
-          }
-          return acc
-        }, {}),
-      },
-    }
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     await timeout(1000)
     const { fn, arg } = SlackIntegrationService.getSuperfaceUsecase(stream)
 
     const { records, nextPage, limit, timeUntilReset } = await fn(
-      metadata.superface,
+      context.pipelineData.superface,
       PlatformType.SLACK,
       context.integration.token,
       arg,
@@ -134,7 +124,6 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       records,
       stream,
       context,
-      metadata,
     )
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
@@ -154,12 +143,11 @@ export class SlackIntegrationService extends IntegrationServiceBase {
 
   async postprocess(
     context: IStepContext,
-    metadata?: any,
     failedStreams?: IIntegrationStream[],
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
     // Strip the new property from channels
-    context.integration.settings.channels = metadata.channels.map((ch) => {
+    context.integration.settings.channels = context.pipelineData.channels.map((ch) => {
       const { new: _, ...raw } = ch
       return raw
     })
@@ -169,11 +157,10 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
     switch (stream.value) {
       case 'members':
-        const parseMembersResult = await this.parseMembers(records, context, metadata)
+        const parseMembersResult = await this.parseMembers(records, context)
 
         return {
           activities: parseMembersResult.activities,
@@ -181,18 +168,13 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         }
 
       case 'threads':
-        const parseMessagesInThreadsResult = this.parseMessagesInThreads(
-          records,
-          stream,
-          context,
-          metadata,
-        )
+        const parseMessagesInThreadsResult = this.parseMessagesInThreads(records, stream, context)
         return {
           activities: parseMessagesInThreadsResult.activities,
           additionalStreams: parseMessagesInThreadsResult.additionalStreams,
         }
       default:
-        const parseMessagesResult = this.parseMessages(records, stream, context, metadata)
+        const parseMessagesResult = this.parseMessages(records, stream, context)
         return {
           activities: parseMessagesResult.activities,
           additionalStreams: parseMessagesResult.additionalStreams,
@@ -205,21 +187,19 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param records List of records coming from the API
    * @param stream
    * @param context
-   * @param metadata
    * @returns List of activities and members
    */
   private static parseMessages(
     records: Array<any>,
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): { activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] } {
     const newStreams: IIntegrationStream[] = []
 
     const activities = records.reduce((acc, record) => {
-      if (!record.isBot && metadata.members[record.author?.id]) {
+      if (!record.isBot && context.pipelineData.members[record.author?.id]) {
         const body = record.text
-          ? SlackIntegrationService.removeMentions(record.text, metadata)
+          ? SlackIntegrationService.removeMentions(record.text, context.pipelineData)
           : ''
         acc.push({
           tenant: context.integration.tenantId,
@@ -230,14 +210,14 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           timestamp: moment(record.createdAt).utc().toDate(),
           body,
           url: record.url ? record.url : '',
-          channel: metadata.channelsInfo[stream.value].name,
+          channel: context.pipelineData.channelsInfo[stream.value].name,
           attributes: {
             thread: false,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
           member: {
-            username: metadata.members[record.author.id],
+            username: context.pipelineData.members[record.author.id],
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.SLACK]: record.author.id,
@@ -254,10 +234,10 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             metadata: {
               page: '',
               threadId: record.threadId,
-              channel: metadata.channelsInfo[stream.value].name,
+              channel: context.pipelineData.channelsInfo[stream.value].name,
               channelId: stream.value,
               placeholder: body,
-              new: metadata.channelsInfo[stream.value].new,
+              new: context.pipelineData.channelsInfo[stream.value].new,
             },
           })
         }
@@ -276,20 +256,18 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param records List of records coming from the API
    * @param stream
    * @param context
-   * @param metadata
    * @returns List of activities and members
    */
   private static parseMessagesInThreads(
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): { activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] } {
     const threadInfo = stream.metadata
     const activities = records.reduce((acc, record) => {
-      if (!record.isBot && metadata.members[record.author.id]) {
+      if (!record.isBot && context.pipelineData.members[record.author.id]) {
         const body = record.text
-          ? SlackIntegrationService.removeMentions(record.text, metadata)
+          ? SlackIntegrationService.removeMentions(record.text, context.pipelineData)
           : ''
         acc.push({
           tenant: context.integration.tenantId,
@@ -310,7 +288,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             attachments: record.attachments ? record.attachments : [],
           },
           member: {
-            username: metadata.members[record.author.id],
+            username: context.pipelineData.members[record.author.id],
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.SLACK]: record.author.id,
@@ -333,17 +311,17 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   /**
    * Parse mentions
    * @param text Message text
-   * @param metadata
+   * @param pipelineData
    * @returns Message text, swapping mention IDs by mentions
    */
-  private static removeMentions(text: string, metadata?: any): string {
+  private static removeMentions(text: string, pipelineData?: any): string {
     const regex = /<@!?[^>]*>/
     const globalRegex = /<@!?[^>]*>/g
     const matches = text.match(globalRegex)
     if (matches) {
       for (let match of matches) {
         match = match.replace('<', '').replace('>', '').replace('@', '').replace('!', '')
-        text = text.replace(regex, `@${metadata.members[match] || 'mention'}`)
+        text = text.replace(regex, `@${pipelineData.members[match] || 'mention'}`)
       }
     }
 
@@ -354,18 +332,22 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * Map the members records to the format of the message to add activities and members
    * @param records List of records coming from the API
    * @param context
-   * @param metadata
    * @returns List of activities and members
    */
   private static async parseMembers(
     records: any[],
     context: IStepContext,
-    metadata?: any,
   ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
     // We only need the members if they are not bots
     const activities = records.reduce((acc, record) => {
-      if (!(record.isBot || record.username === 'Slackbot' || record.id in metadata.members)) {
-        metadata.members[record.id] = record.username
+      if (
+        !(
+          record.isBot ||
+          record.username === 'Slackbot' ||
+          record.id in context.pipelineData.members
+        )
+      ) {
+        context.pipelineData.members[record.id] = record.username
         acc.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
@@ -390,7 +372,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     }, [])
 
     // Call the updateMembers. This needs to happen synchronously every time
-    await this.updateMembers(context, metadata)
+    await this.updateMembers(context)
     return {
       activities,
       additionalStreams: [],
@@ -401,13 +383,13 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * Update members for an integration.
    * This update needs to happen synchronously, since the message endpoints need these members
    */
-  private static async updateMembers(context: IStepContext, metadata?: any) {
+  private static async updateMembers(context: IStepContext) {
     const integration = await IntegrationRepository.findById(
       context.integration.id,
       context.repoContext,
     )
     const settings = {
-      members: metadata.members,
+      members: context.pipelineData.members,
       channels: integration.settings.channels || [],
     }
     await IntegrationRepository.update(context.integration.id, { settings }, context.repoContext)
@@ -419,11 +401,10 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     lastOperations: IStreamResultOperation[],
     lastRecord?: any,
     lastRecordTimestamp?: number,
-    metadata?: any,
   ): Promise<boolean> {
     switch (currentStream.value) {
       case 'members':
-        return lastRecord.sourceId in metadata.members
+        return lastRecord.sourceId in context.pipelineData.members
       case 'threads':
         if ((currentStream.metadata as Thread).new) {
           return false
@@ -438,7 +419,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         )
 
       default:
-        if (metadata.channelsInfo[currentStream.value].new) {
+        if (context.pipelineData.channelsInfo[currentStream.value].new) {
           return false
         }
 

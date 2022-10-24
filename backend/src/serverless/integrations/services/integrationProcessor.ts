@@ -159,6 +159,7 @@ export class IntegrationProcessor {
       startTimestamp: moment().utc().unix(),
       limitCount: integration.limitCount || 0,
       onboarding: req.onboarding,
+      pipelineData: {},
       integration,
       serviceContext: userContext,
       repoContext: userContext,
@@ -176,8 +177,6 @@ export class IntegrationProcessor {
         userContext,
       )
     }
-
-    let processMetadata: any | undefined
 
     const failedStreams = []
 
@@ -206,13 +205,10 @@ export class IntegrationProcessor {
       )
 
       // preprocess if needed
-      const preprocessResult = await intService.preprocess(stepContext)
-      processMetadata = preprocessResult.processMetadata || processMetadata
+      await intService.preprocess(stepContext)
 
       // detect streams to process for this integration
-      const getStreamsResult = await intService.getStreams(stepContext, processMetadata)
-      const streams = getStreamsResult.streams
-      processMetadata = getStreamsResult.processMetadata || processMetadata
+      const streams = await intService.getStreams(stepContext)
 
       if (streams.length > 0) {
         logger.info({ streamCount: streams.length }, 'Detected streams to process!')
@@ -224,12 +220,7 @@ export class IntegrationProcessor {
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
             logger.info({ stream, remainingStreams: streams.length }, `Processing stream.`)
-            const processStreamResult = await intService.processStream(
-              stream,
-              stepContext,
-              processMetadata,
-            )
-            processMetadata = processStreamResult.processMetadata || processMetadata
+            const processStreamResult = await intService.processStream(stream, stepContext)
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
               logger.info(
@@ -277,7 +268,6 @@ export class IntegrationProcessor {
                 stream,
                 processStreamResult.operations,
                 processStreamResult.lastRecordTimestamp,
-                processMetadata,
               ))
             ) {
               logger.warn('Integration processing finished because of service implementation!')
@@ -290,7 +280,7 @@ export class IntegrationProcessor {
         }
 
         // postprocess integration settings
-        await intService.postprocess(stepContext, processMetadata, failedStreams, streams)
+        await intService.postprocess(stepContext, failedStreams, streams)
 
         if (failedStreams.length > 0) {
           logger.warn(

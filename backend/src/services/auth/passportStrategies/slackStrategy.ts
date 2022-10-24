@@ -28,7 +28,7 @@ export function getSlackStrategy() {
         .then((res) => res.json())
         .then((res) => {
           const existingUser = req.user || {}
-          console.log(`access token: ${accessToken}`)
+          // console.log(`access token: ${accessToken}`)
 
           return done(null, {
             ...existingUser,

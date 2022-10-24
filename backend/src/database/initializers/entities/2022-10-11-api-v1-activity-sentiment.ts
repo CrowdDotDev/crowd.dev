@@ -1,7 +1,7 @@
 import { QueryTypes } from 'sequelize'
 import ActivityService from '../../../services/activityService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
-import BaseIterator from '../../../serverless/integrations/iterators/baseIterator'
+import { timeout } from '../../../utils/timing'
 
 /**
  * Since requests to aws activity sentiment api creates a bottleneck,
@@ -49,7 +49,7 @@ export default async () => {
     } catch (e) {
       console.log(e)
       console.log('exception occured. sleeping 2 seconds and retrying...')
-      await BaseIterator.sleep(3)
+      await timeout(3000)
       sentiments = await ActivityService.getSentimentBatch(activityChunk)
     }
 

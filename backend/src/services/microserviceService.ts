@@ -2,8 +2,7 @@ import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
-import { MicroserviceMessage } from '../serverless/integrations/types/messageTypes'
-import send from '../serverless/integrations/utils/microserviceSQS'
+import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
 
 export default class MicroserviceService {
   options: IServiceOptions
@@ -15,7 +14,7 @@ export default class MicroserviceService {
   /**
    * Creates microservice entity with given data
    * @param data object representation of the microservice entity
-   * @param forceRunOnCreation if set to true, an sqs message is sent
+   * @param forceRunOnCreation if set to true, sqs message is sent
    * to start the created microservice immediately
    * @returns created plain microservice object
    */
@@ -31,12 +30,9 @@ export default class MicroserviceService {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (forceRunOnCreation) {
-        const microserviceMessageBody: MicroserviceMessage = {
-          service: data.type,
-          tenant: this.options.currentTenant.id.toString(),
-        }
-
-        await send(microserviceMessageBody)
+        await sendPythonWorkerMessage(this.options.currentTenant.id, {
+          type: data.type,
+        })
       }
 
       return record

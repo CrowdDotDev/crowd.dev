@@ -5,7 +5,6 @@ import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
@@ -45,8 +44,6 @@ enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
-const AllGithubStreamTypes = Object.values(GithubStreamType)
-
 export class GithubIntegrationService extends IntegrationServiceBase {
   constructor() {
     super(IntegrationType.GITHUB, 3)
@@ -65,7 +62,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     )
   }
 
-  async getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult> {
+  async preprocess(context: IStepContext): Promise<void> {
     const availableRepos: Repos = []
     let hasUnavailableRepos = false
     for (const repo of context.integration.settings.repos) {
@@ -84,8 +81,20 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
     context.integration.settings.repos = availableRepos
 
-    const streams: IIntegrationStream[] = availableRepos.reduce((acc, repo) => {
-      for (const endpoint of AllGithubStreamTypes) {
+    context.pipelineData = {
+      repos: availableRepos,
+    }
+  }
+
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+    return context.pipelineData.repos.reduce((acc, repo) => {
+      for (const endpoint of [
+        GithubStreamType.STARGAZERS,
+        GithubStreamType.FORKS,
+        GithubStreamType.PULLS,
+        GithubStreamType.ISSUES,
+        GithubStreamType.DISCUSSIONS,
+      ]) {
         acc.push({
           value: endpoint,
           metadata: { repo, page: '' },
@@ -93,19 +102,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       }
       return acc
     }, [])
-
-    return {
-      streams,
-      processMetadata: {
-        repos: availableRepos,
-      },
-    }
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     await timeout(1000)
 
@@ -118,7 +119,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     switch (event) {
       case GithubStreamType.STARGAZERS:
         const stargazersQuery = new StargazersQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           context.integration.token,
         )
         result = await stargazersQuery.getSinglePage(stream.metadata.page)
@@ -126,7 +127,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         break
       case GithubStreamType.FORKS:
         const forksQuery = new ForksQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           context.integration.token,
         )
         result = await forksQuery.getSinglePage(stream.metadata.page)
@@ -136,7 +137,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         break
       case GithubStreamType.PULLS:
         const pullRequestsQuery = new PullRequestsQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           context.integration.token,
         )
         result = await pullRequestsQuery.getSinglePage(stream.metadata.page)
@@ -157,7 +158,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       case GithubStreamType.PULL_COMMENTS:
         const pullRequestNumber = stream.metadata.prNumber
         const pullRequestCommentsQuery = new PullRequestCommentsQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           pullRequestNumber,
           context.integration.token,
         )
@@ -167,7 +168,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         break
       case GithubStreamType.ISSUES:
         const issuesQuery = new IssuesQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           context.integration.token,
         )
         result = await issuesQuery.getSinglePage(stream.metadata.page)
@@ -188,7 +189,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       case GithubStreamType.ISSUE_COMMENTS:
         const issueNumber = stream.metadata.issueNumber
         const issueCommentsQuery = new IssueCommentsQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           issueNumber,
           context.integration.token,
         )
@@ -197,7 +198,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         break
       case GithubStreamType.DISCUSSIONS:
         const discussionsQuery = new DiscussionsQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           context.integration.token,
         )
         result = await discussionsQuery.getSinglePage(stream.metadata.page)
@@ -217,7 +218,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       case GithubStreamType.DISCUSSION_COMMENTS:
         const discussionNumber = stream.metadata.discussionNumber
         const discussionCommentsQuery = new DiscussionCommentsQuery(
-          GithubIntegrationService.getRepoByName(repoName, metadata),
+          GithubIntegrationService.getRepoByName(repoName, context),
           discussionNumber,
           context.integration.token,
         )
@@ -228,12 +229,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         throw new Error(`Unknown event '${event}'!`)
     }
 
-    const activities = await GithubIntegrationService.parseActivities(
-      result.data,
-      stream,
-      context,
-      metadata,
-    )
+    const activities = await GithubIntegrationService.parseActivities(result.data, stream, context)
 
     return {
       operations: [
@@ -251,66 +247,47 @@ export class GithubIntegrationService extends IntegrationServiceBase {
    * @param records List of activities to be parsed
    * @param stream
    * @param context
-   * @param metadata
    * @returns parsed activities that can be saved to the database.
    */
   private static async parseActivities(
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     let activities: AddActivitiesSingle[] = []
     const event = stream.value as GithubStreamType
 
     switch (event) {
       case GithubStreamType.STARGAZERS:
-        activities = await GithubIntegrationService.parseStars(records, stream, context, metadata)
+        activities = await GithubIntegrationService.parseStars(records, stream, context)
         break
       case GithubStreamType.FORKS:
-        activities = await GithubIntegrationService.parseForks(records, stream, context, metadata)
+        activities = await GithubIntegrationService.parseForks(records, stream, context)
         break
       case GithubStreamType.PULLS:
-        activities = await GithubIntegrationService.parsePullRequests(
-          records,
-          stream,
-          context,
-          metadata,
-        )
+        activities = await GithubIntegrationService.parsePullRequests(records, stream, context)
         break
       case GithubStreamType.PULL_COMMENTS:
         activities = await GithubIntegrationService.parsePullRequestComments(
           records,
           stream,
           context,
-          metadata,
         )
         break
       case GithubStreamType.ISSUES:
-        activities = await GithubIntegrationService.parseIssues(records, stream, context, metadata)
+        activities = await GithubIntegrationService.parseIssues(records, stream, context)
         break
       case GithubStreamType.ISSUE_COMMENTS:
-        activities = await GithubIntegrationService.parseIssueComments(
-          records,
-          stream,
-          context,
-          metadata,
-        )
+        activities = await GithubIntegrationService.parseIssueComments(records, stream, context)
         break
       case GithubStreamType.DISCUSSIONS:
-        activities = await GithubIntegrationService.parseDiscussions(
-          records,
-          stream,
-          context,
-          metadata,
-        )
+        activities = await GithubIntegrationService.parseDiscussions(records, stream, context)
         break
       case GithubStreamType.DISCUSSION_COMMENTS:
         activities = await GithubIntegrationService.parseDiscussionComments(
           records,
           stream,
           context,
-          metadata,
         )
         break
       default:
@@ -324,7 +301,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
     for (const record of records) {
@@ -340,8 +316,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         ),
         sourceParentId: '',
         timestamp: moment(record.starredAt).utc().toDate(),
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
-        member: await GithubIntegrationService.parseMember(record.node, stream, context, metadata),
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
+        member: await GithubIntegrationService.parseMember(record.node, context),
         score: GitHubGrid.star.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       })
@@ -353,7 +329,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
 
@@ -365,8 +340,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceId: record.id,
         sourceParentId: '',
         timestamp: moment(record.createdAt).utc().toDate(),
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
-        member: await GithubIntegrationService.parseMember(record.owner, stream, context, metadata),
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
+        member: await GithubIntegrationService.parseMember(record.owner, context),
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       })
@@ -379,7 +354,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
 
@@ -393,17 +367,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         body: record.bodyText,
         url: record.url ? record.url : '',
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
         title: record.title,
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       })
@@ -416,7 +385,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     return records.reduce(async (acc, record) => {
       acc.push({
@@ -428,13 +396,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         url: record.url,
         body: record.bodyText,
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -447,7 +410,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
 
@@ -461,17 +423,12 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         body: record.bodyText,
         url: record.url ? record.url : '',
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
         title: record.title.replace(/\0/g, ''),
         attributes: {
           state: record.state.toLowerCase(),
         },
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.issueOpened.score,
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       })
@@ -484,7 +441,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     return records.reduce(async (acc, record) => {
       acc.push({
@@ -496,13 +452,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         url: record.url,
         body: record.bodyText,
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
@@ -515,7 +466,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
 
@@ -529,7 +479,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         body: record.bodyText,
         url: record.url ? record.url : '',
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
         title: record.title,
         attributes: {
           category: {
@@ -541,12 +491,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
             description: record.category.description,
           },
         },
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: GitHubGrid.discussionOpened.score,
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       })
@@ -558,7 +503,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata: any,
   ): Promise<AddActivitiesSingle[]> {
     const out: AddActivitiesSingle[] = []
 
@@ -574,16 +518,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         timestamp: moment(record.createdAt).utc().toDate(),
         url: record.url,
         body: record.bodyText,
-        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
+        channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
         attributes: {
           isAnswer: record.isAnswer ?? undefined,
         },
-        member: await GithubIntegrationService.parseMember(
-          record.author,
-          stream,
-          context,
-          metadata,
-        ),
+        member: await GithubIntegrationService.parseMember(record.author, context),
         score: record.isAnswer ? GitHubGrid.selectedAnswer.score : GitHubGrid.comment.score,
         isKeyAction: record.isAnswer
           ? GitHubGrid.selectedAnswer.isKeyAction
@@ -591,12 +530,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       })
 
       for (const reply of record.replies.nodes) {
-        const member = await GithubIntegrationService.parseMember(
-          reply.author,
-          stream,
-          context,
-          metadata,
-        )
+        const member = await GithubIntegrationService.parseMember(reply.author, context)
         out.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.GITHUB,
@@ -606,7 +540,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           timestamp: moment(reply.createdAt).utc().toDate(),
           url: reply.url,
           body: reply.bodyText,
-          channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, metadata).url,
+          channel: GithubIntegrationService.getRepoByName(stream.metadata.repo.name, context).url,
           member,
           score: GitHubGrid.comment.score,
           isKeyAction: GitHubGrid.comment.isKeyAction,
@@ -617,12 +551,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
-  private static async parseMember(
-    memberFromApi: any,
-    stream: IIntegrationStream,
-    context: IStepContext,
-    metadata: any,
-  ): Promise<Member> {
+  private static async parseMember(memberFromApi: any, context: IStepContext): Promise<Member> {
     const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
@@ -683,11 +612,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
    * Searches given repository name among installed repositories
    * Returns null if given repo is not found.
    * @param name  The tenant we are working on
-   * @param metadata
+   * @param context
    * @returns Found repo object
    */
-  private static getRepoByName(name: string, metadata: any): Repo | null {
-    for (const currentRepo of metadata.repos) {
+  private static getRepoByName(name: string, context: IStepContext): Repo | null {
+    for (const currentRepo of context.pipelineData.repos) {
       if (currentRepo.name === name) {
         return currentRepo
       }

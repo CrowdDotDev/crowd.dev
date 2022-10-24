@@ -6,7 +6,6 @@ import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import { DevtoMemberAttributes } from '../../../../database/attributes/member/devto'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
@@ -54,7 +53,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     )
   }
 
-  async getStreams(context: IStepContext): Promise<IStreamsResult> {
+  async preprocess(context: IStepContext): Promise<void> {
     const settings = context.integration.settings as DevtoIntegrationSettings
 
     const articles = settings.articles ? settings.articles : []
@@ -100,21 +99,21 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    return {
-      processMetadata: {
-        articles: articlesToCheck,
-        articlesFromAPI,
-      },
-      streams: articlesToCheck.map((a) => ({
-        value: a.id.toString(),
-      })),
+    context.pipelineData = {
+      articles: articlesToCheck,
+      articlesFromAPI,
     }
+  }
+
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+    return context.pipelineData.articles.map((a) => ({
+      value: a.id.toString(),
+    }))
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     const logger = createChildLogger('processStream', context.serviceContext.log, { stream })
 
@@ -136,7 +135,12 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
     for (const comment of comments) {
       activities.push(
-        ...this.parseComment(context.integration.tenantId, articleId, comment, metadata.articles),
+        ...this.parseComment(
+          context.integration.tenantId,
+          articleId,
+          comment,
+          context.pipelineData.articles,
+        ),
       )
     }
 
@@ -156,13 +160,12 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
   async postprocess(
     context: IStepContext,
-    metadata?: any,
     failedStreams?: IIntegrationStream[],
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
     const articles: DevtoArticleSettings[] = []
 
-    for (const article of metadata.articlesFromAPI) {
+    for (const article of context.pipelineData.articlesFromAPI) {
       articles.push({ id: article.id, lastCommentAt: article.last_comment_at })
     }
 

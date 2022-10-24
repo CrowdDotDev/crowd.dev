@@ -1,16 +1,14 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
+import crypto from 'crypto'
 import {
   IIntegrationStream,
-  IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
-  IStreamsResult,
 } from '../../../types/integration/stepResult'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { IS_TEST_ENV } from '../../../config'
-import crypto from 'crypto'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -47,20 +45,19 @@ export abstract class IntegrationServiceBase {
     this.limitResetFrequencySeconds = 0
   }
 
-  async preprocess(context: IStepContext): Promise<IPreprocessResult> {
-    return {}
+  async preprocess(context: IStepContext): Promise<void> {
+    // do nothing - override if something is needed
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
     // do nothing - override if something is needed
   }
 
-  abstract getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult>
+  abstract getStreams(context: IStepContext): Promise<IIntegrationStream[]>
 
   abstract processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults>
 
   async isProcessingFinished(
@@ -69,14 +66,12 @@ export abstract class IntegrationServiceBase {
     lastOperations: IStreamResultOperation[],
     lastRecord?: any,
     lastRecordTimestamp?: number,
-    metadata?: any,
   ): Promise<boolean> {
     return false
   }
 
   async postprocess(
     context: IStepContext,
-    metadata?: any,
     failedStreams?: IIntegrationStream[],
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
@@ -132,5 +127,24 @@ export abstract class IntegrationServiceBase {
 
     const data = `${uniqueRemoteId}-${type}-${timestamp}-${platform}`
     return `gen-${crypto.createHash('md5').update(data).digest('hex')}`
+  }
+
+  /**
+   * Get the number of seconds from a date to a unix timestamp.
+   * Adding a 25% padding for security.
+   * If the unix timestamp is before the date, return 3 minutes for security
+   * @param date The date to get the seconds from
+   * @param unixTimestamp The unix timestamp to get the seconds from
+   * @returns The number of seconds from the date to the unix timestamp
+   */
+  static secondsUntilTimestamp(
+    unixTimestamp: number,
+    date: Date = moment().utc().toDate(),
+  ): number {
+    const timestampedDate: number = moment.utc(date).unix()
+    if (timestampedDate > unixTimestamp) {
+      return 60 * 3
+    }
+    return Math.floor(unixTimestamp - timestampedDate)
   }
 }

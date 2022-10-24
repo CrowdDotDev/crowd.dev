@@ -1,4 +1,4 @@
-import { NodeWorkerMessageType } from '../../serverless/types/worketTypes'
+import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { IntegrationType } from '../integrationEnums'
 import { NodeWorkerMessageBase } from './nodeWorkerMessageBase'
 

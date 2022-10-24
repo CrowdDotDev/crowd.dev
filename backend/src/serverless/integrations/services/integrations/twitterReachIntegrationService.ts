@@ -3,11 +3,9 @@ import { IntegrationServiceBase } from '../integrationServiceBase'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
   IIntegrationStream,
-  IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './twitterIntegrationService'
 import MemberRepository from '../../../../database/repositories/memberRepository'
@@ -27,18 +25,18 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     super(IntegrationType.TWITTER_REACH, 2)
   }
 
-  async preprocess(context: IStepContext): Promise<IPreprocessResult> {
-    return TwitterIntegrationService.refreshToken(context)
-  }
+  async preprocess(context: IStepContext): Promise<void> {
+    await TwitterIntegrationService.refreshToken(context)
 
-  async getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult> {
-    const members = await MemberRepository.findAndCountAll(
+    context.pipelineData.members = await MemberRepository.findAndCountAll(
       { filter: { platform: PlatformType.TWITTER } },
       context.repoContext,
     )
+  }
 
+  async getStreams(context: IStepContext, metadata?: any): Promise<IIntegrationStream[]> {
     // Map to object filtering out undefined and long usernames
-    const results = members.rows.reduce((acc, m) => {
+    const results = context.pipelineData.members.rows.reduce((acc, m) => {
       const username = m.username.twitter
       if (
         username !== undefined &&
@@ -56,26 +54,21 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     const chunks = lodash.chunk(results, 99)
 
     let chunkIndex = 1
-    const streams: IIntegrationStream[] = chunks.map((c) => ({
+    return chunks.map((c) => ({
       value: `chunk-${chunkIndex++}`,
       metadata: {
         members: c,
       },
     }))
-
-    return {
-      streams,
-    }
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     const members = stream.metadata.members.map((m) => m.username)
     const { records, nextPage, limit, timeUntilReset } = await getProfiles(
-      metadata.superface,
+      context.pipelineData.superface,
       context.integration.token,
       members,
     )
@@ -111,7 +104,6 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     lastOperations: IStreamResultOperation[],
     lastRecord?: any,
     lastRecordTimestamp?: number,
-    metadata?: any,
   ): Promise<boolean> {
     return true
   }
@@ -126,7 +118,7 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     const out = []
 
     const hashedMembers = lodash.keyBy(members, 'username')
-    records.forEach((record, i) => {
+    records.forEach((record) => {
       record.username = record.username.toLowerCase()
       const member = hashedMembers[record.username]
       if (record.followersCount !== member.reach.twitter) {

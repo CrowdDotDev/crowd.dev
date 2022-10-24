@@ -6,11 +6,9 @@ import { IntegrationType, PlatformType } from '../../../../types/integrationEnum
 import { TWITTER_CONFIG } from '../../../../config'
 import {
   IIntegrationStream,
-  IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
@@ -20,7 +18,6 @@ import getFollowers from '../../usecases/social/followers'
 import findPostsByMention from '../../usecases/social/postsByMention'
 import findPostsByHashtag from '../../usecases/social/postsByHashtag'
 import { AddActivitiesSingle } from '../../types/messageTypes'
-import BaseIterator from '../../iterators/baseIterator'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterGrid } from '../../grid/twitterGrid'
 import Operations from '../../../dbOperations/operations'
@@ -40,8 +37,9 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     this.limitResetFrequencySeconds = (TWITTER_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
   }
 
-  async preprocess(context: IStepContext): Promise<IPreprocessResult> {
-    return TwitterIntegrationService.refreshToken(context)
+  async preprocess(context: IStepContext): Promise<void> {
+    await TwitterIntegrationService.refreshToken(context)
+    context.pipelineData.followers = new Set<string>(context.integration.followers)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
@@ -49,29 +47,24 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     await service.createPredefined(TwitterMemberAttributes)
   }
 
-  async getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult> {
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
     const hashtags = context.integration.settings.hashtags
 
-    const streams: IIntegrationStream[] = ['followers', 'mentions']
+    return ['followers', 'mentions']
       .concat((hashtags || []).map((h) => `hashtag/${h}`))
       .map((s) => ({
         value: s,
         metadata: { page: '' },
       }))
-
-    return {
-      streams,
-    }
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     const { fn, arg } = TwitterIntegrationService.getSuperfaceUsecase(
       stream.value,
-      metadata.profileId,
+      context.pipelineData.profileId,
     )
 
     const afterDate = context.onboarding
@@ -79,7 +72,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       : moment().utc().subtract(TwitterIntegrationService.maxRetrospect, 'seconds').toISOString()
 
     const { records, nextPage, limit, timeUntilReset } = await fn(
-      metadata.superface,
+      context.pipelineData.superface,
       context.integration.token,
       arg,
       stream.metadata.page,
@@ -99,7 +92,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const activities = this.parseActivities(context, records, stream, metadata)
+    const activities = this.parseActivities(context, records, stream)
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
@@ -123,12 +116,11 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     lastOperations: IStreamResultOperation[],
     lastRecord?: any,
     lastRecordTimestamp?: number,
-    metadata?: any,
   ): Promise<boolean> {
     switch (currentStream.value) {
       case 'followers':
         return TwitterIntegrationService.isJoin(
-          context.integration.settings.followers,
+          context.pipelineData.followers,
           TwitterIntegrationService.mapToPath(
             lastOperations.flatMap((o) => o.records),
             'member.attributes.twitter.sourceId',
@@ -148,7 +140,6 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
 
   async postprocess(
     context: IStepContext,
-    metadata?: any,
     failedStreams?: IIntegrationStream[],
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
@@ -160,6 +151,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
         .subtract(this.limitResetFrequencySeconds * 2, 'seconds')
         .format('YYYY-MM-DD HH:mm:ss')
     }
+
+    context.integration.settings.followers = Array.from(context.pipelineData.followers.values())
   }
 
   /**
@@ -168,22 +161,20 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
    * @param context process step context data
    * @param records List of records coming from the API
    * @param stream integration stream that we are currently processing
-   * @param metadata process step context metadata
    * @returns The set of messages and the date of the last activity
    */
   parseActivities(
     context: IStepContext,
     records: Array<any>,
     stream: IIntegrationStream,
-    metadata?: any,
   ): AddActivitiesSingle[] {
     switch (stream.value) {
       case 'followers': {
-        const followers = this.parseFollowers(context, records, metadata)
+        const followers = this.parseFollowers(context, records)
 
         // Update the follower set
-        context.integration.settings.followers = new Set([
-          ...context.integration.settings.followers,
+        context.pipelineData.followers = new Set([
+          ...context.pipelineData.followers,
           ...records.map((record) => record.id),
         ])
 
@@ -202,14 +193,9 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
    * Map the follower records to the format of the message to add activities and members
    * @param context process step context data
    * @param records List of records coming from the API
-   * @param metadata process step context metadata
    * @returns List of activities and members
    */
-  parseFollowers(
-    context: IStepContext,
-    records: Array<any>,
-    metadata?: any,
-  ): Array<AddActivitiesSingle> {
+  parseFollowers(context: IStepContext, records: Array<any>): Array<AddActivitiesSingle> {
     const timestampObj = context.onboarding
       ? moment('1970-01-01T00:00:00+00:00').utc()
       : moment().utc()
@@ -217,7 +203,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       tenant: context.integration.tenantId,
       platform: PlatformType.TWITTER,
       type: 'follow',
-      sourceId: BaseIterator.generateSourceIdHash(
+      sourceId: IntegrationServiceBase.generateSourceIdHash(
         record.username,
         'follow',
         moment('1970-01-01T00:00:00+00:00').utc().unix().toString(),
@@ -250,7 +236,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     // this would cause repeated activities otherwise
     out = out.filter(
       (activity) =>
-        !context.integration.settings.followers.has(
+        !context.pipelineData.followers.has(
           activity.member.attributes[MemberAttributeName.SOURCE_ID][PlatformType.TWITTER],
         ),
     )
@@ -374,7 +360,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  public static async refreshToken(context: IStepContext): Promise<IPreprocessResult> {
+  public static async refreshToken(context: IStepContext): Promise<void> {
     const superface = IntegrationServiceBase.superfaceClient()
     const profile = await superface.getProfile('oauth2/refresh-token')
     const profileWithNewTokens: any = (
@@ -388,11 +374,10 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     context.integration.refreshToken = profileWithNewTokens.refreshToken
     context.integration.token = profileWithNewTokens.accessToken
 
-    return {
-      processMetadata: {
-        superface,
-        profileId: context.integration.integrationIdentifier,
-      },
+    context.pipelineData = {
+      ...context.pipelineData,
+      superface,
+      profileId: context.integration.integrationIdentifier,
     }
   }
 }

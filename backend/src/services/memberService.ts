@@ -286,7 +286,6 @@ export default class MemberService {
           member: record.id,
           tenant: this.options.currentTenant.id,
         })
-        console.log('Sent merge suggestion message for member ', record.displayName)
 
         telemetryTrack(
           'Member created',

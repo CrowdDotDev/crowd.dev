@@ -1,18 +1,18 @@
 import moment from 'moment'
 import verifyGithubWebhook from 'verify-github-webhook'
-import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config/index'
+import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { GitHubGrid } from '../grid/githubGrid'
 import ActivityService from '../../../services/activityService'
 import { AddActivitiesSingle, Member } from '../types/messageTypes'
 import getMember from '../usecases/github/graphql/members'
-import BaseIterator from '../iterators/baseIterator'
 import { PlatformType } from '../../../types/integrationEnums'
 import { GithubActivityType } from '../../../types/activityTypes'
 import { gridEntry } from '../grid/grid'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import getOrganization from '../usecases/github/graphql/organizations'
+import { IntegrationServiceBase } from '../services/integrationServiceBase'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -179,7 +179,7 @@ export default class GitHubWebhook {
         timestamp: timestampObject.toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           this.payload.sender.login,
           type,
           timestampObject.unix().toString(),

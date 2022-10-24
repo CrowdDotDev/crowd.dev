@@ -1,4 +1,3 @@
-import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment/moment'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
@@ -6,11 +5,9 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import {
   IIntegrationStream,
-  IPreprocessResult,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
-  IStreamsResult,
 } from '../../../../types/integration/stepResult'
 import getThreads from '../../usecases/chat/getThreads'
 import { DISCORD_CONFIG } from '../../../../config'
@@ -21,7 +18,6 @@ import getMessages from '../../usecases/chat/getMessages'
 import { createChildLogger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
 import { AddActivitiesSingle } from '../../types/messageTypes'
-import BaseIterator from '../../iterators/baseIterator'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { DiscordGrid } from '../../grid/discordGrid'
 import Operations from '../../../dbOperations/operations'
@@ -42,40 +38,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
   }
 
-  async preprocess(context: IStepContext): Promise<IPreprocessResult> {
-    return {
-      processMetadata: {
-        guildId: context.integration.integrationIdentifier,
-        superface: IntegrationServiceBase.superfaceClient(),
-      },
-    }
-  }
+  async preprocess(context: IStepContext): Promise<void> {
+    const guildId = context.integration.integrationIdentifier
+    const superface = IntegrationServiceBase.superfaceClient()
 
-  async createMemberAttributes(context: IStepContext): Promise<void> {
-    const service = new MemberAttributeSettingsService(context.serviceContext)
-    await service.createPredefined(DiscordMemberAttributes)
-  }
-
-  async getStreams(context: IStepContext, metadata?: any): Promise<IStreamsResult> {
-    const predefined: IIntegrationStream[] = [
-      {
-        value: 'members',
-        metadata: {
-          page: '',
-        },
-      },
-    ]
-
-    const threads: Channels = await getThreads(
-      metadata.superface as SuperfaceClient,
-      metadata.guildId,
-      DISCORD_CONFIG.token,
-    )
+    const threads: Channels = await getThreads(superface, guildId, DISCORD_CONFIG.token)
     let channelsFromDiscordAPI: Channels = await getChannels(
-      metadata.superface as SuperfaceClient,
+      superface,
       PlatformType.DISCORD,
       {
-        server: metadata.guildId,
+        server: guildId,
       },
       DISCORD_CONFIG.token,
     )
@@ -94,37 +66,50 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
     const channelsWithThreads = channelsFromDiscordAPI.concat(threads)
 
-    const streams = predefined.concat(
-      channelsWithThreads.map((c) => ({
+    context.pipelineData = {
+      channelsFromDiscordAPI,
+      channels: channelsWithThreads,
+      channelsInfo: channelsWithThreads.reduce((acc, channel) => {
+        acc[channel.id] = {
+          name: channel.name,
+          thread: !!channel.thread,
+          new: !!channel.new,
+        }
+        return acc
+      }, {}),
+      guildId: context.integration.integrationIdentifier,
+      superface: IntegrationServiceBase.superfaceClient(),
+    }
+  }
+
+  async createMemberAttributes(context: IStepContext): Promise<void> {
+    const service = new MemberAttributeSettingsService(context.serviceContext)
+    await service.createPredefined(DiscordMemberAttributes)
+  }
+
+  async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
+    const predefined: IIntegrationStream[] = [
+      {
+        value: 'members',
+        metadata: {
+          page: '',
+        },
+      },
+    ]
+
+    return predefined.concat(
+      context.pipelineData.channels.map((c) => ({
         value: c.id,
         metadata: {
           page: '',
         },
       })),
     )
-
-    return {
-      streams,
-      processMetadata: {
-        ...metadata,
-        channelsFromDiscordAPI,
-        channels: channelsWithThreads,
-        channelsInfo: channelsWithThreads.reduce((acc, channel) => {
-          acc[channel.id] = {
-            name: channel.name,
-            thread: !!channel.thread,
-            new: !!channel.new,
-          }
-          return acc
-        }, {}),
-      },
-    }
   }
 
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    metadata?: any,
   ): Promise<IProcessStreamResults> {
     const logger = createChildLogger('processStream', context.serviceContext.log, { stream })
 
@@ -138,10 +123,10 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       try {
         const { fn, arg } = DiscordIntegrationService.getSuperfaceUsecase(
           stream.value,
-          metadata.guildId,
+          context.pipelineData.guildId,
         )
         const { records, nextPage, limit, timeUntilReset } = await fn(
-          metadata.superface,
+          context.pipelineData.superface,
           PlatformType.DISCORD,
           DISCORD_CONFIG.token,
           arg,
@@ -161,7 +146,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           }
         }
 
-        const activities = this.parseActivities(stream, context, records, metadata)
+        const activities = this.parseActivities(stream, context, records)
 
         const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
         return {
@@ -204,7 +189,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     lastOperations: IStreamResultOperation[],
     lastRecord?: any,
     lastRecordTimestamp?: number,
-    metadata?: any,
   ): Promise<boolean> {
     if (lastRecordTimestamp === undefined) return false
 
@@ -217,7 +201,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         )
 
       default:
-        if (metadata.channelsInfo[currentStream.value].new) return false
+        if (context.pipelineData.channelsInfo[currentStream.value].new) return false
 
         return IntegrationServiceBase.isRetrospectOver(
           lastRecordTimestamp,
@@ -229,30 +213,30 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   async postprocess(
     context: IStepContext,
-    metadata?: any,
     failedStreams?: IIntegrationStream[],
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
-    context.integration.settings.channels = metadata.channelsFromDiscordAPI.map((ch) => {
-      const { new: _, ...raw } = ch
-      return raw
-    })
+    context.integration.settings.channels = context.pipelineData.channelsFromDiscordAPI.map(
+      (ch) => {
+        const { new: _, ...raw } = ch
+        return raw
+      },
+    )
   }
 
   parseActivities(
     stream: IIntegrationStream,
     context: IStepContext,
     records: Array<object>,
-    metadata?: any,
   ): AddActivitiesSingle[] {
     switch (stream.value) {
       case 'members':
         return this.parseMembers(context.integration.tenantId, records)
       default:
         return this.parseMessages(
-          metadata.guildId,
+          context.pipelineData.guildId,
           context.integration.tenantId,
-          metadata.channelsInfo,
+          context.pipelineData.channelsInfo,
           records,
           stream,
         )
@@ -267,7 +251,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           tenant: tenantId,
           platform: PlatformType.DISCORD,
           type: 'joined_guild',
-          sourceId: BaseIterator.generateSourceIdHash(
+          sourceId: IntegrationServiceBase.generateSourceIdHash(
             record.id,
             'joined_guild',
             moment(record.joinedAt).utc().unix().toString(),

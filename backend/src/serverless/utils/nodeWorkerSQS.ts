@@ -13,7 +13,6 @@ export const sendNodeWorkerMessage = async (
   delaySeconds?: number,
   targetQueueUrl?: string,
 ): Promise<void> => {
-  console.log('Sending a new nodejs worker message!', tenantId, body, delaySeconds)
   if (IS_TEST_ENV) {
     return
   }
