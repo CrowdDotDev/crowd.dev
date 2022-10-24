@@ -116,6 +116,7 @@
       class="-mx-8 -mb-8 px-8 py-6 bg-gray-50 flex justify-end"
     >
       <el-button
+        id="submit"
         class="btn btn--lg btn--primary"
         :loading="saveLoading"
         @click="doSubmit()"

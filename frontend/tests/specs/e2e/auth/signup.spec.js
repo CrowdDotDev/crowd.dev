@@ -11,8 +11,11 @@ describe('Sign up tests', function () {
   it('Fails to create an account because email already exists', function () {
     cy.spy(this.store, 'commit').as('commit')
 
+    cy.get('#firstName').type('John')
+    cy.get('#lastName').type('Doe')
     cy.get('#email').type('john.doe@email.com')
     cy.get('#password').type('password')
+    cy.get('#passwordConfirmation').type('password')
     cy.get('#submit').click()
 
     cy.get('@commit').should(
@@ -41,8 +44,11 @@ describe('Sign up tests', function () {
   it('Successfully creates an account and tenant', function () {
     cy.spy(this.store, 'commit').as('commit')
 
+    cy.get('#firstName').type('John')
+    cy.get('#lastName').type('Doe')
     cy.get('#email').type('new.user@email.com')
     cy.get('#password').type('password')
+    cy.get('#passwordConfirmation').type('password')
     cy.get('#submit').click()
 
     cy.get('@commit').should(
@@ -63,10 +69,5 @@ describe('Sign up tests', function () {
     )
 
     cy.url().should('contain', '/onboard')
-
-    cy.get('#tenant-name').type('Testing Workspace')
-    cy.get('#submit').click()
-
-    cy.url().should('contain', '/')
   })
 })
