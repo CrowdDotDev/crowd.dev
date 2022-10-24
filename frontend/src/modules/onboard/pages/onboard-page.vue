@@ -72,8 +72,7 @@
           @saved="tab = 2"
         />
         <app-onboard-integrations
-          v-if="currentTenant"
-          v-show="tab === 2"
+          v-if="currentTenant && tab === 2"
           @previous="tab = 1"
         />
       </div>
