@@ -35,11 +35,7 @@
           </span>
         </template>
         <a
-          :href="
-            member.attributes?.url?.twitter
-              ? `https://${member.attributes?.url?.twitter}`
-              : null
-          "
+          :href="member.attributes?.url?.twitter || null"
           target="_blank"
           class="btn p-2 text-base btn--twitter"
           :class="
@@ -71,11 +67,7 @@
           </span>
         </template>
         <a
-          :href="
-            member.attributes?.url?.github
-              ? `https://${member.attributes?.url?.github}`
-              : null
-          "
+          :href="member.attributes?.url?.github || null"
           target="_blank"
           class="btn p-2 text-base bg-gray-100 border border-gray-200"
           :class="
@@ -106,11 +98,7 @@
           </span>
         </template>
         <a
-          :href="
-            member.attributes?.url?.linkedin
-              ? `https://${member.attributes?.url?.linkedin}`
-              : null
-          "
+          :href="member.attributes?.url?.linkedin || null"
           target="_blank"
           class="btn p-2 text-base btn--linkedin"
           :class="
@@ -141,11 +129,7 @@
           </span>
         </template>
         <a
-          :href="
-            member.attributes?.url?.devto
-              ? `https://${member.attributes?.url?.devto}`
-              : null
-          "
+          :href="member.attributes?.url?.devto || null"
           target="_blank"
           class="btn p-2 text-base bg-gray-100 border border-gray-200"
           :class="

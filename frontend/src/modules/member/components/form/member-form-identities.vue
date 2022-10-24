@@ -191,7 +191,7 @@ function onInputChange(newValue, key, value) {
     ...props.modelValue.attributes,
     url: {
       ...props.modelValue.attributes?.url,
-      [key]: `${value.urlPrefix}${newValue}`
+      [key]: `https://${value.urlPrefix}${newValue}`
     }
   }
 }
