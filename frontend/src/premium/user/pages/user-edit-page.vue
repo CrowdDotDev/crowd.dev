@@ -33,7 +33,7 @@
           :required="fields.roles.required"
         >
           <el-select
-            v-model="model[fields.roles.name]"
+            v-model="model[fields.roles.name][0]"
             placeholder="Select a role"
           >
             <el-option
@@ -150,6 +150,7 @@ export default {
     },
 
     async doSubmit() {
+      console.log(this.model)
       try {
         await this.$refs.form.validate()
       } catch (error) {
