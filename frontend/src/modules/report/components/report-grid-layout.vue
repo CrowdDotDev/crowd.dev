@@ -201,7 +201,6 @@ export default {
       getCubeToken: 'widget/getCubeToken'
     }),
     chartOptions(widget) {
-      console.log(widget)
       let chartTypeOptions = {}
       const type = widget.settings.chartType
       if (type === 'area') {
@@ -212,7 +211,7 @@ export default {
               0,
               150,
               0,
-              300
+              350
             )
             gradient.addColorStop(0, 'rgba(253,237, 234,1)')
             gradient.addColorStop(1, 'rgba(253,237, 234,0)')
@@ -227,7 +226,7 @@ export default {
               0,
               150,
               0,
-              300
+              350
             )
             gradient.addColorStop(0, 'rgba(253,237, 234,1)')
             gradient.addColorStop(1, 'rgba(253,237, 234,0)')
