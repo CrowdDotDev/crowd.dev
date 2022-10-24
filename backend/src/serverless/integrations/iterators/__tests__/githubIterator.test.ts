@@ -153,7 +153,7 @@ describe('Github iterator tests', () => {
           [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: prWithMember.bio,
           },
-          [MemberAttributeName.AVATAR_URL]: { [PlatformType.GITHUB]: undefined },
+          [MemberAttributeName.AVATAR_URL]: { [PlatformType.GITHUB]: '' },
           [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: prWithMember.location,
           },
