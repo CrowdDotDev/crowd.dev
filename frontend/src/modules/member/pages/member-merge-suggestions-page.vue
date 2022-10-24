@@ -290,7 +290,7 @@ function makePrimary(members) {
   this.membersToMerge = newToMerge
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 .line-clamp {
   display: -webkit-box;
   -webkit-line-clamp: 2;

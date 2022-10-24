@@ -33,7 +33,7 @@
           :required="fields.roles.required"
         >
           <el-select
-            v-model="model[fields.roles.name]"
+            v-model="model[fields.roles.name][0]"
             placeholder="Select a role"
           >
             <el-option
@@ -46,8 +46,14 @@
         </el-form-item>
       </div>
 
-      <el-footer class="el-dialog__footer">
+      <el-footer
+        class="el-dialog__footer"
+        :class="
+          hasFormChanged ? 'justify-between' : 'justify-end'
+        "
+      >
         <el-button
+          v-if="hasFormChanged"
           :disabled="saveLoading"
           class="btn btn-link btn-link--primary"
           @click="doReset"
@@ -83,6 +89,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { UserModel } from '@/premium/user/user-model'
 import { i18n } from '@/i18n'
+import isEqual from 'lodash/isEqual'
 
 const { fields } = UserModel
 const formSchema = new FormSchema([
@@ -104,7 +111,7 @@ export default {
   data() {
     return {
       rules: formSchema.rules(),
-      model: null
+      model: formSchema.initialValues(this.record)
     }
   },
 
@@ -114,6 +121,13 @@ export default {
       initLoading: 'user/form/initLoading',
       saveLoading: 'user/form/saveLoading'
     }),
+
+    hasFormChanged() {
+      return !isEqual(
+        this.model,
+        formSchema.initialValues(this.record)
+      )
+    },
 
     fields() {
       return fields
@@ -144,10 +158,11 @@ export default {
 
       const values = formSchema.cast(this.model)
       delete values.email
-      this.doUpdate({
+      await this.doUpdate({
         id: this.record && this.record.id,
         ...values
       })
+      this.$emit('cancel')
     },
 
     i18n(code) {

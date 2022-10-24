@@ -89,8 +89,8 @@ import { mapGetters, mapActions } from 'vuex'
 import { AutomationPermissions } from '@/modules/automation/automation-permissions'
 import { AutomationModel } from '@/modules/automation/automation-model'
 import { i18n } from '@/i18n'
-import AutomationDropdown from './automation-dropdown'
-import AutomationToggle from './automation-toggle'
+import AutomationDropdown from '../automation-dropdown'
+import AutomationToggle from '../automation-toggle'
 import computedTimeAgo from '@/utils/time-ago'
 const { fields } = AutomationModel
 

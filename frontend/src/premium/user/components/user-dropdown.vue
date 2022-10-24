@@ -49,68 +49,38 @@
         >
       </template>
     </el-dropdown>
-    <el-dialog
+    <app-dialog
       v-model="editing"
-      :close-on-click-modal="false"
-      :show-close="false"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      custom-class="el-dialog--lg user-invite-dialog"
-      @close="editing = false"
+      custom-class="user-invite-dialog"
+      :pre-title="user.fullName ?? null"
+      :title="
+        user.status === 'invited'
+          ? 'Edit invite'
+          : 'Edit User'
+      "
     >
-      <template #header="{ close, titleId, titleClass }">
-        <div
-          class="flex grow justify-between"
-          :class="{
-            'items-center':
-              user.status === 'invited' || !user.fullName
-          }"
+      <template #content>
+        <app-user-form-page
+          :id="user.id"
+          @cancel="editing = false"
         >
-          <div>
-            <div
-              v-if="user.fullName"
-              class="text-2xs text-gray-600"
-            >
-              {{ user.fullName }}
-            </div>
-            <h5 :id="titleId" :class="titleClass">
-              {{
-                user.status === 'invited'
-                  ? 'Edit invite'
-                  : 'Edit User'
-              }}
-            </h5>
-          </div>
-          <el-button
-            class="btn btn--transparent btn--xs w-8 !h-8"
-            @click="close"
-          >
-            <i
-              class="ri-close-line text-lg text-gray-400"
-            ></i>
-          </el-button>
-        </div>
+        </app-user-form-page>
       </template>
-      <app-user-form-page
-        :id="user.id"
-        @cancel="editing = false"
-      >
-      </app-user-form-page>
-    </el-dialog>
+    </app-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex'
 import { i18n } from '@/i18n'
-import UserEditPage from './user-edit-page'
+import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
 
 export default {
   name: 'AppUserDropdown',
   components: {
-    'app-user-form-page': UserEditPage
+    'app-user-form-page': AppUserEditPage
   },
   props: {
     user: {

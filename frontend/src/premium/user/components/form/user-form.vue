@@ -10,19 +10,6 @@
     >
       <div class="grid grid-cols-3 gap-4 px-6 pb-4">
         <el-form-item
-          v-if="!single"
-          :label="fields.emails.label"
-          :prop="fields.emails.name"
-          :required="fields.emails.required"
-          class="col-span-2"
-        >
-          <app-user-invite-autocomplete
-            v-model="model[fields.emails.name]"
-          />
-        </el-form-item>
-
-        <el-form-item
-          v-if="single"
           :label="fields.email.label"
           :prop="fields.email.name"
           :required="fields.email.required"
@@ -40,9 +27,8 @@
           :required="fields.roles.required"
         >
           <el-select
-            v-model="model[fields.roles.name]"
-            multiple
-            placeholder="Select the roles"
+            v-model="model[fields.roles.name][0]"
+            placeholder="Select a role"
           >
             <el-option
               v-for="option in fields.roles.options"
@@ -93,8 +79,12 @@
     <el-footer
       v-if="!invitationToken"
       class="el-dialog__footer"
+      :class="
+        hasFormChanged ? 'justify-between' : 'justify-end'
+      "
     >
       <el-button
+        v-if="hasFormChanged"
         class="btn btn-link btn-link--primary"
         @click="doReset"
       >
@@ -112,7 +102,7 @@
         </el-button>
 
         <el-button
-          :disabled="saveLoading"
+          :disabled="saveLoading || !hasFormChanged"
           class="btn btn--md btn--primary"
           @click="doSubmit"
         >
@@ -127,44 +117,23 @@
 import { FormSchema } from '@/shared/form/form-schema'
 import { UserModel } from '@/premium/user/user-model'
 import { i18n } from '@/i18n'
-import UserInviteAutocomplete from './user-invite-autocomplete'
 import Message from '@/shared/message/message'
 import config from '@/config'
+import isEqual from 'lodash/isEqual'
 
 const { fields } = UserModel
-const singleFormSchema = new FormSchema([
+const formSchema = new FormSchema([
   fields.email,
-  fields.firstName,
-  fields.lastName,
-  fields.phoneNumber,
-  fields.avatars,
-  fields.rolesRequired
-])
-
-const multipleFormSchema = new FormSchema([
-  fields.emails,
-  fields.firstName,
-  fields.lastName,
-  fields.phoneNumber,
-  fields.avatars,
   fields.rolesRequired
 ])
 
 export default {
   name: 'AppUserNewForm',
 
-  components: {
-    'app-user-invite-autocomplete': UserInviteAutocomplete
-  },
-
   props: {
     saveLoading: {
       type: Boolean,
       default: false
-    },
-    single: {
-      type: Boolean,
-      default: true
     },
     invitationToken: {
       type: String,
@@ -175,10 +144,8 @@ export default {
 
   data() {
     return {
-      rules: this.single
-        ? singleFormSchema.rules()
-        : multipleFormSchema.rules(),
-      model: {}
+      rules: formSchema.rules(),
+      model: formSchema.initialValues({})
     }
   },
 
@@ -187,24 +154,20 @@ export default {
       return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.invitationToken}`
     },
 
-    formSchema() {
-      return this.single
-        ? singleFormSchema
-        : multipleFormSchema
-    },
-
     fields() {
       return fields
+    },
+    hasFormChanged() {
+      return !isEqual(
+        this.model,
+        formSchema.initialValues({})
+      )
     }
-  },
-
-  async created() {
-    this.model = this.formSchema.initialValues()
   },
 
   methods: {
     doReset() {
-      this.model = this.formSchema.initialValues()
+      this.model = formSchema.initialValues()
       this.$refs.form.resetFields()
     },
 
@@ -224,7 +187,7 @@ export default {
         return
       }
 
-      const values = this.formSchema.cast(this.model)
+      const values = formSchema.cast(this.model)
 
       if (values.email) {
         values.emails = [values.email]
