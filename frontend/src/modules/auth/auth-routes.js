@@ -13,8 +13,6 @@ const ForgotPasswordPage = () =>
 const EmailUnverifiedPage = () =>
   import('@/modules/auth/pages/email-unverified-page.vue')
 
-const AuthTenantPage = () =>
-  import('@/modules/auth/components/tenant-page.vue')
 const ProfileFormPage = () =>
   import('@/modules/auth/pages/profile-form-page.vue')
 const PasswordResetPage = () =>
