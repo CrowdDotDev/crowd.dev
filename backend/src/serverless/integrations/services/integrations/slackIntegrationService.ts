@@ -34,7 +34,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   static maxRetrospect: number = SLACK_CONFIG.maxRetrospectInSeconds || 3600
 
   constructor() {
-    super(IntegrationType.SLACK, 3)
+    super(IntegrationType.SLACK, 20)
 
     this.globalLimit = SLACK_CONFIG.globalLimit || 0
   }

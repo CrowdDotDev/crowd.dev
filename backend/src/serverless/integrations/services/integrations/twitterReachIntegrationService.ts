@@ -22,7 +22,7 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
   static readonly TWITTER_API_MAX_USERNAME_LENGTH = 15
 
   constructor() {
-    super(IntegrationType.TWITTER_REACH, 2)
+    super(IntegrationType.TWITTER_REACH, 24 * 60)
   }
 
   async preprocess(context: IStepContext): Promise<void> {

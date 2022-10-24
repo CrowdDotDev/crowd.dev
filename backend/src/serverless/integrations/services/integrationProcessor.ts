@@ -54,20 +54,22 @@ export class IntegrationProcessor {
     for (const intService of this.integrationServices) {
       let trigger = false
 
-      if (intService.ticksBetweenChecks === 0) {
+      if (intService.ticksBetweenChecks < 0) {
+        this.log.info({ type: intService.type }, 'Integration is set to never be triggered.')
+      } else if (intService.ticksBetweenChecks === 0) {
         this.log.info({ type: intService.type }, 'Integration is set to be always triggered.')
         trigger = true
-      }
+      } else {
+        this.tickTrackingMap[intService.type]++
 
-      this.tickTrackingMap[intService.type]++
-
-      if (this.tickTrackingMap[intService.type] === intService.ticksBetweenChecks) {
-        this.log.info(
-          { type: intService.type, tickCount: intService.ticksBetweenChecks },
-          'Integration is being triggered since it reached its target tick count!',
-        )
-        trigger = true
-        this.tickTrackingMap[intService.type] = 0
+        if (this.tickTrackingMap[intService.type] === intService.ticksBetweenChecks) {
+          this.log.info(
+            { type: intService.type, tickCount: intService.ticksBetweenChecks },
+            'Integration is being triggered since it reached its target tick count!',
+          )
+          trigger = true
+          this.tickTrackingMap[intService.type] = 0
+        }
       }
 
       if (trigger) {

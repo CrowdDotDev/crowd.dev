@@ -46,7 +46,7 @@ enum GithubStreamType {
 
 export class GithubIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.GITHUB, 3)
+    super(IntegrationType.GITHUB, -1)
 
     this.globalLimit = GITHUB_CONFIG.globalLimit || 0
   }

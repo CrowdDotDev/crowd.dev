@@ -30,7 +30,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   static maxRetrospect: number = TWITTER_CONFIG.maxRetrospectInSeconds || 7380
 
   constructor() {
-    super(IntegrationType.TWITTER, 2)
+    super(IntegrationType.TWITTER, 30)
 
     this.globalLimit = TWITTER_CONFIG.globalLimit || 0
     this.onboardingLimitModifierFactor = 0.7

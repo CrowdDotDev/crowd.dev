@@ -32,7 +32,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   static readonly MAX_RETROSPECT = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
   constructor() {
-    super(IntegrationType.DISCORD, 3)
+    super(IntegrationType.DISCORD, 20)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60

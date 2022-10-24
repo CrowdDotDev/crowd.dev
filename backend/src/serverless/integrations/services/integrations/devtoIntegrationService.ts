@@ -30,7 +30,7 @@ import Operations from '../../../dbOperations/operations'
 
 export class DevtoIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.DEVTO, 3)
+    super(IntegrationType.DEVTO, 20)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {

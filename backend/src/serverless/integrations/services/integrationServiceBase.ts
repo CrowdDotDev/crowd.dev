@@ -34,7 +34,7 @@ export abstract class IntegrationServiceBase {
    * Every new integration should extend this class and implement its methods.
    *
    * @param type What integration is this?
-   * @param ticksBetweenChecks How many ticks to skip between each integration checks (each tick is 1 minute)
+   * @param ticksBetweenChecks How many ticks to skip between each integration checks (each tick is 1 minute). If 0 it will be triggered every tick same as if it was 1. If negative it will never be triggered.
    */
   protected constructor(
     public readonly type: IntegrationType,
