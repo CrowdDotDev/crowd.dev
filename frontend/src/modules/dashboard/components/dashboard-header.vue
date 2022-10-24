@@ -8,7 +8,6 @@
         <span class="text-brand-500">{{
           currentTenant.name
         }}</span>
-        community
       </h4>
       <app-dashboard-filters />
     </div>
