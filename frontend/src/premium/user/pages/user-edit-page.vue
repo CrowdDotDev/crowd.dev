@@ -150,7 +150,6 @@ export default {
     },
 
     async doSubmit() {
-      console.log(this.model)
       try {
         await this.$refs.form.validate()
       } catch (error) {

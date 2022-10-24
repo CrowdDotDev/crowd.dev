@@ -11,8 +11,6 @@
       </template>
     </app-dialog>
 
-    <!-- TODO: Check if filter button is to be removed -->
-    <app-user-list-filter></app-user-list-filter>
     <app-user-list-table
       @invite="inviting = true"
     ></app-user-list-table>
@@ -20,8 +18,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import UserListFilter from '@/premium/user/components/list/user-list-filter.vue'
+import { mapGetters, mapActions } from 'vuex'
 import UserListTable from '@/premium/user/components/list/user-list-table.vue'
 import UserNewPage from '@/premium/user/pages/user-new-page.vue'
 import { UserPermissions } from '@/premium/user/user-permissions'
@@ -30,7 +27,6 @@ export default {
   name: 'AppUserListPage',
 
   components: {
-    'app-user-list-filter': UserListFilter,
     'app-user-list-table': UserListTable,
     'app-user-new-page': UserNewPage
   },
@@ -52,6 +48,16 @@ export default {
         this.currentUser
       ).create
     }
+  },
+
+  async mounted() {
+    await this.doFetch()
+  },
+
+  methods: {
+    ...mapActions({
+      doFetch: 'user/list/doFetch'
+    })
   }
 }
 </script>
