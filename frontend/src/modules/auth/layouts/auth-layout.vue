@@ -37,7 +37,7 @@ export default {
   position: fixed;
   top: 24px;
   left: 24px;
-  height: calc(100vh - 48px);
+  min-height: calc(100vh - 48px);
 
   @media (max-width: 991px) {
     display: none;
