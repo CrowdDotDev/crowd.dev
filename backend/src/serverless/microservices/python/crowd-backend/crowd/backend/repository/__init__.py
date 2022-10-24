@@ -1,4 +1,3 @@
-__version__ = "0.0.7"
 from .repository import Repository  # noqa
 from ..infrastructure import KUBE_MODE
 

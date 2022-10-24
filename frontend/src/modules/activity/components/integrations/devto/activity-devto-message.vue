@@ -18,10 +18,7 @@
     class="text-brand-500"
     target="_blank"
   >
-    {{
-      activity.articleTitle ||
-      activity.attributes.articleTitle
-    }}
+    {{ activity.title || activity.attributes.articleTitle }}
   </a>
 </template>
 

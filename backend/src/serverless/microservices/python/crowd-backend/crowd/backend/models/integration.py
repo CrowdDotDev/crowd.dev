@@ -29,13 +29,7 @@ class Integration(Base):
     deletedAt = Column(DateTime)
 
     tenantId = Column(String, ForeignKey("tenants.id"), nullable=False)
-    # parentTenant = relationship("Tenant", back_populates="integrations")
-
-    createdById = Column(String, ForeignKey("users.id"))
-    updatedById = Column(String, ForeignKey("users.id"))
-
-    parentUser = relationship("User", foreign_keys=[createdById])
-    updateParentUser = relationship("User", foreign_keys=[updatedById])
+    parentTenant = relationship("Tenant", back_populates="integrations")
 
     @validates("importHash")
     def validate_importHash(self, key, value):

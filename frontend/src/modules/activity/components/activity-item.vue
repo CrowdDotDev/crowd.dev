@@ -58,21 +58,10 @@
                   >{{ timeAgo }}</span
                 >
                 <span v-if="sentiment" class="mx-1">·</span>
-                <el-tooltip
+                <app-activity-sentiment
                   v-if="sentiment"
-                  effect="dark"
-                  :content="`Confidence ${sentiment}%`"
-                  placement="top"
-                >
-                  <i
-                    v-if="sentiment >= 50"
-                    class="ri-emotion-happy-line text-green-600 text-base"
-                  ></i>
-                  <i
-                    v-else
-                    class="ri-emotion-unhappy-line text-red-500 text-base"
-                  ></i>
-                </el-tooltip>
+                  :sentiment="sentiment"
+                />
               </p>
             </div>
           </div>
@@ -99,7 +88,7 @@
         </div>
         <!-- member name -->
         <div
-          v-if="activity.title && activity.body"
+          v-if="activity.title || activity.body"
           class="pt-6"
         >
           <app-activity-content
@@ -114,17 +103,7 @@
             :display-thread="false"
           >
             <div v-if="activity.url" class="pt-6">
-              <a
-                :href="activity.url"
-                class="text-2xs text-gray-600 font-medium flex items-center"
-                target="_blank"
-                ><i
-                  class="ri-lg ri-external-link-line mr-1"
-                ></i>
-                <span class="block"
-                  >Open on {{ platform.name }}</span
-                ></a
-              >
+              <app-activity-link :activity="activity" />
             </div>
           </app-activity-content>
         </div>
@@ -141,15 +120,19 @@ import AppActivityDropdown from '@/modules/activity/components/activity-dropdown
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppActivityLink from '@/modules/activity/components/activity-link'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
-  name: 'AppDashboardActivitiesItem',
+  name: 'AppActivityItem',
   components: {
+    AppActivityLink,
     AppActivityContent,
     AppActivityMessage,
     AppLoading,
     AppActivityDropdown,
-    AppAvatar
+    AppAvatar,
+    AppActivitySentiment
   },
   props: {
     activity: {
@@ -168,6 +151,7 @@ export default {
       default: true
     }
   },
+  emits: ['openConversation'],
   computed: {
     platform() {
       return integrationsJsonArray.find(
@@ -183,13 +167,7 @@ export default {
   },
   methods: {
     openConversation(conversationId) {
-      // TODO: refactor this to open conversation details drawer once its done
-      this.$router.push({
-        name: 'conversationView',
-        params: {
-          id: conversationId
-        }
-      })
+      this.$emit('openConversation', conversationId)
     }
   }
 }

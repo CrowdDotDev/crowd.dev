@@ -90,7 +90,19 @@ components:
             handle:
               description: The Crunchbase handle for the organization.
               type: string
-
+        activeOn:
+          description: List of platforms the organization members are active on.
+          type: array
+          items:
+            type: string
+        identities:
+          description: List of platforms the organization members have identities in.
+          type: array
+          items:
+            type: string
+        memberCount:
+          description: Number of members organization has.
+          type: integer
         createdAt:
           description: Date the organization was created.
           type: string

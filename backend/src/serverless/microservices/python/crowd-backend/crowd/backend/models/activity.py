@@ -39,12 +39,6 @@ class Activity(Base):
     tenantId = Column(String, ForeignKey("tenants.id"), nullable=False)
     parentTenant = relationship("Tenant", back_populates="activities")
 
-    createdById = Column(String, ForeignKey("users.id"))
-    updatedById = Column(String, ForeignKey("users.id"))
-
-    parentUser = relationship("User", foreign_keys=[createdById])
-    updateParentUser = relationship("User", foreign_keys=[updatedById])
-
     # validation
     @validates("type")
     def validate_type(self, key, value):

@@ -17,7 +17,7 @@
         <app-avatar :entity="member" size="xs" />
         <slot name="underAvatar"></slot>
       </div>
-      <div class="flex-grow pl-3">
+      <div class="flex-grow pl-3" :class="bodyClasses">
         <div class="flex items-center h-5">
           <p class="text-2xs leading-5 text-gray-500">
             <span>{{ member.displayName }}</span>
@@ -25,27 +25,22 @@
             <span>{{ timeAgo(activity.timestamp) }}</span>
             <span class="mx-1">·</span>
           </p>
-          <el-tooltip
-            effect="dark"
-            :content="`Confidence ${sentiment}%`"
-            placement="top"
-          >
-            <i
-              v-if="sentiment >= 50"
-              class="ri-emotion-happy-line text-green-600 text-base"
-            ></i>
-            <i
-              v-else
-              class="ri-emotion-unhappy-line text-red-500 text-base"
-            ></i>
-          </el-tooltip>
+          <app-activity-sentiment
+            v-if="sentiment"
+            :sentiment="sentiment"
+          />
         </div>
         <div>
           <app-activity-content
             :activity="activity"
             :display-thread="false"
             :display-title="false"
-            class="text-sm text-limit-1"
+            class="text-sm"
+            :class="{
+              'text-limit-1': !displayContent && !showMore
+            }"
+            :show-more="showMore"
+            :limit="limit"
           />
         </div>
       </div>
@@ -58,11 +53,13 @@ import AppAvatar from '@/shared/avatar/avatar'
 import computedTimeAgo from '@/utils/time-ago'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppConversationReply',
   components: {
     AppActivityContent,
+    AppActivitySentiment,
     AppLoading,
     AppAvatar
   },
@@ -76,6 +73,26 @@ export default {
       type: Boolean,
       required: false,
       default: false
+    },
+    bodyClasses: {
+      type: String,
+      required: false,
+      default: ''
+    },
+    displayContent: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    showMore: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    limit: {
+      type: Number,
+      required: false,
+      default: 4
     }
   },
   computed: {

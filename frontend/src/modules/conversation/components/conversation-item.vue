@@ -4,7 +4,7 @@
   </article>
   <article
     v-else
-    class="panel mb-6"
+    class="panel mb-6 cursor-pointer"
     @click="openConversation()"
   >
     <div class="flex items-center pb-8">
@@ -47,21 +47,10 @@
               >
               <span v-if="sentiment" class="mx-1">·</span>
               <!-- conversation starter sentiment -->
-              <el-tooltip
+              <app-activity-sentiment
                 v-if="sentiment"
-                effect="dark"
-                :content="`Confidence ${sentiment}%`"
-                placement="top"
-              >
-                <i
-                  v-if="sentiment >= 50"
-                  class="ri-emotion-happy-line text-green-600 text-base"
-                ></i>
-                <i
-                  v-else
-                  class="ri-emotion-unhappy-line text-red-500 text-base"
-                ></i>
-              </el-tooltip>
+                :sentiment="sentiment"
+              />
             </p>
           </div>
         </div>
@@ -103,8 +92,8 @@
       >
         <template #underAvatar>
           <div
-            v-if="ri < conversation.length - 1"
-            class="h-4 w-0.5 bg-gray-300 my-2"
+            v-if="ri < conversation.lastReplies.length - 1"
+            class="h-4 w-0.5 bg-gray-200 my-2"
           ></div>
         </template>
       </app-conversation-reply>
@@ -138,17 +127,9 @@
         </div>
       </div>
       <div>
-        <a
-          v-if="conversation.conversationStarter.url"
-          :href="conversation.conversationStarter.url"
-          class="text-xs text-gray-600 font-medium flex items-center"
-          target="_blank"
-          @click.stop
-          ><i class="ri-lg ri-external-link-line mr-1"></i>
-          <span class="block"
-            >Open on {{ platform.name }}</span
-          ></a
-        >
+        <app-activity-link
+          :activity="conversation.conversationStarter"
+        />
       </div>
     </div>
   </article>
@@ -162,13 +143,17 @@ import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
+import AppActivityLink from '@/modules/activity/components/activity-link'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppConversationItem',
   components: {
+    AppActivityLink,
     AppActivityMessage,
     AppConversationReply,
     AppActivityContent,
+    AppActivitySentiment,
     AppLoading,
     AppAvatar
   },
@@ -184,6 +169,7 @@ export default {
       default: false
     }
   },
+  emits: ['details'],
   computed: {
     platform() {
       return integrationsJsonArray.find(
@@ -206,11 +192,7 @@ export default {
       return computedTimeAgo(date)
     },
     openConversation() {
-      // TODO: Change this with conversation drawer once its finished
-      this.$router.push({
-        name: 'conversationView',
-        params: { id: this.conversation.id }
-      })
+      this.$emit('details', this.conversation.id)
     }
   }
 }

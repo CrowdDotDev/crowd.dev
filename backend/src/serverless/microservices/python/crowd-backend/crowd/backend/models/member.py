@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Table
 from .base import Base
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from crowd.backend.models.user import User
+
 
 association_noMerge_table = Table(
     "memberNoMerge",
@@ -28,16 +28,11 @@ class Member(Base):
     __tablename__ = "members"  # Table name in database
 
     id = Column(String, primary_key=True)
+    displayName = Column(String, nullable=False)
     username = Column(JSONB, nullable=False)
-    type = Column(String, nullable=False, default="member")
-    info = Column(JSONB, default={})
-    crowdInfo = Column(JSONB, default={})
+    attributes = Column(JSONB, default={})
     email = Column(String)
     score = Column(Integer, default=-1)
-    bio = Column(String)
-    organisation = Column(String)
-    location = Column(String)
-    signals = Column(String)
     joinedAt = Column(DateTime, nullable=False)
     importHash = Column(String, nullable=True)
     createdAt = Column(DateTime)
@@ -46,12 +41,6 @@ class Member(Base):
 
     tenantId = Column(String, ForeignKey("tenants.id"), nullable=False)
     parentTenant = relationship("Tenant", back_populates="members")
-
-    createdById = Column(String, ForeignKey("users.id"))
-    updatedById = Column(String, ForeignKey("users.id"))
-
-    parentUser = relationship("User", foreign_keys=[createdById])
-    updateParentUser = relationship("User", foreign_keys=[updatedById])
 
     # relationships
     activities = relationship("Activity", back_populates="parentMember", lazy="dynamic")

@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import moment from 'moment'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -98,10 +99,11 @@ class OrganizationRepository {
         transaction,
       },
     )
-
-    await record.setMembers(data.members || [], {
-      transaction,
-    })
+    if (data.members) {
+      await record.setMembers(data.members || [], {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -264,26 +266,22 @@ class OrganizationRepository {
             // through: {
             //   attributes: [],
             // },
-          }
+          },
         ],
-        
-
       },
     ]
 
-    const platforms = Sequelize.literal(
+    const activeOn = Sequelize.literal(
       `array_agg( distinct  ("members->activities".platform) )  filter (where "members->activities".platform is not null)`,
     )
 
-    const lastActive = Sequelize.literal(
-      `MAX("members->activities".timestamp)`,
+    const identities = Sequelize.literal(
+      `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
+    const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
+    const joinedAt = Sequelize.literal(`MIN("members->activities".timestamp)`)
 
-    const memberCount = Sequelize.fn(
-      'COUNT',
-      Sequelize.col('members.id'),
-    )
-
+    const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -450,8 +448,9 @@ class OrganizationRepository {
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
-
-
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('joinedAt', orderBy),
+    )
 
     const parser = new QueryParser(
       {
@@ -490,9 +489,11 @@ class OrganizationRepository {
             ],
             'organization',
           ),
-          platforms,
+          activeOn,
+          identities,
           lastActive,
-          memberCount
+          joinedAt,
+          memberCount,
         },
         manyToMany: {
           members: {
@@ -557,9 +558,11 @@ class OrganizationRepository {
           ],
           'organization',
         ),
-        [platforms, 'platforms'],
+        [activeOn, 'activeOn'],
+        [identities, 'identities'],
         [lastActive, 'lastActive'],
-        [memberCount, 'memberCount']
+        [joinedAt, 'joinedAt'],
+        [memberCount, 'memberCount'],
       ],
       order,
       limit: parsed.limit,
@@ -637,9 +640,10 @@ class OrganizationRepository {
     }
 
     return rows.map((record) => {
-        const rec = record.get({ plain: true })
-        return rec
-      })
+      const rec = record.get({ plain: true })
+      rec.activeOn = rec.activeOn ?? []
+      return rec
+    })
   }
 
   static async _populateRelations(record, options: IRepositoryOptions) {
@@ -653,11 +657,34 @@ class OrganizationRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.memberCount = (
-      await record.getMembers({
-        transaction,
-      })
-    ).length
+    const members = await record.getMembers({
+      include: ['activities'],
+      transaction,
+    })
+
+    output.activeOn = [
+      ...new Set(
+        members
+          .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+          .map((a) => a.platform),
+      ),
+    ]
+
+    const activities = members
+      .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
+      .map((i) => i.timestamp)
+
+    output.lastActive = activities.length > 0 ? moment(Math.max(activities)).toDate() : null
+
+    output.joinedAt = activities.length > 0 ? moment(Math.min(activities)).toDate() : null
+
+    output.identities = [
+      ...new Set(
+        members.reduce((acc, m) => acc.concat(...Object.keys(m.get({ plain: true }).username)), []),
+      ),
+    ]
+
+    output.memberCount = members.length
 
     return output
   }

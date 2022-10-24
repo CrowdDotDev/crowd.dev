@@ -100,7 +100,6 @@
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
     "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
   },
-
   "discord": {
     "token": "CROWD_DISCORD_TOKEN"
   },

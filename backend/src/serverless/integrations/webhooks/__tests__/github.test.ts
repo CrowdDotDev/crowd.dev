@@ -53,7 +53,7 @@ describe('Github webhooks tests', () => {
         name: 'Joan Reyero',
         url: 'https://github.com/joanreyero',
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -79,7 +79,7 @@ describe('Github webhooks tests', () => {
         url: 'https://github.com/joanreyero',
         twitterUsername: 'reyero',
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -115,7 +115,7 @@ describe('Github webhooks tests', () => {
         location: 'Cambridge, UK',
         twitterUsername: 'reyero',
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -135,7 +135,7 @@ describe('Github webhooks tests', () => {
           },
         },
         email: 'joan@crowd.dev',
-        organizations: ['@CrowdHQ'],
+        organizations: [{ name: 'crowd.dev' }],
       }
       expect(parsedMember).toStrictEqual(expected)
     })

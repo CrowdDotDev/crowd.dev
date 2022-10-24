@@ -132,6 +132,8 @@ describe('TenantService tests', () => {
       const tenantCreated = await new TenantService(options).create({
         name: 'testName',
         url: 'testUrl',
+        integrationsRequired: ['github', 'discord'],
+        communitySize: '>25000',
       })
 
       const tenantCreatedPlain = tenantCreated.get({ plain: true })
@@ -148,7 +150,9 @@ describe('TenantService tests', () => {
         planStripeCustomerId: null,
         planUserId: null,
         onboardedAt: null,
+        integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
+        communitySize: '>25000',
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
