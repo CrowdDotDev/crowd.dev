@@ -81,13 +81,6 @@ export default [
       }
     ]
   },
-  // TODO: remove this if unused
-  {
-    name: 'authTenant',
-    path: '/auth/tenant',
-    component: AuthTenantPage,
-    meta: { auth: true, notEmptyTenant: true }
-  },
   {
     name: '',
     path: '',
