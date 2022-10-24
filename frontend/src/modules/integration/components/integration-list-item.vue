@@ -13,6 +13,11 @@
         v-else-if="isConnected"
         class="flex items-center"
       >
+        <div
+          v-loading="true"
+          class="app-page-spinner h-4 w-4 mr-2"
+        ></div>
+
         <span class="text-xs text-gray-900 mr-2"
           >In progress</span
         >

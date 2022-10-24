@@ -12,6 +12,8 @@ source $CLI_HOME/utils
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
+_DC="docker-compose"
+
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../backend/.env.override.local"
@@ -27,6 +29,22 @@ function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../frontend/.env.override.composed" ]]; then
         echo "# Here you can put environment variables that you would like to override when using local environment" > "$CLI_HOME/../frontend/.env.override.composed"
     fi
+
+    set +eo pipefail
+
+    which $_DC >> /dev/null 2>&1
+
+    if [[ ! $? -eq 0 ]]; then 
+        _DC="docker compose"
+        which $_DC >> /dev/null 2>&1
+
+        if [[ ! $? -eq 0 ]]; then
+            error "Docker compose not detected!" 
+            exit 1
+        fi
+    fi
+
+    set -eo pipefail
 }
 
 prepare_dev_env
@@ -202,14 +220,14 @@ function start_service() {
     export GROUP_ID=$(id -g)
 
     if [[ ${DEV} ]]; then
-        docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}-dev
+        $_DC --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}-dev
     else
-        docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}
+        $_DC --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" up --build -d ${1}
     fi
 }
 
 function kill_containers() {
-    docker-compose --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" rm -fs ${1} ${1}-dev
+    $_DC --compatibility -p $PROJECT_NAME -f "$CLI_HOME/services/${1}.yaml" rm -fs ${1} ${1}-dev
 }
 
 function get_logs() {
@@ -269,14 +287,14 @@ function create_s3_buckets() {
 }
 
 function up_scaffold() {
-    scaffold_set_up_network && docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
+    scaffold_set_up_network && $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     apply_db_schema
     create_s3_buckets
 }
 
 function down_scaffold() {
-    docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
 }
 
 function scaffold_destroy() {
@@ -319,7 +337,7 @@ function kill_all_containers() {
 
 function scaffold_destroy_confirmed() {
     kill_all_containers
-    docker-compose --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml down
 
     # needed because if there are no volumes this might cause the script to exit
     set +eo pipefail

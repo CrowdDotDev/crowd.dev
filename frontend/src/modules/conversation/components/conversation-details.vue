@@ -67,21 +67,10 @@
               >
               <span v-if="sentiment" class="mx-1">·</span>
               <!-- conversation starter sentiment -->
-              <el-tooltip
+              <app-activity-sentiment
                 v-if="sentiment"
-                effect="dark"
-                :content="`Confidence ${sentiment}%`"
-                placement="top"
-              >
-                <i
-                  v-if="sentiment >= 50"
-                  class="ri-emotion-happy-line text-green-600 text-base"
-                ></i>
-                <i
-                  v-else
-                  class="ri-emotion-unhappy-line text-red-500 text-base"
-                ></i>
-              </el-tooltip>
+                :sentiment="sentiment"
+              />
             </p>
           </div>
         </div>
@@ -153,6 +142,7 @@
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivityContent from '@/modules/activity/components/activity-content'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
@@ -163,6 +153,7 @@ export default {
   components: {
     AppActivityMessage,
     AppConversationReply,
+    AppActivitySentiment,
     AppActivityContent,
     AppLoading,
     AppAvatar

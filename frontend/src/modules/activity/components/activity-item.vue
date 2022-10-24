@@ -58,21 +58,10 @@
                   >{{ timeAgo }}</span
                 >
                 <span v-if="sentiment" class="mx-1">·</span>
-                <el-tooltip
+                <app-activity-sentiment
                   v-if="sentiment"
-                  effect="dark"
-                  :content="`Confidence ${sentiment}%`"
-                  placement="top"
-                >
-                  <i
-                    v-if="sentiment >= 50"
-                    class="ri-emotion-happy-line text-green-600 text-base"
-                  ></i>
-                  <i
-                    v-else
-                    class="ri-emotion-unhappy-line text-red-500 text-base"
-                  ></i>
-                </el-tooltip>
+                  :sentiment="sentiment"
+                />
               </p>
             </div>
           </div>
@@ -132,6 +121,7 @@ import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityLink from '@/modules/activity/components/activity-link'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppActivityItem',
@@ -141,7 +131,8 @@ export default {
     AppActivityMessage,
     AppLoading,
     AppActivityDropdown,
-    AppAvatar
+    AppAvatar,
+    AppActivitySentiment
   },
   props: {
     activity: {

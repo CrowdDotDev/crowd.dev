@@ -135,7 +135,7 @@ export function newOrganizationChart(period, platform) {
         measures: ['Organizations.count'],
         timeDimensions: [
           {
-            dimension: 'Organizations.createdat',
+            dimension: 'Organizations.joinedAt',
             granularity: 'day',
             dateRange: `Last ${period} days`
           }

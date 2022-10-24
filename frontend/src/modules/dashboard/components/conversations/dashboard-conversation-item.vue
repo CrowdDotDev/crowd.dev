@@ -79,20 +79,10 @@
                     <span class="mx-1">·</span>
                   </span>
                   <!-- sentiment -->
-                  <el-tooltip
-                    effect="dark"
-                    :content="`Confidence ${sentiment}%`"
-                    placement="top"
-                  >
-                    <i
-                      v-if="sentiment >= 50"
-                      class="ri-emotion-happy-line text-green-600 text-base"
-                    ></i>
-                    <i
-                      v-else
-                      class="ri-emotion-unhappy-line text-red-500 text-base"
-                    ></i>
-                  </el-tooltip>
+                  <app-activity-sentiment
+                    v-if="sentiment"
+                    :sentiment="sentiment"
+                  />
                 </div>
               </div>
             </div>
@@ -195,6 +185,7 @@ import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityChannel from '@/modules/activity/components/activity-channel'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppDashboardConversationItem',
@@ -204,7 +195,8 @@ export default {
     AppActivityChannel,
     AppLoading,
     AppConversationDropdown,
-    AppAvatar
+    AppAvatar,
+    AppActivitySentiment
   },
   props: {
     conversation: {

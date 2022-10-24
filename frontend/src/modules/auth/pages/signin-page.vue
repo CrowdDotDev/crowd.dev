@@ -81,16 +81,6 @@
             <app-i18n code="auth.signin"></app-i18n>
           </el-button>
         </el-form-item>
-
-        <!-- <div class="other-actions">
-                <router-link :to="{ path: '/auth/signup' }">
-                  <el-button type="text">
-                    <app-i18n
-                      code="auth.createAnAccount"
-                    ></app-i18n>
-                  </el-button>
-                </router-link>
-              </div> -->
       </el-form>
       <div class="flex items-center">
         <div class="flex-grow border-b border-gray-200" />
