@@ -118,7 +118,7 @@
       <el-button
         id="submit"
         class="btn btn--lg btn--primary"
-        :loading="saveLoading"
+        :loading="loading"
         @click="doSubmit()"
       >
         <span class="pr-3">Next step</span>
@@ -155,12 +155,12 @@ export default {
       model: {
         [fields.tenantPlatforms.name]: []
       },
-      selectedPlatforms: []
+      selectedPlatforms: [],
+      loading: false
     }
   },
   computed: {
     ...mapGetters('auth', ['currentTenant']),
-    ...mapGetters('tenant', ['saveLoading']),
 
     frontendUrlHost() {
       return `.${config.frontendUrl.host}`
@@ -197,6 +197,7 @@ export default {
       this.$refs.form
         .validate()
         .then(() => {
+          this.loading = true
           if (this.currentTenant) {
             return this.doUpdate({
               id: this.currentTenant.id,
@@ -206,6 +207,7 @@ export default {
           return this.doCreate(this.model)
         })
         .then(() => {
+          this.loading = false
           this.$emit('saved')
         })
     }

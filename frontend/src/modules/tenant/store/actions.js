@@ -6,8 +6,7 @@ import { i18n } from '@/i18n'
 
 export default {
   ...sharedActions(TenantService),
-  async doCreate({ dispatch, commit, state }, values) {
-    state.saveLoading = true
+  async doCreate({ dispatch, commit }, values) {
     commit('CREATE_STARTED')
     return TenantService.create(values)
       .then((tenant) => {
@@ -17,35 +16,27 @@ export default {
         })
       })
       .then(() => {
-        state.saveLoading = false
         return true
       })
       .catch((error) => {
-        state.saveLoading = false
         Errors.handle(error)
         commit('CREATE_ERROR')
         return false
       })
   },
 
-  async doUpdate(
-    { commit, dispatch, state },
-    { id, values }
-  ) {
+  async doUpdate({ commit, dispatch }, { id, values }) {
     try {
-      state.saveLoading = true
       commit('UPDATE_STARTED')
 
       const tenant = await TenantService.update(id, values)
 
-      state.saveLoading = false
       commit('UPDATE_SUCCESS', tenant)
       Message.success(i18n('tenant.update.success'))
       await dispatch(`auth/doSelectTenant`, tenant, {
         root: true
       })
     } catch (error) {
-      state.saveLoading = false
       Errors.handle(error)
       commit('UPDATE_ERROR')
     }
