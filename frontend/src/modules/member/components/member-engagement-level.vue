@@ -10,10 +10,6 @@
         v-if="computedEngagementLevel.value === -1"
         class="inline-flex items-center justify-center"
       >
-        <div
-          v-loading="true"
-          class="app-page-spinner h-6 w-6 mr-2"
-        ></div>
         <span
           class="block mr-2 text-xs font-semibold text-gray-400"
           >Computing</span

@@ -102,10 +102,6 @@ export default (moduleService = null) => {
             )
             commit('CREATE_SUCCESS', response)
 
-            Message.success(
-              i18n('entities.member.create.success')
-            )
-
             return true
           } catch (error) {
             Message.error(

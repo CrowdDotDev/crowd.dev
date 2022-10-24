@@ -15,7 +15,10 @@ export default {
         operator: 'and',
         attributes: {}
       },
-      sorter: {},
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
       active: true
     },
     {
@@ -29,7 +32,10 @@ export default {
         }
       ],
       filter: INITIAL_VIEW_ACTIVE_FILTER,
-      sorter: {},
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
       active: false
     },
     {

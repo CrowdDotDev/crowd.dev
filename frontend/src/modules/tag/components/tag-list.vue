@@ -1,11 +1,13 @@
 <template>
   <div>
-    <div class="inline-flex items-center flex-wrap">
+    <div
+      class="inline-flex items-center overflow-x-scroll w-full"
+    >
       <span
-        v-for="tag in member.tags"
+        v-for="tag in computedTags"
         :key="tag.id"
         class="tag mr-2 my-1"
-        >{{ tag.name }}</span
+        >{{ getTagName(tag) }}</span
       >
       <el-button
         v-if="editable"
@@ -27,8 +29,6 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
-import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { MemberModel } from '@/modules/member/member-model'
@@ -65,6 +65,14 @@ export default {
     }
   },
   computed: {
+    computedTags() {
+      return this.member.tags.length <= 3
+        ? this.member.tags
+        : this.member.tags.slice(0, 3).concat({
+            id: 'more',
+            name: `+${this.member.tags.length - 3}`
+          })
+    },
     fields() {
       return fields
     },
@@ -101,10 +109,12 @@ export default {
       })
       this.loading = false
       this.editing = false
-      Message.success(
-        i18n('entities.member.update.success')
-      )
       this.$emit('tags-updated')
+    },
+    getTagName(tag) {
+      return tag.name.length > 10
+        ? `${tag.name.slice(0, 10)}...`
+        : tag.name
     }
   }
 }
