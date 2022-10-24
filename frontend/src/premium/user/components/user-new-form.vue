@@ -79,7 +79,9 @@
                 content="Copy to Clipboard"
                 placement="top"
               >
-                <el-button @click="copyToClipboard('token')"
+                <el-button
+                  class="append-icon"
+                  @click="copyToClipboard('token')"
                   ><i class="ri-clipboard-line"></i
                 ></el-button>
               </el-tooltip>

@@ -30,6 +30,7 @@
               placement="top"
             >
               <el-button
+                class="append-icon"
                 @click="copyToClipboard('tenantId')"
               >
                 <i class="ri-file-copy-line"></i>
@@ -51,7 +52,10 @@
               content="Show Auth Token"
               placement="top"
             >
-              <el-button @click="onShowToken">
+              <el-button
+                class="append-icon"
+                @click="onShowToken"
+              >
                 <i class="ri-eye-line"></i>
               </el-button>
             </el-tooltip>
