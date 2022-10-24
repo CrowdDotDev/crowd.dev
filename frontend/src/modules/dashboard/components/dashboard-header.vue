@@ -63,7 +63,7 @@ export default {
   },
   methods: {
     lastUpdated(resultSet) {
-      const format = 'YYYY-M-D hh:mm'
+      const format = 'YYYY-M-D HH:mm'
       if (resultSet.loadResponses.length > 0) {
         const refreshTime =
           resultSet.loadResponses[0].lastRefreshTime
