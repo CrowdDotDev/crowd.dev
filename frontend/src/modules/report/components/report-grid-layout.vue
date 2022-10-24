@@ -102,6 +102,7 @@
             <app-widget-cube-renderer
               :editable="editable"
               :widget="widgets[item.i]"
+              :chart-options="chartOptions(widgets[item.i])"
               @edit="handleWidgetEdit(widgets[item.i])"
               @duplicate="
                 handleWidgetDuplicate(widgets[item.i])
@@ -159,7 +160,14 @@ export default {
         action: null,
         model: {}
       },
-      layout: []
+      layout: [],
+      defaultChartOptions: {
+        legend: false,
+        curve: false,
+        points: false,
+        colors: ['#E94F2E'],
+        loading: 'Loading...'
+      }
     }
   },
 
@@ -192,6 +200,48 @@ export default {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
+    chartOptions(widget) {
+      console.log(widget)
+      let chartTypeOptions = {}
+      const type = widget.settings.chartType
+      if (type === 'area') {
+        chartTypeOptions = {
+          computeDataset: (canvas) => {
+            const ctx = canvas.getContext('2d')
+            const gradient = ctx.createLinearGradient(
+              0,
+              150,
+              0,
+              300
+            )
+            gradient.addColorStop(0, 'rgba(253,237, 234,1)')
+            gradient.addColorStop(1, 'rgba(253,237, 234,0)')
+            return { backgroundColor: gradient }
+          }
+        }
+      } else if (type === 'bar') {
+        chartTypeOptions = {
+          computeDataset: (canvas) => {
+            const ctx = canvas.getContext('2d')
+            const gradient = ctx.createLinearGradient(
+              0,
+              150,
+              0,
+              300
+            )
+            gradient.addColorStop(0, 'rgba(253,237, 234,1)')
+            gradient.addColorStop(1, 'rgba(253,237, 234,0)')
+            // ctx.fillStyle = gradient
+            // ctx.fillRect(20, 20, 150, 100)
+            return { backgroundColor: gradient }
+          }
+        }
+      }
+      return {
+        ...this.defaultChartOptions,
+        ...chartTypeOptions
+      }
+    },
     handleAddWidgetClick() {
       this.widgetModal = {
         visible: true,
