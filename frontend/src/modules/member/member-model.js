@@ -50,6 +50,10 @@ const fields = {
     label('activities'),
     {}
   ),
+  reach: new IntegerField('reach', label('reach'), {
+    required: false,
+    filterable: true
+  }),
   info: new JsonField('info', label('info')),
   tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true

@@ -407,7 +407,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -438,7 +438,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771841',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -493,7 +493,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -564,7 +564,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -595,7 +595,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -648,7 +648,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },
@@ -679,7 +679,7 @@ describe('Integrations worker static tests', () => {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.TWITTER]: '1466796521412771840',
               },
-              [MemberAttributeName.IMAGE_URL]: {
+              [MemberAttributeName.AVATAR_URL]: {
                 [PlatformType.TWITTER]:
                   'https://pbs.twimg.com/profile_images/1478302204306067462/5BEbrnPO_normal.jpg',
               },

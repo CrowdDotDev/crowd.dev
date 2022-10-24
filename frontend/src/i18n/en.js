@@ -195,6 +195,7 @@ const en = {
         email: 'Email',
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
+        reach: 'Reach',
         joinedAt: 'Member since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',

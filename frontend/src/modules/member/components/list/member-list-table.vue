@@ -96,7 +96,17 @@
             <app-member-last-activity :member="scope.row" />
           </template>
         </el-table-column>
-
+        <el-table-column
+          v-if="showReach"
+          label="Reach"
+          prop="reach"
+          width="150"
+          sortable="custom"
+        >
+          <template #default="scope">
+            <app-member-reach :member="scope.row" />
+          </template>
+        </el-table-column>
         <el-table-column label="Identities" width="200">
           <template #default="scope">
             <app-member-channels
@@ -156,6 +166,7 @@ import AppMemberListToolbar from '@/modules/member/components/list/member-list-t
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
 import AppMemberChannels from '../member-channels'
+import AppMemberReach from '../member-reach.vue'
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import AppMemberLastActivity from '../member-last-activity'
@@ -167,6 +178,13 @@ const table = ref(null)
 const extraColumns = computed(
   () => store.getters['member/activeView']?.columns || []
 )
+const integrations = computed(
+  () => store.getters['integration/activeList'] || {}
+)
+
+const showReach = computed(() => {
+  return integrations.value.twitter?.status === 'done'
+})
 
 const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)
@@ -200,7 +218,10 @@ const pagination = computed(
   () => store.getters['member/pagination']
 )
 
-onMounted(() => {
+onMounted(async () => {
+  if (store.state.integration.count === 0) {
+    await store.dispatch('integration/doFetch')
+  }
   doMountTable(table.value)
 })
 
