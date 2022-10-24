@@ -56,6 +56,7 @@
           :reserve-keyword="false"
           placeholder="Select option(s)"
           @blur="$refs.tenantPlatforms.validate()"
+          @change="selectedPlatforms = $event"
         >
           <el-option
             v-for="integration in integrationsJsonArray"
@@ -175,6 +176,8 @@ export default {
       handler(tenant) {
         if (tenant) {
           this.model = tenant
+          this.selectedPlatforms =
+            tenant[fields.tenantPlatforms.name] || []
         }
       }
     }
