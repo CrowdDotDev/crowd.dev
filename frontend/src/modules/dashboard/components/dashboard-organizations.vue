@@ -42,10 +42,7 @@
         <!-- difference in period -->
         <app-dashboard-count
           :loading="organizations.loadingRecent"
-          :query="
-            newOrganizationChart(period * 2, platform)
-              .settings.query
-          "
+          :query="newOrganizationCount"
         />
         <!-- Chart -->
         <div
@@ -110,10 +107,7 @@
         <!-- difference in period -->
         <app-dashboard-count
           :loading="organizations.loadingActive"
-          :query="
-            activeOrganizationChart(period * 2, platform)
-              .settings.query
-          "
+          :query="activeOrganizationCount"
         />
         <!-- Chart -->
         <div
@@ -179,15 +173,17 @@ import {
   newOrganizationChart,
   activeOrganizationChart,
   chartOptions,
-  hideLabels
+  hideLabels,
+  newOrganizationCount,
+  activeOrganizationCount
 } from '@/modules/dashboard/dashboard.cube'
-import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item'
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 export default {
   name: 'AppDashboardOrganizations',
   components: {
-    AppDashboardOrganizationItem,
     AppDashboardCount,
+    AppDashboardOrganizationItem,
     AppWidgetCubeRenderer,
     AppDashboardTab
   },
@@ -196,6 +192,8 @@ export default {
       tab: 'new',
       newOrganizationChart,
       activeOrganizationChart,
+      newOrganizationCount,
+      activeOrganizationCount,
       chartOptions,
       hideLabels
     }
