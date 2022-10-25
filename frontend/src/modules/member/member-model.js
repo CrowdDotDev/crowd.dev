@@ -10,6 +10,7 @@ import { TagField } from '@/modules/tag/tag-field'
 import IntegerField from '@/shared/fields/integer-field'
 import MemberEngagementLevelField from './member-engagement-level-field'
 import SearchField from '@/shared/fields/search-field'
+import MemberIdentitiesField from './member-identities-field'
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
@@ -33,6 +34,20 @@ const fields = {
     'displayName',
     label('fullName')
   ),
+  identities: new MemberIdentitiesField(
+    'identities',
+    label('identities'),
+    {
+      filterable: true
+    }
+  ),
+  activeOn: new MemberIdentitiesField(
+    'activeOn',
+    label('activeOn'),
+    {
+      filterable: true
+    }
+  ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform'), {
     required: true
@@ -42,6 +57,10 @@ const fields = {
     label('activities'),
     {}
   ),
+  reach: new IntegerField('reach', label('reach'), {
+    required: false,
+    filterable: true
+  }),
   info: new JsonField('info', label('info')),
   tags: TagField.relationToMany('tags', label('tags'), {
     filterable: true

@@ -3,6 +3,7 @@
     code="entities.activity.devto.commented"
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
+    :class="{ truncate: short }"
   ></app-i18n>
   <span>&nbsp;on a&nbsp;</span>
   <app-i18n

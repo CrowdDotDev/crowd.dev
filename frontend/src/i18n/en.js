@@ -195,10 +195,13 @@ const en = {
         email: 'Email',
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
+        reach: 'Reach',
         joinedAt: 'Member since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
+        identities: 'Identities',
+        activeOn: 'Active On'
       },
       enumerators: {},
       placeholders: {},

@@ -161,7 +161,6 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['currentTenant']),
-
     frontendUrlHost() {
       return `.${config.frontendUrl.host}`
     },
