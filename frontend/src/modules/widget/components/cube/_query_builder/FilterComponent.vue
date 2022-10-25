@@ -1,104 +1,95 @@
 <template>
-  <div class="filter-container">
+  <div class="widget-filter-container">
     <div class="flex items-center justify-between">
-      <div class="text-base">
-        <span class="font-semibold">Add filters</span>
-        (optional)
-      </div>
-      <span
-        class="flex items-center ml-2 hover:opacity-80 text-blue-500 cursor-pointer"
-      >
-        <i class="flex items-center ri-add-line mr-1"></i
-        ><span class="leading-none block" @click="addFilter"
-          >Add new</span
-        >
-      </span>
+      <div class="font-semibold text-sm">Filters</div>
     </div>
-    <div v-if="localFilters.length === 0">
-      <span class="text-gray-400 italic font-light"
-        >There are no active filters</span
-      >
-    </div>
-    <div v-else class="mt-2">
-      <div class="flex -mx-3">
-        <div class="px-3 flex-1 grow">
-          <label class="block leading-none mb-2"
-            >Measure/Dimension</label
-          >
+    <div class="mt-2">
+      <div class="flex -mx-2">
+        <div class="flex-1 grow h-0">
+          <label class="block leading-none mb-2"></label>
         </div>
-        <div class="px-3 flex-1 grow">
-          <label class="block leading-none mb-2"
-            >Condition</label
-          >
+        <div class="flex-1 grow h-0">
+          <label class="block leading-none mb-2"></label>
         </div>
-        <div class="px-3 flex-1 grow">
-          <label class="block leading-none mb-2"
-            >Value</label
-          >
+        <div class="flex-1 grow h-0">
+          <label class="block leading-none mb-2"></label>
         </div>
-        <div class="px-3 shrink">
+        <div class="shrink h-0">
           <span class="w-1 block">&nbsp;</span>
         </div>
       </div>
       <div
         v-for="(filter, index) in localFilters"
         :key="filter.id"
-        class="flex -mx-3 -my-2 items-center"
+        class="flex -mx-2 mb-2 items-center"
       >
-        <div class="px-3 py-2 grow">
-          <el-select
-            v-model="filter.select"
-            clearable
-            filterable
-            @change="handleFilterChange"
-          >
-            <el-option
-              v-for="item in computedFilters"
-              :key="item.value"
-              :value="item.value"
-              :label="item.label"
-            ></el-option>
-          </el-select>
-        </div>
-
-        <div class="px-3 py-2 grow">
-          <el-select
-            v-model="filter.operator"
-            clearable
-            @change="handleFilterChange"
-          >
-            <el-option
-              v-for="actionItem in actionItems"
-              :key="actionItem.value"
-              :value="actionItem.value"
+        <div class="input-group mx-2">
+          <div class="grow">
+            <el-select
+              v-model="filter.select"
+              clearable
+              filterable
+              placeholder="Measure/dimension"
+              @change="handleFilterChange"
             >
-              {{ actionItem.text }}
-            </el-option>
-          </el-select>
-        </div>
+              <el-option
+                v-for="item in computedFilters"
+                :key="item.value"
+                :value="item.value"
+                :label="item.label"
+              ></el-option>
+            </el-select>
+          </div>
 
-        <div class="px-3 py-2 grow">
-          <el-input
-            v-model="filter.value"
-            type="text"
-            @change="handleFilterChange"
-          ></el-input>
+          <div class="grow">
+            <el-select
+              v-model="filter.operator"
+              clearable
+              placeholder="Condition"
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="actionItem in actionItems"
+                :key="actionItem.value"
+                :value="actionItem.value"
+              >
+                {{ actionItem.text }}
+              </el-option>
+            </el-select>
+          </div>
+
+          <div class="grow">
+            <el-input
+              v-model="filter.value"
+              type="text"
+              placeholder="Value"
+              @change="handleFilterChange"
+            ></el-input>
+          </div>
         </div>
-        <div class="px-3 py-2 shrink">
+        <div class="pr-2 shrink">
           <el-tooltip
             content="Delete Filter"
             placement="top"
           >
             <button
-              class="hover:opacity-80 flex items-center"
+              class="btn btn--transparent btn--md"
               type="button"
               @click.prevent="removeFilter(index)"
             >
-              <i class="ri-xl ri-delete-bin-line"></i>
+              <i class="ri-lg ri-delete-bin-line"></i>
             </button>
           </el-tooltip>
         </div>
       </div>
+      <span
+        class="flex items-center text-brand-500 hover:text-brand-700 cursor-pointer text-xs font-medium mt-2"
+      >
+        <i class="flex items-center ri-add-line mr-1"></i
+        ><span class="leading-none block" @click="addFilter"
+          >Add filter</span
+        >
+      </span>
     </div>
   </div>
 </template>
@@ -286,3 +277,21 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.widget-filter-container {
+  .input-group {
+    @apply rounded border border-gray-200 flex items-center;
+  }
+  .el-input,
+  .el-input:hover,
+  .el-input.is-focus {
+    .el-input__wrapper,
+    &:hover,
+    &:focus,
+    &.is-focus {
+      @apply border-l-0 border-r-0 rounded-none shadow-none outline-none ring-0;
+    }
+  }
+}
+</style>
