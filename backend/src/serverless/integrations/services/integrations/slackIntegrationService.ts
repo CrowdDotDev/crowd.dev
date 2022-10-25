@@ -110,7 +110,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const newStreams: IIntegrationStream[] = nextPage
       ? [{ value: stream.value, metadata: { ...(stream.metadata || {}), page: nextPage } }]
       : []
-    const sleep = limit <= 1 ? timeUntilReset * 1000 : undefined
+    const sleep = limit <= 1 ? timeUntilReset : undefined
 
     if (records.length === 0) {
       return {

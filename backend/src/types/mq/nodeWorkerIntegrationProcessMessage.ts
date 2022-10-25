@@ -1,6 +1,13 @@
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { IntegrationType } from '../integrationEnums'
 import { NodeWorkerMessageBase } from './nodeWorkerMessageBase'
+import { IIntegrationStream } from '../integration/stepResult'
+
+export interface IIntegrationStreamRetry {
+  id: string
+  stream: IIntegrationStream
+  retryCount: number
+}
 
 export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
   constructor(
@@ -10,6 +17,8 @@ export class NodeWorkerIntegrationProcessMessage extends NodeWorkerMessageBase {
     public readonly integrationId?: string,
     public readonly microserviceId?: string,
     public readonly metadata?: any,
+    public readonly retryStreams?: IIntegrationStreamRetry[],
+    public readonly remainingStreams?: IIntegrationStream[],
   ) {
     super(NodeWorkerMessageType.INTEGRATION_PROCESS)
   }

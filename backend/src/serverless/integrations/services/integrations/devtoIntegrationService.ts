@@ -117,9 +117,9 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     const logger = createChildLogger('processStream', context.serviceContext.log, { stream })
 
-    logger.info('Processing article!')
-
     const articleId = parseInt(stream.value, 10)
+
+    logger.info({ articleId }, 'Processing article!')
 
     const comments = await getArticleComments(articleId)
 
@@ -146,6 +146,8 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
+    let sleep: number | undefined
+
     return {
       operations: [
         {
@@ -155,6 +157,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
       ],
       lastRecord,
       lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
+      sleep,
     }
   }
 
@@ -172,6 +175,20 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     for (const oldArticle of context.integration.settings.articles) {
       if (singleOrDefault(articles, (a) => a.id === oldArticle.id) === undefined) {
         articles.push(oldArticle)
+      }
+    }
+
+    for (const failedStream of failedStreams) {
+      const article = singleOrDefault(articles, (a) => a.id.toString() === failedStream.value)
+      if (article) {
+        article.lastCommentAt = undefined
+      }
+    }
+
+    for (const remainingStream of remainingStreams) {
+      const article = singleOrDefault(articles, (a) => a.id.toString() === remainingStream.value)
+      if (article) {
+        article.lastCommentAt = undefined
       }
     }
 

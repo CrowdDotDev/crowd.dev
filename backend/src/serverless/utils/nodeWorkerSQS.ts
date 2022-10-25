@@ -39,9 +39,10 @@ export const sendNodeWorkerMessage = async (
           DataType: 'Number',
           StringValue: `${remainedSeconds}`,
         },
-        targetQueueUrl: targetQueueUrl
-          ? { DataType: 'String', StringValue: targetQueueUrl }
-          : undefined,
+      }
+
+      if (targetQueueUrl) {
+        attributes.targetQueueUrl = { DataType: 'String', StringValue: targetQueueUrl }
       }
       delay = limitSeconds
     } else {
@@ -50,9 +51,9 @@ export const sendNodeWorkerMessage = async (
           DataType: 'String',
           StringValue: tenantId,
         },
-        targetQueueUrl: targetQueueUrl
-          ? { DataType: 'String', StringValue: targetQueueUrl }
-          : undefined,
+      }
+      if (targetQueueUrl) {
+        attributes.targetQueueUrl = { DataType: 'String', StringValue: targetQueueUrl }
       }
       delay = delaySeconds
     }

@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { v4 as uuid } from 'uuid'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import MicroserviceRepository from '../../../database/repositories/microserviceRepository'
 import getUserContext from '../../../database/utils/getUserContext'
@@ -7,17 +8,22 @@ import { singleOrDefault } from '../../../utils/arrays'
 import { IntegrationType, PlatformType } from '../../../types/integrationEnums'
 import { createChildLogger, Logger } from '../../../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
-import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
+import {
+  IIntegrationStreamRetry,
+  NodeWorkerIntegrationProcessMessage,
+} from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { DevtoIntegrationService } from './integrations/devtoIntegrationService'
 import { IntegrationServiceBase } from './integrationServiceBase'
 import bulkOperations from '../../dbOperations/operationsWorker'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
-import { IStepContext } from '../../../types/integration/stepResult'
+import { IIntegrationStream, IStepContext } from '../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
+
+const MAX_STREAM_RETRIES = 5
 
 export class IntegrationProcessor {
   private readonly log: Logger
@@ -137,7 +143,7 @@ export class IntegrationProcessor {
       integrationId: req.integrationId,
       microserviceId: req.microserviceId,
     })
-    logger.info({ req }, 'Processing integration!')
+    logger.info('Processing integration!')
 
     const userContext = await getUserContext(req.tenantId)
     userContext.log = logger
@@ -207,10 +213,35 @@ export class IntegrationProcessor {
       )
 
       // preprocess if needed
+      logger.info('Preprocessing integration!')
       await intService.preprocess(stepContext)
 
       // detect streams to process for this integration
-      const streams = await intService.getStreams(stepContext)
+      let streams: IIntegrationStream[]
+      if (
+        (req.retryStreams && req.retryStreams.length > 0) ||
+        (req.remainingStreams && req.remainingStreams.length > 0)
+      ) {
+        const retryStreams = req.retryStreams || []
+        streams = req.remainingStreams || []
+
+        logger.info(
+          { retryStreamCount: retryStreams.length, delayedStreamCount: streams.length },
+          'Detected retried/delayed streams in request - skipping integration service getStreams method call!',
+        )
+
+        for (const retryStream of retryStreams) {
+          const stream = retryStream.stream
+          stream.id = retryStream.id
+          streams.push(stream)
+        }
+      } else {
+        logger.info('Detecting streams!')
+        streams = await intService.getStreams(stepContext)
+      }
+
+      // delay for retries/continuing with the remaining streams (in seconds)
+      let delay: number = 5
 
       if (streams.length > 0) {
         logger.info({ streamCount: streams.length }, 'Detected streams to process!')
@@ -246,6 +277,19 @@ export class IntegrationProcessor {
               }
             }
 
+            if (processStreamResult.sleep !== undefined && processStreamResult.sleep > 0) {
+              logger.info(
+                {
+                  remainingStreamCount: streams.length,
+                  delayInSeconds: processStreamResult.sleep,
+                },
+                'Stream processing resulted in a requested delay!',
+              )
+
+              delay = processStreamResult.sleep
+              break
+            }
+
             if (intService.globalLimit > 0 && stepContext.limitCount >= intService.globalLimit) {
               // if limit reset frequency is 0 we don't need to care about limits
               if (intService.limitResetFrequencySeconds > 0) {
@@ -259,6 +303,15 @@ export class IntegrationProcessor {
                 )
 
                 integration.limitCount = stepContext.limitCount
+
+                const secondsSinceLastReset = moment()
+                  .utc()
+                  .diff(moment(integration.limitLastResetAt).utc(), 'seconds')
+
+                if (secondsSinceLastReset < intService.limitResetFrequencySeconds) {
+                  delay = intService.limitResetFrequencySeconds - secondsSinceLastReset
+                }
+
                 break
               }
             }
@@ -284,13 +337,56 @@ export class IntegrationProcessor {
         // postprocess integration settings
         await intService.postprocess(stepContext, failedStreams, streams)
 
-        if (failedStreams.length > 0) {
+        if (streams.length > 0 || failedStreams.length > 0) {
           logger.warn(
-            { failedStreams },
-            'Some streams have not been processed successfully - retrying them with delay!',
+            { failedStreamCount: failedStreams.length, remainingStreamCount: streams.length },
+            'Some streams have not been successfully processed or are remaining - retrying them with delay!',
           )
 
-          // TODO implement retries for failed streams
+          const existingRetryStreams = req.retryStreams || []
+
+          const retryStreams: IIntegrationStreamRetry[] = []
+          for (const failedStream of failedStreams) {
+            let retryCount = 1
+            let id = uuid()
+            if (failedStream.id) {
+              for (const existingRetryStream of existingRetryStreams) {
+                if (failedStream.id === existingRetryStream.id) {
+                  retryCount = existingRetryStream.retryCount + 1
+                  id = existingRetryStream.id
+                  break
+                }
+              }
+            }
+
+            if (retryCount > MAX_STREAM_RETRIES) {
+              logger.warn(
+                { failedStream, retryCount },
+                'Failed stream will not be retried because it reached retry limit!',
+              )
+            } else {
+              retryStreams.push({
+                id,
+                retryCount,
+                stream: failedStream,
+              })
+            }
+          }
+
+          await sendNodeWorkerMessage(
+            req.tenantId,
+            new NodeWorkerIntegrationProcessMessage(
+              req.integrationType,
+              req.tenantId,
+              req.onboarding,
+              req.integrationId,
+              req.microserviceId,
+              req.metadata,
+              retryStreams,
+              streams,
+            ),
+            delay,
+          )
         }
         logger.info('Done processing integration!')
       } else {

@@ -87,10 +87,14 @@ async function handleDelayedMessages() {
   }
 }
 
-let processingMessages = 5
+let processingMessages = 0
 const isWorkerAvailable = (): boolean => processingMessages <= 5
-const addWorkerJob = (): number => processingMessages++
-const removeWorkerJob = (): number => processingMessages--
+const addWorkerJob = (): void => {
+  processingMessages++
+}
+const removeWorkerJob = (): void => {
+  processingMessages--
+}
 
 async function handleMessages() {
   const handlerLogger = createChildLogger('messages', serviceLogger, {

@@ -82,7 +82,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     const newStreams = nextPage
       ? [{ value: stream.value, metadata: { page: nextPage } }]
       : undefined
-    const sleep = limit <= 1 ? timeUntilReset * 1000 : undefined
+    const sleep = limit <= 1 ? timeUntilReset : undefined
 
     if (records.length === 0) {
       return {
