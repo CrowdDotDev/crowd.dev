@@ -6,7 +6,7 @@
     :style="computedStyle"
   >
     <span
-      v-if="!entity.avatar"
+      v-if="!entity.attributes?.avatarUrl?.default"
       class="font-semibold uppercase"
       >{{ computedInitials }}</span
     >
@@ -28,28 +28,8 @@ export default {
   },
   data() {
     return {
-      backgroundColors: [
-        '#EBECED',
-        '#E9E5E3',
-        '#FAEBDD',
-        '#FBF3DB',
-        '#DDEDEA',
-        '#DDEBF1',
-        '#EAE4F2',
-        '#F4DFEB',
-        '#FBE4E4'
-      ],
-      textColors: [
-        '#9B9A97',
-        '#64473A',
-        '#D9730D',
-        '#DFAB01',
-        '#0F7B6C',
-        '#0B6E99',
-        '#6940A5',
-        '#AD1A72',
-        '#E03E3E'
-      ]
+      backgroundColors: ['#FDEDEA'],
+      textColors: ['#BA3F25']
     }
   },
   computed: {
@@ -66,8 +46,8 @@ export default {
       ]
     },
     computedStyle() {
-      return this.entity.avatar
-        ? `background-image: url(${this.entity.avatar}`
+      return this.entity.attributes?.avatarUrl?.default
+        ? `background-image: url(${this.entity.attributes.avatarUrl.default})`
         : {
             backgroundColor: this.computedBackgroundColor,
             borderColor: this.computedBackgroundColor,

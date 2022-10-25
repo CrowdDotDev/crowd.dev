@@ -573,6 +573,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         [MemberAttributeName.LOCATION]: {
           [PlatformType.GITHUB]: memberFromApi.location || '',
         },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
+        },
       },
       email: memberFromApi.email || '',
     }

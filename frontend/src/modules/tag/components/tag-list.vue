@@ -1,15 +1,20 @@
 <template>
-  <div>
-    <div class="inline-flex items-center flex-wrap">
+  <div
+    @mouseenter="showEdit = true"
+    @mouseleave="showEdit = true"
+  >
+    <div
+      class="inline-flex items-center overflow-x-scroll w-full"
+    >
       <span
-        v-for="tag in member.tags"
+        v-for="tag in computedTags"
         :key="tag.id"
-        class="tag mr-2 my-1"
-        >{{ tag.name }}</span
+        class="tag mr-2 my-1 text-xs"
+        >{{ getTagName(tag) }}</span
       >
       <el-button
-        v-if="editable"
-        class="btn btn-link btn-link--primary text-2xs"
+        v-if="editable && showEdit"
+        class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click.stop="editing = true"
         >Edit tags</el-button
@@ -27,8 +32,6 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
-import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { MemberModel } from '@/modules/member/member-model'
@@ -61,10 +64,19 @@ export default {
       rules: formSchema.rules(),
       model: null,
       editing: false,
-      loading: false
+      loading: false,
+      showEdit: true
     }
   },
   computed: {
+    computedTags() {
+      return this.member.tags.length <= 3
+        ? this.member.tags
+        : this.member.tags.slice(0, 3).concat({
+            id: 'more',
+            name: `+${this.member.tags.length - 3}`
+          })
+    },
     fields() {
       return fields
     },
@@ -101,10 +113,12 @@ export default {
       })
       this.loading = false
       this.editing = false
-      Message.success(
-        i18n('entities.member.update.success')
-      )
       this.$emit('tags-updated')
+    },
+    getTagName(tag) {
+      return tag.name.length > 10
+        ? `${tag.name.slice(0, 10)}...`
+        : tag.name
     }
   }
 }

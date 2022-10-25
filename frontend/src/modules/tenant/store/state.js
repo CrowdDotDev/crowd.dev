@@ -4,6 +4,7 @@ export default {
     ids: [],
     loading: false
   },
+  saveLoading: false,
   count: 0,
   pagination: {
     currentPage: 1,

@@ -26,6 +26,7 @@
       :code="computedMessage"
       :args="computedArgs"
       :fallback="'entities.activity.fallback'"
+      :class="{ truncate: short }"
     ></app-i18n>
   </template>
 </template>

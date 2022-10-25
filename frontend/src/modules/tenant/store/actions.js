@@ -25,18 +25,24 @@ export default {
       })
   },
 
-  async doUpdate({ commit, dispatch }, { id, values }) {
+  async doUpdate(
+    { commit, dispatch, state },
+    { id, values }
+  ) {
     try {
+      state.saveLoading = true
       commit('UPDATE_STARTED')
 
       const tenant = await TenantService.update(id, values)
 
+      state.saveLoading = false
       commit('UPDATE_SUCCESS', tenant)
       Message.success(i18n('tenant.update.success'))
       await dispatch(`auth/doSelectTenant`, tenant, {
         root: true
       })
     } catch (error) {
+      state.saveLoading = false
       Errors.handle(error)
       commit('UPDATE_ERROR')
     }
