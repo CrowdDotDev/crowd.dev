@@ -1,5 +1,5 @@
 import { QueryInterface } from 'sequelize/types'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 
 export const up = async (queryInterface: QueryInterface, Sequelize) => {
   const transaction = await queryInterface.sequelize.transaction()

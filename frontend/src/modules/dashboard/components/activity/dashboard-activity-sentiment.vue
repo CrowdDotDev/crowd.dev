@@ -1,6 +1,8 @@
 <template>
   <app-cube-render
-    :query="sentimentQuery(period, platform)"
+    :query="
+      activitiesChart(period, platform).settings.query
+    "
   >
     <template #loading>
       <div class="pb-3">
@@ -24,11 +26,11 @@
       </div>
     </template>
     <template #default="{ resultSet }">
-      <div :set="compileData(resultSet)">
+      <div>
         <div v-if="total > 0">
           <div class="flex w-full pb-3">
             <div
-              v-for="data of result"
+              v-for="data of compileData(resultSet)"
               :key="data.type"
               class="h-2 bg-green-500 border-l border-r rounded-sm transition"
               :style="{
@@ -44,7 +46,7 @@
           </div>
           <div>
             <div
-              v-for="data of result"
+              v-for="data of compileData(resultSet)"
               :key="data.type"
               class="flex justify-between pb-2"
               :class="hoverSentimentClass(data.type)"
@@ -75,7 +77,10 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
+import {
+  sentimentQuery,
+  activitiesChart
+} from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
@@ -88,7 +93,7 @@ export default {
     return {
       hoveredSentiment: '',
       sentimentQuery,
-      result: [],
+      activitiesChart,
       total: 0,
       typeClasses: {
         positive: 'bg-green-500',
@@ -130,7 +135,7 @@ export default {
         negative: seriesObject['negative'] || 0,
         neutral: seriesObject['neutral'] || 0
       }
-      this.result = Object.entries(result)
+      const finalResult = Object.entries(result)
         .sort(([, a], [, b]) => b - a)
         .map(([type, count]) => ({
           type,
@@ -138,9 +143,11 @@ export default {
         }))
         .filter(({ count }) => count > 0)
 
-      this.total = this.result.reduce((a, b) => {
+      this.total = finalResult.reduce((a, b) => {
         return a + b.count
       }, 0)
+
+      return finalResult
     }
   }
 }

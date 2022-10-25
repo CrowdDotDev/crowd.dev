@@ -78,7 +78,7 @@ export default {
       return `avatar--${this.size}`
     },
     computedInitials() {
-      const names = this.entity.displayName
+      const names = (this.entity.displayName || '')
         .replace(/\s+/g, ' ')
         .trim()
         .split(' ')

@@ -14,7 +14,7 @@
         'reaction_added'
       ].includes(activity.type) && !short
     "
-    class="block ml-1"
+    class="inline-block ml-1"
   >
     <span v-if="!short" class="text-gray-900">{{
       ['channel_joined', 'channel_left'].includes(

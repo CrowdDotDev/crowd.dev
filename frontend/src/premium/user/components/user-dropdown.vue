@@ -5,14 +5,13 @@
       placement="bottom-end"
       @command="handleCommand"
     >
-      <span
-        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
         @click.stop
       >
-        <i
-          class="text-lg leading-none text-gray-600 ri-more-fill"
-        ></i>
-      </span>
+        <i class="text-xl ri-more-fill"></i>
+      </button>
       <template #dropdown>
         <el-dropdown-item
           v-if="user.status === 'invited'"
@@ -49,68 +48,39 @@
         >
       </template>
     </el-dropdown>
-    <el-dialog
+    <app-dialog
       v-model="editing"
-      :close-on-click-modal="false"
-      :show-close="false"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      custom-class="el-dialog--lg user-invite-dialog"
-      @close="editing = false"
+      custom-class="user-invite-dialog"
+      :pre-title="user.fullName ?? null"
+      :title="
+        user.status === 'invited'
+          ? 'Edit invite'
+          : 'Edit User'
+      "
     >
-      <template #header="{ close, titleId, titleClass }">
-        <div
-          class="flex grow justify-between"
-          :class="{
-            'items-center':
-              user.status === 'invited' || !user.fullName
-          }"
+      <template #content>
+        <app-user-form-page
+          :id="user.id"
+          @cancel="editing = false"
         >
-          <div>
-            <div
-              v-if="user.fullName"
-              class="text-2xs text-gray-600"
-            >
-              {{ user.fullName }}
-            </div>
-            <h5 :id="titleId" :class="titleClass">
-              {{
-                user.status === 'invited'
-                  ? 'Edit invite'
-                  : 'Edit User'
-              }}
-            </h5>
-          </div>
-          <el-button
-            class="btn btn--transparent btn--xs w-8 !h-8"
-            @click="close"
-          >
-            <i
-              class="ri-close-line text-lg text-gray-400"
-            ></i>
-          </el-button>
-        </div>
+        </app-user-form-page>
       </template>
-      <app-user-form-page
-        :id="user.id"
-        @cancel="editing = false"
-      >
-      </app-user-form-page>
-    </el-dialog>
+    </app-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex'
 import { i18n } from '@/i18n'
-import UserEditPage from './user-edit-page'
+import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppUserDropdown',
   components: {
-    'app-user-form-page': UserEditPage
+    'app-user-form-page': AppUserEditPage
   },
   props: {
     user: {
@@ -157,15 +127,12 @@ export default {
     },
     async doDestroyWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await this.doDestroy(this.user.id)
         this.$emit('user-destroyed', this.user.id)

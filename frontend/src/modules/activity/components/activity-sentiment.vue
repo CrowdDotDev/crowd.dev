@@ -1,6 +1,6 @@
 <template>
   <el-tooltip
-    v-if="sentiment"
+    v-if="sentiment && sentiment > 0"
     effect="dark"
     :content="`Sentiment score: ${sentiment}`"
     placement="top"
@@ -45,4 +45,3 @@ const label = computed(() => {
   }
 })
 </script>
-a

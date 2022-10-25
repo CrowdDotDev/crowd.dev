@@ -1,4 +1,4 @@
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 import merge from '../merge'
 
 describe('Merge helper tests', () => {

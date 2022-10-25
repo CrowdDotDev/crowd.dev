@@ -1,6 +1,6 @@
 import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import EagleEyeContentService from '../eagleEyeContentService'
 
 const db = null

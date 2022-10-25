@@ -1,7 +1,7 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 
 async function getChannels(
   client: SuperfaceClient,

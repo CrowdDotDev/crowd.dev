@@ -1,7 +1,11 @@
 <template>
   <div :class="computedClass">
     <div class="flex items-center justify-between">
-      <img :src="integration.image" class="h-6 mb-4" />
+      <img
+        :alt="integration.name"
+        :src="integration.image"
+        class="h-6 mb-4"
+      />
       <span v-if="isDone" class="badge badge--green"
         >Connected</span
       >
@@ -32,17 +36,39 @@
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
       }}</span>
-      <div class="flex items-center justify-between">
-        <slot v-if="!isConnected" name="connect"></slot>
-        <el-button
-          v-else
-          class="btn btn-brand btn-brand--bordered btn--md"
-          :loading="loadingDisconnect"
-          @click="handleDisconnect"
-          >Disconnect</el-button
+      <app-integration-connect :integration="integration">
+        <template
+          #default="{
+            connect,
+            connected,
+            settings,
+            hasSettings
+          }"
         >
-        <slot name="settings"></slot>
-      </div>
+          <div class="flex items-center justify-between">
+            <a
+              v-if="!connected"
+              class="btn btn--secondary btn--md"
+              @click="connect"
+              >Connect</a
+            >
+            <el-button
+              v-else
+              class="btn btn-brand btn-brand--bordered btn--md"
+              :loading="loadingDisconnect"
+              @click="handleDisconnect"
+              >Disconnect</el-button
+            >
+            <el-button
+              v-if="connected && hasSettings"
+              class="btn btn--transparent btn--md"
+              @click="settings"
+              ><i class="ri-settings-2-line mr-2"></i
+              >Settings</el-button
+            >
+          </div>
+        </template>
+      </app-integration-connect>
     </div>
   </div>
 </template>
@@ -55,6 +81,7 @@ export default {
 <script setup>
 import { useStore } from 'vuex'
 import { defineProps, computed, ref } from 'vue'
+import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
 
 const store = useStore()
 const props = defineProps({
@@ -70,7 +97,9 @@ const props = defineProps({
 
 const computedClass = computed(() => {
   return {
-    panel: !props.onboard
+    panel: !props.onboard,
+    'integration-custom':
+      props.integration.platform === 'custom'
   }
 })
 
@@ -93,3 +122,13 @@ const handleDisconnect = async () => {
   loadingDisconnect.value = false
 }
 </script>
+<style lang="scss">
+.integration-custom {
+  background: linear-gradient(
+      117.72deg,
+      #fdedea 0%,
+      rgba(253, 237, 234, 0) 100%
+    ),
+    #ffffff;
+}
+</style>

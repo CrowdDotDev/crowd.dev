@@ -36,7 +36,10 @@
 
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
-        :to="{ name: 'conversation' }"
+        :to="{
+          name: 'activity',
+          query: { activeTab: 'conversations' }
+        }"
         class="text-red font-medium text-center text-xs leading-5"
       >
         All conversations

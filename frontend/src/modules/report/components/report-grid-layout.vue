@@ -5,28 +5,31 @@
       editable ? 'report-grid-layout--editing' : '-m-2'
     "
   >
-    <el-dialog
+    <app-dialog
       v-model="widgetModal.visible"
-      :close-on-click-modal="false"
       :title="
         widgetModal.action === 'add'
           ? 'Add Widget'
           : 'Edit Widget'
       "
-      custom-class="el-dialog--xl"
+      size="extra-large"
     >
-      <div
-        v-if="widgetModal.visible === false"
-        v-loading="true"
-        class="app-page-spinner"
-      ></div>
-      <app-widget-cube-builder
-        v-else
-        v-model="widgetModal.model"
-        @submit="handleWidgetFormSubmit"
-        @close="widgetModal.visible = false"
-      />
-    </el-dialog>
+      <template #content>
+        <div class="px-6 pb-6">
+          <div
+            v-if="widgetModal.visible === false"
+            v-loading="true"
+            class="app-page-spinner"
+          ></div>
+          <app-widget-cube-builder
+            v-else
+            v-model="widgetModal.model"
+            @submit="handleWidgetFormSubmit"
+            @close="widgetModal.visible = false"
+          />
+        </div>
+      </template>
+    </app-dialog>
     <div
       v-if="loadingCube"
       v-loading="loadingCube"
@@ -138,6 +141,7 @@ import {
   mapWidget,
   chartOptions
 } from '@/modules/report/report-charts'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'ReportGridLayout',
@@ -279,15 +283,12 @@ export default {
     },
     async handleWidgetDelete(widget) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await WidgetService.destroyAll([widget.id])
         const index = this.model.widgets.findIndex(
@@ -326,8 +327,6 @@ export default {
 <style lang="scss">
 .report-grid-layout {
   @apply min-h-40 relative;
-}
-.vue-grid-layout {
 }
 .vue-grid-item:not(.vue-grid-placeholder) {
   touch-action: none;

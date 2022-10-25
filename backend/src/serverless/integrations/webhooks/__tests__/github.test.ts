@@ -3,12 +3,12 @@ import IntegrationRepository from '../../../../database/repositories/integration
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import Error404 from '../../../../errors/Error404'
 import { GitHubGrid } from '../../grid/githubGrid'
-import BaseIterator from '../../iterators/baseIterator'
 import GitHubWebhook from '../github'
 import TestEvents from './events'
-import { PlatformType } from '../../../../utils/platforms'
-import { GithubActivityType } from '../../../../utils/activityTypes'
+import { PlatformType } from '../../../../types/integrationEnums'
+import { GithubActivityType } from '../../../../types/activityTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 
 const db = null
 const installId = '23585816'
@@ -697,7 +697,7 @@ describe('Github webhooks tests', () => {
         type: GithubActivityType.STAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           'joanreyero',
           GithubActivityType.STAR,
           moment(starTimestamp).unix().toString(),
@@ -713,7 +713,7 @@ describe('Github webhooks tests', () => {
       expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
 
       const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = BaseIterator.generateSourceIdHash(
+      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
         'joanreyero',
         'star',
         moment(fromMain.timestamp).unix().toString(),
@@ -741,7 +741,7 @@ describe('Github webhooks tests', () => {
         type: GithubActivityType.UNSTAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           'joanreyero',
           GithubActivityType.UNSTAR,
           moment(starTimestamp).unix().toString(),
@@ -757,7 +757,7 @@ describe('Github webhooks tests', () => {
       expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
 
       const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = BaseIterator.generateSourceIdHash(
+      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
         'joanreyero',
         GithubActivityType.UNSTAR,
         moment(fromMain.timestamp).unix().toString(),

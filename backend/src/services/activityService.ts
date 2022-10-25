@@ -1,6 +1,6 @@
 import { Transaction } from 'sequelize/types'
 import { Blob } from 'buffer'
-import { PlatformType } from '../utils/platforms'
+import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { detectSentiment, detectSentimentBatch } from './aws'
@@ -128,11 +128,9 @@ export default class ActivityService {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (!existing) {
-        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
-          .then(() => console.log(`New activity automation triggered - ${record.id}!`))
-          .catch((err) =>
-            console.log(`Error triggering new activity automation - ${record.id}!`, err),
-          )
+        sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id).catch((err) =>
+          console.log(`Error triggering new activity automation - ${record.id}!`, err),
+        )
       }
 
       return record

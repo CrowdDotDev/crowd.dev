@@ -1,17 +1,5 @@
 <template>
   <div>
-    <div class="webhook-execution-list-header">
-      <div class="font-medium">
-        {{
-          translate(
-            `entities.automation.triggers.${webhook.trigger}`
-          )
-        }}
-      </div>
-      <div class="text-gray-500 text-2xs">
-        {{ webhook.settings.url }}
-      </div>
-    </div>
     <div
       v-if="loading && executions.length === 0"
       v-loading="loading"
@@ -19,9 +7,23 @@
     ></div>
     <div
       v-if="executions.length"
-      class="webhook-executions-list-wrapper mt-8"
+      class="webhook-executions-list-wrapper"
     >
-      <div class="flex items-center mb-3">
+      <div class="webhook-execution-list-header">
+        <div class="font-medium">
+          {{
+            translate(
+              `entities.automation.triggers.${webhook.trigger}`
+            )
+          }}
+        </div>
+        <div class="text-gray-500 text-2xs">
+          {{ webhook.settings.url }}
+        </div>
+      </div>
+      <div
+        class="flex items-center pb-2 mt-8 border-b border-gray-200"
+      >
         <div
           class="font-semibold tracking-wide uppercase text-2xs w-20 text-gray-400"
         >
@@ -47,36 +49,35 @@
           >
             <div class="w-20">
               <i
-                class="text-base"
+                class="text-lg"
                 :class="
                   execution.state === 'success'
-                    ? 'ri-checkbox-circle-line text-green-900'
-                    : 'ri-close-circle-line text-red-900'
+                    ? 'ri-checkbox-circle-line text-green-500'
+                    : 'ri-close-circle-line text-red-500'
                 "
               />
             </div>
-            <div>
+            <div class="text-gray-900">
               {{ formattedDate(execution.executedAt) }}
             </div>
-            <div class="flex justify-end flex-grow j">
+            <div class="flex justify-end flex-grow mr-1">
               <el-button
-                class="btn btn--text"
+                class="btn btn-brand--transparent btn--sm !h-8"
                 @click="modals[execution.id] = true"
-                >View log</el-button
+                >Payload</el-button
               >
             </div>
 
-            <el-dialog
+            <app-dialog
               v-model="modals[execution.id]"
               title="Execution log"
-              :destroy-on-close="true"
-              :close-on-click-modal="false"
-              @close="modals[execution.id] = false"
             >
-              <app-webhook-execution
-                :execution="execution"
-              />
-            </el-dialog>
+              <template #content>
+                <app-webhook-execution
+                  :execution="execution"
+                />
+              </template>
+            </app-dialog>
           </li>
         </ul>
       </div>
@@ -95,7 +96,7 @@
       <p
         class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
       >
-        There are no executions
+        There are no execution logs yet
       </p>
     </div>
   </div>
@@ -193,7 +194,7 @@ export default {
     }
 
     &-item {
-      @apply flex items-center text-sm border-t border-gray-100 py-3;
+      @apply flex items-center text-sm border-b border-gray-200 py-3;
 
       .el-dialog {
         @apply max-w-2xl;

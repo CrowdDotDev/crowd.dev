@@ -1,8 +1,8 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
-import BaseIterator from '../../iterators/baseIterator'
 import isInvalid from '../isInvalid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
+import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 
 /**
  * Get all profiles of an account
@@ -35,7 +35,9 @@ const getProfiles = async (
     records: result.value.profiles,
     nextPage: result.value.nextPage,
     limit: result.value.rateLimit.remainingRequests,
-    timeUntilReset: BaseIterator.secondsUntilTimestamp(result.value.rateLimit.resetTimestamp),
+    timeUntilReset: IntegrationServiceBase.secondsUntilTimestamp(
+      result.value.rateLimit.resetTimestamp,
+    ),
   }
 }
 

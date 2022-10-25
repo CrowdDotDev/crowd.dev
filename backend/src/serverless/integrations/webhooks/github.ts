@@ -1,18 +1,18 @@
 import moment from 'moment'
 import verifyGithubWebhook from 'verify-github-webhook'
-import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config/index'
+import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { GitHubGrid } from '../grid/githubGrid'
 import ActivityService from '../../../services/activityService'
 import { AddActivitiesSingle, Member } from '../types/messageTypes'
 import getMember from '../usecases/github/graphql/members'
-import BaseIterator from '../iterators/baseIterator'
-import { PlatformType } from '../../../utils/platforms'
-import { GithubActivityType } from '../../../utils/activityTypes'
+import { PlatformType } from '../../../types/integrationEnums'
+import { GithubActivityType } from '../../../types/activityTypes'
 import { gridEntry } from '../grid/grid'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import getOrganization from '../usecases/github/graphql/organizations'
+import { IntegrationServiceBase } from '../services/integrationServiceBase'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -179,7 +179,7 @@ export default class GitHubWebhook {
         timestamp: timestampObject.toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           this.payload.sender.login,
           type,
           timestampObject.unix().toString(),
@@ -406,8 +406,6 @@ export default class GitHubWebhook {
             return null
         }
 
-        break
-
       case 'discussion':
         switch (this.payload.action) {
           case 'edited':
@@ -441,7 +439,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'star':
         switch (this.payload.action) {
@@ -452,7 +449,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'fork':
         return this.fork()
@@ -485,12 +481,10 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       default:
         return null
     }
-    return null
   }
 
   /**

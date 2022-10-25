@@ -41,6 +41,7 @@
 
 <script>
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppCustomAttributeInput',
@@ -90,15 +91,12 @@ export default {
     },
     async deleteAttribute(index) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         this.attributes.splice(index, 1)
       } catch (error) {

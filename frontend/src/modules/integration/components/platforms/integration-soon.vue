@@ -1,13 +1,9 @@
 <template>
-  <app-integration-list-item :integration="integration">
-    <template #connect>
-      <el-button
-        class="btn btn--bordered btn--md"
-        :disabled="true"
-        >Soon</el-button
-      >
-    </template>
-  </app-integration-list-item>
+  <el-button
+    class="btn btn--bordered btn--md"
+    :disabled="true"
+    >Soon</el-button
+  >
 </template>
 
 <script>
@@ -16,7 +12,6 @@ export default {
 }
 </script>
 <script setup>
-import AppIntegrationListItem from '../integration-list-item'
 import { defineProps } from 'vue'
 
 defineProps({

@@ -2,7 +2,7 @@ import TenantService from '../../../services/tenantService'
 import ActivityService from '../../../services/activityService'
 import getUserContext from '../../utils/getUserContext'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export default async () => {
   const tenants = await TenantService._findAndCountAllForEveryUser({})

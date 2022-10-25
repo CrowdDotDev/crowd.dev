@@ -11,14 +11,13 @@
   </div>
   <div v-else>
     <el-dropdown trigger="click" @command="handleCommand">
-      <span
-        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200"
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
         @click.stop
       >
-        <i
-          class="text-lg leading-none text-gray-600 ri-more-fill"
-        ></i>
-      </span>
+        <i class="text-xl ri-more-fill"></i>
+      </button>
       <template #dropdown>
         <el-dropdown-item
           v-if="report.public"
@@ -69,6 +68,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Message from '@/shared/message/message'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppReportDropdown',
@@ -102,15 +102,12 @@ export default {
     }),
     async doDestroyWithConfirm(id) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroy(id)
       } catch (error) {

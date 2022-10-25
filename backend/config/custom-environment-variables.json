@@ -12,6 +12,7 @@
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
     "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
     "aws": {

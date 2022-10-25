@@ -100,7 +100,14 @@ export default {
       return this.activity.member
     },
     sentiment() {
-      return this.activity.sentiment.sentiment
+      if (
+        this.activity &&
+        this.activity.sentiment &&
+        this.activity.sentiment.sentiment
+      ) {
+        return this.activity.sentiment.sentiment
+      }
+      return 0
     }
   },
   methods: {
