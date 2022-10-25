@@ -56,7 +56,10 @@
           width="220"
         >
           <template #default="scope">
-            <app-member-organizations :member="scope.row" />
+            <app-member-organizations
+              :member="scope.row"
+              :showTitle="false"
+            />
           </template>
         </el-table-column>
         <el-table-column
