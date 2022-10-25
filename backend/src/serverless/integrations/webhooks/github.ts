@@ -350,14 +350,13 @@ export default class GitHubWebhook {
     }
 
     if (member.websiteUrl) {
-      parsedMember.attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL] =
-        member.websiteUrl
+      parsedMember.attributes[MemberAttributeName.WEBSITE_URL] ={
+        [PlatformType.GITHUB]: member.websiteUrl
+      }
     }
 
     if (member.twitterUsername) {
-      parsedMember.attributes[PlatformType.TWITTER] = {
-        [MemberAttributeName.URL]: `https://twitter.com/${member.twitterUsername}`,
-      }
+      parsedMember.attributes[MemberAttributeName.URL][PlatformType.TWITTER] = `https://twitter.com/${member.twitterUsername}`
       parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
     }
 
