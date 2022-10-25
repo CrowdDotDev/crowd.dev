@@ -22,24 +22,6 @@
         Url</el-dropdown-item
       >
       <el-dropdown-item
-        v-if="!conversation.published"
-        :command="{
-          action: 'conversationPublish',
-          conversation: conversation
-        }"
-        ><i class="ri-upload-cloud-2-line mr-1" />Publish
-        Conversation</el-dropdown-item
-      >
-      <el-dropdown-item
-        v-else
-        :command="{
-          action: 'conversationUnpublish',
-          conversation: conversation
-        }"
-        ><i class="ri-arrow-go-back-line mr-1" />Unpublish
-        Conversation</el-dropdown-item
-      >
-      <el-dropdown-item
         :command="{
           action: 'conversationDelete',
           conversation: conversation

@@ -25,6 +25,9 @@ export const hideLabels = {
     y: {
       ticks: {
         display: false
+      },
+      grid: {
+        drawBorder: false
       }
     }
   }

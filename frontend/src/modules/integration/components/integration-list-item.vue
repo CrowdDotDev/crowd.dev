@@ -15,7 +15,7 @@
       >
         <div
           v-loading="true"
-          class="app-page-spinner h-4 w-4 mr-2"
+          class="app-page-spinner !relative !min-h-4 h-4 !w-4 mr-2"
         ></div>
 
         <span class="text-xs text-gray-900 mr-2"
