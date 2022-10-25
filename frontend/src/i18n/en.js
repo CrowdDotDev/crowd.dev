@@ -200,7 +200,8 @@ const en = {
         createdAt: 'Created at',
         updatedAt: 'Updated at',
         createdAtRange: 'Created at',
-        identities: 'Identities'
+        identities: 'Identities',
+        activeOn: 'Active On'
       },
       enumerators: {},
       placeholders: {},

@@ -41,6 +41,13 @@ const fields = {
       filterable: true
     }
   ),
+  activeOn: new MemberIdentitiesField(
+    'activeOn',
+    label('activeOn'),
+    {
+      filterable: true
+    }
+  ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform'), {
     required: true

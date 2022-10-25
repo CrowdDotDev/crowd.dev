@@ -12,7 +12,7 @@ import getUserContext from '../utils/getUserContext'
 const path = require('path')
 
 const env = dotenv.config({
-  path: path.resolve(__dirname, `../../../.env.staging`),
+  path: path.resolve(__dirname, `../../../.backend.env`),
 })
 
 dotenvExpand.expand(env)
