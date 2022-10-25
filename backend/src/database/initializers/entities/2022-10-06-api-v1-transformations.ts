@@ -183,6 +183,14 @@ export default async () => {
                 platform,
                 member.crowdInfo[platform][attributeName],
               )
+            }
+            if (attributeName === 'imageUrl') {
+              attributes = setObjectAttribute(
+                attributes,
+                MemberAttributeName.AVATAR_URL,
+                platform,
+                member.crowdInfo[platform][attributeName],
+              )
             } else {
               attributes = setObjectAttribute(
                 attributes,
