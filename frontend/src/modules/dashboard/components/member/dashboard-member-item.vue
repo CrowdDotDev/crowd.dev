@@ -19,11 +19,7 @@
         {{ member.displayName }}
       </h6>
       <p class="text-2xs leading-4 !text-gray-500">
-        <app-activity-message
-          v-if="member.lastActivity"
-          :short="true"
-          :activity="member.lastActivity"
-        />
+        <slot />
       </p>
     </div>
   </article>
@@ -32,11 +28,9 @@
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityMessage from '@/modules/activity/components/activity-message'
 export default {
   name: 'AppDashboardMemberItem',
   components: {
-    AppActivityMessage,
     AppLoading,
     AppAvatar
   },

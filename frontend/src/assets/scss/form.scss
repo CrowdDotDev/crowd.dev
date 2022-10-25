@@ -100,6 +100,11 @@
   @apply h-10 leading-10 w-full;
 }
 
+.el-select.extend .el-input{
+  @apply min-h-10;
+  height: initial;
+}
+
 .el-date-editor--daterange.el-input,
 .el-date-editor--daterange.el-input__inner,
 .el-date-editor--timerange.el-input,

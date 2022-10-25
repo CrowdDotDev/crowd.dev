@@ -3,21 +3,21 @@
     <!-- period filters -->
     <div class="flex text-xs text-gray-600">
       <div
-        class="w-10 h-8 border border-gray-200 border-r-0 rounded-l-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
+        class="px-3 h-8 border border-gray-200 border-r-0 rounded-l-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
         :class="periodStateClasses(7)"
         @click="setPeriod(7)"
       >
         7D
       </div>
       <div
-        class="w-10 h-8 border border-gray-200 flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
+        class="px-3 h-8 border border-gray-200 flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
         :class="periodStateClasses(14)"
         @click="setPeriod(14)"
       >
         14D
       </div>
       <div
-        class="w-10 h-8 border border-gray-200 border-l-0 rounded-r-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
+        class="px-3 h-8 border border-gray-200 border-l-0 rounded-r-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
         :class="periodStateClasses(30)"
         @click="setPeriod(30)"
       >
@@ -27,7 +27,11 @@
 
     <!-- platform filter -->
     <el-dropdown
+      v-if="Object.keys(activeIntegrations).length > 1"
       class="ml-4"
+      placement="bottom-start"
+      trigger="click"
+      size="large"
       @visible-change="platformDropdownOpen = $event"
     >
       <div class="flex items-center text-xs">
@@ -41,7 +45,7 @@
         ></i>
       </div>
       <template #dropdown>
-        <el-dropdown-menu>
+        <el-dropdown-menu class="w-42">
           <!-- all platforms -->
           <el-dropdown-item
             :class="{ 'bg-brand-25': platform === 'all' }"
@@ -51,15 +55,16 @@
           </el-dropdown-item>
           <!-- dynamic active platforms -->
           <el-dropdown-item
-            v-for="(integration, ii) of activeIntegrations"
-            :key="integration.platform"
+            v-for="(integration, ii) of Object.keys(
+              activeIntegrations
+            )"
+            :key="integration"
             :divided="ii === 0"
             :class="{
-              'bg-brand-25':
-                platform === integration.platform
+              'bg-brand-25': platform === integration
             }"
-            @click="setPlatform(integration.platform)"
-            >{{ integration.name }}
+            @click="setPlatform(integration)"
+            >{{ platformDetails(integration).name }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -83,14 +88,12 @@ export default {
     ...mapGetters('auth', {
       currentTenant: 'currentTenant'
     }),
-    activeIntegrations() {
-      return integrationsJsonArray.filter((i) => i.active)
-    },
+    ...mapGetters('integration', {
+      activeIntegrations: 'activeList'
+    }),
     getPlatformName() {
       if (this.platform.length) {
-        const platform = this.activeIntegrations.find(
-          (i) => i.platform === this.platform
-        )
+        const platform = this.platformDetails(this.platform)
         if (platform) {
           return platform.name
         }
@@ -116,6 +119,11 @@ export default {
     ...mapActions({
       setFilters: 'dashboard/setFilters'
     }),
+    platformDetails(platform) {
+      return integrationsJsonArray.find(
+        (i) => i.platform === platform
+      )
+    },
     periodStateClasses(period) {
       return this.period === period
         ? 'bg-gray-100 font-medium text-gray-900'

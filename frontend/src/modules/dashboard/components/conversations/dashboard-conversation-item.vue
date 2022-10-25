@@ -89,6 +89,7 @@
           </div>
           <div @click.stop>
             <app-conversation-dropdown
+              :publish-enabled="false"
               :conversation="conversation"
             />
           </div>
