@@ -71,7 +71,7 @@ export default {
   props: {
     query: {
       required: true,
-      type: Object
+      type: Function
     },
     loading: {
       required: false,
