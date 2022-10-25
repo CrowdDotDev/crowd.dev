@@ -34,13 +34,6 @@ export default {
       default: false
     }
   },
-  data() {
-    return {
-      result: null,
-      isLoading: true,
-      data: null
-    }
-  },
   computed: {
     ...mapGetters('widget', ['cubejsToken', 'cubejsApi'])
   },
@@ -57,7 +50,8 @@ export default {
       return (
         !resultSet ||
         resultSet.loadResponse === undefined ||
-        this.loading)
+        this.loading
+      )
     }
   }
 }
