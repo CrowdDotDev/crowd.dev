@@ -7,10 +7,6 @@ const ReportFormPage = () =>
   import('@/modules/report/pages/report-form-page.vue')
 const ReportViewPage = () =>
   import('@/modules/report/pages/report-view-page.vue')
-const ReportPublicViewPage = () =>
-  import(
-    '@/modules/report/pages/report-view-page-public.vue'
-  )
 
 export default [
   {
@@ -37,23 +33,23 @@ export default [
           permission: Permissions.values.reportEdit
         },
         props: true
-      },
-      {
-        name: 'reportView',
-        path: '/reports/:id',
-        component: ReportViewPage,
-        meta: {
-          auth: true,
-          permission: Permissions.values.reportRead
-        },
-        props: true
       }
     ]
   },
   {
+    name: 'reportView',
+    path: '/reports/:id',
+    component: ReportViewPage,
+    meta: {
+      auth: true,
+      permission: Permissions.values.reportRead
+    },
+    props: true
+  },
+  {
     name: 'reportPublicView',
     path: '/tenant/:tenantId/reports/:id/public',
-    component: ReportPublicViewPage,
+    component: ReportViewPage,
     props: true
   }
 ]
