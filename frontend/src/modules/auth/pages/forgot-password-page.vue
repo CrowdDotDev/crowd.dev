@@ -29,10 +29,20 @@
             id="email"
             ref="focus"
             v-model="model[fields.email.name]"
-            :placeholder="fields.email.label"
             autocomplete="email"
             type="text"
           ></el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item class="mb-4">
@@ -84,12 +94,16 @@
     </div>
     <p class="text-xs text-gray-500 leading-5 pb-8">
       Didn’t receive the e-mail? Check your spam folder or
-      <span class="text-brand-500">resend</span>
+      <span
+        class="text-brand-500 cursor-pointer"
+        @click="resend()"
+        >ask to resend</span
+      >
     </p>
     <el-button
       :loading="loadingPasswordResetEmail"
       class="btn btn--primary btn--lg w-full"
-      @click="doSubmit()"
+      @click="resend()"
     >
       Resend e-mail
     </el-button>
@@ -114,6 +128,8 @@
 import { mapGetters, mapActions } from 'vuex'
 import { UserModel } from '@/premium/user/user-model'
 import AppI18n from '@/shared/i18n/i18n'
+import Message from '@/shared/message/message'
+import { i18n } from '@/i18n'
 
 const { fields } = UserModel
 
@@ -141,7 +157,7 @@ export default {
   methods: {
     ...mapActions('auth', ['doSendPasswordResetEmail']),
     doSubmit() {
-      this.$refs.form
+      return this.$refs.form
         .validate()
         .then(() => {
           return this.doSendPasswordResetEmail(
@@ -150,7 +166,15 @@ export default {
         })
         .then(() => {
           this.success = true
+          return Promise.resolve()
         })
+    },
+    resend() {
+      this.doSubmit().then(() => {
+        Message.success(
+          i18n('auth.passwordResetEmailSuccess')
+        )
+      })
     }
   }
 }
