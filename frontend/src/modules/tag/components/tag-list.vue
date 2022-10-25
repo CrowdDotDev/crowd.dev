@@ -1,17 +1,20 @@
 <template>
-  <div>
+  <div
+    @mouseenter="showEdit = true"
+    @mouseleave="showEdit = true"
+  >
     <div
       class="inline-flex items-center overflow-x-scroll w-full"
     >
       <span
         v-for="tag in computedTags"
         :key="tag.id"
-        class="tag mr-2 my-1"
+        class="tag mr-2 my-1 text-xs"
         >{{ getTagName(tag) }}</span
       >
       <el-button
-        v-if="editable"
-        class="btn btn-link btn-link--primary text-2xs"
+        v-if="editable && showEdit"
+        class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
         :class="member.tags.length > 0 ? 'ml-2' : ''"
         @click.stop="editing = true"
         >Edit tags</el-button
@@ -61,7 +64,8 @@ export default {
       rules: formSchema.rules(),
       model: null,
       editing: false,
-      loading: false
+      loading: false,
+      showEdit: true
     }
   },
   computed: {
