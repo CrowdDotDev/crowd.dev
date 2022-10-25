@@ -18,7 +18,7 @@
       >
         <el-form-item
           :prop="fields.email.name"
-          class="mb-0 "
+          class="mb-0"
         >
           <label
             class="text-xs mb-1 font-semibold leading-5"
@@ -46,7 +46,7 @@
 
         <el-form-item
           :prop="fields.password.name"
-          class="mb-0 "
+          class="mb-0"
         >
           <label
             class="text-xs mb-1 font-semibold leading-5"
