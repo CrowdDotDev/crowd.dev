@@ -190,6 +190,21 @@
     }
   }
 }
+.el-radio-group.radio-button-group {
+  .el-radio-button {
+    @apply border-gray-200;
+    &__original-radio:checked+.el-radio-button__inner {
+      @apply bg-brand-50 border-brand-500 text-gray-900;
+      box-shadow: -1px 0 0 0 #E94F2E;
+    }
+    .el-radio-button__inner {
+      @apply w-full text-gray-600;
+    }
+    &:hover .el-radio-button__inner {
+      @apply text-brand-500;
+    }
+  }
+}
 
 .el-input.is-active .el-input__inner,
 .el-input__inner:focus {

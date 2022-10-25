@@ -3,14 +3,12 @@
     <div class="mb-10">
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
-        <router-link
-          v-if="hasPermissionToCreate"
-          :to="{ path: '/reports/new' }"
+        <el-button
+          class="btn btn--primary btn--md"
+          @click="isCreatingReport = true"
         >
-          <el-button class="btn btn--primary btn--md">
-            Add report
-          </el-button>
-        </router-link>
+          Add report
+        </el-button>
       </div>
       <div class="text-xs text-gray-500">
         Build custom widgets, organize them in reports and
@@ -18,6 +16,9 @@
       </div>
     </div>
     <app-report-list-table></app-report-list-table>
+    <app-report-create-dialog
+      v-model="isCreatingReport"
+    ></app-report-create-dialog>
   </app-page-wrapper>
 </template>
 
@@ -25,6 +26,7 @@
 import { mapActions, mapGetters } from 'vuex'
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import ReportListTable from '@/modules/report/components/report-list-table.vue'
+import AppReportCreateDialog from '@/modules/report/components/report-create-dialog'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 
 export default {
@@ -32,7 +34,14 @@ export default {
 
   components: {
     AppPageWrapper,
+    AppReportCreateDialog,
     'app-report-list-table': ReportListTable
+  },
+
+  data() {
+    return {
+      isCreatingReport: false
+    }
   },
 
   computed: {

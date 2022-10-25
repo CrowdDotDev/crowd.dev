@@ -1,7 +1,8 @@
 <template>
-  <div>
-    <label class="block leading-none mb-1"
-      >Granularity (optional)</label
+  <div class="w-full">
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Granularity</label
     >
     <el-select
       item-text="title"
@@ -11,6 +12,7 @@
       :model-value="
         timeDimensions[0] && timeDimensions[0].granularity
       "
+      class="w-full"
       @change="(g) => handleChange(g)"
     >
       <el-option

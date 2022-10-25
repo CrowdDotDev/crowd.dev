@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <label class="block leading-none mb-1"
-      >Date Range</label
+  <div class="w-full">
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Date Range
+      <span class="text-brand-500 ml-0.5">*</span></label
     >
     <el-select
       :model-value="
@@ -12,6 +14,7 @@
       "
       filterable
       value-key="label"
+      class="w-full"
       @change="changeHandler"
     >
       <el-option
