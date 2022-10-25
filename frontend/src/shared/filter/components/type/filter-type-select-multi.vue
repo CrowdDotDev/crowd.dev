@@ -12,9 +12,10 @@
       <div class="flex items-center justify-between h-4">
         <div class="flex items-center">
           <el-checkbox
-            :model-value="option.selected"
+            v-model="option.selected"
             class="filter-checkbox"
             :disabled="option.soon"
+            @change="handleOptionClick(option)"
           />
           {{ option.label }}
           <span
