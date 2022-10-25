@@ -36,9 +36,9 @@
               <i class="ri-share-line mr-2"></i>Share
             </el-button>
             <template #dropdown>
-              <div class="p-4 w-100">
+              <div class="p-2 w-100">
                 <div
-                  class="flex items-start justify-between"
+                  class="flex items-start justify-between flex-grow"
                 >
                   <div>
                     <div
@@ -50,10 +50,12 @@
                       Publish to web and share with everyone
                     </div>
                   </div>
-                  <el-switch
-                    v-model="isPublic"
-                    @change="handlePublicChange"
-                  />
+                  <div>
+                    <el-switch
+                      v-model="isPublic"
+                      @change="handlePublicChange"
+                    />
+                  </div>
                 </div>
                 <div class="mt-6 relative">
                   <div
