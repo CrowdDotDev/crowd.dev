@@ -78,7 +78,7 @@
               >
               <el-radio-group
                 :model-value="chartType"
-                class="radio-button-group"
+                class="radio-button-group radio-group-chart-type"
                 size="large"
                 @change="updateChartType"
               >
@@ -137,45 +137,40 @@
               />
             </div>
 
-            <div class="w-full flex items-center">
+            <div class="additional-settings">
               <button
                 type="button"
-                class="inline-flex items-center leading-none mt-5 text-blue-500 cursor-pointer hover:opacity-80"
+                class="inline-flex items-center leading-none mt-2 text-xs text-gray-600 font cursor-pointer hover:text-gray-900"
                 @click="handleAdditionalSettingsClick"
               >
                 <i
-                  class="mr-1"
+                  class="mr-1 text-base"
                   :class="
                     additionalSettingsVisible
                       ? 'ri-arrow-up-s-line'
                       : 'ri-arrow-down-s-line'
                   "
                 ></i>
-                {{
-                  additionalSettingsVisible
-                    ? 'Hide'
-                    : 'Show'
-                }}
-                Additional Settings
+                Additional settings
               </button>
-            </div>
-            <div
-              v-if="additionalSettingsVisible"
-              class="additional-settings my-4 flex flex-wrap"
-            >
-              <Limit
-                :limit="Number(limit)"
-                :disabled="!isQueryPresent"
-                class="px-3 py-2 w-full lg:w-1/2"
-                @update="setLimit"
-              />
-              <Order
-                :order-members="orderMembers"
-                :disabled="!isQueryPresent"
-                class="px-3 py-2 w-full lg:w-1/2"
-                @order-change="updateOrder.set"
-                @reorder="updateOrder.reorder"
-              />
+              <div
+                v-if="additionalSettingsVisible"
+                class="my-4"
+              >
+                <Limit
+                  :limit="Number(limit)"
+                  :disabled="!isQueryPresent"
+                  class="px-3 py-2 w-full"
+                  @update="setLimit"
+                />
+                <Order
+                  :order-members="orderMembers"
+                  :disabled="!isQueryPresent"
+                  class="px-3 py-2 w-full"
+                  @order-change="updateOrder.set"
+                  @reorder="updateOrder.reorder"
+                />
+              </div>
             </div>
             <hr class="mt-6 mb-4" />
             <div>
@@ -421,10 +416,8 @@ export default {
 
 <style lang="scss">
 .additional-settings {
-  @apply p-2;
-  border: 1px solid #ddd;
+  @apply p-2 border border-gray-200;
   border-radius: 4px;
-  background-color: #f0f2f5;
 }
 
 .widget-cube-builder {
@@ -444,7 +437,14 @@ export default {
       @apply pb-0;
     }
     .widget.panel {
-      @apply mb-0;
+      @apply mb-0 shadow-none;
+    }
+
+    .radio-group-chart-type {
+      @apply flex flex-1;
+      .el-radio-button {
+        @apply flex-grow flex-shrink-0;
+      }
     }
   }
 }

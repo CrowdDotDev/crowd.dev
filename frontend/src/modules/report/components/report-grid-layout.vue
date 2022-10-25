@@ -24,7 +24,7 @@
         <button
           v-if="editable"
           type="button"
-          class="btn btn--secondary mt-1"
+          class="btn btn-brand btn-brand--transparent btn--md mt-1"
           @click="handleAddWidgetClick"
         >
           <span class="flex items-center text-brand-500">
@@ -37,7 +37,7 @@
             name: 'reportEdit',
             params: { id: modelValue.id }
           }"
-          class="btn btn--secondary mt-1"
+          class="btn btn-brand btn-brand--transparent btn--md mt-1"
         >
           <span class="flex items-center text-brand-500">
             <i class="ri-lg ri-pencil-line mr-1"></i>Edit
@@ -96,7 +96,7 @@
         <div v-if="editable" class="toolbar">
           <button
             type="button"
-            class="btn btn--secondary"
+            class="btn btn-brand btn-brand--transparent btn--md"
             @click="handleAddWidgetClick"
           >
             <span class="flex items-center text-brand-500">

@@ -1,7 +1,7 @@
 <template>
   <div>
     <label
-      class="block text-xs leading-none font-semibold mb-1"
+      class="block text-xs leading-none font-semibold mb-2"
       >Order</label
     >
     <draggable
@@ -10,14 +10,17 @@
       @end="handleDragEnd"
     >
       <template #item="{ element }">
-        <div class="order-element">
+        <div class="order-element mb-2">
           <div class="order-element-name">
-            <i class="ri-drag-move-2-line"></i>
-            <span>{{ element.title }}</span>
+            <i
+              class="ri-drag-move-2-line text-gray-400"
+            ></i>
+            <span class="text-xs">{{ element.title }}</span>
           </div>
           <el-radio-group
             :model-value="element.order"
             size="small"
+            class="radio-button-group"
             @input="
               (value) =>
                 $emit('orderChange', element.id, value)

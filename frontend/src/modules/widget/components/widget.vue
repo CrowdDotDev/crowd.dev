@@ -64,11 +64,15 @@
           ><i class="ri-lg ri-pencil-line mr-1" />Edit
           Widget</el-dropdown-item
         >
+        <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item
           v-if="editable"
           command="trigger-delete-widget"
-          ><i class="ri-lg ri-delete-bin-line mr-1" />Delete
-          Widget</el-dropdown-item
+          ><i
+            class="ri-lg ri-delete-bin-line mr-1 !text-red-500"
+          /><span class="text-red-500"
+            >Delete Widget</span
+          ></el-dropdown-item
         >
       </template>
     </el-dropdown>
