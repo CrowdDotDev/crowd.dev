@@ -1,0 +1,82 @@
+[
+  {
+    "value": "gitHub",
+    "label": "GitHub"
+  },
+  {
+    "value": "discord",
+    "label": "Discord"
+  },
+  {
+    "value": "slack",
+    "label": "Slack"
+  },
+  {
+    "value": "twitter",
+    "label": "Twitter"
+  },
+  {
+    "value": "dev",
+    "label": "DEV"
+  },
+  {
+    "value": "hackernews",
+    "label": "HackerNews"
+  },
+  {
+    "value": "discourse",
+    "label": "Discourse"
+  },
+  {
+    "value": "reddit",
+    "label": "Reddit"
+  },
+  {
+    "value": "linkedin",
+    "label": "LinkedIn"
+  },
+  {
+    "value": "stackoverflow",
+    "label": "Stack Overflow"
+  },
+  {
+    "value": "mattermost",
+    "label": "Mattermost"
+  },
+  {
+    "value": "youtube",
+    "label": "YouTube"
+  },
+  {
+    "value": "producthunt",
+    "label": "ProductHunt"
+  },
+  {
+    "value": "whatsapp",
+    "label": "WhatsApp"
+  },
+  {
+    "value": "medium",
+    "label": "Medium"
+  },
+  {
+    "value": "heartbeatchat",
+    "label": "Heartbeat.chat"
+  },
+  {
+    "value": "gitter",
+    "label": "Gitter"
+  },
+  {
+    "value": "twitch",
+    "label": "Twitch"
+  },
+  {
+    "value": "circle",
+    "label": "Circle"
+  },
+  {
+    "value": "telegram",
+    "label": "Telegram"
+  }
+]
