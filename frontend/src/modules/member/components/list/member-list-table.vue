@@ -58,7 +58,7 @@
           <template #default="scope">
             <app-member-organizations
               :member="scope.row"
-              :showTitle="false"
+              :show-title="false"
             />
           </template>
         </el-table-column>
