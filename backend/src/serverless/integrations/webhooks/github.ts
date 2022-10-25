@@ -329,13 +329,20 @@ export default class GitHubWebhook {
     const parsedMember: Member = {
       username: { [PlatformType.GITHUB]: member.login },
       attributes: {
-        [PlatformType.GITHUB]: {
-          [MemberAttributeName.NAME]: member.name,
-          [MemberAttributeName.IS_HIREABLE]: member.isHireable || false,
-          [MemberAttributeName.URL]: member.url,
-          [MemberAttributeName.BIO]: member.bio || '',
-          [MemberAttributeName.LOCATION]: member.location || '',
-          [MemberAttributeName.AVATAR_URL]: member.avatarUrl,
+        [MemberAttributeName.NAME]: {
+          [PlatformType.GITHUB]: member.name,
+        },
+        [MemberAttributeName.IS_HIREABLE]: {
+          [PlatformType.GITHUB]: member.isHireable || false,
+        },
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: member.url,
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: member.bio || '',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: member.location || '',
         },
       },
       email: member.email || '',
