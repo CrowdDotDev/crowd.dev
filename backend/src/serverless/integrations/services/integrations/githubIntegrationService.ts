@@ -386,8 +386,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<AddActivitiesSingle[]> {
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out: AddActivitiesSingle[] = []
+    for (const record of records) {
+      out.push({
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -401,9 +402,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
-
-      return acc
-    }, [])
+    }
+    return out
   }
 
   private static async parseIssues(
@@ -442,8 +442,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<AddActivitiesSingle[]> {
-    return records.reduce(async (acc, record) => {
-      acc.push({
+    const out: AddActivitiesSingle[] = []
+    for (const record of records) {
+      out.push({
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
         type: GithubActivityType.ISSUE_COMMENT,
@@ -457,9 +458,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
-
-      return acc
-    }, [])
+    }
+    return out
   }
 
   private static async parseDiscussions(
