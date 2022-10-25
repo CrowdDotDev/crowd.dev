@@ -5,42 +5,8 @@
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
-    <div>
-      <div v-if="!!count" class="mb-4">
-        <app-pagination-sorter
-          v-model="sorterFilter"
-          :page-size="Number(pagination.pageSize)"
-          :total="count"
-          :current-page="pagination.currentPage"
-          :has-page-counter="false"
-          module="conversation"
-          position="top"
-          @change-sorter="doChangeFilter"
-        />
-      </div>
-      <app-conversation-item
-        v-for="conversation of conversations"
-        :key="conversation.id"
-        :conversation="conversation"
-        @details="conversationId = conversation.id"
-      />
-      <div
-        v-if="conversations.length && isLoadMoreVisible"
-        class="flex grow justify-center pt-4"
-      >
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner h-16 !relative !min-h-5"
-        ></div>
-        <el-button
-          v-else
-          class="btn btn-link btn-link--primary"
-          @click="onLoadMore"
-          ><i class="ri-arrow-down-line"></i
-          ><span class="text-xs">Load more</span></el-button
-        >
-      </div>
+    <div v-else>
+      <!-- Empty State -->
       <div v-if="conversations.length === 0">
         <div class="flex justify-center pt-16">
           <i
@@ -52,6 +18,49 @@
         >
           There are no conversations
         </p>
+      </div>
+      <div v-else>
+        <div class="mb-4">
+          <app-pagination-sorter
+            v-model="sorterFilter"
+            :page-size="Number(pagination.pageSize)"
+            :total="count"
+            :current-page="pagination.currentPage"
+            :has-page-counter="false"
+            module="conversation"
+            position="top"
+            @change-sorter="doChangeFilter"
+          />
+        </div>
+
+        <!-- Conversation item list -->
+        <app-conversation-item
+          v-for="conversation of conversations"
+          :key="conversation.id"
+          :conversation="conversation"
+          @details="conversationId = conversation.id"
+        />
+
+        <!-- Load more button -->
+        <div
+          v-if="isLoadMoreVisible"
+          class="flex grow justify-center pt-4"
+        >
+          <div
+            v-if="loading"
+            v-loading="loading"
+            class="app-page-spinner h-16 !relative !min-h-5"
+          ></div>
+          <el-button
+            v-else
+            class="btn btn-link btn-link--primary"
+            @click="onLoadMore"
+            ><i class="ri-arrow-down-line"></i
+            ><span class="text-xs"
+              >Load more</span
+            ></el-button
+          >
+        </div>
       </div>
     </div>
   </div>
@@ -115,7 +124,7 @@ function doChangeFilter(filter) {
 
   store.dispatch('activity/doChangeSort', {
     prop: sorter,
-    order: 'descending'
+    order: 'desc'
   })
 }
 

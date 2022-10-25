@@ -32,7 +32,7 @@ export default {
       },
       sorter: {
         prop: 'similarityScore',
-        order: 'descending'
+        order: 'desc'
       },
       active: true
     },
@@ -100,6 +100,6 @@ export default {
   },
   sorter: {
     prop: 'similarityScore',
-    order: 'descending'
+    order: 'desc'
   }
 }

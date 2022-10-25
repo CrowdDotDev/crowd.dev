@@ -5,44 +5,8 @@
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
-    <div>
-      <div v-if="!!count" class="mb-4">
-        <app-pagination-sorter
-          v-model="sorterFilter"
-          :page-size="Number(pagination.pageSize)"
-          :total="count"
-          :current-page="pagination.currentPage"
-          :has-page-counter="false"
-          :sorter="false"
-          module="activity"
-          position="top"
-        />
-      </div>
-      <app-activity-item
-        v-for="activity of activities"
-        :key="activity.id"
-        :activity="activity"
-        class="mb-6"
-        v-bind="cardOptions"
-        @open-conversation="conversationId = $event"
-      />
-      <div
-        v-if="activities.length && isLoadMoreVisible"
-        class="flex grow justify-center pt-4"
-      >
-        <div
-          v-if="loading"
-          v-loading="loading"
-          class="app-page-spinner h-16 !relative !min-h-5"
-        ></div>
-        <el-button
-          v-else
-          class="btn btn-link btn-link--primary"
-          @click="onLoadMore"
-          ><i class="ri-arrow-down-line"></i
-          ><span class="text-xs">Load more</span></el-button
-        >
-      </div>
+    <div v-else>
+      <!-- Empty State -->
       <div v-if="activities.length === 0">
         <div class="flex justify-center pt-12">
           <i
@@ -54,6 +18,52 @@
         >
           There are no activities
         </p>
+      </div>
+      <div v-else>
+        <!-- Sorter -->
+        <div class="mb-4">
+          <app-pagination-sorter
+            v-model="sorterFilter"
+            :page-size="Number(pagination.pageSize)"
+            :total="count"
+            :current-page="pagination.currentPage"
+            :has-page-counter="false"
+            :sorter="false"
+            module="activity"
+            position="top"
+          />
+        </div>
+
+        <!-- Activity item list -->
+        <app-activity-item
+          v-for="activity of activities"
+          :key="activity.id"
+          :activity="activity"
+          class="mb-6"
+          v-bind="cardOptions"
+          @open-conversation="conversationId = $event"
+        />
+
+        <!-- Load more button -->
+        <div
+          v-if="isLoadMoreVisible"
+          class="flex grow justify-center pt-4"
+        >
+          <div
+            v-if="loading"
+            v-loading="loading"
+            class="app-page-spinner h-16 w-16 !relative !min-h-fit"
+          ></div>
+          <el-button
+            v-else
+            class="btn btn-link btn-link--primary"
+            @click="onLoadMore"
+            ><i class="ri-arrow-down-line"></i
+            ><span class="text-xs"
+              >Load more</span
+            ></el-button
+          >
+        </div>
       </div>
     </div>
   </div>
