@@ -23,7 +23,7 @@
               name: 'reportView',
               params: { id: id }
             }"
-            ><i class="ri-eye-2-line mr-2"></i>View
+            ><i class="ri-eye-line mr-2"></i>View
             report</router-link
           >
           <el-dropdown trigger="click"

@@ -190,6 +190,21 @@
     }
   }
 }
+.el-radio-group.radio-button-group {
+  @apply flex flex-1;
+  .el-radio-button {
+    @apply border-gray-200 flex-grow flex-shrink-0;
+    &__original-radio:checked+.el-radio-button__inner {
+      @apply bg-brand-50 border-brand-500 text-gray-900;
+    }
+    .el-radio-button__inner {
+      @apply w-full text-gray-600;
+    }
+    &:hover .el-radio-button__inner {
+      @apply text-brand-500;
+    }
+  }
+}
 
 .el-input.is-active .el-input__inner,
 .el-input__inner:focus {

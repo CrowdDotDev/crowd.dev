@@ -5,31 +5,11 @@
       editable ? 'report-grid-layout--editing' : '-m-2'
     "
   >
-    <app-dialog
-      v-model="widgetModal.visible"
-      :title="
-        widgetModal.action === 'add'
-          ? 'Add Widget'
-          : 'Edit Widget'
-      "
-      size="extra-large"
-    >
-      <template #content>
-        <div class="px-6 pb-6">
-          <div
-            v-if="widgetModal.visible === false"
-            v-loading="true"
-            class="app-page-spinner"
-          ></div>
-          <app-widget-cube-builder
-            v-else
-            v-model="widgetModal.model"
-            @submit="handleWidgetFormSubmit"
-            @close="widgetModal.visible = false"
-          />
-        </div>
-      </template>
-    </app-dialog>
+    <app-widget-cube-builder
+      v-model:widget="widgetModal.model"
+      v-model:drawer="widgetModal.visible"
+      @submit="handleWidgetFormSubmit"
+    />
     <div
       v-if="loadingCube"
       v-loading="loadingCube"
@@ -154,6 +134,7 @@ export default {
       default: false
     }
   },
+  emits: ['close'],
 
   data() {
     return {

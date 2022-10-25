@@ -1,6 +1,9 @@
 <template>
   <div>
-    <label class="block leading-none mb-1">Order</label>
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Order</label
+    >
     <draggable
       v-model="list"
       class="list-group"

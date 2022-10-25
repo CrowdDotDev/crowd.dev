@@ -1,5 +1,28 @@
 <template>
-  <form>
+  <el-drawer
+    v-model="visible"
+    :close-on-click-modal="false"
+    :show-close="false"
+    size="600px"
+    custom-class="widget-cube-builder"
+  >
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-medium text-gray-1000">
+          Edit widget
+        </h2>
+
+        <button
+          type="button"
+          class="btn btn--transparent btn--md w-10"
+          @click="visible = false"
+        >
+          <i
+            class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
+          ></i>
+        </button>
+      </div>
+    </template>
     <query-builder
       style="width: 100%"
       :cubejs-api="cubejsApi"
@@ -7,6 +30,7 @@
     >
       <template
         #builder="{
+          validatedQuery,
           chartType,
           updateChartType,
           measures,
@@ -27,14 +51,15 @@
           isQueryPresent
         }"
       >
-        <div>
-          <div class="text-base font-semibold mb-4">
-            Set up your widget
-          </div>
-          <div class="flex flex-wrap -mx-3 -my-2">
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <label class="block leading-none mb-1"
-                >Title</label
+        <div class="overflow-auto flex-grow flex flex-col">
+          <div class="p-6">
+            <div class="w-full mb-6">
+              <label
+                class="block text-xs leading-none font-semibold mb-1"
+                >Name
+                <span class="text-brand-500 ml-0.5"
+                  >*</span
+                ></label
               >
               <el-input
                 v-model="model.title"
@@ -42,7 +67,33 @@
                 placeholder="Most active contributors"
               />
             </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
+
+            <div class="w-full mb-6">
+              <label
+                class="block text-xs leading-none font-semibold mb-1"
+                >Chart Type
+                <span class="text-brand-500 ml-0.5"
+                  >*</span
+                ></label
+              >
+              <el-radio-group
+                :model-value="chartType"
+                class="radio-button-group"
+                size="large"
+                @change="updateChartType"
+              >
+                <el-radio-button
+                  v-for="item in chartTypes"
+                  :key="item.value"
+                  :label="item.value"
+                  ><div class="flex items-center text-sm">
+                    <i class="mr-2" :class="item.icon"></i
+                    >{{ item.label }}
+                  </div></el-radio-button
+                >
+              </el-radio-group>
+            </div>
+            <div class="w-full mb-6">
               <MeasureSelect
                 :translated-options="translatedOptions"
                 :measures="measures"
@@ -50,16 +101,15 @@
                 :set-measures="setMeasures"
               />
             </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <DimensionSelect
-                :translated-options="translatedOptions"
-                :measures="measures"
-                :available-dimensions="availableDimensions"
-                :dimensions="dimensions"
-                :set-dimensions="setDimensions"
+
+            <div class="w-full mb-6">
+              <DateRangeSelect
+                :time-dimensions="timeDimensions"
+                @change="setTimeDimensions"
               />
             </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
+
+            <div class="w-full mb-6">
               <TimeDimensionSelect
                 :measures="measures"
                 :available-time-dimensions="
@@ -70,42 +120,24 @@
               />
             </div>
 
-            <div class="px-3 py-2 w-full lg:w-1/3">
+            <div class="w-full mb-6">
+              <DimensionSelect
+                :translated-options="translatedOptions"
+                :measures="measures"
+                :available-dimensions="availableDimensions"
+                :dimensions="dimensions"
+                :set-dimensions="setDimensions"
+              />
+            </div>
+
+            <div class="w-full mb-6">
               <GranularitySelect
                 :time-dimensions="timeDimensions"
                 :set-time-dimensions="setTimeDimensions"
               />
             </div>
 
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <DateRangeSelect
-                :time-dimensions="timeDimensions"
-                @change="setTimeDimensions"
-              />
-            </div>
-
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <label class="block leading-none mb-1"
-                >Chart Type</label
-              >
-              <el-select
-                :model-value="chartType"
-                :items="chartTypes"
-                clearable
-                filterable
-                @change="updateChartType"
-              >
-                <el-option
-                  v-for="item in chartTypes"
-                  :key="item"
-                  :value="item"
-                  >{{ item }}</el-option
-                >
-              </el-select>
-            </div>
-            <div
-              class="px-3 py-2 w-full lg:w-1/3 flex items-center"
-            >
+            <div class="w-full flex items-center">
               <button
                 type="button"
                 class="inline-flex items-center leading-none mt-5 text-blue-500 cursor-pointer hover:opacity-80"
@@ -127,89 +159,85 @@
                 Additional Settings
               </button>
             </div>
+            <div
+              v-if="additionalSettingsVisible"
+              class="additional-settings my-4 flex flex-wrap"
+            >
+              <Limit
+                :limit="Number(limit)"
+                :disabled="!isQueryPresent"
+                class="px-3 py-2 w-full lg:w-1/2"
+                @update="setLimit"
+              />
+              <Order
+                :order-members="orderMembers"
+                :disabled="!isQueryPresent"
+                class="px-3 py-2 w-full lg:w-1/2"
+                @order-change="updateOrder.set"
+                @reorder="updateOrder.reorder"
+              />
+            </div>
+            <hr class="mt-6 mb-4" />
+            <div>
+              <FilterComponent
+                :measures="measures"
+                :dimensions="dimensions"
+                :filters="filters"
+                :set-filters="setFilters"
+                :available-dimensions="
+                  translatedOptions(availableDimensions)
+                "
+              ></FilterComponent>
+            </div>
           </div>
-          <div
-            v-if="additionalSettingsVisible"
-            class="additional-settings my-4 flex flex-wrap"
-          >
-            <Limit
-              :limit="Number(limit)"
-              :disabled="!isQueryPresent"
-              class="px-3 py-2 w-full lg:w-1/2"
-              @update="setLimit"
-            />
-            <Order
-              :order-members="orderMembers"
-              :disabled="!isQueryPresent"
-              class="px-3 py-2 w-full lg:w-1/2"
-              @order-change="updateOrder.set"
-              @reorder="updateOrder.reorder"
-            />
-          </div>
-          <hr class="mt-6 mb-4" />
-          <div>
-            <FilterComponent
-              :measures="measures"
-              :dimensions="dimensions"
-              :filters="filters"
-              :set-filters="setFilters"
-              :available-dimensions="
-                translatedOptions(availableDimensions)
+        </div>
+        <el-collapse
+          accordion
+          @change="handlePreviewChange"
+        >
+          <el-collapse-item name="preview">
+            <template #title>
+              <i
+                :class="
+                  previewExpanded
+                    ? 'ri-arrow-down-s-line'
+                    : 'ri-arrow-up-s-line'
+                "
+                class="text-base mr-1"
+              ></i>
+              Preview
+            </template>
+            <app-widget-cube
+              :widget="
+                buildWidgetPreview({
+                  chartType,
+                  query: validatedQuery
+                })
               "
-            ></FilterComponent>
-          </div>
-        </div>
-        <hr class="my-6" />
-        <div class="text-base font-semibold mb-4">
-          Widget preview
-        </div>
-      </template>
-      <template
-        #default="{
-          resultSet,
-          isQueryPresent,
-          validatedQuery,
-          chartType
-        }"
-      >
-        <div v-if="!isQueryPresent" class="">
-          Please fill in all the required fields.
-        </div>
-        <div v-else>
-          <app-widget-cube
-            :widget="
-              buildWidgetPreview({
-                chartType,
-                query: validatedQuery
-              })
-            "
-            :result-set="resultSet"
-          ></app-widget-cube>
-        </div>
-        <div class="flex items-center justify-end mt-12">
-          <el-button
-            class="btn btn--primary mr-2"
-            @click="
-              handleSubmit({
-                chartType,
-                query: validatedQuery
-              })
-            "
-          >
-            <i class="ri-lg ri-check-line mr-1" />
-            Save Widget
-          </el-button>
-          <el-button
-            class="btn btn--secondary"
-            @click="$emit('close')"
-          >
-            <i class="ri-lg ri-close-line mr-1" />
-            <app-i18n code="common.cancel"></app-i18n>
-          </el-button>
-        </div>
+            ></app-widget-cube>
+          </el-collapse-item>
+        </el-collapse>
       </template>
     </query-builder>
-  </form>
+    <template #footer>
+      <div class="relative">
+        <div class="flex items-center justify-end">
+          <el-button
+            class="btn btn--bordered btn--md mr-3"
+            @click="visible = false"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+          <el-button
+            class="btn btn--primary btn--md"
+            @click="$emit('submit', {})"
+          >
+            Update
+          </el-button>
+        </div>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script>
@@ -247,16 +275,20 @@ export default {
   },
 
   props: {
-    modelValue: {
+    drawer: {
+      type: Boolean,
+      default: false
+    },
+    widget: {
       type: Object,
       default: () => {}
     }
   },
-  emits: ['close', 'submit'],
+  emits: ['update:widget', 'update:drawer', 'submit'],
 
   data() {
-    const query = this.modelValue.settings
-      ? this.modelValue.settings.query
+    const query = this.widget.settings
+      ? this.widget.settings.query
       : {
           measures: ['Activities.count'],
           timeDimensions: [
@@ -269,29 +301,57 @@ export default {
         }
 
     return {
-      model: JSON.parse(JSON.stringify(this.modelValue)),
+      model: JSON.parse(JSON.stringify(this.widget)),
       chartTypes: [
-        'line',
-        'area',
-        'bar',
-        'pie',
-        'table',
-        'number'
+        {
+          value: 'line',
+          label: 'Line',
+          icon: 'ri-line-chart-line'
+        },
+        {
+          value: 'bar',
+          label: 'Bar',
+          icon: 'ri-bar-chart-line'
+        },
+        {
+          value: 'pie',
+          label: 'Doughnut',
+          icon: 'ri-donut-chart-line'
+        },
+        {
+          value: 'table',
+          label: 'Table',
+          icon: 'ri-list-check'
+        },
+        {
+          value: 'number',
+          label: 'Number',
+          icon: 'ri-hashtag'
+        }
       ],
       vizState: {
         query,
-        chartType: this.modelValue.settings
-          ? this.modelValue.settings.chartType
+        chartType: this.widget.settings
+          ? this.widget.settings.chartType
           : 'line'
       },
-      additionalSettingsVisible: false
+      additionalSettingsVisible: false,
+      previewExpanded: false
     }
   },
 
   computed: {
     ...mapGetters({
       cubejsApi: 'widget/cubejsApi'
-    })
+    }),
+    visible: {
+      get() {
+        return this.drawer
+      },
+      set(value) {
+        this.$emit('update:drawer', value)
+      }
+    }
   },
 
   async created() {
@@ -307,22 +367,20 @@ export default {
     handleSubmit(query) {
       const widgetEl =
         this.$el.querySelector('.widget-cube')
-      const widget = {
-        id: this.modelValue.id
-          ? this.modelValue.id
-          : undefined,
+      const objToSubmit = {
+        id: this.widget.id ? this.widget.id : undefined,
         title: this.model.title,
-        type: this.modelValue.type,
-        reportId: this.modelValue.reportId,
+        type: this.widget.type,
+        reportId: this.widget.reportId,
         settings: Object.assign(
           {},
-          this.modelValue.settings,
+          this.widget.settings,
           query
         )
       }
 
-      if (!widget.settings.layout) {
-        widget.settings.layout = {}
+      if (!objToSubmit.settings.layout) {
+        objToSubmit.settings.layout = {}
       }
 
       // Compute widget's height based on position of the grid
@@ -330,9 +388,10 @@ export default {
         widgetEl.offsetHeight < 100
           ? widgetEl.offsetHeight / 18
           : (widgetEl.offsetHeight - 40) / 20
-      widget.settings.layout.h = Math.ceil(widgetHeight)
-      this.$emit('submit', widget)
-      this.$emit('close')
+      objToSubmit.settings.layout.h =
+        Math.ceil(widgetHeight)
+      this.$emit('submit', objToSubmit)
+      this.visible = false
     },
     buildWidgetPreview(settings) {
       return {
@@ -352,6 +411,9 @@ export default {
     handleAdditionalSettingsClick() {
       this.additionalSettingsVisible =
         !this.additionalSettingsVisible
+    },
+    handlePreviewChange() {
+      this.previewExpanded = !this.previewExpanded
     }
   }
 }
@@ -363,5 +425,27 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #f0f2f5;
+}
+
+.widget-cube-builder {
+  .el-drawer__body {
+    @apply p-0;
+    & > div {
+      @apply h-full flex flex-1 flex-col;
+    }
+
+    .el-collapse-item__header {
+      @apply px-6 uppercase text-gray-600 text-2xs;
+      .el-icon.el-collapse-item__arrow {
+        @apply hidden;
+      }
+    }
+    .el-collapse-item__content {
+      @apply pb-0;
+    }
+    .widget.panel {
+      @apply mb-0;
+    }
+  }
 }
 </style>
