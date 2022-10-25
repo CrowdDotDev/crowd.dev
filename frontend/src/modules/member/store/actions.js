@@ -54,9 +54,12 @@ export default {
 
       for (const row of selectedRows) {
         await MemberService.update(row.id, {
-          crowdInfo: {
-            ...row.crowdInfo,
-            team: true
+          attributes: {
+            ...row.attributes,
+            isTeamMember: {
+              crowd: true,
+              default: true,
+            }
           }
         })
       }

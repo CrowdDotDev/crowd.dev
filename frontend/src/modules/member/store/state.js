@@ -2,7 +2,9 @@ import moment from 'moment'
 import {
   INITIAL_PAGE_SIZE,
   INITIAL_VIEW_ACTIVE_FILTER,
-  INITIAL_VIEW_RECENT_FILTER
+  INITIAL_VIEW_RECENT_FILTER,
+  INITIAL_VIEW_SLIPPING_AWAY_FILTER,
+  INITIAL_VIEW_TEAM_MEMBERS_FILTER
 } from './constants'
 
 export default {
@@ -23,25 +25,8 @@ export default {
       active: true
     },
     {
-      id: 'active',
-      label: 'Most active',
-      columns: [
-        {
-          name: 'activityCount',
-          label: '# of Activities',
-          sortable: true
-        }
-      ],
-      filter: INITIAL_VIEW_ACTIVE_FILTER,
-      sorter: {
-        prop: 'lastActive',
-        order: 'descending'
-      },
-      active: false
-    },
-    {
       id: 'recent',
-      label: 'Recent',
+      label: 'New and active',
       columns: [
         {
           name: 'joinedAt',
@@ -61,7 +46,45 @@ export default {
         order: 'descending'
       },
       active: false
-    }
+    },
+    {
+      id: 'slipping-away',
+      label: 'Slipping away',
+      columns: [],
+      filter: INITIAL_VIEW_SLIPPING_AWAY_FILTER,
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
+      active: false
+    },
+    {
+      id: 'active',
+      label: 'Most engaged',
+      columns: [
+        {
+          name: 'activityCount',
+          label: '# of Activities',
+          sortable: true
+        }
+      ],
+      filter: INITIAL_VIEW_ACTIVE_FILTER,
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
+      active: false
+    },
+     {
+      id: 'team',
+      label: 'Team members',
+      filter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
+      active: false
+    },
   ],
   customAttributes: {},
   list: {

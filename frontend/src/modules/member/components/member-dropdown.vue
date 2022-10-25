@@ -136,7 +136,11 @@ export default {
       ) {
         await MemberService.update(command.member.id, {
           attributes: {
-            team: true
+            ...command.member.attributes,
+            isTeamMember: {
+              crowd: true,
+              default: true
+            }
           }
         })
         Message.success('Member updated successfully')

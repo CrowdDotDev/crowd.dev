@@ -179,9 +179,7 @@ const rules = reactive(formSchema.value.rules())
 
 const computedFields = computed(() => fields)
 const computedAttributes = computed(() =>
-  Object.values(store.state.member.customAttributes).filter(
-    (attribute) => attribute.show
-  )
+  Object.values(store.state.member.customAttributes)
 )
 
 // UI Validations
