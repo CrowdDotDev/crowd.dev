@@ -50,7 +50,7 @@
       </div>
 
       <!-- Workspace Dropdown -->
-      <app-workspace-dropdown />
+      <app-workspace-dropdown v-if="currentTenant" />
 
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
         <!-- Menu items -->
@@ -190,9 +190,9 @@
         >
           <router-link
             id="menu-conversations"
-            :to="{ path: '/conversations' }"
+            :to="{ path: '/community-help-center' }"
             class="el-menu-item"
-            :class="classFor('/conversations')"
+            :class="classFor('/community-help-center')"
           >
             <i class="ri-question-answer-line"></i>
             <span v-if="!isCollapsed">

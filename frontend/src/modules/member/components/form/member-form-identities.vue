@@ -5,7 +5,7 @@
         Identities <span class="text-brand-500">*</span>
       </h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
-        Connect with members external data sources or
+        Connect with members' external data sources or
         profiles
       </p>
     </div>
@@ -191,7 +191,7 @@ function onInputChange(newValue, key, value) {
     ...props.modelValue.attributes,
     url: {
       ...props.modelValue.attributes?.url,
-      [key]: `${value.urlPrefix}${newValue}`
+      [key]: `https://${value.urlPrefix}${newValue}`
     }
   }
 }

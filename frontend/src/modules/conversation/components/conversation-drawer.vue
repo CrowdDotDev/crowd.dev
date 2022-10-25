@@ -96,7 +96,9 @@ export default {
   },
   watch: {
     conversationId(id) {
-      this.fetchConversation(id)
+      if (id) {
+        this.fetchConversation(id)
+      }
     }
   },
   methods: {

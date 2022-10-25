@@ -8,6 +8,7 @@
       <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
+    <!-- TODO: Update this component with app-dialog -->
     <el-dialog
       v-model="computedVisible"
       title="Community Help Center Settings"
@@ -443,6 +444,7 @@ import authAxios from '@/shared/axios/auth-axios'
 import Message from '@/shared/message/message'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),
@@ -616,19 +618,16 @@ export default {
         await this.$refs.form.validate()
 
         if (this.shouldConfirmAutoPublish) {
-          await this.$myConfirm(
-            `Are you sure you want to enable auto-publishing for ${
+          await ConfirmDialog({
+            title: i18n('common.confirm'),
+            message: `Are you sure you want to enable auto-publishing for ${
               this.model.autoPublish.status === 'all'
                 ? 'all channels'
                 : 'selected channels'
             }?`,
-            i18n('common.confirm'),
-            {
-              confirmButtonText: i18n('common.yes'),
-              cancelButtonText: i18n('common.no'),
-              type: 'warning'
-            }
-          )
+            confirmButtonText: i18n('common.yes'),
+            cancelButtonText: i18n('common.no')
+          })
         }
 
         await authAxios.post(

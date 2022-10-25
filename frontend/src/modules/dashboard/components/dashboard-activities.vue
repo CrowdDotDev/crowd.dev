@@ -8,9 +8,12 @@
         <i class="ri-radar-line text-xl text-white"></i>
       </div>
       <div>
-        <h6 class="text-base font-semibold leading-5">
+        <h6 class="text-sm font-semibold leading-5">
           Activities
         </h6>
+        <p class="text-2xs text-gray-500">
+          Total: {{ activities.total }}
+        </p>
       </div>
     </div>
 
@@ -34,9 +37,12 @@
         <p
           class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
         >
-          Total
+          New activities
         </p>
-        <app-dashboard-activity-count />
+        <app-dashboard-count
+          :query="activitiesCount"
+          :percentage="true"
+        />
         <p
           class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
         >
@@ -70,17 +76,18 @@ import { mapGetters } from 'vuex'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import {
   activitiesChart,
+  activitiesCount,
   chartOptions
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardConversationList from '@/modules/dashboard/components/conversations/dashboard-conversation-list'
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
-import AppDashboardActivityCount from '@/modules/dashboard/components/activity/dashboard-activity-count'
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 export default {
   name: 'AppDashboardActivities',
   components: {
+    AppDashboardCount,
     AppDashboardActivitySentiment,
-    AppDashboardActivityCount,
     AppDashboardActivityList,
     AppDashboardConversationList,
     AppWidgetCubeRenderer
@@ -90,6 +97,7 @@ export default {
       tab: 'trending',
       hoveredSentiment: '',
       activitiesChart,
+      activitiesCount,
       chartOptions
     }
   },

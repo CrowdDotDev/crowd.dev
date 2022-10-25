@@ -140,6 +140,7 @@ export default class ConversationService {
 
       conversationSettings = await ConversationSettingsService.save(
         {
+          enabled: data.enabled,
           customUrl: data.customUrl,
           logoUrl: data.logoUrl,
           faviconUrl: data.faviconUrl,
@@ -167,6 +168,7 @@ export default class ConversationService {
       inviteLinks,
       website: settings.website ?? undefined,
       tenantSlug: tenant.url,
+      enabled: conversationSettings.enabled ?? false,
       customUrl: conversationSettings.customUrl ?? undefined,
       logoUrl: conversationSettings.logoUrl ?? undefined,
       faviconUrl: conversationSettings.faviconUrl ?? undefined,

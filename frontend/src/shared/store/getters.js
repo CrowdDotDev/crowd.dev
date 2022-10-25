@@ -70,6 +70,10 @@ export default () => {
         state.filter,
         getters.activeView.filter
       )
+    },
+
+    saveLoading: (state) => {
+      return state.saveLoading
     }
   }
 }

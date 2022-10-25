@@ -7,21 +7,22 @@ import { i18n } from '@/i18n'
 export default {
   ...sharedActions(TenantService),
   async doCreate({ dispatch, commit }, values) {
-    try {
-      commit('CREATE_STARTED')
-      const tenant = await TenantService.create(values)
-      await dispatch(`auth/doSelectTenant`, tenant, {
-        root: true
+    commit('CREATE_STARTED')
+    return TenantService.create(values)
+      .then((tenant) => {
+        commit('CREATE_SUCCESS', tenant)
+        return dispatch(`auth/doSelectTenant`, tenant, {
+          root: true
+        })
       })
-
-      commit('CREATE_SUCCESS')
-      return true
-    } catch (error) {
-      Errors.handle(error)
-      commit('CREATE_ERROR')
-
-      return false
-    }
+      .then(() => {
+        return true
+      })
+      .catch((error) => {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+        return false
+      })
   },
 
   async doUpdate({ commit, dispatch }, { id, values }) {

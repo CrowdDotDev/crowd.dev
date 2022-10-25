@@ -40,6 +40,7 @@ import Popover from '@/shared/popover/popover.vue'
 import Pagination from '@/shared/pagination/pagination.vue'
 import PaginationSorter from '@/shared/pagination/pagination-sorter.vue'
 import InlineSelectInput from '@/shared/form/inline-select-input'
+import Dialog from '@/shared/dialog/dialog'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -89,6 +90,7 @@ export default {
     'app-popover': Popover,
     'app-pagination': Pagination,
     'app-pagination-sorter': PaginationSorter,
-    'app-inline-select-input': InlineSelectInput
+    'app-inline-select-input': InlineSelectInput,
+    'app-dialog': Dialog
   }
 }

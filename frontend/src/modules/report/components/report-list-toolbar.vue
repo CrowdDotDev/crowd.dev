@@ -5,7 +5,7 @@
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'rows' : 'row' }}
+      {{ selectedRows.length > 1 ? 'reports' : 'report' }}
       selected</span
     >
 
@@ -32,6 +32,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppReportListToolbar',
@@ -76,15 +77,12 @@ export default {
 
     async doDestroyAllWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroyAll(
           this.selectedRows.map((item) => item.id)
@@ -99,7 +97,8 @@ export default {
 
 <style lang="scss">
 .report-list-toolbar {
-  @apply flex items-center justify-end absolute h-16 top-0 mt-1 right-0 z-10 bg-white rounded-tr-xl p-2;
+  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
+  height: calc(56px - 1px);
   width: calc(100% - 75px);
 }
 </style>

@@ -1,6 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+CLI_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 set -a
-. ./.env.dist.local
-. ./.env.override.local
+. $CLI_HOME/.env.dist.local
+. $CLI_HOME/.env.override.local
 set +a

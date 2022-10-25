@@ -94,7 +94,7 @@
     </div>
 
     <!-- Manage Custom Attributes Drawer-->
-    <AppMemberAttributesDrawer
+    <app-member-attributes-drawer
       v-if="computedAttributes.length"
       v-model="isDrawerOpen"
     />
@@ -259,7 +259,16 @@ watch(
   wasFormSubmittedSuccessfuly,
   (isFormSubmittedSuccessfuly) => {
     if (isFormSubmittedSuccessfuly) {
-      router.push({ name: 'member' })
+      if (isEditPage.value) {
+        return router.push({
+          name: 'memberView',
+          params: {
+            id: record.value.id
+          }
+        })
+      }
+
+      return router.push({ name: 'member' })
     }
   }
 )

@@ -1,13 +1,6 @@
 .el-dialog {
   @apply rounded-md w-full max-w-xl;
 
-  &__title {
-    @apply font-semibold;
-  }
-  &__header {
-    @apply pb-0;
-  }
-
   &--lg {
     @apply max-w-2xl;
   }
@@ -39,6 +32,16 @@
   }
 
   &__footer {
-    @apply bg-gray-50 flex items-center px-6 py-4 h-fit rounded-b-lg justify-between;
+    @apply bg-gray-50 flex items-center px-6 py-4 h-fit rounded-b-lg;
+  }
+
+  &.plain{
+    .el-dialog__header{
+      @apply p-0
+    }
+  }
+
+  &--sm{
+    max-width: 400px;
   }
 }

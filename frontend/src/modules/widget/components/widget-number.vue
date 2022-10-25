@@ -43,12 +43,11 @@
         <div class="text-sm">{{ config.title }}</div>
       </div>
     </div>
-    <el-dialog
+    <app-dialog
       v-model="modal"
       :title="`${config.title} Settings`"
-      :close-on-click-modal="false"
-      @close="modal = false"
-    ></el-dialog>
+    >
+    </app-dialog>
   </app-widget>
 </template>
 

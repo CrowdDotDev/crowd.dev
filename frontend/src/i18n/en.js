@@ -512,7 +512,7 @@ const en = {
       message: `You have no permissions yet. Wait for the admin to grant you privileges.`
     },
     passwordResetEmail: {
-      message: 'Send password reset email',
+      message: 'Send password reset e-mail',
       error: `Email not recognized`
     },
     passwordReset: {
@@ -552,7 +552,7 @@ const en = {
     fields: {
       id: 'Id',
       avatars: 'Avatar',
-      email: 'Email',
+      email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',
       firstName: 'First Name',
@@ -566,6 +566,7 @@ const en = {
       roles: 'Roles',
       createdAtRange: 'Created at',
       password: 'Password',
+      passwordConfirmation: 'Confirm password',
       oldPassword: 'Old password',
       newPassword: 'New password',
       newPasswordConfirmation: 'Confirm new password',
@@ -573,7 +574,7 @@ const en = {
     },
     status: {
       active: 'Active',
-      invited: 'Invited',
+      invited: 'Invite sent',
       'empty-permissions': 'Waiting for Permissions'
     },
     invite: 'Invite',
@@ -618,13 +619,13 @@ const en = {
     },
     create: {
       button: 'Create Workspace',
-      success: 'Workspace successfully saved'
+      success: 'Community has been created'
     },
     update: {
-      success: 'Workspace successfully saved'
+      success: 'Community has been updated'
     },
     destroy: {
-      success: 'Workspace successfully deleted'
+      success: 'Community successfully deleted'
     },
     destroyAll: {
       success: 'Workspace(s) successfully deleted'
@@ -636,9 +637,11 @@ const en = {
       id: 'Id',
       name: 'Name',
       url: 'URL',
-      tenantUrl: 'Workspace URL',
-      tenantName: 'Workspace Name',
-      tenantId: 'Workspace',
+      tenantUrl: 'Community URL',
+      tenantName: 'Community name',
+      tenantPlatforms: 'Community platforms',
+      tenantSize: 'Community size',
+      tenantId: 'Community',
       plan: 'Plan'
     },
     enumerators: {},
