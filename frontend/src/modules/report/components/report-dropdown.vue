@@ -2,7 +2,6 @@
   <div v-if="isReadOnly">
     <el-button
       class="btn btn--secondary"
-      placement="bottom-end"
       @click="copyToClipboard(report.id)"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
@@ -10,7 +9,11 @@
     </el-button>
   </div>
   <div v-else>
-    <el-dropdown trigger="click" @command="handleCommand">
+    <el-dropdown
+      trigger="click"
+      placement="bottom-end"
+      @command="handleCommand"
+    >
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
