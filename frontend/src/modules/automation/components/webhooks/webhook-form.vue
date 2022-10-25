@@ -75,7 +75,7 @@
               title="Filter options"
               name="activityFilters"
             >
-              <div class="flex items-end gap-4 mb-2">
+              <div class="flex items-start gap-4 mb-2">
                 <el-form-item
                   label="Matching activity platform(s)"
                   class="grow"
