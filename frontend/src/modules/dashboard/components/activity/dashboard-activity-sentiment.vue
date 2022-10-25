@@ -23,8 +23,8 @@
         ></app-loading>
       </div>
     </template>
-    <template #default="{ resultSet }">
-      <div :set="compileData(resultSet)">
+    <template #default="{}">
+      <div>
         <div v-if="total > 0">
           <div class="flex w-full pb-3">
             <div

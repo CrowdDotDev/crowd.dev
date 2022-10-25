@@ -5,11 +5,12 @@
     :query="query"
   >
     <template #default="{ resultSet }">
-      <div v-if="loadingData(resultSet)">
+      <div :set="loadingData(resultSet)"></div>
+      <div v-if="isLoading">
         <slot name="loading"></slot>
       </div>
       <div v-else>
-        <slot name="default" :result-set="resultSet" />
+        <slot name="default" :result-set="result" />
       </div>
     </template>
   </query-renderer>
@@ -34,6 +35,13 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      result: null,
+      isLoading: true,
+      data: null
+    }
+  },
   computed: {
     ...mapGetters('widget', ['cubejsToken', 'cubejsApi'])
   },
@@ -47,11 +55,17 @@ export default {
       getCubeToken: 'widget/getCubeToken'
     }),
     loadingData(resultSet) {
-      return (
+      if (
+        JSON.stringify(resultSet) ===
+        JSON.stringify(this.result)
+      ) {
+        return
+      }
+      this.result = resultSet
+      this.isLoading =
         !resultSet ||
         resultSet.loadResponse === undefined ||
         this.loading
-      )
     }
   }
 }
