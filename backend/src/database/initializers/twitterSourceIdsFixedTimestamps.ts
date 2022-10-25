@@ -5,12 +5,12 @@
 
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
-import BaseIterator from '../../serverless/integrations/iterators/baseIterator'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import TenantService from '../../services/tenantService'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import getUserContext from '../utils/getUserContext'
+import { IntegrationServiceBase } from '../../serverless/integrations/services/integrationServiceBase'
 
 const path = require('path')
 
@@ -46,7 +46,7 @@ async function twitterFollowsFixSourceIdsWithTimestamp() {
         console.log(activity)
         console.log(activity.communityMember)
         // calculate sourceId with fixed timestamps
-        const sourceIdRegenerated = BaseIterator.generateSourceIdHash(
+        const sourceIdRegenerated = IntegrationServiceBase.generateSourceIdHash(
           activity.communityMember.username.twitter,
           'follow',
           '1970-01-01T00:00:00+00:00',

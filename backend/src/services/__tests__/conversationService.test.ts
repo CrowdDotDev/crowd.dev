@@ -12,7 +12,7 @@ import ConversationSearchEngineRepository from '../../search-engine/repositories
 import SettingsSearchEngineRepository from '../../search-engine/repositories/settingsSearchEngineRepository'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import ActivityService from '../activityService'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
 import MemberService from '../memberService'

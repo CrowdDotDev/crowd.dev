@@ -101,7 +101,7 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityId activity unique ID
  */
 export default async (tenantId: string, activityId: string): Promise<void> => {
-  console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
+  // console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
 
   const userContext = await getUserContext(tenantId)
 
@@ -135,7 +135,7 @@ export default async (tenantId: string, activityId: string): Promise<void> => {
         }
       }
     } else {
-      console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
+      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
     console.log('Error while processing new activity automation trigger!', error)

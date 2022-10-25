@@ -21,6 +21,7 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
+  nodejsWorkerDelayableQueue: string
   pythonWorkerQueue: string
   premiumPythonWorkerQueue: string
   aws: AwsCredentials
@@ -113,6 +114,7 @@ export interface DiscordConfiguration {
   token: string
   maxRetrospectInSeconds: number
   globalLimit?: number
+  limitResetFrequencyDays?: number
 }
 
 export interface GithubConfiguration {
