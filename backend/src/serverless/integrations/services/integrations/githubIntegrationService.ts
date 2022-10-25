@@ -386,7 +386,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<AddActivitiesSingle[]> {
-    return records.reduce(async (acc, record) => {
+    const acc: AddActivitiesSingle[] = []
+
+    for (const record of records) {
       acc.push({
         tenant: context.integration.tenantId,
         platform: PlatformType.GITHUB,
@@ -401,9 +403,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       })
+    }
 
-      return acc
-    }, [])
+    return acc
   }
 
   private static async parseIssues(
