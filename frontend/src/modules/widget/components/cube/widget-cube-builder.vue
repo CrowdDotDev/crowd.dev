@@ -178,12 +178,24 @@
         <div v-else>
           <app-widget-cube
             :widget="
-              buildWidgetPreview({
-                chartType,
-                query: validatedQuery
-              })
+              mapWidget(
+                buildWidgetPreview({
+                  chartType,
+                  query: validatedQuery
+                }),
+                resultSet
+              )
             "
             :result-set="resultSet"
+            :chart-options="
+              chartOptions(
+                buildWidgetPreview({
+                  chartType,
+                  query: validatedQuery
+                }),
+                resultSet
+              )
+            "
           ></app-widget-cube>
         </div>
         <div class="flex items-center justify-end mt-12">
@@ -229,6 +241,10 @@ import Order from './_query_builder/Order'
 import Limit from './_query_builder/Limit'
 
 import FilterComponent from '@/modules/widget/components/cube/_query_builder/FilterComponent.vue'
+import {
+  chartOptions,
+  mapWidget
+} from '@/modules/report/report-charts'
 
 export default {
   name: 'WidgetCubeBuilder',
@@ -269,6 +285,8 @@ export default {
         }
 
     return {
+      mapWidget,
+      chartOptions,
       model: JSON.parse(JSON.stringify(this.modelValue)),
       chartTypes: [
         'line',

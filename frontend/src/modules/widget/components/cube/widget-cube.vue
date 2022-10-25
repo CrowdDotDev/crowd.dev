@@ -229,6 +229,9 @@ export default {
   },
   methods: {
     paintDataSet() {
+      if (!this.chartOptions.computeDataset) {
+        this.dataset = {}
+      }
       if (
         !this.dataset &&
         this.$refs &&
