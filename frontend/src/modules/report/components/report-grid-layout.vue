@@ -18,19 +18,26 @@
     <div v-else>
       <div
         v-if="!model.widgets || model.widgets.length === 0"
-        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
+        class="text-black flex flex-col items-center justify-center rounded border border-dashed border-gray-200 p-12 mx-4 my-8"
       >
-        No widgets were added to the report yet.
-        <button
+        <i
+          class="ri-bar-chart-line ri-6x text-gray-200"
+        ></i>
+        <div class="font-semibold mt-8 mb-4">
+          Add your first widget
+        </div>
+        <div class="text-sm text-gray-600">
+          Build a custom widget and start composing your
+          report
+        </div>
+        <el-button
           v-if="editable"
           type="button"
-          class="btn btn-brand btn-brand--transparent btn--md mt-1"
+          class="btn btn--primary !h-10 mt-6"
           @click="handleAddWidgetClick"
         >
-          <span class="flex items-center text-brand-500">
-            <i class="ri-lg ri-add-line mr-1"></i>Add Widget
-          </span>
-        </button>
+          Add Widget
+        </el-button>
         <router-link
           v-else
           :to="{

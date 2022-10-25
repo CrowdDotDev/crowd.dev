@@ -56,11 +56,7 @@ export default {
     },
 
     destroyButtonDisabled() {
-      return (
-        !this.selectedRows.length ||
-        this.loading('submit') ||
-        this.loading
-      )
+      return !this.selectedRows.length || this.loading
     },
 
     destroyButtonTooltip() {
