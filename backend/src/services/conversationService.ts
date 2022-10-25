@@ -18,7 +18,7 @@ import SettingsSearchEngineRepository from '../search-engine/repositories/settin
 import track from '../segment/track'
 import getStage from './helpers/getStage'
 import { s3 } from './aws'
-import { PlatformType } from '../utils/platforms'
+import { PlatformType } from '../types/integrationEnums'
 
 export default class ConversationService {
   static readonly MAX_SLUG_WORD_LENGTH = 10

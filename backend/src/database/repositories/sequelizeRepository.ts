@@ -5,6 +5,7 @@ import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import { getServiceLogger } from '../../utils/logging'
 
 /**
  * Abstracts some basic Sequelize operations.
@@ -24,6 +25,7 @@ export default class SequelizeRepository {
 
   static async getDefaultIRepositoryOptions(user?, tenant?): Promise<IRepositoryOptions> {
     return {
+      log: getServiceLogger(),
       database: await databaseInit(),
       searchEngine: await searchEngineInit(),
       currentTenant: tenant,

@@ -1,17 +1,17 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import BaseIterator from '../../iterators/baseIterator'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
+import { IIntegrationStream } from '../../../../types/integration/stepResult'
 
 async function getMessagesThreads(
   client: SuperfaceClient,
   source: string,
   accessToken: string,
-  endpoint: string,
+  stream: IIntegrationStream,
   page: string,
   perPage: number = 100,
 ): Promise<SocialResponse> {
-  const threadInfo = BaseIterator.decodeEndpoint(endpoint)
+  const threadInfo = stream.metadata
   const input = {
     destination: threadInfo.channelId,
     threadId: threadInfo.threadId,

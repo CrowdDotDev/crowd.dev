@@ -5,7 +5,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import Error400 from '../../../errors/Error400'
 import EagleEyeContentService from '../../../services/eagleEyeContentService'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 

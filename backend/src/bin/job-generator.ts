@@ -1,15 +1,18 @@
 import { CronJob } from 'cron'
+import { getServiceLogger } from '../utils/logging'
 import jobs from './jobs'
+
+const log = getServiceLogger()
 
 for (const job of jobs) {
   const cronJob = new CronJob(
     job.cronTime,
     async () => {
-      console.log(`Triggering job: ${job.name}!`)
+      log.info({ job: job.name }, 'Triggering job.')
       try {
         await job.onTrigger()
       } catch (err) {
-        console.log(`Error while executing job: ${job.name}!`, err)
+        log.error(err, { job: job.name }, 'Error while executing a job!')
       }
     },
     null,
@@ -17,6 +20,6 @@ for (const job of jobs) {
     'Europe/Berlin',
   )
   if (cronJob.running) {
-    console.log(`Scheduled job: ${job.name}!`)
+    log.info({ job: job.name }, 'Scheduled a job.')
   }
 }

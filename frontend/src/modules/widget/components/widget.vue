@@ -10,7 +10,7 @@
       class="flex items-center leading-normal justify-between"
     >
       <div>
-        <div class="font-semibold text-base">
+        <div class="font-semibold text-sm">
           {{
             config.title || label(config.type) || 'Widget'
           }}
@@ -18,7 +18,7 @@
         <div
           v-if="config.subtitle"
           style="color: #666"
-          class="text-sm"
+          class="text-2xs"
         >
           {{ config.subtitle }}
         </div>
@@ -64,11 +64,15 @@
           ><i class="ri-lg ri-pencil-line mr-1" />Edit
           Widget</el-dropdown-item
         >
+        <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item
           v-if="editable"
           command="trigger-delete-widget"
-          ><i class="ri-lg ri-delete-bin-line mr-1" />Delete
-          Widget</el-dropdown-item
+          ><i
+            class="ri-lg ri-delete-bin-line mr-1 !text-red-500"
+          /><span class="text-red-500"
+            >Delete Widget</span
+          ></el-dropdown-item
         >
       </template>
     </el-dropdown>

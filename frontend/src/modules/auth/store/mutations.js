@@ -113,5 +113,9 @@ export default {
     state.currentUser = null
     state.currentTenant = null
     state.loadingInit = false
+  },
+
+  CLEAR_TENANT(state) {
+    state.currentTenant = null
   }
 }

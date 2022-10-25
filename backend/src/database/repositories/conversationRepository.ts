@@ -6,7 +6,7 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import snakeCaseNames from '../../utils/snakeCaseNames'
 import QueryParser from './filters/queryParser'
 

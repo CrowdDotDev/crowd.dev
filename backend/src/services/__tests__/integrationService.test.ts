@@ -1,6 +1,6 @@
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import IntegrationService from '../integrationService'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 
 const db = null
 

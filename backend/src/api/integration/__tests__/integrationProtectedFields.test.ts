@@ -3,7 +3,7 @@ import SequelizeTestUtils from '../../../database/utils/sequelizeTestUtils'
 import Plans from '../../../security/plans'
 import IntegrationService from '../../../services/integrationService'
 import app from '../../index'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 

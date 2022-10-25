@@ -1,5 +1,5 @@
 import cronGenerator from 'cron-time-generator'
-import { CrowdJob } from '../../utils/jobTypes'
+import { CrowdJob } from '../../types/jobTypes'
 import { sendPythonWorkerMessage } from '../../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../../serverless/types/workerTypes'
 

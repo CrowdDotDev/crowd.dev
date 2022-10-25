@@ -2,7 +2,6 @@
   <div v-if="isReadOnly">
     <el-button
       class="btn btn--secondary"
-      placement="bottom-end"
       @click="copyToClipboard(report.id)"
     >
       <i class="ri-lg ri-clipboard-line mr-1" />
@@ -10,7 +9,11 @@
     </el-button>
   </div>
   <div v-else>
-    <el-dropdown trigger="click" @command="handleCommand">
+    <el-dropdown
+      trigger="click"
+      placement="bottom-end"
+      @command="handleCommand"
+    >
       <button
         class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
         type="button"
@@ -20,7 +23,7 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="report.public"
+          v-if="report.public && showViewReportPublic"
           :command="{
             action: 'reportPublicUrl',
             report: report
@@ -38,6 +41,7 @@
           Report</el-dropdown-item
         >
         <el-dropdown-item
+          v-if="showEditReport"
           :command="{
             action: 'reportEdit',
             report: report
@@ -45,7 +49,10 @@
           ><i class="ri-pencil-line mr-1" />Edit
           Report</el-dropdown-item
         >
-        <el-divider class="border-gray-200" />
+        <el-divider
+          v-if="showEditReport"
+          class="border-gray-200"
+        />
         <el-dropdown-item
           :command="{
             action: 'reportDelete',
@@ -78,6 +85,14 @@ export default {
       default: () => {}
     },
     showViewReport: {
+      type: Boolean,
+      default: true
+    },
+    showEditReport: {
+      type: Boolean,
+      default: true
+    },
+    showViewReportPublic: {
       type: Boolean,
       default: true
     }

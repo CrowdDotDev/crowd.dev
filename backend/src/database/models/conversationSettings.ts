@@ -9,7 +9,7 @@ export default (sequelize) => {
     },
     enabled: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: false,
     },
     customUrl: {
       type: DataTypes.TEXT,

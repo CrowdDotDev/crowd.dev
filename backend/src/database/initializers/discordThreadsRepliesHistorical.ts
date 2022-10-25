@@ -11,7 +11,7 @@ import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import { DISCORD_CONFIG } from '../../config'
 import getUserContext from '../utils/getUserContext'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 
 const path = require('path')
 
