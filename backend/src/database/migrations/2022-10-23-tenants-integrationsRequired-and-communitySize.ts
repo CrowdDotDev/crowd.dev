@@ -23,7 +23,7 @@ export const up = async (queryInterface: QueryInterface, Sequelize) => {
       { transaction },
     )
 
-    return transaction.commit()
+    await transaction.commit()
   } catch (error) {
     await transaction.rollback()
     throw error
