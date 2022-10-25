@@ -30,7 +30,7 @@
   &--primary {
     @apply bg-gray-900 text-white border-none;
 
-    &:hover {
+    &:hover, &:hover:is(a) {
       @apply cursor-pointer bg-gray-600 text-white;
     }
     &:focus {

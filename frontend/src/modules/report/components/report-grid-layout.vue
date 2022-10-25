@@ -27,13 +27,16 @@
           Add your first widget
         </div>
         <div class="text-sm text-gray-600">
-          Build a custom widget and start composing your
-          report
+          {{
+            editable
+              ? 'Build a custom widget and start composing your report'
+              : 'Edit your report and compose your first custom widget'
+          }}
         </div>
         <el-button
           v-if="editable"
           type="button"
-          class="btn btn--primary !h-10 mt-6"
+          class="btn btn--primary btn--md !h-10 mt-6"
           @click="handleAddWidgetClick"
         >
           Add Widget
@@ -44,12 +47,9 @@
             name: 'reportEdit',
             params: { id: modelValue.id }
           }"
-          class="btn btn-brand btn-brand--transparent btn--md mt-1"
+          class="btn btn--primary btn--md mt-6 !hover:text-white"
         >
-          <span class="flex items-center text-brand-500">
-            <i class="ri-lg ri-pencil-line mr-1"></i>Edit
-            Report
-          </span>
+          Edit report
         </router-link>
       </div>
       <div v-else>
