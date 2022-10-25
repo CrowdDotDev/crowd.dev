@@ -121,6 +121,25 @@ const handleDisconnect = async () => {
   )
   loadingDisconnect.value = false
 }
+
+const fetchIntegrationInProgress = async () => {
+  if (
+    props.integration.status &&
+    props.integration.status === 'in-progress'
+  ) {
+    await store.dispatch(
+      'integration/doFind',
+      props.integration.id
+    )
+  } else {
+    clearInterval(integrationInProgressInterval)
+  }
+}
+
+const integrationInProgressInterval = setInterval(
+  fetchIntegrationInProgress,
+  10000
+)
 </script>
 <style lang="scss">
 .integration-custom {
