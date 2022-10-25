@@ -24,7 +24,7 @@
       v-model="model[fields.tags.name]"
       :visible="editing"
       :loading="loading"
-      :pretitle="computedPretitle"
+      :pretitle="member.displayName"
       @cancel="editing = false"
       @submit="doSubmit"
     />
@@ -79,11 +79,6 @@ export default {
     },
     fields() {
       return fields
-    },
-    computedPretitle() {
-      return this.$route.name === 'memberView'
-        ? undefined
-        : this.member.displayName
     }
   },
   watch: {
