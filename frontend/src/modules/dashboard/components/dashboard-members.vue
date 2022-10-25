@@ -87,7 +87,21 @@
             <app-dashboard-member-item
               class="mb-4"
               :member="member"
-            />
+            >
+              <span
+                v-if="
+                  getPlatformDetails(
+                    member.lastActivity.platform
+                  )
+                "
+                >joined on
+                {{
+                  getPlatformDetails(
+                    member.lastActivity.platform
+                  ).name
+                }}</span
+              >
+            </app-dashboard-member-item>
           </template>
           <div v-if="recentMembers.length === 0">
             <p
@@ -99,8 +113,7 @@
           <div class="pt-1 flex justify-center">
             <router-link
               :to="{
-                name: 'member',
-                query: { activeTab: 'active' }
+                name: 'member'
               }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
@@ -158,7 +171,16 @@
             :key="member.id"
             class="mb-4"
             :member="member"
-          />
+          >
+            <span
+              >{{ member.activityCount }}
+              {{
+                +member.activityCount > 1
+                  ? 'activities'
+                  : 'activity'
+              }}</span
+            >
+          </app-dashboard-member-item>
           <div v-if="activeMembers.length === 0">
             <p
               class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
@@ -168,7 +190,10 @@
           </div>
           <div class="pt-1 flex justify-center">
             <router-link
-              :to="{ name: 'member' }"
+              :to="{
+                name: 'member',
+                query: { activeTab: 'active' }
+              }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
             >
@@ -194,6 +219,7 @@ import {
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
+import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
   name: 'AppDashboardMember',
@@ -224,6 +250,11 @@ export default {
     ])
   },
   methods: {
+    getPlatformDetails(platform) {
+      return integrationsJsonArray.find(
+        (i) => i.platform === platform
+      )
+    },
     getTimeText: function (index) {
       const current = this.formatTime(
         this.recentMembers[index].createdAt
@@ -263,6 +294,9 @@ export default {
   div {
     line-height: 150px !important;
     height: auto !important;
+  }
+  canvas {
+    height: 150px;
   }
 }
 

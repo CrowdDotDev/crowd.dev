@@ -18,7 +18,7 @@
           {{ computedScore(resultSet) }}
         </p>
         <el-tooltip
-          content="vs. previous same period"
+          content="vs. previous time period"
           placement="top"
         >
           <app-dashboard-badge

@@ -248,6 +248,9 @@ export default {
     line-height: 150px !important;
     height: auto !important;
   }
+  canvas {
+    height: 150px;
+  }
 }
 
 .chart-loading {

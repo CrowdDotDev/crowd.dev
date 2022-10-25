@@ -33,7 +33,7 @@
         </div>
         <div
           v-if="hasSettings && connected"
-          class="ml-3 h-8 w-8 flex items-center justify-center"
+          class="ml-3 h-8 w-8 flex items-center justify-center hover:bg-gray-100 rounded cursor-pointer transition"
           @click="settings"
         >
           <span

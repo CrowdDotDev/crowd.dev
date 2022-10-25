@@ -20,14 +20,15 @@
         :conversation="conversation"
         @details="conversationId = conversation.id"
       />
-      <div v-if="trendingConversations.length === 0">
-        <div class="flex justify-center pt-16">
-          <i
-            class="ri-question-answer-line text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
+      <div
+        v-if="trendingConversations.length === 0"
+        class="flex items-center justify-center pt-20 pb-17"
+      >
+        <i
+          class="ri-question-answer-line flex items-center text-3xl h-12 text-gray-300"
+        ></i>
         <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+          class="text-sm leading-5 text-center italic text-gray-400 pl-6"
         >
           No conversations during this period
         </p>
