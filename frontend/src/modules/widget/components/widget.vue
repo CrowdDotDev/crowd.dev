@@ -10,7 +10,7 @@
       class="flex items-center leading-normal justify-between"
     >
       <div>
-        <div class="font-semibold text-base">
+        <div class="font-semibold text-sm">
           {{
             config.title || label(config.type) || 'Widget'
           }}
@@ -18,7 +18,7 @@
         <div
           v-if="config.subtitle"
           style="color: #666"
-          class="text-sm"
+          class="text-2xs"
         >
           {{ config.subtitle }}
         </div>

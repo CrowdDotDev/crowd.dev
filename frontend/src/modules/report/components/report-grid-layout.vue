@@ -6,8 +6,9 @@
     "
   >
     <app-widget-cube-builder
-      v-model:widget="widgetModal.model"
-      v-model:drawer="widgetModal.visible"
+      v-if="widgetDrawer.visible === true"
+      v-model:widget="widgetDrawer.model"
+      v-model:drawer="widgetDrawer.visible"
       @submit="handleWidgetFormSubmit"
     />
     <div
@@ -146,7 +147,7 @@ export default {
   data() {
     return {
       model: { ...this.modelValue },
-      widgetModal: {
+      widgetDrawer: {
         visible: false,
         action: null,
         model: {}
@@ -185,7 +186,7 @@ export default {
       getCubeToken: 'widget/getCubeToken'
     }),
     handleAddWidgetClick() {
-      this.widgetModal = {
+      this.widgetDrawer = {
         visible: true,
         action: 'add',
         model: JSON.parse(
@@ -194,7 +195,8 @@ export default {
             type: 'cubejs',
             reportId: this.modelValue.id
               ? this.modelValue.id
-              : undefined
+              : undefined,
+            settings: {}
           })
         )
       }
@@ -219,7 +221,7 @@ export default {
     },
 
     async handleWidgetFormSubmit(widgetModel) {
-      if (this.widgetModal.action === 'add') {
+      if (this.widgetDrawer.action === 'add') {
         const widget = await this.createWidget(widgetModel)
         this.model.widgets.push(widget)
         this.resetWidgetModel()
@@ -248,19 +250,26 @@ export default {
     async handleWidgetMove(widget, newX, newY) {
       widget.settings.layout.x = newX
       widget.settings.layout.y = newY
+
+      await WidgetService.update(widget.id, widget)
     },
 
     async handleWidgetResize(widget, newH, newW) {
       widget.settings.layout.h = newH
       widget.settings.layout.w = newW
+
+      await WidgetService.update(widget.id, widget)
     },
 
     async handleWidgetEdit(widget) {
-      this.widgetModal = {
-        visible: true,
+      this.widgetDrawer = {
         action: 'edit',
         model: JSON.parse(JSON.stringify(widget))
       }
+
+      setTimeout(() => {
+        this.widgetDrawer.visible = true
+      }, 200)
     },
     async handleWidgetDelete(widget) {
       try {
@@ -282,7 +291,7 @@ export default {
       }
     },
     resetWidgetModel() {
-      this.widgetModal.model = {
+      this.widgetDrawer.model = {
         title: 'Untitled',
         type: 'cubejs',
         reportId: this.modelValue.id

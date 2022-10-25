@@ -26,11 +26,11 @@
     <query-builder
       style="width: 100%"
       :cubejs-api="cubejsApi"
-      :initial-viz-state="vizState"
+      :query="initialQuery"
+      :initial-chart-type="initialChartType"
     >
       <template
         #builder="{
-          validatedQuery,
           chartType,
           updateChartType,
           measures,
@@ -51,6 +51,10 @@
           isQueryPresent
         }"
       >
+        <SyncModel
+          v-model:chart-type="model.settings.chartType"
+          :chart-type="chartType"
+        />
         <div class="overflow-auto flex-grow flex flex-col">
           <div class="p-6">
             <div class="w-full mb-6">
@@ -69,29 +73,11 @@
             </div>
 
             <div class="w-full mb-6">
-              <label
-                class="block text-xs leading-none font-semibold mb-1"
-                >Chart Type
-                <span class="text-brand-500 ml-0.5"
-                  >*</span
-                ></label
-              >
-              <el-radio-group
-                :model-value="chartType"
-                class="radio-button-group radio-group-chart-type"
-                size="large"
-                @change="updateChartType"
-              >
-                <el-radio-button
-                  v-for="item in chartTypes"
-                  :key="item.value"
-                  :label="item.value"
-                  ><div class="flex items-center text-sm">
-                    <i class="mr-2" :class="item.icon"></i
-                    >{{ item.label }}
-                  </div></el-radio-button
-                >
-              </el-radio-group>
+              <ChartType
+                v-model="model.settings.chartType"
+                :chart-type="chartType"
+                :update-chart-type="updateChartType"
+              ></ChartType>
             </div>
             <div class="w-full mb-6">
               <MeasureSelect
@@ -186,32 +172,46 @@
             </div>
           </div>
         </div>
-        <el-collapse
-          accordion
-          @change="handlePreviewChange"
-        >
-          <el-collapse-item name="preview">
-            <template #title>
-              <i
-                :class="
-                  previewExpanded
-                    ? 'ri-arrow-down-s-line'
-                    : 'ri-arrow-up-s-line'
-                "
-                class="text-base mr-1"
-              ></i>
-              Preview
-            </template>
+      </template>
+      <template #default="{ resultSet, validatedQuery }">
+        <SyncModel
+          v-model:model-query="model.settings.query"
+          :query="validatedQuery"
+        ></SyncModel>
+        <div class="border-t border-gray-200">
+          <div
+            class="preview-collapse"
+            @click="handlePreviewChange"
+          >
+            <i
+              :class="
+                previewExpanded
+                  ? 'ri-arrow-down-s-line'
+                  : 'ri-arrow-up-s-line'
+              "
+              class="text-base mr-1"
+            ></i>
+            Preview
+          </div>
+          <div
+            v-show="previewExpanded"
+            class="preview px-4"
+          >
             <app-widget-cube
+              v-if="
+                model.settings.chartType &&
+                model.settings.query
+              "
               :widget="
                 buildWidgetPreview({
-                  chartType,
-                  query: validatedQuery
+                  chartType: model.settings.chartType,
+                  query: model.settings.query
                 })
               "
+              :result-set="resultSet"
             ></app-widget-cube>
-          </el-collapse-item>
-        </el-collapse>
+          </div>
+        </div>
       </template>
     </query-builder>
     <template #footer>
@@ -225,9 +225,9 @@
           </el-button>
           <el-button
             class="btn btn--primary btn--md"
-            @click="$emit('submit', {})"
+            @click="handleSubmit"
           >
-            Update
+            {{ widget.id ? 'Update' : 'Create' }}
           </el-button>
         </div>
       </div>
@@ -242,7 +242,9 @@ import WidgetCube from '@/modules/widget/components/cube/widget-cube'
 import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
 
+import SyncModel from './_query_builder/SyncModel'
 import MeasureSelect from './_query_builder/MeasureSelect'
+import ChartType from './_query_builder/ChartType'
 import DimensionSelect from './_query_builder/DimensionSelect'
 import GranularitySelect from './_query_builder/GranularitySelect'
 import TimeDimensionSelect from './_query_builder/TimeDimensionSelect'
@@ -258,6 +260,8 @@ export default {
 
   components: {
     QueryBuilder,
+    SyncModel,
+    ChartType,
     MeasureSelect,
     DimensionSelect,
     TimeDimensionSelect,
@@ -282,8 +286,10 @@ export default {
   emits: ['update:widget', 'update:drawer', 'submit'],
 
   data() {
-    const query = this.widget.settings
-      ? this.widget.settings.query
+    const initialQuery = this.widget.settings?.query
+      ? JSON.parse(
+          JSON.stringify(this.widget.settings.query)
+        )
       : {
           measures: ['Activities.count'],
           timeDimensions: [
@@ -295,41 +301,18 @@ export default {
           ]
         }
 
+    const initialCharType =
+      this.widget.settings?.chartType || 'line'
     return {
-      model: JSON.parse(JSON.stringify(this.widget)),
-      chartTypes: [
-        {
-          value: 'line',
-          label: 'Line',
-          icon: 'ri-line-chart-line'
-        },
-        {
-          value: 'bar',
-          label: 'Bar',
-          icon: 'ri-bar-chart-line'
-        },
-        {
-          value: 'pie',
-          label: 'Doughnut',
-          icon: 'ri-donut-chart-line'
-        },
-        {
-          value: 'table',
-          label: 'Table',
-          icon: 'ri-list-check'
-        },
-        {
-          value: 'number',
-          label: 'Number',
-          icon: 'ri-hashtag'
+      model: {
+        ...this.widget,
+        settings: {
+          chartType: initialCharType,
+          query: initialQuery
         }
-      ],
-      vizState: {
-        query,
-        chartType: this.widget.settings
-          ? this.widget.settings.chartType
-          : 'line'
       },
+      initialQuery: initialQuery,
+      initialChartType: initialCharType,
       additionalSettingsVisible: false,
       previewExpanded: false
     }
@@ -359,18 +342,17 @@ export default {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
-    handleSubmit(query) {
-      const widgetEl =
-        this.$el.querySelector('.widget-cube')
+    handleSubmit() {
+      const widgetEl = document.querySelector(
+        '.widget-cube-builder .widget-cube'
+      )
       const objToSubmit = {
         id: this.widget.id ? this.widget.id : undefined,
         title: this.model.title,
         type: this.widget.type,
         reportId: this.widget.reportId,
-        settings: Object.assign(
-          {},
-          this.widget.settings,
-          query
+        settings: JSON.parse(
+          JSON.stringify(this.model.settings)
         )
       }
 
@@ -427,24 +409,20 @@ export default {
       @apply h-full flex flex-1 flex-col;
     }
 
-    .el-collapse-item__header {
-      @apply px-6 uppercase text-gray-600 text-2xs;
-      .el-icon.el-collapse-item__arrow {
-        @apply hidden;
+    .preview-collapse {
+      @apply px-6 uppercase text-gray-600 text-2xs cursor-pointer flex items-center h-12;
+      &:hover {
+        @apply text-gray-900;
       }
+    }
+    .preview {
+      max-height: 40vh;
     }
     .el-collapse-item__content {
       @apply pb-0;
     }
     .widget.panel {
       @apply mb-0 shadow-none;
-    }
-
-    .radio-group-chart-type {
-      @apply flex flex-1;
-      .el-radio-button {
-        @apply flex-grow flex-shrink-0;
-      }
     }
   }
 }
