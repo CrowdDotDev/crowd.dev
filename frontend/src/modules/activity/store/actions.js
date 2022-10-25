@@ -123,5 +123,16 @@ export default {
       Errors.handle(error)
       commit('DESTROY_ALL_ERROR')
     }
+  },
+
+  doChangeSort({ commit, state, dispatch }, sorter) {
+    commit('SORTER_CHANGED', sorter)
+
+    const filter = state.filter
+
+    dispatch('doFetch', {
+      filter,
+      keepPagination: false
+    })
   }
 }

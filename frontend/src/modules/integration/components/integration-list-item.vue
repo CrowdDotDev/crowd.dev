@@ -1,5 +1,5 @@
 <template>
-  <div :class="computedClass">
+  <div class="h-full" :class="computedClass">
     <div class="flex items-center justify-between">
       <img
         :alt="integration.name"
@@ -15,7 +15,7 @@
       >
         <div
           v-loading="true"
-          class="app-page-spinner h-4 w-4 mr-2"
+          class="app-page-spinner h-4 w-4 mr-2 !min-h-fit"
         ></div>
 
         <span class="text-xs text-gray-900 mr-2"

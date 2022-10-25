@@ -62,7 +62,7 @@ export default {
       }
 
       let direction =
-        sorter.order === 'descending' ? 'DESC' : 'ASC'
+        sorter.order === 'desc' ? 'DESC' : 'ASC'
 
       return `${sorter.prop}_${direction}`
     },

@@ -19,7 +19,7 @@
         :data="rows"
         :default-sort="{
           prop: 'score',
-          order: 'descending'
+          order: 'desc'
         }"
         row-key="id"
         border

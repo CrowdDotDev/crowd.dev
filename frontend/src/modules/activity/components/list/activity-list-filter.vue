@@ -34,6 +34,9 @@ const props = defineProps({
     required: true
   }
 })
+const activeView = computed(
+  () => store.getters['activity/activeView']
+)
 const computedModule = computed(() => {
   if (props.module === 'activities') {
     return 'activity'
@@ -69,7 +72,10 @@ const attributes = computed(() => {
 })
 
 onMounted(async () => {
-  await doFetch()
+  // Ob Conversations tab, the fetch is already done on the changeActiveView action
+  if (activeView.value.type !== 'conversations') {
+    await doFetch()
+  }
 })
 
 async function doFetch() {

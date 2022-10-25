@@ -64,6 +64,6 @@ export default {
   },
   sorter: {
     prop: 'lastActive',
-    order: 'descending'
+    order: 'desc'
   }
 }
