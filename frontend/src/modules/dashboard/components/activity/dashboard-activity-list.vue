@@ -18,15 +18,13 @@
       />
       <div
         v-if="recentActivities.length === 0"
-        class="pt-1"
+        class="flex items-center justify-center pt-17 pb-17"
       >
-        <div class="flex justify-center pt-12">
-          <i
-            class="ri-list-check-2 text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
+        <i
+          class="ri-list-check-2 flex items-center text-3xl h-12 text-gray-300"
+        ></i>
         <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
+          class="text-sm leading-5 text-center italic text-gray-400 pl-6"
         >
           No activities during this period
         </p>

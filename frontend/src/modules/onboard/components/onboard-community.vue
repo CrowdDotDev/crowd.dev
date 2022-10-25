@@ -26,6 +26,17 @@
           autocomplete="disabled"
           type="text"
         ></el-input>
+        <template #error="{ error }">
+          <div class="flex items-center mt-1">
+            <i
+              class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+            ></i>
+            <span
+              class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span
+            >
+          </div>
+        </template>
       </el-form-item>
 
       <el-form-item
@@ -55,29 +66,41 @@
           :filterable="true"
           :reserve-keyword="false"
           placeholder="Select option(s)"
+          class="extend"
           @blur="$refs.tenantPlatforms.validate()"
           @change="selectedPlatforms = $event"
         >
           <el-option
-            v-for="integration in integrationsJsonArray"
-            :key="integration.platform"
-            :value="integration.platform"
-            :label="integration.name"
+            v-for="integration in onboardPlatforms"
+            :key="integration.value"
+            :value="integration.value"
+            :label="integration.label"
             class="px-3 py-2 h-10 platform-item"
           >
             <div class="flex items-center h-6">
               <el-checkbox
                 :model-value="
-                  platformEnabled(integration.platform)
+                  platformEnabled(integration.value)
                 "
                 class="filter-checkbox flex h-3 transition-0"
               />
               <span class="text-black font-normal">{{
-                integration.name
+                integration.label
               }}</span>
             </div>
           </el-option>
         </el-select>
+        <template #error="{ error }">
+          <div class="flex items-center mt-1">
+            <i
+              class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+            ></i>
+            <span
+              class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span
+            >
+          </div>
+        </template>
       </el-form-item>
       <el-form-item
         :prop="fields.tenantSize.name"
@@ -110,6 +133,17 @@
             {{ size.label }}
           </el-radio-button>
         </el-radio-group>
+        <template #error="{ error }">
+          <div class="flex items-center mt-1">
+            <i
+              class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+            ></i>
+            <span
+              class="pl-1 text-2xs text-red-500 leading-4.5"
+              >{{ error }}</span
+            >
+          </div>
+        </template>
       </el-form-item>
     </el-form>
     <div
@@ -119,6 +153,7 @@
         id="submit"
         class="btn btn--lg btn--primary"
         :loading="loading"
+        :disabled="!isFormValid"
         @click="doSubmit()"
       >
         <span class="pr-3">Next step</span>
@@ -135,6 +170,7 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import { mapActions, mapGetters } from 'vuex'
 import config from '@/config'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import onboardPlatforms from '@/jsons/onboard-platforms.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 
 const { fields } = TenantModel
@@ -158,6 +194,7 @@ export default {
       fields,
       integrationsJsonArray,
       tenantCommunitySize,
+      onboardPlatforms,
       rules: formSchema.rules(),
       model: {
         [fields.tenantPlatforms.name]: []
@@ -175,6 +212,10 @@ export default {
 
     tenantSubdomain() {
       return tenantSubdomain
+    },
+
+    isFormValid() {
+      return formSchema.isValidSync(this.model)
     }
   },
   watch: {
