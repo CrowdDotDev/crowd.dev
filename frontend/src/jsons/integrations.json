@@ -1,13 +1,13 @@
 [
   {
-    "platform": "github",
-    "name": "GitHub",
-    "color": "#E5E7EB",
-    "borderColor": "#E5E7EB",
-    "active": true,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
-    "image": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
-  },
+  "platform": "github",
+  "name": "GitHub",
+  "color": "#E5E7EB",
+  "borderColor": "#E5E7EB",
+  "active": true,
+  "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+  "image": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+},
   {
     "platform": "discord",
     "name": "Discord",

@@ -104,8 +104,8 @@
           >
             <app-widget-cube-renderer
               :editable="editable"
-              :widget="mapWidget(widgets[item.i])"
-              :chart-options="chartOptions(widgets[item.i])"
+              :widget="widgets[item.i]"
+              :chart-options="widgets[item.i]"
               @edit="handleWidgetEdit(widgets[item.i])"
               @duplicate="
                 handleWidgetDuplicate(widgets[item.i])
@@ -137,10 +137,6 @@ import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-ren
 import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder'
 import { WidgetService } from '@/modules/widget/widget-service'
 import { i18n } from '@/i18n'
-import {
-  mapWidget,
-  chartOptions
-} from '@/modules/report/report-charts'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
@@ -168,9 +164,7 @@ export default {
         action: null,
         model: {}
       },
-      layout: [],
-      chartOptions,
-      mapWidget
+      layout: []
     }
   },
 

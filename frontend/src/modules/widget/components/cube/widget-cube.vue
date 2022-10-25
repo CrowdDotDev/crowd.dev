@@ -230,7 +230,7 @@ export default {
   methods: {
     paintDataSet() {
       if (!this.chartOptions.computeDataset) {
-        this.dataset = {}
+        this.dataset = undefined
       }
       if (
         !this.dataset &&
