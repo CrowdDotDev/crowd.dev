@@ -20,7 +20,7 @@
             :content="currentTenant.name"
           >
             <div
-              class="cursor-pointer flex w-full h-16 items-center bg-white hover:bg-gray-50 account-btn"
+              class="cursor-pointer flex w-full min-h-16 py-2 items-center bg-white hover:bg-gray-50 account-btn"
               :class="
                 isDropdownOpen ? 'bg-gray-50' : 'bg-white'
               "
@@ -67,21 +67,25 @@
         <div
           v-for="tenant in tenantsList"
           :key="tenant.id"
-          class="popover-item"
+          class="popover-item min-h-10 h-auto py-2"
           :class="
-            currentTenant.name === tenant.name
+            currentTenant && currentTenant.id === tenant.id
               ? 'selected'
               : ''
           "
           @click="() => doSwitchTenant(tenant)"
         >
-          <div class="flex grow justify-between">
-            <span class="text-gray-900 text-xs">{{
-              tenant.name
-            }}</span>
-            <span class="text-gray-400 text-2xs plan">{{
-              planLabelOf(tenant.plan)
-            }}</span>
+          <div
+            class="flex grow justify-between items-center"
+          >
+            <div class="text-gray-900 text-xs flex-grow">
+              {{ tenant.name }}
+            </div>
+            <div
+              class="text-gray-400 pl-3 text-2xs plan whitespace-nowrap"
+            >
+              {{ planLabelOf(tenant.plan) }}
+            </div>
           </div>
         </div>
 

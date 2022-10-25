@@ -50,7 +50,7 @@
         </div>
       </div>
       <router-link
-        :to="{ name: 'authTenant' }"
+        :to="{ name: 'onboard', query: { action: 'new' } }"
         class="btn btn--md btn--primary absolute bottom-0 right-0 mb-6 mr-6 !text-white"
         >Add workspace</router-link
       >
