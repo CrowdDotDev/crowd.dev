@@ -3,9 +3,9 @@
     <!-- header -->
     <div class="flex items-center">
       <div
-        class="w-10 h-10 rounded-md bg-gray-900 flex items-center justify-center mr-4"
+        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
       >
-        <i class="ri-radar-line text-xl text-white"></i>
+        <i class="ri-radar-line text-lg text-white"></i>
       </div>
       <div>
         <h6 class="text-sm font-semibold leading-5">
@@ -119,8 +119,11 @@ export default {
 }
 .chart::v-deep {
   div {
-    line-height: 150px !important;
+    line-height: 200px !important;
     height: auto !important;
+  }
+  canvas {
+    height: 200px;
   }
 }
 

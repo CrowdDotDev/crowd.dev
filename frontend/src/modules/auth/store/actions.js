@@ -68,9 +68,6 @@ export default {
 
     return AuthService.sendPasswordResetEmail(email)
       .then((data) => {
-        Message.success(
-          i18n('auth.passwordResetEmailSuccess')
-        )
         commit('PASSWORD_RESET_EMAIL_SUCCESS')
         return Promise.resolve(data)
       })
@@ -232,7 +229,6 @@ export default {
     commit('PASSWORD_RESET_START')
     return AuthService.passwordReset(token, password)
       .then(() => {
-        Message.success(i18n('auth.passwordResetSuccess'))
         commit('PASSWORD_RESET_SUCCESS')
       })
       .catch((error) => {
@@ -258,6 +254,11 @@ export default {
       .then(() => {
         router.push('/')
       })
+  },
+
+  clearTenant({ commit }) {
+    AuthCurrentTenant.set(null)
+    commit('CLEAR_TENANT')
   },
 
   async doFinishOnboard({ dispatch, getters }) {

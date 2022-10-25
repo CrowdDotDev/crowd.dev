@@ -524,7 +524,7 @@ const en = {
     passwordChange: {
       title: 'Change Password',
       success: 'Password successfully changed',
-      mustMatch: 'Passwords must match'
+      mustMatch: 'Passwords do not match'
     },
     emailAddressVerificationEmail: {
       error: `Email not recognized`
@@ -558,8 +558,8 @@ const en = {
       email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',
-      firstName: 'First Name',
-      lastName: 'Last Name',
+      firstName: 'First name',
+      lastName: 'Last name',
       status: 'Status',
       phoneNumber: 'Phone Number',
       role: 'Role',
@@ -796,7 +796,7 @@ const en = {
   validation: {
     mixed: {
       default: '${path} is invalid',
-      required: '${path} is required',
+      required: 'This field is required',
       oneOf:
         '${path} must be one of the following values: ${values}',
       notOneOf:

@@ -29,11 +29,29 @@
           <el-input
             id="password"
             v-model="model[fields.password.name]"
-            :placeholder="fields.password.label"
             autocomplete="current-password"
-            type="password"
-            :show-password="true"
-          ></el-input>
+            :type="display.password ? 'text' : 'password'"
+          >
+            <template #suffix>
+              <span
+                class="ri-eye-line text-base text-gray-400"
+                @click="
+                  display.password = !display.password
+                "
+              ></span>
+            </template>
+          </el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item
@@ -49,11 +67,34 @@
             v-model="
               model[fields.passwordConfirmation.name]
             "
-            :placeholder="fields.passwordConfirmation.label"
             autocomplete="new-password"
-            type="password"
-            :show-password="true"
-          ></el-input>
+            :type="
+              display.passwordConfirmation
+                ? 'text'
+                : 'password'
+            "
+          >
+            <template #suffix>
+              <span
+                class="ri-eye-line text-base text-gray-400"
+                @click="
+                  display.passwordConfirmation =
+                    !display.passwordConfirmation
+                "
+              ></span>
+            </template>
+          </el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item>
@@ -61,7 +102,7 @@
             id="submit"
             :loading="loadingPasswordReset"
             native-type="submit"
-            class="w-100 btn btn--primary btn--lg"
+            class="w-full btn btn--primary btn--lg"
           >
             <app-i18n
               code="auth.passwordReset.message"
@@ -87,7 +128,7 @@
   </div>
   <div v-show="success">
     <h3 class="text-2xl leading-12 font-semibold mb-10">
-      Create new password
+      Password reset
     </h3>
     <div class="flex items-center pb-10">
       <div>
@@ -127,7 +168,11 @@ export default {
           fields.passwordConfirmation.forFormRules()
       },
       model: {},
-      success: false
+      success: false,
+      display: {
+        password: false,
+        passwordConfirmation: false
+      }
     }
   },
 

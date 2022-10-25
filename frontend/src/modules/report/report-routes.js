@@ -2,15 +2,11 @@ import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 
 const ReportListPage = () =>
-  import('@/modules/report/components/report-list-page.vue')
+  import('@/modules/report/pages/report-list-page.vue')
 const ReportFormPage = () =>
-  import('@/modules/report/components/report-form-page.vue')
+  import('@/modules/report/pages/report-form-page.vue')
 const ReportViewPage = () =>
-  import('@/modules/report/components/report-view-page.vue')
-const ReportPublicViewPage = () =>
-  import(
-    '@/modules/report/components/report-view-page-public.vue'
-  )
+  import('@/modules/report/pages/report-view-page.vue')
 
 export default [
   {
@@ -29,15 +25,6 @@ export default [
         }
       },
       {
-        name: 'reportNew',
-        path: '/reports/new',
-        component: ReportFormPage,
-        meta: {
-          auth: true,
-          permission: Permissions.values.reportCreate
-        }
-      },
-      {
         name: 'reportEdit',
         path: '/reports/:id/edit',
         component: ReportFormPage,
@@ -46,23 +33,23 @@ export default [
           permission: Permissions.values.reportEdit
         },
         props: true
-      },
-      {
-        name: 'reportView',
-        path: '/reports/:id',
-        component: ReportViewPage,
-        meta: {
-          auth: true,
-          permission: Permissions.values.reportRead
-        },
-        props: true
       }
     ]
   },
   {
+    name: 'reportView',
+    path: '/reports/:id',
+    component: ReportViewPage,
+    meta: {
+      auth: true,
+      permission: Permissions.values.reportRead
+    },
+    props: true
+  },
+  {
     name: 'reportPublicView',
     path: '/tenant/:tenantId/reports/:id/public',
-    component: ReportPublicViewPage,
+    component: ReportViewPage,
     props: true
   }
 ]

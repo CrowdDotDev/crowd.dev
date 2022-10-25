@@ -30,7 +30,7 @@
               {{ computedScore(current.resultSet) }}
             </h6>
             <el-tooltip
-              content="vs. previous same period"
+              content="vs. previous time period"
               placement="top"
             >
               <app-dashboard-badge

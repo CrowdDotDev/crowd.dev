@@ -34,6 +34,17 @@
                 autocomplete="given-name"
                 type="text"
               ></el-input>
+              <template #error="{ error }">
+                <div class="flex items-center mt-1">
+                  <i
+                    class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+                  ></i>
+                  <span
+                    class="pl-1 text-2xs text-red-500 leading-4.5"
+                    >{{ error }}</span
+                  >
+                </div>
+              </template>
             </el-form-item>
           </div>
           <div class="w-full md:w-1/2 lg:w-1/2 px-2">
@@ -51,6 +62,17 @@
                 autocomplete="family-name"
                 type="text"
               ></el-input>
+              <template #error="{ error }">
+                <div class="flex items-center mt-1">
+                  <i
+                    class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+                  ></i>
+                  <span
+                    class="pl-1 text-2xs text-red-500 leading-4.5"
+                    >{{ error }}</span
+                  >
+                </div>
+              </template>
             </el-form-item>
           </div>
         </div>
@@ -68,6 +90,17 @@
             autocomplete="email"
             type="email"
           ></el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item
@@ -82,9 +115,28 @@
             id="password"
             v-model="model[fields.password.name]"
             autocomplete="disableauto"
-            type="password"
-            :show-password="true"
-          ></el-input>
+            :type="display.password ? 'text' : 'password'"
+          >
+            <template #suffix>
+              <span
+                class="ri-eye-line text-base text-gray-400"
+                @click="
+                  display.password = !display.password
+                "
+              ></span>
+            </template>
+          </el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item
@@ -101,9 +153,31 @@
               model[fields.passwordConfirmation.name]
             "
             autocomplete="disableauto"
-            type="password"
-            :show-password="true"
-          ></el-input>
+            :type="
+              display.passwordConfirm ? 'text' : 'password'
+            "
+          >
+            <template #suffix>
+              <span
+                class="ri-eye-line text-base text-gray-400"
+                @click="
+                  display.passwordConfirm =
+                    !display.passwordConfirm
+                "
+              ></span>
+            </template>
+          </el-input>
+          <template #error="{ error }">
+            <div class="flex items-center mt-1">
+              <i
+                class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+              ></i>
+              <span
+                class="pl-1 text-2xs text-red-500 leading-4.5"
+                >{{ error }}</span
+              >
+            </div>
+          </template>
         </el-form-item>
 
         <el-form-item class="pt-4 mb-0">
@@ -111,7 +185,7 @@
             id="submit"
             :loading="loading"
             native-type="submit"
-            class="w-100 btn btn--primary btn--lg"
+            class="w-full btn btn--primary btn--lg"
           >
             <app-i18n code="auth.signup"></app-i18n>
           </el-button>
@@ -132,7 +206,9 @@
           class="btn btn--secondary btn--lg w-full"
         >
           <app-svg name="google" class="h-5 w-5" />
-          <span class="pl-3">Sign up with Google</span>
+          <span class="pl-3 text-gray-600"
+            >Sign up with Google</span
+          >
         </a>
       </div>
       <div class="flex justify-center">
@@ -160,7 +236,7 @@ const { fields } = UserModel
 export default {
   name: 'AppSignupPage',
   components: { AppSvg, AppI18n },
-  data() {
+  data: function () {
     return {
       rules: {
         firstName: fields.firstName.forFormRules(),
@@ -170,7 +246,11 @@ export default {
         passwordConfirmation:
           fields.passwordConfirmation.forFormRules()
       },
-      model: {}
+      model: {},
+      display: {
+        password: false,
+        passwordConfirm: false
+      }
     }
   },
 

@@ -7,7 +7,7 @@
         ></app-i18n>
       </h4>
       <div class="text-xs text-gray-500 mb-10">
-        Track all the actions that members do in your
+        Activities are everything that is happening in your
         community
       </div>
 

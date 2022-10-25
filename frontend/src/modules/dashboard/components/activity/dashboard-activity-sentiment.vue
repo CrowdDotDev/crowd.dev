@@ -1,8 +1,6 @@
 <template>
   <app-cube-render
-    :query="
-      activitiesChart(period, platform).settings.query
-    "
+    :query="sentimentQuery(period, platform)"
   >
     <template #loading>
       <div class="pb-3">
@@ -77,10 +75,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import {
-  sentimentQuery,
-  activitiesChart
-} from '@/modules/dashboard/dashboard.cube'
+import { sentimentQuery } from '@/modules/dashboard/dashboard.cube'
 import AppCubeRender from '@/shared/cube/cube-render'
 import AppLoading from '@/shared/loading/loading-placeholder'
 export default {
@@ -93,7 +88,6 @@ export default {
     return {
       hoveredSentiment: '',
       sentimentQuery,
-      activitiesChart,
       total: 0,
       typeClasses: {
         positive: 'bg-green-500',

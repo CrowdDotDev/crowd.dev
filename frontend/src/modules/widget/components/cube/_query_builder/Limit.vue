@@ -1,6 +1,9 @@
 <template>
   <div>
-    <label class="block leading-none mb-2">Limit</label>
+    <label
+      class="block leading-none text-xs font-semibold mb-2"
+      >Limit</label
+    >
     <el-input
       v-model="value"
       placeholder="10000"

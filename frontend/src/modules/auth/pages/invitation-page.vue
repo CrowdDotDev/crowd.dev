@@ -15,7 +15,7 @@
       <el-button
         v-if="warningMessage"
         :loading="loading"
-        class="w-100 btn btn--primary btn--lg"
+        class="w-full btn btn--primary btn--lg"
         @click="doAcceptWithWrongEmail"
       >
         <app-i18n

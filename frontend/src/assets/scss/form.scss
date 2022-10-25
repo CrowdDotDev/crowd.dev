@@ -100,6 +100,11 @@
   @apply h-10 leading-10 w-full;
 }
 
+.el-select.extend .el-input{
+  @apply min-h-10;
+  height: initial;
+}
+
 .el-date-editor--daterange.el-input,
 .el-date-editor--daterange.el-input__inner,
 .el-date-editor--timerange.el-input,
@@ -186,6 +191,21 @@
     @apply border-brand-500;
     background-color: #fff5f4;
     .el-radio__label {
+      @apply text-brand-500;
+    }
+  }
+}
+.el-radio-group.radio-button-group {
+  .el-radio-button {
+    @apply border-gray-200;
+    &__original-radio:checked+.el-radio-button__inner {
+      @apply bg-brand-50 border-brand-500 text-gray-900;
+      box-shadow: -1px 0 0 0 #E94F2E;
+    }
+    .el-radio-button__inner {
+      @apply w-full text-gray-600;
+    }
+    &:hover .el-radio-button__inner {
       @apply text-brand-500;
     }
   }
