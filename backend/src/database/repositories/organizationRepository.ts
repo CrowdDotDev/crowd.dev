@@ -230,6 +230,21 @@ class OrganizationRepository {
     return records.map((record) => record.id)
   }
 
+  static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await options.database.organization.destroy({
+      where: {
+        id: ids,
+        tenantId: currentTenant.id,
+      },
+      force,
+      transaction,
+    })
+  }
+
   static async count(filter, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
