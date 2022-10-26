@@ -113,7 +113,8 @@
           <div class="pt-1 flex justify-center">
             <router-link
               :to="{
-                name: 'member'
+                name: 'member',
+                query: { activeTab: 'recent' }
               }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
