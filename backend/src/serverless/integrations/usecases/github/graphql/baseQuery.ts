@@ -8,6 +8,7 @@ class BaseQuery {
   static USER_SELECT = `{
         login
         name
+        avatarUrl
         id
         isHireable
         twitterUsername

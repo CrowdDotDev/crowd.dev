@@ -5,16 +5,11 @@ import config from '@/config'
 
 export class ReportService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/report/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -38,15 +33,11 @@ export class ReportService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/report`,
-      body
+      data
     )
 
     return response.data

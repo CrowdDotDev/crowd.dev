@@ -22,7 +22,9 @@
         </el-form-item>
       </div>
 
-      <el-footer class="el-dialog__footer">
+      <el-footer
+        class="el-dialog__footer flex justify-between"
+      >
         <el-button
           :disabled="loading"
           class="btn btn-link btn-link--primary"

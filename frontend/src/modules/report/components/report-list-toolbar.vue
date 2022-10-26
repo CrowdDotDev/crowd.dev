@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
@@ -38,11 +38,13 @@ export default {
   name: 'AppReportListToolbar',
 
   computed: {
+    ...mapState({
+      loading: (state) => state.report.loading
+    }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       hasRows: 'report/hasRows',
-      loading: 'report/loading',
       selectedRows: 'report/selectedRows'
     }),
 
@@ -54,11 +56,7 @@ export default {
     },
 
     destroyButtonDisabled() {
-      return (
-        !this.selectedRows.length ||
-        this.loading('submit') ||
-        this.loading('table')
-      )
+      return !this.selectedRows.length || this.loading
     },
 
     destroyButtonTooltip() {

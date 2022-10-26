@@ -189,7 +189,7 @@ export default class IntegrationService {
     let privateKey = GITHUB_CONFIG.privateKey
 
     if (KUBE_MODE) {
-      privateKey = privateKey.replace(/\\n/g, '\n')
+      privateKey = Buffer.from(privateKey, 'base64').toString('ascii')
     }
 
     const auth = createAppAuth({

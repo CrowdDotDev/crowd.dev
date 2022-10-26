@@ -181,6 +181,13 @@ const formSchema = new FormSchema([
 ])
 export default {
   name: 'AppOnboardCommunity',
+  props: {
+    isNew: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
+  },
   emits: ['saved'],
   data() {
     return {
@@ -198,7 +205,6 @@ export default {
   },
   computed: {
     ...mapGetters('auth', ['currentTenant']),
-
     frontendUrlHost() {
       return `.${config.frontendUrl.host}`
     },
@@ -216,7 +222,7 @@ export default {
       deep: true,
       immediate: true,
       handler(tenant) {
-        if (tenant) {
+        if (tenant && !this.isNew) {
           this.model = tenant
           this.selectedPlatforms =
             tenant[fields.tenantPlatforms.name] || []
@@ -239,7 +245,7 @@ export default {
         .validate()
         .then(() => {
           this.loading = true
-          if (this.currentTenant) {
+          if (this.currentTenant && !this.isNew) {
             return this.doUpdate({
               id: this.currentTenant.id,
               values: this.model

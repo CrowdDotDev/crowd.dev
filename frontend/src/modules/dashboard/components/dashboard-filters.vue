@@ -84,9 +84,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({
-      period: 'dashboard/period',
-      platform: 'dashboard/platform'
+    ...mapGetters('dashboard', ['period', 'platform']),
+    ...mapGetters('auth', {
+      currentTenant: 'currentTenant'
     }),
     ...mapGetters('integration', {
       activeIntegrations: 'activeList'
@@ -101,8 +101,19 @@ export default {
       return 'All'
     }
   },
-  mounted() {
-    this.setFilters({})
+  watch: {
+    currentTenant: {
+      deep: true,
+      immediate: true,
+      handler(tenant, previousTenant) {
+        if (
+          !previousTenant ||
+          tenant.id !== previousTenant.id
+        ) {
+          this.setFilters({})
+        }
+      }
+    }
   },
   methods: {
     ...mapActions({

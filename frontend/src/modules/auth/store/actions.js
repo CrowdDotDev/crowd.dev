@@ -256,6 +256,11 @@ export default {
       })
   },
 
+  clearTenant({ commit }) {
+    AuthCurrentTenant.set(null)
+    commit('CLEAR_TENANT')
+  },
+
   async doFinishOnboard({ dispatch, getters }) {
     return TenantService.update(getters.currentTenant.id, {
       onboardedAt: new Date()

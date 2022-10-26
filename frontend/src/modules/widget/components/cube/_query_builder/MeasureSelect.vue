@@ -1,12 +1,17 @@
 <template>
-  <div>
-    <label class="block leading-none mb-1">Measure</label>
+  <div class="w-full">
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Measure
+      <span class="text-brand-500 ml-0.5">*</span></label
+    >
     <el-select
       clearable
       filterable
       :model-value="
         translatedOptions(measures).map((i) => i.label)
       "
+      class="w-full"
       @change="(m) => setMeasures([m])"
     >
       <el-option

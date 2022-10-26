@@ -266,9 +266,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated, imageUrlCreated, urlCreated] = attributes
+      const [idCreated, avatarUrlCreated, urlCreated] = attributes
 
-      const [id, imageUrl, url] = TwitterMemberAttributes
+      const [id, avatarUrl, url] = TwitterMemberAttributes
 
       const expected = [
         {
@@ -285,17 +285,17 @@ describe('MemberAttributeSettingService tests', () => {
           label: id.label,
         },
         {
-          id: imageUrlCreated.id,
+          id: avatarUrlCreated.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          show: imageUrl.show,
-          type: imageUrl.type,
-          canDelete: imageUrl.canDelete,
-          name: imageUrl.name,
-          label: imageUrl.label,
+          show: avatarUrl.show,
+          type: avatarUrl.type,
+          canDelete: avatarUrl.canDelete,
+          name: avatarUrl.name,
+          label: avatarUrl.label,
         },
         {
           id: urlCreated.id,
@@ -359,7 +359,7 @@ describe('MemberAttributeSettingService tests', () => {
       })
 
       // create predefined method should still return shared attributes `url` and `id`
-      const [idCreatedTwitter, _imageUrlCreated, urlCreatedTwitter] = attributes
+      const [idCreatedTwitter, _avatarUrlCreated, urlCreatedTwitter] = attributes
 
       const [
         _idCreatedDevTo,
@@ -447,7 +447,7 @@ describe('MemberAttributeSettingService tests', () => {
       expect(allAttributes.count).toBe(6)
       const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'imageUrl', 'sourceId'])
+      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'avatarUrl', 'sourceId'])
     })
   })
   describe('create tests', () => {

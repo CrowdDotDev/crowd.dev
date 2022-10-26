@@ -1,3 +1,4 @@
+import moment from 'moment'
 import {
   INITIAL_PAGE_SIZE,
   INITIAL_VIEW_ACTIVE_FILTER,
@@ -15,7 +16,10 @@ export default {
         operator: 'and',
         attributes: {}
       },
-      sorter: {},
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
       active: true
     },
     {
@@ -29,7 +33,10 @@ export default {
         }
       ],
       filter: INITIAL_VIEW_ACTIVE_FILTER,
-      sorter: {},
+      sorter: {
+        prop: 'lastActive',
+        order: 'descending'
+      },
       active: false
     },
     {
@@ -37,13 +44,22 @@ export default {
       label: 'Recent',
       columns: [
         {
-          name: 'firstActivity',
-          label: 'First Activity',
-          sortable: true
+          name: 'joinedAt',
+          label: 'Joined at',
+          sortable: true,
+          formatter: (value) => {
+            return value
+              ? moment(value).format('DD-MM-YYYY')
+              : ''
+          },
+          width: 150
         }
       ],
       filter: INITIAL_VIEW_RECENT_FILTER,
-      sorter: {},
+      sorter: {
+        prop: 'joinedAt',
+        order: 'descending'
+      },
       active: false
     }
   ],
@@ -64,6 +80,6 @@ export default {
   },
   sorter: {
     prop: 'lastActive',
-    order: 'descending'
+    order: 'desc'
   }
 }

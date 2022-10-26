@@ -50,6 +50,6 @@ export default {
   },
   sorter: {
     prop: 'timestamp',
-    order: 'descending'
+    order: 'desc'
   }
 }

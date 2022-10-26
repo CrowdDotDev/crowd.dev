@@ -1,20 +1,20 @@
 [
   {
-  "platform": "github",
-  "name": "GitHub",
-  "color": "#E5E7EB",
-  "borderColor": "#E5E7EB",
-  "active": true,
-  "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
-  "image": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
-},
+    "platform": "github",
+    "name": "GitHub",
+    "color": "#E5E7EB",
+    "borderColor": "#E5E7EB",
+    "active": true,
+    "description": "Connect GitHub to sync profile information, stars, forks, pull requests, issues, and discussions.",
+    "image": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+  },
   {
     "platform": "discord",
     "name": "Discord",
     "color": "#dee0fc",
     "borderColor": "#dee0fc",
     "active": true,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "Connect Discord to sync messages, threads, and new joiners.",
     "image": "https://cdn-icons-png.flaticon.com/512/5968/5968756.png"
   },
   {
@@ -23,7 +23,7 @@
     "color": "#FFFFFF",
     "borderColor": "#E5E7EB",
     "active": true,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "Connect Slack to sync messages, threads, and new joiners.",
     "image": "https://cdn-icons-png.flaticon.com/512/3800/3800024.png"
   },
   {
@@ -32,7 +32,7 @@
     "color": "#d2ebfc",
     "borderColor": "#d2ebfc",
     "active": true,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "Connect Twitter to sync profile information, followers, and relevant tweets.",
     "image": "https://cdn-icons-png.flaticon.com/512/733/733579.png"
   },
   {
@@ -41,7 +41,7 @@
     "color": "#E5E7EB",
     "borderColor": "#E5E7EB",
     "active": true,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "Connect DEV to sync profile information and comments on articles.",
     "image": "https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
   },
   {
@@ -49,7 +49,7 @@
     "name": "Discourse",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "https://cdn3.iconfinder.com/data/icons/logos-and-brands-adobe/512/92_Discourse-512.png"
   },
   {
@@ -57,7 +57,7 @@
     "name": "Stack Overflow",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
   },
   {
@@ -65,7 +65,7 @@
     "name": "Reddit",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "/images/reddit.svg"
   },
   {
@@ -73,7 +73,7 @@
     "name": "LinkedIn",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "/images/linkedin.svg"
   },
   {
@@ -81,7 +81,7 @@
     "name": "Zapier",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "https://www.seekpng.com/png/full/67-672759_zapiers-new-cli-tool-for-creating-apps-zapier.png"
   },
   {
@@ -89,13 +89,13 @@
     "name": "Make",
     "color": "#FFFFFF",
     "active": false,
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "We're currently working on this integration.",
     "image": "/images/make.svg"
   },
   {
     "platform": "custom",
     "name": "Build your own",
-    "description": "Vitae donec neque, scelerisque vestibulum lectus turpis molestie",
+    "description": "Use our integration framework to build your own connector.",
     "image": "/images/custom-integration.svg"
   }
 ]

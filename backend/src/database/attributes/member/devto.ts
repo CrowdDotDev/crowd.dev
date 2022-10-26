@@ -8,7 +8,7 @@ export const DevtoMemberAttributes: Attribute[] = [
     label: MemberAttributes[MemberAttributeName.SOURCE_ID].label,
     type: AttributeType.STRING,
     canDelete: false,
-    show: true,
+    show: false,
   },
   {
     name: MemberAttributes[MemberAttributeName.URL].name,

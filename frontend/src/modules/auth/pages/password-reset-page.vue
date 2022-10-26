@@ -102,7 +102,7 @@
             id="submit"
             :loading="loadingPasswordReset"
             native-type="submit"
-            class="w-100 btn btn--primary btn--lg"
+            class="w-full btn btn--primary btn--lg"
           >
             <app-i18n
               code="auth.passwordReset.message"
