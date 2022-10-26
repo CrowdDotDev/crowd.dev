@@ -16,6 +16,7 @@ services:
       - BACKEND_URL=http://api:8080
     ports:
       - '8081:8081'
+    restart: always
     networks:
       - crowd-bridge
 
