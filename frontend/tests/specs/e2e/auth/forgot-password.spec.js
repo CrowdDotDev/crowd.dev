@@ -59,9 +59,5 @@ describe('Forgot password tests', function () {
       'have.been.calledWith',
       'auth/PASSWORD_RESET_EMAIL_SUCCESS'
     )
-
-    cy.get('.el-notification__content').contains(
-      'Password reset email successfully sent'
-    )
   })
 })
