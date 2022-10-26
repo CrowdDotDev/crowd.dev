@@ -97,7 +97,10 @@
           sortable="custom"
         >
           <template #default="scope">
-            <app-member-last-activity :member="scope.row" />
+            <app-member-last-activity
+              v-if="scope.row.lastActivity"
+              :member="scope.row"
+            />
           </template>
         </el-table-column>
         <el-table-column
