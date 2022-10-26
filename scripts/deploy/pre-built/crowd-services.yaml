@@ -1,0 +1,107 @@
+version: '3.1'
+
+x-env-args: &env-args
+  DOCKER_BUILDKIT: 1
+  NODE_ENV: docker
+
+services:
+  frontend:
+    image: crowddotdev/frontend:1666797381.7d4dfbd
+    env_file:
+      - frontend.env
+    environment:
+      <<: *env-args
+    ports:
+      - '8081:8081'
+    restart: always
+    networks:
+      - crowd-bridge
+
+  api:
+    image: crowddotdev/backend:1666797189.7d4dfbd
+    command: 'npm run start:api'
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: api
+    ports:
+      - '8080:8080'
+    restart: always
+    networks:
+      - crowd-bridge
+
+  job-generator:
+    image: crowddotdev/backend:1666797189.7d4dfbd
+    command: 'npm run start:job-generator'
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: job-generator
+    restart: always
+    networks:
+      - crowd-bridge
+
+  nodejs-worker:
+    image: crowddotdev/backend:1666797189.7d4dfbd
+    command: 'npm run start:nodejs-worker'
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: nodejs-worker
+    restart: always
+    networks:
+      - crowd-bridge
+
+  python-worker:
+    image: crowddotdev/python-worker:1666798839.7d4dfbd
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: python-worker
+    restart: always
+    networks:
+      - crowd-bridge
+
+  premium-api:
+    image: crowddotdev/premium-python-backend:1666798696.7d4dfbd
+    command:
+      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: premium-api
+    restart: always
+    networks:
+      - crowd-bridge
+
+  premium-python-worker:
+    image: crowddotdev/premium-python-backend:1666798696.7d4dfbd
+    command: ['python', '-u', 'worker.py']
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: premium-python-worker
+    restart: always
+    networks:
+      - crowd-bridge
+
+  premium-job-generator:
+    image:
+    command: 'npm run start'
+    env_file:
+      - backend.env
+    environment:
+      <<: *env-args
+      SERVICE: premium-job-generator
+    restart: always
+    networks:
+      - crowd-bridge
+
+networks:
+  crowd-bridge:
