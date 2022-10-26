@@ -120,7 +120,6 @@ export function chartOptions(widget, resultSet) {
       colors: [...mappedColors, ...restColors]
     }
   }
-  console.log(chartTypeOptions)
   return {
     ...defaultChartOptions,
     ...chartTypeOptions
