@@ -18,6 +18,7 @@ services:
       - ../../backend/.env.override.composed
     environment:
       <<: *env-args
+    restart: always
     networks:
       - crowd-bridge
 

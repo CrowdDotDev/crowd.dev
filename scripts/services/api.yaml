@@ -20,6 +20,7 @@ services:
       <<: *env-args
     ports:
       - '8080:8080'
+    restart: always
     networks:
       - crowd-bridge
 
