@@ -63,6 +63,7 @@
         class="text-gray-900 text-sm text-ellipsis truncate flex flex-wrap items-center"
       >
         <img
+          v-if="member.organizations[0].logo"
           :src="member.organizations[0].logo"
           alt="Logo"
           class="w-5 h-5 mr-1"

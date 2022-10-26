@@ -218,7 +218,7 @@ const maxTabWidth = computed(() => {
   for (const row of rows.value) {
     if (row.tags) {
       const tabWidth = row.tags
-        .map((tag) => tag.name.length * 14)
+        .map((tag) => tag.name.length * 20)
         .reduce((a, b) => a + b, 0)
 
       if (tabWidth > maxTabWidth) {

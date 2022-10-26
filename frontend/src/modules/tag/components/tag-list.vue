@@ -73,8 +73,10 @@ export default {
     }
   },
   computed: {
+
     computedTags() {
-      return this.member.tags.length <= 3
+      const max = this.long ? 8 : 3
+      return this.member.tags.length <= max || this.long
         ? this.member.tags
         : this.member.tags.slice(0, 3).concat({
             id: 'more',
