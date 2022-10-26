@@ -16,7 +16,7 @@ export default {
       },
       sorter: {
         prop: 'timestamp',
-        order: 'desc'
+        order: 'descending'
       },
       active: true
     },
@@ -30,7 +30,7 @@ export default {
       },
       sorter: {
         prop: 'activityCount',
-        order: 'desc'
+        order: 'descending'
       },
       active: false
     }
@@ -50,6 +50,6 @@ export default {
   },
   sorter: {
     prop: 'timestamp',
-    order: 'desc'
+    order: 'descending'
   }
 }

@@ -12,6 +12,6 @@ export default {
   },
   sorter: {
     prop: 'createdAt',
-    order: 'desc'
+    order: 'descending'
   }
 }

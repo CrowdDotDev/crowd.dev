@@ -80,6 +80,6 @@ export default {
   },
   sorter: {
     prop: 'lastActive',
-    order: 'desc'
+    order: 'descending'
   }
 }

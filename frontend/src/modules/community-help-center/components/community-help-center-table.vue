@@ -10,7 +10,7 @@
         border
         :default-sort="{
           prop: 'lastActive',
-          order: 'desc'
+          order: 'descending'
         }"
         :row-class-name="rowClass"
         @sort-change="doChangeSort"

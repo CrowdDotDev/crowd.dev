@@ -11,7 +11,7 @@ export default () => {
       state.pagination = {}
       state.sorter = {
         prop: 'score',
-        order: 'desc'
+        order: 'descending'
       }
 
       if (state.list.table) {
@@ -58,7 +58,7 @@ export default () => {
           ? payload
           : {
               prop: 'createdAt',
-              order: 'desc'
+              order: 'descending'
             }
     },
 
