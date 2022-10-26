@@ -56,6 +56,10 @@ export default {
     editable: {
       type: Boolean,
       default: true
+    },
+    long: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['tags-updated'],
@@ -111,9 +115,12 @@ export default {
       this.$emit('tags-updated')
     },
     getTagName(tag) {
-      return tag.name.length > 10
-        ? `${tag.name.slice(0, 10)}...`
-        : tag.name
+      if (!this.long) {
+        return tag.name.length > 10
+          ? `${tag.name.slice(0, 10)}...`
+          : tag.name
+      }
+      return tag.name
     }
   }
 }

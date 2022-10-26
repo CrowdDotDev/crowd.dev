@@ -92,7 +92,7 @@
       class="absolute inset-x-0 bottom-0 rounded-b-md bg-gray-50 p-6 mt-9"
     >
       <div class="text-sm">
-        <app-tags :member="member" />
+        <app-tags :long="true" :member="member" />
       </div>
     </div>
   </div>
