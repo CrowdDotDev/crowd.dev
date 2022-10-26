@@ -119,16 +119,16 @@ export default {
 }
 .chart::v-deep {
   div {
-    line-height: 200px !important;
+    line-height: 220px !important;
     height: auto !important;
   }
   canvas {
-    height: 200px;
+    height: 220px !important;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 150px;
+  height: 220px;
 }
 </style>

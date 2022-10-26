@@ -35,7 +35,7 @@
         <p class="text-2xs leading-4 font-medium mb-1">
           {{ member.displayName }}
         </p>
-        <div class="flex items-center">
+        <div class="flex">
           <el-tooltip
             effect="dark"
             :content="platform.name"
@@ -48,9 +48,7 @@
             />
           </el-tooltip>
           <div class="flex-grow">
-            <p
-              class="text-xs leading-4 pl-2 flex flex-wrap"
-            >
+            <p class="text-xs leading-4 pl-2">
               <!-- activity message -->
               <app-activity-message
                 :activity="conversation.conversationStarter"

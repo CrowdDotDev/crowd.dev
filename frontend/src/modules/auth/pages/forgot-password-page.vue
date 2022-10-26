@@ -94,11 +94,7 @@
     </div>
     <p class="text-xs text-gray-500 leading-5 pb-8">
       Didn’t receive the e-mail? Check your spam folder or
-      <span
-        class="text-brand-500 cursor-pointer"
-        @click="resend()"
-        >ask to resend</span
-      >
+      ask to resend
     </p>
     <el-button
       :loading="loadingPasswordResetEmail"
