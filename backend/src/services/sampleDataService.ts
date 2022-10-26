@@ -13,7 +13,6 @@ import { TwitterMemberAttributes } from '../database/attributes/member/twitter'
 import { DevtoMemberAttributes } from '../database/attributes/member/devto'
 import { MemberAttributeName } from '../database/attributes/member/enums'
 import { PlatformType } from '../types/integrationEnums'
-import OrganizationRepository from '../database/repositories/organizationRepository'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
 
