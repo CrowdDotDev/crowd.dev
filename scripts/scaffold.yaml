@@ -7,7 +7,7 @@ services:
       - '4000:4000'
       - '3001:3000'
     volumes:
-      - './scaffold/cubejs/config:/cube/conf'
+      - '../backend/src/cubejs:/cube/conf'
     environment:
       - CUBEJS_DEV_MODE=true
       - CUBEJS_DB_HOST=db
