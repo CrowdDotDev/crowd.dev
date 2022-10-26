@@ -1,4 +1,5 @@
 import { graphql } from '@octokit/graphql'
+import organizationAutocomplete from '../../../../../api/organization/organizationAutocomplete'
 import BaseQuery from './baseQuery'
 
 /**
@@ -16,12 +17,31 @@ const getOrganization = async (name: string, token: string): Promise<any> => {
       },
     })
 
-    organization = (
-      (await graphqlWithAuth(`{ 
-            organization(login: "${name}") ${BaseQuery.ORGANIZATION_SELECT}
+    const organizationsQuery = `{
+      search(query: "type:org ${name}", type: USER, first: 10) {
+        nodes {
+          ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
           }
-      `)) as any
-    ).organization
+        }
+          rateLimit {
+    limit
+    cost
+    remaining
+    resetAt
+  }
+      }`
+
+    organization = (
+      (await graphqlWithAuth(organizationsQuery)) as any
+    )
+
+    console.log("full response")
+    console.log(organization)
+
+
+    organization = (organization as any).search.nodes.length > 0 ? (organization as any).search.nodes[0] : null
+    // console.log("organization: ")
+    // console.log(organization)
   } catch (err) {
     // It may be that the organization was not found, if for example it is a bot
     // In that case we want to return null instead of throwing an error

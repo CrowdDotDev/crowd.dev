@@ -584,15 +584,17 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       } else {
         const company = memberFromApi.company.replace('@', '').trim()
         const fromAPI = await getOrganization(company, context.integration.token)
+
         if (fromAPI) {
+
           member.organizations = [
             {
               name: fromAPI.name,
-              ...(fromAPI.description && { description: fromAPI.description }),
-              ...(fromAPI.location && { location: fromAPI.location }),
-              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
-              ...(fromAPI.url && { url: fromAPI.url }),
-              ...(fromAPI.twitter && { twitter: { handle: fromAPI.twitterUsername } }),
+              description: fromAPI.description ?? null,
+              location: fromAPI.location ?? null,
+              logo: fromAPI.avatarUrl ?? null,
+              url: fromAPI.url ?? null,
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null
             },
           ]
         } else {

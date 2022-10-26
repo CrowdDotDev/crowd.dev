@@ -22,6 +22,7 @@ class BaseQuery {
 
   static ORGANIZATION_SELECT = `{
     email
+    url
     location
     name
     twitterUsername
