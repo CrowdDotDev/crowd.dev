@@ -159,6 +159,11 @@ export default () => {
 
     FILTER_ATTRIBUTE_DESTROYED(state, attribute) {
       delete state.filter.attributes[attribute.name]
+      if (
+        Object.keys(state.filter.attributes).length === 0
+      ) {
+        state.filter.operator = 'and'
+      }
     },
 
     FILTER_OPERATOR_UPDATED(state, operator) {

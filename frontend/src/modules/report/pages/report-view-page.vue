@@ -10,7 +10,7 @@
         class="mb-4 h-16 flex items-center flex-shrink-0 fixed top-0 inset-x-0 z-10 bg-gray-50 shadow-sm"
       >
         <div
-          class="lg:container col-start-2 col-span-12 flex items-center justify-between"
+          class="max-w-5xl flex flex-grow mx-auto items-center justify-between"
         >
           <h1 class="text-lg font-semibold">
             {{ report.name }}
@@ -32,7 +32,7 @@
           </div>
         </div>
       </div>
-      <div class="lg:container col-start-2 col-span-12">
+      <div class="max-w-5xl flex flex-grow mx-auto">
         <app-report-grid-layout
           v-model="report"
           class="-mx-4 pt-20 pb-24"
@@ -42,9 +42,7 @@
         v-if="tenantId"
         class="fixed bottom-0 inset-x-0 h-12 bg-gray-100 border-t border-gray-200 w-full text-gray-600 text-xs flex items-center leading-none flex-shrink-0"
       >
-        <div
-          class="lg:container flex items-center justify-between"
-        >
+        <div class="max-w-5xl flex flex-grow mx-auto">
           <div class="flex items-end">
             <div class="mr-2">Build your own with</div>
             <img

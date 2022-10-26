@@ -2,23 +2,27 @@ export default (filter) => {
   if (Object.keys(filter).length === 0) {
     return {}
   } else {
-    return {
-      [filter.operator]: Object.values(
-        filter.attributes
-      ).reduce((acc, item) => {
-        if (
-          Array.isArray(item.value)
-            ? item.value.length > 0
-            : item.value !== '' &&
-              item.value !== null &&
-              item.value !== {}
-        ) {
-          acc.push(_buildAttributeBlock(item))
-        }
+    const hasAttributes =
+      Object.keys(filter.attributes).length > 0
+    return !hasAttributes
+      ? {}
+      : {
+          [filter.operator]: Object.values(
+            filter.attributes
+          ).reduce((acc, item) => {
+            if (
+              Array.isArray(item.value)
+                ? item.value.length > 0
+                : item.value !== '' &&
+                  item.value !== null &&
+                  item.value !== {}
+            ) {
+              acc.push(_buildAttributeBlock(item))
+            }
 
-        return acc
-      }, [])
-    }
+            return acc
+          }, [])
+        }
   }
 }
 
