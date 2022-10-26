@@ -21,7 +21,7 @@
       </div>
       <div>
         <img
-          src="/images/auth/partners.png"
+          src="/images/auth/partners-nogrid.png"
           alt="partners"
         />
       </div>
