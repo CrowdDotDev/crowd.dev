@@ -30,15 +30,8 @@ export function chartOptions(widget, resultSet) {
     ? resultSet.seriesNames()
     : []
   const type = widget.settings.chartType
-  // const dimensionExist = !!(
-  //   (widget.settings.query &&
-  //     widget.settings.query.dimensions &&
-  //     widget.settings.query.dimensions.length) ||
-  //   0
-  // )
 
   if (type === 'area' || type === 'line') {
-    console.log(seriesNames)
     if (seriesNames.length <= 1) {
       chartTypeOptions = {
         computeDataset: (canvas) => {
@@ -70,7 +63,7 @@ export function chartOptions(widget, resultSet) {
       library: {
         spacing: 4,
         borderWidth: 0,
-        cutout: '90%',
+        cutout: '65%',
         plugins: {
           legend: {
             display: true,

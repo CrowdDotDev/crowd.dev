@@ -49,7 +49,10 @@
         @trigger-edit-widget="handleEdit"
         @trigger-delete-widget="handleDelete"
       >
-        <div class="cube-widget-chart">
+        <div
+          class="cube-widget-chart"
+          :class="componentType"
+        >
           <component
             :is="componentType"
             ref="chart"
@@ -58,7 +61,11 @@
           ></component>
         </div>
       </app-widget>
-      <div v-else class="cube-widget-chart">
+      <div
+        v-else
+        class="cube-widget-chart"
+        :class="componentType"
+      >
         <component
           :is="componentType"
           ref="chart"
@@ -427,3 +434,20 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.pie-chart {
+  display: flex;
+  justify-content: center;
+  min-height: 300px;
+
+  & > div {
+    max-width: 450px;
+  }
+}
+
+.cube-widget-chart {
+  padding: 24px 0;
+  min-height: 348px;
+}
+</style>
