@@ -64,9 +64,5 @@ describe('Reset password tests', function () {
       'have.been.calledWith',
       'auth/PASSWORD_RESET_SUCCESS'
     )
-
-    cy.get('.el-notification__content').contains(
-      'Password successfully changed'
-    )
   })
 })

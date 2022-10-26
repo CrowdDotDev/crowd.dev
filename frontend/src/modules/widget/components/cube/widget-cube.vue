@@ -49,12 +49,14 @@
         @trigger-edit-widget="handleEdit"
         @trigger-delete-widget="handleDelete"
       >
-        <component
-          :is="componentType"
-          ref="chart"
-          :data="data"
-          v-bind="chartOptions"
-        ></component>
+        <div class="cube-widget-chart">
+          <component
+            :is="componentType"
+            ref="chart"
+            :data="data"
+            v-bind="{ ...chartOptions, dataset }"
+          ></component>
+        </div>
       </app-widget>
       <div v-else class="cube-widget-chart">
         <component
@@ -227,6 +229,9 @@ export default {
   },
   methods: {
     paintDataSet() {
+      if (!this.chartOptions.computeDataset) {
+        this.dataset = undefined
+      }
       if (
         !this.dataset &&
         this.$refs &&

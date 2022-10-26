@@ -93,6 +93,7 @@
             <app-widget-cube-renderer
               :editable="editable"
               :widget="widgets[item.i]"
+              :chart-options="widgets[item.i]"
               @edit="handleWidgetEdit(widgets[item.i])"
               @duplicate="
                 handleWidgetDuplicate(widgets[item.i])

@@ -8,9 +8,12 @@
       <app-widget-cube
         :result-set="resultSet"
         :show-subtitle="showSubtitle"
-        :widget="widget"
+        :widget="mapWidget(widget, resultSet)"
         :editable="editable"
-        :chart-options="chartOptions"
+        :chart-options="{
+          ...chartOptions,
+          ...mapOptions(widget, resultSet)
+        }"
         :dashboard="dashboard"
         @edit="$emit('edit', widget)"
         @duplicate="$emit('duplicate', widget)"
@@ -24,6 +27,10 @@
 import { mapGetters, mapActions } from 'vuex'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import WidgetCube from './widget-cube'
+import {
+  chartOptions,
+  mapWidget
+} from '@/modules/report/report-charts'
 
 export default {
   name: 'AppWidgetCubeRenderer',
@@ -54,6 +61,12 @@ export default {
     }
   },
   emits: ['edit', 'duplicate', 'delete'],
+  data() {
+    return {
+      mapWidget,
+      mapOptions: chartOptions
+    }
+  },
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',

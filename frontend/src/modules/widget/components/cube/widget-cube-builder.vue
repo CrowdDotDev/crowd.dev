@@ -203,12 +203,24 @@
                 model.settings.query
               "
               :widget="
-                buildWidgetPreview({
-                  chartType: model.settings.chartType,
-                  query: model.settings.query
-                })
+                mapWidget(
+                  buildWidgetPreview({
+                    chartType: model.settings.chartType,
+                    query: model.settings.query
+                  }),
+                  resultSet
+                )
               "
               :result-set="resultSet"
+              :chart-options="
+                chartOptions(
+                  buildWidgetPreview({
+                    chartType: model.settings.chartType,
+                    query: model.settings.query
+                  }),
+                  resultSet
+                )
+              "
             ></app-widget-cube>
           </div>
         </div>
@@ -254,6 +266,10 @@ import Order from './_query_builder/Order'
 import Limit from './_query_builder/Limit'
 
 import FilterComponent from '@/modules/widget/components/cube/_query_builder/FilterComponent.vue'
+import {
+  chartOptions,
+  mapWidget
+} from '@/modules/report/report-charts'
 
 export default {
   name: 'WidgetCubeBuilder',
@@ -304,6 +320,8 @@ export default {
     const initialCharType =
       this.widget.settings?.chartType || 'line'
     return {
+      mapWidget,
+      chartOptions,
       model: {
         ...this.widget,
         settings: {
