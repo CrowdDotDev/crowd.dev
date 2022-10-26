@@ -245,16 +245,20 @@ export default {
 
 .chart::v-deep {
   div {
-    line-height: 150px !important;
+    line-height: 100px !important;
     height: auto !important;
   }
+  .cube-widget-chart {
+    padding: 0;
+    min-height: 0;
+  }
   canvas {
-    height: 150px;
+    height: 100px;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 150px;
+  height: 100px;
 }
 </style>
