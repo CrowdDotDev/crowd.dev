@@ -26,11 +26,7 @@
           "url": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
-          "emails": [
-            "richard@piedpiper.io",
-            "gilfoyle@piedpiper.io",
-            "erlich@piedpier.io"
-          ],
+          "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
           "tags": ["pied piper", "data-compression", "not-hooli"],
           "twitter": {
             "handle": "piedpiper",
@@ -75,11 +71,7 @@
           "url": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
-          "emails": [
-            "richard@piedpiper.io",
-            "gilfoyle@piedpiper.io",
-            "erlich@piedpier.io"
-          ],
+          "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
           "tags": ["pied piper", "data-compression", "not-hooli"],
           "twitter": {
             "handle": "piedpiper",
@@ -124,10 +116,7 @@
           "url": "https://erlichincubator.in",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/bachmanity.jpeg",
           "description": "Startup incubator right in Erlich Bachman's house",
-          "emails": [
-            "bachman@erlichincubator.in",
-            "jianyang@erlichincubator.in"
-          ],
+          "emails": ["bachman@erlichincubator.in", "jianyang@erlichincubator.in"],
           "tags": ["erlich", "incubator"],
           "twitter": {
             "handle": "erlichincubator",
@@ -217,11 +206,7 @@
           "url": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
-          "emails": [
-            "richard@piedpiper.io",
-            "gilfoyle@piedpiper.io",
-            "erlich@piedpier.io"
-          ],
+          "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
           "tags": ["pied piper", "data-compression", "not-hooli"],
           "twitter": {
             "handle": "piedpiper",
@@ -375,11 +360,7 @@
           "url": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
-          "emails": [
-            "richard@piedpiper.io",
-            "gilfoyle@piedpiper.io",
-            "erlich@piedpier.io"
-          ],
+          "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
           "tags": ["pied piper", "data-compression", "not-hooli"],
           "twitter": {
             "handle": "piedpiper",

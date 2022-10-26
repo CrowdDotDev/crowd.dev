@@ -12,7 +12,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { IS_DEV_ENV, IS_TEST_ENV } from '../config';
+import { IS_DEV_ENV, IS_TEST_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
@@ -133,7 +133,6 @@ export default class ActivityService {
         } catch (err) {
           console.log(`Error triggering new activity automation - ${record.id}!`, err)
         }
-
       }
 
       return record
