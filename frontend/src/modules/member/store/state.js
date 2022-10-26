@@ -84,7 +84,7 @@ export default {
         order: 'descending'
       },
       active: false
-    },
+    }
   ],
   customAttributes: {},
   list: {
