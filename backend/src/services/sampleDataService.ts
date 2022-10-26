@@ -93,6 +93,7 @@ export default class SampleDataService {
       const memberIds = await (
         await memberService.findAndCountAll({
           advancedFilter: { sample: true },
+          limit: 100,
         })
       ).rows.reduce((acc, item) => {
         acc.push(item.id)
@@ -135,9 +136,9 @@ export default class SampleDataService {
       ).rows[0]
       await memberAttributeSettingsService.destroyAll([sampleAttributeSettings.id])
 
-      // await tenantService.update(this.options.currentTenant.id, {
-      //   hasSampleData: false,
-      // })
+      await tenantService.update(this.options.currentTenant.id, {
+        hasSampleData: false,
+      })
     }
 
     console.log(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
