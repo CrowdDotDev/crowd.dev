@@ -38,7 +38,6 @@ export function chartOptions(widget, resultSet) {
   // )
 
   if (type === 'area' || type === 'line') {
-    console.log(seriesNames)
     if (seriesNames.length <= 1) {
       chartTypeOptions = {
         computeDataset: (canvas) => {
