@@ -217,8 +217,6 @@ const maxTabWidth = computed(() => {
   let maxTabWidth = 0
   for (const row of rows.value) {
     if (row.tags) {
-      const t = row.tags.map((tag) => tag.name.length * 14)
-      console.log(t)
       const tabWidth = row.tags
         .map((tag) => tag.name.length * 14)
         .reduce((a, b) => a + b, 0)
@@ -228,7 +226,7 @@ const maxTabWidth = computed(() => {
       }
     }
   }
-  console.log('maxTabWidth', maxTabWidth)
+
   return Math.min(maxTabWidth + 100, 500)
 })
 
