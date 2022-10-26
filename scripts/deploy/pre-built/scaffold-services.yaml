@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   cubejs:
-    image: crowddotdev/cubejs:1666799601.7d4dfbd
+    image: crowddotdev/cubejs:1666800734.83c9de5a
     ports:
       - '4000:4000'
       - '3001:3000'
