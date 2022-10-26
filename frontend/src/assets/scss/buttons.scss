@@ -271,7 +271,7 @@
   }
 
   &--circle {
-    @apply rounded-full;
+    @apply rounded-full h-9 w-9;
   }
 
   &[disabled] {
