@@ -361,6 +361,9 @@ async function onSubmit() {
           formattedAttributes),
         ...(formModel.value.attributes.url && {
           url: formModel.value.attributes.url
+        }),
+        ...(formModel.value.attributes.avatarUrl && {
+          avatarUrl: formModel.value.attributes.avatarUrl
         })
       }
     },
