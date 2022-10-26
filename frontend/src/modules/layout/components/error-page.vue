@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-between h-screen col-start-1 col-end-13 py-16 relative lg:container"
+    class="flex items-center justify-between h-screen col-start-1 col-end-13 py-16 relative max-w-5xl mx-auto"
   >
     <div class="content">
       <div
