@@ -3,7 +3,7 @@
     v-model="isDrawerOpenComputed"
     custom-class="automation-attributes-drawer"
     direction="rtl"
-    size="35%"
+    size="40%"
     @closed="doCancel"
   >
     <template #header>
@@ -75,7 +75,7 @@
               title="Filter options"
               name="activityFilters"
             >
-              <div class="flex items-end gap-4 mb-2">
+              <div class="flex items-start gap-4 mb-2">
                 <el-form-item
                   label="Matching activity platform(s)"
                   class="grow"

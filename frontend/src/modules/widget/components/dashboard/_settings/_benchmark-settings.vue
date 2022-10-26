@@ -220,7 +220,7 @@ export default {
         {
           q: query,
           sort: 'stars',
-          order: 'desc',
+          order: 'descending',
           perPage: 10
         }
       )

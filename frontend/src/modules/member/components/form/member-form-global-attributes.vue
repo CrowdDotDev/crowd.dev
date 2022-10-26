@@ -1,15 +1,8 @@
 <template>
-  <el-drawer
-    v-model="isDrawerOpen"
-    custom-class="member-attributes-drawer"
-    direction="rtl"
-    size="35%"
-    @closed="() => (isDrawerOpen = false)"
+  <div
+    class="flex flex-col items-start justify-between h-full"
   >
-    <template #header>
-      <h5 class="text-black">Manage custom attributes</h5>
-    </template>
-    <template #default>
+    <div class="w-full px-6 pb-6 overflow-auto">
       <div class="flex gap-4 border-b h-8 items-center">
         <div
           class="attribute-type uppercase text-gray-400 text-2xs font-semibold tracking-wide"
@@ -77,10 +70,11 @@
       <el-button
         class="btn btn-link btn-link--md btn-link--primary mt-5"
         @click="addAttribute"
-        >+ Add custom attribute</el-button
+        >+ Add attribute</el-button
       >
-    </template>
-    <template #footer>
+    </div>
+
+    <div class="el-drawer__footer">
       <div
         class="flex w-full justify-end"
         :class="
@@ -108,8 +102,8 @@
           >
         </div>
       </div>
-    </template>
-  </el-drawer>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -193,9 +187,9 @@ async function onSubmit() {
       // Show confirmation modal before deleting attributes
       await ConfirmDialog({
         type: 'error',
-        title: 'Deleting custom attributes in use',
+        title: 'Deleting global attributes in use',
         message:
-          'Deleting custom attributes will also discard any associated values. \n Are you sure you want to proceed?',
+          'Deleting global attributes will also discard any associated values. \n Are you sure you want to proceed?',
         confirmButtonText: 'Confirm update'
       })
 

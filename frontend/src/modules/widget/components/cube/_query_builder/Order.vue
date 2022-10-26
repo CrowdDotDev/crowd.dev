@@ -26,10 +26,14 @@
                 $emit('orderChange', element.id, value)
             "
           >
-            <el-radio-button label="asc" :name="element.id"
+            <el-radio-button
+              label="ascending"
+              :name="element.id"
               >Asc</el-radio-button
             >
-            <el-radio-button label="desc" :name="element.id"
+            <el-radio-button
+              label="descending"
+              :name="element.id"
               >Desc</el-radio-button
             >
             <el-radio-button label="none" :name="element.id"

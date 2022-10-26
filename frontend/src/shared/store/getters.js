@@ -9,16 +9,13 @@ export default () => {
     orderBy: (state) => {
       const sorter = state.sorter
 
-      if (!sorter) {
-        return null
-      }
-
+      // TODO: For now this will remain hard coded, need to check API
       if (!sorter.prop) {
-        return null
+        return 'createdAt_DESC'
       }
 
       let direction =
-        sorter.order === 'desc' ? 'DESC' : 'ASC'
+        sorter.order === 'descending' ? 'DESC' : 'ASC'
 
       return `${sorter.prop}_${direction}`
     },

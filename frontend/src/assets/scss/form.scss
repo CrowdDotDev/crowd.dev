@@ -168,7 +168,7 @@
     &__label {
       @apply text-2xs text-gray-900;
     }
-    .el-radio__input.is-checked+.el-radio__label {
+    .el-radio__input.is-checked + .el-radio__label {
       @apply text-gray-900;
     }
     .el-radio__input.is-checked .el-radio__inner {
@@ -269,6 +269,11 @@
 
   &:hover {
     @apply border-gray-400;
+  }
+
+  .el-input {
+    min-height: 40px;
+    @apply h-fit leading-10 w-full;
   }
 }
 

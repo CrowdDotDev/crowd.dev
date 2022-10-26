@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-x-12 grid-cols-3 mb-16">
-    <div>
+    <div v-if="showHeader">
       <h6>Custom attributes</h6>
       <p class="text-gray-500 text-2xs leading-normal mt-1">
         Add custom data points to enhance the member profile
@@ -8,10 +8,10 @@
       <el-button
         class="btn btn-link btn-link--sm btn-link--primary mt-3"
         @click="() => emit('openDrawer')"
-        >Manage custom attributes</el-button
+        >Manage global attributes</el-button
       >
     </div>
-    <div class="col-span-2">
+    <div :class="showHeader ? 'col-span-2' : 'col-span-3'">
       <div
         class="grid grid-cols-12 gap-3 border-b h-8 items-center"
       >
@@ -99,7 +99,13 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed, h } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  h,
+  watch
+} from 'vue'
 
 const CalendarIcon = h(
   'i', // type
@@ -131,6 +137,10 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => {}
+  },
+  showHeader: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -140,12 +150,9 @@ const customAttributes = computed(() =>
   )
 )
 
-const model = computed({
-  get() {
-    return props.modelValue
-  },
-  set(newModel) {
-    emit('update:modelValue', newModel)
-  }
+const model = computed(() => props.modelValue)
+
+watch(model.value, (newModel) => {
+  emit('update:modelValue', newModel)
 })
 </script>

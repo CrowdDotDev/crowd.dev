@@ -18,11 +18,9 @@
           identitiesForm
         )"
         :key="key"
+        class="border-b border-gray-200 last:border-none"
       >
-        <div
-          v-if="findPlatform(key)"
-          class="border-b border-gray-200"
-        >
+        <div v-if="findPlatform(key)">
           <el-form-item class="h-14 !flex items-center">
             <div :class="value.imgContainerClass">
               <img

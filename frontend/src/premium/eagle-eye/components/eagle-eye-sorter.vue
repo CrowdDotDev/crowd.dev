@@ -54,7 +54,7 @@ export default {
       this.value = value
       await this.doChangeSort({
         prop: this.value,
-        order: 'desc'
+        order: 'descending'
       })
     }
   }

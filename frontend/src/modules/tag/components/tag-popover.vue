@@ -2,7 +2,8 @@
   <app-teleport to="#teleport-modal">
     <app-dialog
       v-model="computedVisible"
-      :pretitle="pretitle"
+      title="Edit tags"
+      :pre-title="pretitle"
     >
       <template #content>
         <div class="px-6 pb-6">
