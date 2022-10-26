@@ -11,7 +11,7 @@
       </div>
       <div class="-mx-6 mt-6">
         <a
-          v-for="platform of Object.keys(member.username)"
+          v-for="platform of filteredPlatforms"
           :key="platform"
           class="px-6 py-2 flex items-center relative"
           :class="
@@ -123,10 +123,18 @@ const computedCustomAttributes = computed(() => {
   })
 })
 
+const filteredPlatforms = computed(() => {
+  const supported = integrationsJsonArray
+    .filter((i) => i.active)
+    .map((i) => i.platform)
+  return Object.keys(props.member.username).filter((p) => supported.includes(p))
+})
+
 const findIcon = (platform) => {
-  return integrationsJsonArray.find(
+  const platformData = integrationsJsonArray.find(
     (p) => p.platform === platform
-  ).image
+  )
+  return platformData ? platformData.image : null
 }
 
 const formattedComputedAttributeValue = (value) => {
