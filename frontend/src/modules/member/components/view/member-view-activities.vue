@@ -30,11 +30,28 @@
           :key="activity.id"
         >
           <div>
-            <app-activity-item
+            <div class="flex items-center">
+              <app-activity-message
+                :activity="activity"
+                :short="true"
+              />
+              <span class="whitespace-nowrap text-gray-500"
+                ><span class="mx-1">·</span
+                >{{ timeAgo(activity) }}</span
+              >
+              <span
+                v-if="activity.sentiment.sentiment"
+                class="mx-1"
+                >·</span
+              >
+              <app-activity-sentiment
+                v-if="activity.sentiment.sentiment"
+                :sentiment="activity.sentiment.sentiment"
+              />
+            </div>
+            <app-activity-content
+              class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
-              :show-user="false"
-              :show-platform-icon="false"
-              class="pt-2"
             />
           </div>
           <template #dot>
@@ -79,7 +96,9 @@ export default {
 import _ from 'lodash'
 import { useStore } from 'vuex'
 import integrationsJson from '@/jsons/integrations.json'
-import AppActivityItem from '@/modules/activity/components/activity-item'
+import AppActivityMessage from '@/modules/activity/components/activity-message'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
+import AppActivityContent from '@/modules/activity/components/activity-content'
 
 import {
   defineProps,
@@ -94,6 +113,7 @@ import {
 import integrationsJsonArray from '@/jsons/integrations.json'
 import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
+import computedTimeAgo from '@/utils/time-ago'
 
 const SearchIcon = h(
   'i', // type
@@ -208,6 +228,9 @@ const findIcon = (platform) => {
   return integrationsJsonArray.find(
     (p) => p.platform === platform
   ).image
+}
+const timeAgo = (activity) => {
+  return computedTimeAgo(activity.timestamp)
 }
 
 const debouncedQueryChange = debounce(async () => {
