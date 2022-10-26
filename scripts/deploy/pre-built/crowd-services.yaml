@@ -92,7 +92,7 @@ services:
       - crowd-bridge
 
   premium-job-generator:
-    image:
+    image: crowddotdev/premium-job-generator:1666800146.a13e2c47
     command: 'npm run start'
     env_file:
       - backend.env
