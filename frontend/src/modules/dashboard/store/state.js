@@ -1,6 +1,6 @@
 export default {
   filters: {
-    period: 70,
+    period: 7,
     platform: 'all'
   },
   conversations: {
