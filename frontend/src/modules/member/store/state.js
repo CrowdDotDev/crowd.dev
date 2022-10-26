@@ -75,7 +75,7 @@ export default {
       },
       active: false
     },
-     {
+    {
       id: 'team',
       label: 'Team members',
       filter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
