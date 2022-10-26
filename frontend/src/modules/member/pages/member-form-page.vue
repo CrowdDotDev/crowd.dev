@@ -25,21 +25,21 @@
             :rules="rules"
             :model="formModel"
           >
-            <AppMemberFormDetails
+            <app-member-form-details
               v-model="formModel"
               :fields-value="computedFields"
             />
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
             />
-            <AppMemberFormIdentities
+            <app-member-form-identities
               v-model="formModel"
               :record="record"
             />
             <el-divider
               class="!mb-6 !mt-16 !border-gray-200"
             />
-            <AppMemberFormAttributes
+            <app-member-form-attributes
               v-model="formModel"
               :attributes="computedAttributes"
               :record="record"
@@ -94,7 +94,7 @@
     </div>
 
     <!-- Manage Custom Attributes Drawer-->
-    <app-member-attributes-drawer
+    <app-member-global-attributes-drawer
       v-if="computedAttributes.length"
       v-model="isDrawerOpen"
     />
@@ -106,7 +106,7 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue'
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue'
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue'
-import AppMemberAttributesDrawer from '@/modules/member/components/member-attributes-drawer.vue'
+import AppMemberGlobalAttributesDrawer from '@/modules/member/components/member-global-attributes-drawer.vue'
 import { MemberModel } from '@/modules/member/member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import {
@@ -127,6 +127,8 @@ import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
+import getAttributesModel from '@/shared/attributes/get-attributes-model.js'
+import getParsedAttributes from '@/shared/attributes/get-parsed-attributes.js'
 import { OrganizationService } from '@/modules/organization/organization-service'
 
 const LoaderIcon = h(
@@ -274,18 +276,7 @@ watch(
 )
 
 function getInitialModel(record) {
-  const attributes = Object.entries(
-    record?.attributes || {}
-  ).reduce((obj, [key, val]) => {
-    if (!val.default) {
-      return obj
-    }
-
-    return {
-      ...obj,
-      [key]: val.default
-    }
-  }, {})
+  const attributes = getAttributesModel(record)
 
   return JSON.parse(
     JSON.stringify(
@@ -321,20 +312,10 @@ async function onCancel() {
 }
 
 async function onSubmit() {
-  const formattedAttributes =
-    computedAttributes.value.reduce((obj, attribute) => {
-      if (!formModel.value[attribute.name]) {
-        return obj
-      }
-
-      return {
-        ...obj,
-        [attribute.name]: {
-          ...formModel.value.attributes[attribute.name],
-          default: formModel.value[attribute.name]
-        }
-      }
-    }, {})
+  const formattedAttributes = getParsedAttributes(
+    computedAttributes.value,
+    formModel.value
+  )
 
   // Remove any existent empty data
   const data = Object.assign(

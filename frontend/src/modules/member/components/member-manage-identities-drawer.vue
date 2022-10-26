@@ -1,11 +1,12 @@
 <template>
   <el-drawer
     v-model="drawerModel"
-    size="600px"
-    title="Manage identities"
+    size="35%"
+    title="Edit identities"
+    custom-class="identities-drawer"
   >
     <el-form :model="memberModel">
-      <MemberFormIdentities
+      <app-member-form-identities
         v-model="memberModel"
         :show-header="false"
       />
@@ -44,7 +45,7 @@ import {
   computed
 } from 'vue'
 import Message from '@/shared/message/message'
-import MemberFormIdentities from './form/member-form-identities'
+import AppMemberFormIdentities from './form/member-form-identities'
 import { MemberService } from '@/modules/member/member-service'
 
 const store = useStore()
@@ -86,3 +87,12 @@ const handleSubmit = async () => {
   emit('update:modelValue', false)
 }
 </script>
+
+<style lang="scss">
+.identities-drawer {
+  .el-form-item,
+  .el-form-item__content {
+    @apply mb-0;
+  }
+}
+</style>

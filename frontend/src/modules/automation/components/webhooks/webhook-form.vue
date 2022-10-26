@@ -3,7 +3,7 @@
     v-model="isDrawerOpenComputed"
     custom-class="automation-attributes-drawer"
     direction="rtl"
-    size="35%"
+    size="40%"
     @closed="doCancel"
   >
     <template #header>
