@@ -58,7 +58,7 @@ export default {
             ...row.attributes,
             isTeamMember: {
               crowd: true,
-              default: true,
+              default: true
             }
           }
         })
