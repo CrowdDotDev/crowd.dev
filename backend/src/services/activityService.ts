@@ -12,7 +12,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { IS_DEV_ENV, IS_TEST_ENV } from '../config'
+import { IS_TEST_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
@@ -152,7 +152,7 @@ export default class ActivityService {
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
   static async getSentiment(data) {
-    if (IS_TEST_ENV || IS_DEV_ENV) {
+    if (IS_TEST_ENV) {
       return {
         positive: 0.42,
         negative: 0.42,
