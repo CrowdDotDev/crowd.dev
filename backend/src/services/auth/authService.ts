@@ -364,8 +364,7 @@ class AuthService {
       console.error(error)
       throw new Error400(language, 'auth.emailAddressVerificationEmail.error')
     }
-    
-    return true
+
     return new EmailSender(EmailSender.TEMPLATES.EMAIL_ADDRESS_VERIFICATION, { link }).sendTo(email)
   }
 

@@ -586,7 +586,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         const fromAPI = await getOrganization(company, context.integration.token)
 
         if (fromAPI) {
-
           member.organizations = [
             {
               name: fromAPI.name,
@@ -594,7 +593,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               location: fromAPI.location ?? null,
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
-              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
             },
           ]
         } else {

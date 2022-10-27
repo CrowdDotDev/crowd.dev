@@ -143,6 +143,27 @@ class OrganizationCacheRepository {
     return output
   }
 
+  static async findByName(name, options: IRepositoryOptions) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const include = []
+
+    const record = await options.database.organizationCache.findOne({
+      where: {
+        name,
+      },
+      include,
+      transaction,
+    })
+
+    if (!record) {
+      return undefined
+    }
+
+    const output = record.get({ plain: true })
+    return output
+  }
+
   static async _createAuditLog(action, record, data, options: IRepositoryOptions) {
     let values = {}
 

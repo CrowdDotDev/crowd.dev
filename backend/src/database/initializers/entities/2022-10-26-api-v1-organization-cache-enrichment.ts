@@ -22,7 +22,7 @@ export default async () => {
     type: QueryTypes.SELECT,
   })
 
-  tenants = tenants.filter( (i) => i.id !== '62712f6f-94e8-41e5-8cb7-87e3d272830b')
+  tenants = tenants.filter((i) => i.id !== '62712f6f-94e8-41e5-8cb7-87e3d272830b')
   let count = 1
   // for each tenant
   for (const tenant of tenants) {
@@ -65,7 +65,6 @@ export default async () => {
           const orgFromGH = await getOrganization(org.name, ghIntegration.token)
 
           if (orgFromGH) {
-
             // check cache
             const checkCache = await OrganizationCacheRepository.findByUrl(
               orgFromGH.url,
@@ -136,10 +135,10 @@ export default async () => {
                 logo: orgFromGH.avatarUrl,
               } as any
 
-              if (orgFromGH.email){
+              if (orgFromGH.email) {
                 orgFromGhParsed.emails = [orgFromGH.email]
               }
-              if (orgFromGH.twitterUsername){
+              if (orgFromGH.twitterUsername) {
                 orgFromGhParsed.twitter = { handle: orgFromGH.twitterUsername }
               }
 
@@ -153,10 +152,8 @@ export default async () => {
                 userContext,
               )
             }
-
           }
-        }
-        else{
+        } else {
           const fieldsFromCache = {
             name: record.name,
             url: record.url,
@@ -164,7 +161,7 @@ export default async () => {
             description: record.description,
             logo: record.logo,
             emails: record.emails,
-            twitter: record.twitter
+            twitter: record.twitter,
           }
 
           // enrich the organization with cache
@@ -176,8 +173,6 @@ export default async () => {
             },
             userContext,
           )
-
-
         }
 
         count += 1

@@ -350,13 +350,15 @@ export default class GitHubWebhook {
     }
 
     if (member.websiteUrl) {
-      parsedMember.attributes[MemberAttributeName.WEBSITE_URL] ={
-        [PlatformType.GITHUB]: member.websiteUrl
+      parsedMember.attributes[MemberAttributeName.WEBSITE_URL] = {
+        [PlatformType.GITHUB]: member.websiteUrl,
       }
     }
 
     if (member.twitterUsername) {
-      parsedMember.attributes[MemberAttributeName.URL][PlatformType.TWITTER] = `https://twitter.com/${member.twitterUsername}`
+      parsedMember.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${member.twitterUsername}`
       parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
     }
 
@@ -370,11 +372,11 @@ export default class GitHubWebhook {
           parsedMember.organizations = [
             {
               name: fromAPI.name,
-              ...(fromAPI.description && { description: fromAPI.description }),
-              ...(fromAPI.location && { location: fromAPI.location }),
-              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
-              ...(fromAPI.url && { url: fromAPI.url }),
-              ...(fromAPI.twitter && { twittwe: { handle: fromAPI.twitterUsername } }),
+              description: fromAPI.description ?? null,
+              location: fromAPI.location ?? null,
+              logo: fromAPI.avatarUrl ?? null,
+              url: fromAPI.url ?? null,
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
             },
           ]
         } else {

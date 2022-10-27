@@ -59,13 +59,20 @@ describe('Github webhooks tests', () => {
           [PlatformType.GITHUB]: 'joanreyero',
         },
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Joan Reyero',
-            [MemberAttributeName.IS_HIREABLE]: false,
-            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
-            [MemberAttributeName.BIO]: '',
-            [MemberAttributeName.AVATAR_URL]: undefined,
-            [MemberAttributeName.LOCATION]: '',
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: 'Joan Reyero',
+          },
+          [MemberAttributeName.IS_HIREABLE]:{
+            [PlatformType.GITHUB]: false,
+          },
+          [MemberAttributeName.URL]:{
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+          },
+          [MemberAttributeName.BIO]:{
+            [PlatformType.GITHUB]: '',
+          },
+          [MemberAttributeName.LOCATION]:{
+            [PlatformType.GITHUB]: '',
           },
         },
         email: '',
@@ -87,16 +94,21 @@ describe('Github webhooks tests', () => {
           [PlatformType.TWITTER]: 'reyero',
         },
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Joan Reyero',
-            [MemberAttributeName.IS_HIREABLE]: false,
-            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
-            [MemberAttributeName.BIO]: '',
-            [MemberAttributeName.AVATAR_URL]: undefined,
-            [MemberAttributeName.LOCATION]: '',
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: 'Joan Reyero',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/reyero',
+          [MemberAttributeName.IS_HIREABLE]:{
+            [PlatformType.GITHUB]: false,
+          },
+          [MemberAttributeName.URL]:{
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+          },
+          [MemberAttributeName.BIO]:{
+            [PlatformType.GITHUB]: '',
+          },
+          [MemberAttributeName.LOCATION]:{
+            [PlatformType.GITHUB]: '',
           },
         },
         email: '',
@@ -124,17 +136,27 @@ describe('Github webhooks tests', () => {
           [PlatformType.TWITTER]: 'reyero',
         },
         attributes: {
-          [PlatformType.GITHUB]: {
-            [MemberAttributeName.NAME]: 'Joan Reyero',
-            [MemberAttributeName.IS_HIREABLE]: false,
-            [MemberAttributeName.URL]: 'https://github.com/joanreyero',
-            [MemberAttributeName.WEBSITE_URL]: 'https://crowd.dev',
-            [MemberAttributeName.BIO]: 'Bio goes here',
-            [MemberAttributeName.AVATAR_URL]: undefined,
-            [MemberAttributeName.LOCATION]: 'Cambridge, UK',
+          [MemberAttributeName.NAME]:{
+            [PlatformType.GITHUB]: 'Joan Reyero',
           },
-          [PlatformType.TWITTER]: {
-            [MemberAttributeName.URL]: 'https://twitter.com/reyero',
+          [MemberAttributeName.IS_HIREABLE]:{
+            [PlatformType.GITHUB]: false,
+          },
+          [MemberAttributeName.URL]:{
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+          },
+          [MemberAttributeName.WEBSITE_URL]:{
+            [PlatformType.GITHUB]: 'https://crowd.dev',
+          },
+          [MemberAttributeName.BIO]:{
+            [PlatformType.GITHUB]: 'Bio goes here',
+          },
+          // [MemberAttributeName.AVATAR_URL]:{
+          //   [PlatformType.GITHUB]: undefined,
+          // },
+          [MemberAttributeName.LOCATION]:{
+            [PlatformType.GITHUB]: 'Cambridge, UK',
           },
         },
         email: 'joan@crowd.dev',
