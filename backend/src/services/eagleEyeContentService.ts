@@ -89,17 +89,21 @@ export default class EagleEyeContentService {
 
     // TODO-kube
     if (KUBE_MODE) {
-      try {
-        const response = await request
-          .post(`${API_CONFIG.premiumApiUrl}/search`)
-          .send({ queries: keywords, nDays, filters })
+      if (API_CONFIG.premiumApiUrl) {
+        try {
+          const response = await request
+            .post(`${API_CONFIG.premiumApiUrl}/search`)
+            .send({ queries: keywords, nDays, filters })
 
-        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
-        await this.bulkUpsert(fromEagleEye)
-        return fromEagleEye
-      } catch (error) {
-        console.log('error while calling eagle eye server!', error)
-        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+          const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+          await this.bulkUpsert(fromEagleEye)
+          return fromEagleEye
+        } catch (error) {
+          console.log('error while calling eagle eye server!', error)
+          throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+        }
+      } else {
+        return [] as EagleEyeSearchOutput
       }
     }
 

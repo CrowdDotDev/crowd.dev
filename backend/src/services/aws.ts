@@ -1,4 +1,4 @@
-import AWS, { SQS } from 'aws-sdk'
+import AWS, { S3, SQS } from 'aws-sdk'
 import { KUBE_MODE, IS_DEV_ENV, SQS_CONFIG, S3_CONFIG } from '../config'
 
 let sqsInstance
@@ -22,20 +22,22 @@ if (KUBE_MODE) {
       })
     : new AWS.SQS(awsSqsConfig)
 
-  const awsS3Config = {
-    accessKeyId: S3_CONFIG.aws.accessKeyId,
-    secretAccessKey: S3_CONFIG.aws.secretAccessKey,
-    region: S3_CONFIG.aws.region,
-  }
+  if (S3_CONFIG.aws) {
+    const awsS3Config = {
+      accessKeyId: S3_CONFIG.aws.accessKeyId,
+      secretAccessKey: S3_CONFIG.aws.secretAccessKey,
+      region: S3_CONFIG.aws.region,
+    }
 
-  s3Instance = IS_DEV_ENV
-    ? new AWS.S3({
-        s3ForcePathStyle: true,
-        endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
-        apiVersion: '2012-10-17',
-        ...awsS3Config,
-      })
-    : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+    s3Instance = IS_DEV_ENV
+      ? new AWS.S3({
+          s3ForcePathStyle: true,
+          endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
+          apiVersion: '2012-10-17',
+          ...awsS3Config,
+        })
+      : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+  }
 } else {
   if (process.env.SERVICE === 'default') {
     AWS.config.update({

@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cubejs-dpl
+spec:
+  selector:
+    matchLabels:
+      app: cubejs
+  template:
+    metadata:
+      labels:
+        app: cubejs
+    spec:
+      containers:
+        - name: cubejs
+          image: crowddotdev/cubejs:staging.v1
+          env:
+            - name: CUBEJS_DEV_MODE
+              value: 'true'
+            - name: CUBEJS_DB_HOST
+              value: crowd-staging-reader-app.cog0taiuvmcg.eu-central-1.rds.amazonaws.com
+            - name: CUBEJS_DB_PORT
+              value: '5432'
+            - name: CUBEJS_DB_NAME
+              value: 'crowdKubeStaging'
+            - name: CUBEJS_DB_USER
+              value: 'postgres'
+            - name: CUBEJS_DB_PASS
+              value: 'odDvCz6b42VvAmFzejaBUQt'
+            - name: CUBEJS_DB_TYPE
+              value: 'postgres'
+            - name: CUBEJS_API_SECRET
+              value: '137ea167812145c6d77452a58d7dd29b'
+            - name: CUBEJS_EXTERNAL_DEFAULT
+              value: 'true'
+            - name: CUBEJS_SCHEDULED_REFRESH_DEFAULT
+              value: 'true'
+          ports:
+            - containerPort: 4000
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cubejs-svc
+spec:
+  selector:
+    app: cubejs
+  ports:
+    - port: 4000
+      targetPort: 4000
+      name: management
+    - port: 3000
+      targetPort: 3000
+      name: application
