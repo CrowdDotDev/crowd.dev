@@ -90,6 +90,7 @@ export default () => {
         payload && payload.keepPagination
           ? state.pagination
           : {
+              currentPage: 1,
               pageSize:
                 state.pagination &&
                 state.pagination.pageSize
