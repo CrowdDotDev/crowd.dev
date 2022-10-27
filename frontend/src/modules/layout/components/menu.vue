@@ -1,452 +1,528 @@
 <template>
-  <el-aside
-    :width="asideWidth"
-    class="flex flex-col flex-1 h-full"
-  >
-    <router-link
-      to="/"
-      :class="collapsed ? 'logo logo--collapsed' : 'logo'"
+  <el-aside class="app-menu" width="fit-content">
+    <el-menu
+      class="flex flex-col h-full border-gray-200"
+      :collapse="isCollapsed"
+      :router="true"
     >
-      <transition-group name="fade" mode="in-out">
+      <!-- Menu logo header -->
+      <div
+        class="h-14 pl-6 pr-3 flex items-center justify-between menu-expanded-header"
+      >
+        <router-link to="/">
+          <img
+            key="logo"
+            class="h-5 w-auto"
+            src="/images/logo-all-black.png"
+            alt="crowd.dev logo"
+          />
+        </router-link>
+        <el-button
+          class="btn btn--icon--sm btn--transparent custom-btn"
+          @click="toggleMenu"
+        >
+          <i
+            class="ri-layout-left-2-line text-lg leading-none text-gray-300"
+          ></i>
+        </el-button>
+      </div>
+
+      <!-- Menu dynamic logo -->
+      <div
+        class="h-14 flex items-center justify-center menu-collapsed-header"
+      >
         <img
-          v-if="collapsed"
           key="icon"
-          src="/images/icon.png"
+          class="h-5 w-auto dynamic-logo"
+          src="/images/icon-all-black.png"
           alt="crowd.dev icon"
         />
-        <img
-          v-else
-          key="logo"
-          src="/images/logo.png"
-          alt="crowd.dev logo"
-        />
-      </transition-group>
-    </router-link>
 
-    <el-menu
-      :class="{
-        'el-menu-side-nav': true,
-        collapsed: collapsed
-      }"
-      :collapse="collapsed"
-      :collapse-transition="false"
-      :router="true"
-      @select="collapseMenuIfMobile()"
-    >
-      <el-menu-item
-        id="menu-dashboard"
-        :class="classFor('/', true)"
-        :route="{ path: '/' }"
-        index="/"
-      >
-        <i
-          class="ri-lg ri-home-4-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n code="dashboard.menu"></app-i18n>
-        </template>
-      </el-menu-item>
+        <!-- Menu expand button -->
+        <el-button
+          class="btn btn--icon--sm btn--transparent expand-btn custom-btn"
+          @click="toggleMenu"
+        >
+          <i
+            class="ri-arrow-right-s-line text-lg leading-none text-gray-300"
+          ></i>
+        </el-button>
+      </div>
 
-      <el-menu-item
-        v-if="
-          hasPermissionToCommunityMember ||
-          communityMemberLocked
-        "
-        id="menu-members"
-        :class="classFor('/members')"
-        :route="{ path: '/members' }"
-        index="/members"
-        :disabled="communityMemberLocked"
-      >
-        <i
-          class="ri-lg ri-user-star-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n
-            code="entities.communityMember.menu"
-          ></app-i18n>
-        </template>
-      </el-menu-item>
+      <!-- Workspace Dropdown -->
+      <app-workspace-dropdown v-if="currentTenant" />
 
-      <el-menu-item
-        v-if="hasPermissionToActivity || activityLocked"
-        id="menu-activities"
-        :class="classFor('/activities')"
-        :route="{ path: '/activities' }"
-        index="/activities"
-        :disabled="activityLocked"
-      >
-        <i
-          class="ri-lg ri-radar-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n
-            code="entities.activity.menu"
-          ></app-i18n>
-        </template>
-      </el-menu-item>
+      <div class="px-3 pt-3 flex flex-col gap-2 grow">
+        <!-- Menu items -->
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('dashboard.menu')"
+        >
+          <router-link
+            id="menu-dashboard"
+            :to="{ path: '/' }"
+            class="el-menu-item"
+            :class="classFor('/', true)"
+          >
+            <i class="ri-home-5-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="dashboard.menu"></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.member.menu')"
+        >
+          <router-link
+            v-if="
+              hasPermissionToCommunityMember ||
+              isCommunityMemberLocked
+            "
+            id="menu-members"
+            :to="{ path: '/members' }"
+            class="el-menu-item"
+            :class="classFor('/members')"
+            :disabled="isCommunityMemberLocked"
+          >
+            <i class="ri-contacts-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.member.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.activity.menu')"
+        >
+          <router-link
+            v-if="
+              hasPermissionToActivity || isActivityLocked
+            "
+            id="menu-activities"
+            :to="{ path: '/activities' }"
+            class="el-menu-item"
+            :class="classFor('/activities')"
+            :disabled="isActivityLocked"
+          >
+            <i class="ri-radar-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.activity.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.report.menu')"
+        >
+          <router-link
+            v-if="hasPermissionToReport || isReportLocked"
+            id="menu-reports"
+            :to="{ path: '/reports' }"
+            class="el-menu-item"
+            :class="classFor('/reports')"
+            :disabled="isReportLocked"
+          >
+            <i class="ri-bar-chart-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.report.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
 
-      <el-menu-item
-        id="menu-conversations"
-        :class="classFor('/conversations')"
-        :route="{ path: '/conversations' }"
-        index="/conversations"
-      >
-        <i
-          class="ri-question-answer-line ri-lg"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>Conversations </template>
-      </el-menu-item>
+        <!-- External links -->
+        <el-divider class="border-gray-200" />
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.eagleEye.menu')"
+        >
+          <router-link
+            v-if="
+              hasPermissionToEagleEye || isEagleEyeLocked
+            "
+            id="menu-eagle-eye"
+            :to="{ path: '/eagle-eye' }"
+            class="el-menu-item"
+            :class="classFor('/eagle-eye')"
+            :disabled="isEagleEyeLocked"
+          >
+            <i class="ri-search-eye-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.eagleEye.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.conversation.menu')"
+        >
+          <router-link
+            id="menu-conversations"
+            :to="{ path: '/community-help-center' }"
+            class="el-menu-item"
+            :class="classFor('/community-help-center')"
+          >
+            <i class="ri-question-answer-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.communityHelpCenter.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
 
-      <el-menu-item
-        v-if="hasPermissionToEagleEye || eagleEyeLocked"
-        id="menu-eagle-eye"
-        :class="classFor('/eagle-eye')"
-        :route="{ path: '/eagle-eye' }"
-        index="/eagle-eye"
-        :disabled="eagleEyeLocked"
-      >
-        <i
-          class="ri-lg ri-search-eye-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n
-            code="entities.eagleEye.menu"
-          ></app-i18n>
-        </template>
-      </el-menu-item>
-      <el-menu-item
-        v-if="hasPermissionToReport || reportLocked"
-        id="menu-reports"
-        :class="classFor('/reports')"
-        :route="{ path: '/reports' }"
-        index="/reports"
-        :disabled="reportLocked"
-      >
-        <i
-          class="ri-lg ri-bar-chart-grouped-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n code="entities.report.menu"></app-i18n>
-        </template>
-      </el-menu-item>
-      <div
-        v-if="hasPermissionToSettings || settingsLocked"
-        class="h-px w-100 my-2 bg-white opacity-10"
-      ></div>
-      <el-menu-item
-        v-if="hasPermissionToSettings || settingsLocked"
-        id="menu-settings"
-        :class="classFor('/settings')"
-        :route="{ path: '/settings' }"
-        index="/settings"
-        :disabled="settingsLocked"
-      >
-        <i
-          class="ri-lg ri-settings-2-line"
-          :class="collapsed ? '' : 'mr-2'"
-        ></i>
-        <template #title>
-          <app-i18n code="settings.menu"></app-i18n>
-        </template>
-      </el-menu-item>
+        <div class="grow"></div>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="`${i18n(
+            'integrations.menu'
+          )} <i class='ri-external-link-line ml-1.1'></i>`"
+        >
+          <router-link
+            id="menu-integrations"
+            :to="{ path: '/integrations' }"
+            class="el-menu-item"
+            :class="classFor('/integrations')"
+          >
+            <i class="ri-apps-2-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="integrations.menu"></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('settings.menu')"
+        >
+          <router-link
+            v-if="
+              hasPermissionToSettings || isSettingsLocked
+            "
+            id="menu-settings"
+            :to="{ path: '/settings' }"
+            class="el-menu-item"
+            :class="classFor('/settings')"
+            :disabled="isSettingsLocked"
+          >
+            <i class="ri-settings-3-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="settings.menu"></app-i18n
+            ></span>
+          </router-link>
+        </el-tooltip>
+
+        <!-- Support popover -->
+        <app-support-dropdown />
+      </div>
+
+      <!-- User Account -->
+      <div class="mt-3">
+        <app-account-dropdown />
+      </div>
     </el-menu>
-    <ul class="relative flex flex-col">
-      <li id="menu-docs" role="menuitem">
-        <el-tooltip
-          :disabled="!collapsed"
-          effect="dark"
-          placement="right"
-          content="Docs"
-        >
-          <a
-            class="el-menu-item"
-            href="https://docs.crowd.dev"
-            target="_blank"
-          >
-            <i
-              class="ri-lg ri-question-line"
-              :class="collapsed ? '' : 'mr-2'"
-            ></i>
-            <span v-if="!collapsed">Docs</span>
-          </a>
-        </el-tooltip>
-      </li>
-      <li id="menu-discord" role="menuitem">
-        <el-tooltip
-          :disabled="!collapsed"
-          effect="dark"
-          placement="right"
-          content="Community"
-        >
-          <a
-            class="el-menu-item"
-            href="http://crowd.dev/discord"
-            target="_blank"
-          >
-            <i
-              class="ri-lg ri-discord-line"
-              :class="collapsed ? '' : 'mr-2'"
-            ></i>
-            <span v-if="!collapsed">Community</span>
-          </a>
-        </el-tooltip>
-      </li>
-      <!--<li role="menuitem" tabindex="-1" id="menu-feedback">
-        <el-tooltip
-          :disabled="!collapsed"
-          effect="dark"
-          placement="right"
-          content="Product Feedback"
-        >
-          <a
-            class="el-menu-item"
-            href="http://crowd.dev/feedback"
-            target="_blank"
-          >
-            <i
-              class="ri-lg ri-feedback-line"
-              :class="collapsed ? '' : 'mr-2'"
-            ></i>
-            <span v-if="!collapsed">Product Feedback</span>
-          </a>
-        </el-tooltip>
-      </li>-->
-
-      <li
-        role="menuitem"
-        class="w-full"
-        :class="collapsed ? 'px-3 py-4' : 'px-4 py-2'"
-      >
-        <el-tooltip
-          :disabled="!collapsed"
-          effect="dark"
-          placement="right"
-          content="Free Beta Plan"
-        >
-          <el-button
-            class="btn btn--secondary btn--menu-cta btn--sm w-full"
-            :disabled="true"
-          >
-            <i class="ri-star-fill"></i>
-            <span v-if="!collapsed" class="ml-1"
-              >Free Beta Plan</span
-            >
-          </el-button>
-        </el-tooltip>
-      </li>
-      <app-account-dropdown :collapsed="collapsed" />
-    </ul>
-
-    <el-tooltip
-      :content="collapsed ? 'Expand Menu' : 'Collapse Menu'"
-      placement="right"
-    >
-      <button
-        class="button-toggle-menu el-menu-item"
-        :style="{ left: asideWidth }"
-        @click="toggleMenu"
-      >
-        <i
-          :class="`ri-lg -ml-1 ${
-            collapsed
-              ? 'ri-arrow-right-s-line'
-              : 'ri-arrow-left-s-line'
-          }`"
-        ></i>
-      </button>
-    </el-tooltip>
   </el-aside>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+export default {
+  name: 'AppMenu'
+}
+</script>
+
+<script setup>
+import { useStore } from 'vuex'
 import { SettingsPermissions } from '@/modules/settings/settings-permissions'
-import { UserPermissions } from '@/premium/user/user-permissions'
 import { ReportPermissions } from '@/modules/report/report-permissions'
-import { CommunityMemberPermissions } from '@/modules/community-member/community-member-permissions'
+import { MemberPermissions } from '@/modules/member/member-permissions'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import { EagleEyePermissions } from '@/premium/eagle-eye/eagle-eye-permissions'
 import AppAccountDropdown from './account-dropdown'
+import AppSupportDropdown from './support-dropdown'
+import AppWorkspaceDropdown from './workspace-dropdown'
+import { computed } from 'vue'
+import { i18n } from '@/i18n'
 
-export default {
-  name: 'AppMenu',
-  components: { AppAccountDropdown },
-  computed: {
-    ...mapGetters({
-      collapsed: 'layout/menuCollapsed',
-      isMobile: 'layout/isMobile',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant'
-    }),
+import { RouterLink, useLink } from 'vue-router'
 
-    hasPermissionToSettings() {
-      return new SettingsPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).edit
-    },
+const store = useStore()
+const { route } = useLink(RouterLink.props)
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed']
+)
+const currentUser = computed(
+  () => store.getters['auth/currentUser']
+)
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant']
+)
 
-    hasPermissionToUser() {
-      return new UserPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
+function toggleMenu() {
+  store.dispatch('layout/toggleMenu')
+}
 
-    hasPermissionToCommunityMember() {
-      return new CommunityMemberPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
+const hasPermissionToSettings = computed(
+  () =>
+    new SettingsPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).edit
+)
 
-    hasPermissionToActivity() {
-      return new ActivityPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
+const hasPermissionToCommunityMember = computed(
+  () =>
+    new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
-    hasPermissionToReport() {
-      return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
+const hasPermissionToActivity = computed(
+  () =>
+    new ActivityPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
-    hasPermissionToEagleEye() {
-      return new EagleEyePermissions(
-        this.currentTenant,
-        this.currentUser
-      ).read
-    },
+const hasPermissionToReport = computed(
+  () =>
+    new ReportPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
-    settingsLocked() {
-      return new SettingsPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const hasPermissionToEagleEye = computed(
+  () =>
+    new EagleEyePermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
-    userLocked() {
-      return new UserPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const isSettingsLocked = computed(
+  () =>
+    new SettingsPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
 
-    communityMemberLocked() {
-      return new CommunityMemberPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const isCommunityMemberLocked = computed(
+  () =>
+    new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
 
-    activityLocked() {
-      return new ActivityPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const isActivityLocked = computed(
+  () =>
+    new ActivityPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
 
-    reportLocked() {
-      return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const isReportLocked = computed(
+  () =>
+    new ReportPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
 
-    eagleEyeLocked() {
-      return new EagleEyePermissions(
-        this.currentTenant,
-        this.currentUser
-      ).lockedForCurrentPlan
-    },
+const isEagleEyeLocked = computed(
+  () =>
+    new EagleEyePermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
 
-    asideWidth() {
-      if (this.isMobile && !this.collapsed) {
-        return '100%'
-      }
-
-      if (!this.collapsed) {
-        return '210px'
-      }
-
-      return '64px'
+const classFor = (path, exact = false) => {
+  if (exact) {
+    return {
+      'is-active': route.value.path === path
     }
-  },
+  }
 
-  methods: {
-    ...mapActions({
-      toggleMenu: 'layout/toggleMenu',
-      collapseMenu: 'layout/collapseMenu'
-    }),
-
-    collapseMenuIfMobile() {
-      if (this.isMobile) {
-        this.collapseMenu()
-      }
-    },
-
-    classFor(path, exact = false) {
-      if (exact) {
-        return {
-          active: this.$route.path === path
-        }
-      }
-
-      const routePath = this.$route.path
-      const active =
-        routePath === path ||
-        routePath.startsWith(path + '/')
-
-      return {
-        active
-      }
-    },
-    handleExternalLinkClick(path) {
-      window.open(`http://crowd.dev/${path}`)
-    }
+  const routePath = route.value.path
+  const active =
+    routePath === path || routePath.startsWith(path + '/ ')
+  return {
+    'is-active': active
   }
 }
 </script>
 
-<style scoped lang="scss">
-.el-menu.collapsed span {
-  visibility: hidden;
-}
+<style lang="scss">
+.app-menu {
+  @apply bg-white flex flex-col min-h-screen;
 
-.logo {
-  @apply flex items-center justify-center py-6;
+  a,
+  a[href]:hover {
+    @apply text-gray-900;
+  }
 
+  // Logo switch
+
+  .dynamic-logo {
+    display: block;
+  }
+
+  .expand-btn {
+    display: none;
+  }
+
+  .el-menu:hover:not(.horizontal-collapse-transition).el-menu--collapse {
+    .dynamic-logo {
+      display: none;
+    }
+
+    .expand-btn {
+      display: block;
+    }
+  }
+
+  // Menu item
+  .el-menu-item {
+    @apply px-2.5 h-10 gap-3 leading-normal rounded-md;
+
+    i {
+      @apply text-gray-400 text-lg leading-none;
+    }
+
+    &.is-active {
+      @apply bg-brand-50 text-gray-900 font-medium;
+
+      i {
+        @apply text-brand-500;
+      }
+    }
+
+    &:hover {
+      @apply bg-gray-50;
+
+      i {
+        @apply text-gray-500;
+      }
+    }
+  }
+
+  // Menu width and padding customization
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
+    width: 260px;
+
+    .menu-collapsed-header {
+      display: none;
+    }
+  }
+
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
+    .el-menu-item {
+    @apply px-2.5;
+  }
+
+  .el-menu--vertical.el-menu--collapse {
+    .menu-expanded-header {
+      display: none;
+    }
+  }
+
+  // Override divider margin
+  .el-divider--horizontal {
+    @apply my-1;
+  }
+
+  // Custom Menu items
+  .item-link {
+    display: none;
+  }
+
+  .custom-menu-item:hover {
+    .item-link {
+      display: block;
+    }
+  }
+  .custom-btn {
+    @apply h-8 w-8;
+
+    &:hover i {
+      @apply text-gray-500;
+    }
+  }
+
+  .horizontal-collapse-transition .custom-btn {
+    display: none;
+  }
+
+  .horizontal-collapse-transition .expand-btn {
+    display: none;
+  }
+
+  a[href]:hover {
+    opacity: 1;
+  }
+
+  // Image animations
   img {
-    @apply h-6;
+    transition: opacity 0.3s ease;
+    opacity: 1;
   }
 
-  &.logo--collapsed {
-    @apply py-4;
+  .v-enter-active img,
+  .v-leave-active img {
+    opacity: 0;
   }
 }
 
-.button-toggle-menu {
-  @apply fixed top-0 h-12 w-3 text-white z-10 opacity-50 rounded-r-md p-0;
-  top: 200px;
+// Custom tooltip for external links
+.custom-menu-tooltip {
+  margin-left: 8px !important;
 
-  &:hover {
-    @apply opacity-75;
-  }
-
-  &,
-  &:hover,
-  &:focus {
-    background-color: #140505;
+  span:first-child {
+    @apply flex gap-1.5 items-center;
   }
 }
 </style>

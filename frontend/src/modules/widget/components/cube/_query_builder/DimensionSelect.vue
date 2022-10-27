@@ -4,15 +4,17 @@
     placement="top"
     :disabled="measures.length > 0"
   >
-    <div>
-      <label class="block leading-none mb-1"
-        >Dimensions (optional)</label
+    <div class="w-full">
+      <label
+        class="block text-xs leading-none font-semibold mb-1"
+        >Dimensions</label
       >
       <el-select
         v-model="value"
         clearable
         filterable
         :disabled="measures.length === 0"
+        class="w-full"
       >
         <el-option
           v-for="item in translatedOptions(
@@ -62,7 +64,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ],
         'Members.count': [
@@ -72,7 +74,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ],
         'Conversations.count': [
@@ -87,7 +89,7 @@ export default {
           'Members.score',
           'Members.location',
           'Members.joinedAt',
-          'Members.organisation',
+          'Members.organization',
           'Tags.name'
         ]
       }

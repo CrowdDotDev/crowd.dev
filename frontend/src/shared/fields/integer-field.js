@@ -12,10 +12,26 @@ export default class IntegerField extends GenericField {
     this.max = config.max
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
     return value
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {},
+      defaultValue: [],
+      value: [],
+      defaultOperator: 'eq',
+      operator: 'eq',
+      type: 'number'
+    }
   }
 
   forFormInitialValue(value) {

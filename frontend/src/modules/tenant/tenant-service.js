@@ -47,14 +47,9 @@ export class TenantService {
   }
 
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const response = await authAxios.put(
       `/tenant/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -73,11 +68,7 @@ export class TenantService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
-    const response = await authAxios.post(`/tenant`, body)
+    const response = await authAxios.post(`/tenant`, data)
 
     return response.data
   }

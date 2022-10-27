@@ -1,9 +1,10 @@
+import moment from 'moment'
 import ConversationRepository from '../conversationRepository'
 import ActivityRepository from '../activityRepository'
-import CommunityMemberRepository from '../communityMemberRepository'
+import MemberRepository from '../memberRepository'
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 
@@ -42,6 +43,8 @@ describe('ConversationRepository tests', () => {
         channel: null,
         platform: null,
         lastActive: null,
+        conversationStarter: null,
+        memberCount: 0,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         tenantId: mockIRepositoryOptions.currentTenant.id,
@@ -72,6 +75,8 @@ describe('ConversationRepository tests', () => {
         published: conversation2Add.published,
         activities: [],
         activityCount: 0,
+        memberCount: 0,
+        conversationStarter: null,
         platform: null,
         channel: null,
         lastActive: null,
@@ -152,6 +157,8 @@ describe('ConversationRepository tests', () => {
         published: false,
         activities: [],
         activityCount: 0,
+        memberCount: 0,
+        conversationStarter: null,
         platform: null,
         channel: null,
         lastActive: null,
@@ -246,12 +253,12 @@ describe('ConversationRepository tests', () => {
     it('Should find and count all conversations, with various filters', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            github: 'test',
+            [PlatformType.GITHUB]: 'test',
           },
+          displayName: 'Member 1',
           platform: PlatformType.GITHUB,
           joinedAt: '2020-05-27T15:13:30Z',
         },
@@ -267,14 +274,14 @@ describe('ConversationRepository tests', () => {
         {
           type: 'activity',
           timestamp: '2020-05-27T14:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Some Parent Activity',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Some Parent Activity',
+          channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           conversationId: conversation1Created.id,
           score: 1,
           sourceId: '#sourceId1',
@@ -282,18 +289,18 @@ describe('ConversationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      await ActivityRepository.create(
+      const activity2Created = await ActivityRepository.create(
         {
           type: 'activity',
           timestamp: '2020-05-28T15:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Here',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Here',
+          channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -302,18 +309,18 @@ describe('ConversationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      await ActivityRepository.create(
+      const activity3Created = await ActivityRepository.create(
         {
           type: 'activity',
           timestamp: '2020-05-29T16:13:30Z',
-          platform: PlatformType.GITHUB,
-          crowdInfo: {
+          platform: PlatformType.SLACK,
+          attributes: {
             replies: 12,
-            body: 'Here',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
           },
+          body: 'Here',
+          channel: 'general',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           parent: activity1Created.id,
           conversationId: conversation1Created.id,
@@ -323,22 +330,20 @@ describe('ConversationRepository tests', () => {
       )
 
       let conversation2Created = await ConversationRepository.create(
-        { title: 'a cool title', slug: 'a-cool-title-2' },
+        { title: 'a cool title 2', slug: 'a-cool-title-2' },
         mockIRepositoryOptions,
       )
 
-      await ActivityRepository.create(
+      const activity4Created = await ActivityRepository.create(
         {
           type: 'message',
           timestamp: '2020-06-02T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'Some-Channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
           sourceId: '#sourceId4',
@@ -346,17 +351,15 @@ describe('ConversationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      await ActivityRepository.create(
+      const activity5Created = await ActivityRepository.create(
         {
           type: 'message',
           timestamp: '2020-06-03T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 2',
-            channel: 'Some-Channel',
-          },
+          body: 'conversation activity 2',
+          channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation2Created.id,
           sourceId: '#sourceId5',
@@ -368,21 +371,36 @@ describe('ConversationRepository tests', () => {
         mockIRepositoryOptions,
       )
 
-      await ActivityRepository.create(
+      const activity6Created = await ActivityRepository.create(
         {
           type: 'message',
           timestamp: '2020-06-05T15:13:30Z',
           platform: PlatformType.SLACK,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'Some-Channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'Some-Channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversation3Created.id,
           sourceId: '#sourceId6',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity7Created = await ActivityRepository.create(
+        {
+          type: 'message',
+          timestamp: '2020-06-07T15:13:30Z',
+          platform: PlatformType.SLACK,
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 7',
+          channel: 'Some-Channel',
+          isKeyAction: true,
+          member: memberCreated.id,
+          score: 1,
+          conversationId: conversation3Created.id,
+          sourceId: '#sourceId7',
         },
         mockIRepositoryOptions,
       )
@@ -403,100 +421,232 @@ describe('ConversationRepository tests', () => {
 
       // filter by id
       let conversations = await ConversationRepository.findAndCountAll(
-        { filter: { id: conversation1Created.id } },
+        { filter: { id: conversation1Created.id }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation1Created])
+
+      const memberReturnedWithinConversations = SequelizeTestUtils.objectWithoutKey(memberCreated, [
+        'activities',
+        'activityCount',
+        'averageSentiment',
+        'lastActive',
+        'lastActivity',
+        'noMerge',
+        'notes',
+        'organizations',
+        'tags',
+        'tasks',
+        'toMerge',
+      ])
+
+      const conversation1Expected = {
+        ...conversation1Created,
+        conversationStarter: {
+          ...SequelizeTestUtils.objectWithoutKey(activity1Created, ['parent', 'tasks']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
+        },
+        lastReplies: [
+          {
+            ...SequelizeTestUtils.objectWithoutKey(activity2Created, ['parent', 'tasks']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
+          },
+          {
+            ...SequelizeTestUtils.objectWithoutKey(activity3Created, ['parent', 'tasks']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
+          },
+        ],
+      }
+
+      const conversation2Expected = {
+        ...conversation2Created,
+        conversationStarter: {
+          ...SequelizeTestUtils.objectWithoutKey(activity4Created, ['parent', 'tasks']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
+        },
+        lastReplies: [
+          {
+            ...SequelizeTestUtils.objectWithoutKey(activity5Created, ['parent', 'tasks']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
+          },
+        ],
+      }
+
+      const conversation3Expected = {
+        ...conversation3Created,
+        conversationStarter: {
+          ...SequelizeTestUtils.objectWithoutKey(activity6Created, ['parent', 'tasks']),
+          member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+            'activeOn',
+            'identities',
+          ]),
+        },
+        lastReplies: [
+          {
+            ...SequelizeTestUtils.objectWithoutKey(activity7Created, ['parent', 'tasks']),
+            member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
+              'activeOn',
+              'identities',
+            ]),
+          },
+        ],
+      }
+
+      expect(conversations.rows).toStrictEqual([conversation1Expected])
 
       // filter by title
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { title: 'a cool title' } },
+        { filter: { title: 'a cool title' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(2)
-      expect(conversations.rows).toStrictEqual([conversation2Created, conversation1Created])
+      expect(conversations.rows).toStrictEqual([conversation2Expected, conversation1Expected])
 
       // filter by slug
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { slug: 'a-cool-title-2' } },
+        { filter: { slug: 'a-cool-title-2' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation2Created])
+      expect(conversations.rows).toStrictEqual([conversation2Expected])
 
       // filter by published
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { published: true } },
+        { filter: { published: true }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation3Created])
+      expect(conversations.rows).toStrictEqual([conversation3Expected])
 
       // filter by activityCount only start input
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { activityCountRange: [2] } },
+        { filter: { activityCountRange: [2] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
-      expect(conversations.count).toEqual(2)
-      expect(conversations.rows).toStrictEqual([conversation2Created, conversation1Created])
+      expect(conversations.count).toEqual(3)
+      expect(conversations.rows).toStrictEqual([
+        conversation3Expected,
+        conversation2Expected,
+        conversation1Expected,
+      ])
 
       // filter by activityCount start and end inputs
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { activityCountRange: [0, 1] } },
+        { filter: { activityCountRange: [0, 1] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
-      expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation3Created])
+      expect(conversations.count).toEqual(0)
+      expect(conversations.rows).toStrictEqual([])
 
       // filter by platform
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { platform: PlatformType.DISCORD } },
+        { filter: { platform: PlatformType.DISCORD }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation2Created])
+      expect(conversations.rows).toStrictEqual([conversation2Expected])
 
       // filter by channel (channel)
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { channel: 'Some-Channel' } },
+        { filter: { channel: 'Some-Channel' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(2)
-      expect(conversations.rows).toStrictEqual([conversation3Created, conversation2Created])
+      expect(conversations.rows).toStrictEqual([conversation3Expected, conversation2Expected])
 
       // filter by channel (repo)
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { channel: 'CrowdDevHQ/crowd-web' } },
+        { filter: { channel: 'general' }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation1Created])
+      expect(conversations.rows).toStrictEqual([conversation1Expected])
 
       // filter by lastActive only start
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z'] } },
+        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z'] }, lazyLoad: ['activities'] },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(2)
-      expect(conversations.rows).toStrictEqual([conversation3Created, conversation2Created])
+      expect(conversations.rows).toStrictEqual([conversation3Expected, conversation2Expected])
 
       // filter by lastActive start and end
       conversations = await ConversationRepository.findAndCountAll(
-        { filter: { lastActiveRange: ['2020-06-03T15:13:30Z', '2020-06-04T15:13:30Z'] } },
+        {
+          filter: { lastActiveRange: ['2020-06-03T15:13:30Z', '2020-06-04T15:13:30Z'] },
+          lazyLoad: ['activities'],
+        },
         mockIRepositoryOptions,
       )
 
       expect(conversations.count).toEqual(1)
-      expect(conversations.rows).toStrictEqual([conversation2Created])
+      expect(conversations.rows).toStrictEqual([conversation2Expected])
+
+      // Test orderBy
+      conversations = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+          lazyLoad: ['activities'],
+        },
+        mockIRepositoryOptions,
+      )
+      expect(moment(conversations.rows[0].lastActive).unix()).toBeGreaterThan(
+        moment(conversations.rows[1].lastActive).unix(),
+      )
+      expect(moment(conversations.rows[1].lastActive).unix()).toBeGreaterThan(
+        moment(conversations.rows[2].lastActive).unix(),
+      )
+
+      // Test pagination
+      const conversationsP1 = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+          limit: 2,
+          offset: 0,
+        },
+        mockIRepositoryOptions,
+      )
+      expect(conversationsP1.rows.length).toEqual(2)
+      expect(conversationsP1.count).toEqual(3)
+
+      const conversationsP2 = await ConversationRepository.findAndCountAll(
+        {
+          filter: {},
+          orderBy: 'lastActive_DESC',
+          limit: 2,
+          offset: 2,
+        },
+        mockIRepositoryOptions,
+      )
+      expect(conversationsP2.rows.length).toEqual(1)
+      expect(conversationsP2.count).toEqual(3)
+      expect(conversationsP2.rows[0].id).not.toBe(conversationsP1.rows[0].id)
+      expect(conversationsP2.rows[0].id).not.toBe(conversationsP1.rows[1].id)
     })
   })
 
@@ -529,6 +679,8 @@ describe('ConversationRepository tests', () => {
         published: conversationUpdated.published,
         activities: [],
         activityCount: 0,
+        memberCount: 0,
+        conversationStarter: null,
         channel: null,
         lastActive: null,
         platform: null,

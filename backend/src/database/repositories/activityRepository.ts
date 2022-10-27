@@ -4,8 +4,11 @@ import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import Error400 from '../../errors/Error400'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 const { Op } = Sequelize
 
@@ -19,12 +22,17 @@ class ActivityRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    if (data.crowdInfo && data.crowdInfo.body) {
-      data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
     }
 
-    if (data.crowdInfo && data.crowdInfo.title) {
-      data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
+    }
+
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
     }
 
     const record = await options.database.activity.create(
@@ -33,14 +41,18 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
           'score',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'sourceId',
           'importHash',
         ]),
-        communityMemberId: data.communityMember || null,
+        memberId: data.member || null,
         parentId: data.parent || null,
         sourceParentId: data.sourceParentId || null,
         conversationId: data.conversationId || null,
@@ -53,9 +65,34 @@ class ActivityRepository {
       },
     )
 
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  /**
+   * Check whether sentiment data is valid
+   * @param sentimentData Object: {positive: number, negative: number, mixed: number, neutral: number, sentiment: 'positive' | 'negative' | 'mixed' | 'neutral'}
+   */
+  static _validateSentiment(sentimentData) {
+    if (!lodash.isEmpty(sentimentData)) {
+      const moods = ['positive', 'negative', 'mixed', 'neutral']
+      for (const prop of moods) {
+        if (typeof sentimentData[prop] !== 'number') {
+          throw new Error400('en', 'activity.error.sentiment.mood')
+        }
+      }
+      if (!moods.includes(sentimentData.label)) {
+        throw new Error400('en', 'activity.error.sentiment.label')
+      }
+      if (typeof sentimentData.sentiment !== 'number') {
+        throw new Error('activity.error.sentiment.sentiment')
+      }
+    }
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -73,16 +110,24 @@ class ActivityRepository {
       transaction,
     })
 
+    await record.setTasks(data.tasks || [], {
+      transaction,
+    })
+
     if (!record) {
       throw new Error404()
     }
 
-    if (data.crowdInfo && data.crowdInfo.body) {
-      data.crowdInfo.body = sanitizeHtml(data.crowdInfo.body).trim()
+    // Data and body will be displayed as HTML. We need to sanitize them.
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
+    if (data.title) {
+      data.title = sanitizeHtml(data.title).trim()
     }
 
-    if (data.crowdInfo && data.crowdInfo.title) {
-      data.crowdInfo.title = sanitizeHtml(data.crowdInfo.title).trim()
+    if (data.sentiment) {
+      this._validateSentiment(data.sentiment)
     }
 
     record = await record.update(
@@ -91,14 +136,18 @@ class ActivityRepository {
           'type',
           'timestamp',
           'platform',
-          'info',
-          'crowdInfo',
           'isKeyAction',
+          'attributes',
+          'channel',
+          'body',
+          'title',
+          'url',
+          'sentiment',
           'score',
           'sourceId',
           'importHash',
         ]),
-        communityMemberId: data.communityMember || undefined,
+        memberId: data.member || undefined,
         parentId: data.parent || undefined,
         sourceParentId: data.sourceParentId || undefined,
         conversationId: data.conversationId || undefined,
@@ -143,8 +192,8 @@ class ActivityRepository {
 
     const include = [
       {
-        model: options.database.communityMember,
-        as: 'communityMember',
+        model: options.database.member,
+        as: 'member',
       },
       {
         model: options.database.activity,
@@ -167,7 +216,7 @@ class ActivityRepository {
       throw new Error404()
     }
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   /**
@@ -189,7 +238,7 @@ class ActivityRepository {
       transaction,
     })
 
-    return this._populateRelations(record)
+    return this._populateRelations(record, options)
   }
 
   static async filterIdInTenant(id, options: IRepositoryOptions) {
@@ -233,74 +282,59 @@ class ActivityRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    const whereAnd: Array<any> = []
-    const include = [
-      {
-        model: options.database.communityMember,
-        as: 'communityMember',
-      },
-      {
-        model: options.database.activity,
-        as: 'parent',
-      },
-    ]
-
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
-
-    if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.type) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'type', filter.type))
+        advancedFilter.and.push({
+          type: {
+            textContains: filter.type,
+          },
+        })
       }
 
       if (filter.timestampRange) {
         const [start, end] = filter.timestampRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             timestamp: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             timestamp: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
 
       if (filter.platform) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'platform', filter.platform))
-      }
-
-      if (filter.info) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'info', filter.info))
-      }
-
-      if (filter.communityMember) {
-        whereAnd.push({
-          communityMemberId: SequelizeFilterUtils.uuid(filter.communityMember),
+        advancedFilter.and.push({
+          platform: {
+            textContains: filter.platform,
+          },
         })
       }
 
-      if (filter.crowdInfo) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'crowdInfo', filter.crowdInfo))
+      if (filter.member) {
+        advancedFilter.and.push({
+          memberId: filter.member,
+        })
       }
 
       if (
@@ -309,7 +343,7 @@ class ActivityRepository {
         filter.isKeyAction === false ||
         filter.isKeyAction === 'false'
       ) {
-        whereAnd.push({
+        advancedFilter.and.push({
           isKeyAction: filter.isKeyAction === true || filter.isKeyAction === 'true',
         })
       }
@@ -318,86 +352,188 @@ class ActivityRepository {
         const [start, end] = filter.scoreRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             score: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             score: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
 
+      if (filter.channel) {
+        advancedFilter.and.push({
+          channel: {
+            textContains: filter.channel,
+          },
+        })
+      }
+
+      if (filter.body) {
+        advancedFilter.and.push({
+          body: {
+            textContains: filter.body,
+          },
+        })
+      }
+
+      if (filter.title) {
+        advancedFilter.and.push({
+          title: {
+            textContains: filter.title,
+          },
+        })
+      }
+
+      if (filter.url) {
+        advancedFilter.and.push({
+          textContains: filter.channel,
+        })
+      }
+
+      if (filter.sentimentRange) {
+        const [start, end] = filter.sentimentRange
+
+        if (start !== undefined && start !== null && start !== '') {
+          advancedFilter.and.push({
+            sentiment: {
+              gte: start,
+            },
+          })
+        }
+
+        if (end !== undefined && end !== null && end !== '') {
+          advancedFilter.and.push({
+            sentiment: {
+              lte: end,
+            },
+          })
+        }
+      }
+
+      if (filter.sentimentLabel) {
+        advancedFilter.and.push({
+          'sentiment.label': filter.sentimentLabel,
+        })
+      }
+
+      for (const mood of ['positive', 'negative', 'neutral', 'mixed']) {
+        if (filter[`${mood}SentimentRange`]) {
+          const [start, end] = filter[`${mood}SentimentRange`]
+
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              [`sentiment.${mood}`]: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              [`sentiment.${mood}`]: {
+                lte: end,
+              },
+            })
+          }
+        }
+      }
+
       if (filter.parent) {
-        whereAnd.push({
-          parentId: SequelizeFilterUtils.uuid(filter.parent),
+        advancedFilter.and.push({
+          parentId: filter.parent,
         })
       }
 
       if (filter.sourceParentId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludesCaseSensitive(
-            'activity',
-            'sourceParentId',
-            filter.sourceParentId,
-          ),
-        )
+        advancedFilter.and.push({
+          sourceParentId: filter.sourceParentId,
+        })
       }
 
       if (filter.sourceId) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('activity', 'sourceId', filter.sourceId))
+        advancedFilter.and.push({
+          sourceId: filter.sourceId,
+        })
       }
 
       if (filter.conversationId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('activity', 'conversationId', filter.conversationId),
-        )
+        advancedFilter.and.push({
+          conversationId: filter.conversationId,
+        })
       }
 
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              gte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const include = [
+      {
+        model: options.database.member,
+        as: 'member',
+      },
+      {
+        model: options.database.activity,
+        as: 'parent',
+      },
+    ]
+
+    const parser = new QueryParser(
+      {
+        nestedFields: {
+          sentiment: 'sentiment.sentiment',
+        },
+      },
+      options,
+    )
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['timestamp_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.activity.findAndCountAll({
-      where,
       include,
-      limit: limit ? Number(limit) : 50,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['timestamp', 'DESC']],
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    rows = await this._populateRelationsForRows(rows)
+    rows = await this._populateRelationsForRows(rows, options)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -452,20 +588,26 @@ class ActivityRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows) {
+  static async _populateRelationsForRows(rows, options: IRepositoryOptions) {
     if (!rows) {
       return rows
     }
 
-    return Promise.all(rows.map((record) => this._populateRelations(record)))
+    return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
+    const transaction = SequelizeRepository.getTransaction(options)
 
     const output = record.get({ plain: true })
+
+    output.tasks = await record.getTasks({
+      transaction,
+      joinTableAttributes: [],
+    })
 
     return output
   }

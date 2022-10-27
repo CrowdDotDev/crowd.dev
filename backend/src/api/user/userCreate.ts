@@ -10,9 +10,9 @@ export default async (req, res) => {
 
     const creator = new UserCreator(req)
 
-    const payload = await creator.execute(req.body.data)
+    const payload = await creator.execute(req.body)
 
-    track('User Invited', { ...req.body.data }, { ...req })
+    track('User Invited', { ...req.body }, { ...req })
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

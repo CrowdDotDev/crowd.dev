@@ -10,6 +10,22 @@ export default class DateField extends GenericField {
     this.required = config.required
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
+    this.custom = config.custom
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {},
+      defaultValue: [],
+      value: [],
+      defaultOperator: 'eq',
+      operator: null,
+      type: 'date'
+    }
   }
 
   forPresenter(value) {

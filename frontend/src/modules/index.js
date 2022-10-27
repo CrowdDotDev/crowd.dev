@@ -9,14 +9,15 @@ import user from '@/premium/user/user-module'
 import settings from '@/modules/settings/settings-module'
 import auditLog from '@/modules/audit-log/audit-log-module'
 import integration from '@/modules/integration/integration-module'
-import communityMember from '@/modules/community-member/community-member-module'
+import member from '@/modules/member/member-module'
 import tag from '@/modules/tag/tag-module'
 import activity from '@/modules/activity/activity-module'
 import widget from '@/modules/widget/widget-module'
 import report from '@/modules/report/report-module'
-import conversation from '@/modules/conversation/conversation-module'
+import communityHelpCenter from '@/modules/community-help-center/community-help-center-module'
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module'
 import automation from '@/modules/automation/automation-module'
+import organization from '@/modules/organization/organization-module'
 
 const modules = {
   shared,
@@ -30,14 +31,15 @@ const modules = {
   auditLog,
   layout,
   integration,
-  communityMember,
+  member,
   activity,
   tag,
   widget,
   report,
-  conversation,
+  communityHelpCenter,
   eagleEye,
-  automation
+  automation,
+  organization
 }
 
 export default modules

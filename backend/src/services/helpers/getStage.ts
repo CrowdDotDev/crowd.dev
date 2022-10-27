@@ -1,4 +1,4 @@
-import { IS_PROD_ENV, IS_STAGING_ENV } from '../../config/index'
+import { IS_PROD_ENV, IS_STAGING_ENV } from '../../config'
 
 export default function getStage() {
   if (IS_PROD_ENV) return 'prod'

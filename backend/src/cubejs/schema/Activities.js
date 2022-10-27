@@ -9,10 +9,9 @@ cube(`Activities`, {
         Activities.type,
         Members.score,
         Members.location,
-        Members.organisation,
         Members.tenantId,
         Activities.tenantId,
-        Tags.name,
+        // Tags.name,
       ],
       timeDimension: Activities.date,
       granularity: `day`,
@@ -24,7 +23,7 @@ cube(`Activities`, {
 
   joins: {
     Members: {
-      sql: `${CUBE}."communityMemberId" = ${Members}."id"`,
+      sql: `${CUBE}."memberId" = ${Members}."id"`,
       relationship: `belongsTo`,
     },
   },
@@ -33,7 +32,7 @@ cube(`Activities`, {
     count: {
       type: `count`,
       drillMembers: [
-        communityMemberId,
+        memberId,
         sourceid,
         tenantId,
         id,
@@ -48,10 +47,22 @@ cube(`Activities`, {
   },
 
   dimensions: {
-    communityMemberId: {
-      sql: `${CUBE}."communityMemberId"`,
+    memberId: {
+      sql: `${CUBE}."memberId"`,
       type: `string`,
       shown: false,
+    },
+
+    sentimentMood: {
+      case: {
+        when: [
+          { sql: `${CUBE}.sentiment->>'sentiment' is null`, label: `no data` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer < 34`, label: `negative` },
+          { sql: `(${CUBE}.sentiment->>'sentiment')::integer > 66`, label: `positive` },
+        ],
+        else: { label: `neutral` },
+      },
+      type: `string`,
     },
 
     sourceid: {
@@ -77,12 +88,6 @@ cube(`Activities`, {
       primaryKey: true,
     },
 
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
-
     type: {
       sql: `type`,
       type: `string`,
@@ -100,12 +105,6 @@ cube(`Activities`, {
       shown: false,
     },
 
-    crowdinfo: {
-      sql: `${CUBE}."crowdInfo"`,
-      type: `string`,
-      shown: false,
-    },
-
     parentid: {
       sql: `${CUBE}."parentId"`,
       type: `string`,
@@ -114,12 +113,6 @@ cube(`Activities`, {
 
     createdbyid: {
       sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
-    },
-
-    importhash: {
-      sql: `${CUBE}."importHash"`,
       type: `string`,
       shown: false,
     },

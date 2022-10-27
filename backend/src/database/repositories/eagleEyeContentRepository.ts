@@ -1,14 +1,12 @@
 import moment from 'moment'
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
 import AuditLogRepository from './auditLogRepository'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
-
-const { Op } = Sequelize
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 export default class EagleEyeContentRepository {
   /**
@@ -108,51 +106,48 @@ export default class EagleEyeContentRepository {
    * @returns Records found.
    */
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    const whereAnd: Array<any> = []
-
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
-
-    if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.sourceId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'sourceId', filter.sourceId),
-        )
+        advancedFilter.and.push({
+          sourceId: filter.sourceId,
+        })
       }
 
       if (filter.vectorId) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'sourceId', filter.sourceId),
-        )
+        advancedFilter.and.push({
+          vectorId: filter.vectorId,
+        })
       }
 
       if (filter.status) {
         if (filter.status === 'NULL') {
-          whereAnd.push({
-            status: null,
+          advancedFilter.and.push({
+            status: 'NULL',
           })
         } else if (filter.status === 'NOT_NULL') {
-          whereAnd.push({
+          advancedFilter.and.push({
             status: {
-              [Op.not]: null,
+              not: null,
             },
           })
         } else {
-          whereAnd.push(
-            SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'status', filter.status),
-          )
+          advancedFilter.and.push({
+            status: {
+              textContains: filter.status,
+            },
+          })
         }
       }
 
@@ -160,61 +155,75 @@ export default class EagleEyeContentRepository {
         const [start, end] = filter.timestampRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             timestamp: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             timestamp: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
 
       if (filter.platforms) {
-        whereAnd.push({
+        advancedFilter.and.push({
           platform: {
-            [Op.or]: filter.platforms.split(','),
+            or: filter.platforms.split(','),
           },
         })
       }
 
       if (filter.nDays) {
-        whereAnd.push({
+        advancedFilter.and.push({
           timestamp: {
-            [Op.gte]: moment().subtract(filter.nDays, 'days').toDate(),
+            gte: moment().subtract(filter.nDays, 'days').toDate(),
           },
         })
       }
 
       if (filter.title) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'title', filter.title))
+        advancedFilter.and.push({
+          title: {
+            textContains: filter.title,
+          },
+        })
       }
 
       if (filter.text) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'text', filter.text))
+        advancedFilter.and.push({
+          text: {
+            textContains: filter.text,
+          },
+        })
       }
 
       if (filter.url) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'url', filter.url))
+        advancedFilter.and.push({
+          url: {
+            textContains: filter.url,
+          },
+        })
       }
 
       if (filter.username) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('eagleEyeContent', 'username', filter.username),
-        )
+        advancedFilter.and.push({
+          username: {
+            textContains: filter.username,
+          },
+        })
       }
 
       if (filter.keywords) {
         // Overlap will take a post where any keyword matches any of the filter keywords
-        whereAnd.push({
+        advancedFilter.and.push({
           keywords: {
-            [Op.overlap]: filter.keywords.split(','),
+            overlap: filter.keywords.split(','),
           },
         })
       }
@@ -223,17 +232,17 @@ export default class EagleEyeContentRepository {
         const [start, end] = filter.similarityScoreRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             similarityScore: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             similarityScore: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
@@ -243,39 +252,47 @@ export default class EagleEyeContentRepository {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const parser = new QueryParser({}, options)
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.eagleEyeContent.findAndCountAll({
-      where,
-      limit: limit ? Number(limit) : 50,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['similarityScore', 'DESC']],
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async update(id, data, options: IRepositoryOptions) {

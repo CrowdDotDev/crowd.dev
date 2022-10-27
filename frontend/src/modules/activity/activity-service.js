@@ -1,18 +1,25 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 
 export class ActivityService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/activity/${id}`,
-      body
+      data
+    )
+
+    return response.data
+  }
+
+  static async updateBulk(data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.patch(
+      `/tenant/${tenantId}/activity`,
+      data
     )
 
     return response.data
@@ -36,15 +43,11 @@ export class ActivityService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/activity`,
-      body
+      data.data
     )
 
     return response.data
@@ -76,9 +79,17 @@ export class ActivityService {
     return response.data
   }
 
-  static async list(filter, orderBy, limit, offset) {
-    const params = {
-      filter,
+  static async list(
+    filter,
+    orderBy,
+    limit,
+    offset,
+    buildFilter = true
+  ) {
+    const body = {
+      filter: buildFilter
+        ? buildApiPayload(filter)
+        : filter,
       orderBy,
       limit,
       offset
@@ -86,11 +97,9 @@ export class ActivityService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/activity`,
-      {
-        params
-      }
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/activity/query`,
+      body
     )
 
     return response.data

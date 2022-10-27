@@ -142,6 +142,6 @@ export default defineComponent({
 }
 
 .channelFilterActive {
-  @apply text-primary-900 hover:text-primary-500;
+  @apply text-brand-500 hover:text-primary-500;
 }
 </style>

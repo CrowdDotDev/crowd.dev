@@ -21,6 +21,7 @@ export interface SQSConfiguration {
   host?: string
   port?: number
   nodejsWorkerQueue: string
+  nodejsWorkerDelayableQueue: string
   pythonWorkerQueue: string
   premiumPythonWorkerQueue: string
   aws: AwsCredentials
@@ -32,6 +33,14 @@ export interface S3Configuration {
   integrationsAssetsBucket: string
   microservicesAssetsBucket: string
   aws: AwsCredentials
+}
+
+export interface ComprehendConfiguration {
+  aws: AwsCredentials
+}
+
+export interface ClearbitConfiguration {
+  apiKey: string
 }
 
 export interface DbConfiguration {
@@ -74,6 +83,10 @@ export interface PlansConfiguration {
   stripWebhookSigningSecret: string
 }
 
+export interface DevtoConfiguration {
+  globalLimit?: number
+}
+
 export interface TwitterConfiguration {
   clientId: string
   clientSecret: string
@@ -97,16 +110,11 @@ export interface GoogleConfiguration {
   callbackUrl: string
 }
 
-export interface FacebookConfiguration {
-  clientId: string
-  clientSecret: string
-  callbackUrl: string
-}
-
 export interface DiscordConfiguration {
   token: string
   maxRetrospectInSeconds: number
   globalLimit?: number
+  limitResetFrequencyDays?: number
 }
 
 export interface GithubConfiguration {
@@ -115,6 +123,7 @@ export interface GithubConfiguration {
   clientSecret: string
   privateKey: string
   webhookSecret: string
+  globalLimit?: number
 }
 
 export interface SendgridConfiguration {

@@ -2,8 +2,7 @@ import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
-import { MicroserviceMessage } from '../serverless/integrations/types/messageTypes'
-import send from '../serverless/integrations/utils/microserviceSQS'
+import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
 
 export default class MicroserviceService {
   options: IServiceOptions
@@ -15,12 +14,12 @@ export default class MicroserviceService {
   /**
    * Creates microservice entity with given data
    * @param data object representation of the microservice entity
-   * @param forceRunOnCreation if set to true, an sqs message is sent
+   * @param forceRunOnCreation if set to true, sqs message is sent
    * to start the created microservice immediately
    * @returns created plain microservice object
    */
   async create(data, forceRunOnCreation = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await MicroserviceRepository.create(data, {
@@ -31,12 +30,9 @@ export default class MicroserviceService {
       await SequelizeRepository.commitTransaction(transaction)
 
       if (forceRunOnCreation) {
-        const microserviceMessageBody: MicroserviceMessage = {
-          service: data.type,
-          tenant: this.options.currentTenant.id.toString(),
-        }
-
-        await send(microserviceMessageBody)
+        await sendPythonWorkerMessage(this.options.currentTenant.id, {
+          type: data.type,
+        })
       }
 
       return record
@@ -67,7 +63,7 @@ export default class MicroserviceService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await MicroserviceRepository.update(id, data, {
@@ -88,7 +84,7 @@ export default class MicroserviceService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -115,6 +111,17 @@ export default class MicroserviceService {
 
   async findAndCountAll(args) {
     return MicroserviceRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return MicroserviceRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
   }
 
   async import(data, importHash) {

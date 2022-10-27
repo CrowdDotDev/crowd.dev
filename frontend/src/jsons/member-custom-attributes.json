@@ -1,0 +1,26 @@
+[
+  {
+    "value": "string",
+    "label": "Text"
+  },
+  {
+    "value": "number",
+    "label": "Number"
+  },
+  {
+    "value": "email",
+    "label": "E-mail"
+  },
+  {
+    "value": "url",
+    "label": "URL"
+  },
+  {
+    "value": "date",
+    "label": "Date"
+  },
+  {
+    "value": "boolean",
+    "label": "Boolean"
+  }
+]

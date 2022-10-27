@@ -11,7 +11,17 @@ services:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
     command:
-      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
+      [
+        'python',
+        '-u',
+        '-m',
+        'flask',
+        '--app',
+        'server',
+        '--debug',
+        'run',
+        '--host=0.0.0.0',
+      ]
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
@@ -28,7 +38,17 @@ services:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
     command:
-      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
+      [
+        'python',
+        '-u',
+        '-m',
+        'flask',
+        '--app',
+        'server',
+        '--debug',
+        'run',
+        '--host=0.0.0.0',
+      ]
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local

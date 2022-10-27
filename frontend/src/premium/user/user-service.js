@@ -3,15 +3,11 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class UserService {
   static async edit(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/user`,
-      body
+      data
     )
 
     return response.data
@@ -35,15 +31,11 @@ export class UserService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/user`,
-      body
+      data
     )
 
     return response.data

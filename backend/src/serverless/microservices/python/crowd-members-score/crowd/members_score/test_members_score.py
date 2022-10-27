@@ -34,7 +34,7 @@ def test_check_updates_when_scores_dont_change(api: "Repository"):
 
     with api.engine.connect() as con:
         number_of_members = con.execute(
-            f'select count(*) from "communityMembers" cm where "tenantId" = \'{id}\''
+            f'select count(*) from "members" cm where "tenantId" = \'{id}\''
         ).fetchall()[0][0]
 
     # Check that if length of updates is less than the number of members

@@ -7,7 +7,7 @@
     </i>
     <span
       v-else
-      class="bg-primary-900 rounded-full h-4 w-4 text-white flex items-center justify-center text-xxs font-semibold mr-2"
+      class="bg-brand-500 rounded-full h-4 w-4 text-white flex items-center justify-center text-xxs font-semibold mr-2"
       >{{ activeFiltersCount }}</span
     >
     Filters

@@ -8,7 +8,7 @@ import TagService from '../../services/tagService'
  * @summary Update an tag
  * @tag Tags
  * @security Bearer
- * @description Update a tag given an ID.
+ * @description Update a tag
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the tag
  * @bodyContent {TagNoId} application/json
@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.tagEdit)
 
-    const payload = await new TagService(req).update(req.params.id, req.body.data)
+    const payload = await new TagService(req).update(req.params.id, req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

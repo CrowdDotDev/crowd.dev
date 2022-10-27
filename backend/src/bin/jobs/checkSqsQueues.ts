@@ -2,7 +2,7 @@ import cronGenerator from 'cron-time-generator'
 import { sendSlackAlert } from '../../utils/slack'
 import { SQS_CONFIG } from '../../config'
 import { sqs } from '../../services/aws'
-import { CrowdJob } from '../../utils/jobTypes'
+import { CrowdJob } from '../../types/jobTypes'
 
 interface IQueueCount {
   lastCount: number

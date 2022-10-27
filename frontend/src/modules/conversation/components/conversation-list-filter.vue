@@ -9,6 +9,7 @@
       ></app-filter-toggle>
     </app-teleport>
 
+    <!-- TODO: Update this component with app-dialog -->
     <el-dialog
       v-model="expanded"
       title="Conversations Filters"

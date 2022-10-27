@@ -76,6 +76,6 @@ export default defineComponent({
 }
 
 .selected {
-  @apply fill-primary-900;
+  @apply fill-brand-500;
 }
 </style>

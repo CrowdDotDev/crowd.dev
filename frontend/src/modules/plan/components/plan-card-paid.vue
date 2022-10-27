@@ -38,7 +38,7 @@
           !hasPermissionToEdit || !isPlanUser || loading
         "
         native-type="button"
-        class="w-100 btn btn--primary"
+        class="w-full btn btn--primary"
         @click="doCheckout(plan)"
       >
         <app-i18n code="plan.subscribe"></app-i18n>
@@ -48,7 +48,7 @@
         v-if="buttonState === 'manage' && isPlanUser"
         :disabled="!hasPermissionToEdit || loading"
         native-type="button"
-        class="w-100 btn btn--primary"
+        class="w-full btn btn--primary"
         @click="doPortal()"
       >
         <app-i18n code="plan.manage"></app-i18n>
@@ -62,7 +62,7 @@
           <el-button
             :disabled="true"
             native-type="button"
-            class="w-100 btn btn--primary"
+            class="w-full btn btn--primary"
           >
             <app-i18n code="plan.manage"></app-i18n>
           </el-button>

@@ -12,9 +12,10 @@ export class FormSchema {
     const intialValues = {}
 
     this.fields.forEach((field) => {
-      intialValues[field.name] = field.forFormInitialValue(
-        record[field.name]
-      )
+      if (field.forFormInitialValue(record[field.name])) {
+        intialValues[field.name] =
+          field.forFormInitialValue(record[field.name])
+      }
     })
 
     return intialValues
@@ -42,5 +43,9 @@ export class FormSchema {
 
   cast(values) {
     return { ...this.schema.cast(values) }
+  }
+
+  isValidSync(values) {
+    return this.schema.isValidSync(values)
   }
 }

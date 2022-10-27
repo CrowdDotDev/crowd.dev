@@ -35,7 +35,7 @@ export default class UserCreator {
     await this._validate()
 
     try {
-      this.transaction = await SequelizeRepository.createTransaction(this.options.database)
+      this.transaction = await SequelizeRepository.createTransaction(this.options)
 
       await this._addOrUpdateAll()
 

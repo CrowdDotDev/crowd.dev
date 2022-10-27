@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { SLACK_CONFIG, API_CONFIG } from '../../../config'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export function getSlackStrategy() {
   const SlackStrategy = require('passport-slack').Strategy
@@ -27,11 +28,11 @@ export function getSlackStrategy() {
         .then((res) => res.json())
         .then((res) => {
           const existingUser = req.user || {}
-          console.log(`access token: ${accessToken}`)
+          // console.log(`access token: ${accessToken}`)
 
           return done(null, {
             ...existingUser,
-            slack: {
+            [PlatformType.SLACK]: {
               botToken: accessToken,
               teamId: res.team.id,
             },

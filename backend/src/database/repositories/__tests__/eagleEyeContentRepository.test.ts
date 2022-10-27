@@ -5,6 +5,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import Error400 from '../../../errors/Error400'
 import EagleEyeContentService from '../../../services/eagleEyeContentService'
+import { PlatformType } from '../../../types/integrationEnums'
 
 const db = null
 
@@ -14,7 +15,7 @@ const toCreate = {
   status: null,
   platform: 'hacker_news',
   title: 'title',
-  userAttributes: { github: 'hey', twitter: 'ho' },
+  userAttributes: { [PlatformType.GITHUB]: 'hey', [PlatformType.TWITTER]: 'ho' },
   text: 'text',
   postAttributes: {
     score: 10,
@@ -125,7 +126,7 @@ describe('eagleEyeContentRepository tests', () => {
         postAttributes: {
           score: 10,
         },
-        userAttributes: { github: 'hey', twitter: 'ho' },
+        userAttributes: { [PlatformType.GITHUB]: 'hey', [PlatformType.TWITTER]: 'ho' },
         text: 'text',
         url: 'url',
         timestamp: 1660712134,
@@ -483,7 +484,7 @@ describe('eagleEyeContentRepository tests', () => {
         status: null,
         platform: 'hacker_news',
         title: 'title',
-        userAttributes: { github: 'hey', twitter: 'ho' },
+        userAttributes: { [PlatformType.GITHUB]: 'hey', [PlatformType.TWITTER]: 'ho' },
         text: 'text',
         postAttributes: {
           score: 10,
@@ -503,7 +504,7 @@ describe('eagleEyeContentRepository tests', () => {
         status: null,
         platform: 'hacker_news',
         title: 'title',
-        userAttributes: { github: 'hey', twitter: 'ho' },
+        userAttributes: { [PlatformType.GITHUB]: 'hey', [PlatformType.TWITTER]: 'ho' },
         text: 'text',
         postAttributes: {
           score: 10,

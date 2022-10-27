@@ -1,7 +1,7 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
-import { PlatformType } from '../../../../utils/platforms'
+import { PlatformType } from '../../../../types/integrationEnums'
 
 /**
  * Perform a hashtag lookup with SuperFace

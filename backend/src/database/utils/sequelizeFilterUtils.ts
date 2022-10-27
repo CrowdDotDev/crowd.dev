@@ -30,7 +30,7 @@ export default class SequelizeFilterUtils {
    */
   static ilikeIncludes(model, column, value) {
     return Sequelize.where(Sequelize.col(`${model}.${column}`), {
-      [Sequelize.Op.like]: `%${value}%`.toLowerCase(),
+      [Sequelize.Op.iLike]: `%${value}%`.toLowerCase(),
     })
   }
 
@@ -58,5 +58,23 @@ export default class SequelizeFilterUtils {
     }
 
     return []
+  }
+
+  static getFieldLiteral(field, model) {
+    return Sequelize.col(`"${model}"."${field}"`)
+  }
+
+  static getLiteralProjections(fields, model) {
+    return fields.reduce((acc, field) => {
+      acc.push([SequelizeFilterUtils.getFieldLiteral(field, model), field])
+      return acc
+    }, [])
+  }
+
+  static getNativeTableFieldAggregations(fields, model) {
+    return fields.reduce((acc, field) => {
+      acc[field] = SequelizeFilterUtils.getFieldLiteral(field, model)
+      return acc
+    }, {})
   }
 }

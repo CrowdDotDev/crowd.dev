@@ -2,12 +2,13 @@
   <div class="conversation-settings">
     <el-button
       v-if="buttonVisible && hasPermissionToEdit"
-      class="btn btn--secondary"
+      class="btn btn--transparent btn--md"
       @click="$emit('open')"
     >
       <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
+    <!-- TODO: Update this component with app-dialog -->
     <el-dialog
       v-model="computedVisible"
       title="Community Help Center Settings"
@@ -142,7 +143,7 @@
               placeholder="https://github.com/CrowdHQ"
             />
             <div class="app-form-hint">
-              GitHub's organisation URL
+              GitHub's organization URL
             </div>
           </el-form-item>
         </div>
@@ -349,7 +350,7 @@
         >
           Custom URL
           <span
-            class="flex items-center uppercase ml-4 text-xs text-primary-900 font-semibold"
+            class="flex items-center uppercase ml-4 text-xs text-brand-500 font-semibold"
             ><i class="ri-information-line mr-1"></i>Premium
             Only</span
           >
@@ -443,6 +444,7 @@ import authAxios from '@/shared/axios/auth-axios'
 import Message from '@/shared/message/message'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),
@@ -616,19 +618,16 @@ export default {
         await this.$refs.form.validate()
 
         if (this.shouldConfirmAutoPublish) {
-          await this.$myConfirm(
-            `Are you sure you want to enable auto-publishing for ${
+          await ConfirmDialog({
+            title: i18n('common.confirm'),
+            message: `Are you sure you want to enable auto-publishing for ${
               this.model.autoPublish.status === 'all'
                 ? 'all channels'
                 : 'selected channels'
             }?`,
-            i18n('common.confirm'),
-            {
-              confirmButtonText: i18n('common.yes'),
-              cancelButtonText: i18n('common.no'),
-              type: 'warning'
-            }
-          )
+            confirmButtonText: i18n('common.yes'),
+            cancelButtonText: i18n('common.no')
+          })
         }
 
         await authAxios.post(

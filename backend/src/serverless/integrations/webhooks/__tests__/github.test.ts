@@ -3,11 +3,12 @@ import IntegrationRepository from '../../../../database/repositories/integration
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
 import Error404 from '../../../../errors/Error404'
 import { GitHubGrid } from '../../grid/githubGrid'
-import BaseIterator from '../../iterators/baseIterator'
 import GitHubWebhook from '../github'
 import TestEvents from './events'
-import { PlatformType } from '../../../../utils/platforms'
-import { GithubActivityType } from '../../../../utils/activityTypes'
+import { PlatformType } from '../../../../types/integrationEnums'
+import { GithubActivityType } from '../../../../types/activityTypes'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 
 const db = null
 const installId = '23585816'
@@ -52,22 +53,26 @@ describe('Github webhooks tests', () => {
         name: 'Joan Reyero',
         url: 'https://github.com/joanreyero',
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
-          github: 'joanreyero',
+          [PlatformType.GITHUB]: 'joanreyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: false,
+          },
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: '',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: '',
           },
         },
         email: '',
-        bio: '',
-        organisation: '',
-        location: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -79,26 +84,28 @@ describe('Github webhooks tests', () => {
         url: 'https://github.com/joanreyero',
         twitterUsername: 'reyero',
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
-          github: 'joanreyero',
-          twitter: 'reyero',
+          [PlatformType.GITHUB]: 'joanreyero',
+          [PlatformType.TWITTER]: 'reyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: false,
           },
-          twitter: {
-            url: 'https://twitter.com/reyero',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: '',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: '',
           },
         },
         email: '',
-        bio: '',
-        organisation: '',
-        location: '',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -115,28 +122,37 @@ describe('Github webhooks tests', () => {
         company: '@CrowdHQ ',
         location: 'Cambridge, UK',
         twitterUsername: 'reyero',
+        followers: {
+          totalCount: 10,
+        },
       }
-      const parsedMember = GitHubWebhook.parseMember(member)
+      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
         username: {
-          github: 'joanreyero',
-          twitter: 'reyero',
+          [PlatformType.GITHUB]: 'joanreyero',
+          [PlatformType.TWITTER]: 'reyero',
         },
-        crowdInfo: {
-          github: {
-            name: 'Joan Reyero',
-            isHireable: false,
-            url: 'https://github.com/joanreyero',
-            websiteUrl: 'https://crowd.dev',
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: false,
           },
-          twitter: {
-            url: 'https://twitter.com/reyero',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/joanreyero',
+            [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://crowd.dev',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Bio goes here',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Cambridge, UK',
           },
         },
+        reach: { [PlatformType.GITHUB]: 10 },
         email: 'joan@crowd.dev',
-        bio: 'Bio goes here',
-        organisation: '@CrowdHQ ',
-        location: 'Cambridge, UK',
+        organizations: [{ name: 'crowd.dev' }],
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -174,9 +190,9 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.opened.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -185,11 +201,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.opened.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.opened.issue.html_url,
-          title: TestEvents.issues.opened.issue.title,
-          body: TestEvents.issues.opened.issue.body,
-          repo: TestEvents.issues.opened.repository.html_url,
+        url: TestEvents.issues.opened.issue.html_url,
+        title: TestEvents.issues.opened.issue.title,
+        body: TestEvents.issues.opened.issue.body,
+        channel: TestEvents.issues.opened.repository.html_url,
+        attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -218,9 +234,9 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.edited.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -229,11 +245,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.edited.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.edited.issue.html_url,
-          title: TestEvents.issues.edited.issue.title,
-          body: TestEvents.issues.edited.issue.body,
-          repo: TestEvents.issues.edited.repository.html_url,
+        url: TestEvents.issues.edited.issue.html_url,
+        title: TestEvents.issues.edited.issue.title,
+        body: TestEvents.issues.edited.issue.body,
+        channel: TestEvents.issues.edited.repository.html_url,
+        attributes: {
           state: TestEvents.issues.edited.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -258,9 +274,9 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.reopened.issue.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_OPENED,
@@ -269,11 +285,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.issues.reopened.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.reopened.issue.html_url,
-          title: TestEvents.issues.reopened.issue.title,
-          body: TestEvents.issues.reopened.issue.body,
-          repo: TestEvents.issues.reopened.repository.html_url,
+        url: TestEvents.issues.reopened.issue.html_url,
+        title: TestEvents.issues.reopened.issue.title,
+        body: TestEvents.issues.reopened.issue.body,
+        channel: TestEvents.issues.reopened.repository.html_url,
+        attributes: {
           state: TestEvents.issues.opened.issue.state,
         },
         score: GitHubGrid.issueOpened.score,
@@ -296,9 +312,9 @@ describe('Github webhooks tests', () => {
         TestEvents.issues.closed.issue.closed_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_CLOSED,
@@ -307,11 +323,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.issues.closed.issue.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.issues.closed.issue.html_url,
-          title: TestEvents.issues.closed.issue.title,
-          repo: TestEvents.issues.closed.repository.html_url,
-          body: TestEvents.issues.closed.issue.body,
+        url: TestEvents.issues.closed.issue.html_url,
+        title: TestEvents.issues.closed.issue.title,
+        channel: TestEvents.issues.closed.repository.html_url,
+        body: TestEvents.issues.closed.issue.body,
+        attributes: {
           state: TestEvents.issues.closed.issue.state,
         },
         score: GitHubGrid.issueClosed.score,
@@ -364,9 +380,9 @@ describe('Github webhooks tests', () => {
       )
       const discussion = await gh.discussion()
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -375,11 +391,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.created.discussion.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.discussion.created.discussion.html_url,
-          title: TestEvents.discussion.created.discussion.title,
-          body: TestEvents.discussion.created.discussion.body,
-          repo: TestEvents.discussion.created.repository.html_url,
+        url: TestEvents.discussion.created.discussion.html_url,
+        title: TestEvents.discussion.created.discussion.title,
+        body: TestEvents.discussion.created.discussion.body,
+        channel: TestEvents.discussion.created.repository.html_url,
+        attributes: {
           category: {
             id: TestEvents.discussion.created.discussion.category.node_id,
             isAnswerable: TestEvents.discussion.created.discussion.category.is_answerable,
@@ -409,9 +425,9 @@ describe('Github webhooks tests', () => {
       )
       const discussion = await gh.discussion()
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_STARTED,
@@ -420,11 +436,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.edited.discussion.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.discussion.edited.discussion.html_url,
-          title: TestEvents.discussion.edited.discussion.title,
-          body: TestEvents.discussion.edited.discussion.body,
-          repo: TestEvents.discussion.edited.repository.html_url,
+        url: TestEvents.discussion.edited.discussion.html_url,
+        title: TestEvents.discussion.edited.discussion.title,
+        body: TestEvents.discussion.edited.discussion.body,
+        channel: TestEvents.discussion.edited.repository.html_url,
+        attributes: {
           category: {
             id: TestEvents.discussion.edited.discussion.category.node_id,
             isAnswerable: TestEvents.discussion.edited.discussion.category.is_answerable,
@@ -457,9 +473,9 @@ describe('Github webhooks tests', () => {
         TestEvents.discussion.answered.discussion.node_id.toString(),
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -468,10 +484,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId.toString(),
         sourceId: TestEvents.discussion.answered.answer.node_id,
         sourceParentId: TestEvents.discussion.answered.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussion.answered.answer.html_url,
-          body: TestEvents.discussion.answered.answer.body,
-          repo: TestEvents.discussion.answered.repository.html_url,
+        url: TestEvents.discussion.answered.answer.html_url,
+        body: TestEvents.discussion.answered.answer.body,
+        channel: TestEvents.discussion.answered.repository.html_url,
+        attributes: {
           isSelectedAnswer: true,
         },
         score: GitHubGrid.discussionOpened.score,
@@ -500,9 +516,9 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.opened.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -511,12 +527,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.opened.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.opened.pull_request.html_url,
-          repo: TestEvents.pullRequests.opened.repository.html_url,
-          title: TestEvents.pullRequests.opened.pull_request.title,
-          body: TestEvents.pullRequests.opened.pull_request.body,
-        },
+        url: TestEvents.pullRequests.opened.pull_request.html_url,
+        channel: TestEvents.pullRequests.opened.repository.html_url,
+        title: TestEvents.pullRequests.opened.pull_request.title,
+        body: TestEvents.pullRequests.opened.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -547,9 +561,9 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.edited.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -558,12 +572,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.edited.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.edited.pull_request.html_url,
-          repo: TestEvents.pullRequests.edited.repository.html_url,
-          title: TestEvents.pullRequests.edited.pull_request.title,
-          body: TestEvents.pullRequests.edited.pull_request.body,
-        },
+        url: TestEvents.pullRequests.edited.pull_request.html_url,
+        channel: TestEvents.pullRequests.edited.repository.html_url,
+        title: TestEvents.pullRequests.edited.pull_request.title,
+        body: TestEvents.pullRequests.edited.pull_request.body,
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -590,9 +602,9 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.reopened.pull_request.created_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_OPENED,
@@ -601,12 +613,11 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.reopened.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.reopened.pull_request.html_url,
-          title: TestEvents.pullRequests.reopened.pull_request.title,
-          body: TestEvents.pullRequests.reopened.pull_request.body,
-          repo: TestEvents.pullRequests.reopened.repository.html_url,
-        },
+        url: TestEvents.pullRequests.reopened.pull_request.html_url,
+        title: TestEvents.pullRequests.reopened.pull_request.title,
+        body: TestEvents.pullRequests.reopened.pull_request.body,
+        channel: TestEvents.pullRequests.reopened.repository.html_url,
+
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
@@ -631,9 +642,9 @@ describe('Github webhooks tests', () => {
         TestEvents.pullRequests.closed.pull_request.closed_at,
       )
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_CLOSED,
@@ -642,12 +653,10 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.pullRequests.closed.pull_request.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          url: TestEvents.pullRequests.closed.pull_request.html_url,
-          title: TestEvents.pullRequests.closed.pull_request.title,
-          body: TestEvents.pullRequests.closed.pull_request.body,
-          repo: TestEvents.pullRequests.closed.repository.html_url,
-        },
+        url: TestEvents.pullRequests.closed.pull_request.html_url,
+        title: TestEvents.pullRequests.closed.pull_request.title,
+        body: TestEvents.pullRequests.closed.pull_request.body,
+        channel: TestEvents.pullRequests.closed.repository.html_url,
         score: GitHubGrid.pullRequestClosed.score,
         isKeyAction: GitHubGrid.pullRequestClosed.isKeyAction,
       }
@@ -697,24 +706,22 @@ describe('Github webhooks tests', () => {
       const starTimestamp = star.timestamp
       delete star.timestamp
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.STAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           'joanreyero',
           GithubActivityType.STAR,
           moment(starTimestamp).unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.star.created.repository.html_url,
-        },
+        channel: TestEvents.star.created.repository.html_url,
         score: 2,
         isKeyAction: false,
       }
@@ -723,7 +730,7 @@ describe('Github webhooks tests', () => {
       expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
 
       const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = BaseIterator.generateSourceIdHash(
+      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
         'joanreyero',
         'star',
         moment(fromMain.timestamp).unix().toString(),
@@ -743,24 +750,22 @@ describe('Github webhooks tests', () => {
       const starTimestamp = star.timestamp
       delete star.timestamp
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.UNSTAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           'joanreyero',
           GithubActivityType.UNSTAR,
           moment(starTimestamp).unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.star.deleted.repository.html_url,
-        },
+        channel: TestEvents.star.deleted.repository.html_url,
         score: -2,
         isKeyAction: false,
       }
@@ -769,7 +774,7 @@ describe('Github webhooks tests', () => {
       expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
 
       const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = BaseIterator.generateSourceIdHash(
+      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
         'joanreyero',
         GithubActivityType.UNSTAR,
         moment(fromMain.timestamp).unix().toString(),
@@ -789,9 +794,9 @@ describe('Github webhooks tests', () => {
       const { tenantId, gh } = await init(TestEvents.fork.event, TestEvents.fork.created, true)
       const fork = await gh.fork()
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.FORK,
@@ -800,9 +805,7 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.fork.created.forkee.node_id,
         sourceParentId: null,
-        crowdInfo: {
-          repo: TestEvents.fork.created.repository.html_url,
-        },
+        channel: TestEvents.fork.created.repository.html_url,
         score: 4,
         isKeyAction: true,
       }
@@ -831,9 +834,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_COMMENT,
@@ -842,11 +845,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.issue.created.comment.node_id,
         sourceParentId: TestEvents.comment.issue.created.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.issue.created.comment.html_url,
-          body: TestEvents.comment.issue.created.comment.body,
-          repo: TestEvents.comment.issue.created.repository.html_url,
-        },
+        url: TestEvents.comment.issue.created.comment.html_url,
+        body: TestEvents.comment.issue.created.comment.body,
+        channel: TestEvents.comment.issue.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -881,9 +882,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.ISSUE_COMMENT,
@@ -892,11 +893,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.issue.edited.comment.node_id,
         sourceParentId: TestEvents.comment.issue.edited.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.issue.edited.comment.html_url,
-          body: TestEvents.comment.issue.edited.comment.body,
-          repo: TestEvents.comment.issue.edited.repository.html_url,
-        },
+        url: TestEvents.comment.issue.edited.comment.html_url,
+        body: TestEvents.comment.issue.edited.comment.body,
+        channel: TestEvents.comment.issue.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -931,9 +930,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -942,11 +941,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.pullRequest.created.comment.node_id,
         sourceParentId: TestEvents.comment.pullRequest.created.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.pullRequest.created.comment.html_url,
-          body: TestEvents.comment.pullRequest.created.comment.body,
-          repo: TestEvents.comment.pullRequest.created.repository.html_url,
-        },
+        url: TestEvents.comment.pullRequest.created.comment.html_url,
+        body: TestEvents.comment.pullRequest.created.comment.body,
+        channel: TestEvents.comment.pullRequest.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -984,9 +981,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.PULL_REQUEST_COMMENT,
@@ -995,11 +992,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.comment.pullRequest.edited.comment.node_id,
         sourceParentId: TestEvents.comment.pullRequest.edited.issue.node_id,
-        crowdInfo: {
-          url: TestEvents.comment.pullRequest.edited.comment.html_url,
-          body: TestEvents.comment.pullRequest.edited.comment.body,
-          repo: TestEvents.comment.pullRequest.edited.repository.html_url,
-        },
+        url: TestEvents.comment.pullRequest.edited.comment.html_url,
+        body: TestEvents.comment.pullRequest.edited.comment.body,
+        channel: TestEvents.comment.pullRequest.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -1048,9 +1043,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -1059,11 +1054,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.discussionComment.created.comment.node_id,
         sourceParentId: TestEvents.discussionComment.created.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussionComment.created.comment.html_url,
-          body: TestEvents.discussionComment.created.comment.body,
-          repo: TestEvents.discussionComment.created.repository.html_url,
-        },
+        url: TestEvents.discussionComment.created.comment.html_url,
+        body: TestEvents.discussionComment.created.comment.body,
+        channel: TestEvents.discussionComment.created.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -1102,9 +1095,9 @@ describe('Github webhooks tests', () => {
       )
 
       const expected = {
-        communityMember: {
+        member: {
           username: {
-            github: 'testMember',
+            [PlatformType.GITHUB]: 'testMember',
           },
         },
         type: GithubActivityType.DISCUSSION_COMMENT,
@@ -1113,11 +1106,9 @@ describe('Github webhooks tests', () => {
         tenant: tenantId,
         sourceId: TestEvents.discussionComment.edited.comment.node_id,
         sourceParentId: TestEvents.discussionComment.edited.discussion.node_id,
-        crowdInfo: {
-          url: TestEvents.discussionComment.edited.comment.html_url,
-          body: TestEvents.discussionComment.edited.comment.body,
-          repo: TestEvents.discussionComment.edited.repository.html_url,
-        },
+        url: TestEvents.discussionComment.edited.comment.html_url,
+        body: TestEvents.discussionComment.edited.comment.body,
+        channel: TestEvents.discussionComment.edited.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }

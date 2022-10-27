@@ -45,8 +45,8 @@ function customizer(originalField, newField) {
  * @param {Object} special: Fields that need special merging {field: (oldValue, newValue) => newValue}
  *  - To keep the earliest joinedAt:
  *      {joinedAt: (oldDate, newDate) => new Date(Math.min(newDate, oldDate))}
- *  - To always keep the original crowdUsername:
- *      {username.crowdUsername: (oldUsername, newUsername) => oldUsername}
+ *  - To always keep the original displayName:
+ *      {displayName: (oldUsername, newUsername) => oldUsername}
  * @returns {Object} fields of the mergedObejct that are different from originalObject
  */
 function merge(originalObject, newObject, special = {}) {

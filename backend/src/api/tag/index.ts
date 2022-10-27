@@ -1,5 +1,6 @@
 export default (app) => {
   app.post(`/tenant/:tenantId/tag`, require('./tagCreate').default)
+  app.post(`/tenant/:tenantId/tag/query`, require('./tagQuery').default)
   app.put(`/tenant/:tenantId/tag/:id`, require('./tagUpdate').default)
   app.post(`/tenant/:tenantId/tag/import`, require('./tagImport').default)
   app.delete(`/tenant/:tenantId/tag`, require('./tagDestroy').default)

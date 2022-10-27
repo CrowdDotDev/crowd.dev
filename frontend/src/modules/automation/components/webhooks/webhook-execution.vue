@@ -1,11 +1,11 @@
 <template>
-  <div class="webhook-execution">
+  <div class="webhook-execution px-6 pb-6">
     <div class="flex items-center">
       <div
         :class="
           execution.state === 'success'
-            ? 'text-green-900'
-            : 'text-red-900'
+            ? 'text-green-500'
+            : 'text-red-500'
         "
         class="flex items-center"
       >
@@ -15,9 +15,9 @@
               ? 'ri-checkbox-circle-line'
               : 'ri-close-circle-line'
           "
-          class="mr-2"
+          class="mr-1 text-lg"
         />
-        <span
+        <span class="font-medium text-sm"
           >{{
             execution.state === 'success'
               ? 'Success'
@@ -25,8 +25,10 @@
           }}
         </span>
       </div>
-      <div class="text-gray-600 ml-6">Timestamp:</div>
-      <div class="text-gray-900 ml-1">
+      <div class="text-gray-500 ml-6 text-sm">
+        Timestamp:
+      </div>
+      <div class="text-gray-900 ml-2 text-sm">
         {{ formattedDate(execution.executedAt) }}
       </div>
     </div>
@@ -35,7 +37,7 @@
       class="vjs-tree-wrapper vjs-tree-wrapper--error mt-6"
     >
       <span
-        class="font-semibold block text-sm text-red-900 mb-4"
+        class="font-medium block text-sm text-red-500 mb-4"
       >
         {{ execution.error.message }}
       </span>
@@ -47,7 +49,7 @@
       />
     </div>
 
-    <span class="font-semibold block text-sm mb-1 mt-6"
+    <span class="font-semibold block text-base mb-3 mt-8"
       >Payload</span
     >
     <div class="vjs-tree-wrapper">
@@ -87,28 +89,42 @@ export default {
 <style lang="scss">
 .webhook-execution {
   .vjs-tree-wrapper {
-    @apply p-4 rounded overflow-auto;
-    background: #f1f5f9;
+    @apply p-4 rounded-md overflow-auto bg-gray-50;
     height: 430px;
 
+    .vjs-tree {
+      @apply text-xs;
+
+      &.is-highlight,
+      .vjs-tree-node:hover {
+        @apply bg-gray-100;
+      }
+    }
+
     &--error {
-      background: #f9f1f1;
+      @apply bg-red-50;
       height: auto;
-      max-height: 150px;
+      max-height: 200px;
       .vjs-tree {
         &.is-highlight,
         .vjs-tree-node:hover {
-          @apply bg-red-50;
+          @apply bg-red-100;
         }
       }
     }
+  }
 
-    .vjs-tree {
-      &.is-highlight,
-      .vjs-tree-node:hover {
-        background: #f8fafc;
-      }
+  .vjs-value {
+    &-string,
+    &-boolean,
+    &-number,
+    &-array {
+      @apply text-gray-900;
     }
+  }
+
+  .vjs-key {
+    @apply text-gray-500;
   }
 }
 </style>

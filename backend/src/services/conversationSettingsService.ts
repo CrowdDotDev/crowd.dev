@@ -22,7 +22,7 @@ export default class ConversationSettingsService {
   }
 
   static async save(data, options) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     const settings = await ConversationSettingsRepository.save(data, options)
 

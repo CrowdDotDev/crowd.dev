@@ -101,6 +101,8 @@ export default class UserRepository {
       {
         email: data.email,
         firstName: data.firstName,
+        lastName: data.lastName,
+        fullName: data.fullName,
         password: data.password,
       },
       { transaction },
@@ -446,7 +448,7 @@ export default class UserRepository {
 
     rows = this._mapUserForTenantForRows(rows, currentTenant)
 
-    return { rows, count }
+    return { rows, count, limit: false, offset: 0 }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -646,6 +648,7 @@ export default class UserRepository {
     emailVerified,
     firstName,
     lastName,
+    fullName,
     options,
   ) {
     const data = {
@@ -655,6 +658,7 @@ export default class UserRepository {
       provider,
       firstName,
       lastName,
+      fullName,
     }
 
     const transaction = SequelizeRepository.getTransaction(options)
@@ -799,7 +803,7 @@ export default class UserRepository {
       email: user.email,
       roles,
       status,
-      invitationToken: tenantUser.invitationToken,
+      invitationToken: tenantUser?.invitationToken,
     }
   }
 }

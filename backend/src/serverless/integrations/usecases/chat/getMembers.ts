@@ -42,7 +42,7 @@ async function getMembers(
 
   return {
     records: result.value.members,
-    nextPage: result.value.members.length < input.limit ? '' : result.value.nextPage,
+    nextPage: result.value.members.length < input.limit ? undefined : result.value.nextPage,
     limit,
     timeUntilReset,
   }

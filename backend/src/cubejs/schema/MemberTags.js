@@ -1,5 +1,5 @@
 cube(`MemberTags`, {
-  sql: `SELECT * FROM public."communityMemberTags"`,
+  sql: `SELECT * FROM public."memberTags"`,
 
   joins: {
     Tags: {
@@ -11,19 +11,19 @@ cube(`MemberTags`, {
   measures: {
     count: {
       type: `count`,
-      drillMembers: [communitymemberid, tagid, createdat, updatedat],
+      drillMembers: [memberid, tagid, createdat, updatedat],
       shown: false,
     },
   },
 
   dimensions: {
     id: {
-      sql: `CONCAT(${CUBE}.communityMemberId, ${CUBE}.tagId)`,
+      sql: `CONCAT(${CUBE}.memberId, ${CUBE}.tagId)`,
       type: `string`,
       primaryKey: true,
     },
-    communitymemberid: {
-      sql: `${CUBE}."communityMemberId"`,
+    memberid: {
+      sql: `${CUBE}."memberId"`,
       type: `string`,
       shown: false,
     },

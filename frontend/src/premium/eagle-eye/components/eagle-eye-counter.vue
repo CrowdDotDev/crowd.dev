@@ -8,29 +8,28 @@
           ? 'found'
           : ''
       }}
-      <span v-if="activeTab === 'inbox'"
-        >・ {{ timeframe }}</span
-      >
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 export default {
   name: 'AppEagleEyeCounter',
   computed: {
+    ...mapState({
+      count: (state) => state.eagleEye.count,
+      filter: (state) => state.eagleEye.filter
+    }),
     ...mapGetters({
-      count: 'eagleEye/count',
-      filter: 'eagleEye/filter',
-      activeTab: 'eagleEye/activeTab'
+      activeView: 'eagleEye/activeView'
     }),
     typeOfPostsFound() {
-      if (this.activeTab === 'inbox') {
+      if (this.activeView === 'inbox') {
         return this.hasKeywords ? 'relevant' : 'recommended'
-      } else if (this.activeTab === 'rejected') {
+      } else if (this.activeView === 'rejected') {
         return 'excluded'
-      } else if (this.activeTab === 'engaged') {
+      } else if (this.activeView === 'engaged') {
         return 'engaged'
       } else {
         return ''
@@ -38,19 +37,6 @@ export default {
     },
     hasKeywords() {
       return Object.keys(this.filter).includes('keywords')
-    },
-    timeframe() {
-      if (this.filter.nDays === 1) {
-        return 'Last 24 hours'
-      } else if (this.filter.nDays === 3) {
-        return 'Last 3 days'
-      } else if (this.filter.nDays === 7) {
-        return 'Last 7 days'
-      } else if (this.filter.nDays === 30) {
-        return 'Last 30 days'
-      } else {
-        return ''
-      }
     }
   }
 }

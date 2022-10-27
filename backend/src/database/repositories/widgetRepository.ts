@@ -5,6 +5,8 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 const { Op } = Sequelize
 
@@ -181,12 +183,9 @@ class WidgetRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = []
     const include = [
       {
         model: options.database.report,
@@ -194,28 +193,33 @@ class WidgetRepository {
       },
     ]
 
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.type) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('widget', 'type', filter.type))
+        advancedFilter.and.push({
+          type: { textContains: filter.type },
+        })
       }
 
       if (filter.title) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('widget', 'title', filter.title))
+        advancedFilter.and.push({
+          title: {
+            textContains: filter.title,
+          },
+        })
       }
 
       if (filter.report) {
-        whereAnd.push({
-          reportId: SequelizeFilterUtils.uuid(filter.report),
+        advancedFilter.and.push({
+          reportId: filter.report,
         })
       }
 
@@ -223,40 +227,48 @@ class WidgetRepository {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const parser = new QueryParser({}, options)
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.widget.findAndCountAll({
-      where,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       include,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
       transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

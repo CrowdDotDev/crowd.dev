@@ -10,7 +10,7 @@ export default async (req, res) => {
 
     // In the case of the Tenant, specific permissions like tenantDestroy and tenantEdit are
     // checked inside the service
-    const payload = await new TenantService(req).update(req.params.id, req.body.data)
+    const payload = await new TenantService(req).update(req.params.id, req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

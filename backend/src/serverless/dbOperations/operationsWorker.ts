@@ -1,4 +1,4 @@
-import CommunityMemberService from '../../services/communityMemberService'
+import MemberService from '../../services/memberService'
 import getUserContext from '../../database/utils/getUserContext'
 import Operations from './operations'
 import ActivityService from '../../services/activityService'
@@ -13,9 +13,9 @@ import MicroserviceService from '../../services/microserviceService'
  */
 async function updateMembers(tenantId: string, records: Array<any>): Promise<any> {
   const userContext = await getUserContext(tenantId)
-  const communityMemberService = new CommunityMemberService(userContext)
+  const memberService = new MemberService(userContext)
   for (const record of records) {
-    await communityMemberService.update(record.id, record.update)
+    await memberService.update(record.id, record.update)
   }
 }
 
@@ -27,9 +27,9 @@ async function updateMembers(tenantId: string, records: Array<any>): Promise<any
  */
 async function upsertMembers(tenantId: string, records: Array<any>): Promise<any> {
   const userContext = await getUserContext(tenantId)
-  const communityMemberService = new CommunityMemberService(userContext)
+  const memberService = new MemberService(userContext)
   for (const record of records) {
-    await communityMemberService.upsert(record)
+    await memberService.upsert(record)
   }
 }
 
@@ -41,9 +41,9 @@ async function upsertMembers(tenantId: string, records: Array<any>): Promise<any
  */
 async function updateMembersToMerge(tenantId: string, records: Array<any>): Promise<any> {
   const userContext = await getUserContext(tenantId)
-  const communityMemberService = new CommunityMemberService(userContext)
+  const memberService = new MemberService(userContext)
   for (const record of records) {
-    await communityMemberService.addToMerge(record[0], record[1])
+    await memberService.addToMerge(record[0], record[1])
   }
 }
 

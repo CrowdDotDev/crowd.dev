@@ -85,7 +85,7 @@ const es = {
         },
       },
     },
-    communityMember: {
+    member: {
       errors: {
         unique: {
           username: 'Username debe ser único',

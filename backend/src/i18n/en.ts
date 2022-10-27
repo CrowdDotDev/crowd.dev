@@ -7,6 +7,22 @@ const en = {
     title: 'crowd.dev',
   },
 
+  settings: {
+    memberAttributes: {
+      errors: {
+        wrongType: `Member attribute {0} should have type {1}.`,
+        alreadyExists: `Attribute with name '{0}' already exists.`,
+        typesNotMatching: `Attribute types cannot be changed after creation.`,
+        canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
+        requiredFields: `Type and label fields are required when creating member attributes.`,
+        notFound: `Member attribute {0} not found in memberAttributeSettings.`,
+        noPlatformSent: `Cannot select the highest priority platform. No platform was sent.`,
+        priorityArrayNotFound: `Member attributes platform priority array does not exist.`,
+        reservedField: `Cannot use reserved field '{0}' for dynamic attributes.`,
+      },
+    },
+  },
+
   auth: {
     userNotFound: `Sorry, this email does not match any record in our database`,
     wrongPassword: `Wrong password`,
@@ -74,14 +90,11 @@ const en = {
     validation: {
       message: 'An unexpected error occurred',
     },
-    crowdInfo: {
-      message: 'CrowdInfo is for computed metrics only. Cannot be edited.',
-    },
     noMember: {
       message: 'Member does not exist',
     },
     activityDup: {
-      message: 'This activity has already been linked to this community member',
+      message: 'This activity has already been linked to this member',
     },
     invalidEagleEyeStatus: {
       message: 'Possible statuses are: "shown", "rejected", "engaged"',
@@ -89,12 +102,21 @@ const en = {
     wrongEagleEyeSearch: {
       message: 'Wrong search parameters',
     },
+    OrganizationNameOrUrlRequired: {
+      message: 'Organization Name or Url is required',
+    },
     projectNotFound: {
       message: 'Project not found',
     },
 
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
+    },
+    sentiment: {
+      mood: 'Invalid sentiment data. The {1} property must exist and be a number.',
+      label:
+        "Invalid sentiment data. The 'label' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.",
+      sentiment: "Invalid sentiment data. The 'sentiment' property must exist and be a number.",
     },
   },
 
@@ -107,7 +129,7 @@ const en = {
   },
 
   entities: {
-    communityMember: {
+    member: {
       errors: {
         unique: {
           username: 'Username must be unique',

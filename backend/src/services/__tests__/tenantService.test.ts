@@ -1,9 +1,11 @@
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import TenantService from '../tenantService'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 import { IServiceOptions } from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { MemberAttributeName } from '../../database/attributes/member/enums'
 
 const db = null
 
@@ -20,7 +22,7 @@ describe('TenantService tests', () => {
   describe('findMembersToMerge', () => {
     it('Should show the same merge suggestion once, with reverse order', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-      const communityMemberService = new CommunityMemberService(mockIServiceOptions)
+      const memberService = new MemberService(mockIServiceOptions)
       const tenantService = new TenantService(mockIServiceOptions)
 
       const memberToCreate1 = {
@@ -51,21 +53,24 @@ describe('TenantService tests', () => {
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
-      const member1 = await communityMemberService.upsert(memberToCreate1)
-      let member2 = await communityMemberService.upsert(memberToCreate2)
-      const member3 = await communityMemberService.upsert(memberToCreate3)
-      let member4 = await communityMemberService.upsert(memberToCreate4)
+      const member1 = await memberService.upsert(memberToCreate1)
+      let member2 = await memberService.upsert(memberToCreate2)
+      const member3 = await memberService.upsert(memberToCreate3)
+      let member4 = await memberService.upsert(memberToCreate4)
 
-      await communityMemberService.addToMerge(member1.id, member2.id)
-      await communityMemberService.addToMerge(member3.id, member4.id)
+      await memberService.addToMerge(member1.id, member2.id)
+      await memberService.addToMerge(member3.id, member4.id)
 
-      member2 = await communityMemberService.findById(member2.id)
-      member4 = await communityMemberService.findById(member4.id)
+      member2 = await memberService.findById(member2.id)
+      member4 = await memberService.findById(member4.id)
 
       expect(member2.toMerge).toHaveLength(1)
       expect(member4.toMerge).toHaveLength(1)
 
       const memberToMergeSuggestions = await tenantService.findMembersToMerge()
+
+      console.log('mem sugs: ')
+      console.log(memberToMergeSuggestions)
 
       // In the DB there should be:
       // - Member 1 should have member 2 in toMerge
@@ -75,11 +80,13 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
-      expect(memberToMergeSuggestions[0][0].id).toStrictEqual(member2.id)
-      expect(memberToMergeSuggestions[0][1].id).toStrictEqual(member1.id)
+      expect(
+        memberToMergeSuggestions[0].sort((a, b) => a.createdAt > b.createdAt).map((m) => m.id),
+      ).toStrictEqual([member1.id, member2.id])
 
-      expect(memberToMergeSuggestions[1][0].id).toStrictEqual(member4.id)
-      expect(memberToMergeSuggestions[1][1].id).toStrictEqual(member3.id)
+      expect(
+        memberToMergeSuggestions[1].sort((a, b) => a.createdAt > b.createdAt).map((m) => m.id),
+      ).toStrictEqual([member3.id, member4.id])
     })
   })
 
@@ -109,7 +116,7 @@ describe('TenantService tests', () => {
   })
 
   describe('create method', () => {
-    it('Should succesfully create the tenant and related default microservices', async () => {
+    it('Should succesfully create the tenant, related default microservices and settings', async () => {
       const randomUser = await SequelizeTestUtils.getRandomUser()
       let db = null
       db = await SequelizeTestUtils.getDatabase(db)
@@ -125,6 +132,8 @@ describe('TenantService tests', () => {
       const tenantCreated = await new TenantService(options).create({
         name: 'testName',
         url: 'testUrl',
+        integrationsRequired: ['github', 'discord'],
+        communitySize: '>25000',
       })
 
       const tenantCreatedPlain = tenantCreated.get({ plain: true })
@@ -141,7 +150,9 @@ describe('TenantService tests', () => {
         planStripeCustomerId: null,
         planUserId: null,
         onboardedAt: null,
+        integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
+        communitySize: '>25000',
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -162,6 +173,18 @@ describe('TenantService tests', () => {
       // findAndCountAll returns sorted by createdAt (desc) by default, so first one should be members_score
       expect(microservicesOfTenant.rows[0].type).toEqual('members_score')
       expect(microservicesOfTenant.rows[1].type).toEqual('check_merge')
+
+      // Check default member attributes
+      const mas = new MemberAttributeSettingsService({ ...options, currentTenant: tenantCreated })
+      const defaultAttributes = await mas.findAndCountAll({ filter: {} })
+
+      expect(defaultAttributes.rows.map((i) => i.name).sort()).toEqual([
+        MemberAttributeName.BIO,
+        MemberAttributeName.IS_TEAM_MEMBER,
+        MemberAttributeName.JOB_TITLE,
+        MemberAttributeName.LOCATION,
+        MemberAttributeName.URL,
+      ])
     })
   })
 })

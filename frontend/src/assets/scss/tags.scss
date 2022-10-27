@@ -1,5 +1,5 @@
 .tag {
-  @apply rounded px-3 py-1 leading-none bg-gray-50 my-1;
+  @apply rounded px-3 py-1 leading-none bg-gray-100 my-1 border border-gray-200 text-gray-900;
   &--sm {
     @apply px-1 py-0 text-sm;
   }

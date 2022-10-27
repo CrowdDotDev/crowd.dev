@@ -14,7 +14,7 @@
       <el-button
         v-if="isCurrentPlan"
         :disabled="true"
-        class="w-100"
+        class="w-full"
         native-type="button"
       >
         <app-i18n code="plan.current"></app-i18n>

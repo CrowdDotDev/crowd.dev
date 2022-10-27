@@ -8,7 +8,6 @@ import {
   ApiConfiguration,
   SlackConfiguration,
   GoogleConfiguration,
-  FacebookConfiguration,
   DiscordConfiguration,
   ServiceType,
   SearchEngineConfiguration,
@@ -18,6 +17,9 @@ import {
   NetlifyConfiguration,
   TenantMode,
   CubeJSConfiguration,
+  ComprehendConfiguration,
+  ClearbitConfiguration,
+  DevtoConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -38,6 +40,8 @@ export const IS_DEV_ENV: boolean =
 export const IS_PROD_ENV: boolean = process.env.NODE_ENV === 'production'
 
 export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
+
+export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
@@ -84,6 +88,24 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
       writeKey: process.env.SEGMENT_WRITE_KEY,
     }
 
+export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
+  ? config.get<ComprehendConfiguration>('comprehend')
+  : {
+      // can be left blank - aws.ts configuration gets it straight from env
+      aws: {
+        accessKeyId: '',
+        accountId: '',
+        region: '',
+        secretAccessKey: '',
+      },
+    }
+
+export const CLEARBIT_CONFIG: ClearbitConfiguration = KUBE_MODE
+  ? config.get<ClearbitConfiguration>('clearbit')
+  : {
+      apiKey: process.env.CLEARBIT_API_KEY,
+    }
+
 export const API_CONFIG: ApiConfiguration = KUBE_MODE
   ? config.get<ApiConfiguration>('api')
   : {
@@ -105,6 +127,10 @@ export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
       stripeSecretKey: process.env.PLAN_STRIPE_SECRET_KEY,
       stripWebhookSigningSecret: process.env.PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
     }
+
+export const DEVTO_CONFIG: DevtoConfiguration = KUBE_MODE
+  ? config.get<DevtoConfiguration>('devto')
+  : {}
 
 export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
   ? config.get<TwitterConfiguration>('twitter')
@@ -131,14 +157,6 @@ export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
       clientId: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_ID,
       clientSecret: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_SECRET,
       callbackUrl: process.env.AUTH_SOCIAL_GOOGLE_CALLBACK_URL,
-    }
-
-export const FACEBOOK_CONFIG: FacebookConfiguration = KUBE_MODE
-  ? config.get<FacebookConfiguration>('facebook')
-  : {
-      clientId: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.AUTH_SOCIAL_FACEBOOK_CLIENT_SECRET,
-      callbackUrl: process.env.AUTH_SOCIAL_FACEBOOK_CALLBACK_URL,
     }
 
 export const DISCORD_CONFIG: DiscordConfiguration = KUBE_MODE

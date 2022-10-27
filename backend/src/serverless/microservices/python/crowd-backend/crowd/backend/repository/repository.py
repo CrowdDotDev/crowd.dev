@@ -8,11 +8,9 @@ from jmespath import search
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from crowd.backend.models.base import Base
-from crowd.backend.models import CommunityMember
+from crowd.backend.models import Member
 from crowd.backend.models import Activity
-from crowd.backend.models import Integration
 from crowd.backend.models import Tenant
-from crowd.backend.models import Widget
 from crowd.backend.models import Microservice
 import uuid
 import json
@@ -60,14 +58,16 @@ class Repository(object):
                     host = os.environ.get("DATABASE_HOST_READ")
                     self.db_url = f'postgresql://{username}:{password}@{host}/{database}'
 
+        # self.db_url = 'postgresql://postgres:example@localhost:5432/crowd-web'
+
         self.engine = create_engine(
-            self.db_url, pool_pre_ping=True, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True}, 
+            self.db_url, pool_pre_ping=True, echo=False, execution_options={"postgresql_readonly": True, "postgresql_deferrable": True},
             connect_args={
-                  "keepalives": 1,
-                  "keepalives_idle": 30,
-                  "keepalives_interval": 10,
-                  "keepalives_count": 5,
-              }
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5,
+            }
         )
 
         Base.metadata.create_all(self.engine, checkfirst=True)
@@ -190,19 +190,9 @@ class Repository(object):
 
         return search_query.all()
 
-    def find_active_widgets(self, widget_type, ignore_tenant=False):
-        search_query = self.session.query(Widget)
-        if not ignore_tenant:
-            search_query = search_query.filter(Widget.tenantId == uuid.UUID(self.tenant_id))
-
-        search_query = search_query.filter(Widget.type == widget_type)
-        search_query = search_query.filter(Widget.settings.is_not(None))
-
-        return search_query.all()
-
     def find_members(self, username):
         return self.find_in_table(
-            CommunityMember,
+            Member,
             {"username.crowdUsername": username, "tenantId": uuid.UUID(self.tenant_id)},
             many=True,
         )
@@ -235,39 +225,6 @@ class Repository(object):
 
         return search_query.count()
 
-    def find_integration_by_platform(self, platform):
-        """
-        Find an integration by platform in a specific tenant
-
-        Args:
-            platform (str): platform
-
-        Returns:
-            Integration: the integration found
-        """
-        if type(self.tenant_id) == str:
-            tenant_id = uuid.UUID(self.tenant_id)
-        else:
-            tenant_id = self.tenant_id
-
-        return self.find_in_table(Integration, {dbk.PLATFORM: platform, dbk.TENANT: tenant_id})
-
-    def find_integration_by_identifier(self, platform, identifier):
-        """
-        Find an integration by platform in a specific tenant
-
-        Args:
-            platform (str): platform
-            identifier (str): identifier
-
-        Returns:
-            Integration: the integration found
-        """
-        return self.find_in_table(
-            Integration,
-            {dbk.PLATFORM: platform, dbk.INTEGRATION_IDENTIFIER: identifier},
-        )
-
     def find_available_microservices(self, service):
         """
         Function to get microservices of type service that are not running
@@ -286,7 +243,7 @@ class Repository(object):
             table (Base): class of the entity
 
         Returns:
-            [type]: [description]
+            Array: Members
         """
         if not query:
             query = {}
@@ -296,18 +253,16 @@ class Repository(object):
             **{dbk.TENANT: uuid.UUID(self.tenant_id)},
         }
 
-        search_query = self.session.query(CommunityMember)
+        search_query = self.session.query(Member)
 
         # Filter with query
         for attr, value in query.items():
-            search_query = search_query.filter(getattr(CommunityMember, attr) == value)
+            search_query = search_query.filter(getattr(Member, attr) == value)
 
-        # Find members that are of type member
-        search_query = search_query.filter(CommunityMember.type == "member")
         # Find members that are new
         # We use a security padding of 5 minutes
         search_query = search_query.filter(
-            CommunityMember.createdAt >= (microservice.updatedAt - timedelta(minutes=5))
-        ).order_by(CommunityMember.createdAt.desc())
+            Member.createdAt >= (microservice.updatedAt - timedelta(minutes=5))
+        ).order_by(Member.createdAt.desc())
 
         return search_query.all()

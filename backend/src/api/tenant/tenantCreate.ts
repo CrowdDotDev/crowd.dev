@@ -11,7 +11,7 @@ export default async (req, res) => {
       throw new Error403(req.language)
     }
 
-    const payload = await new TenantService(req).create(req.body.data)
+    const payload = await new TenantService(req).create(req.body)
 
     track(
       'Tenant Created',

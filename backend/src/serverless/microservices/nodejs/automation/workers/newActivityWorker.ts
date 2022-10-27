@@ -47,7 +47,7 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
 
   // check whether activity content contains any of the keywords
   if (process && settings.keywords && settings.keywords.length > 0) {
-    const body = (activityData.crowdInfo.body as string).toLowerCase()
+    const body = (activityData.body as string).toLowerCase()
     if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${
@@ -59,7 +59,10 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
   }
 
   if (process && !settings.teamMemberActivities) {
-    if (activityData.crowdInfo.teamMember) {
+    if (
+      activityData.member.attributes.isTeamMember &&
+      activityData.member.attributes.isTeamMember.custom
+    ) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${activityData.id} belongs to a team member!`,
       )
@@ -83,8 +86,8 @@ export const prepareActivityPayload = (activity: any): any => {
   delete copy.updatedAt
   delete copy.updatedById
   delete copy.deletedAt
-  if (copy.communityMember) {
-    copy.communityMember = prepareMemberPayload(copy.communityMember)
+  if (copy.member) {
+    copy.member = prepareMemberPayload(copy.member)
   }
   if (copy.parent) {
     copy.parent = prepareActivityPayload(copy.parent)
@@ -101,7 +104,7 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityId activity unique ID
  */
 export default async (tenantId: string, activityId: string): Promise<void> => {
-  console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
+  // console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
 
   const userContext = await getUserContext(tenantId)
 
@@ -135,7 +138,7 @@ export default async (tenantId: string, activityId: string): Promise<void> => {
         }
       }
     } else {
-      console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
+      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
     console.log('Error while processing new activity automation trigger!', error)

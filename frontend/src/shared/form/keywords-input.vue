@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="app-keywords-input">
     <div
       class="el-keywords-input-wrapper"
       :class="focused ? 'is-focus' : ''"
@@ -28,11 +28,12 @@
         @input="inputKeyword"
         @keydown.delete.stop="removeLastKeyword"
         @keydown="addNew"
+        @focus="focus"
         @blur="blur"
       />
     </div>
     <span
-      class="text-xs text-gray-400"
+      class="helper-copy"
       :class="focused ? 'opacity-100' : 'opacity-0'"
       >Press ENTER or comma (,) to separate keywords</span
     >
@@ -91,6 +92,9 @@ export default {
     blur(e) {
       this.focused = false
       this.addNew(e)
+    },
+    focus() {
+      this.focused = true
     },
     addNew(e) {
       if (
@@ -151,35 +155,54 @@ export default {
 </script>
 
 <style lang="scss">
-.el-keywords-input-wrapper {
-  @apply relative text-sm bg-white rounded-md pr-2 pl-1 flex items-center flex-wrap;
-  background-image: none;
-  border: 1px solid #dcdfe6;
-  box-sizing: content-box;
-  color: #606266;
-  outline: none;
-  transition: border-color 0.2s
-    cubic-bezier(0.645, 0.045, 0.355, 1);
-  min-height: 38px;
+.app-keywords-input {
+  .el-keywords-input-wrapper {
+    @apply relative text-sm bg-white shadow-none border border-solid border-gray-300 rounded-md pr-2 pl-1 flex items-center flex-wrap;
+    background-image: none;
+    box-sizing: content-box;
+    outline: none;
+    transition: border-color 0.2s
+      cubic-bezier(0.645, 0.045, 0.355, 1);
+    min-height: 38px;
 
-  .el-tag {
-    margin: 4px 0 4px 4px;
+    .el-tag {
+      margin: 4px 0 4px 4px;
+    }
+
+    &.is-focus {
+      @apply border-gray-500;
+    }
+
+    &:hover:not(:focus):not(.is-focus) {
+      @apply border-gray-400;
+    }
+  }
+
+  .el-keywords-input {
+    @apply bg-transparent border-none pl-0 ml-2 h-full text-gray-900;
+    font-size: inherit;
+    outline: none;
+    width: 200px;
+    min-height: 24px;
+  }
+  .el-tag--small .el-tag__close {
+    @apply ml-1.5;
   }
 
   &.is-focus {
     border: 1px solid #0068bd;
   }
-}
 
-.el-keywords-input {
-  @apply bg-transparent border-none pl-0 ml-2 h-full;
-  font-size: inherit;
-  outline: none;
-  width: 200px;
-  min-height: 24px;
-}
+  .el-tag.el-tag--info {
+    @apply text-black;
+  }
 
-.el-keywords-input-list {
-  @apply flex items-center flex-wrap h-full;
+  .el-keywords-input-list {
+    @apply flex items-center flex-wrap h-full;
+  }
+
+  .helper-copy {
+    @apply text-xs text-gray-400;
+  }
 }
 </style>
