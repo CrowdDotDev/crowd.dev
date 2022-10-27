@@ -198,19 +198,17 @@ export class IntegrationProcessor {
         if (secondsSinceLastReset >= intService.limitResetFrequencySeconds) {
           integration.limitCount = 0
           integration.limitLastResetAt = moment().utc().toISOString()
+
+          await IntegrationRepository.update(
+            integration.id,
+            {
+              limitCount: integration.limitCount,
+              limitLastResetAt: integration.limitLastResetAt,
+            },
+            userContext,
+          )
         }
       }
-
-      // mark integration as in process
-      await IntegrationRepository.update(
-        integration.id,
-        {
-          status: 'in-progress',
-          limitCount: integration.limitCount,
-          limitLastResetAt: integration.limitLastResetAt,
-        },
-        userContext,
-      )
 
       // preprocess if needed
       logger.info('Preprocessing integration!')
