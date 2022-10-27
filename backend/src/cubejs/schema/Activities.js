@@ -11,7 +11,7 @@ cube(`Activities`, {
         Members.location,
         Members.tenantId,
         Activities.tenantId,
-        Tags.name,
+        // Tags.name,
       ],
       timeDimension: Activities.date,
       granularity: `day`,
