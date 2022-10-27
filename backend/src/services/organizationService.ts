@@ -79,11 +79,10 @@ export default class OrganizationService {
         })
       } else if (data.name && data.url) {
         // save it to cache
-          cacheExisting = await organizationCacheRepository.create(data, {
-            ...this.options,
-            transaction,
-          })
-
+        cacheExisting = await organizationCacheRepository.create(data, {
+          ...this.options,
+          transaction,
+        })
       }
 
       if (shouldDoEnrich) {
@@ -112,20 +111,17 @@ export default class OrganizationService {
               transaction,
             })
 
-            if (cacheExisting){
+            if (cacheExisting) {
               await organizationCacheRepository.update(cacheExisting.id, data, {
                 ...this.options,
                 transaction,
               })
-            }
-            else{
+            } else {
               cacheExisting = await organizationCacheRepository.create(data, {
                 ...this.options,
                 transaction,
               })
             }
-
-        
           } catch (error) {
             console.log(`Could not enrich ${data.url}: ${error}`)
           }
