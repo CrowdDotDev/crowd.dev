@@ -16,7 +16,7 @@
             <el-option
               v-for="integration of activeIntegrations"
               :key="integration.id"
-              :value="integration.name"
+              :value="integration.platform"
               :label="integration.label"
             ></el-option>
           </el-select>
