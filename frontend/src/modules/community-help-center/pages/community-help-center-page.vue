@@ -5,15 +5,21 @@
         <h4>Community Help Center</h4>
         <div class="flex items-center">
           <app-community-help-center-settings
+            v-model="model"
             class="mr-2"
             :visible="hasSettingsVisible"
             @open="doOpenSettingsDrawer"
             @close="doCloseSettingsDrawer"
           />
           <a
-            :href="computedCrowdOpenLink"
+            :href="
+              model.enabled ? computedCrowdOpenLink : null
+            "
             target="_blank"
             class="btn btn-brand--secondary btn--md"
+            :class="{
+              disabled: !model.enabled
+            }"
             ><i class="ri-external-link-line mr-2"></i>Open
             public page</a
           >
@@ -47,6 +53,15 @@ export default {
     AppCommunityHelpCenterTabs,
     AppCommunityHelpCenterFilter,
     AppCommunityHelpCenterSettings
+  },
+
+  data() {
+    return {
+      model: {
+        theme: {},
+        autoPublish: {}
+      }
+    }
   },
 
   computed: {

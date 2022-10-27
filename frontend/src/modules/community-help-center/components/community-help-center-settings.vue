@@ -177,19 +177,22 @@ export default {
     buttonVisible: {
       type: Boolean,
       default: true
+    },
+    modelValue: {
+      type: Object,
+      default: () => ({
+        theme: {},
+        autoPublish: {}
+      })
     }
   },
-  emits: ['close', 'open'],
+  emits: ['close', 'open', 'update:modelValue'],
 
   data() {
     return {
       loading: false,
       rules: formSchema.rules(),
-      initialModel: {},
-      model: {
-        theme: {},
-        autoPublish: {}
-      }
+      initialModel: {}
     }
   },
 
@@ -205,6 +208,14 @@ export default {
       communityHelpCenterSettings:
         'auth/communityHelpCenterSettings'
     }),
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(value) {
+        this.$emit('update:modelValue', value)
+      }
+    },
     computedVisible: {
       get() {
         return this.visible
