@@ -339,7 +339,10 @@ async function onSubmit() {
       formModel.value.attributes) && {
       attributes: {
         ...(Object.keys(formattedAttributes).length &&
-          formattedAttributes)
+          formattedAttributes),
+        ...(formModel.value.attributes.url && {
+          url: formModel.value.attributes.url
+        })
       }
     },
     Object.keys(formModel.value.username).length && {

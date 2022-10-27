@@ -7,8 +7,9 @@
         >Activate public page</span
       >
       <span class="text-gray-500 text-2xs"
-        >Lorem ipsum dolor sit amet</span
-      >
+        >Once activated, everyone can access your Community
+        Help Center
+      </span>
     </div>
     <div>
       <el-switch

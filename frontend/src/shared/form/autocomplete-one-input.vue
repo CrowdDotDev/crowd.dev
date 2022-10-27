@@ -99,12 +99,12 @@ export default {
   computed: {
     initialOption() {
       if (
-        this.value &&
+        this.modelValue &&
         !this.dataSource
           .map((item) => item.id)
           .includes(this.value.id)
       ) {
-        return this.value
+        return this.modelValue
       }
 
       return null
