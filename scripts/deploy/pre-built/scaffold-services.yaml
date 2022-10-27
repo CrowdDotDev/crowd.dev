@@ -21,7 +21,7 @@ services:
       - crowd-bridge
 
   db:
-    image: postgres:13.6-alpine
+    image: crowddotdev/db:1666875695.899aa137
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
