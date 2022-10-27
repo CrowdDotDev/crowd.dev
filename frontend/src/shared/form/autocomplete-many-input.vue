@@ -1,5 +1,6 @@
 <template>
   <el-select
+    ref="input"
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
@@ -20,7 +21,7 @@
     <el-option
       v-show="showCreateSuggestion"
       :label="currentQuery"
-      :create="true"
+      :created="true"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
@@ -118,15 +119,14 @@ export default {
 
   methods: {
     async onChange(value) {
+      const query = this.$refs.input.query
       if (value.length === 0) {
         this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
-        if (item === false && this.currentQuery !== '') {
+        if (item === false && query !== '') {
           // item is created/typed from user
-          const newItem = await this.createFn(
-            this.currentQuery
-          )
+          const newItem = await this.createFn(query)
           this.localOptions.push(newItem)
           return newItem
         } else {
