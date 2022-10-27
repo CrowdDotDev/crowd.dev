@@ -79,18 +79,18 @@ class AuthService {
           ),
         )
 
-        // if (!isEmailVerified && EmailSender.isConfigured) {
-        //   await this.sendEmailAddressVerificationEmail(
-        //     options.language,
-        //     existingUser.email,
-        //     tenantId,
-        //     {
-        //       ...options,
-        //       transaction,
-        //       bypassPermissionValidation: true,
-        //     },
-        //   )
-        // }
+        if (!isEmailVerified && EmailSender.isConfigured) {
+          await this.sendEmailAddressVerificationEmail(
+            options.language,
+            existingUser.email,
+            tenantId,
+            {
+              ...options,
+              transaction,
+              bypassPermissionValidation: true,
+            },
+          )
+        }
 
         const token = jwt.sign({ id: existingUser.id }, API_CONFIG.jwtSecret, {
           expiresIn: API_CONFIG.jwtExpiresIn,
@@ -366,7 +366,7 @@ class AuthService {
     }
     
     return true
-    // return new EmailSender(EmailSender.TEMPLATES.EMAIL_ADDRESS_VERIFICATION, { link }).sendTo(email)
+    return new EmailSender(EmailSender.TEMPLATES.EMAIL_ADDRESS_VERIFICATION, { link }).sendTo(email)
   }
 
   static async sendPasswordResetEmail(language, email, tenantId, options) {
