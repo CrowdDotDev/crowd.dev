@@ -26,7 +26,6 @@ export default class OrganizationService {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      let wasEnriched = false
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
       const existingByName = data.name
@@ -48,7 +47,42 @@ export default class OrganizationService {
         : null
       if (existingByUrl) {
         await SequelizeRepository.commitTransaction(transaction)
-        return await this.update(existingByName.id, data)
+        return await this.update(existingByUrl.id, data)
+      }
+
+      // check cache existing by name or url
+      let cacheExisting
+
+      if (data.url) {
+        cacheExisting = await organizationCacheRepository.findByUrl(data.url, {
+          ...this.options,
+          transaction,
+        })
+      } else if (data.name) {
+        cacheExisting = await organizationCacheRepository.findByName(data.name, {
+          ...this.options,
+          transaction,
+        })
+      }
+
+      // if cache exists, merge current data with cache data
+      // if it doesn't exist, and data has both name and url values (That might come from github api)
+      // create cache from the data
+      if (cacheExisting) {
+        data = {
+          ...cacheExisting,
+          ...data,
+        }
+        cacheExisting = await organizationCacheRepository.update(cacheExisting.id, data, {
+          ...this.options,
+          transaction,
+        })
+      } else if (data.name && data.url) {
+        // save it to cache
+        cacheExisting = await organizationCacheRepository.create(data, {
+          ...this.options,
+          transaction,
+        })
       }
 
       if (shouldDoEnrich) {
@@ -63,27 +97,33 @@ export default class OrganizationService {
           }
         }
         if (data.url) {
-          data.url = data.url.toLowerCase().replace('https://', '').replace('http://', '')
-          const cacheExistig = await organizationCacheRepository.findByUrl(data.url, {
-            ...this.options,
-            transaction,
-          })
-          if (cacheExistig) {
+          try {
+            const enrichedData = await enrichOrganization(data.url)
             data = {
               ...data,
-              ...cacheExistig,
+              ...enrichedData,
             }
-          } else {
-            try {
-              const enrichedData = await enrichOrganization(data.url)
-              wasEnriched = true
-              data = {
-                ...data,
-                ...enrichedData,
-              }
-            } catch (error) {
-              console.log(`Could not enrich ${data.url}: ${error}`)
+
+            // enrichOrganization might have updated the url of the organization
+            // that's why we need to check it again by url
+            cacheExisting = await organizationCacheRepository.findByUrl(data.url, {
+              ...this.options,
+              transaction,
+            })
+
+            if (cacheExisting) {
+              await organizationCacheRepository.update(cacheExisting.id, data, {
+                ...this.options,
+                transaction,
+              })
+            } else {
+              cacheExisting = await organizationCacheRepository.create(data, {
+                ...this.options,
+                transaction,
+              })
             }
+          } catch (error) {
+            console.log(`Could not enrich ${data.url}: ${error}`)
           }
         }
       }
@@ -99,16 +139,6 @@ export default class OrganizationService {
         ...this.options,
         transaction,
       })
-
-      if (wasEnriched) {
-        await organizationCacheRepository.create(
-          { ...record, organizationsSeeded: [record.id] },
-          {
-            ...this.options,
-            transaction,
-          },
-        )
-      }
 
       await SequelizeRepository.commitTransaction(transaction)
 

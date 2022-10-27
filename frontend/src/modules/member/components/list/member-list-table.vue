@@ -207,7 +207,7 @@ const integrations = computed(
 )
 
 const showReach = computed(() => {
-  return integrations.value.twitter?.status === 'done'
+  return integrations.value.twitter?.status === 'done' || integrations.value.github?.status === 'done'
 })
 
 const rows = computed(() => store.getters['member/rows'])

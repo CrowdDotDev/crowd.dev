@@ -33,7 +33,6 @@ describe('MemberAttributeSettingService tests', () => {
       })
 
       const [
-        nameCreated,
         isHireableCreated,
         urlCreated,
         websiteUrlCreated,
@@ -42,22 +41,9 @@ describe('MemberAttributeSettingService tests', () => {
         locationCreated,
       ] = attributes
 
-      const [name, isHireable, url, websiteUrl, bio, company, location] = GithubMemberAttributes
+      const [isHireable, url, websiteUrl, bio, company, location] = GithubMemberAttributes
 
       const expected = [
-        {
-          id: nameCreated.id,
-          createdAt: SequelizeTestUtils.getNowWithoutTime(),
-          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-          createdById: mockIRepositoryOptions.currentUser.id,
-          updatedById: mockIRepositoryOptions.currentUser.id,
-          tenantId: mockIRepositoryOptions.currentTenant.id,
-          show: name.show,
-          type: name.type,
-          canDelete: name.canDelete,
-          name: name.name,
-          label: name.label,
-        },
         {
           id: isHireableCreated.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),

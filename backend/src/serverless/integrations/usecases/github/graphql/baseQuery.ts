@@ -18,10 +18,14 @@ class BaseQuery {
         bio
         company
         location
+        followers {
+          totalCount
+        }
     }`
 
   static ORGANIZATION_SELECT = `{
     email
+    url
     location
     name
     twitterUsername

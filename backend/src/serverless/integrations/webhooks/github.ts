@@ -329,13 +329,17 @@ export default class GitHubWebhook {
     const parsedMember: Member = {
       username: { [PlatformType.GITHUB]: member.login },
       attributes: {
-        [PlatformType.GITHUB]: {
-          [MemberAttributeName.NAME]: member.name,
-          [MemberAttributeName.IS_HIREABLE]: member.isHireable || false,
-          [MemberAttributeName.URL]: member.url,
-          [MemberAttributeName.BIO]: member.bio || '',
-          [MemberAttributeName.LOCATION]: member.location || '',
-          [MemberAttributeName.AVATAR_URL]: member.avatarUrl,
+        [MemberAttributeName.IS_HIREABLE]: {
+          [PlatformType.GITHUB]: member.isHireable || false,
+        },
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: member.url,
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: member.bio || '',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: member.location || '',
         },
       },
       email: member.email || '',
@@ -343,14 +347,15 @@ export default class GitHubWebhook {
     }
 
     if (member.websiteUrl) {
-      parsedMember.attributes[PlatformType.GITHUB][MemberAttributeName.WEBSITE_URL] =
-        member.websiteUrl
+      parsedMember.attributes[MemberAttributeName.WEBSITE_URL] = {
+        [PlatformType.GITHUB]: member.websiteUrl,
+      }
     }
 
     if (member.twitterUsername) {
-      parsedMember.attributes[PlatformType.TWITTER] = {
-        [MemberAttributeName.URL]: `https://twitter.com/${member.twitterUsername}`,
-      }
+      parsedMember.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${member.twitterUsername}`
       parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
     }
 
@@ -364,17 +369,21 @@ export default class GitHubWebhook {
           parsedMember.organizations = [
             {
               name: fromAPI.name,
-              ...(fromAPI.description && { description: fromAPI.description }),
-              ...(fromAPI.location && { location: fromAPI.location }),
-              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
-              ...(fromAPI.url && { url: fromAPI.url }),
-              ...(fromAPI.twitter && { twittwe: { handle: fromAPI.twitterUsername } }),
+              description: fromAPI.description ?? null,
+              location: fromAPI.location ?? null,
+              logo: fromAPI.avatarUrl ?? null,
+              url: fromAPI.url ?? null,
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
             },
           ]
         } else {
           parsedMember.organizations = [{ name: company }]
         }
       }
+    }
+
+    if (member.followers && member.followers.totalCount > 0) {
+      parsedMember.reach = { [PlatformType.GITHUB]: member.followers.totalCount }
     }
 
     return parsedMember

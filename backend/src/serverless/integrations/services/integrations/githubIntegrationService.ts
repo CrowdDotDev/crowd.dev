@@ -556,9 +556,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
       attributes: {
-        [MemberAttributeName.NAME]: {
-          [PlatformType.GITHUB]: memberFromApi.name,
-        },
         [MemberAttributeName.IS_HIREABLE]: {
           [PlatformType.GITHUB]: memberFromApi.isHireable || false,
         },
@@ -584,15 +581,16 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       } else {
         const company = memberFromApi.company.replace('@', '').trim()
         const fromAPI = await getOrganization(company, context.integration.token)
+
         if (fromAPI) {
           member.organizations = [
             {
               name: fromAPI.name,
-              ...(fromAPI.description && { description: fromAPI.description }),
-              ...(fromAPI.location && { location: fromAPI.location }),
-              ...(fromAPI.avatarUrl && { logo: fromAPI.avatarUrl }),
-              ...(fromAPI.url && { url: fromAPI.url }),
-              ...(fromAPI.twitter && { twitter: { handle: fromAPI.twitterUsername } }),
+              description: fromAPI.description ?? null,
+              location: fromAPI.location ?? null,
+              logo: fromAPI.avatarUrl ?? null,
+              url: fromAPI.url ?? null,
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
             },
           ]
         } else {
@@ -606,6 +604,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         PlatformType.TWITTER
       ] = `https://twitter.com/${memberFromApi.twitterUsername}`
       member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
+    }
+
+    if (memberFromApi.followers.totalCount > 0) {
+      member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }
     }
 
     return member
