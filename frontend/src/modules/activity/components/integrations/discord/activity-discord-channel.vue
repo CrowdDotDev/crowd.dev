@@ -9,7 +9,7 @@
         'reaction_added'
       ].includes(activity.type)
     "
-    class="text-brand-500"
+    class="text-brand-500 truncate max-w-2xs"
   >
     #{{ activity.channel }}
   </span>

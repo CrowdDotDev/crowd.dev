@@ -26,7 +26,7 @@
     }}</span>
     <span
       v-if="activity.channel || activity.attributes.channel"
-      class="text-brand-500"
+      class="text-brand-500 truncate max-w-2xs"
     >
       #{{
         activity.channel || activity.attributes.channel

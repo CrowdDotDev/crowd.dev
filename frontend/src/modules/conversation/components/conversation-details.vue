@@ -29,12 +29,26 @@
   <article v-else>
     <div v-if="!editing" class="flex items-center pb-8">
       <!-- avatar conversation starter -->
-      <app-avatar :entity="member" size="xs" />
+      <router-link
+        :to="{
+          name: 'memberView',
+          params: { id: member.id }
+        }"
+      >
+        <app-avatar :entity="member" size="xs" />
+      </router-link>
       <!-- conversation info-->
       <div class="pl-3">
-        <p class="text-2xs leading-4 font-medium mb-1">
-          {{ member.displayName }}
-        </p>
+        <router-link
+          :to="{
+            name: 'memberView',
+            params: { id: member.id }
+          }"
+        >
+          <p class="text-2xs leading-4 font-medium mb-1">
+            {{ member.displayName }}
+          </p>
+        </router-link>
         <div class="flex">
           <el-tooltip
             effect="dark"
@@ -48,7 +62,7 @@
             />
           </el-tooltip>
           <div class="flex-grow">
-            <p class="text-xs leading-4 pl-2">
+            <p class="text-xs leading-4 pl-2 flex">
               <!-- activity message -->
               <app-activity-message
                 :activity="conversation.conversationStarter"

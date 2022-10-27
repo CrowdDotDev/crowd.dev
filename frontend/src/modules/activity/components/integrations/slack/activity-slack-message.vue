@@ -24,7 +24,10 @@
         ? ''
         : 'in channel'
     }}</span>
-    <span v-if="activity.channel" class="text-brand-500">
+    <span
+      v-if="activity.channel"
+      class="text-brand-500 truncate max-w-2xs"
+    >
       #{{ activity.channel }}</span
     >
   </span>
