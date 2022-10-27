@@ -4,12 +4,12 @@
     :loading="loading"
     :remote-method="handleSearch"
     :model-value="modelValue"
-    clearable
-    default-first-option
-    filterable
-    multiple
+    :clearable="true"
+    :default-first-option="true"
+    :filterable="true"
+    :multiple="true"
     :placeholder="placeholder || ''"
-    remote
+    :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
     value-key="id"
@@ -17,22 +17,19 @@
     @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
-    <!-- <el-option
+    <el-option
       v-if="showCreateSuggestion"
       :value="currentQuery"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
-    </el-option> -->
+    </el-option>
     <el-option
-      v-for="record in dataSource"
+      v-for="record in localOptions"
       :key="record.id"
       :label="record.label"
       :value="record"
     >
-      <span v-if="record.prefix" class="prefix">{{
-        record.prefix
-      }}</span>
       <span>{{ record.label }}</span>
     </el-option>
   </el-select>
@@ -68,10 +65,6 @@ export default {
       type: Function,
       default: () => {}
     },
-    inMemoryFilter: {
-      type: Boolean,
-      default: true
-    },
     disabled: {
       type: Boolean,
       default: false
@@ -101,26 +94,23 @@ export default {
   data() {
     return {
       loading: false,
-      serverSideDataSource: [],
-      inMemoryDataSource: this.options ? this.options : [],
+      localOptions: this.options ? this.options : [],
       currentQuery: '',
       debouncedSearch: () => {}
     }
   },
 
   computed: {
-    dataSource() {
-      if (this.inMemoryFilter) {
-        return this.inMemoryDataSource
-      }
-
-      return [
-        {
-          prefix: this.createPrefix,
-          label: this.currentQuery,
-          value: this.currentQuery
-        }
-      ].concat(this.serverSideDataSource)
+    showCreateSuggestion() {
+      return (
+        this.createIfNotFound &&
+        this.currentQuery !== '' &&
+        !this.localOptions.some(
+          (o) =>
+            o.label === this.currentQuery ||
+            o === this.currentQuery
+        )
+      )
     }
   },
 
@@ -136,27 +126,21 @@ export default {
   },
 
   methods: {
-    showCreateSuggestion(data, query) {
-      return (
-        this.createIfNotFound &&
-        query !== '' &&
-        !data.some((o) => o.label === query || o === query)
-      )
-    },
     async onChange(value) {
       if (value.length === 0) {
         this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
         if (
+          // item does not exist
           typeof item === 'string' &&
-          item &&
-          !this.inMemoryDataSource.some(
+          item !== '' &&
+          !this.localOptions.some(
             (o) => o.label === item || o === item
           )
         ) {
           const newItem = await this.createFn(item)
-          this.inMemoryDataSource.push(newItem)
+          this.localOptions.push(newItem)
           return newItem
         } else {
           return item
@@ -172,33 +156,22 @@ export default {
         return
       }
 
-      if (this.inMemoryFilter) {
-        await this.handleInMemorySearch(value)
-      } else {
-        await this.handleServerSearch(value)
-      }
-    },
-
-    async handleInMemorySearch(value) {
-      this.inMemoryDataSource = this.options.filter(
-        (item) =>
-          String(item.label || '')
-            .toLowerCase()
-            .includes(String(value || '').toLowerCase())
+      await this.handleServerSearch(value)
+      this.localOptions.filter((item) =>
+        String(item.label || '')
+          .toLowerCase()
+          .includes(String(value || '').toLowerCase())
       )
-
-      this.loading = false
     },
 
     async fetchAllResults() {
       this.loading = true
 
       try {
-        this.serverSideDataSource = await this.fetchFn()
+        this.localOptions = await this.fetchFn()
         this.loading = false
       } catch (error) {
         console.error(error)
-        this.serverSideDataSource = []
         this.loading = false
       }
     },
@@ -212,21 +185,16 @@ export default {
       this.loading = true
 
       try {
-        const response = await this.fetchFn(
+        this.localOptions = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
 
-        this.serverSideDataSource = response
-
         this.loading = false
       } catch (error) {
         console.error(error)
-
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = []
-          this.loading = false
-        }
+        this.localOptions = []
+        this.loading = false
       }
     }
   }
