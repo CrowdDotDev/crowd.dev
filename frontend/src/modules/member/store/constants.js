@@ -2,9 +2,26 @@ import moment from 'moment'
 
 export const INITIAL_PAGE_SIZE = 20
 
+export const NOT_TEAM_MEMBER_FILTER = {
+  isTeamMember: {
+    name: 'isTeamMember',
+    label: 'Team member',
+    custom: false,
+    props: {},
+    defaultValue: false,
+    value: false,
+    defaultOperator: 'eq',
+    operator: 'eq',
+    type: 'boolean',
+    expanded: false,
+    show: false
+  }
+}
+
 export const INITIAL_VIEW_ACTIVE_FILTER = {
   operator: 'and',
   attributes: {
+    ...NOT_TEAM_MEMBER_FILTER,
     score: {
       name: 'score',
       label: 'Engagement Level',
@@ -69,6 +86,7 @@ export const INITIAL_VIEW_ACTIVE_FILTER = {
 export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
   operator: 'and',
   attributes: {
+    ...NOT_TEAM_MEMBER_FILTER,
     score: {
       name: 'score',
       label: 'Engagement Level',
@@ -148,6 +166,7 @@ export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
 export const INITIAL_VIEW_RECENT_FILTER = {
   operator: 'and',
   attributes: {
+    ...NOT_TEAM_MEMBER_FILTER,
     joinedAt: {
       name: 'joinedAt',
       label: 'Joined date',

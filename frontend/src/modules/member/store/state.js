@@ -4,7 +4,8 @@ import {
   INITIAL_VIEW_ACTIVE_FILTER,
   INITIAL_VIEW_RECENT_FILTER,
   INITIAL_VIEW_SLIPPING_AWAY_FILTER,
-  INITIAL_VIEW_TEAM_MEMBERS_FILTER
+  INITIAL_VIEW_TEAM_MEMBERS_FILTER,
+  NOT_TEAM_MEMBER_FILTER
 } from './constants'
 
 export default {
@@ -16,7 +17,7 @@ export default {
       columns: [],
       filter: {
         operator: 'and',
-        attributes: {}
+        attributes: { ...NOT_TEAM_MEMBER_FILTER }
       },
       sorter: {
         prop: 'lastActive',
@@ -95,7 +96,7 @@ export default {
   count: 0,
   filter: {
     operator: 'and',
-    attributes: {}
+    attributes: { ...NOT_TEAM_MEMBER_FILTER }
   },
   pagination: {
     currentPage: 1,
