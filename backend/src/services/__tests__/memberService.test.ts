@@ -46,19 +46,19 @@ describe('MemberService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.IS_HIREABLE]:{
+          [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
-          [MemberAttributeName.URL]:{
+          [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/imcvampire',
           },
-          [MemberAttributeName.WEBSITE_URL]:{
+          [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
           },
-          [MemberAttributeName.BIO]:{
+          [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Lazy geek',
           },
-          [MemberAttributeName.LOCATION]:{
+          [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
@@ -1493,8 +1493,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
         tags: [t1.id, t2.id],
         organizations: [o1.id, o2.id],
         tasks: [task1.id, task2.id],
@@ -1743,8 +1742,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       const memberCreated = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1770,8 +1768,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1869,9 +1866,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-
-        },
+        attributes: {},
       }
 
       const createdMember = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -1950,9 +1945,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-
-        },
+        attributes: {},
       }
 
       const member2 = {
@@ -2074,8 +2067,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2103,8 +2095,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2144,8 +2135,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2169,8 +2159,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2201,8 +2190,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       const returnedMember1 = await MemberRepository.create(member1, mockIRepositoryOptions)
@@ -2243,8 +2231,7 @@ describe('MemberService tests', () => {
         },
         displayName: 'Anil',
         joinedAt: '2021-05-27T15:14:30Z',
-        attributes: {
-        },
+        attributes: {},
       }
 
       await MemberRepository.create(member1, mockIRepositoryOptions)

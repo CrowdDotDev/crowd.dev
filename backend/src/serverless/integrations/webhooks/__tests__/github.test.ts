@@ -123,8 +123,8 @@ describe('Github webhooks tests', () => {
         location: 'Cambridge, UK',
         twitterUsername: 'reyero',
         followers: {
-          totalCount: 10
-        }
+          totalCount: 10,
+        },
       }
       const parsedMember = await GitHubWebhook.parseMember(member, 'token')
       const expected = {
@@ -150,7 +150,7 @@ describe('Github webhooks tests', () => {
             [PlatformType.GITHUB]: 'Cambridge, UK',
           },
         },
-        reach: { [PlatformType.GITHUB]: 10},
+        reach: { [PlatformType.GITHUB]: 10 },
         email: 'joan@crowd.dev',
         organizations: [{ name: 'crowd.dev' }],
       }
