@@ -270,6 +270,10 @@ function scaffold_set_up_network() {
 function apply_db_schema() {
     say "Applying database schema!"
     (cd $CLI_HOME/../backend && set -a && . $CLI_HOME/../backend/.env.dist.local && set +a && npm run db:create:dev:source)
+
+    say "Extracting schema sql dump!"
+    docker exec -t "${PROJECT_NAME}_db_1" sh -c "pg_dump --no-acl -O -x -s crowd-web -U postgres > schema.sql"
+    docker cp "${PROJECT_NAME}_db_1":/schema.sql $CLI_HOME/scaffold/db/schema.sql
 }
 
 function create_s3_buckets() {

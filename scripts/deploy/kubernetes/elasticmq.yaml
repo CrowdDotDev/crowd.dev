@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: elasticmq
-          image: crowddotdev/elasticmq:1666878207.9731ed18
+          image: crowddotdev/elasticmq:1666904719.59dad54
           ports:
             - containerPort: 9324
 ---

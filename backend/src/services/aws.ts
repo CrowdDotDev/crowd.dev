@@ -1,5 +1,5 @@
 import AWS, { SQS } from 'aws-sdk'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config/index'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
 
 let sqsInstance
 let s3Instance
@@ -23,20 +23,22 @@ if (KUBE_MODE) {
       })
     : new AWS.SQS(awsSqsConfig)
 
-  const awsS3Config = {
-    accessKeyId: S3_CONFIG.aws.accessKeyId,
-    secretAccessKey: S3_CONFIG.aws.secretAccessKey,
-    region: S3_CONFIG.aws.region,
-  }
+  if (S3_CONFIG.aws) {
+    const awsS3Config = {
+      accessKeyId: S3_CONFIG.aws.accessKeyId,
+      secretAccessKey: S3_CONFIG.aws.secretAccessKey,
+      region: S3_CONFIG.aws.region,
+    }
 
-  s3Instance = IS_DEV_ENV
-    ? new AWS.S3({
-        s3ForcePathStyle: true,
-        endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
-        apiVersion: '2012-10-17',
-        ...awsS3Config,
-      })
-    : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+    s3Instance = IS_DEV_ENV
+      ? new AWS.S3({
+          s3ForcePathStyle: true,
+          endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
+          apiVersion: '2012-10-17',
+          ...awsS3Config,
+        })
+      : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+  }
 
   comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
     ? new AWS.Comprehend({
