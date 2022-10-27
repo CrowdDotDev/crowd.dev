@@ -18,8 +18,10 @@
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
     <el-option
-      v-if="showCreateSuggestion"
+      v-show="currentQuery"
+      :label="currentQuery"
       :value="currentQuery"
+      :create="true"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
@@ -30,13 +32,11 @@
       :label="record.label"
       :value="record"
     >
-      <span>{{ record.label }}</span>
     </el-option>
   </el-select>
 </template>
 
 <script>
-import debounce from 'lodash/debounce'
 import isString from 'lodash/isString'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
@@ -95,8 +95,7 @@ export default {
     return {
       loading: false,
       localOptions: this.options ? this.options : [],
-      currentQuery: '',
-      debouncedSearch: () => {}
+      currentQuery: ''
     }
   },
 
@@ -112,13 +111,6 @@ export default {
         )
       )
     }
-  },
-
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
   },
 
   async created() {
