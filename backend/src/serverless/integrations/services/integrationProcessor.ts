@@ -187,6 +187,7 @@ export class IntegrationProcessor {
     }
 
     const failedStreams = []
+    let setError = false
 
     try {
       // check global limit reset
@@ -344,6 +345,7 @@ export class IntegrationProcessor {
           const existingRetryStreams = req.retryStreams || []
 
           const retryStreams: IIntegrationStreamRetry[] = []
+          let streamRetryLimitReached = false
           for (const failedStream of failedStreams) {
             let retryCount = 1
             let id = uuid()
@@ -362,6 +364,7 @@ export class IntegrationProcessor {
                 { failedStream, retryCount },
                 'Failed stream will not be retried because it reached retry limit!',
               )
+              streamRetryLimitReached = true
             } else {
               retryStreams.push({
                 id,
@@ -371,20 +374,24 @@ export class IntegrationProcessor {
             }
           }
 
-          await sendNodeWorkerMessage(
-            req.tenantId,
-            new NodeWorkerIntegrationProcessMessage(
-              req.integrationType,
+          if (streams.length > 0 || retryStreams.length > 0) {
+            await sendNodeWorkerMessage(
               req.tenantId,
-              req.onboarding,
-              req.integrationId,
-              req.microserviceId,
-              req.metadata,
-              retryStreams,
-              streams,
-            ),
-            delay,
-          )
+              new NodeWorkerIntegrationProcessMessage(
+                req.integrationType,
+                req.tenantId,
+                req.onboarding,
+                req.integrationId,
+                req.microserviceId,
+                req.metadata,
+                retryStreams,
+                streams,
+              ),
+              delay,
+            )
+          } else if (streamRetryLimitReached && req.onboarding) {
+            setError = true
+          }
         }
         logger.info('Done processing integration!')
       } else {
@@ -392,11 +399,12 @@ export class IntegrationProcessor {
       }
     } catch (err) {
       logger.error(err, 'Error while processing integration!')
+      setError = req.onboarding
     } finally {
       await IntegrationRepository.update(
         integration.id,
         {
-          status: 'done',
+          status: setError ? 'error' : 'done',
           settings: stepContext.integration.settings,
           refreshToken: stepContext.integration.refreshToken,
           token: stepContext.integration.token,
