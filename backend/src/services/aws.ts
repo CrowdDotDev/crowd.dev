@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import AWS, { S3, SQS } from 'aws-sdk'
-import { KUBE_MODE, IS_DEV_ENV, SQS_CONFIG, S3_CONFIG } from '../config'
-=======
 import AWS, { SQS } from 'aws-sdk'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config/index'
->>>>>>> main
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
 
 let sqsInstance
 let s3Instance
