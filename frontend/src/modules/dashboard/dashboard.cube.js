@@ -1,3 +1,5 @@
+import moment from "moment"
+
 export const chartOptions = {
   legend: false,
   curve: false,
@@ -13,6 +15,15 @@ export const chartOptions = {
     gradient.addColorStop(1, 'rgba(253,237, 234,0)')
     return { backgroundColor: gradient }
   }
+}
+
+function dateRange(period) {
+  const end = moment().utc().endOf('day')
+  const start = moment()
+    .subtract(period - 1, 'day')
+    .utc()
+    .startOf('day')
+  return [start, end]
 }
 
 export const hideLabels = {
@@ -46,7 +57,7 @@ export function activitiesChart(period, platform) {
           {
             dimension: 'Activities.date',
             granularity: 'day',
-            dateRange: `Last ${period} days`
+            dateRange: dateRange(period)
           }
         ],
         filters:
@@ -100,7 +111,7 @@ export function newMembersChart(period, platform) {
           {
             dimension: 'Members.joinedAt',
             granularity: 'day',
-            dateRange: `Last ${period} days`
+            dateRange: dateRange(period)
           }
         ],
         filters:
@@ -153,7 +164,7 @@ export function activeMembersChart(period, platform) {
           {
             dimension: 'Activities.date',
             granularity: 'day',
-            dateRange: `Last ${period} days`
+            dateRange: dateRange(period)
           }
         ],
         filters:
@@ -206,7 +217,7 @@ export function newOrganizationChart(period, platform) {
           {
             dimension: 'Organizations.joinedAt',
             granularity: 'day',
-            dateRange: `Last ${period} days`
+            dateRange: dateRange(period)
           }
         ],
         filters:
@@ -260,7 +271,7 @@ export function activeOrganizationChart(period, platform) {
           {
             dimension: 'Activities.date',
             granularity: 'day',
-            dateRange: `Last ${period} days`
+            dateRange: dateRange(period)
           }
         ],
         filters:
@@ -311,7 +322,7 @@ export function sentimentQuery(period, platform) {
     timeDimensions: [
       {
         dimension: 'Activities.date',
-        dateRange: `Last ${period} days`
+        dateRange: dateRange(period)
       }
     ],
     filters:
