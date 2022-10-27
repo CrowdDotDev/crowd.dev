@@ -18,10 +18,12 @@ export default async () => {
 
   const tenantsQuery = `select * from tenants`
 
-  const tenants = await options.database.sequelize.query(tenantsQuery, {
+  let tenants = await options.database.sequelize.query(tenantsQuery, {
     type: QueryTypes.SELECT,
   })
 
+  tenants = tenants.filter( (i) => i.id !== '62712f6f-94e8-41e5-8cb7-87e3d272830b')
+  let count = 1
   // for each tenant
   for (const tenant of tenants) {
     console.log(`processing organizations of ${tenant.id}`)
@@ -45,8 +47,6 @@ export default async () => {
         },
       })
 
-      const alreadyCheckedOrganizations = []
-
       for (const org of organizations) {
         console.log(org.name)
 
@@ -61,35 +61,10 @@ export default async () => {
         org.name = org.name.replace(/["\\]+/g, '')
 
         // organization is not enriched from gh api yet
-        if (!record && !alreadyCheckedOrganizations.includes(org.name)) {
+        if (!record) {
           const orgFromGH = await getOrganization(org.name, ghIntegration.token)
-          alreadyCheckedOrganizations.push(org.name)
 
           if (orgFromGH) {
-            console.log('orgFromGH')
-            console.log(orgFromGH)
-            // create cache and update organization
-
-            console.log('org id: ')
-            console.log(org.id)
-
-            // check org by url already exists
-            // let findByUrl =  await options.database.organization.findAll({
-            //                   attributes: ['id', 'name'],
-            //                   where: {
-            //                     url: orgFromGH.url,
-            //                     tenantId: tenant.id
-            //                   },
-            //                 })
-            // findByUrl = findByUrl.filter( (i) => i.id !== org.id)
-            // let findByName = await options.database.organization.findAll({
-            //   attributes: ['id', 'name'],
-            //   where: {
-            //     name: orgFromGH.name,
-            //     tenantId: tenant.id
-            //   },
-            // })
-            // findByName = findByName.filter( (i) => i.id !== org.id)
 
             // check cache
             const checkCache = await OrganizationCacheRepository.findByUrl(
@@ -128,7 +103,7 @@ export default async () => {
                 await OrganizationCacheRepository.create(orgFromGH, userContext)
               }
 
-              // check any other organization already has names from cache
+              // check any other organization already has names similar to gh api response
               let findByName = await options.database.organization.findAll({
                 attributes: ['id', 'name'],
                 where: {
@@ -181,6 +156,32 @@ export default async () => {
 
           }
         }
+        else{
+          const fieldsFromCache = {
+            name: record.name,
+            url: record.url,
+            location: record.location,
+            description: record.description,
+            logo: record.logo,
+            emails: record.emails,
+            twitter: record.twitter
+          }
+
+          // enrich the organization with cache
+          await OrganizationRepository.update(
+            org.id,
+            {
+              ...org,
+              ...fieldsFromCache,
+            },
+            userContext,
+          )
+
+
+        }
+
+        count += 1
+        console.log(`organizations parsed: ${count}/32651`)
       }
     }
   }
