@@ -36,8 +36,9 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DEVTO,
-      crowdInfo: {
-        body: 'Crowd.dev is awesome!',
+      body: 'Crowd.dev is awesome!',
+      member: {
+        attributes: {},
       },
     }
 
@@ -56,10 +57,15 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DEVTO,
-      crowdInfo: {
-        teamMember: true,
-        body: 'Crowd.dev all awesome!',
+      member: {
+        attributes: {
+          isTeamMember: {
+            custom: true,
+          },
+        },
       },
+
+      body: 'Crowd.dev all awesome!',
     }
 
     expect(shouldProcessActivity(activity, automation)).toBeTruthy()
@@ -77,9 +83,8 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DISCORD,
-      crowdInfo: {
-        body: 'Crowd.dev is awesome!',
-      },
+
+      body: 'Crowd.dev is awesome!',
     }
 
     expect(shouldProcessActivity(activity, automation)).toBeFalsy()
@@ -97,9 +102,7 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'follow',
       platform: PlatformType.DEVTO,
-      crowdInfo: {
-        body: 'Crowd.dev is awesome!',
-      },
+      body: 'Crowd.dev is awesome!',
     }
 
     expect(shouldProcessActivity(activity, automation)).toBeFalsy()
@@ -117,9 +120,7 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DEVTO,
-      crowdInfo: {
-        body: 'We are all awesome!',
-      },
+      body: 'We are all awesome!',
     }
 
     expect(shouldProcessActivity(activity, automation)).toBeFalsy()
@@ -137,10 +138,14 @@ describe('New Activity Automation Worker tests', () => {
       id: '1234',
       type: 'comment',
       platform: PlatformType.DEVTO,
-      crowdInfo: {
-        teamMember: true,
-        body: 'Crowd.dev all awesome!',
+      member: {
+        attributes: {
+          isTeamMember: {
+            custom: true,
+          },
+        },
       },
+      body: 'Crowd.dev all awesome!',
     }
 
     expect(shouldProcessActivity(activity, automation)).toBeFalsy()
