@@ -87,15 +87,15 @@ export default {
   computed: {
     ...mapGetters('dashboard', ['period', 'platform']),
     dateRange() {
-      return [
-      moment()
-        .utc()
-        .endOf('day')
-        .toISOString(),
+      return [,
       moment()
         .utc()
         .startOf('day')
         .subtract(this.period - 1, 'd')
+        .toISOString(),
+        moment()
+        .utc()
+        .endOf('day')
         .toISOString()
       ]
     },
