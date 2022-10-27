@@ -90,6 +90,7 @@
             >
               <span
                 v-if="
+                  member.lastActivity &&
                   getPlatformDetails(
                     member.lastActivity.platform
                   )
