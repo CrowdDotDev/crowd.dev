@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://github.com/CrowdDotDev/crowd.dev">
-    <img https://user-images.githubusercontent.com/41432658/198395147-20caad79-6989-4827-bb0b-32a406770480.png" alt="Header Logo">
+    <img src="https://user-images.githubusercontent.com/41432658/198395147-20caad79-6989-4827-bb0b-32a406770480.png" alt="Header Logo">
 
   </a>
 
