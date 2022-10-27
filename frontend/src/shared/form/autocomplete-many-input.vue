@@ -17,25 +17,24 @@
     @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
-    <el-option
+    <!-- <el-option
       v-if="showCreateSuggestion"
       :value="currentQuery"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
-    </el-option>
-    <el-option
-      v-for="initialOption of initialOptions"
-      :key="initialOption.id"
-      :label="initialOption.label"
-      :value="initialOption"
-    ></el-option>
+    </el-option> -->
     <el-option
       v-for="record in dataSource"
       :key="record.id"
       :label="record.label"
       :value="record"
-    ></el-option>
+    >
+      <span v-if="record.prefix" class="prefix">{{
+        record.prefix
+      }}</span>
+      <span>{{ record.label }}</span>
+    </el-option>
   </el-select>
 </template>
 
@@ -102,7 +101,6 @@ export default {
   data() {
     return {
       loading: false,
-      fullDataSource: this.options ? this.options : [],
       serverSideDataSource: [],
       inMemoryDataSource: this.options ? this.options : [],
       currentQuery: '',
@@ -111,37 +109,18 @@ export default {
   },
 
   computed: {
-    initialOptions() {
-      if (!this.value || !this.value.length) {
-        return []
-      }
-
-      return this.value.filter(
-        (currentValue) =>
-          !this.dataSource
-            .map((item) => item.id)
-            .includes(currentValue.id)
-      )
-    },
-
     dataSource() {
       if (this.inMemoryFilter) {
         return this.inMemoryDataSource
       }
 
-      return this.serverSideDataSource
-    },
-
-    showCreateSuggestion() {
-      return (
-        this.createIfNotFound &&
-        this.currentQuery !== '' &&
-        !this.dataSource.some(
-          (o) =>
-            o.label === this.currentQuery ||
-            o === this.currentQuery
-        )
-      )
+      return [
+        {
+          prefix: this.createPrefix,
+          label: this.currentQuery,
+          value: this.currentQuery
+        }
+      ].concat(this.serverSideDataSource)
     }
   },
 
@@ -152,7 +131,18 @@ export default {
     )
   },
 
+  async created() {
+    await this.fetchAllResults()
+  },
+
   methods: {
+    showCreateSuggestion(data, query) {
+      return (
+        this.createIfNotFound &&
+        query !== '' &&
+        !data.some((o) => o.label === query || o === query)
+      )
+    },
     async onChange(value) {
       if (value.length === 0) {
         this.$emit('update:modelValue', [])
@@ -184,34 +174,18 @@ export default {
 
       if (this.inMemoryFilter) {
         await this.handleInMemorySearch(value)
-      }
-
-      await this.handleServerSearch(value)
-
-      if (
-        this.dataSource.length === 0 &&
-        this.initialOptions.length === 0
-      ) {
-        this.data
+      } else {
+        await this.handleServerSearch(value)
       }
     },
 
     async handleInMemorySearch(value) {
-      if (
-        !this.fullDataSource ||
-        !this.fullDataSource.length
-      ) {
-        await this.fetchAllResults()
-      }
-
-      if (this.fullDataSource) {
-        this.inMemoryDataSource =
-          this.fullDataSource.filter((item) =>
-            String(item.label || '')
-              .toLowerCase()
-              .includes(String(value || '').toLowerCase())
-          )
-      }
+      this.inMemoryDataSource = this.options.filter(
+        (item) =>
+          String(item.label || '')
+            .toLowerCase()
+            .includes(String(value || '').toLowerCase())
+      )
 
       this.loading = false
     },
@@ -220,11 +194,11 @@ export default {
       this.loading = true
 
       try {
-        this.fullDataSource = await this.fetchFn()
+        this.serverSideDataSource = await this.fetchFn()
         this.loading = false
       } catch (error) {
         console.error(error)
-        this.fullDataSource = []
+        this.serverSideDataSource = []
         this.loading = false
       }
     },
@@ -238,15 +212,14 @@ export default {
       this.loading = true
 
       try {
-        const serverSideDataSource = await this.fetchFn(
+        const response = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
 
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = serverSideDataSource
-          this.loading = false
-        }
+        this.serverSideDataSource = response
+
+        this.loading = false
       } catch (error) {
         console.error(error)
 

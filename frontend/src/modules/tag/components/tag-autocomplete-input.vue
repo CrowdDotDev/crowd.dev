@@ -8,6 +8,7 @@
       :mapper-fn="mapperFn"
       :placeholder="placeholder"
       :create-if-not-found="canCreate"
+      :in-memory-filter="false"
     ></app-autocomplete-many-input>
     <app-autocomplete-one-input
       v-else
