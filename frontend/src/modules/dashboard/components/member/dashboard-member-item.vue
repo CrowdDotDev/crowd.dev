@@ -12,17 +12,23 @@
       ></app-loading>
     </div>
   </article>
-  <article v-else class="flex items-center">
+  <router-link
+    v-else
+    class="flex items-center group"
+    :to="{ name: 'memberView', params: { id: member.id } }"
+  >
     <app-avatar :entity="member" size="xs" />
     <div class="flex-grow pl-3">
-      <h6 class="text-xs leading-5 font-medium">
+      <h6
+        class="text-xs leading-5 font-medium text-gray-900 group-hover:text-brand-500 transition"
+      >
         {{ member.displayName }}
       </h6>
       <p class="text-2xs leading-4 !text-gray-500">
         <slot />
       </p>
     </div>
-  </article>
+  </router-link>
 </template>
 
 <script>
