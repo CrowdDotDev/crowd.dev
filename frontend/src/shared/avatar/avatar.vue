@@ -6,7 +6,10 @@
     :style="computedStyle"
   >
     <span
-      v-if="!entity.attributes?.avatarUrl?.default"
+      v-if="
+        !entity.attributes?.avatarUrl?.default &&
+        !entity.avatar
+      "
       class="font-semibold uppercase"
       >{{ computedInitials }}</span
     >
@@ -46,8 +49,11 @@ export default {
       ]
     },
     computedStyle() {
-      return this.entity.attributes?.avatarUrl?.default
-        ? `background-image: url(${this.entity.attributes.avatarUrl.default})`
+      const url = this.entity.avatar
+        ? this.entity.avatar
+        : this.entity.attributes?.avatarUrl?.default || null
+      return url
+        ? `background-image: url(${url})`
         : {
             backgroundColor: this.computedBackgroundColor,
             borderColor: this.computedBackgroundColor,

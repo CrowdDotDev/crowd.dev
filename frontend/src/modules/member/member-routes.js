@@ -37,7 +37,6 @@ export default [
               store.state.member.filter.attributes
             ).length === 0
           ) {
-            console.log('dispatching')
             store.dispatch(
               'member/doChangeActiveView',
               to.query.activeTab

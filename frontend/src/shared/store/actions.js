@@ -4,7 +4,7 @@ import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
-export default (moduleService = null) => {
+export default (moduleName, moduleService = null) => {
   const asyncActions = moduleService
     ? {
         async doFetch(
@@ -40,7 +40,7 @@ export default (moduleService = null) => {
           } catch (error) {
             Errors.handle(error)
             commit('FIND_ERROR')
-            router.push('/members')
+            router.push({ name: moduleName })
           }
         },
 
@@ -53,10 +53,10 @@ export default (moduleService = null) => {
             commit('DESTROY_SUCCESS')
 
             Message.success(
-              i18n('entities.member.destroy.success')
+              i18n(`entities.${moduleName}.destroy.success`)
             )
 
-            router.push('/members')
+            router.push({ name: moduleName })
 
             dispatch('doFetch', {
               keepPagination: true
@@ -75,15 +75,17 @@ export default (moduleService = null) => {
 
             commit('DESTROY_ALL_SUCCESS')
 
-            dispatch(`member/doUnselectAll`, null, {
+            dispatch(`${moduleName}/doUnselectAll`, null, {
               root: true
             })
 
             Message.success(
-              i18n('entities.member.destroyAll.success')
+              i18n(
+                `entities.${moduleName}.destroyAll.success`
+              )
             )
 
-            router.push('/members')
+            router.push({ name: moduleName })
 
             dispatch('doFetch', {
               keepPagination: true
@@ -103,13 +105,13 @@ export default (moduleService = null) => {
             commit('CREATE_SUCCESS', response)
 
             Message.success(
-              i18n('entities.member.create.success')
+              i18n(`entities.${moduleName}.create.success`)
             )
 
             return response
           } catch (error) {
             Message.error(
-              i18n('entities.member.create.error')
+              i18n(`entities.${moduleName}.create.error`)
             )
 
             Errors.handle(error)
@@ -130,13 +132,13 @@ export default (moduleService = null) => {
 
             commit('UPDATE_SUCCESS', response)
             Message.success(
-              i18n('entities.member.update.success')
+              i18n(`entities.${moduleName}.update.success`)
             )
 
             return response
           } catch (error) {
             Message.error(
-              i18n('entities.member.update.error')
+              i18n(`entities.${moduleName}.update.error`)
             )
 
             Errors.handle(error)
@@ -238,7 +240,7 @@ export default (moduleService = null) => {
       )
       if (params.get('activeTab') !== activeView) {
         router.push({
-          name: router.currentRoute.name,
+          name: moduleName,
           query: {
             activeTab:
               activeView === state.views[0].id

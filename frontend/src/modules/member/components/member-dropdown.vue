@@ -143,6 +143,10 @@ export default {
             }
           }
         })
+        await this.doFetch({
+          filter: {},
+          keepPagination: false
+        })
         Message.success('Member updated successfully')
         if (this.$route.name === 'member') {
           this.doFetch({

@@ -89,6 +89,26 @@ export default class TagService {
     }
   }
 
+  async destroyBulk(ids) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      await TagRepository.destroyBulk(
+        ids,
+        {
+          ...this.options,
+          transaction,
+        },
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
   async findById(id) {
     return TagRepository.findById(id, this.options)
   }

@@ -119,6 +119,10 @@ function doEditProfile() {
     i:not(.ri-external-link-line) {
       @apply text-gray-500;
     }
+
+    .svg-icon path {
+      fill: #6b7280;
+    }
   }
 }
 

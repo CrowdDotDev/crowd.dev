@@ -355,6 +355,7 @@ export default class MemberService {
           fillRelations,
         )
       } else {
+        console.log('here', username, platform)
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
       }
     }

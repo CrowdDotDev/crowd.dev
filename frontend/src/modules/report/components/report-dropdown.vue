@@ -50,8 +50,8 @@
           Report</el-dropdown-item
         >
         <el-divider
-          v-if="showEditReport"
-          class="border-gray-200"
+          v-if="showEditReport || showViewReportPublic"
+          class="border-gray-200 !my-2"
         />
         <el-dropdown-item
           :command="{

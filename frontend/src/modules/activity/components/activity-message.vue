@@ -1,34 +1,36 @@
 <template>
-  <!-- discord, slack -->
-  <app-activity-slack-message
-    v-if="activity.platform === 'slack'"
-    :activity="activity"
-    :short="short"
-  />
-  <app-activity-discord-message
-    v-else-if="activity.platform === 'discord'"
-    :activity="activity"
-    :short="short"
-  />
-  <app-activity-devto-message
-    v-else-if="activity.platform === 'devto'"
-    :activity="activity"
-    :short="short"
-  />
-  <app-activity-github-message
-    v-else-if="activity.platform === 'github'"
-    :activity="activity"
-    :short="short"
-  />
-  <!-- other -->
-  <template v-else>
-    <app-i18n
-      :code="computedMessage"
-      :args="computedArgs"
-      :fallback="'entities.activity.fallback'"
-      :class="{ truncate: short }"
-    ></app-i18n>
-  </template>
+  <div class="flex">
+    <!-- discord, slack -->
+    <app-activity-slack-message
+      v-if="activity.platform === 'slack'"
+      :activity="activity"
+      :short="short"
+    />
+    <app-activity-discord-message
+      v-else-if="activity.platform === 'discord'"
+      :activity="activity"
+      :short="short"
+    />
+    <app-activity-devto-message
+      v-else-if="activity.platform === 'devto'"
+      :activity="activity"
+      :short="short"
+    />
+    <app-activity-github-message
+      v-else-if="activity.platform === 'github'"
+      :activity="activity"
+      :short="short"
+    />
+    <!-- other -->
+    <template v-else>
+      <app-i18n
+        :code="computedMessage"
+        :args="computedArgs"
+        :fallback="'entities.activity.fallback'"
+        :class="{ truncate: short }"
+      ></app-i18n>
+    </template>
+  </div>
 </template>
 
 <script>

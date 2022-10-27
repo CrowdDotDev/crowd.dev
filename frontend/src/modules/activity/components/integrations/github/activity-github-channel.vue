@@ -3,7 +3,7 @@
     v-if="activity.channel"
     :href="activity.channel"
     target="_blank"
-    class="text-brand-500"
+    class="text-brand-500 truncate max-w-2xs"
   >
     {{ getRepositoryName(activity.channel) }}
   </a>

@@ -79,6 +79,21 @@ class TagRepository {
     return this.findById(record.id, options)
   }
 
+  static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await options.database.tag.destroy({
+      where: {
+        id: ids,
+        tenantId: currentTenant.id,
+      },
+      force,
+      transaction,
+    })
+  }
+
   static async destroy(id, options: IRepositoryOptions, force = false) {
     const transaction = SequelizeRepository.getTransaction(options)
 
