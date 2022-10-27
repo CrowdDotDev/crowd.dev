@@ -107,7 +107,6 @@ import {
   watch
 } from 'vue'
 
-import integrationsJsonArray from '@/jsons/integrations.json'
 import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import computedTimeAgo from '@/utils/time-ago'
@@ -222,7 +221,7 @@ const fetchActivities = async () => {
 }
 
 const findIcon = (platform) => {
-  return integrationsJsonArray.find(
+  return integrationsJson.find(
     (p) => p.platform === platform
   ).image
 }
@@ -247,6 +246,9 @@ watch(platform, async (newValue, oldValue) => {
 })
 
 onMounted(async () => {
+  if (activeIntegrations.value.length === 0) {
+    await store.dispatch('integration/doFetch')
+  }
   await fetchActivities()
 })
 </script>
