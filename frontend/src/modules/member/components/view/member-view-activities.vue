@@ -31,10 +31,7 @@
         >
           <div>
             <div class="flex items-center">
-              <app-activity-message
-                :activity="activity"
-                :short="true"
-              />
+              <app-activity-message :activity="activity" />
               <span class="whitespace-nowrap text-gray-500"
                 ><span class="mx-1">·</span
                 >{{ timeAgo(activity) }}</span

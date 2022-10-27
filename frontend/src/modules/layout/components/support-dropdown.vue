@@ -61,9 +61,10 @@
           target="_blank"
         >
           <div class="flex gap-2">
-            <i
-              class="text-base text-gray-400 ri-discord-line"
-            ></i>
+            <app-svg
+              name="discord"
+              class="w-4 h-4 svg-icon"
+            />
             <span class="text-xs">
               <app-i18n code="external.community"></app-i18n
             ></span>
@@ -87,6 +88,7 @@ export default {
 <script setup>
 import { useStore } from 'vuex'
 import { computed, ref } from 'vue'
+import AppSvg from '@/shared/svg/svg'
 
 const store = useStore()
 
