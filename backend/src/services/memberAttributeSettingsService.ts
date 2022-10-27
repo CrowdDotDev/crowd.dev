@@ -143,7 +143,7 @@ export default class MemberAttributeSettingsService {
         // check attribute already exists
         const existing = await MemberAttributeSettingsRepository.findAndCountAll(
           { filter: { name: attribute.name } },
-          {...this.options, transaction}
+          { ...this.options, transaction },
         )
         if (existing.count === 0) {
           created.push(
