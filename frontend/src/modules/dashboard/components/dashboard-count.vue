@@ -87,7 +87,7 @@ export default {
   computed: {
     ...mapGetters('dashboard', ['period', 'platform']),
     dateRange() {
-      return [,
+      return [
       moment()
         .utc()
         .startOf('day')
