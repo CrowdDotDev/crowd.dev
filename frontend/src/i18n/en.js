@@ -374,6 +374,12 @@ const en = {
       menu: 'Eagle Eye'
     },
 
+    communityHelpCenter: {
+      name: 'Community Help Center',
+      label: 'Community Help Center',
+      menu: 'Community Help Center'
+    },
+
     automation: {
       name: 'Automations',
       label: 'Automations',
