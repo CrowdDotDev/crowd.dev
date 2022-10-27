@@ -181,6 +181,17 @@ watch(
   }
 )
 
+watch(
+  () => isExpanded.value,
+  (newValue) => {
+    if (newValue) {
+      window.analytics.track(
+        'Community Help Center Conversation Drawer Opened'
+      )
+    }
+  }
+)
+
 const { doPublish, doUnpublish, doUpdate } = mapActions(
   'communityHelpCenter'
 )
