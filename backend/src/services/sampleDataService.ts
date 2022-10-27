@@ -54,7 +54,7 @@ export default class SampleDataService {
     // 2022-03-16 is the most recent activity date in sample-data.json
     // When importing, we pad that value in days so that most recent activity.timestamp = now()
     const timestampPaddingInDays =
-      moment().utc().diff(moment('2022-09-30 15:46:49').utc(), 'days') - 1
+      moment().utc().diff(moment('2022-09-30 21:52:28').utc(), 'days') - 1
     console.log(`timestampPaddingInDays: ${timestampPaddingInDays}`)
 
     const members = sampleMembersActivities.members
