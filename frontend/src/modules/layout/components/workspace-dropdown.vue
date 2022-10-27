@@ -1,7 +1,6 @@
 <template>
   <div>
     <el-popover
-      :visible="isDropdownOpen"
       placement="right-start"
       :width="230"
       trigger="click"
@@ -132,11 +131,7 @@ const tenantsList = computed(() => {
   const rows = store.getters['tenant/rows']
 
   return rows.sort((x, y) => {
-    return x.name === currentTenant.value.name
-      ? -1
-      : y === currentTenant.value.name
-      ? 1
-      : 0
+    return x.name < y.name ? -1 : x.name > y.name ? 1 : 0
   })
 })
 const isCollapsed = computed(
