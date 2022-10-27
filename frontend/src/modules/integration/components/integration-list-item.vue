@@ -90,8 +90,8 @@ const props = defineProps({
     default: () => {}
   },
   onboard: {
-    type: Object,
-    default: () => {}
+    type: Boolean,
+    default: false
   }
 })
 

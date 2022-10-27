@@ -20,6 +20,29 @@
         />
       </div>
     </div>
+    <el-dialog
+      :model-value="showGithubDialog"
+      size="600px"
+      title="Finishing the setup"
+    >
+      <template #header>
+        <div class="flex items-center h-6">
+          <h5>Finishing the setup</h5>
+          <div
+            v-loading="true"
+            class="app-page-spinner w-6 ml-4"
+          ></div>
+        </div>
+      </template>
+      <div class="p-6">
+        <span>
+          We're finishing the last steps of the
+          <span class="font-semibold">GitHub</span>
+          integration setup, please don't <br />
+          reload the page.
+        </span>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -30,7 +53,7 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import { defineProps, computed, onMounted } from 'vue'
+import { defineProps, computed, onMounted, ref } from 'vue'
 
 import integrationsJsonArray from '@/jsons/integrations.json'
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item'
@@ -44,7 +67,7 @@ const props = defineProps({
 })
 
 const loading = computed(
-  () => store.getters['integration/loadingFetch']
+  () => store.getters['integration/loading']
 )
 const integrationsArray = computed(() => {
   return props.onboard
@@ -71,6 +94,8 @@ const mapper = (integration) => {
   }
 }
 
+const showGithubDialog = ref(false)
+
 onMounted(async () => {
   if (store.state.integration.count === 0) {
     await store.dispatch('integration/doFetch')
@@ -96,11 +121,13 @@ onMounted(async () => {
         guildId: params.get('guild_id')
       })
     } else {
+      showGithubDialog.value = true
       await store.dispatch('integration/doGithubConnect', {
         code,
         install_id,
         setupAction
       })
+      showGithubDialog.value = false
     }
   }
 })

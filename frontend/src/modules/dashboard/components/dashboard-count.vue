@@ -88,33 +88,30 @@ export default {
     ...mapGetters('dashboard', ['period', 'platform']),
     dateRange() {
       return [
-      moment()
-        .utc()
-        .startOf('day')
-        .subtract(this.period - 1, 'd')
-        .toISOString(),
         moment()
-        .utc()
-        .endOf('day')
-        .toISOString()
+          .utc()
+          .startOf('day')
+          .subtract(this.period - 1, 'd')
+          .toISOString(),
+        moment().utc().endOf('day').toISOString()
       ]
     },
     previousDateRange() {
       return [
-          moment()
-            .utc()
-            .startOf('day')
-            .subtract(this.period - 1, 'd')
-            .subtract(1, 'ms')
-            .toISOString(),
-          moment()
-            .utc()
-            .startOf('day')
-            .subtract(this.period - 1, 'd')
-            .subtract(1, 'ms')
-            .startOf('day')
-            .subtract(this.period - 1, 'd')
-            .toISOString()
+        moment()
+          .utc()
+          .startOf('day')
+          .subtract(this.period - 1, 'd')
+          .subtract(1, 'ms')
+          .toISOString(),
+        moment()
+          .utc()
+          .startOf('day')
+          .subtract(this.period - 1, 'd')
+          .subtract(1, 'ms')
+          .startOf('day')
+          .subtract(this.period - 1, 'd')
+          .toISOString()
       ]
     }
   },
