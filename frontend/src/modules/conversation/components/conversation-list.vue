@@ -124,7 +124,7 @@ function doChangeFilter(filter) {
 
   store.dispatch('activity/doChangeSort', {
     prop: sorter,
-    order: 'descending'
+    order: 'DESC'
   })
 }
 

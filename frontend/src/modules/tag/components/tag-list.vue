@@ -56,6 +56,10 @@ export default {
     editable: {
       type: Boolean,
       default: true
+    },
+    long: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['tags-updated'],
@@ -69,8 +73,10 @@ export default {
     }
   },
   computed: {
+
     computedTags() {
-      return this.member.tags.length <= 3
+      const max = this.long ? 8 : 3
+      return this.member.tags.length <= max || this.long
         ? this.member.tags
         : this.member.tags.slice(0, 3).concat({
             id: 'more',
@@ -111,9 +117,12 @@ export default {
       this.$emit('tags-updated')
     },
     getTagName(tag) {
-      return tag.name.length > 10
-        ? `${tag.name.slice(0, 10)}...`
-        : tag.name
+      if (!this.long) {
+        return tag.name.length > 10
+          ? `${tag.name.slice(0, 10)}...`
+          : tag.name
+      }
+      return tag.name
     }
   }
 }

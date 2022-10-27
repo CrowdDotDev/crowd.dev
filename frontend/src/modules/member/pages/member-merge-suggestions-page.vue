@@ -234,7 +234,7 @@ async function handleMergeClick(members) {
       members[1]
     )
 
-    const index = this.membersToMerge.findIndex(
+    const index = membersToMerge.value.findIndex(
       (membersToMerge) => {
         return (
           membersToMerge[0].id === members[0].id &&
@@ -243,7 +243,7 @@ async function handleMergeClick(members) {
       }
     )
 
-    this.membersToMerge.splice(index, 1)
+    membersToMerge.value.splice(index, 1)
 
     console.log(response)
   } catch (error) {
@@ -258,7 +258,7 @@ async function handleNotMergeClick(members) {
       members[1]
     )
 
-    const index = this.membersToMerge.findIndex(
+    const index = membersToMerge.value.findIndex(
       (membersToMerge) => {
         return (
           membersToMerge[0].id === members[0].id &&
@@ -267,7 +267,7 @@ async function handleNotMergeClick(members) {
       }
     )
 
-    this.membersToMerge.splice(index, 1)
+    membersToMerge.value.splice(index, 1)
 
     console.log(response)
   } catch (error) {
@@ -277,7 +277,7 @@ async function handleNotMergeClick(members) {
 
 function makePrimary(members) {
   const newToMerge = []
-  for (const ms of this.membersToMerge) {
+  for (const ms of membersToMerge.value) {
     if (
       members[0].id === ms[0].id &&
       members[1].id === ms[1].id
@@ -287,7 +287,7 @@ function makePrimary(members) {
       newToMerge.push(ms)
     }
   }
-  this.membersToMerge = newToMerge
+  membersToMerge.value = newToMerge
 }
 </script>
 <style scoped lang="scss">

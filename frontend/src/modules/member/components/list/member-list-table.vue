@@ -97,7 +97,10 @@
           sortable="custom"
         >
           <template #default="scope">
-            <app-member-last-activity :member="scope.row" />
+            <app-member-last-activity
+              v-if="scope.row.lastActivity"
+              :member="scope.row"
+            />
           </template>
         </el-table-column>
         <el-table-column
@@ -218,7 +221,7 @@ const maxTabWidth = computed(() => {
   for (const row of rows.value) {
     if (row.tags) {
       const tabWidth = row.tags
-        .map((tag) => tag.name.length * 14)
+        .map((tag) => tag.name.length * 20)
         .reduce((a, b) => a + b, 0)
 
       if (tabWidth > maxTabWidth) {

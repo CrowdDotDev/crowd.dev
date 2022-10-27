@@ -534,6 +534,26 @@ export default class ConversationService {
       .trim()
   }
 
+  async destroyBulk(ids) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      await ConversationRepository.destroyBulk(
+        ids,
+        {
+          ...this.options,
+          transaction,
+        },
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
   /**
    * Generates a slug-like string from given title
    * If generated slug already exists for a tenant,

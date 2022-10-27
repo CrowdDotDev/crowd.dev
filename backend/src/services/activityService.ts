@@ -12,7 +12,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { IS_DEV_ENV, IS_TEST_ENV } from '../config';
+import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
@@ -133,7 +133,6 @@ export default class ActivityService {
         } catch (err) {
           console.log(`Error triggering new activity automation - ${record.id}!`, err)
         }
-
       }
 
       return record
@@ -153,7 +152,7 @@ export default class ActivityService {
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
   static async getSentiment(data) {
-    if (IS_TEST_ENV || IS_DEV_ENV) {
+    if (IS_TEST_ENV) {
       return {
         positive: 0.42,
         negative: 0.42,
@@ -161,6 +160,24 @@ export default class ActivityService {
         mixed: 0.42,
         label: 'positive',
         sentiment: 0.42,
+      }
+    }
+    if (IS_DEV_ENV) {
+      // Return a random number between 0 and 100
+      const score = Math.floor(Math.random() * 100)
+      let label = 'neutral'
+      if (score < 33) {
+        label = 'negative'
+      } else if (score > 66) {
+        label = 'positive'
+      }
+      return {
+        positive: Math.floor(Math.random() * 100),
+        negative: Math.floor(Math.random() * 100),
+        neutral: Math.floor(Math.random() * 100),
+        mixed: Math.floor(Math.random() * 100),
+        sentiment: score,
+        label,
       }
     }
 

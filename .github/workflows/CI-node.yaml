@@ -54,7 +54,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./backend
-        run: npm test -- --testPathIgnorePatterns=serverless
+        run: SERVICE=test npm test -- --testPathIgnorePatterns=serverless
 
   tests-serverless:
     needs: lint-format
@@ -73,4 +73,4 @@ jobs:
 
       - name: Run tests
         working-directory: ./backend
-        run: npm test -- --testPathPattern="serverless\/"
+        run: SERVICE=test npm test -- --testPathPattern="serverless\/"

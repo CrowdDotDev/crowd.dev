@@ -195,6 +195,26 @@ export default class OrganizationService {
     )
   }
 
+  async destroyBulk(ids) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      await OrganizationRepository.destroyBulk(
+        ids,
+        {
+          ...this.options,
+          transaction,
+        },
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
   async import(data, importHash) {
     if (!importHash) {
       throw new Error400(this.options.language, 'importer.errors.importHashRequired')
