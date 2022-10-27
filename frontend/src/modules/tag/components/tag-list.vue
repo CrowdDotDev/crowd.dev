@@ -73,7 +73,6 @@ export default {
     }
   },
   computed: {
-
     computedTags() {
       const max = this.long ? 8 : 3
       return this.member.tags.length <= max || this.long
