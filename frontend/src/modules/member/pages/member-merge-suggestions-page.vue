@@ -186,7 +186,7 @@ import { ref, onMounted } from 'vue'
 import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
-import MemberMergeSuggestionsDetails from '../components/member-merge-suggestions-details.vue'
+import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
 const membersToMerge = ref([])
 const channelsWidth = ref('')
 const viewingDetails = ref({})

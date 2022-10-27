@@ -4,8 +4,6 @@ import { store } from '@/store'
 
 const MemberListPage = () =>
   import('@/modules/member/pages/member-list-page.vue')
-const MemberMergePage = () =>
-  import('@/modules/member/pages/member-merge-page.vue')
 const MemberMergeSuggestionsPage = () =>
   import(
     '@/modules/member/pages/member-merge-suggestions-page.vue'
@@ -84,7 +82,7 @@ export default [
       {
         name: 'memberMerge',
         path: '/members/:id/merge',
-        component: MemberMergePage,
+        component: MemberMergeSuggestionsPage,
         meta: {
           auth: true,
           permission: Permissions.values.memberEdit

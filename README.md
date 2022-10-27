@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://github.com/CrowdDotDev/crowd.dev">
-    <img src="https://user-images.githubusercontent.com/41432658/180248099-7dd9d6b0-84d2-418a-946a-5c5a29aceffb.png" alt="Header Logo">
+    <img src="https://user-images.githubusercontent.com/41432658/198395147-20caad79-6989-4827-bb0b-32a406770480.png" alt="Header Logo">
 
   </a>
 
@@ -31,11 +31,11 @@
 
 ## About crowd.dev
 
-Crowd.dev is a suite of tools to analyze, grow, and leverage online communities in order to drive business results.
+crowd.dev is an open-source suite of community and data tools built to unlock community-led growth for your organization.
 
 In recent years, community has moved to the forefront of business. But building community is hard. In the beginning, organizations have to continuously find community members and maintain a high engagement among them. Once a community is thriving, organizations are stuck managing endless tools, working with incomplete data, and failing to bring the return of community back to their business.
 
-Crowd.dev is here to change this. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
+crowd.dev is here to change this. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
 
 ## ✨ Features
 

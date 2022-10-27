@@ -124,7 +124,11 @@ export default {
         this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
-        if (item === false && query !== '') {
+        if (
+          item === false &&
+          query !== '' &&
+          this.createIfNotFound
+        ) {
           // item is created/typed from user
           const newItem = await this.createFn(query)
           this.localOptions.push(newItem)

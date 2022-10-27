@@ -12,10 +12,10 @@
       <div
         class="flex grow justify-between"
         :class="{
-          'items-center': preTitle
+          'items-center': preTitle || hasActionBtn
         }"
       >
-        <div>
+        <div class="h-fit">
           <div
             v-if="preTitle"
             class="text-gray-600 text-2xs"
@@ -26,14 +26,17 @@
             {{ title }}
           </h5>
         </div>
-        <el-button
-          class="btn btn--transparent btn--xs w-8 !h-8"
-          @click="close"
-        >
-          <i
-            class="ri-close-line text-lg text-gray-400"
-          ></i>
-        </el-button>
+        <div class="flex gap-6 items-center">
+          <slot name="actionBtn"></slot>
+          <el-button
+            class="btn btn--transparent btn--xs w-8 !h-8"
+            @click="close"
+          >
+            <i
+              class="ri-close-line text-lg text-gray-400"
+            ></i>
+          </el-button>
+        </div>
       </div>
     </template>
     <slot name="content"></slot>
@@ -70,6 +73,10 @@ const props = defineProps({
   customClass: {
     type: String,
     default: () => ''
+  },
+  hasActionBtn: {
+    type: Boolean,
+    default: () => false
   }
 })
 
