@@ -12,7 +12,7 @@ import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
-import { IS_TEST_ENV } from '../config'
+import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
 import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
@@ -160,6 +160,24 @@ export default class ActivityService {
         mixed: 0.42,
         label: 'positive',
         sentiment: 0.42,
+      }
+    }
+    if (IS_DEV_ENV) {
+      // Return a random number between 0 and 100
+      const score = Math.floor(Math.random() * 100)
+      let label = 'neutral'
+      if (score < 33) {
+        label = 'negative'
+      } else if (score > 66) {
+        label = 'positive'
+      }
+      return {
+        positive: Math.floor(Math.random() * 100),
+        negative: Math.floor(Math.random() * 100),
+        neutral: Math.floor(Math.random() * 100),
+        mixed: Math.floor(Math.random() * 100),
+        sentiment: score,
+        label,
       }
     }
 
