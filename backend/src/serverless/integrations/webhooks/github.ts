@@ -385,6 +385,10 @@ export default class GitHubWebhook {
       }
     }
 
+    if (member.followers && member.followers.totalCount > 0){
+      parsedMember.reach = { [PlatformType.GITHUB]: member.followers.totalCount }
+    }
+
     return parsedMember
   }
 

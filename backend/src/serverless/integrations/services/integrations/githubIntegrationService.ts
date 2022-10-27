@@ -609,6 +609,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       member.username[PlatformType.TWITTER] = memberFromApi.twitterUsername
     }
 
+    if (memberFromApi.followers.totalCount > 0){
+      member.reach = { [PlatformType.GITHUB]: memberFromApi.followers.totalCount }
+    }
+
     return member
   }
 

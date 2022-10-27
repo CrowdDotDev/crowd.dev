@@ -18,6 +18,9 @@ class BaseQuery {
         bio
         company
         location
+        followers {
+          totalCount
+        }
     }`
 
   static ORGANIZATION_SELECT = `{
