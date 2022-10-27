@@ -8,7 +8,7 @@ import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 import sharedActions from '@/shared/store/actions'
 
 export default {
-  ...sharedActions(),
+  ...sharedActions('activity'),
 
   async doFetch(
     { commit, getters, state },

@@ -10,7 +10,7 @@ import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
 
 export default {
-  ...sharedActions(MemberService),
+  ...sharedActions('member', MemberService),
 
   async doExport({ commit, state, getters }) {
     try {

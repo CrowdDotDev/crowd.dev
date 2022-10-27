@@ -5,7 +5,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
-  ...sharedActions(ReportService),
+  ...sharedActions('report', ReportService),
   async doFindPublic({ commit }, { id, tenantId }) {
     try {
       commit('FIND_STARTED', id)

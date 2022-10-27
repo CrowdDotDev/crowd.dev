@@ -4,7 +4,10 @@ import Message from '@/shared/message/message'
 import Errors from '@/shared/error/errors'
 
 export default {
-  ...sharedActions(ConversationService),
+  ...sharedActions(
+    'communityHelpCenter',
+    ConversationService
+  ),
   async doPublishAll(
     { commit, dispatch },
     conversationIds

@@ -5,7 +5,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 
 export default {
-  ...sharedActions(TenantService),
+  ...sharedActions('tenant', TenantService),
   async doCreate({ dispatch, commit }, values) {
     commit('CREATE_STARTED')
     return TenantService.create(values)
