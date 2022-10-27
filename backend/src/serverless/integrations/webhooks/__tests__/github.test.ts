@@ -59,9 +59,6 @@ describe('Github webhooks tests', () => {
           [PlatformType.GITHUB]: 'joanreyero',
         },
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Joan Reyero',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
           },
@@ -94,9 +91,6 @@ describe('Github webhooks tests', () => {
           [PlatformType.TWITTER]: 'reyero',
         },
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Joan Reyero',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
           },
@@ -139,9 +133,6 @@ describe('Github webhooks tests', () => {
           [PlatformType.TWITTER]: 'reyero',
         },
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Joan Reyero',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
           },

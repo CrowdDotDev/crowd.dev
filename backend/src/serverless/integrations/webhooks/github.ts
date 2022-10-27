@@ -329,9 +329,6 @@ export default class GitHubWebhook {
     const parsedMember: Member = {
       username: { [PlatformType.GITHUB]: member.login },
       attributes: {
-        [MemberAttributeName.NAME]: {
-          [PlatformType.GITHUB]: member.name,
-        },
         [MemberAttributeName.IS_HIREABLE]: {
           [PlatformType.GITHUB]: member.isHireable || false,
         },

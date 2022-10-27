@@ -556,9 +556,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
       attributes: {
-        [MemberAttributeName.NAME]: {
-          [PlatformType.GITHUB]: memberFromApi.name,
-        },
         [MemberAttributeName.IS_HIREABLE]: {
           [PlatformType.GITHUB]: memberFromApi.isHireable || false,
         },

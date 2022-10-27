@@ -679,9 +679,6 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
@@ -785,9 +782,6 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
@@ -918,9 +912,6 @@ describe('ActivityService tests', () => {
         email: 'lala@l.com',
         score: 10,
         attributes: {
-          [MemberAttributeName.NAME]: {
-            [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
           },
@@ -1100,9 +1091,6 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            },
             [MemberAttributeName.IS_HIREABLE]: {
               [PlatformType.GITHUB]: true,
             },
@@ -1212,9 +1200,6 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            },
             [MemberAttributeName.IS_HIREABLE]: {
               [PlatformType.GITHUB]: true,
             },
@@ -1326,9 +1311,6 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            },
             [MemberAttributeName.IS_HIREABLE]: {
               [PlatformType.GITHUB]: true,
             },
@@ -1440,9 +1422,6 @@ describe('ActivityService tests', () => {
           email: 'lala@l.com',
           score: 10,
           attributes: {
-            [MemberAttributeName.NAME]: {
-              [PlatformType.GITHUB]: 'Quoc-Anh Nguyen',
-            },
             [MemberAttributeName.IS_HIREABLE]: {
               [PlatformType.GITHUB]: true,
             },
