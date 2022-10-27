@@ -6,7 +6,7 @@ x-env-args: &env-args
 
 services:
   frontend:
-    image: crowddotdev/frontend:1666904436.2e56f6c
+    image: crowddotdev/frontend:1666904549.59dad54
     env_file:
       - frontend.env
     environment:
@@ -18,7 +18,7 @@ services:
       - crowd-bridge
 
   api:
-    image: crowddotdev/backend:1666904365.2e56f6c
+    image: crowddotdev/backend:1666904557.59dad54
     command: 'npm run start:api'
     env_file:
       - backend.env
@@ -32,7 +32,7 @@ services:
       - crowd-bridge
 
   job-generator:
-    image: crowddotdev/backend:1666904365.2e56f6c
+    image: crowddotdev/backend:1666904557.59dad54
     command: 'npm run start:job-generator'
     env_file:
       - backend.env
@@ -44,7 +44,7 @@ services:
       - crowd-bridge
 
   nodejs-worker:
-    image: crowddotdev/backend:1666904365.2e56f6c
+    image: crowddotdev/backend:1666904557.59dad54
     command: 'npm run start:nodejs-worker'
     env_file:
       - backend.env
@@ -56,7 +56,7 @@ services:
       - crowd-bridge
 
   python-worker:
-    image: crowddotdev/python-worker:1666798839.7d4dfbd
+    image: crowddotdev/python-worker:1666904597.59dad54
     env_file:
       - backend.env
     environment:

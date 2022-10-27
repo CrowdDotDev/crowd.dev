@@ -16,6 +16,20 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: enum_memberAttributeSettings_type; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public."enum_memberAttributeSettings_type" AS ENUM (
+    'boolean',
+    'number',
+    'email',
+    'string',
+    'url',
+    'date'
+);
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -29,22 +43,38 @@ CREATE TABLE public.activities (
     type text NOT NULL,
     "timestamp" timestamp with time zone NOT NULL,
     platform text NOT NULL,
-    info jsonb DEFAULT '{}'::jsonb,
-    "crowdInfo" jsonb DEFAULT '{}'::jsonb,
     "isKeyAction" boolean DEFAULT false NOT NULL,
     score integer DEFAULT 2,
     "sourceId" text NOT NULL,
     "sourceParentId" character varying(255),
+    attributes jsonb DEFAULT '{}'::jsonb NOT NULL,
+    channel text,
+    body text,
+    title text,
+    url text,
+    sentiment jsonb DEFAULT '{}'::jsonb,
     "importHash" character varying(255),
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL,
     "deletedAt" timestamp with time zone,
-    "communityMemberId" uuid NOT NULL,
+    "memberId" uuid NOT NULL,
     "conversationId" uuid,
     "parentId" uuid,
     "tenantId" uuid NOT NULL,
     "createdById" uuid,
     "updatedById" uuid
+);
+
+
+--
+-- Name: activityTasks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."activityTasks" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "activityId" uuid NOT NULL,
+    "taskId" uuid NOT NULL
 );
 
 
@@ -102,75 +132,12 @@ CREATE TABLE public.automations (
 
 
 --
--- Name: communityMemberNoMerge; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."communityMemberNoMerge" (
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL,
-    "communityMemberId" uuid NOT NULL,
-    "noMergeId" uuid NOT NULL
-);
-
-
---
--- Name: communityMemberTags; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."communityMemberTags" (
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL,
-    "communityMemberId" uuid NOT NULL,
-    "tagId" uuid NOT NULL
-);
-
-
---
--- Name: communityMemberToMerge; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."communityMemberToMerge" (
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL,
-    "communityMemberId" uuid NOT NULL,
-    "toMergeId" uuid NOT NULL
-);
-
-
---
--- Name: communityMembers; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."communityMembers" (
-    id uuid NOT NULL,
-    username jsonb NOT NULL,
-    type character varying(255) DEFAULT 'member'::character varying NOT NULL,
-    info jsonb DEFAULT '{}'::jsonb,
-    "crowdInfo" jsonb DEFAULT '{}'::jsonb,
-    email text,
-    score integer DEFAULT '-1'::integer,
-    bio text,
-    organisation text,
-    location text,
-    signals text,
-    "joinedAt" timestamp with time zone NOT NULL,
-    "importHash" character varying(255),
-    reach jsonb DEFAULT '{"total": -1}'::jsonb,
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL,
-    "deletedAt" timestamp with time zone,
-    "tenantId" uuid NOT NULL,
-    "createdById" uuid,
-    "updatedById" uuid
-);
-
-
---
 -- Name: conversationSettings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public."conversationSettings" (
     id uuid NOT NULL,
+    enabled boolean DEFAULT false,
     "customUrl" text,
     "logoUrl" text,
     "faviconUrl" text,
@@ -277,6 +244,120 @@ CREATE TABLE public.integrations (
 
 
 --
+-- Name: memberAttributeSettings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberAttributeSettings" (
+    id uuid NOT NULL,
+    type public."enum_memberAttributeSettings_type" NOT NULL,
+    "canDelete" boolean DEFAULT true NOT NULL,
+    show boolean DEFAULT true NOT NULL,
+    label text NOT NULL,
+    name text NOT NULL,
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "tenantId" uuid NOT NULL,
+    "createdById" uuid,
+    "updatedById" uuid
+);
+
+
+--
+-- Name: memberNoMerge; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberNoMerge" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "noMergeId" uuid NOT NULL
+);
+
+
+--
+-- Name: memberNotes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberNotes" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "noteId" uuid NOT NULL
+);
+
+
+--
+-- Name: memberOrganizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberOrganizations" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "organizationId" uuid NOT NULL
+);
+
+
+--
+-- Name: memberTags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberTags" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "tagId" uuid NOT NULL
+);
+
+
+--
+-- Name: memberTasks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberTasks" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "taskId" uuid NOT NULL
+);
+
+
+--
+-- Name: memberToMerge; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberToMerge" (
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "memberId" uuid NOT NULL,
+    "toMergeId" uuid NOT NULL
+);
+
+
+--
+-- Name: members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.members (
+    id uuid NOT NULL,
+    username jsonb NOT NULL,
+    attributes jsonb DEFAULT '{}'::jsonb,
+    "displayName" text NOT NULL,
+    email text,
+    score integer DEFAULT '-1'::integer,
+    "joinedAt" timestamp with time zone NOT NULL,
+    "importHash" character varying(255),
+    reach jsonb DEFAULT '{"total": -1}'::jsonb,
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "deletedAt" timestamp with time zone,
+    "tenantId" uuid NOT NULL,
+    "createdById" uuid,
+    "updatedById" uuid
+);
+
+
+--
 -- Name: microservices; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -290,6 +371,78 @@ CREATE TABLE public.microservices (
     "importHash" character varying(255),
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL,
+    "tenantId" uuid NOT NULL,
+    "createdById" uuid,
+    "updatedById" uuid
+);
+
+
+--
+-- Name: notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notes (
+    id uuid NOT NULL,
+    body text NOT NULL,
+    "importHash" character varying(255),
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "deletedAt" timestamp with time zone,
+    "tenantId" uuid NOT NULL,
+    "createdById" uuid,
+    "updatedById" uuid
+);
+
+
+--
+-- Name: organizationCaches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."organizationCaches" (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    url text,
+    description text,
+    "parentUrl" text,
+    emails text[],
+    "phoneNumbers" text[],
+    logo text,
+    tags text[],
+    twitter jsonb,
+    linkedin jsonb,
+    crunchbase jsonb,
+    employees integer,
+    "revenueRange" jsonb,
+    "importHash" character varying(255),
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "deletedAt" timestamp with time zone
+);
+
+
+--
+-- Name: organizations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.organizations (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    url text,
+    description text,
+    "parentUrl" text,
+    emails text[],
+    "phoneNumbers" text[],
+    logo text,
+    tags text[],
+    twitter jsonb,
+    linkedin jsonb,
+    crunchbase jsonb,
+    employees integer,
+    "revenueRange" jsonb,
+    "importHash" character varying(255),
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "deletedAt" timestamp with time zone,
     "tenantId" uuid NOT NULL,
     "createdById" uuid,
     "updatedById" uuid
@@ -323,6 +476,7 @@ CREATE TABLE public.settings (
     website character varying(255),
     "backgroundImageUrl" character varying(1024),
     "logoUrl" character varying(1024),
+    "attributeSettings" jsonb DEFAULT '{"priorities": ["custom", "twitter", "github", "devto", "slack", "discord", "crowd"]}'::jsonb NOT NULL,
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL,
     "deletedAt" timestamp with time zone,
@@ -344,6 +498,27 @@ CREATE TABLE public.tags (
     "updatedAt" timestamp with time zone NOT NULL,
     "deletedAt" timestamp with time zone,
     "tenantId" uuid NOT NULL,
+    "createdById" uuid,
+    "updatedById" uuid
+);
+
+
+--
+-- Name: tasks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tasks (
+    id uuid NOT NULL,
+    name text NOT NULL,
+    body text,
+    status character varying(255) DEFAULT NULL::character varying,
+    "dueDate" timestamp with time zone,
+    "importHash" character varying(255),
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "deletedAt" timestamp with time zone,
+    "tenantId" uuid NOT NULL,
+    "assignedToId" uuid,
     "createdById" uuid,
     "updatedById" uuid
 );
@@ -376,6 +551,8 @@ CREATE TABLE public.tenants (
     id uuid NOT NULL,
     name character varying(255) NOT NULL,
     url character varying(50) NOT NULL,
+    "integrationsRequired" character varying(50)[],
+    "communitySize" character varying(50),
     plan character varying(255) DEFAULT 'free'::character varying NOT NULL,
     "planStatus" character varying(255) DEFAULT 'active'::character varying NOT NULL,
     "planStripeCustomerId" character varying(255),
@@ -449,6 +626,14 @@ ALTER TABLE ONLY public.activities
 
 
 --
+-- Name: activityTasks activityTasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."activityTasks"
+    ADD CONSTRAINT "activityTasks_pkey" PRIMARY KEY ("activityId", "taskId");
+
+
+--
 -- Name: auditLogs auditLogs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -470,38 +655,6 @@ ALTER TABLE ONLY public."automationExecutions"
 
 ALTER TABLE ONLY public.automations
     ADD CONSTRAINT automations_pkey PRIMARY KEY (id);
-
-
---
--- Name: communityMemberNoMerge communityMemberNoMerge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberNoMerge"
-    ADD CONSTRAINT "communityMemberNoMerge_pkey" PRIMARY KEY ("communityMemberId", "noMergeId");
-
-
---
--- Name: communityMemberTags communityMemberTags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberTags"
-    ADD CONSTRAINT "communityMemberTags_pkey" PRIMARY KEY ("communityMemberId", "tagId");
-
-
---
--- Name: communityMemberToMerge communityMemberToMerge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberToMerge"
-    ADD CONSTRAINT "communityMemberToMerge_pkey" PRIMARY KEY ("communityMemberId", "toMergeId");
-
-
---
--- Name: communityMembers communityMembers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMembers"
-    ADD CONSTRAINT "communityMembers_pkey" PRIMARY KEY (id);
 
 
 --
@@ -545,11 +698,99 @@ ALTER TABLE ONLY public.integrations
 
 
 --
+-- Name: memberAttributeSettings memberAttributeSettings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberAttributeSettings"
+    ADD CONSTRAINT "memberAttributeSettings_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: memberNoMerge memberNoMerge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNoMerge"
+    ADD CONSTRAINT "memberNoMerge_pkey" PRIMARY KEY ("memberId", "noMergeId");
+
+
+--
+-- Name: memberNotes memberNotes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNotes"
+    ADD CONSTRAINT "memberNotes_pkey" PRIMARY KEY ("memberId", "noteId");
+
+
+--
+-- Name: memberOrganizations memberOrganizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberOrganizations"
+    ADD CONSTRAINT "memberOrganizations_pkey" PRIMARY KEY ("memberId", "organizationId");
+
+
+--
+-- Name: memberTags memberTags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTags"
+    ADD CONSTRAINT "memberTags_pkey" PRIMARY KEY ("memberId", "tagId");
+
+
+--
+-- Name: memberTasks memberTasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTasks"
+    ADD CONSTRAINT "memberTasks_pkey" PRIMARY KEY ("memberId", "taskId");
+
+
+--
+-- Name: memberToMerge memberToMerge_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberToMerge"
+    ADD CONSTRAINT "memberToMerge_pkey" PRIMARY KEY ("memberId", "toMergeId");
+
+
+--
+-- Name: members members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.members
+    ADD CONSTRAINT members_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: microservices microservices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.microservices
     ADD CONSTRAINT microservices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notes notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notes
+    ADD CONSTRAINT notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: organizationCaches organizationCaches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."organizationCaches"
+    ADD CONSTRAINT "organizationCaches_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: organizations organizations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT organizations_pkey PRIMARY KEY (id);
 
 
 --
@@ -574,6 +815,14 @@ ALTER TABLE ONLY public.settings
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
 
 
 --
@@ -609,13 +858,6 @@ ALTER TABLE ONLY public.widgets
 
 
 --
--- Name: activities_community_member_id_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX activities_community_member_id_tenant_id ON public.activities USING btree ("communityMemberId", "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
 -- Name: activities_conversation_id_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -634,6 +876,13 @@ CREATE INDEX activities_deleted_at ON public.activities USING btree ("deletedAt"
 --
 
 CREATE UNIQUE INDEX activities_import_hash_tenant_id ON public.activities USING btree ("importHash", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: activities_member_id_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX activities_member_id_tenant_id ON public.activities USING btree ("memberId", "tenantId") WHERE ("deletedAt" IS NULL);
 
 
 --
@@ -686,76 +935,6 @@ CREATE INDEX automations_type_tenant_id_trigger_state ON public.automations USIN
 
 
 --
--- Name: community_members_created_at_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_created_at_tenant_id ON public."communityMembers" USING btree ("createdAt", "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_email_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_email_tenant_id ON public."communityMembers" USING btree (email, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX community_members_import_hash_tenant_id ON public."communityMembers" USING btree ("importHash", "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_joined_at_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_joined_at_tenant_id ON public."communityMembers" USING btree ("joinedAt", "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_location_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_location_tenant_id ON public."communityMembers" USING btree (location, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_organisation_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_organisation_tenant_id ON public."communityMembers" USING btree (organisation, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_score_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_score_tenant_id ON public."communityMembers" USING btree (score, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_signals_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_signals_tenant_id ON public."communityMembers" USING btree (signals, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_type_tenant_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_type_tenant_id ON public."communityMembers" USING btree (type, "tenantId") WHERE ("deletedAt" IS NULL);
-
-
---
--- Name: community_members_username; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX community_members_username ON public."communityMembers" USING gin (username jsonb_path_ops);
-
-
---
 -- Name: conversations_slug_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -766,7 +945,7 @@ CREATE UNIQUE INDEX conversations_slug_tenant_id ON public.conversations USING b
 -- Name: discord; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX discord ON public."communityMembers" USING btree (((username ->> 'discord'::text)));
+CREATE INDEX discord ON public.members USING btree (((username ->> 'discord'::text)));
 
 
 --
@@ -801,7 +980,7 @@ CREATE INDEX eagle_eye_contents_tenant_id_timestamp ON public."eagleEyeContents"
 -- Name: github; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX github ON public."communityMembers" USING btree (((username ->> 'github'::text)));
+CREATE INDEX github ON public.members USING btree (((username ->> 'github'::text)));
 
 
 --
@@ -819,6 +998,55 @@ CREATE INDEX integrations_integration_identifier ON public.integrations USING bt
 
 
 --
+-- Name: member_attribute_settings_name_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX member_attribute_settings_name_tenant_id ON public."memberAttributeSettings" USING btree (name, "tenantId");
+
+
+--
+-- Name: members_created_at_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX members_created_at_tenant_id ON public.members USING btree ("createdAt", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: members_email_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX members_email_tenant_id ON public.members USING btree (email, "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: members_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX members_import_hash_tenant_id ON public.members USING btree ("importHash", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: members_joined_at_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX members_joined_at_tenant_id ON public.members USING btree ("joinedAt", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: members_score_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX members_score_tenant_id ON public.members USING btree (score, "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: members_username; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX members_username ON public.members USING gin (username jsonb_path_ops);
+
+
+--
 -- Name: microservices_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -833,6 +1061,34 @@ CREATE UNIQUE INDEX microservices_type_tenant_id ON public.microservices USING b
 
 
 --
+-- Name: organization_caches_url; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX organization_caches_url ON public."organizationCaches" USING btree (url) WHERE (("deletedAt" IS NULL) AND (url IS NOT NULL));
+
+
+--
+-- Name: organizations_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX organizations_import_hash_tenant_id ON public.organizations USING btree ("importHash", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: organizations_name_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX organizations_name_tenant_id ON public.organizations USING btree (name, "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: organizations_url_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX organizations_url_tenant_id ON public.organizations USING btree (url, "tenantId") WHERE (("deletedAt" IS NULL) AND (url IS NOT NULL));
+
+
+--
 -- Name: reports_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -843,7 +1099,7 @@ CREATE UNIQUE INDEX reports_import_hash_tenant_id ON public.reports USING btree 
 -- Name: slack; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX slack ON public."communityMembers" USING btree (((username ->> 'slack'::text)));
+CREATE INDEX slack ON public.members USING btree (((username ->> 'slack'::text)));
 
 
 --
@@ -861,6 +1117,20 @@ CREATE UNIQUE INDEX tags_name_tenant_id ON public.tags USING btree (name, "tenan
 
 
 --
+-- Name: tasks_import_hash_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX tasks_import_hash_tenant_id ON public.tasks USING btree ("importHash", "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
+-- Name: tasks_name_tenant_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tasks_name_tenant_id ON public.tasks USING btree (name, "tenantId") WHERE ("deletedAt" IS NULL);
+
+
+--
 -- Name: tenants_url; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -871,7 +1141,7 @@ CREATE UNIQUE INDEX tenants_url ON public.tenants USING btree (url) WHERE ("dele
 -- Name: twitter; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX twitter ON public."communityMembers" USING btree (((username ->> 'twitter'::text)));
+CREATE INDEX twitter ON public.members USING btree (((username ->> 'twitter'::text)));
 
 
 --
@@ -896,14 +1166,6 @@ CREATE UNIQUE INDEX widgets_import_hash_tenant_id ON public.widgets USING btree 
 
 
 --
--- Name: activities activities_communityMemberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.activities
-    ADD CONSTRAINT "activities_communityMemberId_fkey" FOREIGN KEY ("communityMemberId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
 -- Name: activities activities_conversationId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -917,6 +1179,14 @@ ALTER TABLE ONLY public.activities
 
 ALTER TABLE ONLY public.activities
     ADD CONSTRAINT "activities_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activities
+    ADD CONSTRAINT "activities_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -941,6 +1211,22 @@ ALTER TABLE ONLY public.activities
 
 ALTER TABLE ONLY public.activities
     ADD CONSTRAINT "activities_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: activityTasks activityTasks_activityId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."activityTasks"
+    ADD CONSTRAINT "activityTasks_activityId_fkey" FOREIGN KEY ("activityId") REFERENCES public.activities(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: activityTasks activityTasks_taskId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."activityTasks"
+    ADD CONSTRAINT "activityTasks_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES public.tasks(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -981,78 +1267,6 @@ ALTER TABLE ONLY public.automations
 
 ALTER TABLE ONLY public.automations
     ADD CONSTRAINT "automations_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: communityMemberNoMerge communityMemberNoMerge_communityMemberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberNoMerge"
-    ADD CONSTRAINT "communityMemberNoMerge_communityMemberId_fkey" FOREIGN KEY ("communityMemberId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMemberNoMerge communityMemberNoMerge_noMergeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberNoMerge"
-    ADD CONSTRAINT "communityMemberNoMerge_noMergeId_fkey" FOREIGN KEY ("noMergeId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMemberTags communityMemberTags_communityMemberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberTags"
-    ADD CONSTRAINT "communityMemberTags_communityMemberId_fkey" FOREIGN KEY ("communityMemberId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMemberTags communityMemberTags_tagId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberTags"
-    ADD CONSTRAINT "communityMemberTags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES public.tags(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMemberToMerge communityMemberToMerge_communityMemberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberToMerge"
-    ADD CONSTRAINT "communityMemberToMerge_communityMemberId_fkey" FOREIGN KEY ("communityMemberId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMemberToMerge communityMemberToMerge_toMergeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMemberToMerge"
-    ADD CONSTRAINT "communityMemberToMerge_toMergeId_fkey" FOREIGN KEY ("toMergeId") REFERENCES public."communityMembers"(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: communityMembers communityMembers_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMembers"
-    ADD CONSTRAINT "communityMembers_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-
---
--- Name: communityMembers communityMembers_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMembers"
-    ADD CONSTRAINT "communityMembers_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
-
-
---
--- Name: communityMembers communityMembers_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."communityMembers"
-    ADD CONSTRAINT "communityMembers_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
@@ -1184,6 +1398,150 @@ ALTER TABLE ONLY public.integrations
 
 
 --
+-- Name: memberAttributeSettings memberAttributeSettings_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberAttributeSettings"
+    ADD CONSTRAINT "memberAttributeSettings_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: memberAttributeSettings memberAttributeSettings_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberAttributeSettings"
+    ADD CONSTRAINT "memberAttributeSettings_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: memberAttributeSettings memberAttributeSettings_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberAttributeSettings"
+    ADD CONSTRAINT "memberAttributeSettings_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: memberNoMerge memberNoMerge_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNoMerge"
+    ADD CONSTRAINT "memberNoMerge_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberNoMerge memberNoMerge_noMergeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNoMerge"
+    ADD CONSTRAINT "memberNoMerge_noMergeId_fkey" FOREIGN KEY ("noMergeId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberNotes memberNotes_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNotes"
+    ADD CONSTRAINT "memberNotes_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberNotes memberNotes_noteId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberNotes"
+    ADD CONSTRAINT "memberNotes_noteId_fkey" FOREIGN KEY ("noteId") REFERENCES public.notes(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberOrganizations memberOrganizations_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberOrganizations"
+    ADD CONSTRAINT "memberOrganizations_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberOrganizations memberOrganizations_organizationId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberOrganizations"
+    ADD CONSTRAINT "memberOrganizations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES public.organizations(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberTags memberTags_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTags"
+    ADD CONSTRAINT "memberTags_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberTags memberTags_tagId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTags"
+    ADD CONSTRAINT "memberTags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES public.tags(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberTasks memberTasks_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTasks"
+    ADD CONSTRAINT "memberTasks_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberTasks memberTasks_taskId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberTasks"
+    ADD CONSTRAINT "memberTasks_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES public.tasks(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberToMerge memberToMerge_memberId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberToMerge"
+    ADD CONSTRAINT "memberToMerge_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: memberToMerge memberToMerge_toMergeId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberToMerge"
+    ADD CONSTRAINT "memberToMerge_toMergeId_fkey" FOREIGN KEY ("toMergeId") REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: members members_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.members
+    ADD CONSTRAINT "members_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: members members_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.members
+    ADD CONSTRAINT "members_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: members members_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.members
+    ADD CONSTRAINT "members_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
 -- Name: microservices microservices_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1205,6 +1563,54 @@ ALTER TABLE ONLY public.microservices
 
 ALTER TABLE ONLY public.microservices
     ADD CONSTRAINT "microservices_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: notes notes_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notes
+    ADD CONSTRAINT "notes_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: notes notes_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notes
+    ADD CONSTRAINT "notes_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: notes notes_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notes
+    ADD CONSTRAINT "notes_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: organizations organizations_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT "organizations_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: organizations organizations_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT "organizations_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: organizations organizations_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT "organizations_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
@@ -1277,6 +1683,38 @@ ALTER TABLE ONLY public.tags
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT "tags_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: tasks tasks_assignedToId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "tasks_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: tasks tasks_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "tasks_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: tasks tasks_tenantId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "tasks_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES public.tenants(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: tasks tasks_updatedById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tasks
+    ADD CONSTRAINT "tasks_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --

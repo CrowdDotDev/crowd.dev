@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cubejs
-          image: crowddotdev/cubejs:1666800955.4683dc0a
+          image: crowddotdev/cubejs:1666904701.59dad54
           env:
             - name: CUBEJS_DEV_MODE
               value: 'true'

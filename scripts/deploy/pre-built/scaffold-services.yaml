@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   cubejs:
-    image: crowddotdev/cubejs:1666800955.4683dc0a
+    image: crowddotdev/cubejs:1666904701.59dad54
     ports:
       - '4000:4000'
       - '3001:3000'
@@ -21,7 +21,7 @@ services:
       - crowd-bridge
 
   db:
-    image: crowddotdev/db:1666875695.899aa137
+    image: crowddotdev/db:1666904672.59dad54
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
@@ -42,7 +42,7 @@ services:
       - crowd-bridge
 
   sqs:
-    image: crowddotdev/elasticmq:1666797020.7d4dfbd
+    image: crowddotdev/elasticmq:1666904719.59dad54
     ports:
       - 9324:9324
       - 9325:9325

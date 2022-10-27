@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: db
-          image: crowddotdev/db:1666875695.899aa137
+          image: crowddotdev/db:1666904672.59dad54
           env:
             - name: POSTGRES_PASSWORD
               value: example

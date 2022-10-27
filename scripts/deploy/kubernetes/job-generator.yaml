@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: job-generator
-          image: crowddotdev/backend:1666904365.2e56f6c
+          image: crowddotdev/backend:1666904557.59dad54
           command: ['npm']
           args: ['run', 'start:job-generator']
           envFrom:

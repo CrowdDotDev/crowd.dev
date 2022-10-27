@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: crowddotdev/backend:1666904365.2e56f6c
+          image: crowddotdev/backend:1666904557.59dad54
           command: ['npm']
           args: ['run', 'start:api']
           envFrom:
