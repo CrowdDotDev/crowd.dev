@@ -197,7 +197,7 @@
             <i class="ri-question-answer-line"></i>
             <span v-if="!isCollapsed">
               <app-i18n
-                code="entities.conversation.menu"
+                code="entities.communityHelpCenter.menu"
               ></app-i18n>
             </span>
           </router-link>
