@@ -6,7 +6,7 @@ x-env-args: &env-args
 
 services:
   frontend:
-    image: crowddotdev/frontend:1666797381.7d4dfbd
+    image: crowddotdev/frontend:1666904436.2e56f6c
     env_file:
       - frontend.env
     environment:
@@ -18,7 +18,7 @@ services:
       - crowd-bridge
 
   api:
-    image: crowddotdev/backend:1666797189.7d4dfbd
+    image: crowddotdev/backend:1666904365.2e56f6c
     command: 'npm run start:api'
     env_file:
       - backend.env
@@ -32,7 +32,7 @@ services:
       - crowd-bridge
 
   job-generator:
-    image: crowddotdev/backend:1666797189.7d4dfbd
+    image: crowddotdev/backend:1666904365.2e56f6c
     command: 'npm run start:job-generator'
     env_file:
       - backend.env
@@ -44,7 +44,7 @@ services:
       - crowd-bridge
 
   nodejs-worker:
-    image: crowddotdev/backend:1666797189.7d4dfbd
+    image: crowddotdev/backend:1666904365.2e56f6c
     command: 'npm run start:nodejs-worker'
     env_file:
       - backend.env
@@ -62,43 +62,6 @@ services:
     environment:
       <<: *env-args
       SERVICE: python-worker
-    restart: always
-    networks:
-      - crowd-bridge
-
-  premium-api:
-    image: crowddotdev/premium-python-backend:1666798696.7d4dfbd
-    command:
-      ['python', '-u', '-m', 'flask', '--app', 'server', '--debug', 'run']
-    env_file:
-      - backend.env
-    environment:
-      <<: *env-args
-      SERVICE: premium-api
-    restart: always
-    networks:
-      - crowd-bridge
-
-  premium-python-worker:
-    image: crowddotdev/premium-python-backend:1666798696.7d4dfbd
-    command: ['python', '-u', 'worker.py']
-    env_file:
-      - backend.env
-    environment:
-      <<: *env-args
-      SERVICE: premium-python-worker
-    restart: always
-    networks:
-      - crowd-bridge
-
-  premium-job-generator:
-    image: crowddotdev/premium-job-generator:1666800146.a13e2c47
-    command: 'npm run start'
-    env_file:
-      - backend.env
-    environment:
-      <<: *env-args
-      SERVICE: premium-job-generator
     restart: always
     networks:
       - crowd-bridge

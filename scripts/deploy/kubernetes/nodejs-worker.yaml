@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: nodejs-worker
-          image: crowddotdev/backend:1666884244.091f77f6
+          image: crowddotdev/backend:1666904365.2e56f6c
           command: ['npm']
           args: ['run', 'start:nodejs-worker']
           envFrom:

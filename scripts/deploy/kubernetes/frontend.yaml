@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: crowddotdev/frontend:1666885115.9731ed18
+          image: crowddotdev/frontend:1666904436.2e56f6c
           envFrom:
             - configMapRef:
                 name: frontend-config
