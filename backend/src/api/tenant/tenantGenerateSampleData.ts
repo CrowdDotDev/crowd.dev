@@ -2,6 +2,7 @@ import ApiResponseHandler from '../apiResponseHandler'
 import Error403 from '../../errors/Error403'
 import { i18n } from '../../i18n'
 import SampleDataService from '../../services/sampleDataService'
+import track from '../../segment/track'
 
 const fs = require('fs')
 const path = require('path')
@@ -17,6 +18,8 @@ export default async (req, res) => {
         'utf8',
       ),
     )
+
+    track('Generate sample data', {}, { ...req })
 
     ApiResponseHandler.success(req, res, {
       message: i18n(req.language, 'tenant.sampleDataCreationStarted'),

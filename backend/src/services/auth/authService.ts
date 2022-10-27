@@ -466,6 +466,18 @@ class AuthService {
     try {
       email = email.toLowerCase()
       let user = await UserRepository.findByEmail(email, options)
+      if (user) {
+        identify(user)
+        track(
+          'Signed in',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
       // If there was no provider, we can link it to the provider
       if (user && (user.provider === undefined || user.provider === null)) {
         await UserRepository.update(
@@ -491,6 +503,16 @@ class AuthService {
           lastName,
           fullName,
           options,
+        )
+        identify(user)
+        track(
+          'Signed up',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
         )
       }
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
