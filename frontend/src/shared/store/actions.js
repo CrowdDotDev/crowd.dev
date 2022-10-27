@@ -250,12 +250,28 @@ export default (moduleName, moduleService = null) => {
         })
       }
 
+      const translatedModuleName = i18n(
+        `entities.${moduleName}.menu`
+      )
+      window.analytics.track(
+        `${translatedModuleName} View Changed`,
+        Object.assign(
+          {},
+          {
+            view: getters.activeView.label
+          }
+        )
+      )
+
       return dispatch('doFetch', {
         keepPagination: false
       })
     },
 
-    addFilterAttribute({ commit, dispatch }, attribute) {
+    addFilterAttribute(
+      { commit, dispatch, getters },
+      attribute
+    ) {
       let shouldFetch = Array.isArray(attribute.value)
         ? attribute.value.length > 0
         : attribute.value !== null
@@ -267,10 +283,28 @@ export default (moduleName, moduleService = null) => {
           keepPagination: false
         })
       }
+
+      const translatedModuleName = i18n(
+        `entities.${moduleName}.menu`
+      )
+      window.analytics.track(
+        `${translatedModuleName} Filter Added`,
+        Object.assign(
+          {},
+          {
+            view: getters.activeView.label,
+            filter: {
+              name: attribute.name,
+              value: attribute.value,
+              operator: attribute.operator
+            }
+          }
+        )
+      )
     },
 
     updateFilterAttribute(
-      { commit, dispatch, state },
+      { commit, dispatch, state, getters },
       attribute
     ) {
       let shouldFetch = attributesAreDifferent(
@@ -285,6 +319,24 @@ export default (moduleName, moduleService = null) => {
           keepPagination: false
         })
       }
+
+      const translatedModuleName = i18n(
+        `entities.${moduleName}.menu`
+      )
+      window.analytics.track(
+        `${translatedModuleName} Filter Updated`,
+        Object.assign(
+          {},
+          {
+            view: getters.activeView.label,
+            filter: {
+              name: attribute.name,
+              value: attribute.value,
+              operator: attribute.operator
+            }
+          }
+        )
+      )
     },
 
     destroyFilterAttribute(

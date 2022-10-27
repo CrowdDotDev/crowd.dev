@@ -99,6 +99,15 @@ export default {
       if (id) {
         this.fetchConversation(id)
       }
+    },
+    isExpanded: {
+      handler(newValue) {
+        if (newValue) {
+          window.analytics.track(
+            'Conversation Drawer Opened'
+          )
+        }
+      }
     }
   },
   methods: {
