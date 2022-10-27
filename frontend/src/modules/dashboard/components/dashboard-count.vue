@@ -90,41 +90,30 @@ export default {
       return [
       moment()
         .utc()
-        .startOf('day')
-        .subtract(1, 'd')
         .endOf('day')
-        .subtract(this.period - 1, 'd')
-        .startOf('day')
         .toISOString(),
       moment()
         .utc()
         .startOf('day')
-        .subtract(1, 'd')
-        .endOf('day')
+        .subtract(this.period - 1, 'd')
         .toISOString()
       ]
     },
     previousDateRange() {
       return [
-        moment()
+          moment()
             .utc()
             .startOf('day')
-            .subtract(1, 'd')
-            .endOf('day')
             .subtract(this.period - 1, 'd')
-            .startOf('day')
             .subtract(1, 'ms')
-            .startOf('day')
-            .subtract(this.period - 1, 'd')
             .toISOString(),
           moment()
             .utc()
             .startOf('day')
-            .subtract(1, 'd')
-            .endOf('day')
             .subtract(this.period - 1, 'd')
-            .startOf('day')
             .subtract(1, 'ms')
+            .startOf('day')
+            .subtract(this.period - 1, 'd')
             .toISOString()
       ]
     }

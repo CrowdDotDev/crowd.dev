@@ -35,7 +35,7 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
@@ -90,7 +90,7 @@ export default {
             timestamp: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
@@ -146,7 +146,7 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
@@ -186,7 +186,7 @@ export default {
             joinedAt: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
@@ -244,7 +244,7 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
@@ -284,7 +284,7 @@ export default {
             joinedAt: {
               gte: moment()
                 .startOf('day')
-                .subtract(period, 'day')
+                .subtract(period - 1, 'day')
                 .toISOString()
             }
           },
