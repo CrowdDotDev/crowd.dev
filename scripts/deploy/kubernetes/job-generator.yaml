@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: job-generator-dpl
+spec:
+  selector:
+    matchLabels:
+      app: job-generator
+  template:
+    metadata:
+      labels:
+        app: job-generator
+    spec:
+      containers:
+        - name: job-generator
+          image: crowddotdev/backend:1666877759.9731ed18
+          command: ['npm']
+          args: ['run', 'start:job-generator']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: job-generator

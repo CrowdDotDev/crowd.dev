@@ -1,0 +1,51 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  labels:
+    name: ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+
+spec:
+  tls:
+    - hosts:
+        - example.domain.name
+      secretName: letsencrypt-issuer
+  rules:
+    - host: example.domain.name
+      http:
+        paths:
+          - path: /search/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: search-engine-svc
+                port:
+                  number: 7700
+          - path: /cjs/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: cubejs-svc
+                port:
+                  number: 4000
+          - path: /api/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: api-svc
+                port:
+                  number: 8080
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 8081

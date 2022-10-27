@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-worker-dpl
+spec:
+  selector:
+    matchLabels:
+      app: nodejs-worker
+  template:
+    metadata:
+      labels:
+        app: nodejs-worker
+    spec:
+      containers:
+        - name: nodejs-worker
+          image: crowddotdev/backend:1666877759.9731ed18
+          command: ['npm']
+          args: ['run', 'start:nodejs-worker']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: nodejs-worker
