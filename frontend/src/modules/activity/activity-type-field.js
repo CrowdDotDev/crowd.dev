@@ -1,5 +1,6 @@
 import JSONField from '@/shared/fields/json-field'
 import en from '@/i18n/en'
+import activityTypesJson from '@/jsons/activity-types.json'
 
 export default class ActivityTypeField extends JSONField {
   constructor(name, label, config = {}) {
@@ -21,12 +22,12 @@ export default class ActivityTypeField extends JSONField {
           key: 'github',
           value: 'GitHub'
         },
-        nestedOptions: Object.entries(
-          en.entities.activity.github
-        ).map(([key, value]) => ({
-          value: key,
-          label: value
-        }))
+        nestedOptions: activityTypesJson.github.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.github[activity]
+          })
+        )
       },
       {
         label: {
@@ -34,12 +35,12 @@ export default class ActivityTypeField extends JSONField {
           key: 'twitter',
           value: 'Twitter'
         },
-        nestedOptions: Object.entries(
-          en.entities.activity.twitter
-        ).map(([key, value]) => ({
-          value: key,
-          label: value
-        }))
+        nestedOptions: activityTypesJson.twitter.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.twitter[activity]
+          })
+        )
       },
       {
         label: {
@@ -47,12 +48,12 @@ export default class ActivityTypeField extends JSONField {
           key: 'discord',
           value: 'Discord'
         },
-        nestedOptions: Object.entries(
-          en.entities.activity.discord
-        ).map(([key, value]) => ({
-          value: key,
-          label: value
-        }))
+        nestedOptions: activityTypesJson.discord.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.discord[activity]
+          })
+        )
       },
       {
         label: {
@@ -60,12 +61,12 @@ export default class ActivityTypeField extends JSONField {
           key: 'slack',
           value: 'Slack'
         },
-        nestedOptions: Object.entries(
-          en.entities.activity.slack
-        ).map(([key, value]) => ({
-          value: key,
-          label: value
-        }))
+        nestedOptions: activityTypesJson.slack.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.slack[activity]
+          })
+        )
       },
       {
         label: {
@@ -73,12 +74,12 @@ export default class ActivityTypeField extends JSONField {
           key: 'devto',
           value: 'DEV'
         },
-        nestedOptions: Object.entries(
-          en.entities.activity.devto
-        ).map(([key, value]) => ({
-          value: key,
-          label: value
-        }))
+        nestedOptions: activityTypesJson.devto.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.devto[activity]
+          })
+        )
       }
     ]
   }
