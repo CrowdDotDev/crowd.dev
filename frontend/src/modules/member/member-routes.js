@@ -33,9 +33,8 @@ export default [
         beforeEnter: (to) => {
           if (
             to.query.activeTab !== undefined &&
-            Object.keys(
-              store.state.member.filter.attributes
-            ).length === 0
+            to.query.activeTab !==
+              store.getters['member/activeView'].id
           ) {
             store.dispatch(
               'member/doChangeActiveView',
