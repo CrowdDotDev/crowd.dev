@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div class="flex items-center">
+    <div class="flex gap-2 items-center">
       <el-tooltip
         effect="dark"
         :content="platform.name"
         class="text-gray-400"
         placement="top"
       >
-        <span
-          class="w-4 h-4 mr-2"
-          v-html="svgs[member.lastActivity.platform]"
-        ></span>
+        <app-svg
+          :name="member.lastActivity.platform"
+          class="w-4 h-4"
+        />
       </el-tooltip>
       <app-activity-message
         :activity="member.lastActivity"
@@ -30,22 +30,18 @@
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import computedTimeAgo from '@/utils/time-ago'
-import svgs from '@/assets/js/svgs.js'
+import AppSvg from '@/shared/svg/svg'
 
 export default {
   name: 'AppMemberLastActivity',
   components: {
-    AppActivityMessage
+    AppActivityMessage,
+    AppSvg
   },
   props: {
     member: {
       type: Object,
       default: () => {}
-    }
-  },
-  data() {
-    return {
-      svgs
     }
   },
   computed: {
