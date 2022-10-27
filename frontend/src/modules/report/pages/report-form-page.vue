@@ -10,7 +10,7 @@
     <div v-else>
       <div class="flex items-center justify-between">
         <router-link
-          class="text-gray-600 btn-link--md btn-link--secondary p-0 flex items-center"
+          class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
           :to="{ path: '/reports' }"
         >
           <i class="ri-arrow-left-s-line mr-2"></i

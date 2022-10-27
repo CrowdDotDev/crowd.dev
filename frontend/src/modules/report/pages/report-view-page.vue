@@ -14,7 +14,7 @@
       >
         <div class="max-w-5xl mx-auto w-full">
           <router-link
-            class="text-gray-600 btn-link--md btn-link--secondary p-0 flex items-center mb-2"
+            class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center mb-2"
             :to="{ path: '/reports' }"
           >
             <i class="ri-arrow-left-s-line mr-2"></i

@@ -3,7 +3,7 @@
     class="gap-x-4 px-6 grid md:grid-cols-6 lg:container lg:grid-cols-12 lg:px-8 text-gray-600"
   >
     <router-link
-      class="text-gray-600 btn-link--md btn-link--secondary p-0 flex items-center my-4"
+      class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center my-4"
       :to="{ path: '/members' }"
     >
       <i class="ri-arrow-left-s-line mr-2"></i
