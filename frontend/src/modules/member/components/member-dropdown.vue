@@ -64,6 +64,48 @@
         </el-dropdown-item>
       </template>
     </el-dropdown>
+    <app-dialog
+      v-model="isMergeDialogOpen"
+      title="Merge member"
+      size="2extra-large"
+      :has-action-btn="true"
+    >
+      <template #actionBtn>
+        <div class="flex gap-4">
+          <el-button
+            v-if="memberToMerge"
+            class="btn btn-md btn-brand--transparent"
+            @click="handleChangeMemberClick"
+          >
+            <i class="ri-refresh-line"></i>
+            <span>Change member</span>
+          </el-button>
+          <el-button
+            class="btn btn--md btn--primary"
+            :loading="isMergeLoading"
+            :disabled="!memberToMerge || isMergeLoading"
+            @click="handleMergeClick"
+            >Merge members</el-button
+          >
+        </div></template
+      >
+      <template #content>
+        <div class="p-6 flex relative">
+          <div class="grow">
+            <app-member-suggestions-details
+              :pair="memberPair"
+            />
+          </div>
+          <app-member-selection-dropdown
+            v-if="memberToMerge === null"
+            :id="member.id"
+            v-model="memberToMerge"
+            class="bg-white absolute w-2/5 right-0 inset-y-0 z-10 flex justify-center"
+            style="margin-right: 5px"
+          />
+        </div>
+      </template>
+    </app-dialog>
   </div>
 </template>
 
@@ -74,9 +116,15 @@ import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import AppMemberSelectionDropdown from './member-selection-dropdown.vue'
+import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue'
 
 export default {
   name: 'AppMemberDropdown',
+  components: {
+    AppMemberSelectionDropdown,
+    AppMemberSuggestionsDetails
+  },
   props: {
     member: {
       type: Object,
@@ -87,11 +135,28 @@ export default {
       default: true
     }
   },
+  data() {
+    return {
+      memberToMerge: null,
+      isMergeDialogOpen: false,
+      isMergeLoading: false
+    }
+  },
   computed: {
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'
     }),
+    memberPair() {
+      if (this.memberToMerge) {
+        return [this.member, this.memberToMerge]
+      } else {
+        return [
+          this.member,
+          { username: {}, attributes: {} }
+        ]
+      }
+    },
     isReadOnly() {
       return (
         new MemberPermissions(
@@ -156,12 +221,30 @@ export default {
         } else {
           this.doFind(command.member.id)
         }
+      } else if (command.action === 'memberMerge') {
+        this.isMergeDialogOpen = true
       } else {
         return this.$router.push({
           name: command.action,
           params: { id: command.member.id }
         })
       }
+    },
+    handleChangeMemberClick() {
+      this.memberToMerge = null
+    },
+    async handleMergeClick() {
+      try {
+        this.isMergeLoading = true
+        await this.$store.dispatch('member/doMerge', {
+          memberToKeep: this.member,
+          memberToMerge: this.memberToMerge
+        })
+      } catch (error) {
+        console.log(error)
+        // no
+      }
+      this.isMergeLoading = false
     }
   }
 }

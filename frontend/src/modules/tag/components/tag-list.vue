@@ -3,9 +3,7 @@
     @mouseenter="showEdit = true"
     @mouseleave="showEdit = true"
   >
-    <div
-      class="inline-flex items-center overflow-x-scroll w-full"
-    >
+    <div class="inline-flex items-center flex-wrap w-full">
       <span
         v-for="tag in computedTags"
         :key="tag.id"
