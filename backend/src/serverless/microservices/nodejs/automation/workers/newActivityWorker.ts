@@ -47,7 +47,7 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
 
   // check whether activity content contains any of the keywords
   if (process && settings.keywords && settings.keywords.length > 0) {
-    const body = (activityData.crowdInfo.body as string).toLowerCase()
+    const body = (activityData.body as string).toLowerCase()
     if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${
@@ -59,7 +59,10 @@ export const shouldProcessActivity = (activityData, automation: AutomationData):
   }
 
   if (process && !settings.teamMemberActivities) {
-    if (activityData.crowdInfo.teamMember) {
+    if (
+      activityData.member.attributes.isTeamMember &&
+      activityData.member.attributes.isTeamMember.custom
+    ) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${activityData.id} belongs to a team member!`,
       )
