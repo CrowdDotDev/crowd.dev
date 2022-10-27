@@ -18,9 +18,8 @@
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
     <el-option
-      v-show="currentQuery"
+      v-show="showCreateSuggestion"
       :label="currentQuery"
-      :value="currentQuery"
       :create="true"
     >
       <span class="prefix">{{ createPrefix }}</span>
@@ -123,15 +122,11 @@ export default {
         this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
-        if (
-          // item does not exist
-          typeof item === 'string' &&
-          item !== '' &&
-          !this.localOptions.some(
-            (o) => o.label === item || o === item
+        if (item === false) {
+          // item is created/typed from user
+          const newItem = await this.createFn(
+            this.currentQuery
           )
-        ) {
-          const newItem = await this.createFn(item)
           this.localOptions.push(newItem)
           return newItem
         } else {
