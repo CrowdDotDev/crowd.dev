@@ -8,9 +8,11 @@ export default {
 
     for (const record of rows) {
       state.records[type][record.id] = record
+      if (!state.list.ids.includes(record.id)) {
+        state.list.ids.push(record.id)
+      }
     }
 
-    state.list.ids.push(...rows.map((r) => r.id))
     state.count = count
   }
 }

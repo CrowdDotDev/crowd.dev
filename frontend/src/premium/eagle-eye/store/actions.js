@@ -3,7 +3,7 @@ import { EagleEyeService } from '@/premium/eagle-eye/eagle-eye-service'
 import Errors from '@/shared/error/errors'
 
 export default {
-  ...sharedActions(),
+  ...sharedActions('eagleEye'),
   async doFetch(
     { commit, getters, state, dispatch },
     { keepPagination = false }
