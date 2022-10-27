@@ -7,7 +7,7 @@
     ></div>
     <div v-else>
       <router-link
-        class="text-gray-600 btn-link--md btn-link--secondary p-0 flex items-center"
+        class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center"
         :to="{ path: '/members' }"
       >
         <i class="ri-arrow-left-s-line mr-2"></i
