@@ -35,7 +35,7 @@ class SQS:
 
         # TODO-kube
         if KUBE_MODE:
-            if IS_DEV_ENV:
+            if SQS_ENDPOINT_URL:
                 self.sqs = boto3.client("sqs",
                                         endpoint_url=SQS_ENDPOINT_URL,
                                         region_name=SQS_REGION,

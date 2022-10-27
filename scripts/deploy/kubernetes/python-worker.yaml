@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: python-worker
-          image: crowddotdev/python-worker:1666886343.79bf9166
+          image: crowddotdev/python-worker:1666888118.72af3833
           envFrom:
             - configMapRef:
                 name: backend-config

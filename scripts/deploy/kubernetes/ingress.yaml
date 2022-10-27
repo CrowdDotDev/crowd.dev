@@ -15,10 +15,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - apptest-kube2.crowd.dev
+        - selfhosted.domain.name
       secretName: letsencrypt-issuer
   rules:
-    - host: apptest-kube2.crowd.dev
+    - host: selfhosted.domain.name
       http:
         paths:
           - path: /search/?(.*)
