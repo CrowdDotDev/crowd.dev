@@ -5,10 +5,10 @@ import OrganizationService from '../../services/organizationService'
 
 /**
  * GET /tenant/{tenantId}/organization/{id}
- * @summary Find a organization
+ * @summary Find an organization
  * @tag Organizations
  * @security Bearer
- * @description Find a organization by ID.
+ * @description Find an organization by ID.
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @pathParam {string} id - The ID of the organization
  * @response 200 - Ok
