@@ -1,5 +1,4 @@
 import { graphql } from '@octokit/graphql'
-import organizationAutocomplete from '../../../../../api/organization/organizationAutocomplete'
 import BaseQuery from './baseQuery'
 
 /**
