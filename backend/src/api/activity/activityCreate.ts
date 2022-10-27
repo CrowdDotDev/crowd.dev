@@ -9,7 +9,7 @@ import track from '../../segment/track'
  * @summary Create or update an activity
  * @tag Activities
  * @security Bearer
- * @description Create or update an activity. Existence is checked by sourceId and tenantId.
+ * @description Create or update an activity. Existence is checked by sourceId and tenantId
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @bodyContent {ActivityUpsertInput} application/json
  * @response 200 - Ok
@@ -23,7 +23,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
 
-    const payload = await new ActivityService(req).upsert(req.body.data)
+    const payload = await new ActivityService(req).upsert(req.body)
 
     track('Activity Manually Created', { ...payload }, { ...req })
 

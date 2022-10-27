@@ -1,6 +1,6 @@
 from crowd.backend.repository import Repository
-from crowd.check_merge_members import check_merge_members_worker
-from crowd.check_merge_members.check_merge_premium import CheckMergePremium
+from crowd.check_merge_members import merge_suggestions_worker
+from crowd.check_merge_members.merge_suggestions import MergeSuggestions
 from crowd.backend.models import Microservice
 from crowd.backend.infrastructure import ServicesSQS
 
@@ -21,7 +21,7 @@ def test_check_merge(api: "Repository"):
     microservice = api.find_by_id(Microservice, microservice_id)
 
     if microservice.type == "check_merge":
-        updates = CheckMergePremium(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
+        updates = MergeSuggestions(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
 
     assert len(updates) == 14
 
@@ -37,7 +37,7 @@ def test_check_merge_different_tenant(api: "Repository"):
 
     microservice = api.find_by_id(Microservice, microservice_id)
     if microservice.type == "check_merge":
-        updates = CheckMergePremium(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
+        updates = MergeSuggestions(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
 
     assert len(updates) == 12
 
@@ -52,6 +52,6 @@ def test_check_merge_wrong_tenant_id(api: "Repository"):
 
     microservice = api.find_by_id(Microservice, microservice_id)
     if microservice.type == "check_merge":
-        updates = CheckMergePremium(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
+        updates = MergeSuggestions(api.tenant_id, microservice, index, sqs_sender, repository=api, test=test).run()
 
     assert len(updates) == 0

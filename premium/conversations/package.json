@@ -18,8 +18,6 @@
     "tailwindcss": "^3.0.24"
   },
   "dependencies": {
-    "@algolia/autocomplete-js": "^1.6.2",
-    "@algolia/autocomplete-theme-classic": "^1.6.2",
     "@babel/runtime": "^7.17.9",
     "@headlessui/vue": "^1.5.0",
     "@heroicons/vue": "^1.0.6",

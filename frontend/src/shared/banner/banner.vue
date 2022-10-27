@@ -35,7 +35,7 @@ export default {
 
 <style lang="scss">
 .banner {
-  @apply absolute h-14 inset-x-0 bg-gray-600 top-0 z-10 flex items-center px-6 text-white rounded-tl-lg;
+  @apply absolute h-14 inset-x-0 bg-gray-600 top-0 z-10 flex items-center px-6 text-white;
 
   &--alert {
     @apply bg-yellow-300 text-black;

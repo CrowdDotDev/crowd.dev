@@ -1,7 +1,5 @@
-import routes from '@/modules/tenant/tenant-routes'
-import store from '@/modules/tenant/tenant-store'
+import store from '@/modules/tenant/store'
 
 export default {
-  routes,
   store
 }

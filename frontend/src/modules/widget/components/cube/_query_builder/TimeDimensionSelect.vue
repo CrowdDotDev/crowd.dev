@@ -1,6 +1,7 @@
 <template>
   <div>
-    <label class="block leading-none mb-1"
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
       >Time Dimensions</label
     >
     <el-select
@@ -10,6 +11,7 @@
       "
       clearable
       filterable
+      class="w-full"
       @change="handleTimeChange"
     >
       <el-option

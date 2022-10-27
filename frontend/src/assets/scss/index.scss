@@ -13,7 +13,6 @@
 @import 'onboard';
 @import 'form';
 @import 'filter';
-@import 'errors';
 @import 'colors';
 @import 'settings';
 @import 'table';
@@ -21,12 +20,16 @@
 @import 'buttons';
 @import 'dropdown';
 @import 'tags';
-@import 'message-box';
 @import 'dialogs';
 @import 'panel';
-@import 'pagination';
 @import 'toast';
 @import 'tabs';
 @import 'drawer';
+@import 'animations';
+@import 'confirm-dialog';
+@import 'date-picker';
+@import 'timeline';
+@import 'badge';
+@import 'radio';
 
 @import '~remixicon/fonts/remixicon.css';

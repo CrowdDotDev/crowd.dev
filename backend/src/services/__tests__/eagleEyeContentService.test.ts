@@ -1,5 +1,6 @@
 import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
+import { PlatformType } from '../../types/integrationEnums'
 import EagleEyeContentService from '../eagleEyeContentService'
 
 const db = null
@@ -8,7 +9,7 @@ const toUpsert = {
   keywords: ['keyword'],
   similarityScore: 1,
   userAttributes: {
-    github: 'github',
+    [PlatformType.GITHUB]: 'github',
   },
   username: 'username',
   timestamp: moment().unix(),
@@ -25,7 +26,7 @@ const toUpsert2 = {
   keywords: ['keyword'],
   similarityScore: 1,
   userAttributes: {
-    github: 'github',
+    [PlatformType.GITHUB]: 'github',
   },
   username: 'username',
   timestamp: moment().subtract(1, 'days').unix(),
@@ -97,7 +98,7 @@ describe('EagleEyeContentService tests', () => {
         keywords: ['keyword'],
         similarityScore: 1,
         userAttributes: {
-          github: 'github',
+          [PlatformType.GITHUB]: 'github',
         },
         username: 'username',
         timestamp: moment().unix(),
@@ -114,7 +115,7 @@ describe('EagleEyeContentService tests', () => {
         keywords: ['keyword'],
         similarityScore: 1,
         userAttributes: {
-          github: 'github',
+          [PlatformType.GITHUB]: 'github',
         },
         username: 'username',
         timestamp: moment().subtract(31, 'days').unix(),

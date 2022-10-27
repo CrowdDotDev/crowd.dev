@@ -1,9 +1,7 @@
 import Layout from '@/modules/layout/components/layout.vue'
 
 const DashboardPage = () =>
-  import(
-    '@/modules/dashboard/components/dashboard-page.vue'
-  )
+  import('@/modules/dashboard/pages/dashboard-page.vue')
 
 export default [
   {

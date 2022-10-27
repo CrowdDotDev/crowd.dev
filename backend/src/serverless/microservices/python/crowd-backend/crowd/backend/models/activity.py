@@ -30,20 +30,14 @@ class Activity(Base):
     updatedAt = Column(DateTime)
     deletedAt = Column(DateTime)
 
-    communityMemberId = Column(String, ForeignKey("communityMembers.id"), nullable=False)
-    parentCommunityMember = relationship("CommunityMember", back_populates="activities")
+    memberId = Column(String, ForeignKey("members.id"), nullable=False)
+    parentMember = relationship("Member", back_populates="activities")
 
     parentId = Column(String, ForeignKey("activities.id"))
     parent = relationship("Activity")
 
     tenantId = Column(String, ForeignKey("tenants.id"), nullable=False)
     parentTenant = relationship("Tenant", back_populates="activities")
-
-    createdById = Column(String, ForeignKey("users.id"))
-    updatedById = Column(String, ForeignKey("users.id"))
-
-    parentUser = relationship("User", foreign_keys=[createdById])
-    updateParentUser = relationship("User", foreign_keys=[updatedById])
 
     # validation
     @validates("type")

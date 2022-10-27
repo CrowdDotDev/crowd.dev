@@ -1,31 +1,30 @@
 <template>
-  <div>
-    <el-tooltip
-      content="Double click to edit"
-      effect="dark"
-      placement="top"
+  <div
+    @mouseenter="showEdit = true"
+    @mouseleave="showEdit = true"
+  >
+    <div
+      class="inline-flex items-center overflow-x-scroll w-full"
     >
-      <div
-        class="inline-flex items-center flex-wrap"
-        @dblclick="editing = true"
+      <span
+        v-for="tag in computedTags"
+        :key="tag.id"
+        class="tag mr-2 my-1 text-xs"
+        >{{ getTagName(tag) }}</span
       >
-        <span
-          v-for="tag in member.tags"
-          :key="tag.id"
-          class="tag mr-2 my-1"
-          >{{ tag.name }}</span
-        >
-        <span
-          v-if="member.tags.length === 0"
-          class="text-black opacity-50 italic"
-          >No tags added</span
-        >
-      </div>
-    </el-tooltip>
+      <el-button
+        v-if="editable && showEdit"
+        class="text-gray-300 hover:text-gray-600 btn btn-link text-2xs"
+        :class="member.tags.length > 0 ? 'ml-2' : ''"
+        @click.stop="editing = true"
+        >Edit tags</el-button
+      >
+    </div>
     <app-tag-popover
       v-model="model[fields.tags.name]"
       :visible="editing"
       :loading="loading"
+      :pretitle="member.displayName"
       @cancel="editing = false"
       @submit="doSubmit"
     />
@@ -33,15 +32,12 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
-import Message from '@/shared/message/message'
 import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
-import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
-import { CommunityMemberService } from '@/modules/community-member/community-member-service'
+import { MemberModel } from '@/modules/member/member-model'
 import AppTagPopover from '@/modules/tag/components/tag-popover'
 
-const { fields } = CommunityMemberModel
+const { fields } = MemberModel
 const formSchema = new FormSchema([
   fields.username,
   fields.info,
@@ -56,6 +52,14 @@ export default {
     member: {
       type: Object,
       default: () => {}
+    },
+    editable: {
+      type: Boolean,
+      default: true
+    },
+    long: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['tags-updated'],
@@ -64,10 +68,20 @@ export default {
       rules: formSchema.rules(),
       model: null,
       editing: false,
-      loading: false
+      loading: false,
+      showEdit: true
     }
   },
   computed: {
+    computedTags() {
+      const max = this.long ? 8 : 3
+      return this.member.tags.length <= max || this.long
+        ? this.member.tags
+        : this.member.tags.slice(0, 3).concat({
+            id: 'more',
+            name: `+${this.member.tags.length - 3}`
+          })
+    },
     fields() {
       return fields
     }
@@ -89,20 +103,25 @@ export default {
 
   methods: {
     ...mapActions({
-      doUpdate: 'communityMember/form/doUpdate'
+      doUpdate: 'member/doUpdate'
     }),
     async doSubmit() {
       this.loading = true
-      await CommunityMemberService.update(
-        this.member.id,
-        formSchema.cast(this.model)
-      )
+      await this.doUpdate({
+        id: this.member.id,
+        values: formSchema.cast(this.model)
+      })
       this.loading = false
       this.editing = false
-      Message.success(
-        i18n('entities.communityMember.update.success')
-      )
       this.$emit('tags-updated')
+    },
+    getTagName(tag) {
+      if (!this.long) {
+        return tag.name.length > 10
+          ? `${tag.name.slice(0, 10)}...`
+          : tag.name
+      }
+      return tag.name
     }
   }
 }
@@ -111,7 +130,7 @@ export default {
 <style lang="scss">
 .tags-form {
   .el-select {
-    @apply w-full mt-3 mb-1;
+    @apply w-full;
   }
 }
 </style>

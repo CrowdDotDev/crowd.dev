@@ -3,78 +3,63 @@
     <el-form
       v-if="model"
       ref="form"
-      :label-position="labelPosition"
-      :label-width="labelWidthForm"
+      label-position="top"
       :model="model"
       :rules="rules"
       class="form"
       @submit.prevent="doSubmit"
     >
-      <el-form-item
-        :label="fields.tenantName.label"
-        :prop="fields.tenantName.name"
-        :required="fields.tenantName.required"
-      >
-        <el-col :lg="11" :md="16" :sm="24">
+      <div class="px-6 pb-4">
+        <el-form-item
+          :label="fields.tenantName.label"
+          :prop="fields.tenantName.name"
+          :required="fields.tenantName.required"
+        >
           <el-input
             ref="focus"
             v-model="model[fields.tenantName.name]"
           />
-        </el-col>
-      </el-form-item>
+        </el-form-item>
+      </div>
 
-      <el-form-item
-        v-if="tenantSubdomain.isEnabled"
-        :label="fields.tenantUrl.label"
-        :prop="fields.tenantUrl.name"
-        :required="fields.tenantUrl.required"
+      <el-footer
+        class="el-dialog__footer flex justify-between"
       >
-        <el-col :lg="11" :md="16" :sm="24">
-          <el-input v-model="model[fields.tenantUrl.name]">
-            <template #append>{{
-              frontendUrlHost
-            }}</template>
-          </el-input>
-        </el-col>
-      </el-form-item>
+        <el-button
+          :disabled="loading"
+          class="btn btn-link btn-link--primary"
+          @click="doReset"
+        >
+          <i class="ri-arrow-go-back-line" />
+          <span>Reset changes</span>
+        </el-button>
 
-      <el-form-item>
-        <div class="form-buttons">
+        <div class="flex gap-4">
           <el-button
-            :disabled="saveLoading"
-            class="btn btn--primary"
-            @click="doSubmit"
+            :disabled="loading"
+            class="btn btn--md btn--bordered"
+            @click="$emit('cancel')"
           >
-            <i class="ri-lg ri-save-line mr-1" />
-            <app-i18n code="common.save"></app-i18n>
-          </el-button>
-
-          <el-button
-            :disabled="saveLoading"
-            @click="doReset"
-          >
-            <i class="ri-lg ri-arrow-go-back-line mr-1" />
-            <app-i18n code="common.reset"></app-i18n>
-          </el-button>
-
-          <el-button
-            :disabled="saveLoading"
-            @click="doCancel"
-          >
-            <i class="ri-close-line mr-1" />
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
+
+          <el-button
+            :loading="loading"
+            class="btn btn--md btn--primary"
+            @click="doSubmit"
+          >
+            Update
+          </el-button>
         </div>
-      </el-form-item>
+      </el-footer>
     </el-form>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
 import { TenantModel } from '@/modules/tenant/tenant-model'
-import config from '@/config'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 
 const { fields } = TenantModel
@@ -89,44 +74,24 @@ export default {
   name: 'AppTenantForm',
 
   props: {
-    isEditing: {
-      type: Boolean,
-      default: false
-    },
     record: {
       type: Object,
       default: () => {}
-    },
-    saveLoading: {
-      type: Boolean,
-      default: false
     }
   },
-  emits: ['cancel', 'submit'],
+  emits: ['cancel', 'success'],
 
   data() {
     return {
       rules: formSchema.rules(),
-      model: null
+      model: null,
+      loading: false
     }
   },
 
   computed: {
-    ...mapGetters({
-      labelPosition: 'layout/labelPosition',
-      labelWidthForm: 'layout/labelWidthForm'
-    }),
-
     fields() {
       return fields
-    },
-
-    frontendUrlHost() {
-      return `.${config.frontendUrl.host}`
-    },
-
-    tenantSubdomain() {
-      return tenantSubdomain
     }
   },
 
@@ -135,6 +100,7 @@ export default {
   },
 
   methods: {
+    ...mapActions('tenant', ['doCreate', 'doUpdate']),
     doReset() {
       this.model = formSchema.initialValues(this.record)
     },
@@ -144,16 +110,25 @@ export default {
     },
 
     async doSubmit() {
+      this.loading = true
       try {
         await this.$refs.form.validate()
       } catch (error) {
+        this.loading = false
         return
       }
 
-      return this.$emit('submit', {
-        id: this.record && this.record.id,
-        values: formSchema.cast(this.model)
-      })
+      if (this.record.id) {
+        await this.doUpdate({
+          id: this.record.id,
+          values: this.model
+        })
+      } else {
+        await this.doCreate(this.model)
+      }
+
+      this.$emit('success')
+      this.loading = false
     }
   }
 }

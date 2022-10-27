@@ -1,144 +1,158 @@
 <template>
-  <el-dropdown
+  <el-popover
+    placement="right-end"
+    :width="230"
     trigger="click"
-    @command="handleDropdownCommand"
+    popper-class="account-popover"
+    @show="isDropdownOpen = true"
+    @hide="isDropdownOpen = false"
   >
-    <div class="el-dropdown-link">
+    <template #reference>
       <div
-        class="flex items-center"
-        :class="collapsed ? 'px-3 py-4' : 'p-4'"
+        class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-50 account-btn"
+        :class="isDropdownOpen ? 'bg-gray-50' : 'bg-white'"
       >
-        <app-avatar
-          :entity="computedAvatarEntity"
-          size="sm"
-          class="mr-2"
-        ></app-avatar>
-        <div v-if="!collapsed" class="text-sm">
-          <div class="text-white font-semibold">
-            {{ currentUserNameOrEmailPrefix }}
-          </div>
-          <div class="text-white opacity-75">
-            {{ currentTenant.name }}
+        <div class="flex items-center">
+          <app-avatar
+            :entity="computedAvatarEntity"
+            size="sm"
+            :class="isCollapsed ? '' : 'mr-3'"
+          ></app-avatar>
+          <div
+            v-if="!isCollapsed"
+            class="text-sm account-btn-info"
+          >
+            <div class="text-gray-900">
+              {{ currentUserNameOrEmailPrefix }}
+            </div>
+            <div class="text-gray-500 text-2xs">
+              {{ currentTenant.name }}
+            </div>
           </div>
         </div>
+
+        <i
+          v-if="!isCollapsed"
+          class="ri-more-2-fill text-gray-300 text-lg"
+        ></i>
+      </div>
+    </template>
+
+    <!-- Popover content -->
+    <div
+      v-if="currentTenant && currentTenant.onboardedAt"
+      class="flex flex-col gap-1 mb-1"
+    >
+      <div class="popover-item" @click="doEditProfile">
+        <i
+          class="text-base text-gray-400 ri-account-circle-line"
+        ></i>
+        <span class="text-xs text-gray-900"
+          ><app-i18n code="auth.profile.title"></app-i18n
+        ></span>
       </div>
     </div>
-    <template #dropdown>
-      <div
-        v-if="currentTenant && currentTenant.onboardedAt"
-      >
-        <el-dropdown-item command="doEditProfile">
-          <i class="ri-user-line mr-1"></i>
-          <app-i18n code="auth.profile.title"></app-i18n>
-        </el-dropdown-item>
-        <el-dropdown-item command="doPasswordChange">
-          <i class="ri-lock-password-line mr-1"></i>
-          <app-i18n
-            code="auth.passwordChange.title"
-          ></app-i18n>
-        </el-dropdown-item>
-        <el-dropdown-item
-          v-if="
-            ['multi', 'multi-with-subdomain'].includes(
-              tenantMode
-            ) && hasTenantModule
-          "
-          command="doSwitchTenants"
-        >
-          <i class="ri-apps-line mr-1"></i>
-          Workspaces
-        </el-dropdown-item>
-      </div>
-      <el-dropdown-item command="doSignout">
-        <i class="ri-logout-circle-line mr-1"></i>
-        <app-i18n code="auth.signout"></app-i18n>
-      </el-dropdown-item>
-    </template>
-  </el-dropdown>
+    <div class="popover-item" @click="doSignout">
+      <i
+        class="text-base text-gray-400 ri-logout-box-r-line"
+      ></i>
+      <span class="text-xs text-gray-900"
+        ><app-i18n code="auth.signout"></app-i18n
+      ></span>
+    </div>
+  </el-popover>
 </template>
 
 <script>
-import config from '@/config'
-import { mapGetters, mapActions } from 'vuex'
-import { i18n } from '@/i18n'
-
 export default {
-  name: 'AppAccountDropdown',
+  name: 'AppAccountDropdown'
+}
+</script>
 
-  props: {
-    collapsed: {
-      type: Boolean,
-      default: false
+<script setup>
+import { useStore } from 'vuex'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const store = useStore()
+const router = useRouter()
+
+const isDropdownOpen = ref(false)
+
+const isCollapsed = computed(
+  () => store.getters['layout/menuCollapsed']
+)
+const currentUserNameOrEmailPrefix = computed(
+  () => store.getters['auth/currentUserNameOrEmailPrefix']
+)
+const currentUserAvatar = computed(
+  () => store.getters['auth/currentUserAvatar']
+)
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant']
+)
+
+const computedAvatarEntity = computed(() => ({
+  avatar: currentUserAvatar.value,
+  displayName: currentUserNameOrEmailPrefix.value
+}))
+
+function doSignout() {
+  store.dispatch('auth/doSignout')
+}
+
+function doEditProfile() {
+  return router.push('/auth/edit-profile')
+}
+</script>
+
+<style lang="scss">
+.popover-item {
+  @apply h-10 hover:cursor-pointer flex items-center gap-2 px-3 rounded hover:bg-gray-50;
+
+  a,
+  a[href]:hover {
+    @apply text-gray-900;
+  }
+
+  &:hover {
+    i:not(.ri-external-link-line) {
+      @apply text-gray-500;
     }
-  },
 
-  computed: {
-    ...mapGetters({
-      currentUserNameOrEmailPrefix:
-        'auth/currentUserNameOrEmailPrefix',
-      currentUserAvatar: 'auth/currentUserAvatar',
-      currentTenant: 'auth/currentTenant',
-      isMobile: 'layout/isMobile'
-    }),
-
-    hasTenantModule() {
-      return config.edition === 'crowd-hosted'
-        ? true
-        : config.communityPremium === 'true'
-    },
-
-    tenantMode() {
-      return config.tenantMode
-    },
-
-    computedAvatarEntity() {
-      return {
-        avatar: this.currentUserAvatar,
-        username: {
-          crowdUsername: this.currentUserNameOrEmailPrefix
-        }
-      }
-    }
-  },
-
-  methods: {
-    ...mapActions({
-      doSignout: 'auth/doSignout'
-    }),
-
-    i18n(key, args) {
-      return i18n(key, args)
-    },
-
-    handleDropdownCommand(command) {
-      if (command === 'doSignout') {
-        this.doSignout()
-      }
-
-      if (command === 'doEditProfile') {
-        this.doEditProfile()
-      }
-
-      if (command === 'doSwitchTenants') {
-        this.doSwitchTenants()
-      }
-
-      if (command === 'doPasswordChange') {
-        this.doPasswordChange()
-      }
-    },
-
-    doEditProfile() {
-      return this.$router.push('/auth/edit-profile')
-    },
-
-    doPasswordChange() {
-      return this.$router.push('/password-change')
-    },
-
-    doSwitchTenants() {
-      return this.$router.push('/tenant')
+    .svg-icon path {
+      fill: #6b7280;
     }
   }
 }
-</script>
+
+// Override inline style in popover
+.account-popover {
+  padding: 8px !important;
+  left: 1px !important;
+  bottom: 10px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+// Smooth disappearance of account information on collapse
+.app-menu {
+  .account-btn {
+    @apply justify-between px-3;
+
+    &:hover .ri-more-2-fill {
+      @apply text-gray-400;
+    }
+  }
+
+  :not(.horizontal-collapse-transition).el-menu--collapse {
+    @apply justify-center;
+  }
+
+  .horizontal-collapse-transition .account-btn-info {
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+}
+</style>

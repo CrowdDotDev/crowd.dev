@@ -8511,17 +8511,17 @@
         "settings": {
           "chartType": "line",
           "query": {
-            "measures": ["Communitymembers.memberCount"],
+            "measures": ["Members.memberCount"],
             "timeDimensions": [
               {
-                "dimension": "Communitymembers.date",
+                "dimension": "Members.date",
                 "granularity": "day",
                 "dateRange": "This year"
               }
             ],
             "limit": 10000,
             "order": {
-              "Communitymembers.date": "asc"
+              "Members.date": "asc"
             }
           },
           "layout": {
@@ -8538,10 +8538,10 @@
               "results": [
                 {
                   "query": {
-                    "measures": ["Communitymembers.memberCount"],
+                    "measures": ["Members.memberCount"],
                     "timeDimensions": [
                       {
-                        "dimension": "Communitymembers.date",
+                        "dimension": "Members.date",
                         "granularity": "day",
                         "dateRange": ["2021-01-01T00:00:00.000", "2021-12-31T23:59:59.999"]
                       }
@@ -8549,7 +8549,7 @@
                     "limit": 10000,
                     "order": [
                       {
-                        "id": "Communitymembers.date",
+                        "id": "Members.date",
                         "desc": false
                       }
                     ],
@@ -8557,7 +8557,7 @@
                     "timezone": "UTC",
                     "filters": [
                       {
-                        "member": "CommunitymembersEntity.tenant",
+                        "member": "MembersEntity.tenant",
                         "operator": "equals",
                         "values": ["619cbf169256142ce42e3e68"]
                       }
@@ -8567,146 +8567,146 @@
                   },
                   "data": [
                     {
-                      "Communitymembers.date.day": "2021-12-05T00:00:00.000",
-                      "Communitymembers.date": "2021-12-05T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-05T00:00:00.000",
+                      "Members.date": "2021-12-05T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-06T00:00:00.000",
-                      "Communitymembers.date": "2021-12-06T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-06T00:00:00.000",
+                      "Members.date": "2021-12-06T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-07T00:00:00.000",
-                      "Communitymembers.date": "2021-12-07T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-07T00:00:00.000",
+                      "Members.date": "2021-12-07T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-08T00:00:00.000",
-                      "Communitymembers.date": "2021-12-08T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-08T00:00:00.000",
+                      "Members.date": "2021-12-08T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-09T00:00:00.000",
-                      "Communitymembers.date": "2021-12-09T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-09T00:00:00.000",
+                      "Members.date": "2021-12-09T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-10T00:00:00.000",
-                      "Communitymembers.date": "2021-12-10T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-10T00:00:00.000",
+                      "Members.date": "2021-12-10T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-11T00:00:00.000",
-                      "Communitymembers.date": "2021-12-11T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-11T00:00:00.000",
+                      "Members.date": "2021-12-11T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-12T00:00:00.000",
-                      "Communitymembers.date": "2021-12-12T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-12T00:00:00.000",
+                      "Members.date": "2021-12-12T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-13T00:00:00.000",
-                      "Communitymembers.date": "2021-12-13T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-13T00:00:00.000",
+                      "Members.date": "2021-12-13T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-14T00:00:00.000",
-                      "Communitymembers.date": "2021-12-14T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-14T00:00:00.000",
+                      "Members.date": "2021-12-14T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-15T00:00:00.000",
-                      "Communitymembers.date": "2021-12-15T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-15T00:00:00.000",
+                      "Members.date": "2021-12-15T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-16T00:00:00.000",
-                      "Communitymembers.date": "2021-12-16T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-16T00:00:00.000",
+                      "Members.date": "2021-12-16T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-17T00:00:00.000",
-                      "Communitymembers.date": "2021-12-17T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-17T00:00:00.000",
+                      "Members.date": "2021-12-17T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-18T00:00:00.000",
-                      "Communitymembers.date": "2021-12-18T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-18T00:00:00.000",
+                      "Members.date": "2021-12-18T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-19T00:00:00.000",
-                      "Communitymembers.date": "2021-12-19T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-19T00:00:00.000",
+                      "Members.date": "2021-12-19T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-20T00:00:00.000",
-                      "Communitymembers.date": "2021-12-20T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-20T00:00:00.000",
+                      "Members.date": "2021-12-20T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-21T00:00:00.000",
-                      "Communitymembers.date": "2021-12-21T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-21T00:00:00.000",
+                      "Members.date": "2021-12-21T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-22T00:00:00.000",
-                      "Communitymembers.date": "2021-12-22T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-22T00:00:00.000",
+                      "Members.date": "2021-12-22T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-23T00:00:00.000",
-                      "Communitymembers.date": "2021-12-23T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-23T00:00:00.000",
+                      "Members.date": "2021-12-23T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-24T00:00:00.000",
-                      "Communitymembers.date": "2021-12-24T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-24T00:00:00.000",
+                      "Members.date": "2021-12-24T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-25T00:00:00.000",
-                      "Communitymembers.date": "2021-12-25T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-25T00:00:00.000",
+                      "Members.date": "2021-12-25T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-26T00:00:00.000",
-                      "Communitymembers.date": "2021-12-26T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-26T00:00:00.000",
+                      "Members.date": "2021-12-26T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-27T00:00:00.000",
-                      "Communitymembers.date": "2021-12-27T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-27T00:00:00.000",
+                      "Members.date": "2021-12-27T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-28T00:00:00.000",
-                      "Communitymembers.date": "2021-12-28T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-28T00:00:00.000",
+                      "Members.date": "2021-12-28T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-29T00:00:00.000",
-                      "Communitymembers.date": "2021-12-29T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-29T00:00:00.000",
+                      "Members.date": "2021-12-29T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-30T00:00:00.000",
-                      "Communitymembers.date": "2021-12-30T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-30T00:00:00.000",
+                      "Members.date": "2021-12-30T00:00:00.000",
+                      "Members.memberCount": 2
                     },
                     {
-                      "Communitymembers.date.day": "2021-12-31T00:00:00.000",
-                      "Communitymembers.date": "2021-12-31T00:00:00.000",
-                      "Communitymembers.memberCount": 2
+                      "Members.date.day": "2021-12-31T00:00:00.000",
+                      "Members.date": "2021-12-31T00:00:00.000",
+                      "Members.memberCount": 2
                     }
                   ],
                   "lastRefreshTime": "2021-12-23T11:40:14.404Z",
                   "annotation": {
                     "measures": {
-                      "Communitymembers.memberCount": {
-                        "title": "Communitymembers Member Count",
+                      "Members.memberCount": {
+                        "title": "Members Member Count",
                         "shortTitle": "Member Count",
                         "type": "number",
                         "drillMembers": [],
@@ -8719,13 +8719,13 @@
                     "dimensions": {},
                     "segments": {},
                     "timeDimensions": {
-                      "Communitymembers.date.day": {
-                        "title": "Communitymembers Date",
+                      "Members.date.day": {
+                        "title": "Members Date",
                         "shortTitle": "Date",
                         "type": "time"
                       },
-                      "Communitymembers.date": {
-                        "title": "Communitymembers Date",
+                      "Members.date": {
+                        "title": "Members Date",
                         "shortTitle": "Date",
                         "type": "time"
                       }
@@ -8739,10 +8739,10 @@
                 }
               ],
               "pivotQuery": {
-                "measures": ["Communitymembers.memberCount"],
+                "measures": ["Members.memberCount"],
                 "timeDimensions": [
                   {
-                    "dimension": "Communitymembers.date",
+                    "dimension": "Members.date",
                     "granularity": "day",
                     "dateRange": ["2021-01-01T00:00:00.000", "2021-12-31T23:59:59.999"]
                   }
@@ -8750,7 +8750,7 @@
                 "limit": 10000,
                 "order": [
                   {
-                    "id": "Communitymembers.date",
+                    "id": "Members.date",
                     "desc": false
                   }
                 ],
@@ -8758,7 +8758,7 @@
                 "timezone": "UTC",
                 "filters": [
                   {
-                    "member": "CommunitymembersEntity.tenant",
+                    "member": "MembersEntity.tenant",
                     "operator": "equals",
                     "values": ["619cbf169256142ce42e3e68"]
                   }
@@ -8772,10 +8772,10 @@
             "loadResponses": [
               {
                 "query": {
-                  "measures": ["Communitymembers.memberCount"],
+                  "measures": ["Members.memberCount"],
                   "timeDimensions": [
                     {
-                      "dimension": "Communitymembers.date",
+                      "dimension": "Members.date",
                       "granularity": "day",
                       "dateRange": ["2021-01-01T00:00:00.000", "2021-12-31T23:59:59.999"]
                     }
@@ -8783,7 +8783,7 @@
                   "limit": 10000,
                   "order": [
                     {
-                      "id": "Communitymembers.date",
+                      "id": "Members.date",
                       "desc": false
                     }
                   ],
@@ -8791,7 +8791,7 @@
                   "timezone": "UTC",
                   "filters": [
                     {
-                      "member": "CommunitymembersEntity.tenant",
+                      "member": "MembersEntity.tenant",
                       "operator": "equals",
                       "values": ["619cbf169256142ce42e3e68"]
                     }
@@ -8801,146 +8801,146 @@
                 },
                 "data": [
                   {
-                    "Communitymembers.date.day": "2021-12-05T00:00:00.000",
-                    "Communitymembers.date": "2021-12-05T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-05T00:00:00.000",
+                    "Members.date": "2021-12-05T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-06T00:00:00.000",
-                    "Communitymembers.date": "2021-12-06T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-06T00:00:00.000",
+                    "Members.date": "2021-12-06T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-07T00:00:00.000",
-                    "Communitymembers.date": "2021-12-07T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-07T00:00:00.000",
+                    "Members.date": "2021-12-07T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-08T00:00:00.000",
-                    "Communitymembers.date": "2021-12-08T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-08T00:00:00.000",
+                    "Members.date": "2021-12-08T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-09T00:00:00.000",
-                    "Communitymembers.date": "2021-12-09T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-09T00:00:00.000",
+                    "Members.date": "2021-12-09T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-10T00:00:00.000",
-                    "Communitymembers.date": "2021-12-10T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-10T00:00:00.000",
+                    "Members.date": "2021-12-10T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-11T00:00:00.000",
-                    "Communitymembers.date": "2021-12-11T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-11T00:00:00.000",
+                    "Members.date": "2021-12-11T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-12T00:00:00.000",
-                    "Communitymembers.date": "2021-12-12T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-12T00:00:00.000",
+                    "Members.date": "2021-12-12T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-13T00:00:00.000",
-                    "Communitymembers.date": "2021-12-13T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-13T00:00:00.000",
+                    "Members.date": "2021-12-13T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-14T00:00:00.000",
-                    "Communitymembers.date": "2021-12-14T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-14T00:00:00.000",
+                    "Members.date": "2021-12-14T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-15T00:00:00.000",
-                    "Communitymembers.date": "2021-12-15T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-15T00:00:00.000",
+                    "Members.date": "2021-12-15T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-16T00:00:00.000",
-                    "Communitymembers.date": "2021-12-16T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-16T00:00:00.000",
+                    "Members.date": "2021-12-16T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-17T00:00:00.000",
-                    "Communitymembers.date": "2021-12-17T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-17T00:00:00.000",
+                    "Members.date": "2021-12-17T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-18T00:00:00.000",
-                    "Communitymembers.date": "2021-12-18T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-18T00:00:00.000",
+                    "Members.date": "2021-12-18T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-19T00:00:00.000",
-                    "Communitymembers.date": "2021-12-19T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-19T00:00:00.000",
+                    "Members.date": "2021-12-19T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-20T00:00:00.000",
-                    "Communitymembers.date": "2021-12-20T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-20T00:00:00.000",
+                    "Members.date": "2021-12-20T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-21T00:00:00.000",
-                    "Communitymembers.date": "2021-12-21T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-21T00:00:00.000",
+                    "Members.date": "2021-12-21T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-22T00:00:00.000",
-                    "Communitymembers.date": "2021-12-22T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-22T00:00:00.000",
+                    "Members.date": "2021-12-22T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-23T00:00:00.000",
-                    "Communitymembers.date": "2021-12-23T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-23T00:00:00.000",
+                    "Members.date": "2021-12-23T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-24T00:00:00.000",
-                    "Communitymembers.date": "2021-12-24T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-24T00:00:00.000",
+                    "Members.date": "2021-12-24T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-25T00:00:00.000",
-                    "Communitymembers.date": "2021-12-25T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-25T00:00:00.000",
+                    "Members.date": "2021-12-25T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-26T00:00:00.000",
-                    "Communitymembers.date": "2021-12-26T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-26T00:00:00.000",
+                    "Members.date": "2021-12-26T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-27T00:00:00.000",
-                    "Communitymembers.date": "2021-12-27T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-27T00:00:00.000",
+                    "Members.date": "2021-12-27T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-28T00:00:00.000",
-                    "Communitymembers.date": "2021-12-28T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-28T00:00:00.000",
+                    "Members.date": "2021-12-28T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-29T00:00:00.000",
-                    "Communitymembers.date": "2021-12-29T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-29T00:00:00.000",
+                    "Members.date": "2021-12-29T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-30T00:00:00.000",
-                    "Communitymembers.date": "2021-12-30T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-30T00:00:00.000",
+                    "Members.date": "2021-12-30T00:00:00.000",
+                    "Members.memberCount": 2
                   },
                   {
-                    "Communitymembers.date.day": "2021-12-31T00:00:00.000",
-                    "Communitymembers.date": "2021-12-31T00:00:00.000",
-                    "Communitymembers.memberCount": 2
+                    "Members.date.day": "2021-12-31T00:00:00.000",
+                    "Members.date": "2021-12-31T00:00:00.000",
+                    "Members.memberCount": 2
                   }
                 ],
                 "lastRefreshTime": "2021-12-23T11:40:14.404Z",
                 "annotation": {
                   "measures": {
-                    "Communitymembers.memberCount": {
-                      "title": "Communitymembers Member Count",
+                    "Members.memberCount": {
+                      "title": "Members Member Count",
                       "shortTitle": "Member Count",
                       "type": "number",
                       "drillMembers": [],
@@ -8953,13 +8953,13 @@
                   "dimensions": {},
                   "segments": {},
                   "timeDimensions": {
-                    "Communitymembers.date.day": {
-                      "title": "Communitymembers Date",
+                    "Members.date.day": {
+                      "title": "Members Date",
                       "shortTitle": "Date",
                       "type": "time"
                     },
-                    "Communitymembers.date": {
-                      "title": "Communitymembers Date",
+                    "Members.date": {
+                      "title": "Members Date",
                       "shortTitle": "Date",
                       "type": "time"
                     }
@@ -8976,139 +8976,139 @@
             "backwardCompatibleData": [
               [
                 {
-                  "Communitymembers.date.day": "2021-12-05T00:00:00.000",
-                  "Communitymembers.date": "2021-12-05T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-05T00:00:00.000",
+                  "Members.date": "2021-12-05T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-06T00:00:00.000",
-                  "Communitymembers.date": "2021-12-06T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-06T00:00:00.000",
+                  "Members.date": "2021-12-06T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-07T00:00:00.000",
-                  "Communitymembers.date": "2021-12-07T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-07T00:00:00.000",
+                  "Members.date": "2021-12-07T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-08T00:00:00.000",
-                  "Communitymembers.date": "2021-12-08T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-08T00:00:00.000",
+                  "Members.date": "2021-12-08T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-09T00:00:00.000",
-                  "Communitymembers.date": "2021-12-09T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-09T00:00:00.000",
+                  "Members.date": "2021-12-09T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-10T00:00:00.000",
-                  "Communitymembers.date": "2021-12-10T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-10T00:00:00.000",
+                  "Members.date": "2021-12-10T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-11T00:00:00.000",
-                  "Communitymembers.date": "2021-12-11T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-11T00:00:00.000",
+                  "Members.date": "2021-12-11T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-12T00:00:00.000",
-                  "Communitymembers.date": "2021-12-12T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-12T00:00:00.000",
+                  "Members.date": "2021-12-12T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-13T00:00:00.000",
-                  "Communitymembers.date": "2021-12-13T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-13T00:00:00.000",
+                  "Members.date": "2021-12-13T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-14T00:00:00.000",
-                  "Communitymembers.date": "2021-12-14T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-14T00:00:00.000",
+                  "Members.date": "2021-12-14T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-15T00:00:00.000",
-                  "Communitymembers.date": "2021-12-15T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-15T00:00:00.000",
+                  "Members.date": "2021-12-15T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-16T00:00:00.000",
-                  "Communitymembers.date": "2021-12-16T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-16T00:00:00.000",
+                  "Members.date": "2021-12-16T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-17T00:00:00.000",
-                  "Communitymembers.date": "2021-12-17T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-17T00:00:00.000",
+                  "Members.date": "2021-12-17T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-18T00:00:00.000",
-                  "Communitymembers.date": "2021-12-18T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-18T00:00:00.000",
+                  "Members.date": "2021-12-18T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-19T00:00:00.000",
-                  "Communitymembers.date": "2021-12-19T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-19T00:00:00.000",
+                  "Members.date": "2021-12-19T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-20T00:00:00.000",
-                  "Communitymembers.date": "2021-12-20T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-20T00:00:00.000",
+                  "Members.date": "2021-12-20T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-21T00:00:00.000",
-                  "Communitymembers.date": "2021-12-21T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-21T00:00:00.000",
+                  "Members.date": "2021-12-21T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-22T00:00:00.000",
-                  "Communitymembers.date": "2021-12-22T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-22T00:00:00.000",
+                  "Members.date": "2021-12-22T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-23T00:00:00.000",
-                  "Communitymembers.date": "2021-12-23T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-23T00:00:00.000",
+                  "Members.date": "2021-12-23T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-24T00:00:00.000",
-                  "Communitymembers.date": "2021-12-24T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-24T00:00:00.000",
+                  "Members.date": "2021-12-24T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-25T00:00:00.000",
-                  "Communitymembers.date": "2021-12-25T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-25T00:00:00.000",
+                  "Members.date": "2021-12-25T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-26T00:00:00.000",
-                  "Communitymembers.date": "2021-12-26T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-26T00:00:00.000",
+                  "Members.date": "2021-12-26T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-27T00:00:00.000",
-                  "Communitymembers.date": "2021-12-27T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-27T00:00:00.000",
+                  "Members.date": "2021-12-27T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-28T00:00:00.000",
-                  "Communitymembers.date": "2021-12-28T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-28T00:00:00.000",
+                  "Members.date": "2021-12-28T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-29T00:00:00.000",
-                  "Communitymembers.date": "2021-12-29T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-29T00:00:00.000",
+                  "Members.date": "2021-12-29T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-30T00:00:00.000",
-                  "Communitymembers.date": "2021-12-30T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-30T00:00:00.000",
+                  "Members.date": "2021-12-30T00:00:00.000",
+                  "Members.memberCount": 2
                 },
                 {
-                  "Communitymembers.date.day": "2021-12-31T00:00:00.000",
-                  "Communitymembers.date": "2021-12-31T00:00:00.000",
-                  "Communitymembers.memberCount": 2
+                  "Members.date.day": "2021-12-31T00:00:00.000",
+                  "Members.date": "2021-12-31T00:00:00.000",
+                  "Members.memberCount": 2
                 }
               ]
             ]

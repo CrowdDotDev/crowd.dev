@@ -7,9 +7,9 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.integrationCreate)
 
-    new PermissionChecker(req).validateIntegrationsProtectedFields(req.body.data)
+    new PermissionChecker(req).validateIntegrationsProtectedFields(req.body)
 
-    const payload = await new IntegrationService(req).create(req.body.data)
+    const payload = await new IntegrationService(req).create(req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

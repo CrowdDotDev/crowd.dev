@@ -95,6 +95,34 @@ function build_and_publish() {
     fi
 }
 
+function db_backup() {
+    [[ -z "$1" ]] && error "Dump name has to be provided as first parameter!" && exit 1
+
+    say "Cloning local database to $CLI_HOME/db_dumps/$1.dump!"
+    docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_dump -F c -d crowd-web -U postgres > /$1.dump"
+    docker cp ${PROJECT_NAME}_db_1:/$1.dump $CLI_HOME/db_dumps/$1.dump
+
+    say "All done!"
+}
+
+function restore_db_backup() {
+    [[ -z "$1" ]] && error "Dump name has to be provided as first parameter!" && exit 1
+
+    say "First we need to clean up the scaffold!"
+    scaffold_destroy
+    up_scaffold
+
+    say "Sleeping for 5 seconds for the database container to start up!"
+    sleep 5
+
+    say "Restoring dump from $CLI_HOME/db_dumps/$1.dump"
+    docker cp $CLI_HOME/db_dumps/$1.dump ${PROJECT_NAME}_db_1:/backup.dump
+    # docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example dropdb -U postgres crowd-web && PGPASSWORD=example createdb -U postgres crowd-web"
+    docker exec -t ${PROJECT_NAME}_db_1 bash -c "PGPASSWORD=example pg_restore --clean -U postgres -d crowd-web backup.dump && rm -f backup.dump"
+
+    say "All done!"
+}
+
 function scaffold() {
     HELP="${RESET}\nUsage:\n ./cli scaffold [ up | down | destroy | reset ]\n"
 
@@ -250,12 +278,14 @@ function apply_db_schema() {
 
 function create_s3_buckets() {
     say "Creating S3 buckets!"
+    sleep 10
 
     declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
     for i in "${BUCKETS[@]}"
     do
         say "Creating s3 bucket: $i"
         curl "http://localhost:9000/ui/$i?create"
+        sleep 8
         curl "http://localhost:9000/ui/$i?make-public"
     done
 }
@@ -342,27 +372,37 @@ function wait_for_db() {
     say "Scaffold is up and running!"
 }
 
-function clean_start() {
-    scaffold_reset
-    for i in $CONTAINERS
-    do
-        say "Starting service $i."
-        start_service $i
-        nl
-    done
-}
-
 function start() {
-    up_scaffold
-    for i in $CONTAINERS
+    if [[ -z "$CLEAN_START" ]]; then
+        up_scaffold
+    else
+        scaffold_reset
+    fi
+
+    for SERVICE in $CONTAINERS
     do
-        say "Starting service $i."
-        start_service $i
-        nl
+        if [[ ${#INGORED_SERVICES[@]} -ne 0 ]]; then
+            for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"
+            do
+                if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
+                    whisper "Skipping service $SERVICE!"
+                    nl
+                    SKIP=1
+                    break
+                fi
+            done
+        fi
+
+        if [[ -z "$SKIP" ]]; then
+            say "Starting service $SERVICE."
+            start_service $SERVICE
+            nl
+        fi
+        unset SKIP      
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, scaffold =>, service =>, build =>, build-and-push ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
@@ -385,12 +425,38 @@ do
             exit;
         ;;
         clean-start) 
-            clean_start
+            CLEAN_START=1
+            start
             exit;
         ;;
         clean-start-dev)
+            CLEAN_START=1
             DEV=1
-            clean_start
+            start
+            exit;
+        ;;
+        start-backend)
+            declare -a INGORED_SERVICES=("frontend")
+            start
+            exit;
+        ;;
+        start-backend-dev)
+            declare -a INGORED_SERVICES=("frontend")
+            DEV=1
+            start
+            exit;
+        ;;
+        clean-start-backend)
+            declare -a INGORED_SERVICES=("frontend")
+            CLEAN_START=1
+            start
+            exit;
+        ;;
+        clean-start-backend-dev)
+            declare -a INGORED_SERVICES=("frontend")
+            CLEAN_START=1
+            DEV=1
+            start
             exit;
         ;;
         build)
@@ -400,6 +466,14 @@ do
         build-and-push)
             PUSH=1
             build $2 $3
+            exit;
+        ;;
+        db-backup)
+            db_backup $2
+            exit;
+        ;;
+        db-restore)
+            restore_db_backup $2
             exit;
         ;;
         *) error "Invalid command '$1'" && say "$SCRIPT_USAGE"

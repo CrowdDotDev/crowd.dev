@@ -35,17 +35,17 @@ export default {
     alertClass() {
       switch (this.type) {
         case 'warning':
-          return 'bg-yellow-50 border-yellow-900'
+          return 'bg-yellow-50 border-yellow-500'
         default:
-          return 'border-secondary-900 bg-secondary-50'
+          return 'border-blue-500 bg-blue-50'
       }
     },
     iconClass() {
       switch (this.type) {
         case 'warning':
-          return 'text-yellow-900 ri-error-warning-fill'
+          return 'text-yellow-500 ri-error-warning-fill'
         default:
-          return 'text-secondary-900 ri-information-fill'
+          return 'text-blue-500 ri-information-fill'
       }
     }
   }

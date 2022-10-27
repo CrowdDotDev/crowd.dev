@@ -5,8 +5,13 @@ import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
-import { CommunityMemberField } from '@/modules/community-member/community-member-field'
+import { MemberField } from '@/modules/member/member-field'
 import JsonField from '@/shared/fields/json-field'
+import SearchField from '@/shared/fields/search-field'
+import ActivitySentimentField from './activity-sentiment-field'
+import ActivityPlatformField from './activity-platform-field'
+import ActivityDateField from './activity-date-field'
+import ActivityTypeField from './activity-type-field'
 
 function label(name) {
   return i18n(`entities.activity.fields.${name}`)
@@ -16,9 +21,10 @@ i18nInit()
 
 const fields = {
   id: new IdField('id', label('id')),
-  type: new StringField('type', label('type'), {
-    required: true
-  }),
+  title: new StringField('title', label('title')),
+  body: new StringField('body', label('body')),
+  channel: new StringField('channel', label('channel')),
+  url: new StringField('url', label('url')),
   timestamp: new DateTimeField(
     'timestamp',
     label('timestamp'),
@@ -26,31 +32,14 @@ const fields = {
       required: true
     }
   ),
-  platform: new StringField('platform', label('platform'), {
-    required: true,
-    min: 2
-  }),
-  info: new JsonField('info', label('info')),
-  communityMember: CommunityMemberField.relationToOne(
-    'communityMember',
-    label('communityMember'),
-    {
-      required: true
-    }
-  ),
-  crowdInfo: new StringField(
-    'crowdInfo',
-    label('crowdInfo'),
-    {}
+  attributes: new JsonField(
+    'attributes',
+    label('attributes')
   ),
   isKeyAction: new BooleanField(
     'isKeyAction',
     label('isKeyAction'),
     {}
-  ),
-  createdAt: new DateTimeField(
-    'createdAt',
-    label('createdAt')
   ),
   updatedAt: new DateTimeField(
     'updatedAt',
@@ -63,6 +52,38 @@ const fields = {
   timestampRange: new DateTimeRangeField(
     'timestampRange',
     label('timestampRange')
+  ),
+  search: new SearchField('search', label('search'), {
+    fields: ['title', 'body']
+  }),
+  member: MemberField.relationToOne(
+    'memberId',
+    label('member'),
+    {
+      required: true,
+      filterable: true
+    }
+  ),
+  date: new ActivityDateField('timestamp', label('date'), {
+    filterable: true
+  }),
+  platform: new ActivityPlatformField(
+    'platform',
+    label('platform'),
+    {
+      required: true,
+      min: 2,
+      filterable: true
+    }
+  ),
+  type: new ActivityTypeField('type', label('type'), {
+    required: true,
+    filterable: true
+  }),
+  sentiment: new ActivitySentimentField(
+    'sentiment',
+    'Sentiment',
+    { filterable: true }
   )
 }
 

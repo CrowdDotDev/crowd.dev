@@ -7,9 +7,9 @@ export default async (req, res) => {
   try {
     const permissionsChecker = new PermissionChecker(req)
     permissionsChecker.validateHas(Permissions.values.microserviceCreate)
-    permissionsChecker.validateMicroservicesProtectedFields(req.body.data)
+    permissionsChecker.validateMicroservicesProtectedFields(req.body)
 
-    const payload = await new MicroserviceService(req).create(req.body.data)
+    const payload = await new MicroserviceService(req).create(req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

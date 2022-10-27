@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premium-job-generator-dpl
+spec:
+  selector:
+    matchLabels:
+      app: premium-job-generator
+  template:
+    metadata:
+      labels:
+        app: premium-job-generator
+    spec:
+      containers:
+        - name: premium-job-generator
+          image: crowddotdev/premium-job-generator:1666877839.9731ed18
+          command: ['npm']
+          args: ['run', 'start']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: premium-job-generator

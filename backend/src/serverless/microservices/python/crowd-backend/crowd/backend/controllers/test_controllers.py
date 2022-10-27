@@ -49,7 +49,7 @@ def test_update_members(api: "Repository"):
 
 
 def test_add_activity_with_member(api: "Repository"):
-    """Tests adding an activity with a CommunityMember"""
+    """Tests adding an activity with a Member"""
     activities_controller = ActivitiesController(api.tenant_id, api)
 
     activity = {
@@ -66,7 +66,7 @@ def test_add_activity_with_member(api: "Repository"):
         "createdAt": "2022-02-28T12:54:27.761Z",
         "updatedAt": "2022-02-28T12:54:27.761Z",
         "deletedAt": None,
-        "communityMember": {
+        "member": {
             "id": "c5c1e44d-86d7-40b7-80ef-55fc281620ca",
             "username": '{"apis": "jacqueline_love", "discord": "jacqueline_love", "crowdUsername": "jacqueline_love"}',
             "type": "member",

@@ -1,9 +1,5 @@
 .el-dialog {
-  @apply rounded-xl w-full max-w-xl;
-
-  &__title {
-    @apply font-semibold;
-  }
+  @apply rounded-md w-full max-w-xl;
 
   &--lg {
     @apply max-w-2xl;
@@ -11,5 +7,41 @@
 
   &--xl {
     @apply max-w-4xl;
+  }
+
+  &--2xl {
+    @apply max-w-5xl;
+  }
+
+  &__headerbtn {
+    @apply w-fit h-fit top-6 right-6;
+
+    &:hover svg {
+      @apply text-brand-500;
+    }
+  }
+  &__header {
+    @apply p-6 mr-0;
+  }
+  &__body {
+    @apply p-0;
+  }
+
+  &__title {
+    @apply font-semibold text-lg;
+  }
+
+  &__footer {
+    @apply bg-gray-50 flex items-center px-6 py-4 h-fit rounded-b-lg;
+  }
+
+  &.plain{
+    .el-dialog__header{
+      @apply p-0
+    }
+  }
+
+  &--sm{
+    max-width: 400px;
   }
 }

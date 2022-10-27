@@ -1,8 +1,9 @@
-import { NodeWorkerMessage, NodeWorkerMessageType } from '../../../../types/worketTypes'
+import { NodeWorkerMessageType } from '../../../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
 import { KUBE_MODE } from '../../../../../config'
 import sendNodeMicroserviceMessage from '../../nodeMicroserviceSQS'
 import { AutomationType } from '../../../../../types/automationTypes'
+import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 
 export const sendWebhookProcessRequest = async (
   tenant: string,
@@ -21,7 +22,7 @@ export const sendWebhookProcessRequest = async (
       eventId,
       payload,
     }
-    await sendNodeWorkerMessage(tenant, event as NodeWorkerMessage)
+    await sendNodeWorkerMessage(tenant, event as NodeWorkerMessageBase)
   } else {
     await sendNodeMicroserviceMessage({
       service: 'automation-process',

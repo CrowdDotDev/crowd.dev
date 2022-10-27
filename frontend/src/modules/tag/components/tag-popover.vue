@@ -1,32 +1,49 @@
 <template>
-  <app-popover :visible="visible" @hide="handleHide">
-    <form v-if="visible" class="tags-form">
-      <span
-        class="flex items-center font-semibold text-base"
-        ><i class="ri-pencil-line mr-1"></i>Edit tags</span
-      >
-      <app-tag-autocomplete-input
-        :fetch-fn="fields.tags.fetchFn"
-        :mapper-fn="fields.tags.mapperFn"
-        :create-if-not-found="true"
-        :value="model"
-        placeholder="Type to search/create tags"
-        @input="handleInput"
-      ></app-tag-autocomplete-input>
-    </form>
-  </app-popover>
+  <app-teleport to="#teleport-modal">
+    <app-dialog
+      v-model="computedVisible"
+      title="Edit tags"
+      :pre-title="pretitle"
+    >
+      <template #content>
+        <div class="px-6 pb-6">
+          <form v-if="visible" class="tags-form">
+            <app-tag-autocomplete-input
+              v-model="model"
+              :fetch-fn="fields.tags.fetchFn"
+              :mapper-fn="fields.tags.mapperFn"
+              :create-if-not-found="true"
+              placeholder="Type to search/create tags"
+            ></app-tag-autocomplete-input>
+          </form>
+        </div>
+
+        <div
+          class="bg-gray-50 rounded-b-md flex items-center justify-end py-4 px-6"
+        >
+          <el-button
+            class="btn btn--bordered btn--md mr-3"
+            @click="handleCancel"
+            >Cancel</el-button
+          >
+          <el-button
+            class="btn btn--primary btn--md"
+            @click="handleSubmit"
+            >Submit</el-button
+          >
+        </div>
+      </template>
+    </app-dialog>
+  </app-teleport>
 </template>
 
 <script>
-import AppPopover from '@/shared/popover/popover'
-import { CommunityMemberModel } from '@/modules/community-member/community-member-model'
+import { MemberModel } from '@/modules/member/member-model'
 
-const { fields } = CommunityMemberModel
+const { fields } = MemberModel
 
 export default {
   name: 'AppTagPopover',
-
-  components: { AppPopover },
 
   props: {
     visible: {
@@ -37,16 +54,19 @@ export default {
       type: Boolean,
       default: false
     },
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
+    },
+    pretitle: {
+      type: String,
+      default: null
     }
   },
   emits: ['submit', 'cancel', 'update:modelValue'],
 
   data() {
     return {
-      model: this.value,
       changed: false
     }
   },
@@ -54,21 +74,32 @@ export default {
   computed: {
     fields() {
       return fields
+    },
+    model: {
+      get() {
+        return this.modelValue
+      },
+      set(value) {
+        this.changed = true
+        this.$emit('update:modelValue', value)
+      }
+    },
+    computedVisible: {
+      get() {
+        return this.visible
+      },
+      set() {
+        this.handleCancel()
+      }
     }
   },
 
   methods: {
-    handleHide() {
-      if (this.changed) {
-        this.$emit('submit')
-      } else {
-        this.$emit('cancel')
-      }
+    handleCancel() {
+      this.$emit('cancel')
     },
-    handleInput(value) {
-      this.model = value
-      this.changed = true
-      this.$emit('update:modelValue', this.model)
+    handleSubmit() {
+      this.$emit('submit')
     }
   }
 }

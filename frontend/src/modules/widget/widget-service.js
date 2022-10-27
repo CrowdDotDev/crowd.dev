@@ -3,15 +3,11 @@ import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 
 export class WidgetService {
   static async update(id, data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/widget/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -35,15 +31,11 @@ export class WidgetService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/widget`,
-      body
+      data
     )
 
     return response.data

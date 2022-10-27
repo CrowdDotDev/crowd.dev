@@ -10,7 +10,7 @@ import dotenvExpand from 'dotenv-expand'
 import SequelizeTestUtils from '../utils/sequelizeTestUtils'
 import ActivityService from '../../services/activityService'
 import TagService from '../../services/tagService'
-import MemberService from '../../services/communityMemberService'
+import MemberService from '../../services/memberService'
 import WidgetRepository from '../repositories/widgetRepository'
 import ReportRepository from '../repositories/reportRepository'
 
@@ -41,7 +41,7 @@ async function createSingleTenant() {
 
   // create activities with members
   for (const activity of activities) {
-    if (activity.communityMember.email !== null) {
+    if (activity.member.email !== null) {
       await as.createWithMember(activity)
     }
   }
@@ -52,7 +52,7 @@ async function createSingleTenant() {
 
   // create tags with member associations
   for (const tag of tags) {
-    tag.communityMembers = []
+    tag.members = []
     // select 0-5 members to associate with created tag
     const selectXMembers = Math.floor(Math.random() * 5)
 
@@ -60,8 +60,8 @@ async function createSingleTenant() {
       const memberIdx = Math.floor(Math.random() * memberReferenceArray.length)
 
       // check member already added, if yes we don't need to readd
-      if (!(memberReferenceArray[memberIdx].id in tag.communityMembers)) {
-        tag.communityMembers.push(memberReferenceArray[memberIdx].id)
+      if (!(memberReferenceArray[memberIdx].id in tag.members)) {
+        tag.members.push(memberReferenceArray[memberIdx].id)
       }
     }
 
@@ -97,7 +97,7 @@ async function createSingleTenant() {
   console.log('Tenant id: ', mockIRepositoryOptions.currentTenant.id)
   console.log(
     '# of members added: ',
-    await mockIRepositoryOptions.database.communityMember.count({
+    await mockIRepositoryOptions.database.member.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
     }),
   )

@@ -33,7 +33,7 @@ export default class EagleEyeContentService {
   }
 
   async upsert(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await EagleEyeContentRepository.upsert(data, {
@@ -74,6 +74,17 @@ export default class EagleEyeContentService {
 
   async findAndCountAll(args) {
     return EagleEyeContentRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return EagleEyeContentRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
   }
 
   async bulkUpsert(data: EagleEyeSearchOutput) {
@@ -137,7 +148,7 @@ export default class EagleEyeContentService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const recordBeforeUpdate = await EagleEyeContentRepository.findById(id, { ...this.options })

@@ -93,7 +93,7 @@ const ptBR = {
         },
       },
     },
-    communityMember: {
+    member: {
       errors: {
         unique: {
           username: 'Username deve ser único',

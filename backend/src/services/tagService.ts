@@ -2,7 +2,7 @@ import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import TagRepository from '../database/repositories/tagRepository'
-import CommunityMemberRepository from '../database/repositories/communityMemberRepository'
+import MemberRepository from '../database/repositories/memberRepository'
 
 export default class TagService {
   options: IServiceOptions
@@ -12,14 +12,14 @@ export default class TagService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.communityMembers) {
-        data.communityMembers = await CommunityMemberRepository.filterIdsInTenant(
-          data.communityMembers,
-          { ...this.options, transaction },
-        )
+      if (data.members) {
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
+          ...this.options,
+          transaction,
+        })
       }
 
       const record = await TagRepository.create(data, {
@@ -40,14 +40,14 @@ export default class TagService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.communityMembers) {
-        data.communityMembers = await CommunityMemberRepository.filterIdsInTenant(
-          data.communityMembers,
-          { ...this.options, transaction },
-        )
+      if (data.members) {
+        data.members = await MemberRepository.filterIdsInTenant(data.members, {
+          ...this.options,
+          transaction,
+        })
       }
 
       const record = await TagRepository.update(id, data, {
@@ -68,7 +68,7 @@ export default class TagService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -89,6 +89,26 @@ export default class TagService {
     }
   }
 
+  async destroyBulk(ids) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      await TagRepository.destroyBulk(
+        ids,
+        {
+          ...this.options,
+          transaction,
+        },
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
   async findById(id) {
     return TagRepository.findById(id, this.options)
   }
@@ -99,6 +119,14 @@ export default class TagService {
 
   async findAndCountAll(args) {
     return TagRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return TagRepository.findAndCountAll({ advancedFilter, orderBy, limit, offset }, this.options)
   }
 
   async import(data, importHash) {

@@ -5,6 +5,6 @@ module.exports = {
   testPathIgnorePatterns: ['/dist'],
   testTimeout: 90000,
   testRegex: ['__tests__/.*tests?.ts$'],
-  bail: true,
+  bail: false,
   roots: ['./'],
 }

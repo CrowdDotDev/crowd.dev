@@ -10,8 +10,13 @@
 
   .el-form-item {
     @apply block mb-4;
-    &__label { @apply block font-semibold text-left h-6 leading-6; }
-    &__content { @apply block; margin-left: 0!important; }
+    &__label {
+      @apply block font-semibold text-left h-6 leading-6;
+    }
+    &__content {
+      @apply block;
+      margin-left: 0 !important;
+    }
   }
 }
 
@@ -29,11 +34,11 @@
 }
 
 .filter-toggle {
-  @apply cursor-pointer flex items-center text-primary-900;
+  @apply cursor-pointer flex items-center text-brand-500;
   transition: background-color 0.2s;
 
   &--active {
-    @apply text-primary-900;
+    @apply text-brand-500;
   }
 
   &:hover {
@@ -61,4 +66,27 @@
 
 .filter .el-date-editor--daterange.el-input__inner {
   width: 100%;
+}
+
+.filter-with-operator-and-input {
+  @apply px-2 pb-4 pt-2;
+
+  .el-input__wrapper,
+  .el-input__wrapper.is-focus,
+  .el-input__wrapper:hover {
+    @apply h-8 bg-gray-50 shadow-none border-none rounded-md;
+
+    input {
+      &,
+      &:hover,
+      &:focus {
+        @apply bg-gray-50 shadow-none border-none outline-none h-full min-h-8;
+      }
+    }
+  }
+
+  .inline-select-input-prefix,
+  .inline-select-input-value {
+    @apply text-2xs;
+  }
 }

@@ -12,6 +12,7 @@
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",
     "nodejsWorkerQueue": "CROWD_SQS_NODEJS_WORKER_QUEUE",
+    "nodejsWorkerDelayableQueue": "CROWD_SQS_NODEJS_WORKER_DELAYABLE_QUEUE",
     "pythonWorkerQueue": "CROWD_SQS_PYTHON_WORKER_QUEUE",
     "premiumPythonWorkerQueue": "CROWD_SQS_PREMIUM_PYTHON_WORKER_QUEUE",
     "aws": {
@@ -53,6 +54,17 @@
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
+  "comprehend": {
+    "aws": {
+      "accountId": "CROWD_COMPREHEND_AWS_ACCOUNT_ID",
+      "accessKeyId": "CROWD_COMPREHEND_AWS_ACCESS_KEY_ID",
+      "secretAccessKey": "CROWD_COMPREHEND_AWS_SECRET_ACCESS_KEY",
+      "region": "CROWD_COMPREHEND_AWS_REGION"
+    }
+  },
+  "clearbit": {
+    "apiKey": "CROWD_CLEARBIT_API_KEY"
+  },
   "netlify": {
     "apiKey": "CROWD_NETLIFY_API_KEY",
     "siteDomain": "CROWD_NETLIFY_SITE_DOMAIN"
@@ -87,11 +99,6 @@
     "clientId": "CROWD_GOOGLE_CLIENT_ID",
     "clientSecret": "CROWD_GOOGLE_CLIENT_SECRET",
     "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
-  },
-  "facebook": {
-    "clientId": "CROWD_FACEBOOK_CLIENT_ID",
-    "clientSecret": "CROWD_FACEBOOK_CLIENT_SECRET",
-    "callbackUrl": "CROWD_FACEBOOK_CALLBACK_URL"
   },
   "discord": {
     "token": "CROWD_DISCORD_TOKEN"

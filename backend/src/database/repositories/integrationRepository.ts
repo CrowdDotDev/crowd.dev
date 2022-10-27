@@ -5,6 +5,8 @@ import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
 
 const { Op } = Sequelize
 const log: boolean = false
@@ -109,6 +111,7 @@ class IntegrationRepository {
 
     await record.destroy({
       transaction,
+      force: true,
     })
 
     await this._createAuditLog(AuditLogRepository.DELETE, record, record, options)
@@ -247,50 +250,48 @@ class IntegrationRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = []
     const include = []
 
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
+    // If the advanced filter is empty, we construct it from the query parameter filter
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
 
-    if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.platform) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('integration', 'platform', filter.platform),
-        )
+        advancedFilter.and.push({
+          platform: filter.platform,
+        })
       }
 
       if (filter.status) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('integration', 'status', filter.status))
+        advancedFilter.and.push({
+          status: filter.status,
+        })
       }
 
       if (filter.limitCountRange) {
         const [start, end] = filter.limitCountRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             limitCount: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             limitCount: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
@@ -300,86 +301,81 @@ class IntegrationRepository {
         const [start, end] = filter.limitLastResetAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             limitLastResetAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             limitLastResetAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
 
-      if (filter.token) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('integration', 'token', filter.token))
-      }
-
-      if (filter.refreshToken) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('integration', 'refreshToken', filter.refreshToken),
-        )
-      }
-
-      if (filter.settings) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes('integration', 'settings', filter.settings),
-        )
-      }
-
       if (filter.integrationIdentifier) {
-        whereAnd.push(
-          SequelizeFilterUtils.ilikeIncludes(
-            'integration',
-            'integrationIdentifier',
-            filter.integrationIdentifier,
-          ),
-        )
+        advancedFilter.and.push({
+          integrationIdentifier: filter.integrationIdentifier,
+        })
       }
 
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const parser = new QueryParser(
+      {
+        nestedFields: {
+          sentiment: 'sentiment.sentiment',
+        },
+      },
+      options,
+    )
+
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.integration.findAndCountAll({
-      where,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       include,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
       transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {

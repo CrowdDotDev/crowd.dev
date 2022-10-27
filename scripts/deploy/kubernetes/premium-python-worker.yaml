@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: premium-python-worker-dpl
+spec:
+  selector:
+    matchLabels:
+      app: premium-python-worker
+  template:
+    metadata:
+      labels:
+        app: premium-python-worker
+    spec:
+      containers:
+        - name: premium-python-worker
+          image: crowddotdev/premium-python-backend:1666877885.9731ed18
+          command: ['python']
+          args: ['-u', 'worker.py']
+          envFrom:
+            - configMapRef:
+                name: backend-config
+          env:
+            - name: SERVICE
+              value: premium-python-worker

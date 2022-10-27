@@ -1,29 +1,39 @@
 <template>
   <div>
-    <label class="block leading-none mb-1">Order</label>
+    <label
+      class="block text-xs leading-none font-semibold mb-2"
+      >Order</label
+    >
     <draggable
       v-model="list"
       class="list-group"
       @end="handleDragEnd"
     >
       <template #item="{ element }">
-        <div class="order-element">
+        <div class="order-element mb-2">
           <div class="order-element-name">
-            <i class="ri-drag-move-2-line"></i>
-            <span>{{ element.title }}</span>
+            <i
+              class="ri-drag-move-2-line text-gray-400"
+            ></i>
+            <span class="text-xs">{{ element.title }}</span>
           </div>
           <el-radio-group
             :model-value="element.order"
             size="small"
+            class="radio-button-group"
             @input="
               (value) =>
                 $emit('orderChange', element.id, value)
             "
           >
-            <el-radio-button label="asc" :name="element.id"
+            <el-radio-button
+              label="ascending"
+              :name="element.id"
               >Asc</el-radio-button
             >
-            <el-radio-button label="desc" :name="element.id"
+            <el-radio-button
+              label="descending"
+              :name="element.id"
               >Desc</el-radio-button
             >
             <el-radio-button label="none" :name="element.id"

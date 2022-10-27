@@ -1,23 +1,13 @@
-import { CrowdJob } from '../../utils/jobTypes'
-import devtoCoordinator from './devtoCoordinator'
-import twitterCoordinator from './twitterCoordinator'
-import twitterReachCoordinator from './twitterReachCoordinator'
-import discordCoordinator from './discordCoordinator'
-import slackCoordinator from './slackCoordinator'
+import { CrowdJob } from '../../types/jobTypes'
+import integrationTicks from './integrationTicks'
 import weeklyAnalyticsEmailsCoordinator from './weeklyAnalyticsEmailsCoordinator'
-import checkMemberScoresCoordinator from './checkMemberScoresCoordinator'
-import checkMembersToMergeCoordinator from './checkMembersToMergeCoordinator'
+import memberScoreCoordinator from './memberScoreCoordinator'
 import checkSqsQueues from './checkSqsQueues'
 
 const jobs: CrowdJob[] = [
-  devtoCoordinator,
-  twitterCoordinator,
-  twitterReachCoordinator,
-  discordCoordinator,
-  slackCoordinator,
   weeklyAnalyticsEmailsCoordinator,
-  checkMemberScoresCoordinator,
-  checkMembersToMergeCoordinator,
+  integrationTicks,
+  memberScoreCoordinator,
   checkSqsQueues,
 ]
 

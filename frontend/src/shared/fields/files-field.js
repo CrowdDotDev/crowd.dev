@@ -12,6 +12,7 @@ export default class FilesField extends GenericField {
     this.max = config.max
     this.formats = config.formats
     this.hint = config.hint
+    this.filterable = config.filterable || false
   }
 
   forPresenter(value) {

@@ -21,7 +21,7 @@ import webhookWorker from './automation/workers/webhookWorker'
  */
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
-  console.log('Starting main worker with event, ', event)
+  // console.log('Starting main worker with event, ', event)
 
   const { service, tenant } = event as any
 

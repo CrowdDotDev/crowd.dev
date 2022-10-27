@@ -28,6 +28,8 @@ export default class RelationToManyField extends GenericField {
     this.mapperFn = mapperFn
     this.viewUrl = viewUrl
     this.readPermission = readPermission
+    this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
@@ -36,6 +38,22 @@ export default class RelationToManyField extends GenericField {
     }
 
     return value.map((item) => this.mapperFn(item))
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {
+        fetchFn: this.fetchFn
+      },
+      defaultValue: [],
+      value: [],
+      defaultOperator: null,
+      operator: null,
+      type: 'select-async'
+    }
   }
 
   forFilterPreview(value) {

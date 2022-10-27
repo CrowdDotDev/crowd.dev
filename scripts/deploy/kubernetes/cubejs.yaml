@@ -14,20 +14,20 @@ spec:
     spec:
       containers:
         - name: cubejs
-          image: crowddotdev/cubejs:staging.v1
+          image: crowddotdev/cubejs:1666800955.4683dc0a
           env:
             - name: CUBEJS_DEV_MODE
               value: 'true'
             - name: CUBEJS_DB_HOST
-              value: crowd-staging-reader-app.cog0taiuvmcg.eu-central-1.rds.amazonaws.com
+              value: db-svc
             - name: CUBEJS_DB_PORT
               value: '5432'
             - name: CUBEJS_DB_NAME
-              value: 'crowdKubeStaging'
+              value: 'crowd-web'
             - name: CUBEJS_DB_USER
               value: 'postgres'
             - name: CUBEJS_DB_PASS
-              value: 'odDvCz6b42VvAmFzejaBUQt'
+              value: 'example'
             - name: CUBEJS_DB_TYPE
               value: 'postgres'
             - name: CUBEJS_API_SECRET

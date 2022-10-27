@@ -6,7 +6,7 @@
   >
     <svg
       role="status"
-      class="w-8 h-8 mr-2 text-primary-200 animate-spin fill-primary-900"
+      class="w-8 h-8 mr-2 text-primary-200 animate-spin fill-brand-500"
       :style="colors(['color:primary:60', 'fill:primary'])"
       viewBox="0 0 100 101"
       fill="none"

@@ -12,7 +12,7 @@ export default class WidgetService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.report) {
@@ -40,7 +40,7 @@ export default class WidgetService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       if (data.report) {
@@ -68,7 +68,7 @@ export default class WidgetService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -99,6 +99,17 @@ export default class WidgetService {
 
   async findAndCountAll(args) {
     return WidgetRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return WidgetRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
   }
 
   async findByType(type) {

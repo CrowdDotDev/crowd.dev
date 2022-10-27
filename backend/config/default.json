@@ -13,9 +13,14 @@
   "cubejs": {},
   "searchEngine": {},
   "segment": {},
+  "comprehend": {
+    "aws": {}
+  },
+  "clearbit": {},
   "netlify": {},
   "sendgrid": {},
   "plans": {},
+  "devto": {},
   "twitter": {
     "maxRetrospectInSeconds": 7380,
     "limitResetFrequencyDays": 30
@@ -24,7 +29,6 @@
     "maxRetrospectInSeconds": 3600
   },
   "google": {},
-  "facebook": {},
   "discord": {
     "maxRetrospectInSeconds": 3600
   },

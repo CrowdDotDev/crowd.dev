@@ -48,7 +48,7 @@ function models() {
   const modelClasses = [
     require('./activity').default,
     require('./auditLog').default,
-    require('./communityMember').default,
+    require('./member').default,
     require('./file').default,
     require('./integration').default,
     require('./report').default,
@@ -64,6 +64,11 @@ function models() {
     require('./eagleEyeContent').default,
     require('./automation').default,
     require('./automationExecution').default,
+    require('./organization').default,
+    require('./organizationCache').default,
+    require('./memberAttributeSettings').default,
+    require('./task').default,
+    require('./note').default,
   ]
 
   for (const notInitmodel of modelClasses) {

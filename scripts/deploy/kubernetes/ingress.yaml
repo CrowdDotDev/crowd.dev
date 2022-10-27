@@ -15,10 +15,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - selfhosted.domain.name
+        - example.domain.name
       secretName: letsencrypt-issuer
   rules:
-    - host: selfhosted.domain.name
+    - host: example.domain.name
       http:
         paths:
           - path: /search/?(.*)

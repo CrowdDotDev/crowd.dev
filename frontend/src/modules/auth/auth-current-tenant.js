@@ -4,7 +4,7 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
  * Auth Current Tenant
  *
  * This class helps us manage the active tenant that is stored within browser's localStorage, along with some
- * other helper methods like getSettings() or getConversationSettings()
+ * other helper methods like getSettings() or getCommunityHelpCenterSettings()
  */
 export default class AuthCurrentTenant {
   static selectAndSaveOnStorageFor(currentUser) {
@@ -82,7 +82,7 @@ export default class AuthCurrentTenant {
     return null
   }
 
-  static getConversationSettings() {
+  static getCommunityHelpCenterSettings() {
     const tenantASString =
       localStorage.getItem('tenant') || null
 

@@ -1,6 +1,5 @@
-from .worker_check_merge import check_merge_members_worker  # noqa
-from .check_merge_default import CheckMergeDefault  # noqa
-from .check_merge_premium import CheckMergePremium  # noqa
+from .merge_suggestions_worker import merge_suggestions_worker  # noqa
+from .merge_suggestions import MergeSuggestions  # noqa
 import logging
 
 root = logging.getLogger()

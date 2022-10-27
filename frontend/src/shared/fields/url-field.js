@@ -9,6 +9,8 @@ export default class UrlField extends StringField {
     this.placeholder = config.placeholder
     this.hint = config.hint
     this.required = config.required
+    this.filterable = config.filterable || false
+    this.custom = config.custom || false
   }
 
   forPresenter(value) {
@@ -24,6 +26,20 @@ export default class UrlField extends StringField {
 
   forFormInitialValue(value) {
     return value
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {},
+      defaultValue: null,
+      value: null,
+      defaultOperator: 'textContains',
+      operator: 'textContains',
+      type: 'string'
+    }
   }
 
   forFilterInitialValue(value) {

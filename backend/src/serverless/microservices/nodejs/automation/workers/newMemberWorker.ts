@@ -7,7 +7,7 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../types/automationTypes'
-import CommunityMemberRepository from '../../../../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
 
 /**
@@ -66,7 +66,7 @@ export const prepareMemberPayload = (member: any): any => {
  * @param memberId community member unique ID
  */
 export default async (tenantId: string, memberId: string): Promise<void> => {
-  console.log(`New member automation trigger detected with member id: ${memberId}!`)
+  // console.log(`New member automation trigger detected with member id: ${memberId}!`)
 
   const userContext = await getUserContext(tenantId)
 
@@ -79,7 +79,7 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)
-      const member = await CommunityMemberRepository.findById(memberId, userContext, true, false)
+      const member = await MemberRepository.findById(memberId, userContext, true, false)
 
       for (const automation of automations) {
         if (shouldProcessMember(member, automation)) {
@@ -100,7 +100,7 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
         }
       }
     } else {
-      console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
+      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
     console.log('Error while processing new member automation trigger!', error)

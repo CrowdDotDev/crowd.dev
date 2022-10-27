@@ -1,18 +1,21 @@
 <template>
-  <div style="display: flex">
+  <div class="app-tags-input" style="display: flex">
     <app-autocomplete-many-input
       v-if="multiple"
       v-model="model"
       :fetch-fn="fetchFn"
       :create-fn="createTag"
+      :mapper-fn="mapperFn"
       :placeholder="placeholder"
       :create-if-not-found="canCreate"
+      :in-memory-filter="false"
     ></app-autocomplete-many-input>
     <app-autocomplete-one-input
       v-else
       v-model="model"
       :fetch-fn="fetchFn"
       :create-fn="createTag"
+      :mapper-fn="mapperFn"
       :placeholder="placeholder"
       :create-if-not-found="canCreate"
     ></app-autocomplete-one-input>

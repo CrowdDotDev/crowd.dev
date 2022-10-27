@@ -1,11 +1,14 @@
-import { IS_TEST_ENV, IS_STAGING_ENV, IS_PROD_ENV, DB_CONFIG } from '../config'
+const IS_TEST_ENV = process.env.NODE_ENV === 'test'
+const IS_STAGING_ENV = process.env.NODE_ENV === 'staging'
+const IS_PROD_ENV = process.env.NODE_ENV === 'production'
 
 const dbEnvVars = {
-  username: DB_CONFIG.username,
-  password: DB_CONFIG.password,
-  database: DB_CONFIG.database,
-  host: DB_CONFIG.writeHost,
-  dialect: DB_CONFIG.dialect,
+  username: process.env.CROWD_DB_USERNAME,
+  password: process.env.CROWD_DB_PASSWORD,
+  database: process.env.CROWD_DB_DATABASE,
+  host: process.env.CROWD_DB_WRITE_HOST,
+  port: process.env.CROWD_DB_PORT,
+  dialect: 'postgres',
 }
 
 let currentEnvironmentVariables = {}
@@ -28,5 +31,4 @@ if (IS_TEST_ENV) {
   }
 }
 
-const vars = currentEnvironmentVariables
-export default vars
+module.exports = currentEnvironmentVariables

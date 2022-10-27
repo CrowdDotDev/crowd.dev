@@ -8,7 +8,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.reportCreate)
 
-    const payload = await new ReportService(req).create(req.body.data)
+    const payload = await new ReportService(req).create(req.body)
 
     track(
       'Report Created',

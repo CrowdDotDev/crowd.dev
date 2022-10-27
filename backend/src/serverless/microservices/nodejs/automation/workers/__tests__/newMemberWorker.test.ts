@@ -5,7 +5,7 @@ import {
   AutomationType,
   NewMemberSettings,
 } from '../../../../../../types/automationTypes'
-import { PlatformType } from '../../../../../../utils/platforms'
+import { PlatformType } from '../../../../../../types/integrationEnums'
 import { shouldProcessMember } from '../newMemberWorker'
 
 function createAutomationData(settings: NewMemberSettings): AutomationData {

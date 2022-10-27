@@ -7,7 +7,7 @@ import ConversationService from '../../../../../services/conversationService'
 import { API_CONFIG, SENDGRID_CONFIG, S3_CONFIG } from '../../../../../config'
 import CubeJsRepository from '../../../../../cubejs/cubeJsRepository'
 import { AnalyticsEmailsOutput } from '../../messageTypes'
-import { platformDisplayNames } from '../../../../../utils/platformDisplayNames'
+import { platformDisplayNames } from '../../../../../types/platformDisplayNames'
 import getStage from '../../../../../services/helpers/getStage'
 import { s3 } from '../../../../../services/aws'
 import UserRepository from '../../../../../database/repositories/userRepository'
@@ -60,10 +60,10 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         const lastActivity =
           conversationLazyLoaded.activities[conversationLazyLoaded.activities.length - 1]
         c.lastActivity = lastActivity.get({ plain: true })
-        c.lastActivity.username = lastActivity.communityMember.username[c.platform]
+        c.lastActivity.username = lastActivity.member.username[c.platform]
 
-        if (c.lastActivity.crowdInfo.body) {
-          c.lastActivity.crowdInfo.body = convertHtmlToText(c.lastActivity.crowdInfo.body)
+        if (c.lastActivity.body) {
+          c.lastActivity.body = convertHtmlToText(c.lastActivity.body)
         }
 
         c.lastActiveFromNow = moment(c.lastActive).fromNow()
@@ -74,8 +74,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
             acc.count = 0
           }
 
-          if (!acc.ids[i.communityMemberId]) {
-            acc.ids[i.communityMemberId] = true
+          if (!acc.ids[i.memberId]) {
+            acc.ids[i.memberId] = true
             acc.count += 1
           }
           return acc

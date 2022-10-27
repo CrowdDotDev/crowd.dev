@@ -1,32 +1,30 @@
 <template>
-  <div>
-    <el-container>
-      <app-menu></app-menu>
-      <el-container :style="elMainStyle">
-        <el-main class="relative">
-          <banner
-            v-if="currentTenant.hasSampleData"
-            variant="alert"
+  <el-container>
+    <app-menu></app-menu>
+    <el-container :style="elMainStyle">
+      <el-main class="relative">
+        <banner
+          v-if="currentTenant.hasSampleData"
+          variant="alert"
+        >
+          <div
+            class="flex items-center justify-center grow text-sm"
           >
-            <div
-              class="flex items-center justify-center grow"
+            This workspace is using sample data, before
+            adding real data please
+            <el-button
+              class="btn btn--sm btn--primary ml-4"
+              :loading="loading"
+              @click="handleDeleteSampleDataClick"
             >
-              This workspace is using sample data, before
-              adding real data please
-              <el-button
-                class="btn btn--xs btn--primary ml-4"
-                :loading="loading"
-                @click="handleDeleteSampleDataClick"
-              >
-                Delete Sample Data
-              </el-button>
-            </div>
-          </banner>
-          <router-view></router-view>
-        </el-main>
-      </el-container>
+              Delete Sample Data
+            </el-button>
+          </div>
+        </banner>
+        <router-view></router-view>
+      </el-main>
     </el-container>
-  </div>
+  </el-container>
 </template>
 
 <script>
@@ -35,6 +33,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'AppLayout',
@@ -65,15 +64,6 @@ export default {
         }
       }
 
-      if (this.collapsed) {
-        return {
-          marginLeft: '64px'
-        }
-      } else if (!this.collapsed) {
-        return {
-          marginLeft: '210px'
-        }
-      }
       return null
     }
   },
@@ -102,15 +92,13 @@ export default {
     }),
 
     async handleDeleteSampleDataClick() {
-      await this.$myConfirm(
-        i18n('common.areYouSure'),
-        i18n('common.confirm'),
-        {
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no'),
-          type: 'warning'
-        }
-      )
+      await ConfirmDialog({
+        title: i18n('common.confirm'),
+        message: i18n('common.areYouSure'),
+        confirmButtonText: i18n('common.yes'),
+        cancelButtonText: i18n('common.no')
+      })
+
       this.loading = true
       await TenantService.deleteSampleData(
         this.currentTenant.id

@@ -18,8 +18,16 @@ import track from '../../segment/track'
 const BCRYPT_SALT_ROUNDS = 12
 
 class AuthService {
-  static async signup(email, password, invitationToken, tenantId, options: any = {}) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+  static async signup(
+    email,
+    password,
+    invitationToken,
+    tenantId,
+    firstName,
+    lastName,
+    options: any = {},
+  ) {
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
@@ -105,9 +113,14 @@ class AuthService {
         return token
       }
 
+      firstName = firstName || email.split('@')[0]
+      lastName = lastName || ''
+      const fullName = `${firstName} ${lastName}`.trim()
       const newUser = await UserRepository.createFromAuth(
         {
-          firstName: email.split('@')[0],
+          firstName,
+          lastName,
+          fullName,
           password: hashedPassword,
           email,
         },
@@ -178,7 +191,7 @@ class AuthService {
   }
 
   static async signin(email, password, invitationToken, tenantId, options: any = {}) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
@@ -441,19 +454,42 @@ class AuthService {
     emailVerified,
     firstName,
     lastName,
+    fullName,
     options: any = {},
   ) {
     if (!email) {
       throw new Error('auth-no-email')
     }
 
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
       let user = await UserRepository.findByEmail(email, options)
-
-      if (user && (user.provider !== provider || user.providerId !== providerId)) {
+      if (user) {
+        identify(user)
+        track(
+          'Signed in',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+      // If there was no provider, we can link it to the provider
+      if (user && (user.provider === undefined || user.provider === null)) {
+        await UserRepository.update(
+          user.id,
+          {
+            provider,
+            providerId,
+          },
+          options,
+        )
+        console.log(user)
+      } else if (user && (user.provider !== provider || user.providerId !== providerId)) {
         throw new Error('auth-invalid-provider')
       }
 
@@ -465,10 +501,20 @@ class AuthService {
           emailVerified,
           firstName,
           lastName,
+          fullName,
           options,
         )
+        identify(user)
+        track(
+          'Signed up',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
       }
-
       const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
         expiresIn: API_CONFIG.jwtExpiresIn,
       })

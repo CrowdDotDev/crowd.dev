@@ -27,7 +27,7 @@ export default class AutomationExecutionService extends ServiceBase<
    * @param data {CreateAutomationExecutionRequest} all the necessary data to log a new automation execution
    */
   override async create(data: CreateAutomationExecutionRequest): Promise<AutomationExecution> {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await new AutomationExecutionRepository(this.options).create({

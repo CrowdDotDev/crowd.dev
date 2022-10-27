@@ -2,9 +2,11 @@ import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 
 const { Op } = Sequelize
 
@@ -29,7 +31,7 @@ class TagRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
@@ -68,13 +70,28 @@ class TagRepository {
       },
     )
 
-    await record.setCommunityMembers(data.communityMembers || [], {
+    await record.setMembers(data.members || [], {
       transaction,
     })
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async destroyBulk(ids, options: IRepositoryOptions, force = false) {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    await options.database.tag.destroy({
+      where: {
+        id: ids,
+        tenantId: currentTenant.id,
+      },
+      force,
+      transaction,
+    })
   }
 
   static async destroy(id, options: IRepositoryOptions, force = false) {
@@ -166,67 +183,89 @@ class TagRepository {
   }
 
   static async findAndCountAll(
-    { filter, limit = 0, offset = 0, orderBy = '' },
+    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
     options: IRepositoryOptions,
   ) {
-    const tenant = SequelizeRepository.getCurrentTenant(options)
-
-    const whereAnd: Array<any> = []
     const include = []
 
-    whereAnd.push({
-      tenantId: tenant.id,
-    })
+    if (!advancedFilter) {
+      advancedFilter = { and: [] }
+    }
 
     if (filter) {
       if (filter.id) {
-        whereAnd.push({
-          id: SequelizeFilterUtils.uuid(filter.id),
+        advancedFilter.and.push({
+          id: filter.id,
         })
       }
 
       if (filter.name) {
-        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('tag', 'name', filter.name))
+        advancedFilter.and.push({
+          name: {
+            textContains: filter.name,
+          },
+        })
       }
 
       if (filter.createdAtRange) {
         const [start, end] = filter.createdAtRange
 
         if (start !== undefined && start !== null && start !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.gte]: start,
+              gte: start,
             },
           })
         }
 
         if (end !== undefined && end !== null && end !== '') {
-          whereAnd.push({
+          advancedFilter.and.push({
             createdAt: {
-              [Op.lte]: end,
+              lte: end,
             },
           })
         }
       }
     }
 
-    const where = { [Op.and]: whereAnd }
+    const parser = new QueryParser(
+      {
+        manyToMany: {
+          members: {
+            table: 'tags',
+            relationTable: {
+              name: 'memberTags',
+              from: 'tagId',
+              to: 'memberId',
+            },
+          },
+        },
+      },
+      options,
+    )
+    const parsed: QueryOutput = parser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['createdAt_DESC'],
+      limit,
+      offset,
+    })
 
     let {
       rows,
       count, // eslint-disable-line prefer-const
     } = await options.database.tag.findAndCountAll({
-      where,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      ...(parsed.having ? { having: parsed.having } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
       include,
-      limit: limit ? Number(limit) : undefined,
-      offset: offset ? Number(offset) : undefined,
-      order: orderBy ? [orderBy.split('_')] : [['createdAt', 'DESC']],
       transaction: SequelizeRepository.getTransaction(options),
     })
 
     rows = await this._populateRelationsForRows(rows, options)
 
-    return { rows, count }
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -270,7 +309,7 @@ class TagRepository {
     if (data) {
       values = {
         ...record.get({ plain: true }),
-        communityMemberIds: data.communityMembers,
+        memberIds: data.members,
       }
     }
 
@@ -302,7 +341,7 @@ class TagRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    output.communityMembers = await record.getCommunityMembers({
+    output.members = await record.getMembers({
       transaction,
       joinTableAttributes: [],
     })

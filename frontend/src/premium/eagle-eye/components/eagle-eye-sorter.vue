@@ -1,49 +1,39 @@
 <template>
-  <div
-    class="eagle-eye-sorter -mr-3"
-    :style="computedWidth"
-  >
-    <el-select
+  <div class="eagle-eye-sorter">
+    <app-inline-select-input
       v-model="computedValue"
-      popper-class="eagle-eye-popper-class"
-      prefix="sort"
-    >
-      <template #prefix>Sort:</template>
-      <el-option
-        key="relevance"
-        value="similarityScore"
-        label="Relevance"
-      ></el-option>
-      <el-option
-        key="latest"
-        value="timestamp"
-        label="Latest"
-      ></el-option>
-    </el-select>
+      popper-class="sorter-popper-class"
+      popper-placement="bottom-start"
+      prefix="Sort:"
+      :options="options"
+    />
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
+import AppInlineSelectInput from '@/shared/form/inline-select-input'
 export default {
   name: 'AppEagleEyeSorter',
+  components: { AppInlineSelectInput },
   data() {
     return {
-      value: 'similarityScore'
+      options: [
+        {
+          value: 'similarityScore',
+          label: 'Relevance'
+        },
+        {
+          value: 'timestamp',
+          label: 'Latest'
+        }
+      ]
     }
   },
   computed: {
-    ...mapGetters({
-      sorter: 'eagleEye/sorter'
+    ...mapState({
+      sorter: (state) => state.eagleEye.sorter
     }),
-    computedWidth() {
-      return {
-        width:
-          this.value === 'similarityScore'
-            ? '160px'
-            : '135px'
-      }
-    },
     computedValue: {
       get() {
         return this.sorter.prop
@@ -70,35 +60,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.el-select-dropdown.eagle-eye-popper-class {
-  .popper__arrow {
-    left: unset !important;
-    right: 35px;
-  }
-}
-.eagle-eye-sorter {
-  .el-select {
-    &:hover,
-    &:focus {
-      @apply shadow-none;
-    }
-
-    .el-input {
-      &__wrapper {
-        @apply bg-transparent border-none text-left shadow-none;
-        &:hover {
-          @apply shadow-none;
-        }
-      }
-      &.is-focus .el-input__wrapper {
-        box-shadow: none !important;
-      }
-      &__prefix {
-        @apply flex items-center mr-2 text-gray-400;
-      }
-    }
-  }
-}
-</style>
