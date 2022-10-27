@@ -158,12 +158,14 @@ export default async () => {
                 url: orgFromGH.url,
                 location: orgFromGH.location,
                 description: orgFromGH.description,
-                twitter: { handle: orgFromGH.twitterUsername },
                 logo: orgFromGH.avatarUrl,
               } as any
 
               if (orgFromGH.email){
                 orgFromGhParsed.emails = [orgFromGH.email]
+              }
+              if (orgFromGH.twitterUsername){
+                orgFromGhParsed.twitter = { handle: orgFromGH.twitterUsername }
               }
 
               // enrich the organization with cache
