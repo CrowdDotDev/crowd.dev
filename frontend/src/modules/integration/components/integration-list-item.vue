@@ -10,6 +10,13 @@
         >Connected</span
       >
       <div
+        v-else-if="isError"
+        class="text-red-500 flex items-center text-sm"
+      >
+        <i class="ri-error-warning-line mr-1"></i> Failed to
+        connect
+      </div>
+      <div
         v-else-if="isConnected"
         class="flex items-center"
       >
@@ -36,7 +43,22 @@
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
       }}</span>
-      <app-integration-connect :integration="integration">
+      <a
+        v-if="isError"
+        href="https://crowd.dev/discord"
+        target="__blank"
+      >
+        <el-button
+          class="btn btn--bordered"
+          :loading="loadingDisconnect"
+          >Contact us</el-button
+        ></a
+      >
+
+      <app-integration-connect
+        v-if="!isError"
+        :integration="integration"
+      >
         <template
           #default="{
             connect,
@@ -109,6 +131,10 @@ const isConnected = computed(() => {
 
 const isDone = computed(() => {
   return props.integration.status === 'done'
+})
+
+const isError = computed(() => {
+  return props.integration.status === 'error'
 })
 
 const loadingDisconnect = ref(false)
