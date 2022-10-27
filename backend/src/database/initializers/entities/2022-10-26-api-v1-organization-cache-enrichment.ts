@@ -12,16 +12,15 @@ import OrganizationRepository from '../../repositories/organizationRepository'
 
 export default async () => {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+  console.time('whole-script-time')
 
   // const tenants = await TenantService._findAndCountAllForEveryUser({})
 
   const tenantsQuery = `select * from tenants`
 
-  let tenants = await options.database.sequelize.query(tenantsQuery, {
+  const tenants = await options.database.sequelize.query(tenantsQuery, {
     type: QueryTypes.SELECT,
   })
-
-  tenants = [tenants[0]]
 
   // for each tenant
   for (const tenant of tenants) {
@@ -59,6 +58,8 @@ export default async () => {
           include: [],
         })
 
+        org.name = org.name.replace(/["\\]+/g, '')
+
         // organization is not enriched from gh api yet
         if (!record && !alreadyCheckedOrganizations.includes(org.name)) {
           const orgFromGH = await getOrganization(org.name, ghIntegration.token)
@@ -71,51 +72,116 @@ export default async () => {
 
             console.log('org id: ')
             console.log(org.id)
+
             // check org by url already exists
-            const findByUrl = await OrganizationRepository.findByUrl(orgFromGH.url, userContext)
-            const findByName = await OrganizationRepository.findByName(orgFromGH.name, userContext)
+            // let findByUrl =  await options.database.organization.findAll({
+            //                   attributes: ['id', 'name'],
+            //                   where: {
+            //                     url: orgFromGH.url,
+            //                     tenantId: tenant.id
+            //                   },
+            //                 })
+            // findByUrl = findByUrl.filter( (i) => i.id !== org.id)
+            // let findByName = await options.database.organization.findAll({
+            //   attributes: ['id', 'name'],
+            //   where: {
+            //     name: orgFromGH.name,
+            //     tenantId: tenant.id
+            //   },
+            // })
+            // findByName = findByName.filter( (i) => i.id !== org.id)
 
-            if (findByUrl) {
+            // check cache
+            const checkCache = await OrganizationCacheRepository.findByUrl(
+              orgFromGH.url,
+              userContext,
+            )
+
+            // if it already exists on cache, some other organization should be already enriched, find that org
+
+            const findOrg = await options.database.organization.findOne({
+              attributes: ['id', 'name', 'url'],
+              where: {
+                url: orgFromGH.url,
+                name: orgFromGH.name,
+                tenantId: tenant.id,
+              },
+            })
+
+            if (checkCache && findOrg) {
+              // update current organizations members to found organization
               const memberOrganizationsUpdateQuery = `UPDATE "memberOrganizations" SET "organizationId" = :existingOrganizationId WHERE "organizationId" = :duplicateOrganizationId`
               await options.database.sequelize.query(memberOrganizationsUpdateQuery, {
                 type: QueryTypes.UPDATE,
                 replacements: {
-                  existingOrganizationId: findByUrl.id,
+                  existingOrganizationId: findOrg.id,
                   duplicateOrganizationId: org.id,
                 },
               })
 
-              // remove duplicate
-              await OrganizationRepository.destroy(org.id, userContext)
-            } else if (findByName) {
-              const memberOrganizationsUpdateQuery = `UPDATE "memberOrganizations" SET "organizationId" = :existingOrganizationId WHERE "organizationId" = :duplicateOrganizationId`
-              await options.database.sequelize.query(memberOrganizationsUpdateQuery, {
-                type: QueryTypes.UPDATE,
-                replacements: {
-                  existingOrganizationId: findByName.id,
-                  duplicateOrganizationId: org.id,
-                },
-              })
-
-              await OrganizationRepository.update(
-                findByName.id,
-                { ...org, ...orgFromGH },
-                userContext,
-              )
-              await OrganizationRepository.destroy(org.id, userContext)
+              // delete current organization
+              console.log(`removing ${org.id} because ${findOrg.id} was already enriched!`)
+              await OrganizationRepository.destroy(org.id, userContext, true)
             } else {
-              const checkCache = await OrganizationCacheRepository.findByUrl(
-                orgFromGH.url,
-                userContext,
-              )
+              // it's not in cache, create it
               if (!checkCache) {
                 await OrganizationCacheRepository.create(orgFromGH, userContext)
               }
-              await OrganizationRepository.update(org.id, { ...org, ...orgFromGH }, userContext)
+
+              // check any other organization already has names from cache
+              let findByName = await options.database.organization.findAll({
+                attributes: ['id', 'name'],
+                where: {
+                  name: orgFromGH.name,
+                  tenantId: tenant.id,
+                },
+              })
+              findByName = findByName.filter((i) => i.id !== org.id)
+
+              if (findByName.length > 0) {
+                const memberOrganizationsUpdateQuery = `UPDATE "memberOrganizations" SET "organizationId" = :existingOrganizationId WHERE "organizationId" = :duplicateOrganizationId`
+                await options.database.sequelize.query(memberOrganizationsUpdateQuery, {
+                  type: QueryTypes.UPDATE,
+                  replacements: {
+                    existingOrganizationId: org.id,
+                    duplicateOrganizationId: findByName[0].id,
+                  },
+                })
+
+                // delete foundByName organization
+                console.log(`removing ${findByName[0].id} because ${org.id} will be enriched!`)
+                await OrganizationRepository.destroy(findByName[0].id, userContext, true)
+              }
+
+              const orgFromGhParsed = {
+                name: orgFromGH.name,
+                url: orgFromGH.url,
+                location: orgFromGH.location,
+                description: orgFromGH.description,
+                twitter: { handle: orgFromGH.twitterUsername },
+                logo: orgFromGH.avatarUrl,
+              } as any
+
+              if (orgFromGH.email){
+                orgFromGhParsed.emails = [orgFromGH.email]
+              }
+
+              // enrich the organization with cache
+              await OrganizationRepository.update(
+                org.id,
+                {
+                  ...org,
+                  ...orgFromGhParsed,
+                },
+                userContext,
+              )
             }
+
           }
         }
       }
     }
   }
+
+  console.timeEnd('whole-script-time')
 }
