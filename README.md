@@ -21,7 +21,7 @@
     |
     <a href="https://crowd.dev/twitter">Twitter</a>
     |
-    <a href="https://crowd.dev/newsletter">Newsletter</a>
+    <a href="https://crowd.dev/newsletter-sign-up">Newsletter</a>
     |
     <a href="https://crowd.dev/roadmap">Roadmap</a>
   </p>
@@ -46,7 +46,7 @@ crowd.dev is here to change this. Self-hosted or hosted by us, with developers i
 
 ## 🔔 Stay up-to-date
 
-Crowd.dev is still in beta and we ship new features every month. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter">monthly newsletter</a>. Thanks a lot! ❤️
+Crowd.dev is still in beta and we ship new features every month. To stay in the loop, leave us a star and subscribe to our <a href="https://crowd.dev/newsletter-sign-up">monthly newsletter</a>. Thanks a lot! ❤️
 
 ## 🚀 Getting started
 
