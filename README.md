@@ -58,7 +58,7 @@ Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and 
 
 #### Deployment
 
-The backend code is deployed to AWS (both static servers and serverless stack). The front-end is serverd through Netlify. The steps are outlined [in our deployment docs](https://docs.crowd.dev/docs/deployment).
+The backend code is deployed to AWS (both static servers and serverless stack). The front-end is served through Netlify. The steps are outlined [in our deployment docs](https://docs.crowd.dev/docs/deployment).
 
 #### Integrations
 
