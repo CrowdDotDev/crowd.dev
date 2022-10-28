@@ -88,7 +88,7 @@ cd scripts
 
 App will be available at http://localhost:8081
 
-For more information on development, you can <a href="https://docs.crowd.dev/docs/local-development">check our docs</a>.
+For more information on development, you can <a href="https://docs.crowd.dev/docs/docker-compose-single-machine-development-with-docker-images">check our docs</a>.
 
 ## 🗺️ Roadmap
 
