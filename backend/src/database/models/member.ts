@@ -124,6 +124,11 @@ export default (sequelize) => {
   )
 
   member.associate = (models) => {
+    models.member.hasOne(models.memberActivityAggregatesMV, {
+      as: 'memberActivityAggregatesMVs',
+      foreignKey: 'id',
+    })
+
     models.member.hasMany(models.activity, {
       as: 'activities',
     })

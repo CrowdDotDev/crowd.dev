@@ -244,6 +244,21 @@ CREATE TABLE public.integrations (
 
 
 --
+-- Name: memberActivityAggregatesMVs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."memberActivityAggregatesMVs" (
+    id uuid NOT NULL,
+    "lastActive" timestamp with time zone NOT NULL,
+    "activeOn" character varying(255)[],
+    "averageSentiment" double precision,
+    "activityCount" integer,
+    "createdAt" timestamp with time zone NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+--
 -- Name: memberAttributeSettings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -695,6 +710,14 @@ ALTER TABLE ONLY public.files
 
 ALTER TABLE ONLY public.integrations
     ADD CONSTRAINT integrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: memberActivityAggregatesMVs memberActivityAggregatesMVs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberActivityAggregatesMVs"
+    ADD CONSTRAINT "memberActivityAggregatesMVs_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1395,6 +1418,14 @@ ALTER TABLE ONLY public.integrations
 
 ALTER TABLE ONLY public.integrations
     ADD CONSTRAINT "integrations_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: memberActivityAggregatesMVs memberActivityAggregatesMVs_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."memberActivityAggregatesMVs"
+    ADD CONSTRAINT "memberActivityAggregatesMVs_id_fkey" FOREIGN KEY (id) REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --

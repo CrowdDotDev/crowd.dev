@@ -69,6 +69,7 @@ function models() {
     require('./memberAttributeSettings').default,
     require('./task').default,
     require('./note').default,
+    require('./memberActivityAggregatesMV').default,
   ]
 
   for (const notInitmodel of modelClasses) {
