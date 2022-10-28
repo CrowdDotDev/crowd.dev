@@ -37,7 +37,8 @@ class MergeSuggestions:
         self.sqs_sender = sqs_sender
 
         # Compute all members
-        self.comparison = self.repository.find_all_usernames(Member, query={})
+        self.comparison = self.repository.find_all_usernames()
+        print(f"Found {self.comparison} members to compare")
 
         self.test = test
 
