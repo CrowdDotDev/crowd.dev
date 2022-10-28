@@ -32,7 +32,10 @@
     </div>
     <div class="pt-3 pb-2 flex justify-center">
       <router-link
-        :to="{ name: 'activity' }"
+        :to="{
+          name: 'activity',
+          query: { activeTab: 'activities' }
+        }"
         class="text-red font-medium text-center text-xs leading-5"
       >
         All activities
