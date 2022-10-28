@@ -2,15 +2,25 @@ import cronGenerator from 'cron-time-generator'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import { CrowdJob } from '../../types/jobTypes'
 
+let processing = false
+
 const job: CrowdJob = {
-  name: 'Refresh Materialized Views',
+  name: 'Refresh Materialized View',
+  // every two hours
   cronTime: cronGenerator.every(2).minutes(),
   onTrigger: async () => {
-    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+    if (!processing) {
+      processing = true
+    } else {
+      return
+    }
+    const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
 
-    await options.database.sequelize.query(
-      'refresh materialized view "memberActivityAggregatesMVs"',
+    await dbOptions.database.sequelize.query(
+      'refresh materialized view concurrently "memberActivityAggregatesMVs"',
     )
+
+    processing = false
   },
 }
 
