@@ -5,9 +5,11 @@ import { UserService } from '@/premium/user/user-service'
 export default {
   namespaced: true,
 
-  state: {
-    loading: false,
-    record: null
+  state: () => {
+    return {
+      loading: false,
+      record: null
+    }
   },
 
   getters: {

@@ -6,10 +6,12 @@ import { UserService } from '@/premium/user/user-service'
 export default {
   namespaced: true,
 
-  state: {
-    initLoading: false,
-    saveLoading: false,
-    record: null
+  state: () => {
+    return {
+      initLoading: false,
+      saveLoading: false,
+      record: null
+    }
   },
 
   getters: {

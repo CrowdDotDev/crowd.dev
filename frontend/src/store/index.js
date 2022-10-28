@@ -50,7 +50,7 @@ const buildInitialState = (excludeAuth = false) => {
       acc[moduleKey] = store.state[moduleKey]
     } else if (modules[moduleKey].state) {
       acc[moduleKey] = JSON.parse(
-        JSON.stringify(modules[moduleKey].state)
+        JSON.stringify(modules[moduleKey].state())
       )
     }
 
@@ -58,7 +58,7 @@ const buildInitialState = (excludeAuth = false) => {
     if (subModules) {
       for (const subModuleKey of Object.keys(subModules)) {
         acc[moduleKey][subModuleKey] = JSON.parse(
-          JSON.stringify(subModules[subModuleKey].state)
+          JSON.stringify(subModules[subModuleKey].state())
         )
       }
     }
