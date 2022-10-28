@@ -1,5 +1,6 @@
 import moment from 'moment'
 import {
+  ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
   INITIAL_PAGE_SIZE,
   INITIAL_VIEW_ACTIVE_FILTER,
   INITIAL_VIEW_RECENT_FILTER,
@@ -17,7 +18,10 @@ export default {
       columns: [],
       filter: {
         operator: 'and',
-        attributes: { ...NOT_TEAM_MEMBER_FILTER }
+        attributes: {
+          ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
+          ...NOT_TEAM_MEMBER_FILTER
+        }
       },
       sorter: {
         prop: 'lastActive',
@@ -96,7 +100,10 @@ export default {
   count: 0,
   filter: {
     operator: 'and',
-    attributes: { ...NOT_TEAM_MEMBER_FILTER }
+    attributes: {
+      ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
+      ...NOT_TEAM_MEMBER_FILTER
+    }
   },
   pagination: {
     currentPage: 1,
