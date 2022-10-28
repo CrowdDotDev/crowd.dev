@@ -75,6 +75,16 @@ function build() {
     fi
 }
 
+function create_migration() {
+    MIG_NAME="$1"
+    MIG_VERSION=$(date +%s)
+    UP_MIG_FILE="${CLI_HOME}/../backend/src/database/migrations/V${MIG_VERSION}__${MIG_NAME}.sql"
+    DOWN_MIG_FILE="${CLI_HOME}/../backend/src/database/migrations/U${MIG_VERSION}__${MIG_NAME}.sql"
+    touch $UP_MIG_FILE
+    touch $DOWN_MIG_FILE
+    yell "Created ${MIG_FILE}";
+}
+
 function build_and_publish() {
     VERSION="$3"
 
@@ -144,6 +154,9 @@ function scaffold() {
                 exit;
             ;;
             clear-data) scaffold_clear
+                exit;
+            ;;
+            create-migration) create_migration $2
                 exit;
             ;;
             *) error "Invalid command '$1'" && say "$HELP"
@@ -267,33 +280,38 @@ function scaffold_set_up_network() {
     fi
 }
 
-function apply_db_schema() {
-    say "Applying database schema!"
-    (cd $CLI_HOME/../backend && set -a && . $CLI_HOME/../backend/.env.dist.local && set +a && npm run db:create:dev:source)
+function migrate_local() {
+    say "Building flyway migration image..."
+    docker build -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
 
-    say "Extracting schema sql dump!"
-    docker exec -t "${PROJECT_NAME}_db_1" sh -c "pg_dump --no-acl -O -x -s crowd-web -U postgres > schema.sql"
-    docker cp "${PROJECT_NAME}_db_1":/schema.sql $CLI_HOME/scaffold/db/schema.sql
+    say "Applying database migrations!"
+    docker run --rm --network "${PROJECT_NAME}-bridge" \
+        -e PGHOST=db \
+        -e PGPORT=5432 \
+        -e PGUSER=postgres \
+        -e PGPASSWORD=example \
+        -e PGDATABASE=crowd-web \
+        crowd_flyway
 }
 
 function create_s3_buckets() {
     say "Creating S3 buckets!"
-    sleep 10
+    # sleep 10
 
-    declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
-    for i in "${BUCKETS[@]}"
-    do
-        say "Creating s3 bucket: $i"
-        curl "http://localhost:9000/ui/$i?create"
-        sleep 8
-        curl "http://localhost:9000/ui/$i?make-public"
-    done
+    # declare -a BUCKETS=("crowd-integrations-assets-local" "crowd-microservices-assets-local")
+    # for i in "${BUCKETS[@]}"
+    # do
+    #     say "Creating s3 bucket: $i"
+    #     curl "http://localhost:9000/ui/$i?create"
+    #     sleep 8
+    #     curl "http://localhost:9000/ui/$i?make-public"
+    # done
 }
 
 function up_scaffold() {
     scaffold_set_up_network && $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
-    apply_db_schema
+    migrate_local
     create_s3_buckets
 }
 

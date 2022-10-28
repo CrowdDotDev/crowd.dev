@@ -1,22 +1,3 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 13.6
--- Dumped by pg_dump version 13.6
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
---
 -- Name: enum_memberAttributeSettings_type; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -28,11 +9,6 @@ CREATE TYPE public."enum_memberAttributeSettings_type" AS ENUM (
     'url',
     'date'
 );
-
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
 
 --
 -- Name: activities; Type: TABLE; Schema: public; Owner: -
@@ -240,21 +216,6 @@ CREATE TABLE public.integrations (
     "tenantId" uuid NOT NULL,
     "createdById" uuid,
     "updatedById" uuid
-);
-
-
---
--- Name: memberActivityAggregatesMVs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public."memberActivityAggregatesMVs" (
-    id uuid NOT NULL,
-    "lastActive" timestamp with time zone NOT NULL,
-    "activeOn" character varying(255)[],
-    "averageSentiment" double precision,
-    "activityCount" integer,
-    "createdAt" timestamp with time zone NOT NULL,
-    "updatedAt" timestamp with time zone NOT NULL
 );
 
 
@@ -710,14 +671,6 @@ ALTER TABLE ONLY public.files
 
 ALTER TABLE ONLY public.integrations
     ADD CONSTRAINT integrations_pkey PRIMARY KEY (id);
-
-
---
--- Name: memberActivityAggregatesMVs memberActivityAggregatesMVs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."memberActivityAggregatesMVs"
-    ADD CONSTRAINT "memberActivityAggregatesMVs_pkey" PRIMARY KEY (id);
 
 
 --
@@ -1421,14 +1374,6 @@ ALTER TABLE ONLY public.integrations
 
 
 --
--- Name: memberActivityAggregatesMVs memberActivityAggregatesMVs_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."memberActivityAggregatesMVs"
-    ADD CONSTRAINT "memberActivityAggregatesMVs_id_fkey" FOREIGN KEY (id) REFERENCES public.members(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
 -- Name: memberAttributeSettings memberAttributeSettings_createdById_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1844,7 +1789,30 @@ ALTER TABLE ONLY public.widgets
     ADD CONSTRAINT "widgets_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
---
--- PostgreSQL database dump complete
---
+create materialized view "memberActivityAggregatesMVs" as
+(
+select m.id,
+       max(a.timestamp) as "lastActive",
+       count(a.id)      as "activityCount",
+       array_agg(
+       distinct (a.platform)
+           ) filter (
+           where
+           a.platform is not null
+           )            AS "activeOn",
+       ROUND(
+               AVG(
+                       COALESCE(
+                                   a."sentiment" ->> 'sentiment',
+                                   '0'
+                           ):: float
+                   ):: numeric,
+               2
+           )            AS "averageSentiment"
+from members m
+         left outer join activities a on m.id = a."memberId" and a."deletedAt" is null
+group by m.id
+    );
 
+create unique index ix_memberactivityaggregatesmvs_memberid
+    on "memberActivityAggregatesMVs" (id);

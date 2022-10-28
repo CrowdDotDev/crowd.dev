@@ -37,7 +37,6 @@ class MemberRepository {
           'joinedAt',
           'importHash',
         ]),
-
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -462,9 +461,10 @@ class MemberRepository {
 
     const include = [
       {
-        model: options.database.activity,
-        as: 'activities',
+        model: options.database.memberActivityAggregatesMV,
         attributes: [],
+        required: true,
+        as: 'memberActivityAggregatesMVs',
       },
       {
         model: options.database.member,
@@ -735,29 +735,15 @@ class MemberRepository {
       return acc
     }, [])
 
-    const activityCount = options.database.Sequelize.fn(
-      'COUNT',
-      options.database.Sequelize.col('activities.id'),
-    )
-
-    const lastActive = options.database.Sequelize.fn(
-      'MAX',
-      options.database.Sequelize.col('activities.timestamp'),
-    )
-
-    const activeOn = Sequelize.literal(
-      `array_agg( distinct  ("activities".platform) ) filter (where "activities".platform is not null)`,
-    )
-
-    const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member".username))`)
+    const activityCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activityCount"`)
+    const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
+    const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
+    const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
+    const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member"."username"))`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
 
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
-
-    const averageSentiment = Sequelize.literal(
-      `ROUND(AVG(COALESCE("activities"."sentiment"->>'sentiment', '0')::float)::numeric, 2)`,
-    )
 
     const parser = new QueryParser(
       {
@@ -873,14 +859,21 @@ class MemberRepository {
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
-        // [Sequelize.literal(`("member".reach->'total')::int`), 'reach'],
+        [Sequelize.literal(`("member".reach->'total')::int`), 'reach'],
         ...dynamicAttributesProjection,
       ],
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
       order,
       subQuery: false,
-      group: ['member.id', 'toMerge.id'],
+      group: [
+        'member.id',
+        'memberActivityAggregatesMVs.activeOn',
+        'memberActivityAggregatesMVs.activityCount',
+        'memberActivityAggregatesMVs.lastActive',
+        'memberActivityAggregatesMVs.averageSentiment',
+        'toMerge.id',
+      ],
       distinct: true,
     })
 
