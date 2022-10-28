@@ -56,7 +56,7 @@ Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and 
 
 ### Self-hosted version
 
-#### Deployment
+#### Deployment with Kubernetes
 
 Our services can be deployed using Kubernetes, as well as a lightweight development environment using Docker. You can read more about it in our [self-hosting docs](https://docs.crowd.dev/docs/deployment).
 
