@@ -13,7 +13,7 @@
   
   <p align="center">
     <br>
-    <a href="https://crowd.dev/#waitlist">Cloud Version (Beta)</a>
+    <a href="https://crowd.dev/sign-up">Cloud Version (Beta)</a>
     |
     <a href="https://docs.crowd.dev">Docs</a>
     |
