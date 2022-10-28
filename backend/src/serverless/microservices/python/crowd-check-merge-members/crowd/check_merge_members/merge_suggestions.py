@@ -37,7 +37,8 @@ class MergeSuggestions:
         self.sqs_sender = sqs_sender
 
         # Compute all members
-        self.comparison = self.repository.find_all(Member, query={})
+        self.comparison = self.repository.find_all_usernames()
+        print(f"Found {self.comparison} members to compare")
 
         self.test = test
 
@@ -134,6 +135,7 @@ class MergeSuggestions:
         return cw, sw, lw
 
     def cosdis(self, ws):
+        logger.info("Calculating cosdis for: {}".format(ws))
         v1 = self.word2vec(ws[0])
         v2 = self.word2vec(ws[1])
         # which characters are common to the two words?

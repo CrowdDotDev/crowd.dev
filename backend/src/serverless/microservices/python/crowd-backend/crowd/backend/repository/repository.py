@@ -141,6 +141,11 @@ class Repository(object):
 
         return self.session.query(table).get(id)
 
+    def find_all_usernames(self):
+        with self.engine.connect() as con:
+            return con.execute(
+                f"""SELECT "id", "username" from "members" WHERE "tenantId" = '{self.tenant_id}'""").fetchall()
+
     def find_all(
         self, table, ignore_tenant: "bool" = False, query: "dict" = None, order: "dict" = None
     ) -> "list[dict]":
@@ -189,13 +194,6 @@ class Repository(object):
                     search_query = search_query.order_by(desc(key))
 
         return search_query.all()
-
-    def find_members(self, username):
-        return self.find_in_table(
-            Member,
-            {"username.crowdUsername": username, "tenantId": uuid.UUID(self.tenant_id)},
-            many=True,
-        )
 
     def find_activities(self, search_filters=None):
         if not search_filters:
