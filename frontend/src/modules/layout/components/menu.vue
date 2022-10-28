@@ -389,7 +389,7 @@ const classFor = (path, exact = false) => {
 
   const routePath = route.value.path
   const active =
-    routePath === path || routePath.startsWith(path + '/ ')
+    routePath === path || routePath.startsWith(path + '/')
   return {
     'is-active': active
   }
