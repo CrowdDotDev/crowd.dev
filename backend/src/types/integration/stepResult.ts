@@ -25,6 +25,9 @@ export interface IProcessStreamResults {
   // if processing of the current stream results in new streams they should be returned here
   newStreams?: IIntegrationStream[]
 
+  // if processing of the current stream results in the next page of the same stream it should be returned here
+  nextPageStream?: IIntegrationStream
+
   // seconds to pause between continuing with integration processing for the remaining streams
   sleep?: number
 }

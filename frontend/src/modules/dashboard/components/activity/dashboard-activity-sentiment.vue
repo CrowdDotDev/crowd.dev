@@ -25,7 +25,7 @@
     </template>
     <template #default="{ resultSet }">
       <div>
-        <div v-if="total > 0">
+        <div v-if="!loadingData(resultSet)">
           <div class="flex w-full pb-3">
             <div
               v-for="data of compileData(resultSet)"
@@ -63,7 +63,7 @@
           </div>
         </div>
         <div
-          v-else
+          v-else-if="noData"
           class="text-xs text-gray-500 italic text-gray-400"
         >
           No data
@@ -108,6 +108,14 @@ export default {
         this.hoveredSentiment !== ''
         ? 'opacity-50'
         : ''
+    },
+    loadingData(resultSet) {
+      return (
+        !resultSet || resultSet.loadResponse === undefined
+      )
+    },
+    noData(resultSet) {
+      return this.loadingData(resultSet) && this.total === 0
     },
     compileData(resultSet) {
       const seriesNames = resultSet.seriesNames()

@@ -251,7 +251,10 @@ export class IntegrationProcessor {
 
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
-            logger.info({ stream, remainingStreams: streams.length }, `Processing stream.`)
+            logger.info(
+              { stream: stream.value, remainingStreams: streams.length },
+              `Processing stream.`,
+            )
             const processStreamResult = await intService.processStream(stream, stepContext)
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
@@ -273,6 +276,22 @@ export class IntegrationProcessor {
                 )
                 stepContext.limitCount += operation.records.length
                 await bulkOperations(integration.tenantId, operation.type, operation.records)
+              }
+            }
+
+            if (processStreamResult.nextPageStream !== undefined) {
+              if (
+                !req.onboarding &&
+                (await intService.isProcessingFinished(
+                  stepContext,
+                  stream,
+                  processStreamResult.operations,
+                  processStreamResult.lastRecordTimestamp,
+                ))
+              ) {
+                logger.warn('Integration processing finished because of service implementation!')
+              } else {
+                streams.push(processStreamResult.nextPageStream)
               }
             }
 
@@ -313,19 +332,6 @@ export class IntegrationProcessor {
 
                 break
               }
-            }
-
-            if (
-              !req.onboarding &&
-              (await intService.isProcessingFinished(
-                stepContext,
-                stream,
-                processStreamResult.operations,
-                processStreamResult.lastRecordTimestamp,
-              ))
-            ) {
-              logger.warn('Integration processing finished because of service implementation!')
-              break
             }
           } catch (err) {
             logger.error(err, { stream }, 'Error processing a stream!')
