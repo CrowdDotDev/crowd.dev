@@ -141,6 +141,13 @@ class Repository(object):
 
         return self.session.query(table).get(id)
 
+    def find_all_usernames(self):
+         with self.engine.connect() as con:
+
+            id = self.repository.tenant_id
+
+            self.mean_scores = con.execute(f"""SELECT "username" from "members" WHERE "tenantId" = '{self.tenant_id}'""" )
+
     def find_all(
         self, table, ignore_tenant: "bool" = False, query: "dict" = None, order: "dict" = None
     ) -> "list[dict]":
