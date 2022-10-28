@@ -59,7 +59,7 @@ class MergeSuggestions:
         if not member_to_check:
             logger.info("Member to check not found")
             return
-            
+
         # Check if tenant has only 1 integration
         tenant_integrations = self.repository.find_in_table(Integration, {'tenantId': self.tenant_id}, many=True)
 
@@ -235,11 +235,11 @@ class MergeSuggestions:
             member2 (Member): Second member we are going to compare
             platforms (List(str)): the common platforms between members
         """
-        for platform in platforms:
-            if (
-                self.evaluate_distance(member1.username[platform], member2.username[platform])
-                < MergeSuggestions.same_platform_threshold
-            ):
-                return True
+        # for platform in platforms:
+        #     if (
+        #         self.evaluate_distance(member1.username[platform], member2.username[platform])
+        #         < MergeSuggestions.same_platform_threshold
+        #     ):
+        #         return True
 
         return False
