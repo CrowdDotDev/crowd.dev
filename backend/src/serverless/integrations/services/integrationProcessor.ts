@@ -276,6 +276,23 @@ export class IntegrationProcessor {
               }
             }
 
+            if (processStreamResult.nextPageStream !== undefined) {
+              if (
+                !req.onboarding &&
+                (await intService.isProcessingFinished(
+                  stepContext,
+                  stream,
+                  processStreamResult.operations,
+                  processStreamResult.lastRecordTimestamp,
+                ))
+              ) {
+                logger.warn('Integration processing finished because of service implementation!')
+                break
+              } else {
+                streams.push(processStreamResult.nextPageStream)
+              }
+            }
+
             if (processStreamResult.sleep !== undefined && processStreamResult.sleep > 0) {
               logger.info(
                 {
@@ -313,19 +330,6 @@ export class IntegrationProcessor {
 
                 break
               }
-            }
-
-            if (
-              !req.onboarding &&
-              (await intService.isProcessingFinished(
-                stepContext,
-                stream,
-                processStreamResult.operations,
-                processStreamResult.lastRecordTimestamp,
-              ))
-            ) {
-              logger.warn('Integration processing finished because of service implementation!')
-              break
             }
           } catch (err) {
             logger.error(err, { stream }, 'Error processing a stream!')
