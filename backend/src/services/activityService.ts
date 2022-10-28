@@ -71,7 +71,10 @@ export default class ActivityService {
       if (existing) {
         const { id } = existing
         delete existing.id
-        const toUpdate = merge(existing, data)
+        const toUpdate = merge(existing, data, {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          timestamp: (oldValue, _newValue) => oldValue,
+        })
         record = await ActivityRepository.update(id, toUpdate, {
           ...this.options,
           transaction,
