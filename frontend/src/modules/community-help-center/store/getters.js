@@ -9,7 +9,10 @@ export default {
     rootGetters
   ) => {
     return (
-      rootGetters['auth/currentSettings'].website !== null
+      rootGetters['auth/currentSettings'].website !==
+        null &&
+      rootGetters['auth/communityHelpCenterSettings']
+        .enabled
     )
   },
 

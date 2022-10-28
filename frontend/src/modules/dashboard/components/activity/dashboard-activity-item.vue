@@ -62,7 +62,7 @@
                   />
                 </el-tooltip>
               </div>
-              <p class="text-2xs leading-4 pl-2">
+              <p class="flex text-2xs leading-4 pl-2">
                 <app-activity-message
                   :activity="activity"
                 />

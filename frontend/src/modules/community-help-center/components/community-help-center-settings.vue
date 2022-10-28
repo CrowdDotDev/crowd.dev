@@ -177,13 +177,6 @@ export default {
     buttonVisible: {
       type: Boolean,
       default: true
-    },
-    modelValue: {
-      type: Object,
-      default: () => ({
-        theme: {},
-        autoPublish: {}
-      })
     }
   },
   emits: ['close', 'open', 'update:modelValue'],
@@ -192,7 +185,10 @@ export default {
     return {
       loading: false,
       rules: formSchema.rules(),
-      initialModel: {}
+      model: {
+        theme: {},
+        autoPublish: {}
+      }
     }
   },
 
@@ -208,14 +204,6 @@ export default {
       communityHelpCenterSettings:
         'auth/communityHelpCenterSettings'
     }),
-    model: {
-      get() {
-        return this.modelValue
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      }
-    },
     computedVisible: {
       get() {
         return this.visible
@@ -279,7 +267,7 @@ export default {
     if (!this.loadedIntegrations) {
       await this.fetchIntegrations()
     }
-    this.setModels()
+    this.setModel()
   },
 
   methods: {
@@ -344,7 +332,7 @@ export default {
         await this.doRefreshCurrentUser()
         await this.fetchIntegrations()
         await this.fetchConversations({})
-        this.setModels()
+        this.setModel()
         this.loading = false
         this.$emit('close')
         Message.success(
@@ -358,8 +346,8 @@ export default {
         this.loading = false
       }
     },
-    setModels() {
-      this.initialModel = {
+    setModel() {
+      this.model = {
         enabled:
           this.communityHelpCenterSettings.enabled || false,
         website: this.currentSettings.website,
@@ -417,12 +405,6 @@ export default {
                   .channelsByPlatform
             }
       }
-      this.model = { ...this.initialModel }
-    },
-    doReset() {
-      this.model = formSchema.initialValues(
-        this.initialModel
-      )
     }
   }
 }

@@ -2,6 +2,22 @@ import moment from 'moment'
 
 export const INITIAL_PAGE_SIZE = 20
 
+export const ACTIVITY_COUNT_BIGGER_THAN_0_FILTER = {
+  activityCount: {
+    name: 'activityCount',
+    label: 'Activity Count',
+    custom: false,
+    props: {},
+    defaultValue: 0,
+    value: 0,
+    defaultOperator: 'gt',
+    operator: 'gt',
+    type: 'boolean',
+    expanded: false,
+    show: false
+  }
+}
+
 export const NOT_TEAM_MEMBER_FILTER = {
   isTeamMember: {
     name: 'isTeamMember',

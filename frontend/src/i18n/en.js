@@ -300,7 +300,7 @@ const en = {
           'contributed to community',
         joined_community: 'joined community',
         mention: 'mentioned you in a tweet',
-        hashtag: 'posted a tweet in {0}',
+        hashtag: 'posted a tweet',
         follow: 'followed you'
       },
       discord: {
