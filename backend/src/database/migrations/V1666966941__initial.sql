@@ -1813,3 +1813,6 @@ from members m
          left outer join activities a on m.id = a."memberId" and a."deletedAt" is null
 group by m.id
     );
+
+create unique index ix_memberactivityaggregatesmvs_memberid
+    on "memberActivityAggregatesMVs" (id);

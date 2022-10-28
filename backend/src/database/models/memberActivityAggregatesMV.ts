@@ -22,12 +22,6 @@ export default (sequelize) => {
       type: DataTypes.INTEGER,
     },
   })
-  /* memberActivityAggregatesMV.associate = (models) => {
-    models.memberActivityAggregatesMV.belongsTo(models.member, {
-      as: 'memberActivityAggregates',
-      foreignKey: 'id',
-    })
-  }
-  */
+
   return memberActivityAggregatesMV
 }
