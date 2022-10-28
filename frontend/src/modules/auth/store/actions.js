@@ -243,17 +243,11 @@ export default {
       tenantSubdomain.redirectAuthenticatedTo(tenant.url)
       return
     }
-    return Promise.all([
-      dispatch('widget/doResetStore', {}, { root: true }),
-      dispatch('report/doResetStore', {}, { root: true })
-    ])
-      .then(() => {
-        AuthCurrentTenant.set(tenant)
-        return dispatch('doRefreshCurrentUser')
-      })
-      .then(() => {
-        router.push('/')
-      })
+
+    AuthCurrentTenant.set(tenant)
+    await dispatch('doRefreshCurrentUser')
+
+    router.push('/')
   },
 
   clearTenant({ commit }) {
