@@ -21,8 +21,8 @@ export function computedMessage(activity) {
 }
 
 export function computedArgs(activity) {
-  if (activity.type === 'hashtag') {
-    return [`#${activity.hashtag}`]
+  if (activity.type === 'hashtag' && activity.channel) {
+    return [`#${activity.channel}`]
   }
   return []
 }
