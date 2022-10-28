@@ -38,13 +38,19 @@ const buildStores = () => {
  *
  * @returns {{}}
  */
-const buildInitialState = () => {
+const buildInitialState = (excludeAuth = false) => {
   const modules = buildStores()
+  console.log(buildStores())
   return Object.keys(modules).reduce((acc, moduleKey) => {
     acc[moduleKey] = {}
-    if (modules[moduleKey].state) {
+    if (
+      ['auth', 'tenant'].includes(moduleKey) &&
+      excludeAuth
+    ) {
+      acc[moduleKey] = store.state[moduleKey]
+    } else if (modules[moduleKey].state) {
       acc[moduleKey] = JSON.parse(
-        JSON.stringify(modules[moduleKey].state)
+        JSON.stringify(modules[moduleKey].state())
       )
     }
 
@@ -52,7 +58,7 @@ const buildInitialState = () => {
     if (subModules) {
       for (const subModuleKey of Object.keys(subModules)) {
         acc[moduleKey][subModuleKey] = JSON.parse(
-          JSON.stringify(subModules[subModuleKey].state)
+          JSON.stringify(subModules[subModuleKey].state())
         )
       }
     }
