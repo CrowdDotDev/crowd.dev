@@ -251,7 +251,10 @@ export class IntegrationProcessor {
 
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
-            logger.info({ stream, remainingStreams: streams.length }, `Processing stream.`)
+            logger.info(
+              { stream: stream.value, remainingStreams: streams.length },
+              `Processing stream.`,
+            )
             const processStreamResult = await intService.processStream(stream, stepContext)
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
@@ -287,7 +290,6 @@ export class IntegrationProcessor {
                 ))
               ) {
                 logger.warn('Integration processing finished because of service implementation!')
-                break
               } else {
                 streams.push(processStreamResult.nextPageStream)
               }
