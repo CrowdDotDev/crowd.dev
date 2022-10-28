@@ -79,15 +79,15 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       afterDate,
     )
 
-    const newStreams = nextPage
-      ? [{ value: stream.value, metadata: { page: nextPage } }]
+    const nextPageStream = nextPage
+      ? { value: stream.value, metadata: { page: nextPage } }
       : undefined
     const sleep = limit <= 1 ? timeUntilReset : undefined
 
     if (records.length === 0) {
       return {
         operations: [],
-        newStreams,
+        nextPageStream,
         sleep,
       }
     }
@@ -105,7 +105,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ],
       lastRecord,
       lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
-      newStreams,
+      nextPageStream,
       sleep,
     }
   }

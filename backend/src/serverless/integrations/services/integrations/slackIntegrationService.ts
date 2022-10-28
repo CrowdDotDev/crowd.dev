@@ -96,6 +96,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     await timeout(1000)
+
     const { fn, arg } = SlackIntegrationService.getSuperfaceUsecase(stream)
 
     const { records, nextPage, limit, timeUntilReset } = await fn(
@@ -107,15 +108,16 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       200,
     )
 
-    const newStreams: IIntegrationStream[] = nextPage
-      ? [{ value: stream.value, metadata: { ...(stream.metadata || {}), page: nextPage } }]
-      : []
+    const nextPageStream: IIntegrationStream = nextPage
+      ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: nextPage } }
+      : undefined
+
     const sleep = limit <= 1 ? timeUntilReset : undefined
 
     if (records.length === 0) {
       return {
         operations: [],
-        newStreams,
+        nextPageStream,
         sleep,
       }
     }
@@ -136,7 +138,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       ],
       lastRecord,
       lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
-      newStreams: newStreams.concat(additionalStreams),
+      newStreams: additionalStreams,
+      nextPageStream,
       sleep,
     }
   }
@@ -404,6 +407,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   ): Promise<boolean> {
     switch (currentStream.value) {
       case 'members':
+        if (lastRecord === undefined) return true
+
         return lastRecord.sourceId in context.pipelineData.members
       case 'threads':
         if ((currentStream.metadata as Thread).new) {
