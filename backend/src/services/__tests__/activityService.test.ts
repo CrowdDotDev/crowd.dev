@@ -457,7 +457,7 @@ describe('ActivityService tests', () => {
       expect(activityCreated7.conversationId).toStrictEqual(conversationCreated2.id)
     })
 
-    it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
+    it('Should keep old timestamp', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
@@ -490,7 +490,7 @@ describe('ActivityService tests', () => {
 
       const activityCreated2 = await activityService.upsert(activity2)
 
-      expect(activityCreated2.timestamp).toBe(activityCreated1.timestamp)
+      expect(activityCreated2.timestamp).toStrictEqual(activityCreated1.timestamp)
       expect(activityCreated2.body).toBe(activity2.body)
     })
 
