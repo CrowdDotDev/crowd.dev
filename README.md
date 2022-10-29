@@ -37,6 +37,9 @@ In recent years, community has moved to the forefront of business. But building 
 
 crowd.dev is here to change this. Self-hosted or hosted by us, with developers in mind, open to extensions, and with full control over your community's data.
 
+<img src="https://user-images.githubusercontent.com/41432658/198830271-cbe6d3c7-0c46-4539-98cc-b13c495ddedf.png" alt="UI Home screen">
+
+
 ## ✨ Features
 
 - Integrate with platforms like GitHub, Discord, Slack, Twitter or DEV to establish a single source of truth for your community
