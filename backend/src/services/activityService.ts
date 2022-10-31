@@ -1,15 +1,19 @@
 import { Transaction } from 'sequelize/types'
-import { PlatformType } from '../utils/platforms'
+import { Blob } from 'buffer'
+import { PlatformType } from '../types/integrationEnums'
 import Error400 from '../errors/Error400'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { detectSentiment, detectSentimentBatch } from './aws'
 import { IServiceOptions } from './IServiceOptions'
 import merge from './helpers/merge'
 import ActivityRepository from '../database/repositories/activityRepository'
-import CommunityMemberRepository from '../database/repositories/communityMemberRepository'
-import CommunityMemberService from './communityMemberService'
+import MemberRepository from '../database/repositories/memberRepository'
+import MemberService from './memberService'
 import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
+import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
+import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 
 export default class ActivityService {
   options: IServiceOptions
@@ -33,14 +37,14 @@ export default class ActivityService {
    * @returns The upserted activity
    */
   async upsert(data, existing: boolean | any = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (data.communityMember) {
-        data.communityMember = await CommunityMemberRepository.filterIdInTenant(
-          data.communityMember,
-          { ...this.options, transaction },
-        )
+      if (data.member) {
+        data.member = await MemberRepository.filterIdInTenant(data.member, {
+          ...this.options,
+          transaction,
+        })
       }
 
       // If a sourceParentId is sent, try to find it in our db
@@ -67,25 +71,33 @@ export default class ActivityService {
       if (existing) {
         const { id } = existing
         delete existing.id
-        const toUpdate = merge(existing, data)
+        const toUpdate = merge(existing, data, {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          timestamp: (oldValue, _newValue) => oldValue,
+        })
         record = await ActivityRepository.update(id, toUpdate, {
           ...this.options,
           transaction,
         })
       } else {
+        if (!data.sentiment) {
+          const sentiment = await ActivityService.getSentiment(data)
+          data.sentiment = sentiment
+        }
+
         record = await ActivityRepository.create(data, {
           ...this.options,
           transaction,
         })
 
-        // Only track activity's platform and timestamp and communityMemberId. It is completely annonymous.
+        // Only track activity's platform and timestamp and memberId. It is completely annonymous.
         telemetryTrack(
           'Activity created',
           {
             id: record.id,
             platform: record.platform,
             timestamp: record.timestamp,
-            communityMemberId: record.communityMemberId,
+            memberId: record.memberId,
             createdAt: record.createdAt,
           },
           this.options,
@@ -118,6 +130,14 @@ export default class ActivityService {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      if (!existing) {
+        try {
+          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
+        } catch (err) {
+          console.log(`Error triggering new activity automation - ${record.id}!`, err)
+        }
+      }
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -126,6 +146,105 @@ export default class ActivityService {
 
       throw error
     }
+  }
+
+  /**
+   * Get the sentiment of an activity from its body and title.
+   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
+   * @param data Activity data. Includes body and title.
+   * @returns The sentiment of the combination of body and title. Between -1 and 1.
+   */
+  static async getSentiment(data) {
+    if (IS_TEST_ENV) {
+      return {
+        positive: 0.42,
+        negative: 0.42,
+        neutral: 0.42,
+        mixed: 0.42,
+        label: 'positive',
+        sentiment: 0.42,
+      }
+    }
+    if (IS_DEV_ENV) {
+      // Return a random number between 0 and 100
+      const score = Math.floor(Math.random() * 100)
+      let label = 'neutral'
+      if (score < 33) {
+        label = 'negative'
+      } else if (score > 66) {
+        label = 'positive'
+      }
+      return {
+        positive: Math.floor(Math.random() * 100),
+        negative: Math.floor(Math.random() * 100),
+        neutral: Math.floor(Math.random() * 100),
+        mixed: Math.floor(Math.random() * 100),
+        sentiment: score,
+        label,
+      }
+    }
+
+    data.body = data.body ?? ''
+    data.title = data.title ?? ''
+
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
+
+    // Concatenate title and body
+    let text = `${data.title} ${data.body}`.trim()
+
+    // Check text byte size
+    let blob = new Blob([text])
+    if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
+      blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
+      text = await blob.text()
+    }
+
+    return text === '' ? {} : detectSentiment(text)
+  }
+
+  /**
+   * Get the sentiment of an array of activities form its' body and title
+   * Only first 5000 bytes of text are passed through because of AWS Comprehend restrictions.
+   * @param activityArray activity array
+   * @returns list of sentiments ordered same as input array
+   */
+  static async getSentimentBatch(activityArray) {
+    const ALLOWED_MAX_BYTE_LENGTH = 4500
+    let textArray = await Promise.all(
+      activityArray.map(async (i) => {
+        let text = `${i.title} ${i.body}`.trim()
+        let blob = new Blob([text])
+        if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
+          blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
+          text = await blob.text()
+        }
+        return text
+      }),
+    )
+
+    const MAX_BATCH_SIZE = 25
+
+    const promiseArray = []
+
+    if (textArray.length > MAX_BATCH_SIZE) {
+      while (textArray.length > MAX_BATCH_SIZE) {
+        promiseArray.push(detectSentimentBatch(textArray.slice(0, MAX_BATCH_SIZE)))
+        textArray = textArray.slice(MAX_BATCH_SIZE)
+      }
+      // insert last small chunk
+      if (textArray.length > 0) promiseArray.push(detectSentimentBatch(textArray))
+    } else {
+      promiseArray.push(textArray)
+    }
+
+    console.time('sentiment-api-request')
+    const values = await Promise.all(promiseArray)
+    console.timeEnd('sentiment-api-request')
+
+    return values.reduce((acc, i) => {
+      acc.push(...i)
+      return acc
+    }, [])
   }
 
   /**
@@ -165,7 +284,7 @@ export default class ActivityService {
       // if conversation is not already published, update conversation info with new parent
       if (!conversation.published) {
         const newConversationTitle = await conversationService.generateTitle(
-          parent.crowdInfo.body,
+          parent.title || parent.body,
           ActivityService.hasHtmlActivities(parent.platform),
         )
 
@@ -185,7 +304,7 @@ export default class ActivityService {
     } else {
       // neither child nor parent is in a conversation, create one from parent
       const conversationTitle = await conversationService.generateTitle(
-        parent.crowdInfo.body,
+        parent.title || parent.body,
         ActivityService.hasHtmlActivities(parent.platform),
       )
       const conversationSettings = await ConversationSettingsService.findOrCreateDefault(
@@ -245,30 +364,25 @@ export default class ActivityService {
   }
 
   async createWithMember(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const activityExists = await this._activityExists(data, transaction)
 
       const existingMember = activityExists
-        ? await new CommunityMemberService(this.options).findById(
-            activityExists.communityMemberId,
-            true,
-            false,
-          )
+        ? await new MemberService(this.options).findById(activityExists.memberId, true, false)
         : false
 
-      const member = await new CommunityMemberService(this.options).upsert(
+      const member = await new MemberService(this.options).upsert(
         {
-          ...data.communityMember,
+          ...data.member,
           platform: data.platform,
           joinedAt: data.timestamp,
         },
-        true,
         existingMember,
       )
 
-      data.communityMember = member.id
+      data.member = member.id
 
       const record = await this.upsert(data, activityExists)
 
@@ -285,13 +399,13 @@ export default class ActivityService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      data.communityMember = await CommunityMemberRepository.filterIdInTenant(
-        data.communityMember,
-        { ...this.options, transaction },
-      )
+      data.member = await MemberRepository.filterIdInTenant(data.member, {
+        ...this.options,
+        transaction,
+      })
 
       if (data.parent) {
         data.parent = await ActivityRepository.filterIdInTenant(data.parent, {
@@ -318,7 +432,7 @@ export default class ActivityService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -345,6 +459,17 @@ export default class ActivityService {
 
   async findAndCountAll(args) {
     return ActivityRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    return ActivityRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset },
+      this.options,
+    )
   }
 
   async import(data, importHash) {

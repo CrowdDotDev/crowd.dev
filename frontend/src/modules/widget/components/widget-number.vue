@@ -4,18 +4,18 @@
     :editable="editable"
     :number="true"
     @trigger-duplicate-widget="
-      (w) => this.$emit('trigger-duplicate-widget', w)
+      (w) => $emit('trigger-duplicate-widget', w)
     "
     @trigger-edit-widget="
-      (w) => this.$emit('trigger-edit-widget', w)
+      (w) => $emit('trigger-edit-widget', w)
     "
     @trigger-delete-widget="
-      (w) => this.$emit('trigger-delete-widget', w)
+      (w) => $emit('trigger-delete-widget', w)
     "
     @open-settings-modal="modal = true"
   >
     <div class="widget--number">
-      <i class="ri-lg mr-4" :class="iconClass"></i>
+      <i class="mr-4" :class="iconClass"></i>
       <div class="widget--number-values">
         <div class="flex items-center">
           <el-tooltip
@@ -23,31 +23,33 @@
             effect="dark"
             placement="top"
           >
-            <div class="widget--number-values-current">
+            <h6 class="text-lg font-semibold leading-5">
               {{ value.current }} {{ value.suffix }}
-            </div>
+            </h6>
           </el-tooltip>
           <div
+            v-if="growth.target !== null"
             class="widget--number-values-growth"
             :class="
               growth.target >= 0
                 ? 'widget--number-values-growth--positive'
                 : 'widget--number-values-growth--negative'
             "
-            v-if="growth.target !== null"
           >
             ({{ growth.target >= 0 ? '+' : '-'
             }}{{ growth.current }}%)
           </div>
         </div>
-        <div class="text-sm">{{ config.title }}</div>
+        <div class="text-sm leading-5 mt-0.5">
+          {{ config.title }}
+        </div>
       </div>
     </div>
-    <el-dialog
+    <app-dialog
+      v-model="modal"
       :title="`${config.title} Settings`"
-      :visible.sync="modal"
-      @close="modal = false"
-    ></el-dialog>
+    >
+    </app-dialog>
   </app-widget>
 </template>
 
@@ -56,7 +58,11 @@ import Widget from './widget'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'widget-number',
+  name: 'AppWidgetNumber',
+
+  components: {
+    'app-widget': Widget
+  },
 
   props: {
     config: {
@@ -82,9 +88,27 @@ export default {
       default: false
     }
   },
+  emits: [
+    'trigger-duplicate-widget',
+    'trigger-edit-widget',
+    'trigger-delete-widget'
+  ],
 
-  components: {
-    'app-widget': Widget
+  data() {
+    return {
+      modal: false,
+      value: {
+        current: 0,
+        target: null,
+        suffix: this.config.suffix,
+        unit: this.config.unit
+      },
+      growth: {
+        current: 0,
+        target: null
+      },
+      speed: this.config.speed ? this.config.speed : 200
+    }
   },
 
   computed: {
@@ -99,17 +123,16 @@ export default {
     iconClass() {
       const widgetIcon = {
         'active-members':
-          'ri-user-follow-fill bg-green-50 text-green-900 ',
+          'ri-contacts-line bg-gray-900 text-white ',
         'new-members':
-          'ri-user-add-fill bg-secondary-50 text-secondary-900 ',
+          'ri-contacts-line bg-gray-900 text-white ',
         'new-activities':
-          'ri-radar-fill bg-purple-50 text-purple-900 ',
+          'ri-radar-line bg-brand-50 text-brand-500 ',
         'avg-time-to-first-interaction':
-          'ri-timer-flash-fill bg-yellow-50 text-yellow-900 ',
-        members:
-          'ri-user-fill bg-secondary-50 text-secondary-900 ',
+          'ri-timer-flash-line bg-yellow-50 text-yellow-500 ',
+        members: 'ri-contacts-line bg-gray-900 text-white ',
         activities:
-          'ri-radar-fill bg-purple-50 text-purple-900 '
+          'ri-radar-line bg-brand-50 text-brand-500 '
       }
 
       const widgetType = this.config.title
@@ -135,24 +158,7 @@ export default {
           : null
       }
 
-      return `${widgetIcon[iconKey]} h-16 w-16 rounded-full flex items-center justify-center`
-    }
-  },
-
-  data() {
-    return {
-      modal: false,
-      value: {
-        current: 0,
-        target: null,
-        suffix: this.config.suffix,
-        unit: this.config.unit
-      },
-      growth: {
-        current: 0,
-        target: null
-      },
-      speed: this.config.speed ? this.config.speed : 200
+      return `${widgetIcon[iconKey]} h-12 w-12 rounded-md text-xl flex items-center justify-center`
     }
   },
 
@@ -163,6 +169,10 @@ export default {
         this.setValues()
       }
     }
+  },
+
+  async created() {
+    this.setValues()
   },
 
   methods: {
@@ -218,10 +228,6 @@ export default {
         this.updateValue()
       }
     }
-  },
-
-  async created() {
-    this.setValues()
   }
 }
 </script>

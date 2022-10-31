@@ -1,18 +1,21 @@
 <template>
-  <div>
-    <label class="block leading-none mb-1"
-      >Date Range</label
+  <div class="w-full">
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Date Range
+      <span class="text-brand-500 ml-0.5">*</span></label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         dateRangeItems.find(
           (o) => o.value === timeDimensions[0].dateRange
         ).label
       "
-      @change="changeHandler"
       filterable
       value-key="label"
+      class="w-full"
+      @change="changeHandler"
     >
       <el-option
         v-for="item in dateRangeItems"
@@ -28,8 +31,12 @@
 export default {
   name: 'DateRangeSelect',
   props: {
-    timeDimensions: Array
+    timeDimensions: {
+      type: Array,
+      default: () => []
+    }
   },
+  emits: ['change'],
   data() {
     return {
       dateRangeItems: [

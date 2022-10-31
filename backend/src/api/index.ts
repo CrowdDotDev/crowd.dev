@@ -34,8 +34,8 @@ setupSwaggerUI(app)
 
 // Default rate limiter
 const defaultRateLimiter = createRateLimiter({
-  max: 500,
-  windowMs: 15 * 60 * 1000,
+  max: 200,
+  windowMs: 60 * 1000,
   message: 'errors.429',
 })
 app.use(defaultRateLimiter)
@@ -73,7 +73,7 @@ require('./plan').default(routes)
 require('./tenant').default(routes)
 require('./user').default(routes)
 require('./settings').default(routes)
-require('./communityMember').default(routes)
+require('./member').default(routes)
 require('./widget').default(routes)
 require('./activity').default(routes)
 require('./tag').default(routes)
@@ -84,12 +84,20 @@ require('./integration').default(routes)
 require('./microservice').default(routes)
 require('./conversation').default(routes)
 require('./eagleEyeContent').default(routes)
+require('./automation').default(routes)
+require('./task').default(routes)
+require('./note').default(routes)
+require('./organization').default(routes)
 
 // Loads the Tenant if the :tenantId param is passed
 routes.param('tenantId', tenantMiddleware)
 
-// Add the routes to the /api endpoint
-app.use('/api', routes)
+app.use('/', routes)
+
+const webhookRoutes = express.Router()
+require('./webhooks').default(webhookRoutes)
+
+app.use('/webhooks', webhookRoutes)
 
 const io = require('@pm2/io')
 

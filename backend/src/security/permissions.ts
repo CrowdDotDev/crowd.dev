@@ -76,36 +76,60 @@ class Permissions {
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [storage.settingsBackgroundImages, storage.settingsLogos],
       },
-      communityMemberImport: {
-        id: 'communityMemberImport',
-        allowedRoles: [roles.admin],
-        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
-      },
-      communityMemberCreate: {
-        id: 'communityMemberCreate',
+      memberAttributesRead: {
+        id: 'memberAttributesRead',
         allowedRoles: [roles.admin],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [],
       },
-      communityMemberEdit: {
-        id: 'communityMemberEdit',
+      memberAttributesEdit: {
+        id: 'memberAttributesEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [],
       },
-      communityMemberDestroy: {
-        id: 'communityMemberDestroy',
+      memberAttributesDestroy: {
+        id: 'memberAttributesDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [],
       },
-      communityMemberRead: {
-        id: 'communityMemberRead',
+      memberAttributesCreate: {
+        id: 'memberAttributesCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberImport: {
+        id: 'memberImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      memberCreate: {
+        id: 'memberCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberEdit: {
+        id: 'memberEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberDestroy: {
+        id: 'memberDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      memberRead: {
+        id: 'memberRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
-      communityMemberAutocomplete: {
-        id: 'communityMemberAutocomplete',
+      memberAutocomplete: {
+        id: 'memberAutocomplete',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
@@ -142,6 +166,26 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
+      automationCreate: {
+        id: 'automationCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationUpdate: {
+        id: 'automationUpdate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationDestroy: {
+        id: 'automationDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      automationRead: {
+        id: 'automationRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
       tagImport: {
         id: 'tagImport',
         allowedRoles: [roles.admin],
@@ -171,6 +215,39 @@ class Permissions {
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       tagAutocomplete: {
+        id: 'tagAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationImport: {
+        id: 'tagImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationCreate: {
+        id: 'tagCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationEdit: {
+        id: 'tagEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationDestroy: {
+        id: 'tagDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      organizationRead: {
+        id: 'tagRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      organizationAutocomplete: {
         id: 'tagAutocomplete',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
@@ -358,6 +435,72 @@ class Permissions {
       eagleEyeContentEdit: {
         id: 'eagleEyeContentEdit',
         allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      taskImport: {
+        id: 'taskImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      taskCreate: {
+        id: 'taskCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskEdit: {
+        id: 'taskEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskDestroy: {
+        id: 'taskDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      taskRead: {
+        id: 'taskRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      taskAutocomplete: {
+        id: 'taskAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteImport: {
+        id: 'noteImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteCreate: {
+        id: 'noteCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteEdit: {
+        id: 'noteEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteDestroy: {
+        id: 'noteDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+        allowedStorage: [],
+      },
+      noteRead: {
+        id: 'noteRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
+      noteAutocomplete: {
+        id: 'noteAutocomplete',
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
     }

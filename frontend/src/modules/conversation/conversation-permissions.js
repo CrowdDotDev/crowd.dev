@@ -26,9 +26,10 @@ export class ConversationPermissions {
     this.destroy = permissionChecker.match(
       Permissions.values.conversationDestroy
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.conversationRead
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.conversationRead
+      )
     this.customize = permissionChecker.match(
       Permissions.values.conversationCustomize
     )

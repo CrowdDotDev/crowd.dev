@@ -1,3 +1,0 @@
-# syntax = docker/dockerfile:experimental
-FROM nginx
-COPY ./templates/default.conf.template.deploy /etc/nginx/templates/default.conf.template

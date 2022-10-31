@@ -1,19 +1,19 @@
 <template>
   <query-renderer
-    :cubejsApi="cubejsApi"
+    v-if="cubejsApi"
+    :cubejs-api="cubejsApi"
     :query="widget.settings.query"
   >
-    <template
-      #default="{
-        resultSet
-      }"
-    >
+    <template #default="{ resultSet }">
       <app-widget-cube
         :result-set="resultSet"
         :show-subtitle="showSubtitle"
-        :widget="widget"
+        :widget="mapWidget(widget, resultSet)"
         :editable="editable"
-        :chart-options="chartOptions"
+        :chart-options="{
+          ...chartOptions,
+          ...mapOptions(widget, resultSet)
+        }"
         :dashboard="dashboard"
         @edit="$emit('edit', widget)"
         @duplicate="$emit('duplicate', widget)"
@@ -25,11 +25,19 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { QueryRenderer } from '@cubejs-client/vue'
+import { QueryRenderer } from '@cubejs-client/vue3'
 import WidgetCube from './widget-cube'
+import {
+  chartOptions,
+  mapWidget
+} from '@/modules/report/report-charts'
 
 export default {
-  name: 'app-widget-cube-renderer',
+  name: 'AppWidgetCubeRenderer',
+  components: {
+    QueryRenderer,
+    'app-widget-cube': WidgetCube
+  },
   props: {
     widget: {
       type: Object,
@@ -52,9 +60,12 @@ export default {
       default: () => {}
     }
   },
-  components: {
-    QueryRenderer,
-    'app-widget-cube': WidgetCube
+  emits: ['edit', 'duplicate', 'delete'],
+  data() {
+    return {
+      mapWidget,
+      mapOptions: chartOptions
+    }
   },
   computed: {
     ...mapGetters({
@@ -62,15 +73,15 @@ export default {
       cubejsApi: 'widget/cubejsApi'
     })
   },
-  methods: {
-    ...mapActions({
-      getCubeToken: 'widget/getCubeToken'
-    })
-  },
   async created() {
     if (this.cubejsApi === null) {
       await this.getCubeToken()
     }
+  },
+  methods: {
+    ...mapActions({
+      getCubeToken: 'widget/getCubeToken'
+    })
   }
 }
 </script>

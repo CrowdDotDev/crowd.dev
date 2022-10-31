@@ -1,16 +1,18 @@
 <template>
-  <div>
-    <label class="block leading-none mb-1"
-      >Granularity (optional)</label
+  <div class="w-full">
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
+      >Granularity</label
     >
     <el-select
       item-text="title"
       item-value="name"
       clearable
       filterable
-      :value="
+      :model-value="
         timeDimensions[0] && timeDimensions[0].granularity
       "
+      class="w-full"
       @change="(g) => handleChange(g)"
     >
       <el-option
@@ -24,7 +26,7 @@
 </template>
 
 <script>
-import { GRANULARITIES } from '@cubejs-client/vue'
+import { GRANULARITIES } from '@cubejs-client/vue3'
 export default {
   name: 'GranularitySelect',
   props: {
@@ -55,9 +57,8 @@ export default {
     handleChange(value) {
       this.setTimeDimensions([
         {
-          dimension: this.timeDimensions[0]['dimension'][
-            'name'
-          ],
+          dimension:
+            this.timeDimensions[0]['dimension']['name'],
           granularity: value !== '' ? value : undefined,
           dateRange: this.timeDimensions[0]['dateRange']
         }

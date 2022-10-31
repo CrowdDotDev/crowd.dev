@@ -21,6 +21,7 @@ export type Endpoint = string
 export type Endpoints = Array<Endpoint>
 
 export type State = {
-  endpoint: Endpoint
+  endpoints: Endpoints
+  endpoint: string
   page: string
 }

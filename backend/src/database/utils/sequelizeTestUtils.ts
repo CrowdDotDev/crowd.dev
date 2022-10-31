@@ -8,7 +8,8 @@ import Roles from '../../security/roles'
 import UserRepository from '../repositories/userRepository'
 import TenantRepository from '../repositories/tenantRepository'
 import Plans from '../../security/plans'
-import { getConfig } from '../../config'
+import { API_CONFIG } from '../../config'
+import SettingsRepository from '../repositories/settingsRepository'
 
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
@@ -44,6 +45,13 @@ export default class SequelizeTestUtils {
       userId: user.id,
     })
 
+    await SettingsRepository.findOrCreateDefault({}, {
+      language: 'en',
+      currentUser: user,
+      currentTenant: tenant,
+      database: db,
+    } as IRepositoryOptions)
+
     tenant = await TenantRepository.findById(tenant.id, {
       database: db,
     } as IRepositoryOptions)
@@ -68,7 +76,7 @@ export default class SequelizeTestUtils {
     const randomTenant = this.getRandomTestTenant()
     const randomUser = await this.getRandomUser()
 
-    const tenant = await db.tenant.create(randomTenant)
+    let tenant = await db.tenant.create(randomTenant)
     const user = await db.user.create(randomUser)
     await db.tenantUser.create({
       roles: ['admin'],
@@ -76,6 +84,17 @@ export default class SequelizeTestUtils {
       tenantId: tenant.id,
       userId: user.id,
     })
+
+    await SettingsRepository.findOrCreateDefault({}, {
+      language: 'en',
+      currentUser: user,
+      currentTenant: tenant,
+      database: db,
+    } as IRepositoryOptions)
+
+    tenant = await TenantRepository.findById(tenant.id, {
+      database: db,
+    } as IRepositoryOptions)
 
     return {
       language: 'en',
@@ -108,8 +127,8 @@ export default class SequelizeTestUtils {
 
   static getUserToken(mockIRepositoryOptions) {
     const userId = mockIRepositoryOptions.currentUser.id
-    return jwt.sign({ id: userId }, getConfig().AUTH_JWT_SECRET, {
-      expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+    return jwt.sign({ id: userId }, API_CONFIG.jwtSecret, {
+      expiresIn: API_CONFIG.jwtExpiresIn,
     })
   }
 
@@ -129,7 +148,18 @@ export default class SequelizeTestUtils {
   }
 
   static objectWithoutKey(object, key) {
-    const { [key]: _, ...otherKeys } = object
-    return otherKeys
+    let objectWithoutKeys
+    if (typeof key === 'string') {
+      const { [key]: _, ...otherKeys } = object
+      objectWithoutKeys = otherKeys
+    } else if (Array.isArray(key)) {
+      objectWithoutKeys = key.reduce((acc, i) => {
+        const { [i]: _, ...otherKeys } = acc
+        acc = otherKeys
+        return acc
+      }, object)
+    }
+
+    return objectWithoutKeys
   }
 }

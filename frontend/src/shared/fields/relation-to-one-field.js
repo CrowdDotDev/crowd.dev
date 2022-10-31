@@ -21,10 +21,28 @@ export default class RelationToOneField extends GenericField {
     this.mapperFn = mapperFn
     this.viewUrl = viewUrl
     this.readPermission = readPermission
+    this.filterable = config.filterable || false
+    this.custom = config.custom
   }
 
   forPresenter(value) {
     return this.mapperFn(value)
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {
+        fetchFn: this.fetchFn
+      },
+      defaultValue: [],
+      value: [],
+      defaultOperator: null,
+      operator: null,
+      type: 'select-async'
+    }
   }
 
   forFilterPreview(value) {

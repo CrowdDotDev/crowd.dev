@@ -1,11 +1,11 @@
-import { getConfig } from '../config'
+import { SEGMENT_CONFIG, API_CONFIG } from '../config'
 
 export default function identify(user) {
   const Analytics = require('analytics-node')
 
-  if (getConfig().SEGMENT_WRITE_KEY) {
-    const analytics = new Analytics(getConfig().SEGMENT_WRITE_KEY)
-    if (getConfig().EDITION === 'crowd-hosted') {
+  if (SEGMENT_CONFIG.writeKey) {
+    const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
+    if (API_CONFIG.edition === 'crowd-hosted') {
       analytics.identify({
         userId: user.id,
         traits: {

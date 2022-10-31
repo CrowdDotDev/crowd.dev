@@ -1,26 +1,26 @@
 <template>
   <div
-    class="app-page-toolbar report-list-toolbar"
     v-if="selectedRows.length > 0"
+    class="app-page-toolbar report-list-toolbar"
   >
     <span class="block text-sm font-semibold mr-4"
       >{{ selectedRows.length }}
-      {{ selectedRows.length > 1 ? 'rows' : 'row' }}
+      {{ selectedRows.length > 1 ? 'reports' : 'report' }}
       selected</span
     >
 
     <el-tooltip
+      v-if="hasPermissionToDestroy"
       :content="destroyButtonTooltip"
       :disabled="!destroyButtonTooltip"
-      v-if="hasPermissionToDestroy"
     >
       <span>
         <el-button
           :disabled="destroyButtonDisabled"
-          @click="doDestroyAllWithConfirm"
-          icon="ri-lg ri-delete-bin-line"
           class="btn btn--secondary mr-2"
+          @click="doDestroyAllWithConfirm"
         >
+          <i class="ri-lg ri-delete-bin-line mr-1" />
           <app-i18n code="common.destroy"></app-i18n>
         </el-button>
       </span>
@@ -29,19 +29,22 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 import { ReportPermissions } from '@/modules/report/report-permissions'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
-  name: 'app-report-list-toolbar',
+  name: 'AppReportListToolbar',
 
   computed: {
+    ...mapState({
+      loading: (state) => state.report.loading
+    }),
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
       hasRows: 'report/hasRows',
-      loading: 'report/loading',
       selectedRows: 'report/selectedRows'
     }),
 
@@ -53,11 +56,7 @@ export default {
     },
 
     destroyButtonDisabled() {
-      return (
-        !this.selectedRows.length ||
-        this.loading('submit') ||
-        this.loading('table')
-      )
+      return !this.selectedRows.length || this.loading
     },
 
     destroyButtonTooltip() {
@@ -76,15 +75,12 @@ export default {
 
     async doDestroyAllWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroyAll(
           this.selectedRows.map((item) => item.id)
@@ -99,7 +95,8 @@ export default {
 
 <style lang="scss">
 .report-list-toolbar {
-  @apply flex items-center justify-end absolute h-16 top-0 mt-1 right-0 z-10 bg-white rounded-tr-xl p-2;
+  @apply flex items-center justify-start absolute top-0 right-0 z-10 bg-white rounded-tr-xl p-2;
+  height: calc(56px - 1px);
   width: calc(100% - 75px);
 }
 </style>

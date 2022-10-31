@@ -10,7 +10,7 @@ export default async (req, res) => {
 
     const editor = new AuthProfileEditor(req)
 
-    await editor.execute(req.body.data)
+    await editor.execute(req.body)
 
     const payload = true
 

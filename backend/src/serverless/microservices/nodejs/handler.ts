@@ -1,5 +1,5 @@
 import weeklyAnalyticsEmailsCoordinator from './analytics/coordinators/weeklyAnalyticsEmailsCoordinator'
-import workerFactory from './analytics/workers/workerFactory'
+import workerFactory from './workerFactory'
 import { stepFunctions } from '../../../services/aws'
 
 export async function handlerWeeklyAnalyticsEmailsCoordinator() {

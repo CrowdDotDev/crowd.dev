@@ -1,9 +1,11 @@
 import lodash from 'lodash'
-import { UniqueConstraintError } from 'sequelize'
+import { Sequelize, UniqueConstraintError } from 'sequelize'
+import { IS_TEST_ENV } from '../../config'
 import Error400 from '../../errors/Error400'
 import { databaseInit } from '../databaseConnection'
 import { searchEngineInit } from '../../search-engine/searchEngineConnection'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import { getServiceLogger } from '../../utils/logging'
 
 /**
  * Abstracts some basic Sequelize operations.
@@ -14,7 +16,7 @@ export default class SequelizeRepository {
    * Cleans the database.
    */
   static async cleanDatabase(database) {
-    if (process.env.NODE_ENV !== 'test') {
+    if (!IS_TEST_ENV) {
       throw new Error('Clean database only allowed for test!')
     }
 
@@ -23,6 +25,7 @@ export default class SequelizeRepository {
 
   static async getDefaultIRepositoryOptions(user?, tenant?): Promise<IRepositoryOptions> {
     return {
+      log: getServiceLogger(),
       database: await databaseInit(),
       searchEngine: await searchEngineInit(),
       currentTenant: tenant,
@@ -56,14 +59,32 @@ export default class SequelizeRepository {
   /**
    * Creates a database transaction.
    */
-  static async createTransaction(database) {
-    return database.sequelize.transaction()
+  static async createTransaction(options) {
+    if (options.transaction) {
+      if (options.transaction.crowdNestedTransactions !== undefined) {
+        options.transaction.crowdNestedTransactions++
+      } else {
+        options.transaction.crowdNestedTransactions = 1
+      }
+
+      return options.transaction
+    }
+
+    return options.database.sequelize.transaction()
   }
 
   /**
    * Commits a database transaction.
    */
   static async commitTransaction(transaction) {
+    if (
+      transaction.crowdNestedTransactions !== undefined &&
+      transaction.crowdNestedTransactions > 0
+    ) {
+      transaction.crowdNestedTransactions--
+      return Promise.resolve()
+    }
+
     return transaction.commit()
   }
 
@@ -71,6 +92,14 @@ export default class SequelizeRepository {
    * Rolls back a database transaction.
    */
   static async rollbackTransaction(transaction) {
+    if (
+      transaction.crowdNestedTransactions !== undefined &&
+      transaction.crowdNestedTransactions > 0
+    ) {
+      transaction.crowdNestedTransactions--
+      return Promise.resolve()
+    }
+
     return transaction.rollback()
   }
 
@@ -81,5 +110,9 @@ export default class SequelizeRepository {
 
     const fieldName = lodash.get(error, 'errors[0].path')
     throw new Error400(language, `entities.${entityName}.errors.unique.${fieldName}`)
+  }
+
+  static getSequelize(options: IRepositoryOptions): Sequelize {
+    return options.database.sequelize as Sequelize
   }
 }

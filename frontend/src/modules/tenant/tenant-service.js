@@ -2,7 +2,6 @@ import authAxios from '@/shared/axios/auth-axios'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import config from '@/config'
-import { SettingsService } from '@/modules/settings/settings-service'
 
 export class TenantService {
   static async fetchAndApply() {
@@ -45,19 +44,12 @@ export class TenantService {
         console.error(error)
       }
     }
-
-    SettingsService.applyThemeFromTenant()
   }
 
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const response = await authAxios.put(
       `/tenant/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -76,11 +68,7 @@ export class TenantService {
   }
 
   static async create(data) {
-    const body = {
-      data
-    }
-
-    const response = await authAxios.post(`/tenant`, body)
+    const response = await authAxios.post(`/tenant`, data)
 
     return response.data
   }

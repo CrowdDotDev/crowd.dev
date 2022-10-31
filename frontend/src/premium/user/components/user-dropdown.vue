@@ -1,79 +1,102 @@
 <template>
   <div>
-    <el-dropdown trigger="click" @command="handleCommand">
-      <span class="el-dropdown-link">
-        <i class="ri-xl ri-more-line"></i>
-      </span>
-      <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item
-          icon="ri-link"
-          command="userInviteTokenClipboard"
-          v-if="user.status === 'invited'"
-          >Copy Invite Link</el-dropdown-item
-        >
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="userEdit"
-          >{{
-            user.status === 'invited'
-              ? 'Edit Invite'
-              : 'Edit User'
-          }}</el-dropdown-item
-        >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="userDelete"
-          >{{
-            user.status === 'invited'
-              ? 'Delete Invite'
-              : 'Delete User'
-          }}</el-dropdown-item
-        >
-      </el-dropdown-menu>
-    </el-dropdown>
-    <el-dialog
-      :visible.sync="editing"
-      title="Edit User"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      @close="editing = false"
-      custom-class="el-dialog--lg"
+    <el-dropdown
+      trigger="click"
+      placement="bottom-end"
+      @command="handleCommand"
     >
-      <app-user-form-page
-        :id="user.id"
-        @cancel="editing = false"
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
+        @click.stop
       >
-      </app-user-form-page>
-    </el-dialog>
+        <i class="text-xl ri-more-fill"></i>
+      </button>
+      <template #dropdown>
+        <el-dropdown-item
+          v-if="user.status === 'invited'"
+          command="userInviteTokenClipboard"
+          ><i class="ri-file-copy-line mr-2" /><span
+            class="text-xs"
+            >Copy invite link</span
+          ></el-dropdown-item
+        >
+        <el-dropdown-item command="userEdit">
+          <i class="ri-pencil-line mr-2" /><span
+            class="text-xs"
+            >{{
+              user.status === 'invited'
+                ? 'Edit invite'
+                : 'Edit user'
+            }}</span
+          ></el-dropdown-item
+        >
+        <el-divider class="border-gray-200 my-2" />
+        <el-dropdown-item command="userDelete"
+          ><i
+            class="text-base mr-2 !text-red-500"
+            :class="
+              user.status === 'invited'
+                ? 'ri-close-circle-line'
+                : 'ri-delete-bin-line'
+            "
+          /><span class="text-xs text-red-500">{{
+            user.status === 'invited'
+              ? 'Cancel invite'
+              : 'Delete user'
+          }}</span></el-dropdown-item
+        >
+      </template>
+    </el-dropdown>
+    <app-dialog
+      v-model="editing"
+      custom-class="user-invite-dialog"
+      :pre-title="user.fullName ?? null"
+      :title="
+        user.status === 'invited'
+          ? 'Edit invite'
+          : 'Edit User'
+      "
+    >
+      <template #content>
+        <app-user-form-page
+          :id="user.id"
+          @cancel="editing = false"
+        >
+        </app-user-form-page>
+      </template>
+    </app-dialog>
   </div>
 </template>
 
 <script>
 import { mapActions } from 'vuex'
 import { i18n } from '@/i18n'
-import UserEditPage from './user-edit-page'
+import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
-  name: 'app-user-dropdown',
+  name: 'AppUserDropdown',
+  components: {
+    'app-user-form-page': AppUserEditPage
+  },
   props: {
     user: {
       type: Object,
       default: () => {}
     }
   },
-  components: {
-    'app-user-form-page': UserEditPage
+  emits: ['user-destroyed'],
+  data() {
+    return {
+      editing: false
+    }
   },
   computed: {
     computedInviteLink() {
       return `${config.frontendUrl.protocol}://${config.frontendUrl.host}/auth/invitation?token=${this.user.invitationToken}`
-    }
-  },
-  data() {
-    return {
-      editing: false
     }
   },
   methods: {
@@ -104,15 +127,12 @@ export default {
     },
     async doDestroyWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await this.doDestroy(this.user.id)
         this.$emit('user-destroyed', this.user.id)

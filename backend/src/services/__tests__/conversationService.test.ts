@@ -1,7 +1,7 @@
 import moment from 'moment'
 import ConversationService from '../conversationService'
 import ActivityRepository from '../../database/repositories/activityRepository'
-import CommunityMemberRepository from '../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../database/repositories/memberRepository'
 import IntegrationRepository from '../../database/repositories/integrationRepository'
 import Plans from '../../security/plans'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
@@ -12,10 +12,10 @@ import ConversationSearchEngineRepository from '../../search-engine/repositories
 import SettingsSearchEngineRepository from '../../search-engine/repositories/settingsSearchEngineRepository'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import Error400 from '../../errors/Error400'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import ActivityService from '../activityService'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 
 const db = null
 
@@ -28,8 +28,8 @@ function getConversationStyleActivity(activity) {
   activity.timestamp = moment(activity.timestamp).unix()
 
   // only the username will be returned as author, rest of the member object shouldn't be expected
-  activity.author = activity.communityMember.username[activity.platform]
-  delete activity.communityMember
+  activity.author = activity.member.username[activity.platform]
+  delete activity.member
 
   // parent won't be sent in the activity object to the search engine as well
   delete activity.parent
@@ -227,12 +227,12 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -243,13 +243,11 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-id-url.com',
-            body: 'conversation activity 1',
-            channel: 'some-channel',
-          },
+          url: 'https://parent-id-url.com',
+          body: 'conversation activity 1',
+          channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -262,12 +260,10 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-29T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 2',
-            channel: 'some-channel',
-          },
+          body: 'conversation activity 2',
+          channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId2',
@@ -280,12 +276,10 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-30T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            channel: 'some-channel',
-            body: 'conversation activity 3',
-          },
+          channel: 'some-channel',
+          body: 'conversation activity 3',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId3',
@@ -293,7 +287,12 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      // Delete because we only care about 1st level relations
+      delete activity1Created.tasks
+      delete activity2Created.tasks
+      delete activity3Created.tasks
+
+      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -321,15 +320,11 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activity1Created, activity2Created, activity3Created],
         platform: activity1Created.platform,
-        activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-        ],
-        channel: activity1Created.crowdInfo.channel,
+        activitiesBodies: [activity1Created.body, activity2Created.body, activity3Created.body],
+        channel: activity1Created.channel,
         lastActive: activity3Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -340,11 +335,9 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-01T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: 'conversation activity 4',
-          },
+          body: 'conversation activity 4',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId4',
@@ -352,7 +345,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -368,6 +361,9 @@ describe('ConversationService tests', () => {
 
       activity4Created = getConversationStyleActivity(activity4Created)
 
+      // Delete because we only care about 1st level relations
+      delete activity4Created.tasks
+
       // activity information and lastActive should be changed
       expectedConversationDocument = {
         id: conversationCreated.id,
@@ -377,15 +373,15 @@ describe('ConversationService tests', () => {
         activities: [activity1Created, activity2Created, activity3Created, activity4Created],
         platform: activity1Created.platform,
         activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-          activity4Created.crowdInfo.body,
+          activity1Created.body,
+          activity2Created.body,
+          activity3Created.body,
+          activity4Created.body,
         ],
-        channel: activity1Created.crowdInfo.channel,
+        channel: activity1Created.channel,
         lastActive: activity4Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -396,8 +392,8 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-02T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: '',
+          body: '',
+          attributes: {
             attachments: [
               {
                 id: '970587696546324510',
@@ -409,7 +405,7 @@ describe('ConversationService tests', () => {
             ],
           },
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId6',
@@ -417,7 +413,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -432,6 +428,12 @@ describe('ConversationService tests', () => {
       )
 
       activity5Created = getConversationStyleActivity(activity5Created)
+
+      delete activity1Created.tasks
+      delete activity2Created.tasks
+      delete activity3Created.tasks
+      delete activity4Created.tasks
+      delete activity5Created.tasks
 
       // activity information and lastActive should be changed
       expectedConversationDocument = {
@@ -448,16 +450,16 @@ describe('ConversationService tests', () => {
         ],
         platform: activity1Created.platform,
         activitiesBodies: [
-          activity1Created.crowdInfo.body,
-          activity2Created.crowdInfo.body,
-          activity3Created.crowdInfo.body,
-          activity4Created.crowdInfo.body,
-          activity5Created.crowdInfo.body,
+          activity1Created.body,
+          activity2Created.body,
+          activity3Created.body,
+          activity4Created.body,
+          activity5Created.body,
         ],
         lastActive: activity5Created.timestamp,
         views: 0,
-        channel: activity1Created.crowdInfo.channel,
-        url: activity1Created.crowdInfo.url,
+        channel: activity1Created.channel,
+        url: activity1Created.url,
       }
 
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
@@ -468,12 +470,12 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-06-03T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            body: '',
+          attributes: {
             attachments: [],
           },
+          body: '',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId7',
@@ -481,7 +483,7 @@ describe('ConversationService tests', () => {
         mockIServiceOptions,
       )
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
 
@@ -498,6 +500,7 @@ describe('ConversationService tests', () => {
       // loaded document should be same as previously loaded one (activity6 shouldn't exist)
       expect(conversationDocument).toStrictEqual(expectedConversationDocument)
     })
+
     it('Should create a document representation of a conversation in the search engine when auto-publishing', async () => {
       let mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       mockIRepositoryOptions = await SearchEngineTestUtils.injectSearchEngine(
@@ -521,11 +524,11 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
+        displayName: 'Member 1',
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
       })
@@ -534,13 +537,13 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -554,13 +557,13 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        attributes: {
           replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
         },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -571,9 +574,11 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      // Delete because we only care about 1st level relations
+      delete activityParentCreated.tasks
+      delete activityChildCreated.tasks
+
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -582,7 +587,7 @@ describe('ConversationService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           filter: {
             slug: 'some-parent-activity',
           },
@@ -609,6 +614,9 @@ describe('ConversationService tests', () => {
         conversationCreated.id,
       )
 
+      delete activityParentCreated.tasks
+      delete activityChildCreated.tasks
+
       const expectedConversationDocument = {
         id: conversationCreated.id,
         tenantSlug: mockIRepositoryOptions.currentTenant.url,
@@ -616,11 +624,9 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activityParentCreated, activityChildCreated],
         platform: activityParentCreated.platform,
-        activitiesBodies: [
-          activityParentCreated.crowdInfo.body,
-          activityChildCreated.crowdInfo.body,
-        ],
+        activitiesBodies: [activityParentCreated.body, activityChildCreated.body],
         channel: 'crowd-web',
+        url: null,
         lastActive: activityChildCreated.timestamp,
         views: 0,
       }
@@ -673,12 +679,12 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -689,12 +695,10 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            channel: 'some-channel',
-            body: 'conversation activity 1',
-          },
+          channel: 'some-channel',
+          body: 'conversation activity 1',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -703,7 +707,7 @@ describe('ConversationService tests', () => {
       )
 
       // create a conversation document in the search engine
-      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      let transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       // add same documents with different ids
       await conversationService.loadIntoSearchEngine(conversationCreated.id, transaction)
@@ -715,7 +719,7 @@ describe('ConversationService tests', () => {
       })
 
       // now try removing it
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
 
       await conversationService.removeFromSearchEngine(conversationCreated.id, transaction)
 
@@ -731,7 +735,7 @@ describe('ConversationService tests', () => {
 
       expect(findById).toBeNull()
 
-      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIServiceOptions)
       // trying to remove a non existing document shouldn't throw an error
       await conversationService.removeFromSearchEngine(conversationCreated.id, transaction)
 
@@ -777,12 +781,12 @@ describe('ConversationService tests', () => {
 
       settings = await SettingsRepository.save(settings, mockIServiceOptions)
 
-      const memberCreated = await CommunityMemberRepository.create(
+      const memberCreated = await MemberRepository.create(
         {
           username: {
-            crowdUsername: 'test',
-            discord: 'test',
+            [PlatformType.DISCORD]: 'test',
           },
+          displayName: 'Member 1',
           joinedAt: '2020-05-27T15:13:30Z',
         },
         mockIServiceOptions,
@@ -793,13 +797,11 @@ describe('ConversationService tests', () => {
           type: 'message',
           timestamp: '2020-05-28T15:13:30Z',
           platform: PlatformType.DISCORD,
-          crowdInfo: {
-            url: 'https://parent-act-url.com',
-            body: 'conversation activity 1',
-            channel: 'some-channel',
-          },
+          url: 'https://parent-act-url.com',
+          body: 'conversation activity 1',
+          channel: 'some-channel',
           isKeyAction: true,
-          communityMember: memberCreated.id,
+          member: memberCreated.id,
           score: 1,
           conversationId: conversationCreated.id,
           sourceId: '#sourceId1',
@@ -817,6 +819,9 @@ describe('ConversationService tests', () => {
       activity1Created = getConversationStyleActivity(activity1Created)
       activity1Created.conversationStarter = true
 
+      // Delete because we only care about 1st level relations
+      delete activity1Created.tasks
+
       const expectedConversationDocument = {
         id: conversationCreated.id,
         tenantSlug: mockIServiceOptions.currentTenant.url,
@@ -824,11 +829,11 @@ describe('ConversationService tests', () => {
         slug: conversationCreated.slug,
         activities: [activity1Created],
         platform: activity1Created.platform,
-        activitiesBodies: [activity1Created.crowdInfo.body],
+        activitiesBodies: [activity1Created.body],
         lastActive: activity1Created.timestamp,
         views: 0,
-        url: activity1Created.crowdInfo.url,
-        channel: activity1Created.crowdInfo.channel,
+        url: activity1Created.url,
+        channel: activity1Created.channel,
       }
 
       // check search engine
@@ -906,9 +911,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name',
         },
         inviteLinks: {
-          github: 'a-github-invite-link',
-          discord: 'a-discord-invite-link',
-          slack: 'a-slack-invite-link',
+          [PlatformType.GITHUB]: 'a-github-invite-link',
+          [PlatformType.DISCORD]: 'a-discord-invite-link',
+          [PlatformType.SLACK]: 'a-slack-invite-link',
         },
       }
 
@@ -962,10 +967,11 @@ describe('ConversationService tests', () => {
         id: mockIServiceOptions.currentTenant.id,
         tenantName: updateSettings.tenant.name,
         tenantSlug: updateSettings.tenant.url,
+        enabled: false,
         inviteLinks: {
-          discord: updateSettings.inviteLinks.discord,
-          slack: updateSettings.inviteLinks.slack,
-          github: updateSettings.inviteLinks.github,
+          [PlatformType.DISCORD]: updateSettings.inviteLinks.discord,
+          [PlatformType.SLACK]: updateSettings.inviteLinks.slack,
+          [PlatformType.GITHUB]: updateSettings.inviteLinks.github,
         },
         website: updateSettings.website,
       }
@@ -989,9 +995,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name',
         },
         inviteLinks: {
-          github: 'a-github-invite-link',
-          discord: 'a-discord-invite-link',
-          slack: 'a-slack-invite-link',
+          [PlatformType.GITHUB]: 'a-github-invite-link',
+          [PlatformType.DISCORD]: 'a-discord-invite-link',
+          [PlatformType.SLACK]: 'a-slack-invite-link',
         },
       }
 
@@ -1009,9 +1015,9 @@ describe('ConversationService tests', () => {
           name: 'a cool new tenant name 2',
         },
         inviteLinks: {
-          github: 'a-github-invite-link-2',
-          discord: 'a-discord-invite-link-2',
-          slack: 'a-slack-invite-link-2',
+          [PlatformType.GITHUB]: 'a-github-invite-link-2',
+          [PlatformType.DISCORD]: 'a-discord-invite-link-2',
+          [PlatformType.SLACK]: 'a-slack-invite-link-2',
         },
       }
 
@@ -1066,11 +1072,12 @@ describe('ConversationService tests', () => {
       expectedSettingsDocuments = {
         id: mockIServiceOptions.currentTenant.id,
         tenantName: updateSettings2.tenant.name,
+        enabled: false,
         tenantSlug: updateSettings.tenant.url,
         inviteLinks: {
-          discord: updateSettings2.inviteLinks.discord,
-          slack: updateSettings2.inviteLinks.slack,
-          github: updateSettings2.inviteLinks.github,
+          [PlatformType.DISCORD]: updateSettings2.inviteLinks.discord,
+          [PlatformType.SLACK]: updateSettings2.inviteLinks.slack,
+          [PlatformType.GITHUB]: updateSettings2.inviteLinks.github,
         },
         website: updateSettings2.website,
       }
@@ -1093,10 +1100,9 @@ describe('ConversationService tests', () => {
       )
       await ConversationSettingsRepository.findOrCreateDefault({}, mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: 'github',
         joinedAt: '2020-05-27T10:13:30Z',
@@ -1106,13 +1112,10 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T10:13:30Z',
         platform: 'github',
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Github Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Github Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#githubSourceId1',
       }
@@ -1126,13 +1129,10 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T11:13:30Z',
         platform: 'github',
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: githubActivityParentCreated.id,
         sourceId: '#githubSourceId2',
@@ -1143,7 +1143,7 @@ describe('ConversationService tests', () => {
         mockIRepositoryOptions,
       )
 
-      let transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions.database)
+      let transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         githubActivityChildCreated.id,
@@ -1155,12 +1155,10 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: 'discord',
-        crowdInfo: {
-          body: 'Some Discord Parent Activity',
-          channel: 'channel',
-        },
+        body: 'Some Discord Parent Activity',
+        channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#discordSourceId1',
       }
@@ -1174,12 +1172,10 @@ describe('ConversationService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: 'discord',
-        crowdInfo: {
-          body: 'Here',
-          channel: 'channel',
-        },
+        body: 'Here',
+        channel: 'channel',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: discordActivityParentCreated.id,
         sourceId: '#discordSourceId1',
@@ -1197,13 +1193,13 @@ describe('ConversationService tests', () => {
       )
       await SequelizeRepository.commitTransaction(transaction)
 
-      transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions.database)
+      transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await new ConversationService(mockIRepositoryOptions).updateSettings({
         autoPublish: {
           status: 'custom',
           channelsByPlatform: {
-            github: ['CrowdDevHQ/crowd-web'],
+            [PlatformType.GITHUB]: ['CrowdDevHQ/crowd-web'],
           },
         },
       })
@@ -1242,6 +1238,10 @@ describe('ConversationService tests', () => {
       // first activity should be marked as conversationStarter:true because activities are sorted ascending by timestamp
       githubActivityParentCreated.conversationStarter = true
 
+      // We only care about 1st order relations
+      delete githubActivityParentCreated.tasks
+      delete githubActivityChildCreated.tasks
+
       const conversationDocument = await conversationSearchEngineRepository.findById(
         githubConversationCreated.id,
       )
@@ -1253,10 +1253,8 @@ describe('ConversationService tests', () => {
         slug: githubConversationCreated.slug,
         activities: [githubActivityParentCreated, githubActivityChildCreated],
         platform: githubActivityParentCreated.platform,
-        activitiesBodies: [
-          githubActivityParentCreated.crowdInfo.body,
-          githubActivityChildCreated.crowdInfo.body,
-        ],
+        url: null,
+        activitiesBodies: [githubActivityParentCreated.body, githubActivityChildCreated.body],
         channel: 'crowd-web',
         lastActive: githubActivityChildCreated.timestamp,
         views: 0,

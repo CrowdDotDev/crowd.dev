@@ -1,12 +1,13 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
+import { TenantMode } from '../../config/configTypes'
 import UserRepository from '../../database/repositories/userRepository'
 import Error400 from '../../errors/Error400'
 import EmailSender from '../emailSender'
 import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import { getConfig } from '../../config'
+import { API_CONFIG, TENANT_MODE } from '../../config'
 import TenantService from '../tenantService'
 import TenantRepository from '../../database/repositories/tenantRepository'
 import { tenantSubdomain } from '../tenantSubdomain'
@@ -17,8 +18,16 @@ import track from '../../segment/track'
 const BCRYPT_SALT_ROUNDS = 12
 
 class AuthService {
-  static async signup(email, password, invitationToken, tenantId, options: any = {}) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+  static async signup(
+    email,
+    password,
+    invitationToken,
+    tenantId,
+    firstName,
+    lastName,
+    options: any = {},
+  ) {
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
@@ -83,8 +92,8 @@ class AuthService {
           )
         }
 
-        const token = jwt.sign({ id: existingUser.id }, getConfig().AUTH_JWT_SECRET, {
-          expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+        const token = jwt.sign({ id: existingUser.id }, API_CONFIG.jwtSecret, {
+          expiresIn: API_CONFIG.jwtExpiresIn,
         })
 
         await SequelizeRepository.commitTransaction(transaction)
@@ -104,9 +113,14 @@ class AuthService {
         return token
       }
 
+      firstName = firstName || email.split('@')[0]
+      lastName = lastName || ''
+      const fullName = `${firstName} ${lastName}`.trim()
       const newUser = await UserRepository.createFromAuth(
         {
-          firstName: email.split('@')[0],
+          firstName,
+          lastName,
+          fullName,
           password: hashedPassword,
           email,
         },
@@ -157,8 +171,8 @@ class AuthService {
         newUser.id,
       )
 
-      const token = jwt.sign({ id: newUser.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+      const token = jwt.sign({ id: newUser.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
       })
 
       await SequelizeRepository.commitTransaction(transaction)
@@ -177,7 +191,7 @@ class AuthService {
   }
 
   static async signin(email, password, invitationToken, tenantId, options: any = {}) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
@@ -208,8 +222,8 @@ class AuthService {
         transaction,
       })
 
-      const token = jwt.sign({ id: user.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+      const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
       })
 
       identify(user)
@@ -248,7 +262,7 @@ class AuthService {
     }
 
     const isMultiTenantViaSubdomain =
-      ['multi', 'multi-with-subdomain'].includes(getConfig().TENANT_MODE) && tenantId
+      [TenantMode.MULTI, TenantMode.MULTI_WITH_SUBDOMAIN].includes(TENANT_MODE) && tenantId
 
     if (isMultiTenantViaSubdomain) {
       await new TenantService({
@@ -264,7 +278,7 @@ class AuthService {
       )
     }
 
-    const singleTenant = getConfig().TENANT_MODE === 'single'
+    const singleTenant = TENANT_MODE === TenantMode.SINGLE
 
     if (singleTenant) {
       // In case is single tenant, and the user is signing in
@@ -291,7 +305,7 @@ class AuthService {
 
   static async findByToken(token, options) {
     return new Promise((resolve, reject) => {
-      jwt.verify(token, getConfig().AUTH_JWT_SECRET, (err, decoded) => {
+      jwt.verify(token, API_CONFIG.jwtSecret, (err, decoded) => {
         if (err) {
           reject(err)
           return
@@ -440,19 +454,42 @@ class AuthService {
     emailVerified,
     firstName,
     lastName,
+    fullName,
     options: any = {},
   ) {
     if (!email) {
       throw new Error('auth-no-email')
     }
 
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     try {
       email = email.toLowerCase()
       let user = await UserRepository.findByEmail(email, options)
-
-      if (user && (user.provider !== provider || user.providerId !== providerId)) {
+      if (user) {
+        identify(user)
+        track(
+          'Signed in',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
+      }
+      // If there was no provider, we can link it to the provider
+      if (user && (user.provider === undefined || user.provider === null)) {
+        await UserRepository.update(
+          user.id,
+          {
+            provider,
+            providerId,
+          },
+          options,
+        )
+        console.log(user)
+      } else if (user && (user.provider !== provider || user.providerId !== providerId)) {
         throw new Error('auth-invalid-provider')
       }
 
@@ -464,12 +501,22 @@ class AuthService {
           emailVerified,
           firstName,
           lastName,
+          fullName,
           options,
         )
+        identify(user)
+        track(
+          'Signed up',
+          {
+            google: true,
+            email: user.email,
+          },
+          options,
+          user.id,
+        )
       }
-
-      const token = jwt.sign({ id: user.id }, getConfig().AUTH_JWT_SECRET, {
-        expiresIn: getConfig().AUTH_JWT_EXPIRES_IN,
+      const token = jwt.sign({ id: user.id }, API_CONFIG.jwtSecret, {
+        expiresIn: API_CONFIG.jwtExpiresIn,
       })
 
       await SequelizeRepository.commitTransaction(transaction)

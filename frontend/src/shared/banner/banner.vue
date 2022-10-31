@@ -1,18 +1,16 @@
 <template>
-  <div class="pt-14">
-    <div
-      class="banner"
-      :class="variant ? `banner--${variant}` : ''"
-    >
-      <div class="flex items-center flex-grow">
-        <div class="banner-spinner" v-if="spinner">
-          <div
-            class="app-page-spinner"
-            v-loading="true"
-          ></div>
-        </div>
-        <slot>This is an alert</slot>
+  <div
+    class="banner"
+    :class="variant ? `banner--${variant}` : ''"
+  >
+    <div class="flex items-center grow">
+      <div v-if="spinner" class="banner-spinner">
+        <div
+          v-loading="true"
+          class="app-page-spinner"
+        ></div>
       </div>
+      <slot>This is an alert</slot>
     </div>
   </div>
 </template>
@@ -35,10 +33,14 @@ export default {
 
 <style lang="scss">
 .banner {
-  @apply absolute h-14 inset-x-0 bg-gray-600 top-0 z-10 flex items-center px-6 text-white rounded-tl-lg;
+  @apply absolute h-14 inset-x-0 bg-gray-600 top-0 z-10 flex items-center px-6 text-white;
 
   &--alert {
     @apply bg-yellow-300 text-black;
+  }
+
+  &--info {
+    @apply bg-purple-100 text-black;
   }
 
   &-icon {

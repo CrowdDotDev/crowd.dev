@@ -6,19 +6,12 @@
  * It checks if currentUser has roles set (if not, redirects to /)
  *
  * @param to
- * @param next
  * @param store
  * @param router
  * @returns {Promise<*>}
  */
-export default async function ({
-  to,
-  next,
-  store,
-  router
-}) {
+export default async function ({ to, store, router }) {
   if (!to.meta || !to.meta.notEmptyPermissions) {
-    next()
     return
   }
 
@@ -29,7 +22,5 @@ export default async function ({
     store.getters['auth/roles'].length
   ) {
     return router.push('/')
-  } else {
-    next()
   }
 }

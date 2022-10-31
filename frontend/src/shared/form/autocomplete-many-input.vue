@@ -1,59 +1,57 @@
 <template>
   <el-select
+    ref="input"
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
-    @change="onChange"
-    clearable
-    default-first-option
-    filterable
-    multiple
+    :model-value="modelValue"
+    :clearable="true"
+    :default-first-option="true"
+    :filterable="true"
+    :multiple="true"
     :placeholder="placeholder || ''"
-    remote
+    :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
     @remove-tag="(tag) => $emit('remove-tag', tag)"
   >
     <el-option
-      v-if="showCreateSuggestion"
-      :value="currentQuery"
+      v-show="showCreateSuggestion"
+      :label="currentQuery"
+      :created="true"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
     </el-option>
     <el-option
-      :key="initialOption.id"
-      :label="initialOption.label"
-      :value="initialOption"
-      v-for="initialOption of initialOptions"
-    ></el-option>
-    <el-option
+      v-for="record in localOptions"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
-    ></el-option>
+    >
+    </el-option>
   </el-select>
 </template>
 
 <script>
-import debounce from 'lodash/debounce'
 import isString from 'lodash/isString'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-many-input',
+  name: 'AppAutocompleteManyInput',
 
   props: {
-    value: {
-      type: Array
+    modelValue: {
+      type: Array,
+      default: () => []
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     fetchFn: {
       type: Function,
@@ -66,10 +64,6 @@ export default {
     createFn: {
       type: Function,
       default: () => {}
-    },
-    inMemoryFilter: {
-      type: Boolean,
-      default: true
     },
     disabled: {
       type: Boolean,
@@ -96,52 +90,21 @@ export default {
       default: () => []
     }
   },
-  emits: ['remove-tag'],
+  emits: ['remove-tag', 'update:modelValue'],
   data() {
     return {
       loading: false,
-      fullDataSource: this.options ? this.options : [],
-      serverSideDataSource: [],
-      inMemoryDataSource: this.options ? this.options : [],
-      currentQuery: '',
-      debouncedSearch: () => {}
+      localOptions: this.options ? this.options : [],
+      currentQuery: ''
     }
   },
 
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
-  },
-
   computed: {
-    initialOptions() {
-      if (!this.value || !this.value.length) {
-        return []
-      }
-
-      return this.value.filter(
-        (currentValue) =>
-          !this.dataSource
-            .map((item) => item.id)
-            .includes(currentValue.id)
-      )
-    },
-
-    dataSource() {
-      if (this.inMemoryFilter) {
-        return this.inMemoryDataSource
-      }
-
-      return this.serverSideDataSource
-    },
-
     showCreateSuggestion() {
       return (
         this.createIfNotFound &&
         this.currentQuery !== '' &&
-        !this.dataSource.some(
+        !this.localOptions.some(
           (o) =>
             o.label === this.currentQuery ||
             o === this.currentQuery
@@ -150,28 +113,32 @@ export default {
     }
   },
 
+  async created() {
+    await this.fetchAllResults()
+  },
+
   methods: {
     async onChange(value) {
+      const query = this.$refs.input.query
       if (value.length === 0) {
-        this.$emit('input', [])
+        this.$emit('update:modelValue', [])
       }
       const promises = value.map(async (item) => {
         if (
-          typeof item === 'string' &&
-          item &&
-          !this.inMemoryDataSource.some(
-            (o) => o.label === item || o === item
-          )
+          item === false &&
+          query !== '' &&
+          this.createIfNotFound
         ) {
-          const newItem = await this.createFn(item)
-          this.inMemoryDataSource.push(newItem)
+          // item is created/typed from user
+          const newItem = await this.createFn(query)
+          this.localOptions.push(newItem)
           return newItem
         } else {
           return item
         }
       })
       Promise.all(promises).then((values) => {
-        this.$emit('input', values)
+        this.$emit('update:modelValue', values)
       })
     },
 
@@ -180,49 +147,22 @@ export default {
         return
       }
 
-      if (this.inMemoryFilter) {
-        await this.handleInMemorySearch(value)
-      }
-
       await this.handleServerSearch(value)
-
-      if (
-        this.dataSource.length === 0 &&
-        this.initialOptions.length === 0
-      ) {
-        this.data
-      }
-    },
-
-    async handleInMemorySearch(value) {
-      if (
-        !this.fullDataSource ||
-        !this.fullDataSource.length
-      ) {
-        await this.fetchAllResults()
-      }
-
-      if (this.fullDataSource) {
-        this.inMemoryDataSource = this.fullDataSource.filter(
-          (item) =>
-            String(item.label || '')
-              .toLowerCase()
-              .includes(String(value || '').toLowerCase())
-        )
-      }
-
-      this.loading = false
+      this.localOptions.filter((item) =>
+        String(item.label || '')
+          .toLowerCase()
+          .includes(String(value || '').toLowerCase())
+      )
     },
 
     async fetchAllResults() {
       this.loading = true
 
       try {
-        this.fullDataSource = await this.fetchFn()
+        this.localOptions = await this.fetchFn()
         this.loading = false
       } catch (error) {
         console.error(error)
-        this.fullDataSource = []
         this.loading = false
       }
     },
@@ -236,22 +176,16 @@ export default {
       this.loading = true
 
       try {
-        const serverSideDataSource = await this.fetchFn(
+        this.localOptions = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
 
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = serverSideDataSource
-          this.loading = false
-        }
+        this.loading = false
       } catch (error) {
         console.error(error)
-
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = []
-          this.loading = false
-        }
+        this.localOptions = []
+        this.loading = false
       }
     }
   }

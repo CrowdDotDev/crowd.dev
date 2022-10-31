@@ -1,7 +1,7 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { Channel, Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
-import BaseIterator from '../../iterators/baseIterator'
+import { timeout } from '../../../../utils/timing'
 
 /**
  * Try if a channel is readable
@@ -68,7 +68,7 @@ async function getChannels(
         }
         out.push(toOut)
         if (limit <= 1 && limit !== false) {
-          await BaseIterator.sleep(5)
+          await timeout(5 * 1000)
         }
       }
     }

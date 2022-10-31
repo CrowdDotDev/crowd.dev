@@ -2,7 +2,7 @@ import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import ActivityService from '../../../services/activityService'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
-import { PlatformType } from '../../../utils/platforms'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
@@ -25,7 +25,7 @@ export default async () => {
         // get parent activity
         const parentAct = await as.findById(discordActivity.parentId)
 
-        const transaction = await SequelizeRepository.createTransaction(userContext.database)
+        const transaction = await SequelizeRepository.createTransaction(userContext)
 
         await as.addToConversation(discordActivity.id, parentAct.id, transaction)
 

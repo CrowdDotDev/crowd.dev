@@ -3,6 +3,7 @@ import { Transaction } from 'sequelize/types'
 import emoji from 'emoji-dictionary'
 import fetch from 'node-fetch'
 import { convert as convertHtmlToText } from 'html-to-text'
+import { IS_TEST_ENV, S3_CONFIG } from '../config/index'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationRepository from '../database/repositories/conversationRepository'
@@ -10,7 +11,6 @@ import ConversationSearchEngineRepository from '../search-engine/repositories/co
 import telemetryTrack from '../segment/telemetryTrack'
 import TenantService from './tenantService'
 import Error403 from '../errors/Error403'
-import { getConfig } from '../config'
 import IntegrationService from './integrationService'
 import SettingsService from './settingsService'
 import ConversationSettingsService from './conversationSettingsService'
@@ -18,7 +18,7 @@ import SettingsSearchEngineRepository from '../search-engine/repositories/settin
 import track from '../segment/track'
 import getStage from './helpers/getStage'
 import { s3 } from './aws'
-import { PlatformType } from '../utils/platforms'
+import { PlatformType } from '../types/integrationEnums'
 
 export default class ConversationService {
   static readonly MAX_SLUG_WORD_LENGTH = 10
@@ -30,7 +30,7 @@ export default class ConversationService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const record = await ConversationRepository.create(data, {
@@ -140,6 +140,7 @@ export default class ConversationService {
 
       conversationSettings = await ConversationSettingsService.save(
         {
+          enabled: data.enabled,
           customUrl: data.customUrl,
           logoUrl: data.logoUrl,
           faviconUrl: data.faviconUrl,
@@ -167,6 +168,7 @@ export default class ConversationService {
       inviteLinks,
       website: settings.website ?? undefined,
       tenantSlug: tenant.url,
+      enabled: conversationSettings.enabled ?? false,
       customUrl: conversationSettings.customUrl ?? undefined,
       logoUrl: conversationSettings.logoUrl ?? undefined,
       faviconUrl: conversationSettings.faviconUrl ?? undefined,
@@ -216,15 +218,15 @@ export default class ConversationService {
     let channel = null
 
     if (activity.platform === PlatformType.DISCORD) {
-      channel = activity.crowdInfo.channel
+      channel = activity.channel
     } else if (activity.platform === PlatformType.SLACK) {
-      channel = activity.crowdInfo.channel
+      channel = activity.channel
     } else if (activity.platform === PlatformType.GITHUB) {
       const prefix = 'https://github.com/'
-      if (activity.crowdInfo.repo.startsWith(prefix)) {
-        channel = activity.crowdInfo.repo.slice(prefix.length).split('/')[1]
+      if (activity.channel.startsWith(prefix)) {
+        channel = activity.channel.slice(prefix.length).split('/')[1]
       } else {
-        channel = activity.crowdInfo.repo.split('/')[1]
+        channel = activity.channel.split('/')[1]
       }
     }
 
@@ -267,7 +269,7 @@ export default class ConversationService {
         filter: {
           published: false,
         },
-        eagerLoad: ['activities'],
+        lazyLoad: ['activities'],
       },
       this.options,
     )
@@ -300,22 +302,20 @@ export default class ConversationService {
 
     let plainActivities = conversation.activities
       .map((act) => {
-        act = act.get({ plain: true })
         act.timestamp = moment(act.timestamp).unix()
-        act.author = act.communityMember.username[act.platform]
-        delete act.communityMember
+        act.author = act.member.username[act.platform]
+        delete act.member
         return act
       })
       .filter(
         (act) =>
-          act.crowdInfo.body !== '' ||
-          (act.crowdInfo.attachments && act.crowdInfo.attachments.length > 0),
+          act.body !== '' || (act.attributes.attachments && act.attributes.attachments.length > 0),
       )
 
     // mark first(parent) activity as conversation starter for convenience
     plainActivities[0].conversationStarter = true
 
-    const activitiesBodies = plainActivities.map((a) => a.crowdInfo.body)
+    const activitiesBodies = plainActivities.map((a) => a.body)
 
     const channel = ConversationService.getChannelFromActivity(plainActivities[0])
     if (plainActivities[0].platform === PlatformType.SLACK) {
@@ -333,7 +333,7 @@ export default class ConversationService {
       activitiesBodies,
       lastActive: plainActivities[plainActivities.length - 1].timestamp,
       views: 0,
-      url: plainActivities[0].crowdInfo.url,
+      url: plainActivities[0].url,
     }
 
     console.log('adding doc to conversation: ')
@@ -354,9 +354,9 @@ export default class ConversationService {
     }
     return Promise.all(
       activities.map(async (act) => {
-        if (act.crowdInfo.attachments && act.crowdInfo.attachments.length > 0) {
-          act.crowdInfo.attachments = await Promise.all(
-            act.crowdInfo.attachments.map(async (attachment) => {
+        if (act.attributes.attachments && act.attributes.attachments.length > 0) {
+          act.attributes.attachments = await Promise.all(
+            act.attributes.attachments.map(async (attachment) => {
               if (attachment.mediaType === 'image/png') {
                 // Get the file URL from the attachment ID
                 const axios = require('axios')
@@ -377,7 +377,7 @@ export default class ConversationService {
                 }
 
                 console.log(
-                  `trying to get bucket ${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                  `trying to get bucket ${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                 )
 
                 const url = data.file.url_private
@@ -388,7 +388,7 @@ export default class ConversationService {
                   headers,
                 }).then(async (res) => {
                   const objectParams = {
-                    Bucket: `${getConfig().INTEGRATIONS_ASSETS_BUCKET}-${getStage()}`,
+                    Bucket: `${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                     ContentType: 'image/png',
                     Body: res.body,
                     Key: `slack/${attachment.id}.png`,
@@ -413,7 +413,7 @@ export default class ConversationService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const recordBeforeUpdate = await ConversationRepository.findById(id, { ...this.options })
@@ -430,7 +430,7 @@ export default class ConversationService {
         await this.loadIntoSearchEngine(record.id, transaction)
         console.log('done!')
 
-        if (recordBeforeUpdate.published !== record.published && process.env.NODE_ENV !== 'test') {
+        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
           track('Conversation Published', { id: record.id }, { ...this.options })
         }
       }
@@ -440,7 +440,7 @@ export default class ConversationService {
         (record.published === false || record.published === 'false')
       ) {
         await this.removeFromSearchEngine(record.id, transaction)
-        if (recordBeforeUpdate.published !== record.published && process.env.NODE_ENV !== 'test') {
+        if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
           track('Conversation Unpublished', { id: record.id }, { ...this.options })
         }
       }
@@ -458,7 +458,7 @@ export default class ConversationService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -481,6 +481,18 @@ export default class ConversationService {
 
   async findAndCountAll(args) {
     return ConversationRepository.findAndCountAll(args, this.options)
+  }
+
+  async query(data) {
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = data.limit
+    const offset = data.offset
+    const lazyLoad = ['activities']
+    return ConversationRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset, lazyLoad },
+      this.options,
+    )
   }
 
   /**
@@ -520,6 +532,26 @@ export default class ConversationService {
       .replace(/\s+/g, ' ') // get rid of excessive spaces between words
       .toLowerCase()
       .trim()
+  }
+
+  async destroyBulk(ids) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      await ConversationRepository.destroyBulk(
+        ids,
+        {
+          ...this.options,
+          transaction,
+        },
+        true,
+      )
+
+      await SequelizeRepository.commitTransaction(transaction)
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
   }
 
   /**

@@ -1,5 +1,0 @@
-# syntax = docker/dockerfile:experimental
-FROM node:14.20
-WORKDIR /usr/crowd/conversations
-COPY . .
-RUN npm install

@@ -1,20 +1,53 @@
-.el-dropdown-menu__item, .el-dropdown-menu__item a {
-  @apply flex items-center text-gray-900;
+.el-dropdown__popper .el-scrollbar {
+  @apply max-h-100 overflow-auto;
+}
+
+.el-dropdown-menu__item,
+.el-dropdown-menu__item a {
+  @apply flex items-center text-black px-4 h-10 text-xs;
+  border-radius: 4px;
+
+  &:not(:last-of-type) {
+    @apply mb-1;
+  }
 
   i {
     @apply mr-2;
   }
 
-  &:focus, &:not(.is-disabled):hover {
-    @apply text-gray-900;
-    background-color: #fffbf8;
+  i:not(.ri-delete-bin-line) {
+    @apply text-gray-400;
+  }
+
+  &:focus,
+  &:not(.is-disabled):hover,
+  &:not(.is-disabled):focus {
+    @apply text-black bg-gray-50;
+  }
+
+  &.is-selected,
+  &:focus.is-selected {
+    background-color: #fff5f4;
+    @apply relative;
+    i {
+      @apply mr-3 text-brand-600;
+    }
+    &:hover {
+      @apply bg-brand-50;
+    }
   }
 }
 
 .el-dropdown-title {
-  @apply block font-semibold pb-2 px-5 text-sm text-gray-900;
+  @apply block font-semibold uppercase text-gray-400 tracking-wider text-2xs leading-4.5 px-4 mt-3 mb-1;
 }
 
 .el-dropdown-separator {
-  @apply mx-5 mt-1 mb-3 border-gray-100;
+  @apply mx-4 my-2 border-gray-50;
+}
+
+.el-dropdown__popper .el-dropdown__list {
+  @apply p-2;
+  border-radius: 7px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
 }

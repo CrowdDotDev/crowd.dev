@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import { TENANT_MODE } from '../config/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
 import Error400 from '../errors/Error400'
@@ -6,12 +7,11 @@ import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import PermissionChecker from './user/permissionChecker'
 import Permissions from '../security/permissions'
 import Error404 from '../errors/Error404'
-import { getConfig } from '../config'
 import Roles from '../security/roles'
 import SettingsService from './settingsService'
 import Plans from '../security/plans'
 import { IServiceOptions } from './IServiceOptions'
-import CommunityMemberService from './communityMemberService'
+import MemberService from './memberService'
 import * as microserviceTypes from '../database/utils/keys/microserviceTypes'
 import defaultReport from '../jsons/default-report.json'
 import dashboardWidgets from '../jsons/dashboard-widgets.json'
@@ -20,6 +20,9 @@ import ReportRepository from '../database/repositories/reportRepository'
 import WidgetRepository from '../database/repositories/widgetRepository'
 import MicroserviceRepository from '../database/repositories/microserviceRepository'
 import ConversationRepository from '../database/repositories/conversationRepository'
+import MemberAttributeSettingsService from './memberAttributeSettingsService'
+import { DefaultMemberAttributes } from '../database/attributes/member/default'
+import { TenantMode } from '../config/configTypes'
 
 export default class TenantService {
   options: IServiceOptions
@@ -157,10 +160,10 @@ export default class TenantService {
   }
 
   async create(data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
-      if (getConfig().TENANT_MODE === 'single') {
+      if (TENANT_MODE === TenantMode.SINGLE) {
         const count = await TenantRepository.count(null, {
           ...this.options,
           transaction,
@@ -181,6 +184,14 @@ export default class TenantService {
         currentTenant: record,
         transaction,
       })
+
+      const memberAttributeSettingsService = new MemberAttributeSettingsService({
+        ...this.options,
+        currentTenant: record,
+      })
+
+      // create default member attribute settings
+      await memberAttributeSettingsService.createPredefined(DefaultMemberAttributes, transaction)
 
       await TenantUserRepository.create(record, this.options.currentUser, [Roles.values.admin], {
         ...this.options,
@@ -234,7 +245,7 @@ export default class TenantService {
   }
 
   async update(id, data) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       let record = await TenantRepository.findById(id, {
@@ -280,7 +291,7 @@ export default class TenantService {
   }
 
   async updatePlanUser(id, planStripeCustomerId, planUserId) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await TenantRepository.updatePlanUser(id, planStripeCustomerId, planUserId, {
@@ -302,7 +313,7 @@ export default class TenantService {
   }
 
   async updatePlanStatus(planStripeCustomerId, plan, planStatus) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       await TenantRepository.updatePlanStatus(planStripeCustomerId, plan, planStatus, {
@@ -319,7 +330,7 @@ export default class TenantService {
   }
 
   async destroyAll(ids) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       for (const id of ids) {
@@ -391,7 +402,7 @@ export default class TenantService {
   }
 
   async acceptInvitation(token, forceAcceptOtherEmail = false) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const tenantUser = await TenantUserRepository.findByInvitationToken(token, {
@@ -431,7 +442,7 @@ export default class TenantService {
   }
 
   async declineInvitation(token) {
-    const transaction = await SequelizeRepository.createTransaction(this.options.database)
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
     try {
       const tenantUser = await TenantUserRepository.findByInvitationToken(token, {
@@ -487,29 +498,23 @@ export default class TenantService {
 
   /**
    * Return a list of all the memberToMerge suggestions available in the
-   * tenant's community members
+   * tenant's members
    */
   async findMembersToMerge() {
-    const communityMemberService = new CommunityMemberService(this.options)
-    const { rows } = await communityMemberService.findMembersWithMergeSuggestions()
+    const memberService = new MemberService(this.options)
+    const { rows } = await memberService.findMembersWithMergeSuggestions()
 
-    return rows
-      .map((item) => {
-        item.toMerge = item.toMerge.map((i) => i.get({ plain: true }))
-
-        return item.get({ plain: true })
-      })
-      .reduce((acc, item) => {
-        for (const toMergeMember of item.toMerge) {
-          const tp = [toMergeMember, item]
-          if (
-            lodash.find(acc, (pair) => pair[0].id === tp[0].id && pair[1].id === tp[1].id) ===
-            undefined
-          ) {
-            acc.push([item, toMergeMember])
-          }
+    return rows.reduce((acc, item) => {
+      for (const toMergeMember of item.toMerge) {
+        const tp = [toMergeMember, item]
+        if (
+          lodash.find(acc, (pair) => pair[0].id === tp[0].id && pair[1].id === tp[1].id) ===
+          undefined
+        ) {
+          acc.push([item, toMergeMember])
         }
-        return acc
-      }, [])
+      }
+      return acc
+    }, [])
   }
 }

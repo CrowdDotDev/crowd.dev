@@ -1,23 +1,25 @@
 <template>
   <div class="activity-header">
     <router-link
+      v-if="showUser"
       :to="{
-        name: 'communityMemberView',
-        params: { id: activity.communityMember.id }
+        name: 'memberView',
+        params: { id: activity.member.id }
       }"
       target="_blank"
     >
       <app-avatar
-        :entity="this.activity.communityMember"
+        :entity="activity.member"
         :size="size"
         class="mr-2"
       />
     </router-link>
     <div class="leading-none">
       <router-link
+        v-if="showUser"
         :to="{
-          name: 'communityMemberView',
-          params: { id: activity.communityMember.id }
+          name: 'memberView',
+          params: { id: activity.member.id }
         }"
         target="_blank"
         class="leading-none text-black"
@@ -26,7 +28,7 @@
         {{ computedUsername }}
       </router-link>
       <div class="text-sm text-gray-500 flex items-center">
-        <div class="flex items-center" v-if="showMessage">
+        <div v-if="showMessage" class="flex items-center">
           <template
             v-if="
               ['discord', 'slack'].includes(
@@ -35,7 +37,7 @@
             "
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -66,7 +68,7 @@
                     ? ''
                     : 'in channel'
                 }}
-                #{{ activity.crowdInfo.channel }}</span
+                #{{ activity.channel }}</span
               >
             </span>
             <span class="mx-1">·</span>
@@ -75,7 +77,7 @@
             v-else-if="activity.platform === 'devto'"
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -94,11 +96,11 @@
             &nbsp;
 
             <a
-              :href="activity.crowdInfo.articleUrl"
+              :href="activity.attributes.articleUrl"
               target="_blank"
               :class="computedActivityClass"
             >
-              {{ activity.crowdInfo.articleTitle }}
+              {{ activity.attributes.articleTitle }}
             </a>
             <span class="mx-1">·</span>
           </template>
@@ -106,7 +108,7 @@
             v-else-if="activity.platform === 'github'"
           >
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -118,27 +120,27 @@
             </a>
             <div class="flex items-center">
               <span
-                class="ml-1"
                 v-if="
                   !['fork', 'star', 'unstar'].includes(
                     activity.type
                   )
                 "
+                class="ml-1"
                 >in</span
               >
               <a
-                :href="activity.crowdInfo.repo"
+                :href="activity.repo"
                 target="_blank"
                 class="ml-1"
               >
-                {{ getRepositoryName(activity.crowdInfo) }}
+                {{ getRepositoryName(activity.repo) }}
               </a>
             </div>
             <span class="mx-1">·</span>
           </template>
           <template v-else>
             <a
-              :href="activity.crowdInfo.url"
+              :href="activity.url"
               target="_blank"
               :class="computedActivityClass"
             >
@@ -152,9 +154,9 @@
           </template>
         </div>
         <span>{{ timeAgo }}</span>
-        <span class="mx-1">·</span>
+        <span v-if="showPlatformIcon" class="mx-1">·</span>
         <el-tooltip
-          v-if="activity.platform"
+          v-if="activity.platform && showPlatformIcon"
           :content="
             activity.platform === 'apis'
               ? 'API'
@@ -184,9 +186,13 @@
 import AppI18n from '../../../shared/i18n/i18n'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import {
+  computedArgs,
+  computedMessage
+} from '@/modules/activity/activity.helpers'
 
 export default {
-  name: 'app-activity-header',
+  name: 'AppActivityHeader',
   components: {
     AppI18n
   },
@@ -199,6 +205,14 @@ export default {
       type: Boolean,
       default: true
     },
+    showUser: {
+      type: Boolean,
+      default: true
+    },
+    showPlatformIcon: {
+      type: Boolean,
+      default: true
+    },
     size: {
       type: String,
       default: 'md'
@@ -206,8 +220,7 @@ export default {
   },
   computed: {
     computedUsername() {
-      return this.activity.communityMember.username
-        .crowdUsername
+      return this.activity.member.displayName
     },
     computedUsernameClass() {
       return this.size === 'md'
@@ -215,31 +228,10 @@ export default {
         : ''
     },
     computedMessage() {
-      if (
-        this.activity.platform === 'slack' &&
-        this.activity.type === 'message' &&
-        this.activity.crowdInfo.thread
-      ) {
-        return `entities.activity.${this.activity.platform}.replied`
-      } else if (
-        this.activity.platform === 'discord' &&
-        this.activity.type === 'message' &&
-        this.activity.parentId
-      ) {
-        return this.activity.crowdInfo.thread
-          ? `entities.activity.${this.activity.platform}.replied_thread`
-          : `entities.activity.${this.activity.platform}.replied`
-      } else if (this.activity.platform === 'devto') {
-        return `entities.activity.${this.activity.platform}.commented`
-      } else {
-        return `entities.activity.${this.activity.platform}.${this.activity.type}`
-      }
+      return computedMessage(this.activity)
     },
     computedArgs() {
-      if (this.activity.type === 'hashtag') {
-        return [`#${this.activity.crowdInfo.hashtag}`]
-      }
-      return []
+      return computedArgs(this.activity)
     },
     computedPlatformIcon() {
       return integrationsJsonArray.find(
@@ -252,7 +244,7 @@ export default {
       ).name
     },
     computedActivityClass() {
-      return this.activity.crowdInfo.url
+      return this.activity.url
         ? ''
         : 'text-gray-500 hover:opacity-100 hover:cursor-default'
     },
@@ -265,10 +257,8 @@ export default {
       const lower = str.toLowerCase()
       return str.charAt(0).toUpperCase() + lower.slice(1)
     },
-    getRepositoryName(crowdInfo) {
-      return crowdInfo.repo
-        .split('https://github.com/')[1]
-        .split('/')[1]
+    getRepositoryName(repo) {
+      return repo
     }
   }
 }

@@ -1,20 +1,23 @@
 <template>
-  <div style="display: flex">
+  <div class="app-tags-input" style="display: flex">
     <app-autocomplete-many-input
-      :fetchFn="fetchFn"
-      :createFn="createTag"
-      v-model="model"
-      :placeholder="placeholder"
-      :createIfNotFound="canCreate"
       v-if="multiple"
+      v-model="model"
+      :fetch-fn="fetchFn"
+      :create-fn="createTag"
+      :mapper-fn="mapperFn"
+      :placeholder="placeholder"
+      :create-if-not-found="canCreate"
+      :in-memory-filter="false"
     ></app-autocomplete-many-input>
     <app-autocomplete-one-input
-      :fetchFn="fetchFn"
-      :createFn="createTag"
-      v-model="model"
-      :placeholder="placeholder"
-      :createIfNotFound="canCreate"
       v-else
+      v-model="model"
+      :fetch-fn="fetchFn"
+      :create-fn="createTag"
+      :mapper-fn="mapperFn"
+      :placeholder="placeholder"
+      :create-if-not-found="canCreate"
     ></app-autocomplete-one-input>
   </div>
 </template>
@@ -24,9 +27,12 @@ import { TagPermissions } from '@/modules/tag/tag-permissions'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-  name: 'app-tag-autocomplete-input',
+  name: 'AppTagAutocompleteInput',
   props: {
-    value: {},
+    modelValue: {
+      type: Array,
+      default: () => []
+    },
     fetchFn: {
       type: Function,
       default: () => {}
@@ -40,13 +46,15 @@ export default {
       default: false
     },
     placeholder: {
-      type: String
+      type: String,
+      default: null
     },
     multiple: {
       type: Boolean,
       default: true
     }
   },
+  emits: ['update:modelValue'],
 
   computed: {
     ...mapGetters({
@@ -56,11 +64,11 @@ export default {
 
     model: {
       get: function () {
-        return this.value
+        return this.modelValue
       },
 
       set: function (value) {
-        this.$emit('input', value)
+        this.$emit('update:modelValue', value)
       }
     },
 

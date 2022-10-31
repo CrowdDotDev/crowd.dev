@@ -1,55 +1,52 @@
 <template>
   <div>
     <el-dropdown
+      v-if="!isReadOnly"
+      placement="bottom-end"
       trigger="click"
       @command="handleCommand"
-      v-if="!isReadOnly"
+      @visible-change="dropdownVisible = $event"
     >
-      <span class="el-dropdown-link">
-        <i class="ri-xl ri-more-line"></i>
-      </span>
-      <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item
-          icon="ri-pencil-line"
-          command="activityEdit"
-          >Edit Activity</el-dropdown-item
-        >
-        <el-dropdown-item
-          icon="ri-delete-bin-line"
-          command="activityDelete"
-          >Delete Activity</el-dropdown-item
-        >
-      </el-dropdown-menu>
-    </el-dropdown>
-    <el-dialog
-      :visible.sync="editing"
-      title="Edit Activity"
-      :append-to-body="true"
-      :destroy-on-close="true"
-      @close="editing = false"
-      custom-class="el-dialog--lg"
-    >
-      <app-activity-form-page
-        :id="activity.id"
-        @cancel="editing = false"
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
+        @click.stop
       >
-      </app-activity-form-page>
-    </el-dialog>
+        <i class="text-xl ri-more-fill"></i>
+      </button>
+      <template #dropdown>
+        <!-- TODO: uncomment this once activity editing is done -->
+        <!--        <el-dropdown-item command="activityEdit">-->
+        <!--          <i class="ri-pencil-line text-gray-400 mr-1" />-->
+        <!--          <span>Edit Activity</span></el-dropdown-item-->
+        <!--        >-->
+        <el-dropdown-item command="activityDelete">
+          <i class="ri-delete-bin-line text-red-500 mr-1" />
+          <span class="text-red-500">Delete Activity</span>
+        </el-dropdown-item>
+      </template>
+    </el-dropdown>
   </div>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import { i18n } from '@/i18n'
-import ActivityFormPage from './activity-form-page'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
-  name: 'app-activity-dropdown',
+  name: 'AppActivityDropdown',
   props: {
     activity: {
       type: Object,
       default: () => {}
+    }
+  },
+  emits: ['activity-destroyed'],
+  data() {
+    return {
+      dropdownVisible: false
     }
   },
   computed: {
@@ -66,17 +63,9 @@ export default {
       )
     }
   },
-  components: {
-    'app-activity-form-page': ActivityFormPage
-  },
-  data() {
-    return {
-      editing: false
-    }
-  },
   methods: {
     ...mapActions({
-      doDestroy: 'activity/destroy/doDestroy'
+      doDestroy: 'activity/doDestroy'
     }),
     handleCommand(command) {
       if (command === 'activityDelete') {
@@ -92,15 +81,12 @@ export default {
     },
     async doDestroyWithConfirm() {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await this.doDestroy(this.activity.id)
         this.$emit('activity-destroyed', this.activity.id)

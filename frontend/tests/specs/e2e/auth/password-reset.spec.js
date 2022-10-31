@@ -13,6 +13,7 @@ describe('Reset password tests', function () {
     cy.spy(this.store, 'commit').as('commit')
 
     cy.get('#password').type('password')
+    cy.get('#passwordConfirmation').type('password')
     cy.get('#submit').click()
 
     cy.get('@commit').should(
@@ -44,6 +45,7 @@ describe('Reset password tests', function () {
     cy.spy(this.store, 'commit').as('commit')
 
     cy.get('#password').type('password')
+    cy.get('#passwordConfirmation').type('password')
     cy.get('#submit').click()
 
     cy.get('@commit').should(
@@ -62,10 +64,5 @@ describe('Reset password tests', function () {
       'have.been.calledWith',
       'auth/PASSWORD_RESET_SUCCESS'
     )
-
-    cy.get('.el-notification__content').contains(
-      'Password successfully changed'
-    )
-    cy.url().should('contain', '/auth/signin')
   })
 })

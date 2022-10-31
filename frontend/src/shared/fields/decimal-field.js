@@ -12,6 +12,8 @@ export default class DecimalField extends GenericField {
     this.scale = config.scale
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
+    this.custom = config.custom
   }
 
   forPresenter(value) {
@@ -24,6 +26,20 @@ export default class DecimalField extends GenericField {
     }
 
     return Number(value).toFixed(this.scale)
+  }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {},
+      defaultValue: [],
+      value: [],
+      defaultOperator: 'eq',
+      operator: 'eq',
+      type: 'number'
+    }
   }
 
   forFilterPreview(value) {

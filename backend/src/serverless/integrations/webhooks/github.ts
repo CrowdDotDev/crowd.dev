@@ -1,16 +1,18 @@
 import moment from 'moment'
 import verifyGithubWebhook from 'verify-github-webhook'
+import { IS_TEST_ENV, GITHUB_CONFIG } from '../../../config'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { GitHubGrid } from '../grid/githubGrid'
 import ActivityService from '../../../services/activityService'
-import { AddActivitiesSingle, CommunityMember } from '../types/messageTypes'
-import { getConfig } from '../../../config'
+import { AddActivitiesSingle, Member } from '../types/messageTypes'
 import getMember from '../usecases/github/graphql/members'
-import BaseIterator from '../iterators/baseIterator'
-import { PlatformType } from '../../../utils/platforms'
-import { GithubActivityType } from '../../../utils/activityTypes'
+import { PlatformType } from '../../../types/integrationEnums'
+import { GithubActivityType } from '../../../types/activityTypes'
 import { gridEntry } from '../grid/grid'
+import { MemberAttributeName } from '../../../database/attributes/member/enums'
+import getOrganization from '../usecases/github/graphql/organizations'
+import { IntegrationServiceBase } from '../services/integrationServiceBase'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -49,7 +51,7 @@ export default class GitHubWebhook {
 
   /**
    * Parse an issue activity given the payload coming from the GitHub webhook.
-   * It will get the community member that performed the activity. If it exists,
+   * It will get the member that performed the activity. If it exists,
    * it will create a GitHub activity.
    * @param type The type of event: opened or closed
    * @returns The issue activity or null
@@ -57,25 +59,22 @@ export default class GitHubWebhook {
   async issue(type: GithubActivityType, scoreGrid: gridEntry, timestamp: string): EventOutput {
     const integration = (await this.findIntegration()) as any
     const issue = this.payload.issue
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
-      issue.user.login,
-      integration.token,
-    )
+    const member: Member = await GitHubWebhook.getParsedMember(issue.user.login, integration.token)
 
     if (member) {
       return {
-        communityMember: member,
+        member,
         type,
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: issue.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: issue.html_url,
-          title: issue.title,
-          repo: this.payload.repository.html_url,
-          body: issue.body,
+        url: issue.html_url,
+        title: issue.title,
+        channel: this.payload.repository.html_url,
+        body: issue.body,
+        attributes: {
           state: issue.state,
         },
         score: scoreGrid.score,
@@ -87,7 +86,7 @@ export default class GitHubWebhook {
 
   /**
    * Parse a pull activity given the payload coming from the GitHub webhook.
-   * It will get the community member that performed the activity. If it exists,
+   * It will get the member that performed the activity. If it exists,
    * it will create a GitHub activity.
    * @param type The type of event: opened or closed
    * @returns The pull activity or null
@@ -99,25 +98,20 @@ export default class GitHubWebhook {
   ): EventOutput {
     const integration = (await this.findIntegration()) as any
     const pull = this.payload.pull_request
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
-      pull.user.login,
-      integration.token,
-    )
+    const member: Member = await GitHubWebhook.getParsedMember(pull.user.login, integration.token)
     if (member) {
       return {
-        communityMember: member,
+        member,
         type,
         timestamp: moment(timestamp).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: pull.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: pull.html_url,
-          title: pull.title,
-          repo: this.payload.repository.html_url,
-          body: pull.body,
-        },
+        url: pull.html_url,
+        title: pull.title,
+        channel: this.payload.repository.html_url,
+        body: pull.body,
         score: scoreGrid.score,
         isKeyAction: scoreGrid.isKeyAction,
       }
@@ -132,24 +126,24 @@ export default class GitHubWebhook {
   async discussion(): EventOutput {
     const integration = (await this.findIntegration()) as any
     const discussion = this.payload.discussion
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
+    const member: Member = await GitHubWebhook.getParsedMember(
       discussion.user.login,
       integration.token,
     )
     if (member) {
       return {
-        communityMember: member,
+        member,
         type: GithubActivityType.DISCUSSION_STARTED,
         timestamp: moment(discussion.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: discussion.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          url: discussion.html_url,
-          title: discussion.title,
-          repo: this.payload.repository.html_url,
-          body: discussion.body,
+        url: discussion.html_url,
+        title: discussion.title,
+        channel: this.payload.repository.html_url,
+        body: discussion.body,
+        attributes: {
           category: {
             id: discussion.category.node_id,
             isAnswerable: discussion.category.is_answerable,
@@ -173,28 +167,26 @@ export default class GitHubWebhook {
    */
   async star(type: string): EventOutput {
     const integration = (await this.findIntegration()) as any
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
+    const member: Member = await GitHubWebhook.getParsedMember(
       this.payload.sender.login,
       integration.token,
     )
     if (member) {
       const timestampObject = moment().utc()
       return {
-        communityMember: member,
+        member,
         type,
         timestamp: timestampObject.toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
-        sourceId: BaseIterator.generateSourceIdHash(
+        sourceId: IntegrationServiceBase.generateSourceIdHash(
           this.payload.sender.login,
           type,
           timestampObject.unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
-        crowdInfo: {
-          repo: this.payload.repository.html_url,
-        },
+        channel: this.payload.repository.html_url,
         score: type === 'star' ? GitHubGrid.star.score : GitHubGrid.unStar.score,
         isKeyAction: GitHubGrid.star.isKeyAction,
       }
@@ -204,29 +196,27 @@ export default class GitHubWebhook {
 
   /**
    * Parse a fork activity given the payload coming from the GitHub webhook.
-   * It will get the community member that performed the activity. If it exists,
+   * It will get the member that performed the activity. If it exists,
    * it will create a GitHub activity.
    * @param type The type of event: opened or closed
    * @returns The fork activity or null
    */
   async fork(): EventOutput {
     const integration = (await this.findIntegration()) as any
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
+    const member: Member = await GitHubWebhook.getParsedMember(
       this.payload.sender.login,
       integration.token,
     )
     if (member) {
       return {
-        communityMember: member,
+        member,
         type: GithubActivityType.FORK,
         timestamp: moment(this.payload.forkee.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: this.payload.forkee.node_id.toString(),
         sourceParentId: null,
-        crowdInfo: {
-          repo: this.payload.repository.html_url,
-        },
+        channel: this.payload.repository.html_url,
         score: GitHubGrid.fork.score,
         isKeyAction: GitHubGrid.fork.isKeyAction,
       }
@@ -236,7 +226,7 @@ export default class GitHubWebhook {
 
   /**
    * Parse a comment activity given the payload coming from the GitHub webhook.
-   * It will get the community member that performed the activity. If it exists,
+   * It will get the member that performed the activity. If it exists,
    * it will create a GitHub activity.
    * @param type The type of event: comments can be generated from various
    * places: issue-comment, pull_request-comment, discussion-comment
@@ -246,25 +236,23 @@ export default class GitHubWebhook {
    */
   async comment(type: string, sourceParentId: string): EventOutput {
     const integration = (await this.findIntegration()) as any
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
+    const member: Member = await GitHubWebhook.getParsedMember(
       this.payload.sender.login,
       integration.token,
     )
     if (member) {
       const comment = this.payload.comment
       return {
-        communityMember: member,
+        member,
         type,
         timestamp: moment(comment.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: comment.node_id.toString(),
         sourceParentId,
-        crowdInfo: {
-          url: comment.html_url,
-          body: comment.body,
-          repo: this.payload.repository.html_url,
-        },
+        url: comment.html_url,
+        body: comment.body,
+        channel: this.payload.repository.html_url,
         score: GitHubGrid.comment.score,
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
@@ -274,7 +262,7 @@ export default class GitHubWebhook {
 
   /**
    * Parse a discussion answered activity given the payload coming from the GitHub webhook.
-   * We will be updating score and crowdInfo.isSelectedAnswer for the already
+   * We will be updating score and attributes.isSelectedAnswer for the already
    * existing discussion comment.
    * @param type Any comment type activity can be marked as an answer:
    * issue-comment, pull_request-comment, discussion-comment
@@ -284,26 +272,26 @@ export default class GitHubWebhook {
    */
   async answer(type: string, sourceParentId: string): EventOutput {
     const integration = (await this.findIntegration()) as any
-    const member: CommunityMember = await GitHubWebhook.getParsedMember(
+    const member: Member = await GitHubWebhook.getParsedMember(
       this.payload.sender.login,
       integration.token,
     )
     if (member) {
       const answer = this.payload.answer
       return {
-        communityMember: member,
+        member,
         type,
         timestamp: moment(answer.created_at).utc().toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: answer.node_id.toString(),
         sourceParentId,
-        crowdInfo: {
-          url: answer.html_url,
-          body: answer.body,
-          repo: this.payload.repository.html_url,
+        attributes: {
           isSelectedAnswer: true,
         },
+        channel: this.payload.repository.html_url,
+        body: answer.body,
+        url: answer.html_url,
         score: GitHubGrid.selectedAnswer.score,
         isKeyAction: GitHubGrid.selectedAnswer.isKeyAction,
       }
@@ -312,57 +300,90 @@ export default class GitHubWebhook {
   }
 
   /**
-   * Get and parse a community member using the GitHub API
-   * @param login The username of the community member
+   * Get and parse a member using the GitHub API
+   * @param login The username of the member
    * @param token The GitHub token of the integration
-   * @returns A community member object, or null
+   * @returns A member object, or null
    */
-  static async getParsedMember(login: string, token: string): Promise<CommunityMember | null> {
-    if (getConfig().NODE_ENV === 'test') {
+  static async getParsedMember(login: string, token: string): Promise<Member | null> {
+    if (IS_TEST_ENV) {
       return {
         username: {
-          github: 'testMember',
+          [PlatformType.GITHUB]: 'testMember',
         },
       }
     }
     const member = await getMember(login, token)
     if (member) {
-      return GitHubWebhook.parseMember(member)
+      return GitHubWebhook.parseMember(member, token)
     }
     return member
   }
 
   /**
-   * Parse a user object coming from the GitHub API into a Crowd.dev
-   * community member.
+   * Parse a user object coming from the GitHub API into a Crowd.dev member.
    * @param member User object coming from the GitHub API
-   * @returns The parsed community member
+   * @returns The parsed member
    */
-  static parseMember(member: any): CommunityMember {
-    const parsedMember: CommunityMember = {
-      username: { github: member.login },
-      crowdInfo: {
-        github: {
-          name: member.name,
-          isHireable: member.isHireable || false,
-          url: member.url,
+  static async parseMember(member: any, token): Promise<Member> {
+    const parsedMember: Member = {
+      username: { [PlatformType.GITHUB]: member.login },
+      attributes: {
+        [MemberAttributeName.IS_HIREABLE]: {
+          [PlatformType.GITHUB]: member.isHireable || false,
+        },
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: member.url,
+        },
+        [MemberAttributeName.BIO]: {
+          [PlatformType.GITHUB]: member.bio || '',
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.GITHUB]: member.location || '',
         },
       },
       email: member.email || '',
-      bio: member.bio || '',
-      organisation: member.company || '',
-      location: member.location || '',
+      ...(member.company && { organizations: [member.company.trim()] }),
     }
 
     if (member.websiteUrl) {
-      parsedMember.crowdInfo.github.websiteUrl = member.websiteUrl
+      parsedMember.attributes[MemberAttributeName.WEBSITE_URL] = {
+        [PlatformType.GITHUB]: member.websiteUrl,
+      }
     }
 
     if (member.twitterUsername) {
-      parsedMember.crowdInfo.twitter = {
-        url: `https://twitter.com/${member.twitterUsername}`,
+      parsedMember.attributes[MemberAttributeName.URL][
+        PlatformType.TWITTER
+      ] = `https://twitter.com/${member.twitterUsername}`
+      parsedMember.username[PlatformType.TWITTER] = member.twitterUsername
+    }
+
+    if (member.company) {
+      if (IS_TEST_ENV) {
+        parsedMember.organizations = [{ name: 'crowd.dev' }]
+      } else {
+        const company = member.company.replace('@', '').trim()
+        const fromAPI = await getOrganization(company, token)
+        if (fromAPI) {
+          parsedMember.organizations = [
+            {
+              name: fromAPI.name,
+              description: fromAPI.description ?? null,
+              location: fromAPI.location ?? null,
+              logo: fromAPI.avatarUrl ?? null,
+              url: fromAPI.url ?? null,
+              twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
+            },
+          ]
+        } else {
+          parsedMember.organizations = [{ name: company }]
+        }
       }
-      parsedMember.username.twitter = member.twitterUsername
+    }
+
+    if (member.followers && member.followers.totalCount > 0) {
+      parsedMember.reach = { [PlatformType.GITHUB]: member.followers.totalCount }
     }
 
     return parsedMember
@@ -394,8 +415,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-
-        break
 
       case 'discussion':
         switch (this.payload.action) {
@@ -430,7 +449,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'star':
         switch (this.payload.action) {
@@ -441,7 +459,6 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       case 'fork':
         return this.fork()
@@ -474,12 +491,10 @@ export default class GitHubWebhook {
           default:
             return null
         }
-        break
 
       default:
         return null
     }
-    return null
   }
 
   /**
@@ -490,9 +505,11 @@ export default class GitHubWebhook {
   static verify(req): void {
     try {
       const signature = req.headers['x-hub-signature']
-      const secret = getConfig().GITHUB_WEBHOOK_SECRET
+      const secret = GITHUB_CONFIG.webhookSecret
+
       console.log('Verifying webhook...')
-      const isVerified = verifyGithubWebhook(signature, req.body, secret) // Returns true if verification succeeds; otherwise, false.
+      const isVerified = verifyGithubWebhook(signature, JSON.stringify(req.body), secret) // Returns true if verification succeeds; otherwise, false.
+
       console.log('Verification', isVerified)
       if (!isVerified) {
         throw new Error('Webhook not verified')

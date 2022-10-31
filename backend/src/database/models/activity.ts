@@ -27,14 +27,6 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
-      info: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
-      crowdInfo: {
-        type: DataTypes.JSONB,
-        defaultValue: {},
-      },
       isKeyAction: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -53,6 +45,27 @@ export default (sequelize) => {
       },
       sourceParentId: {
         type: DataTypes.STRING(255),
+      },
+      attributes: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {},
+      },
+      channel: {
+        type: DataTypes.TEXT,
+      },
+      body: {
+        type: DataTypes.TEXT,
+      },
+      title: {
+        type: DataTypes.TEXT,
+      },
+      url: {
+        type: DataTypes.TEXT,
+      },
+      sentiment: {
+        type: DataTypes.JSONB,
+        defaultValue: {},
       },
       importHash: {
         type: DataTypes.STRING(255),
@@ -92,7 +105,7 @@ export default (sequelize) => {
         },
         {
           unique: false,
-          fields: ['communityMemberId', 'tenantId'],
+          fields: ['memberId', 'tenantId'],
           where: {
             deletedAt: null,
           },
@@ -129,8 +142,8 @@ export default (sequelize) => {
   )
 
   activity.associate = (models) => {
-    models.activity.belongsTo(models.communityMember, {
-      as: 'communityMember',
+    models.activity.belongsTo(models.member, {
+      as: 'member',
       onDelete: 'cascade',
       foreignKey: {
         allowNull: false,
@@ -144,6 +157,11 @@ export default (sequelize) => {
     models.activity.belongsTo(models.activity, {
       as: 'parent',
       // constraints: false,
+    })
+
+    models.activity.belongsToMany(models.task, {
+      as: 'tasks',
+      through: 'activityTasks',
     })
 
     models.activity.belongsTo(models.tenant, {

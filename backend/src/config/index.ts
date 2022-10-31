@@ -1,7 +1,206 @@
-/**
- * This method returns the server config.
- * By default, it returns the Environment Variables.
- */
-export function getConfig(): any {
-  return process.env
-}
+import config from 'config'
+import {
+  SQSConfiguration,
+  S3Configuration,
+  DbConfiguration,
+  PlansConfiguration,
+  TwitterConfiguration,
+  ApiConfiguration,
+  SlackConfiguration,
+  GoogleConfiguration,
+  DiscordConfiguration,
+  ServiceType,
+  SearchEngineConfiguration,
+  SegmentConfiguration,
+  GithubConfiguration,
+  SendgridConfiguration,
+  NetlifyConfiguration,
+  TenantMode,
+  CubeJSConfiguration,
+  ComprehendConfiguration,
+  ClearbitConfiguration,
+  DevtoConfiguration,
+} from './configTypes'
+
+// TODO-kube
+
+export const KUBE_MODE: boolean = process.env.KUBE_MODE !== undefined
+
+export const SERVICE: ServiceType = process.env.SERVICE as ServiceType
+
+export const TENANT_MODE: TenantMode = process.env.TENANT_MODE as TenantMode
+
+export const IS_TEST_ENV: boolean = process.env.NODE_ENV === 'test'
+
+export const IS_DEV_ENV: boolean =
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'docker' ||
+  process.env.NODE_ENV === undefined
+
+export const IS_PROD_ENV: boolean = process.env.NODE_ENV === 'production'
+
+export const IS_STAGING_ENV: boolean = process.env.NODE_ENV === 'staging'
+
+export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
+
+export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
+
+export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
+
+export const S3_CONFIG: S3Configuration = KUBE_MODE
+  ? config.get<S3Configuration>('s3')
+  : {
+      microservicesAssetsBucket: process.env.MICROSERVICES_ASSETS_BUCKET,
+      integrationsAssetsBucket: process.env.INTEGRATIONS_ASSETS_BUCKET,
+      // can be left blank - aws.ts configuration gets it straight from env
+      aws: {
+        accessKeyId: '',
+        accountId: '',
+        region: '',
+        secretAccessKey: '',
+      },
+    }
+
+export const DB_CONFIG: DbConfiguration = KUBE_MODE
+  ? config.get<DbConfiguration>('db')
+  : {
+      database: process.env.DATABASE_DATABASE,
+      username: process.env.DATABASE_USERNAME,
+      password: process.env.DATABASE_PASSWORD,
+      dialect: process.env.DATABASE_DIALECT,
+      port: parseInt(process.env.DATABASE_PORT || '5432', 10),
+      readHost: process.env.DATABASE_HOST_READ,
+      writeHost: process.env.DATABASE_HOST_WRITE,
+      logging: false,
+      transactions: false,
+    }
+
+export const SEARCH_ENGINE_CONFIG: SearchEngineConfiguration = KUBE_MODE
+  ? config.get<SearchEngineConfiguration>('searchEngine')
+  : {
+      host: process.env.SEARCH_ENGINE_HOST,
+      apiKey: process.env.SEARCH_ENGINE_API_KEY,
+    }
+
+export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
+  ? config.get<SegmentConfiguration>('segment')
+  : {
+      writeKey: process.env.SEGMENT_WRITE_KEY,
+    }
+
+export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
+  ? config.get<ComprehendConfiguration>('comprehend')
+  : {
+      // can be left blank - aws.ts configuration gets it straight from env
+      aws: {
+        accessKeyId: '',
+        accountId: '',
+        region: '',
+        secretAccessKey: '',
+      },
+    }
+
+export const CLEARBIT_CONFIG: ClearbitConfiguration = KUBE_MODE
+  ? config.get<ClearbitConfiguration>('clearbit')
+  : {
+      apiKey: process.env.CLEARBIT_API_KEY,
+    }
+
+export const API_CONFIG: ApiConfiguration = KUBE_MODE
+  ? config.get<ApiConfiguration>('api')
+  : {
+      port: Number(process.env.BACKEND_PORT || 8080),
+      edition: process.env.EDITION,
+      documentation: !!process.env.API_DOCUMENTATION_ENABLED,
+      url: process.env.BACKEND_URL,
+      frontendUrl: process.env.FRONTEND_URL,
+      frontendUrlWithSubdomain: process.env.FRONTEND_URL_WITH_SUBDOMAIN,
+      jwtSecret: process.env.AUTH_JWT_SECRET,
+      jwtExpiresIn: process.env.AUTH_JWT_EXPIRES_IN,
+      premiumApiUrl: '',
+    }
+export const PLANS_CONFIG: PlansConfiguration = KUBE_MODE
+  ? config.get<PlansConfiguration>('plans')
+  : {
+      stripePricePremium: process.env.PLAN_STRIPE_PRICES_PREMIUM,
+      stripePriceEnterprise: process.env.PLAN_STRIPE_PRICES_ENTERPRISE,
+      stripeSecretKey: process.env.PLAN_STRIPE_SECRET_KEY,
+      stripWebhookSigningSecret: process.env.PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
+    }
+
+export const DEVTO_CONFIG: DevtoConfiguration = KUBE_MODE
+  ? config.get<DevtoConfiguration>('devto')
+  : {}
+
+export const TWITTER_CONFIG: TwitterConfiguration = KUBE_MODE
+  ? config.get<TwitterConfiguration>('twitter')
+  : {
+      clientId: process.env.AUTH_SOCIAL_TWITTER_CLIENT_ID,
+      clientSecret: process.env.AUTH_SOCIAL_TWITTER_CLIENT_SECRET,
+      maxRetrospectInSeconds: Number(process.env.TWITTER_MAX_RETROSPECT_IN_SECONDS || 7380),
+      globalLimit: Number(process.env.TWITTER_GLOBAL_LIMIT || 10000),
+      limitResetFrequencyDays: Number(process.env.TWITTER_LIMIT_RESET_FREQUENCY_DAYS),
+    }
+
+export const SLACK_CONFIG: SlackConfiguration = KUBE_MODE
+  ? config.get<SlackConfiguration>('slack')
+  : {
+      clientId: process.env.SLACK_CLIENT_ID,
+      clientSecret: process.env.SLACK_CLIENT_SECRET,
+      maxRetrospectInSeconds: Number(process.env.SLACK_MAX_RETROSPECT_IN_SECONDS || 3600),
+      globalLimit: Number(process.env.SLACK_GLOBAL_LIMIT || Infinity),
+    }
+
+export const GOOGLE_CONFIG: GoogleConfiguration = KUBE_MODE
+  ? config.get<GoogleConfiguration>('google')
+  : {
+      clientId: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_ID,
+      clientSecret: process.env.AUTH_SOCIAL_GOOGLE_CLIENT_SECRET,
+      callbackUrl: process.env.AUTH_SOCIAL_GOOGLE_CALLBACK_URL,
+    }
+
+export const DISCORD_CONFIG: DiscordConfiguration = KUBE_MODE
+  ? config.get<DiscordConfiguration>('discord')
+  : {
+      token: process.env.DISCORD_TOKEN,
+      maxRetrospectInSeconds: Number(process.env.DISCORD_MAX_RETROSPECT_IN_SECONDS || 3600),
+      globalLimit: Number(process.env.DISCORD_GLOBAL_LIMIT || Infinity),
+    }
+
+export const GITHUB_CONFIG: GithubConfiguration = KUBE_MODE
+  ? config.get<GithubConfiguration>('github')
+  : {
+      appId: process.env.GITHUB_APP_ID,
+      privateKey: process.env.GITHUB_PRIVATE_KEY,
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      webhookSecret: process.env.GITHUB_WEBHOOK_SECRET,
+    }
+
+export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
+  ? config.get<SendgridConfiguration>('sendgrid')
+  : {
+      key: process.env.SENDGRID_KEY,
+      emailFrom: process.env.SENDGRID_EMAIL_FROM,
+      nameFrom: process.env.SENDGRID_NAME_FROM,
+      weeklyAnalyticsUnsubscribeGroupId: process.env.SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID,
+      templateEmailAddressVerification: process.env.SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION,
+      templateInvitation: process.env.SENDGRID_TEMPLATE_INVITATION,
+      templatePasswordReset: process.env.SENDGRID_TEMPLATE_PASSWORD_RESET,
+      templateWeeklyAnalytics: process.env.SENDGRID_TEMPLATE_WEEKLY_ANALYTICS,
+    }
+
+export const NETLIFY_CONFIG: NetlifyConfiguration = KUBE_MODE
+  ? config.get<NetlifyConfiguration>('netlify')
+  : {
+      apiKey: process.env.NETLIFY_API_KEY,
+      siteDomain: process.env.NETLIFY_SITE_DOMAIN,
+    }
+
+export const CUBEJS_CONFIG: CubeJSConfiguration = KUBE_MODE
+  ? config.get<CubeJSConfiguration>('cubejs')
+  : {
+      url: process.env.CUBE_JS_URL,
+      jwtSecret: process.env.CUBE_JS_JWT_SECRET,
+      jwtExpiry: process.env.CUBE_JS_JWT_EXPIRY,
+    }

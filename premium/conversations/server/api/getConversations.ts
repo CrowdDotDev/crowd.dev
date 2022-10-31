@@ -1,20 +1,21 @@
-import { useQuery } from "h3";
-import initSearch from "./helpers/initSearch";
-import transform from "./helpers/transform";
+import { useQuery } from 'h3';
+import { SEARCH_ENGINE_CONVERSATIONS_INDEX } from '~~/helpers/config';
+import initSearch from './helpers/initSearch';
+import transform from './helpers/transform';
 // import getTenant from "./helpers/getTenant";
 
 const perPage = 10;
 
 function stringToBoolean(str: string): boolean {
   switch (str.toLowerCase().trim()) {
-    case "true":
-    case "yes":
-    case "1":
+    case 'true':
+    case 'yes':
+    case '1':
       return true;
 
-    case "false":
-    case "no":
-    case "0":
+    case 'false':
+    case 'no':
+    case '0':
     case null:
       return false;
 
@@ -44,23 +45,25 @@ export default async (req) => {
   const searchClient = initSearch();
 
   const results = await searchClient
-    .index(process.env.CONVERSATIONS_INDEX)
+    .index(SEARCH_ENGINE_CONVERSATIONS_INDEX)
     .search(query.q as string, {
       filter: filter,
-      facetsDistribution: ["channel", "platform"],
-      sort: ["lastActive:desc"],
-      attributesToRetrieve: ["*"],
-      attributesToHighlight: ["*"],
+      facetsDistribution: ['channel', 'platform'],
+      sort: ['lastActive:desc'],
+      attributesToRetrieve: ['*'],
+      attributesToHighlight: ['*'],
       ...getPagination(query),
     });
 
   if (query.addView) {
-    await searchClient.index(process.env.CONVERSATIONS_INDEX).updateDocuments([
-      {
-        id: results.hits[0].id,
-        views: (results.hits[0].views || 0) + 1,
-      },
-    ]);
+    await searchClient
+      .index(SEARCH_ENGINE_CONVERSATIONS_INDEX)
+      .updateDocuments([
+        {
+          id: results.hits[0].id,
+          views: (results.hits[0].views || 0) + 1,
+        },
+      ]);
   }
 
   return {
@@ -80,14 +83,14 @@ export default async (req) => {
         ([key, count]) => ({
           name: key,
           count: count,
-          isActive: filter.includes(key) && filter.includes("platform"),
+          isActive: filter.includes(key) && filter.includes('platform'),
         })
       ),
       categories: Object.entries(results.facetsDistribution.channel).map(
         ([key, count]) => ({
           name: key,
           count: count,
-          isActive: filter.includes(key) && filter.includes("channel"),
+          isActive: filter.includes(key) && filter.includes('channel'),
         })
       ),
     },

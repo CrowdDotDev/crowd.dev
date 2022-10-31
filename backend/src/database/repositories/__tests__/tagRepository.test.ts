@@ -29,7 +29,7 @@ describe('TagRepository tests', () => {
       const expectedTagCreated = {
         id: tagCreated.id,
         name: tag2add.name,
-        communityMembers: [],
+        members: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -64,7 +64,7 @@ describe('TagRepository tests', () => {
       const expectedTagFound = {
         id: tagCreated.id,
         name: tag2add.name,
-        communityMembers: [],
+        members: [],
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -249,7 +249,7 @@ describe('TagRepository tests', () => {
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
-        communityMembers: [],
+        members: [],
       }
 
       expect(tagUpdated).toStrictEqual(tagExpected)

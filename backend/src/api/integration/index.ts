@@ -1,11 +1,12 @@
 import passport from 'passport'
-import { getConfig } from '../../config'
+import { TWITTER_CONFIG, SLACK_CONFIG } from '../../config'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { getTwitterStrategy } from '../../services/auth/passportStrategies/superfaceTwitterStrategy'
 import { getSlackStrategy } from '../../services/auth/passportStrategies/slackStrategy'
 
 export default (app) => {
+  app.post(`/tenant/:tenantId/integration/query`, require('./integrationQuery').default)
   app.post(`/tenant/:tenantId/integration`, require('./integrationCreate').default)
   app.put(`/tenant/:tenantId/integration/:id`, require('./integrationUpdate').default)
   app.post(`/tenant/:tenantId/integration/import`, require('./integrationImport').default)
@@ -25,7 +26,7 @@ export default (app) => {
   app.get('/tenant/:tenantId/devto-validate', require('./helpers/devtoValidators').default)
   app.post('/tenant/:tenantId/devto-connect', require('./helpers/devtoCreateOrUpdate').default)
 
-  if (getConfig().AUTH_SOCIAL_TWITTER_CLIENT_ID) {
+  if (TWITTER_CONFIG.clientId) {
     passport.use(getTwitterStrategy())
 
     /**
@@ -82,7 +83,7 @@ export default (app) => {
    * Slack integration endpoints
    * These should be super similar to Twitter's, since we're also using passport.js
    */
-  if (getConfig().SLACK_CLIENT_ID) {
+  if (SLACK_CONFIG.clientId) {
     passport.use(getSlackStrategy())
 
     // path to start the OAuth flow

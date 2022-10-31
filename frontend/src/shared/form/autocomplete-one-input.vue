@@ -1,54 +1,55 @@
 <template>
   <el-select
+    ref="input"
     :disabled="disabled"
     :loading="loading"
     :remote-method="handleSearch"
-    :value="value"
+    :model-value="modelValue"
+    :clearable="true"
+    :default-first-option="true"
+    :filterable="true"
     :placeholder="placeholder || ''"
-    @change="onChange"
-    clearable
-    default-first-option
-    filterable
-    remote
-    :allow-create="allowCreate"
+    :remote="true"
     :reserve-keyword="false"
+    :allow-create="allowCreate"
     value-key="id"
     :class="inputClass"
+    @change="onChange"
   >
     <el-option
-      :key="initialOption.id"
-      :label="initialOption.label"
-      :value="initialOption"
-      v-if="initialOption"
-    ></el-option>
+      v-show="showCreateSuggestion"
+      :label="currentQuery"
+      :created="true"
+    >
+      <span class="prefix">{{ createPrefix }}</span>
+      <span>{{ currentQuery }}</span>
+    </el-option>
     <el-option
+      v-for="record in localOptions"
       :key="record.id"
       :label="record.label"
       :value="record"
-      v-for="record in dataSource"
-    ></el-option>
+    >
+    </el-option>
   </el-select>
 </template>
 
 <script>
-import debounce from 'lodash/debounce'
 import isString from 'lodash/isString'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
-  name: 'app-autocomplete-one-input',
+  name: 'AppAutocompleteOneInput',
 
   props: {
-    value: {
-      type: Object
-    },
-    placeholder: {
-      type: String
-    },
-    options: {
+    modelValue: {
       type: Array,
       default: () => []
+    },
+    placeholder: {
+      type: String,
+      default: null
     },
     fetchFn: {
       type: Function,
@@ -62,13 +63,17 @@ export default {
       type: Function,
       default: () => {}
     },
-    inMemoryFilter: {
-      type: Boolean,
-      default: true
-    },
     disabled: {
       type: Boolean,
       default: false
+    },
+    createIfNotFound: {
+      type: Boolean,
+      default: false
+    },
+    createPrefix: {
+      type: String,
+      default: 'Create'
     },
     inputClass: {
       type: String,
@@ -77,61 +82,54 @@ export default {
     allowCreate: {
       type: Boolean,
       default: false
+    },
+    options: {
+      type: Array,
+      default: () => []
     }
   },
-
+  emits: ['update:modelValue'],
   data() {
     return {
       loading: false,
-      fullDataSource: this.options ? this.options : [],
-      serverSideDataSource: [],
-      inMemoryDataSource: this.options ? this.options : [],
-      currentQuery: 'NOT_INITIALIZED',
-      debouncedSearch: () => {
-        return
-      }
+      localOptions: this.options ? this.options : [],
+      currentQuery: ''
     }
-  },
-
-  mounted() {
-    this.debouncedSearch = debounce(
-      this.handleSearch.bind(this),
-      300
-    )
   },
 
   computed: {
-    initialOption() {
-      if (
-        this.value &&
-        !this.dataSource
-          .map((item) => item.id)
-          .includes(this.value.id)
-      ) {
-        return this.value
-      }
-
-      return null
-    },
-
-    dataSource() {
-      if (this.inMemoryFilter) {
-        return this.inMemoryDataSource
-      }
-
-      return this.serverSideDataSource
+    showCreateSuggestion() {
+      return (
+        this.createIfNotFound &&
+        this.currentQuery !== '' &&
+        !this.localOptions.some(
+          (o) =>
+            o.label === this.currentQuery ||
+            o === this.currentQuery
+        )
+      )
     }
+  },
+
+  async created() {
+    await this.fetchAllResults()
   },
 
   methods: {
     async onChange(value) {
-      if (typeof value === 'string' && value) {
+      const query = this.$refs.input.query
+
+      if (
+        typeof query === 'string' &&
+        query !== '' &&
+        this.createIfNotFound
+      ) {
         // If value is a string, convert it to a db object
         const newItem = await this.createFn(value)
-        this.inMemoryDataSource.push(newItem)
-        this.$emit('input', newItem)
+        this.localOptions.push(newItem)
+        this.$emit('update:modelValue', newItem)
       } else {
-        this.$emit('input', value || null)
+        this.$emit('update:modelValue', value || null)
       }
     },
 
@@ -140,40 +138,22 @@ export default {
         return
       }
 
-      if (this.inMemoryFilter) {
-        return this.handleInMemorySearch(value)
-      }
-
-      return this.handleServerSearch(value)
-    },
-
-    async handleInMemorySearch(value) {
-      if (
-        !this.fullDataSource ||
-        !this.fullDataSource.length
-      ) {
-        await this.fetchAllResults()
-      }
-
-      this.inMemoryDataSource = this.fullDataSource.filter(
-        (item) =>
-          String(item.label || '')
-            .toLowerCase()
-            .includes(String(value || '').toLowerCase())
+      await this.handleServerSearch(value)
+      this.localOptions.filter((item) =>
+        String(item.label || '')
+          .toLowerCase()
+          .includes(String(value || '').toLowerCase())
       )
-
-      this.loading = false
     },
 
     async fetchAllResults() {
       this.loading = true
 
       try {
-        this.fullDataSource = await this.fetchFn()
+        this.localOptions = await this.fetchFn()
         this.loading = false
       } catch (error) {
         console.error(error)
-        this.fullDataSource = []
         this.loading = false
       }
     },
@@ -187,22 +167,16 @@ export default {
       this.loading = true
 
       try {
-        const serverSideDataSource = await this.fetchFn(
+        this.localOptions = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
 
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = serverSideDataSource
-          this.loading = false
-        }
+        this.loading = false
       } catch (error) {
         console.error(error)
-
-        if (this.currentQuery === value) {
-          this.serverSideDataSource = []
-          this.loading = false
-        }
+        this.localOptions = []
+        this.loading = false
       }
     }
   }

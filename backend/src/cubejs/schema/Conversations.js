@@ -2,22 +2,16 @@ cube(`Conversations`, {
   sql: `SELECT 
     con.*, 
     MAX(a.timestamp) AS "lastActive", 
+    MIN(a.timestamp) AS "firstActivityTime",
     a.platform AS platform, 
-    MAX(
-      CASE WHEN (a."crowdInfo" ->> 'thread') IS NOT NULL 
-           AND (a."crowdInfo" ->> 'thread') != 'false' 
-           AND a.platform = 'discord' 
-      THEN null 
-      WHEN (a."crowdInfo" ->> 'channel') IS NOT NULL THEN a."crowdInfo" ->> 'channel' 
-      WHEN (a."crowdInfo" ->> 'repo') IS NOT NULL THEN a."crowdInfo" ->> 'repo' ELSE NULL 
-      END
-    ) AS category 
+    a.channel AS category 
   FROM 
     conversations con 
     LEFT JOIN activities a ON con.id = a."conversationId" 
   GROUP BY 
     con.id, 
-    a.platform`,
+    a.platform,
+    a.channel`,
 
   joins: {
     Activities: {
@@ -93,6 +87,11 @@ cube(`Conversations`, {
 
     lastActive: {
       sql: `${CUBE}."lastActive"`,
+      type: `time`,
+    },
+
+    firstActivityTime: {
+      sql: `${CUBE}."firstActivityTime"`,
       type: `time`,
     },
   },

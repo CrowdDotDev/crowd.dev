@@ -1,13 +1,36 @@
 <template>
-  <form>
+  <el-drawer
+    v-model="visible"
+    :close-on-click-modal="false"
+    :show-close="false"
+    size="600px"
+    custom-class="widget-cube-builder"
+  >
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-medium text-gray-1000">
+          Edit widget
+        </h2>
+
+        <button
+          type="button"
+          class="btn btn--transparent btn--md w-10"
+          @click="visible = false"
+        >
+          <i
+            class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
+          ></i>
+        </button>
+      </div>
+    </template>
     <query-builder
       style="width: 100%"
-      :cubejsApi="cubejsApi"
-      :initialVizState="vizState"
+      :cubejs-api="cubejsApi"
+      :query="initialQuery"
+      :initial-chart-type="initialChartType"
     >
       <template
         #builder="{
-          validatedQuery,
           chartType,
           updateChartType,
           measures,
@@ -24,27 +47,39 @@
           limit,
           setLimit,
           orderMembers,
-          setOrder,
           updateOrder,
           isQueryPresent
         }"
       >
-        <div>
-          <div class="text-base font-semibold mb-4">
-            Set up your widget
-          </div>
-          <div class="flex flex-wrap -mx-3 -my-2">
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <label class="block leading-none mb-1"
-                >Title</label
+        <SyncModel
+          v-model:chart-type="model.settings.chartType"
+          :chart-type="chartType"
+        />
+        <div class="overflow-auto flex-grow flex flex-col">
+          <div class="p-6">
+            <div class="w-full mb-6">
+              <label
+                class="block text-xs leading-none font-semibold mb-1"
+                >Name
+                <span class="text-brand-500 ml-0.5"
+                  >*</span
+                ></label
               >
               <el-input
-                type="text"
                 v-model="model.title"
+                type="text"
                 placeholder="Most active contributors"
               />
             </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
+
+            <div class="w-full mb-6">
+              <ChartType
+                v-model="model.settings.chartType"
+                :chart-type="chartType"
+                :update-chart-type="updateChartType"
+              ></ChartType>
+            </div>
+            <div class="w-full mb-6">
               <MeasureSelect
                 :translated-options="translatedOptions"
                 :measures="measures"
@@ -52,179 +87,176 @@
                 :set-measures="setMeasures"
               />
             </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <DimensionSelect
-                :translated-options="translatedOptions"
-                :measures="measures"
-                :availableDimensions="availableDimensions"
-                :dimensions="dimensions"
-                :set-dimensions="setDimensions"
-              />
-            </div>
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <TimeDimensionSelect
-                :measures="measures"
-                :availableTimeDimensions="
-                  availableTimeDimensions
-                "
-                :timeDimensions="timeDimensions"
+
+            <div class="w-full mb-6">
+              <DateRangeSelect
+                :time-dimensions="timeDimensions"
                 @change="setTimeDimensions"
               />
             </div>
 
-            <div class="px-3 py-2 w-full lg:w-1/3">
+            <div class="w-full mb-6">
+              <TimeDimensionSelect
+                :measures="measures"
+                :available-time-dimensions="
+                  availableTimeDimensions
+                "
+                :time-dimensions="timeDimensions"
+                @change="setTimeDimensions"
+              />
+            </div>
+
+            <div class="w-full mb-6">
+              <DimensionSelect
+                :translated-options="translatedOptions"
+                :measures="measures"
+                :available-dimensions="availableDimensions"
+                :dimensions="dimensions"
+                :set-dimensions="setDimensions"
+              />
+            </div>
+
+            <div class="w-full mb-6">
               <GranularitySelect
                 :time-dimensions="timeDimensions"
                 :set-time-dimensions="setTimeDimensions"
               />
             </div>
 
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <DateRangeSelect
-                :timeDimensions="timeDimensions"
-                @change="setTimeDimensions"
-              />
-            </div>
-
-            <div class="px-3 py-2 w-full lg:w-1/3">
-              <label class="block leading-none mb-1"
-                >Chart Type</label
-              >
-              <el-select
-                :value="chartType"
-                :items="chartTypes"
-                clearable
-                filterable
-                @change="updateChartType"
-              >
-                <el-option
-                  v-for="item in chartTypes"
-                  :key="item"
-                  :value="item"
-                  >{{ item }}</el-option
-                >
-              </el-select>
-            </div>
-            <div
-              class="px-3 py-2 w-full lg:w-1/3 flex items-center"
-            >
-              <span
-                class="inline-flex items-center leading-none mt-5 text-secondary-900 cursor-pointer hover:opacity-80"
-                @click="
-                  additionalSettingsVisible = !additionalSettingsVisible
-                "
+            <div class="additional-settings">
+              <button
+                type="button"
+                class="inline-flex items-center leading-none mt-2 text-xs text-gray-600 font cursor-pointer hover:text-gray-900"
+                @click="handleAdditionalSettingsClick"
               >
                 <i
-                  class="mr-1"
+                  class="mr-1 text-base"
                   :class="
                     additionalSettingsVisible
                       ? 'ri-arrow-up-s-line'
                       : 'ri-arrow-down-s-line'
                   "
                 ></i>
-                {{
-                  additionalSettingsVisible
-                    ? 'Hide'
-                    : 'Show'
-                }}
-                Additional Settings</span
+                Additional settings
+              </button>
+              <div
+                v-if="additionalSettingsVisible"
+                class="my-4"
               >
+                <Limit
+                  :limit="Number(limit)"
+                  :disabled="!isQueryPresent"
+                  class="px-3 py-2 w-full"
+                  @update="setLimit"
+                />
+                <Order
+                  :order-members="orderMembers"
+                  :disabled="!isQueryPresent"
+                  class="px-3 py-2 w-full"
+                  @order-change="updateOrder.set"
+                  @reorder="updateOrder.reorder"
+                />
+              </div>
+            </div>
+            <hr class="mt-6 mb-4" />
+            <div>
+              <FilterComponent
+                :measures="measures"
+                :dimensions="dimensions"
+                :filters="filters"
+                :set-filters="setFilters"
+                :available-dimensions="
+                  translatedOptions(availableDimensions)
+                "
+              ></FilterComponent>
             </div>
           </div>
-          <div
-            class="additional-settings my-4 flex flex-wrap"
-            v-if="additionalSettingsVisible"
-          >
-            <Limit
-              :limit="Number(limit)"
-              :disabled="!isQueryPresent"
-              @update="setLimit"
-              class="px-3 py-2 w-full lg:w-1/2"
-            />
-            <Order
-              :orderMembers="orderMembers"
-              :disabled="!isQueryPresent"
-              @orderChange="updateOrder.set"
-              @reorder="updateOrder.reorder"
-              class="px-3 py-2 w-full lg:w-1/2"
-            />
-          </div>
-          <hr class="mt-6 mb-4" />
-          <div>
-            <FilterComponent
-              :measures="measures"
-              :dimensions="dimensions"
-              :filters="filters"
-              :setFilters="setFilters"
-              :available-dimensions="
-                translatedOptions(availableDimensions)
-              "
-            ></FilterComponent>
-          </div>
-        </div>
-        <hr class="my-6" />
-        <div class="text-base font-semibold mb-4">
-          Widget preview
         </div>
       </template>
-      <template
-        #default="{
-          resultSet,
-          isQueryPresent,
-          validatedQuery,
-          limit,
-          chartType
-        }"
-      >
-        <div v-if="!isQueryPresent" class="">
-          Please fill in all the required fields.
-        </div>
-        <div v-else>
-          <app-widget-cube
-            :widget="
-              buildWidgetPreview({
-                chartType,
-                query: validatedQuery
-              })
-            "
-            :result-set="resultSet"
-          ></app-widget-cube>
-        </div>
-        <div class="flex items-center justify-end mt-12">
-          <el-button
-            @click="
-              handleSubmit({
-                chartType,
-                query: validatedQuery
-              })
-            "
-            icon="ri-lg ri-check-line"
-            class="btn btn--primary mr-2"
+      <template #default="{ resultSet, validatedQuery }">
+        <SyncModel
+          v-model:model-query="model.settings.query"
+          :query="validatedQuery"
+        ></SyncModel>
+        <div class="border-t border-gray-200">
+          <div
+            class="preview-collapse"
+            @click="handlePreviewChange"
           >
-            Save Widget
-          </el-button>
-          <el-button
-            type="button"
-            icon="ri-lg ri-close-line"
-            class="btn btn--secondary"
-            @click="$emit('close')"
+            <i
+              :class="
+                previewExpanded
+                  ? 'ri-arrow-down-s-line'
+                  : 'ri-arrow-up-s-line'
+              "
+              class="text-base mr-1"
+            ></i>
+            Preview
+          </div>
+          <div
+            v-show="previewExpanded"
+            class="preview px-4"
           >
-            <app-i18n code="common.cancel"></app-i18n>
-          </el-button>
+            <app-widget-cube
+              v-if="
+                model.settings.chartType &&
+                model.settings.query
+              "
+              :widget="
+                mapWidget(
+                  buildWidgetPreview({
+                    chartType: model.settings.chartType,
+                    query: model.settings.query
+                  }),
+                  resultSet
+                )
+              "
+              :result-set="resultSet"
+              :chart-options="
+                chartOptions(
+                  buildWidgetPreview({
+                    chartType: model.settings.chartType,
+                    query: model.settings.query
+                  }),
+                  resultSet
+                )
+              "
+            ></app-widget-cube>
+          </div>
         </div>
       </template>
     </query-builder>
-  </form>
+    <template #footer>
+      <div class="relative">
+        <div class="flex items-center justify-end">
+          <el-button
+            class="btn btn--bordered btn--md mr-3"
+            @click="visible = false"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+          <el-button
+            class="btn btn--primary btn--md"
+            @click="handleSubmit"
+          >
+            {{ widget.id ? 'Update' : 'Create' }}
+          </el-button>
+        </div>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <script>
-import { QueryBuilder } from '@cubejs-client/vue'
+import { QueryBuilder } from '@cubejs-client/vue3'
 
 import WidgetCube from '@/modules/widget/components/cube/widget-cube'
 import { mapGetters, mapActions } from 'vuex'
 import { i18n } from '@/i18n'
 
+import SyncModel from './_query_builder/SyncModel'
 import MeasureSelect from './_query_builder/MeasureSelect'
+import ChartType from './_query_builder/ChartType'
 import DimensionSelect from './_query_builder/DimensionSelect'
 import GranularitySelect from './_query_builder/GranularitySelect'
 import TimeDimensionSelect from './_query_builder/TimeDimensionSelect'
@@ -234,19 +266,18 @@ import Order from './_query_builder/Order'
 import Limit from './_query_builder/Limit'
 
 import FilterComponent from '@/modules/widget/components/cube/_query_builder/FilterComponent.vue'
+import {
+  chartOptions,
+  mapWidget
+} from '@/modules/report/report-charts'
 
 export default {
-  name: 'widget-cube-builder',
-
-  props: {
-    value: {
-      type: Object,
-      default: () => {}
-    }
-  },
+  name: 'WidgetCubeBuilder',
 
   components: {
     QueryBuilder,
+    SyncModel,
+    ChartType,
     MeasureSelect,
     DimensionSelect,
     TimeDimensionSelect,
@@ -258,9 +289,23 @@ export default {
     'app-widget-cube': WidgetCube
   },
 
+  props: {
+    drawer: {
+      type: Boolean,
+      default: false
+    },
+    widget: {
+      type: Object,
+      default: () => {}
+    }
+  },
+  emits: ['update:widget', 'update:drawer', 'submit'],
+
   data() {
-    const query = this.value.settings
-      ? this.value.settings.query
+    const initialQuery = this.widget.settings?.query
+      ? JSON.parse(
+          JSON.stringify(this.widget.settings.query)
+        )
       : {
           measures: ['Activities.count'],
           timeDimensions: [
@@ -272,54 +317,65 @@ export default {
           ]
         }
 
+    const initialCharType =
+      this.widget.settings?.chartType || 'line'
     return {
-      model: JSON.parse(JSON.stringify(this.value)),
-      chartTypes: [
-        'line',
-        'area',
-        'bar',
-        'pie',
-        'table',
-        'number'
-      ],
-      vizState: {
-        query,
-        chartType: this.value.settings
-          ? this.value.settings.chartType
-          : 'line'
+      mapWidget,
+      chartOptions,
+      model: {
+        ...this.widget,
+        settings: {
+          chartType: initialCharType,
+          query: initialQuery
+        }
       },
-      additionalSettingsVisible: false
+      initialQuery: initialQuery,
+      initialChartType: initialCharType,
+      additionalSettingsVisible: false,
+      previewExpanded: false
     }
   },
 
   computed: {
     ...mapGetters({
       cubejsApi: 'widget/cubejsApi'
-    })
+    }),
+    visible: {
+      get() {
+        return this.drawer
+      },
+      set(value) {
+        this.$emit('update:drawer', value)
+      }
+    }
+  },
+
+  async created() {
+    if (this.cubejsApi === null) {
+      await this.getCubeToken()
+    }
   },
 
   methods: {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
-    handleSubmit(query) {
-      const widgetEl = this.$el.querySelector(
-        '.widget-cube'
+    handleSubmit() {
+      const widgetEl = document.querySelector(
+        '.widget-cube-builder .widget-cube'
       )
-      const widget = {
-        id: this.value.id ? this.value.id : undefined,
+      const objToSubmit = {
+        id: this.widget.id ? this.widget.id : undefined,
         title: this.model.title,
-        type: this.value.type,
-        reportId: this.value.reportId,
-        settings: Object.assign(
-          {},
-          this.value.settings,
-          query
+        type: this.widget.type,
+        reportId: this.widget.reportId,
+        settings: JSON.parse(
+          JSON.stringify(this.model.settings)
         )
       }
 
-      if (!widget.settings.layout) {
-        widget.settings.layout = {}
+      if (!objToSubmit.settings.layout) {
+        objToSubmit.settings.layout = {}
       }
 
       // Compute widget's height based on position of the grid
@@ -327,9 +383,10 @@ export default {
         widgetEl.offsetHeight < 100
           ? widgetEl.offsetHeight / 18
           : (widgetEl.offsetHeight - 40) / 20
-      widget.settings.layout.h = Math.ceil(widgetHeight)
-      this.$emit('submit', widget)
-      this.$emit('close')
+      objToSubmit.settings.layout.h =
+        Math.ceil(widgetHeight)
+      this.$emit('submit', objToSubmit)
+      this.visible = false
     },
     buildWidgetPreview(settings) {
       return {
@@ -345,11 +402,13 @@ export default {
           label: i18n(`widget.cubejs.${i.name}`)
         }
       })
-    }
-  },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
+    },
+    handleAdditionalSettingsClick() {
+      this.additionalSettingsVisible =
+        !this.additionalSettingsVisible
+    },
+    handlePreviewChange() {
+      this.previewExpanded = !this.previewExpanded
     }
   }
 }
@@ -357,9 +416,32 @@ export default {
 
 <style lang="scss">
 .additional-settings {
-  @apply p-2;
-  border: 1px solid #ddd;
+  @apply p-2 border border-gray-200;
   border-radius: 4px;
-  background-color: #f0f2f5;
+}
+
+.widget-cube-builder {
+  .el-drawer__body {
+    @apply p-0;
+    & > div {
+      @apply h-full flex flex-1 flex-col;
+    }
+
+    .preview-collapse {
+      @apply px-6 uppercase text-gray-600 text-2xs cursor-pointer flex items-center h-12;
+      &:hover {
+        @apply text-gray-900;
+      }
+    }
+    .preview {
+      max-height: 40vh;
+    }
+    .el-collapse-item__content {
+      @apply pb-0;
+    }
+    .widget.panel {
+      @apply mb-0 shadow-none;
+    }
+  }
 }
 </style>

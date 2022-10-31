@@ -1,31 +1,34 @@
 <template>
   <div class="app-custom-attribute-input">
-    <el-form-item
+    <div
       v-for="(attribute, index) in attributes"
       :key="index"
+      class="flex -mx-2"
     >
-      <el-input
-        placeholder="Name"
-        v-model="attribute.name"
-        class="flex-grow block mx-2"
-      >
-      </el-input>
-      <el-input
-        placeholder="Value"
-        v-model="attribute.value"
-        class="flex-grow block mx-2"
-      >
-      </el-input>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="attribute.name"
+          placeholder="Name"
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item class="flex flex-grow mx-2">
+        <el-input
+          v-model="attribute.value"
+          placeholder="Value"
+        >
+        </el-input>
+      </el-form-item>
       <el-tooltip content="Click to delete" placement="top">
         <button
-          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8"
+          class="text-black p-0 border-none bg-transparent flex items-center justify-center w-8 h-10"
           type="button"
           @click="deleteAttribute(index)"
         >
           <i class="ri-delete-bin-line ri-lg"></i>
         </button>
       </el-tooltip>
-    </el-form-item>
+    </div>
     <button
       class="btn btn--link"
       type="button"
@@ -38,15 +41,17 @@
 
 <script>
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
-  name: 'app-custom-attribute-input',
+  name: 'AppCustomAttributeInput',
   props: {
     value: {
       type: Object,
       default: () => {}
     }
   },
+  emits: ['update:modelValue'],
   data() {
     return {
       attributes: this.value
@@ -63,7 +68,7 @@ export default {
     attributes: {
       handler(newValue) {
         return this.$emit(
-          'input',
+          'update:modelValue',
           newValue.reduce((acc, item) => {
             if (
               item.name &&
@@ -86,15 +91,12 @@ export default {
     },
     async deleteAttribute(index) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         this.attributes.splice(index, 1)
       } catch (error) {
@@ -104,19 +106,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.app-custom-attribute-input {
-  .el-form-item {
-    &.el-form-item {
-      @apply mb-2;
-    }
-    &__content {
-      @apply flex items-center -mx-2;
-      & > .el-input {
-        @apply w-auto;
-      }
-    }
-  }
-}
-</style>

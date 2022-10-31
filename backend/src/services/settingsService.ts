@@ -9,13 +9,22 @@ class SettingsService {
   }
 
   static async save(data, options) {
-    const transaction = await SequelizeRepository.createTransaction(options.database)
+    const transaction = await SequelizeRepository.createTransaction(options)
 
     const settings = await SettingsRepository.save(data, options)
 
     await SequelizeRepository.commitTransaction(transaction)
 
     return settings
+  }
+
+  static async platformPriorityArrayExists(options) {
+    const settings = await SettingsRepository.findOrCreateDefault(DEFAULT_SETTINGS, options)
+    return (
+      settings.attributeSettings &&
+      settings.attributeSettings.priorities &&
+      settings.attributeSettings.priorities.length > 0
+    )
   }
 }
 

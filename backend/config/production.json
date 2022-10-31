@@ -1,0 +1,12 @@
+{
+  "twitter": {
+    "maxRetrospectInSeconds": 86400,
+    "globalLimit": 10000
+  },
+  "discord": {
+    "maxRetrospectInSeconds": 86400
+  },
+  "slack": {
+    "maxRetrospectInSeconds": 86400
+  }
+}

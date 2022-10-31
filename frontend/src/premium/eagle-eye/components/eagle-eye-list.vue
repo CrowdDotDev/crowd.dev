@@ -1,84 +1,90 @@
 <template>
-  <div class="pt-2 pb-6">
-    <div class="eagle-eye-list">
-      <div v-if="count > 0">
-        <transition-group name="fade" mode="out-in">
-          <app-eagle-eye-list-item
-            v-for="record in rows"
-            :record="record"
-            :key="record.id"
-          />
-        </transition-group>
-      </div>
+  <div class="eagle-eye-list">
+    <div v-if="count > 0">
+      <transition-group name="fade" mode="out-in">
+        <app-eagle-eye-list-item
+          v-for="record in rows"
+          :key="record.id"
+          :record="record"
+        />
+      </transition-group>
       <div
-        v-else
-        class="flex items-center justify-center flex-col text-gray-600 pt-4"
+        v-if="rows.length && isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
       >
-        <i class="ri-3x ri-folder-3-line"></i>
-        <span class="text-sm"
-          >{{ computedEmptyStateCopy }}
-        </span>
-      </div>
-      <div
-        class="el-pagination-wrapper"
-        v-if="count > 0 && count > limit"
-      >
-        <el-pagination
-          :current-page="pagination.currentPage || 1"
-          :disabled="loading"
-          :layout="paginationLayout"
-          :total="count"
-          :page-sizes="[20, 50, 100, 200]"
-          @current-change="doChangePaginationCurrentPage"
-          @size-change="doChangePaginationPageSize"
-        ></el-pagination>
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner h-16 !relative !min-h-5"
+        ></div>
+        <el-button
+          v-else
+          class="btn btn-link btn-link--primary"
+          @click="handleLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
       </div>
     </div>
+
+    <app-empty-state-cta
+      v-else
+      icon="ri-folder-3-line"
+      :title="computedEmptyStateCopy"
+    ></app-empty-state-cta>
   </div>
 </template>
 
 <script>
-import AppEagleEyeListItem from './eagle-eye-list-item'
-import { mapGetters, mapActions } from 'vuex'
-
 export default {
-  name: 'app-eagle-eye-list',
-  components: {
-    AppEagleEyeListItem
-  },
-  computed: {
-    ...mapGetters({
-      rows: 'eagleEye/activeTabRows',
-      loading: 'eagleEye/loading',
-      count: 'eagleEye/count',
-      filter: 'eagleEye/filter',
-      limit: 'eagleEye/limit',
-      activeTab: 'eagleEye/activeTab',
-      pagination: 'eagleEye/pagination',
-      paginationLayout: 'layout/paginationLayout'
-    }),
-    computedEmptyStateCopy() {
-      if (
-        this.filter.keywords &&
-        this.filter.keywords.length > 0
-      ) {
-        return 'No posts found based on your search criteria'
-      } else if (this.activeTab === 'rejected') {
-        return 'No excluded posts'
-      } else if (this.activeTab === 'engaged') {
-        return 'No engaged posts'
-      } else {
-        return 'No posts found'
-      }
-    }
-  },
-  methods: {
-    ...mapActions({
-      doChangePaginationCurrentPage:
-        'eagleEye/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'eagleEye/doChangePaginationPageSize'
-    })
+  name: 'AppEagleEyeList'
+}
+</script>
+
+<script setup>
+import AppEagleEyeListItem from './eagle-eye-list-item'
+import { useStore } from 'vuex'
+import { computed } from 'vue'
+
+const store = useStore()
+
+const count = computed(() => store.state.eagleEye.count)
+const rows = computed(() => store.getters['eagleEye/rows'])
+const loading = computed(
+  () => store.state.eagleEye.list.loading
+)
+const pagination = computed(
+  () => store.getters['activity/pagination']
+)
+const isLoadMoreVisible = computed(() => {
+  return (
+    pagination.value.currentPage *
+      pagination.value.pageSize <
+    count.value
+  )
+})
+const computedEmptyStateCopy = computed(() => {
+  if (
+    store.state.eagleEye.filter.keywords &&
+    store.state.eagleEye.filter.keywords.length > 0
+  ) {
+    return 'No posts found based on your search criteria'
+  } else if (
+    store.getters['eagleEye/activeView'].id === 'excluded'
+  ) {
+    return 'No excluded posts'
+  } else if (
+    store.getters['eagleEye/activeView'].id === 'engaged'
+  ) {
+    return 'No engaged posts'
+  } else {
+    return 'No posts found'
   }
+})
+
+const handleLoadMore = async () => {
+  await store.dispatch('eagleEye/doFetch', {
+    keepPagination: true
+  })
 }
 </script>

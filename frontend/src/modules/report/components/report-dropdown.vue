@@ -1,54 +1,70 @@
 <template>
   <div v-if="isReadOnly">
     <el-button
-      icon="ri-lg ri-clipboard-line"
       class="btn btn--secondary"
       @click="copyToClipboard(report.id)"
     >
+      <i class="ri-lg ri-clipboard-line mr-1" />
       Copy Public Url
     </el-button>
   </div>
   <div v-else>
-    <el-dropdown trigger="click" @command="handleCommand">
-      <span class="el-dropdown-link">
-        <i class="text-xl ri-more-line"></i>
-      </span>
-      <el-dropdown-menu slot="dropdown">
+    <el-dropdown
+      trigger="click"
+      placement="bottom-end"
+      @command="handleCommand"
+    >
+      <button
+        class="el-dropdown-link btn p-1.5 rounder-md hover:bg-gray-200 text-gray-600"
+        type="button"
+        @click.stop
+      >
+        <i class="text-xl ri-more-fill"></i>
+      </button>
+      <template #dropdown>
         <el-dropdown-item
-          icon="ri-link"
+          v-if="report.public && showViewReportPublic"
           :command="{
             action: 'reportPublicUrl',
             report: report
           }"
-          v-if="report.public"
-          >Copy Public Url</el-dropdown-item
+          ><i class="ri-link mr-1"></i>Copy Public
+          Url</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-eye-line"
+          v-if="showViewReport"
           :command="{
             action: 'reportView',
             report: report
           }"
-          v-if="showViewReport"
-          >View Report</el-dropdown-item
+          ><i class="ri-eye-line mr-1" />View
+          Report</el-dropdown-item
         >
         <el-dropdown-item
-          icon="ri-pencil-line"
+          v-if="showEditReport"
           :command="{
             action: 'reportEdit',
             report: report
           }"
-          >Edit Report</el-dropdown-item
+          ><i class="ri-pencil-line mr-1" />Edit
+          Report</el-dropdown-item
         >
+        <el-divider
+          v-if="showEditReport || showViewReportPublic"
+          class="border-gray-200 !my-2"
+        />
         <el-dropdown-item
-          icon="ri-delete-bin-line"
           :command="{
             action: 'reportDelete',
             report: report
           }"
-          >Delete Report</el-dropdown-item
+          ><i
+            class="ri-delete-bin-line text-base mr-2 text-red-500"
+          /><span class="text-xs text-red-500"
+            >Delete Report</span
+          ></el-dropdown-item
         >
-      </el-dropdown-menu>
+      </template>
     </el-dropdown>
   </div>
 </template>
@@ -59,15 +75,24 @@ import { mapActions, mapGetters } from 'vuex'
 import Message from '@/shared/message/message'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
-  name: 'app-report-dropdown',
+  name: 'AppReportDropdown',
   props: {
     report: {
       type: Object,
       default: () => {}
     },
     showViewReport: {
+      type: Boolean,
+      default: true
+    },
+    showEditReport: {
+      type: Boolean,
+      default: true
+    },
+    showViewReportPublic: {
       type: Boolean,
       default: true
     }
@@ -92,15 +117,12 @@ export default {
     }),
     async doDestroyWithConfirm(id) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         return this.doDestroy(id)
       } catch (error) {

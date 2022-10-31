@@ -119,8 +119,8 @@
                   class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
                 >
                   <div>
-                    <p
-                      v-html="activity.body"
+                    <div
+                      v-html="markdown(activity.body)"
                       class="myem text-sm"
                       :style="colors('color:text')"
                     />
@@ -188,17 +188,12 @@
 </template>
 
 <script>
-import {
-  FireIcon,
-  ChevronRightIcon,
-  ReplyIcon,
-  ExternalLinkIcon,
-  EyeIcon,
-} from "@heroicons/vue/solid";
+import Showdown from 'showdown'
+import {ChevronRightIcon, ExternalLinkIcon, EyeIcon, FireIcon, ReplyIcon,} from "@heroicons/vue/solid";
 import Avatar from "./avatar.vue";
 import PlatformIcon from "./platformIcon.vue";
 import ConversationWrapper from "./conversationWrapper.vue";
-import { defineComponent } from "@vue/composition-api";
+import {defineComponent} from "@vue/composition-api";
 import makeStyles from "~~/helpers/makeStyles";
 
 export default defineComponent({
@@ -254,6 +249,10 @@ export default defineComponent({
         ? this.conversation.activities.slice(0, this.maxContributors)
         : this.conversation.activities;
     },
+    markdown(body) {
+      const converter = new Showdown.Converter({ simpleLineBreaks: true })
+      return converter.makeHtml(body)
+    }
   },
 
   computed: {

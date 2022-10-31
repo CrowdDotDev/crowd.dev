@@ -1,14 +1,18 @@
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
-import CommunityMemberService from '../communityMemberService'
+import MemberService from '../memberService'
 import ActivityService from '../activityService'
-import CommunityMemberRepository from '../../database/repositories/communityMemberRepository'
+import MemberRepository from '../../database/repositories/memberRepository'
 import ActivityRepository from '../../database/repositories/activityRepository'
 import ConversationService from '../conversationService'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
 import SearchEngineTestUtils from '../../search-engine/utils/searchEngineTestUtils'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import ConversationSettingsRepository from '../../database/repositories/conversationSettingsRepository'
+import { MemberAttributeName } from '../../database/attributes/member/enums'
+import MemberAttributeSettingsService from '../memberAttributeSettingsService'
+import { GithubMemberAttributes } from '../../database/attributes/member/github'
+import { TwitterMemberAttributes } from '../../database/attributes/member/twitter'
 
 const db = null
 const searchEngine = null
@@ -26,10 +30,9 @@ describe('ActivityService tests', () => {
   describe('upsert method', () => {
     it('Should create non existent activity with no parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -39,13 +42,23 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        attributes: {
           replies: 12,
-          body: 'Here',
         },
         sourceId: '#sourceId',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
       }
 
@@ -54,17 +67,17 @@ describe('ActivityService tests', () => {
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated.createdAt = activityCreated.createdAt.toISOString().split('T')[0]
       activityCreated.updatedAt = activityCreated.updatedAt.toISOString().split('T')[0]
-      delete activityCreated.communityMember
+      delete activityCreated.member
 
       const expectedActivityCreated = {
         id: activityCreated.id,
-        crowdInfo: activity.crowdInfo,
+        attributes: activity.attributes,
         type: 'activity',
         timestamp: new Date('2020-05-27T15:13:30Z'),
         platform: PlatformType.GITHUB,
         isKeyAction: true,
         score: 1,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -72,7 +85,19 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
+        channel: null,
+        body: 'Body',
+        title: 'Title',
+        url: 'URL',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        tasks: [],
         parent: null,
         parentId: null,
         conversationId: null,
@@ -85,10 +110,9 @@ describe('ActivityService tests', () => {
 
     it('Should create non existent activity with parent', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -97,11 +121,9 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         platform: 'stackoverflow',
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -113,11 +135,9 @@ describe('ActivityService tests', () => {
         type: 'answer',
         timestamp: '2020-05-28T15:13:30Z',
         platform: 'stackoverflow',
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: activityCreated1.sourceId,
@@ -132,7 +152,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       ).findAndCountAll({ slug: 'what-is-love' })
 
-      delete activityCreated2.communityMember
+      delete activityCreated2.member
       delete activityCreated2.parent
       // Trim the hour part from timestamp so we can atleast test if the day is correct for createdAt and joinedAt
       activityCreated2.createdAt = activityCreated2.createdAt.toISOString().split('T')[0]
@@ -140,13 +160,26 @@ describe('ActivityService tests', () => {
 
       const expectedActivityCreated = {
         id: activityCreated2.id,
-        crowdInfo: activity2.crowdInfo,
+        body: activity2.body,
         type: activity2.type,
+        channel: null,
+        attributes: {},
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          label: 'positive',
+          sentiment: 0.42,
+        },
+        url: null,
+        title: null,
         timestamp: new Date(activity2.timestamp),
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
-        communityMemberId: memberCreated.id,
+        memberId: memberCreated.id,
+        tasks: [],
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -154,7 +187,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityCreated1.id,
         sourceParentId: activity1.sourceId,
         sourceId: activity2.sourceId,
@@ -166,10 +198,9 @@ describe('ActivityService tests', () => {
 
     it('Should update already existing activity succesfully', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -178,10 +209,11 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
+        body: 'What is love?',
+        title: 'Song',
         platform: 'stackoverflow',
-        crowdInfo: {
-          question: 'What is love?',
+        attributes: {
           nested_1: {
             attribute_1: '1',
             nested_2: {
@@ -200,10 +232,10 @@ describe('ActivityService tests', () => {
       const activity2 = {
         type: 'question',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         platform: 'stackoverflow',
-        crowdInfo: {
-          question: 'Test',
+        body: 'Test',
+        attributes: {
           nested_1: {
             attribute_1: '1',
             nested_2: {
@@ -227,34 +259,47 @@ describe('ActivityService tests', () => {
       activityUpserted.createdAt = activityUpserted.createdAt.toISOString().split('T')[0]
       activityUpserted.updatedAt = activityUpserted.updatedAt.toISOString().split('T')[0]
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityUpserted.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityUpserted.member
       delete activityUpserted.parent
 
-      const crowdInfoExpected = {
-        ...activity1.crowdInfo,
-        ...activity2.crowdInfo,
+      const attributesExpected = {
+        ...activity1.attributes,
+        ...activity2.attributes,
       }
 
-      crowdInfoExpected.nested_1.nested_2.attribute_array = [1, 2, 3, 4, 5]
+      attributesExpected.nested_1.nested_2.attribute_array = [1, 2, 3, 4, 5]
 
       const expectedActivityCreated = {
         id: activityCreated1.id,
-        crowdInfo: crowdInfoExpected,
+        attributes: attributesExpected,
         type: activity2.type,
         timestamp: new Date(activity2.timestamp),
         platform: activity2.platform,
         isKeyAction: activity2.isKeyAction,
         score: activity2.score,
-        communityMemberId: memberCreated.id,
+
+        title: activity1.title,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          label: 'positive',
+          sentiment: 0.42,
+        },
+        url: null,
+        body: activity2.body,
+        channel: null,
+        memberId: memberCreated.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         sourceParentId: null,
         sourceId: activity1.sourceId,
@@ -266,21 +311,19 @@ describe('ActivityService tests', () => {
 
     it('Should create various conversations successfully with given parent-child relationships of activities [ascending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
       const member1Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test',
-          discord: 'test',
+          [PlatformType.DISCORD]: 'test',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
       })
       const member2Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test2',
-          discord: 'test2',
+          [PlatformType.DISCORD]: 'test2',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -291,11 +334,9 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: member1Created.id,
+        member: member1Created.id,
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -307,11 +348,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:14:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: activityCreated1.sourceId,
@@ -323,11 +362,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:15:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Dont hurt me',
-        },
+        body: 'Dont hurt me',
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
         sourceParentId: activityCreated2.sourceId,
@@ -339,11 +376,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:16:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'No more',
-        },
+        body: 'No more',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
         sourceParentId: activityCreated3.sourceId,
@@ -351,7 +386,7 @@ describe('ActivityService tests', () => {
 
       const activityCreated4 = await activityService.upsert(activity4)
 
-      // Get the conversation using slug (generated using the chain starter activity crowdInfo.body)
+      // Get the conversation using slug (generated using the chain starter activity attributes.body)
       const conversationCreated = (
         await new ConversationService(mockIRepositoryOptions).findAndCountAll({
           slug: 'what-is-love',
@@ -374,11 +409,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:17:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna give you up',
-        },
+        body: 'Never gonna give you up',
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
       }
@@ -388,11 +421,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:18:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna let you down',
-        },
+        body: 'Never gonna let you down',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
         sourceParentId: activityCreated5.sourceId,
@@ -403,11 +434,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:19:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna run around and desert you',
-        },
+        body: 'Never gonna run around and desert you',
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
         sourceParentId: activityCreated5.sourceId,
@@ -428,15 +457,51 @@ describe('ActivityService tests', () => {
       expect(activityCreated7.conversationId).toStrictEqual(conversationCreated2.id)
     })
 
+    it('Should keep old timestamp', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberService = new MemberService(mockIRepositoryOptions)
+      const activityService = new ActivityService(mockIRepositoryOptions)
+
+      const cm = await memberService.upsert({
+        username: {
+          [PlatformType.DISCORD]: 'test',
+        },
+        platform: PlatformType.DISCORD,
+      })
+
+      const activity1 = {
+        type: 'message',
+        timestamp: '2020-05-27T15:13:30Z',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+      }
+
+      const activityCreated1 = await activityService.upsert(activity1)
+
+      const activity2 = {
+        type: 'message',
+        timestamp: '2022-05-27T15:13:30Z',
+        member: cm.id,
+        platform: PlatformType.DISCORD,
+        sourceId: 'sourceId#1',
+        body: 'What is love?',
+      }
+
+      const activityCreated2 = await activityService.upsert(activity2)
+
+      expect(activityCreated2.timestamp).toStrictEqual(activityCreated1.timestamp)
+      expect(activityCreated2.body).toBe(activity2.body)
+    })
+
     it('Should create various conversations successfully with given parent-child relationships of activities [descending timestamp order]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const memberService = new CommunityMemberService(mockIRepositoryOptions)
+      const memberService = new MemberService(mockIRepositoryOptions)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
       const member1Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test',
-          discord: 'test',
+          [PlatformType.DISCORD]: 'test',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -444,8 +509,7 @@ describe('ActivityService tests', () => {
 
       const member2Created = await memberService.upsert({
         username: {
-          crowdUsername: 'test2',
-          discord: 'test2',
+          [PlatformType.DISCORD]: 'test2',
         },
         platform: PlatformType.DISCORD,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -457,11 +521,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:16:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'No more',
-        },
+        body: 'No more',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#4',
         sourceParentId: 'sourceId#3',
@@ -473,11 +535,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:15:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Dont hurt me',
-        },
+        body: 'Dont hurt me',
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#3',
         sourceParentId: 'sourceId#2',
@@ -489,11 +549,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:14:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Baby dont hurt me',
-        },
+        body: 'Baby dont hurt me',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#2',
         sourceParentId: 'sourceId#1',
@@ -504,11 +562,9 @@ describe('ActivityService tests', () => {
       const activity1 = {
         type: 'message',
         timestamp: '2020-05-27T15:13:30Z',
-        communityMember: member1Created.id,
+        member: member1Created.id,
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'What is love?',
-        },
+        body: 'What is love?',
         isKeyAction: true,
         score: 1,
         sourceId: 'sourceId#1',
@@ -528,7 +584,7 @@ describe('ActivityService tests', () => {
       expect(activityCreated3.parentId).toBe(activityCreated2.id)
       expect(activityCreated2.parentId).toBe(activityCreated1.id)
 
-      // Get the conversation using slug (generated using the chain starter activity crowdInfo.body -last added activityCreated1-)
+      // Get the conversation using slug (generated using the chain starter activity attributes.body -last added activityCreated1-)
       const conversationCreated = (
         await new ConversationService(mockIRepositoryOptions).findAndCountAll({
           slug: 'what-is-love',
@@ -547,11 +603,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:18:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna let you down',
-        },
+        body: 'Never gonna let you down',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#6',
         sourceParentId: 'sourceId#5',
@@ -562,11 +616,10 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:19:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna run around and desert you',
-        },
+        body: 'Never gonna run around and desert you',
+
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#7',
         sourceParentId: 'sourceId#5',
@@ -577,11 +630,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:17:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'Never gonna give you up',
-        },
+        body: 'Never gonna give you up',
         isKeyAction: true,
-        communityMember: member1Created.id,
+        member: member1Created.id,
         score: 2,
         sourceId: 'sourceId#5',
       }
@@ -615,11 +666,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:21:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'additional reply to the reply chain',
-        },
+        body: 'additional reply to the reply chain',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#8',
         sourceParentId: 'sourceId#1',
@@ -635,11 +684,9 @@ describe('ActivityService tests', () => {
         type: 'message',
         timestamp: '2020-05-28T15:35:30Z',
         platform: PlatformType.DISCORD,
-        crowdInfo: {
-          body: 'additional message to the thread',
-        },
+        body: 'additional message to the thread',
         isKeyAction: true,
-        communityMember: member2Created.id,
+        member: member2Created.id,
         score: 2,
         sourceId: 'sourceId#9',
         sourceParentId: 'sourceId#5',
@@ -655,56 +702,60 @@ describe('ActivityService tests', () => {
   describe('createWithMember method', () => {
     it('Create an activity with given member [no parent activity]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
-      const communityMember = {
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
         username: {
-          crowdUsername: 'anil',
-          github: 'anil_github',
+          [PlatformType.GITHUB]: 'anil_github',
         },
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
-        bio: 'Computer Science',
         organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          sentiment: 0.98,
+          label: 'positive',
         },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId1',
       }
 
@@ -712,33 +763,38 @@ describe('ActivityService tests', () => {
         data,
       )
 
-      delete activityWithMember.communityMember
+      delete activityWithMember.member
 
       activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
       activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMember.memberId,
         mockIRepositoryOptions,
       )
 
       const expectedActivityCreated = {
         id: activityWithMember.id,
-        crowdInfo: data.crowdInfo,
         type: data.type,
+        body: data.body,
+        title: data.title,
+        url: data.url,
+        channel: data.channel,
+        sentiment: data.sentiment,
+        attributes: {},
         timestamp: new Date(data.timestamp),
         platform: data.platform,
         isKeyAction: data.isKeyAction,
         score: data.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        tasks: [],
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         parent: null,
         sourceParentId: null,
@@ -751,53 +807,50 @@ describe('ActivityService tests', () => {
 
     it('Create an activity with given member [with parent activity, upsert member, new activity] [parent first, child later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
-      const communityMember = {
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
-        bio: 'Computer Science',
         organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const data = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId1',
       }
 
@@ -806,20 +859,16 @@ describe('ActivityService tests', () => {
       ).createWithMember(data)
 
       const data2 = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        member,
+        body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
+        title: 'Add order by score and # of activities',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-11-30T14:20:27.000Z',
         type: 'pull_request-open',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: '#sourceId2',
         sourceParentId: data.sourceId,
       }
@@ -829,33 +878,46 @@ describe('ActivityService tests', () => {
       ).createWithMember(data2)
 
       // Since an activity with a parent is created, a Conversation entity should be created at this point
-      // with both parent and the child activities. Try finding it using the slug (slug is generated using parent.crowdInfo.body)
+      // with both parent and the child activities. Try finding it using the slug (slug is generated using parent.attributes.body)
 
       const conversationCreated = await new ConversationService(
         mockIRepositoryOptions,
       ).findAndCountAll({ slug: 'description-this-pull-request-adds-a-new-dashboard-and-related' })
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityWithMember2.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityWithMember2.member
       delete activityWithMember2.parent
 
       activityWithMember2.createdAt = activityWithMember2.createdAt.toISOString().split('T')[0]
       activityWithMember2.updatedAt = activityWithMember2.updatedAt.toISOString().split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember1.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMember1.memberId,
         mockIRepositoryOptions,
       )
 
       const expectedActivityCreated = {
         id: activityWithMember2.id,
-        crowdInfo: data2.crowdInfo,
+        body: data2.body,
+        title: data2.title,
+        url: data2.url,
+        channel: data2.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          label: 'positive',
+          sentiment: 0.42,
+        },
+        attributes: {},
         type: data2.type,
         timestamp: new Date(data2.timestamp),
         platform: data2.platform,
+        tasks: [],
         isKeyAction: data2.isKeyAction,
         score: data2.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -863,7 +925,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityWithMember1.id,
         sourceParentId: data2.sourceParentId,
         sourceId: data2.sourceId,
@@ -876,53 +937,50 @@ describe('ActivityService tests', () => {
     it('Create an activity with given member [with parent activity, upsert member, new activity] [child first, parent later]', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const activityService = new ActivityService(mockIRepositoryOptions)
+      const memberAttributeSettingsService = new MemberAttributeSettingsService(
+        mockIRepositoryOptions,
+      )
 
-      const communityMember = {
+      await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+      await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+      const member = {
         username: 'anil_github',
         email: 'lala@l.com',
         score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
+        attributes: {
+          [MemberAttributeName.IS_HIREABLE]: {
+            [PlatformType.GITHUB]: true,
           },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
+          [MemberAttributeName.URL]: {
+            [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+            [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+          },
+          [MemberAttributeName.WEBSITE_URL]: {
+            [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+          },
+          [MemberAttributeName.BIO]: {
+            [PlatformType.GITHUB]: 'Lazy geek',
+          },
+          [MemberAttributeName.LOCATION]: {
+            [PlatformType.GITHUB]: 'Helsinki, Finland',
           },
         },
-        bio: 'Computer Science',
         organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
         joinedAt: '2020-05-27T15:13:30Z',
       }
 
       const dataChild = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        member,
+        body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
+        title: 'Add order by score and # of activities',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-11-30T14:20:27.000Z',
         type: 'pull_request-open',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceParentId: '#sourceId1',
         sourceId: '#childSourceId',
       }
@@ -930,20 +988,16 @@ describe('ActivityService tests', () => {
       let activityWithMemberChild = await activityService.createWithMember(dataChild)
 
       const dataParent = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        member,
+        body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+        title: 'Dashboard widgets and some other tweaks/adjustments',
+        url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         timestamp: '2021-09-30T14:20:27.000Z',
         type: 'pull_request-closed',
         isKeyAction: true,
         platform: PlatformType.GITHUB,
         score: 4,
-        info: {},
         sourceId: dataChild.sourceParentId,
       }
 
@@ -958,10 +1012,10 @@ describe('ActivityService tests', () => {
       activityWithMemberChild = await activityService.findById(activityWithMemberChild.id)
       activityWithMemberParent = await activityService.findById(activityWithMemberParent.id)
 
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete activityWithMemberChild.communityMember
+      // delete models before expect because we already have ids (memberId, parentId)
+      delete activityWithMemberChild.member
       delete activityWithMemberChild.parent
-      delete activityWithMemberParent.communityMember
+      delete activityWithMemberParent.member
       delete activityWithMemberParent.parent
 
       activityWithMemberChild.createdAt = activityWithMemberChild.createdAt
@@ -977,20 +1031,33 @@ describe('ActivityService tests', () => {
         .toISOString()
         .split('T')[0]
 
-      const member = await CommunityMemberRepository.findById(
-        activityWithMemberChild.communityMemberId,
+      const memberFound = await MemberRepository.findById(
+        activityWithMemberChild.memberId,
         mockIRepositoryOptions,
       )
 
       const expectedParentActivityCreated = {
         id: activityWithMemberParent.id,
-        crowdInfo: dataParent.crowdInfo,
+        body: dataParent.body,
+        title: dataParent.title,
+        url: dataParent.url,
+        channel: dataParent.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          label: 'positive',
+          sentiment: 0.42,
+        },
+        attributes: {},
         type: dataParent.type,
         timestamp: new Date(dataParent.timestamp),
         platform: dataParent.platform,
         isKeyAction: dataParent.isKeyAction,
+        tasks: [],
         score: dataParent.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -998,7 +1065,6 @@ describe('ActivityService tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: null,
         sourceParentId: null,
         sourceId: dataParent.sourceId,
@@ -1009,21 +1075,33 @@ describe('ActivityService tests', () => {
 
       const expectedChildActivityCreated = {
         id: activityWithMemberChild.id,
-        crowdInfo: dataChild.crowdInfo,
+        body: dataChild.body,
+        title: dataChild.title,
+        url: dataChild.url,
+        channel: dataChild.channel,
+        sentiment: {
+          positive: 0.42,
+          negative: 0.42,
+          neutral: 0.42,
+          mixed: 0.42,
+          label: 'positive',
+          sentiment: 0.42,
+        },
+        attributes: {},
         type: dataChild.type,
         timestamp: new Date(dataChild.timestamp),
         platform: dataChild.platform,
         isKeyAction: dataChild.isKeyAction,
         score: dataChild.score,
-        communityMemberId: member.id,
+        memberId: memberFound.id,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        tasks: [],
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         importHash: null,
-        info: {},
         parentId: activityWithMemberParent.id,
         sourceParentId: dataChild.sourceParentId,
         sourceId: dataChild.sourceId,
@@ -1033,328 +1111,55 @@ describe('ActivityService tests', () => {
       expect(activityWithMemberChild).toStrictEqual(expectedChildActivityCreated)
     })
 
-    it('Create an activity with given member [no parent activity, upsert member, upsert activity]', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const communityMember = {
-        username: 'anil_github',
-        email: 'lala@l.com',
-        score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
-          },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
-          },
-        },
-        bio: 'Computer Science',
-        organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const data = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          newTestField: 'test',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      const activityWithMember1 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data)
-
-      const data2 = {
-        communityMember: {
-          username: communityMember.username,
-          platform: data.platform,
-          crowdInfo: { githubNewField: { body: 'test' } },
-        },
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-        // sourceParentId: data.sourceId,
-      }
-
-      const activityWithMember2 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data2)
-
-      // get the first created activity. Second call to createWithMember should be updating this
-      const upsertedActivity = await ActivityRepository.findById(
-        activityWithMember1.id,
-        mockIRepositoryOptions,
-      )
-
-      // get the first created member. Second call to createWithMember should be updating this object
-      const member = await CommunityMemberRepository.findById(
-        activityWithMember1.communityMemberId,
-        mockIRepositoryOptions,
-      )
-
-      // delete models before expect because we already have ids (communityMemberId, parentId)
-      delete upsertedActivity.communityMember
-      delete upsertedActivity.parent
-
-      upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
-      upsertedActivity.updatedAt = upsertedActivity.updatedAt.toISOString().split('T')[0]
-
-      const expectedActivityCreated = {
-        id: activityWithMember2.id,
-        crowdInfo: {
-          ...data.crowdInfo,
-          ...data2.crowdInfo,
-        },
-        type: data2.type,
-        timestamp: new Date(data2.timestamp),
-        platform: data2.platform,
-        isKeyAction: data2.isKeyAction,
-        score: data2.score,
-        communityMemberId: member.id,
-        createdAt: SequelizeTestUtils.getNowWithoutTime(),
-        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-        deletedAt: null,
-        tenantId: mockIRepositoryOptions.currentTenant.id,
-        createdById: mockIRepositoryOptions.currentUser.id,
-        updatedById: mockIRepositoryOptions.currentUser.id,
-        importHash: null,
-        info: {},
-        parentId: null,
-        sourceId: data.sourceId,
-        sourceParentId: null,
-        conversationId: null,
-      }
-
-      expect(upsertedActivity).toStrictEqual(expectedActivityCreated)
-    })
-
-    it('Upsert activity. Member with different username, but same activity (member changed username)', async () => {
-      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-
-      const communityMember = {
-        username: 'anil_github',
-        email: 'lala@l.com',
-        score: 10,
-        crowdInfo: {
-          github: {
-            name: 'Quoc-Anh Nguyen',
-            isHireable: true,
-            url: 'https://github.com/imcvampire',
-            websiteUrl: 'https://imcvampire.js.org/',
-            bio: 'Lazy geek',
-            location: 'Helsinki, Finland',
-            actions: [
-              {
-                score: 2,
-                timestamp: '2021-05-27T15:13:30Z',
-              },
-            ],
-          },
-          twitter: {
-            profile_url: 'https://twitter.com/imcvampire',
-            url: 'https://twitter.com/imcvampire',
-          },
-        },
-        bio: 'Computer Science',
-        organisation: 'Crowd',
-        location: 'Istanbul',
-        signals: 'testSignal',
-        joinedAt: '2020-05-27T15:13:30Z',
-      }
-
-      const data = {
-        communityMember,
-        crowdInfo: {
-          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-          title: 'Dashboard widgets and some other tweaks/adjustments',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          newTestField: 'test',
-        },
-        timestamp: '2021-09-30T14:20:27.000Z',
-        type: 'pull_request-closed',
-        isKeyAction: true,
-        platform: PlatformType.GITHUB,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      const activityWithMember1 = await new ActivityService(
-        mockIRepositoryOptions,
-      ).createWithMember(data)
-
-      // This is the same activity. However, the member has changed username
-      const data2 = {
-        communityMember: {
-          username: 'different_username',
-          platform: data.platform,
-          crowdInfo: { githubNewField: { body: 'test' } },
-        },
-        crowdInfo: {
-          body: 'Description\nMinor pull request that fixes the order by Score and # of activities in the members list page',
-          title: 'Add order by score and # of activities',
-          state: 'merged',
-          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/30',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
-        timestamp: data.timestamp,
-        type: data.type,
-        isKeyAction: true,
-        platform: data.platform,
-        score: 4,
-        info: {},
-        sourceId: '#sourceId1',
-      }
-
-      await new ActivityService(mockIRepositoryOptions).createWithMember(data2)
-
-      await ActivityRepository.findById(activityWithMember1.id, mockIRepositoryOptions)
-
-      const members = await CommunityMemberRepository.findAndCountAll(
-        { filter: {} },
-        mockIRepositoryOptions,
-      )
-
-      const activities = await ActivityRepository.findAndCountAll(
-        { filter: {} },
-        mockIRepositoryOptions,
-      )
-
-      expect(members.count).toBe(1)
-      expect(activities.count).toBe(1)
-
-      const member = members.rows[0]
-      expect(member.username).toStrictEqual({
-        github: 'different_username',
-        crowdUsername: 'anil_github',
-      })
-
-      // // delete models before expect because we already have ids (communityMemberId, parentId)
-      // delete upsertedActivity.communityMember
-      // delete upsertedActivity.parent
-
-      // upsertedActivity.createdAt = upsertedActivity.createdAt.toISOString().split('T')[0]
-      // upsertedActivity.updatedAt = upsertedActivity.updatedAt.toISOString().split('T')[0]
-
-      // const expectedActivityCreated = {
-      //   id: activityWithMember2.id,
-      //   crowdInfo: {
-      //     ...data.crowdInfo,
-      //     ...data2.crowdInfo,
-      //   },
-      //   type: data2.type,
-      //   timestamp: new Date(data2.timestamp),
-      //   platform: data2.platform,
-      //   isKeyAction: data2.isKeyAction,
-      //   score: data2.score,
-      //   communityMemberId: member.id,
-      //   createdAt: SequelizeTestUtils.getNowWithoutTime(),
-      //   updatedAt: SequelizeTestUtils.getNowWithoutTime(),
-      //   deletedAt: null,
-      //   tenantId: mockIRepositoryOptions.currentTenant.id,
-      //   createdById: mockIRepositoryOptions.currentUser.id,
-      //   updatedById: mockIRepositoryOptions.currentUser.id,
-      //   importHash: null,
-      //   info: {},
-      //   parentId: activityWithMember1.id,
-      //   sourceId: data.sourceId,
-      // }
-
-      // expect(upsertedActivity).toStrictEqual(expectedActivityCreated)
-    })
-
-    describe('Community member tests in createWithMember', () => {
+    describe('Member tests in createWithMember', () => {
       it('Should set the joinedAt to the time of the activity when the member does not exist', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
-        const communityMember = {
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const member = {
           username: {
-            crowdUsername: 'anil',
-            github: 'anil_github',
+            [PlatformType.GITHUB]: 'anil_github',
           },
           email: 'lala@l.com',
           score: 10,
-          crowdInfo: {
-            github: {
-              name: 'Quoc-Anh Nguyen',
-              isHireable: true,
-              url: 'https://github.com/imcvampire',
-              websiteUrl: 'https://imcvampire.js.org/',
-              bio: 'Lazy geek',
-              location: 'Helsinki, Finland',
-              actions: [
-                {
-                  score: 2,
-                  timestamp: '2021-05-27T15:13:30Z',
-                },
-              ],
+          attributes: {
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
             },
-            twitter: {
-              profile_url: 'https://twitter.com/imcvampire',
-              url: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
-          bio: 'Computer Science',
           organisation: 'Crowd',
-          location: 'Istanbul',
-          signals: 'testSignal',
           joinedAt: '2020-05-27T15:13:30Z',
         }
 
         const data = {
-          communityMember,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          member,
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1362,33 +1167,45 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.42,
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          tasks: [],
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceParentId: null,
@@ -1397,67 +1214,63 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
-          crowdUsername: 'anil',
-          github: 'anil_github',
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
+          [PlatformType.GITHUB]: 'anil_github',
         })
       })
 
       it('Should replace joinedAt when activity ts is earlier than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
-        const communityMember = {
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const member = {
           username: {
-            crowdUsername: 'anil',
-            github: 'anil_github',
+            [PlatformType.GITHUB]: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
-          crowdInfo: {
-            github: {
-              name: 'Quoc-Anh Nguyen',
-              isHireable: true,
-              url: 'https://github.com/imcvampire',
-              websiteUrl: 'https://imcvampire.js.org/',
-              bio: 'Lazy geek',
-              location: 'Helsinki, Finland',
-              actions: [
-                {
-                  score: 2,
-                  timestamp: '2021-05-27T15:13:30Z',
-                },
-              ],
+          attributes: {
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
             },
-            twitter: {
-              profile_url: 'https://twitter.com/imcvampire',
-              url: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
-          bio: 'Computer Science',
           organisation: 'Crowd',
-          location: 'Istanbul',
-          signals: 'testSignal',
           joinedAt: '2022-05-27T15:13:30Z',
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          member,
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1465,33 +1278,45 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            sentiment: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
+          tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1500,67 +1325,63 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
-          crowdUsername: 'anil',
-          github: 'anil_github',
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
+          [PlatformType.GITHUB]: 'anil_github',
         })
       })
 
       it('Should not replace joinedAt when activity ts is later than existing joinedAt', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
-        const communityMember = {
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const member = {
           username: {
-            crowdUsername: 'anil',
-            github: 'anil_github',
+            [PlatformType.GITHUB]: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
-          crowdInfo: {
-            github: {
-              name: 'Quoc-Anh Nguyen',
-              isHireable: true,
-              url: 'https://github.com/imcvampire',
-              websiteUrl: 'https://imcvampire.js.org/',
-              bio: 'Lazy geek',
-              location: 'Helsinki, Finland',
-              actions: [
-                {
-                  score: 2,
-                  timestamp: '2021-05-27T15:13:30Z',
-                },
-              ],
+          attributes: {
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
             },
-            twitter: {
-              profile_url: 'https://twitter.com/imcvampire',
-              url: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Lazy geek',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Helsinki, Finland',
             },
           },
-          bio: 'Computer Science',
           organisation: 'Crowd',
-          location: 'Istanbul',
-          signals: 'testSignal',
           joinedAt: '2020-05-27T15:13:30Z',
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          member,
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1568,33 +1389,45 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.42,
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          tasks: [],
           deletedAt: null,
           tenantId: mockIRepositoryOptions.currentTenant.id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1603,67 +1436,64 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
-        expect(member.username).toStrictEqual({
-          crowdUsername: 'anil',
-          github: 'anil_github',
+        expect(memberFound.joinedAt).toStrictEqual(new Date('2020-05-27T15:13:30Z'))
+        expect(memberFound.username).toStrictEqual({
+          [PlatformType.GITHUB]: 'anil_github',
         })
       })
 
       it('It should replace joinedAt if the orginal was in year 1000', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+        const memberAttributeSettingsService = new MemberAttributeSettingsService(
+          mockIRepositoryOptions,
+        )
 
-        const communityMember = {
+        await memberAttributeSettingsService.createPredefined(GithubMemberAttributes)
+        await memberAttributeSettingsService.createPredefined(TwitterMemberAttributes)
+
+        const member = {
           username: {
-            crowdUsername: 'anil',
-            github: 'anil_github',
+            [PlatformType.GITHUB]: 'anil_github',
           },
+          displayName: 'Anil',
           email: 'lala@l.com',
           score: 10,
-          crowdInfo: {
-            github: {
-              name: 'Quoc-Anh Nguyen',
-              isHireable: true,
-              url: 'https://github.com/imcvampire',
-              websiteUrl: 'https://imcvampire.js.org/',
-              bio: 'Lazy geek',
-              location: 'Helsinki, Finland',
-              actions: [
-                {
-                  score: 2,
-                  timestamp: '2021-05-27T15:13:30Z',
-                },
-              ],
+          attributes: {
+            [MemberAttributeName.IS_HIREABLE]: {
+              [PlatformType.GITHUB]: true,
             },
-            twitter: {
-              profile_url: 'https://twitter.com/imcvampire',
-              url: 'https://twitter.com/imcvampire',
+            [MemberAttributeName.URL]: {
+              [PlatformType.GITHUB]: 'https://github.com/imcvampire',
+              [PlatformType.TWITTER]: 'https://twitter.com/imcvampire',
+            },
+            [MemberAttributeName.WEBSITE_URL]: {
+              [PlatformType.GITHUB]: 'https://imcvampire.js.org/',
+            },
+            [MemberAttributeName.BIO]: {
+              [PlatformType.GITHUB]: 'Computer Science',
+            },
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.GITHUB]: 'Istanbul',
             },
           },
-          bio: 'Computer Science',
           organisation: 'Crowd',
-          location: 'Istanbul',
-          signals: 'testSignal',
           joinedAt: new Date('1000-01-01T00:00:00Z'),
         }
 
-        await CommunityMemberRepository.create(communityMember, mockIRepositoryOptions)
+        await MemberRepository.create(member, mockIRepositoryOptions)
 
         const data = {
-          communityMember,
-          crowdInfo: {
-            body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
-            title: 'Dashboard widgets and some other tweaks/adjustments',
-            state: 'merged',
-            url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
-            repo: 'https://github.com/CrowdDevHQ/crowd-web',
-          },
+          member,
+          body: 'Description\nThis pull request adds a new Dashboard and related widgets. This work will probably have to be revisited as soon as possible since a lot of decisions were made, without having too much time to think about different outcomes/possibilities. We rushed these changes so that we can demo a working dashboard to YC and to our Investors.\nChanges Proposed\n\nUpdate Chart.js\nAdd two different type of widgets (number and graph)\nRemove older/default widgets from dashboard and add our own widgets\nHide some items from the menu\nAdd all widget infrastructure (actions, services, etc) to integrate with the backend\nAdd a few more CSS tweaks\n\nScreenshots',
+          title: 'Dashboard widgets and some other tweaks/adjustments',
+          state: 'merged',
+          url: 'https://github.com/CrowdDevHQ/crowd-web/pull/16',
+          channel: 'https://github.com/CrowdDevHQ/crowd-web',
           timestamp: '2021-09-30T14:20:27.000Z',
           type: 'pull_request-closed',
           isKeyAction: true,
           platform: PlatformType.GITHUB,
           score: 4,
-          info: {},
           sourceId: '#sourceId1',
         }
 
@@ -1671,33 +1501,45 @@ describe('ActivityService tests', () => {
           mockIRepositoryOptions,
         ).createWithMember(data)
 
-        delete activityWithMember.communityMember
+        delete activityWithMember.member
 
         activityWithMember.createdAt = activityWithMember.createdAt.toISOString().split('T')[0]
         activityWithMember.updatedAt = activityWithMember.updatedAt.toISOString().split('T')[0]
 
-        const member = await CommunityMemberRepository.findById(
-          activityWithMember.communityMemberId,
+        const memberFound = await MemberRepository.findById(
+          activityWithMember.memberId,
           mockIRepositoryOptions,
         )
 
         const expectedActivityCreated = {
           id: activityWithMember.id,
-          crowdInfo: data.crowdInfo,
+          body: data.body,
+          title: data.title,
+          url: data.url,
+          channel: data.channel,
+          sentiment: {
+            positive: 0.42,
+            negative: 0.42,
+            neutral: 0.42,
+            mixed: 0.42,
+            label: 'positive',
+            sentiment: 0.42,
+          },
+          attributes: {},
           type: data.type,
           timestamp: new Date(data.timestamp),
           platform: data.platform,
           isKeyAction: data.isKeyAction,
           score: data.score,
-          communityMemberId: member.id,
+          memberId: memberFound.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           deletedAt: null,
+          tasks: [],
           tenantId: mockIRepositoryOptions.currentTenant.id,
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           importHash: null,
-          info: {},
           parentId: null,
           parent: null,
           sourceId: data.sourceId,
@@ -1706,10 +1548,9 @@ describe('ActivityService tests', () => {
         }
 
         expect(activityWithMember).toStrictEqual(expectedActivityCreated)
-        expect(member.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
-        expect(member.username).toStrictEqual({
-          crowdUsername: 'anil',
-          github: 'anil_github',
+        expect(memberFound.joinedAt).toStrictEqual(expectedActivityCreated.timestamp)
+        expect(memberFound.username).toStrictEqual({
+          [PlatformType.GITHUB]: 'anil_github',
         })
       })
     })
@@ -1720,10 +1561,9 @@ describe('ActivityService tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const activityService = new ActivityService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -1733,13 +1573,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -1753,13 +1589,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -1770,9 +1602,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1802,10 +1632,9 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -1820,13 +1649,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         conversationId: conversation.id,
         sourceId: '#sourceId1',
@@ -1841,13 +1666,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -1858,9 +1679,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1883,10 +1702,9 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -1901,13 +1719,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+        body: 'Some Parent Activity',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -1921,12 +1736,8 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-        },
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         conversationId: conversation.id,
@@ -1938,9 +1749,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -1974,10 +1783,9 @@ describe('ActivityService tests', () => {
       const activityService = new ActivityService(mockIRepositoryOptions)
       const conversationService = new ConversationService(mockIRepositoryOptions)
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -1993,13 +1801,11 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
+
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2013,13 +1819,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         conversationId: conversation.id,
@@ -2031,9 +1834,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2078,10 +1879,9 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -2091,13 +1891,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2111,13 +1908,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2128,9 +1922,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2139,7 +1931,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2177,10 +1969,9 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -2190,13 +1981,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2210,13 +1998,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2227,9 +2012,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2238,7 +2021,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2272,17 +2055,16 @@ describe('ActivityService tests', () => {
           autoPublish: {
             status: 'custom',
             channelsByPlatform: {
-              github: ['crowd-web'],
+              [PlatformType.GITHUB]: ['crowd-web'],
             },
           },
         },
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -2292,13 +2074,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2312,13 +2091,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Here',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2329,9 +2105,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2340,7 +2114,7 @@ describe('ActivityService tests', () => {
       )
 
       const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
+        await new ConversationService({ ...mockIRepositoryOptions, transaction }).findAndCountAll({
           slug: 'some-parent-activity',
         })
       ).rows[0]
@@ -2374,17 +2148,16 @@ describe('ActivityService tests', () => {
           autoPublish: {
             status: 'custom',
             channelsByPlatform: {
-              github: ['a-different-test-repo'],
+              [PlatformType.GITHUB]: ['a-different-test-channel'],
             },
           },
         },
         mockIRepositoryOptions,
       )
 
-      const memberCreated = await new CommunityMemberService(mockIRepositoryOptions).upsert({
+      const memberCreated = await new MemberService(mockIRepositoryOptions).upsert({
         username: {
-          crowdUsername: 'test',
-          github: 'test',
+          [PlatformType.GITHUB]: 'test',
         },
         platform: PlatformType.GITHUB,
         joinedAt: '2020-05-27T15:13:30Z',
@@ -2394,13 +2167,10 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T14:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Some Parent Activity',
-          repo: 'https://github.com/CrowdDevHQ/crowd-web',
-        },
+        body: 'Some Parent Activity',
+        channel: 'https://github.com/CrowdDevHQ/crowd-web',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         sourceId: '#sourceId1',
       }
@@ -2414,12 +2184,9 @@ describe('ActivityService tests', () => {
         type: 'activity',
         timestamp: '2020-05-27T15:13:30Z',
         platform: PlatformType.GITHUB,
-        crowdInfo: {
-          replies: 12,
-          body: 'Here',
-        },
+        body: 'Here',
         isKeyAction: true,
-        communityMember: memberCreated.id,
+        member: memberCreated.id,
         score: 1,
         parent: activityParentCreated.id,
         sourceId: '#sourceId2',
@@ -2430,9 +2197,7 @@ describe('ActivityService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const transaction = await SequelizeRepository.createTransaction(
-        mockIRepositoryOptions.database,
-      )
+      const transaction = await SequelizeRepository.createTransaction(mockIRepositoryOptions)
 
       await activityService.addToConversation(
         activityChildCreated.id,
@@ -2440,11 +2205,14 @@ describe('ActivityService tests', () => {
         transaction,
       )
 
-      const conversationCreated = (
-        await new ConversationService(mockIRepositoryOptions).findAndCountAll({
-          slug: 'some-parent-activity',
-        })
-      ).rows[0]
+      const conversations = await new ConversationService({
+        ...mockIRepositoryOptions,
+        transaction,
+      }).findAndCountAll({
+        slug: 'some-parent-activity',
+      })
+
+      const conversationCreated = conversations.rows[0]
 
       await SequelizeRepository.commitTransaction(transaction)
 

@@ -69,7 +69,7 @@ const en = {
         integrations: 'Integrations',
         info: 'Custom Attributes',
         activities: 'Activities',
-        communityMembers: 'Members',
+        members: 'Members',
         latestMetrics: 'LatestMetrics',
         membersToMerge: 'Members To Merge',
         benchmarkRepos: 'BenchmarkRepos',
@@ -133,20 +133,22 @@ const en = {
       }
     },
 
-    communityMember: {
-      name: 'communityMember',
+    member: {
+      name: 'member',
       label: 'Members',
       menu: 'Members',
-      exporterFileName: 'communityMember_export',
+      exporterFileName: 'member_export',
       list: {
         menu: 'Members',
         title: 'Members'
       },
       create: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error creating the member'
       },
       update: {
-        success: 'Member successfully saved'
+        success: 'Member successfully saved',
+        error: 'There was an error updating the member'
       },
       destroy: {
         success: 'Member successfully deleted'
@@ -161,8 +163,15 @@ const en = {
         title: 'Merge Member',
         success: 'Members merged successfully'
       },
+      attributes: {
+        error: 'Custom Attributes could not be created',
+        success: 'Custom Attributes successfuly updated'
+      },
       fields: {
         id: 'Id',
+        fullName: 'Full Name',
+        jobTitle: 'Job title',
+        company: 'Company',
         member: 'Member',
         score: 'Score',
         estimatedReach: 'Estimated Reach',
@@ -170,9 +179,12 @@ const en = {
         contact: 'Contact',
         tag: 'Tags',
         username: 'Username',
+        displayName: 'Display Name',
         activities: 'Activities',
+        activityCount: '# of activities',
         location: 'Location',
-        organisation: 'Organisation',
+        organization: 'Organization',
+        organizations: 'Organizations',
         signal: 'Signal',
         bio: 'Bio',
         projects: 'Projects',
@@ -183,10 +195,13 @@ const en = {
         email: 'Email',
         noMerge: 'NoMerge',
         crowdInfo: 'CrowdInfo',
-        joinedAt: 'Joined Community',
+        reach: 'Reach',
+        joinedAt: 'Member since',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
-        createdAtRange: 'Created at'
+        createdAtRange: 'Created at',
+        identities: 'Identities',
+        activeOn: 'Active On'
       },
       enumerators: {},
       placeholders: {},
@@ -197,6 +212,12 @@ const en = {
       view: {
         title: 'View Member'
       }
+    },
+
+    organization: {
+      name: 'organization',
+      label: 'Organizations',
+      menu: 'Organizations'
     },
 
     activity: {
@@ -225,17 +246,18 @@ const en = {
       },
       fields: {
         id: 'Id',
-        type: 'Type',
+        type: 'Activity type',
         timestampRange: 'Timestamp',
         timestamp: 'Timestamp',
         platform: 'Platform',
         project: 'Project',
         info: 'Custom Attributes',
-        communityMember: 'Member',
+        member: 'Member',
         isKeyAction: 'Key Action',
         crowdInfo: 'CrowdInfo',
         createdAt: 'Created at',
         updatedAt: 'Updated at',
+        date: 'Date',
         createdAtRange: 'Created at'
       },
       enumerators: {},
@@ -249,8 +271,8 @@ const en = {
       },
       github: {
         fork: 'forked',
-        star: 'stared',
-        unstar: 'unstared',
+        star: 'starred',
+        unstar: 'unstarred',
         'pull_request-open': 'opened a new pull request',
         'pull_request-opened': 'opened a new pull request',
         'pull_request-close': 'closed a pull request',
@@ -278,7 +300,7 @@ const en = {
           'contributed to community',
         joined_community: 'joined community',
         mention: 'mentioned you in a tweet',
-        hashtag: 'posted a tweet in {0}',
+        hashtag: 'posted a tweet',
         follow: 'followed you'
       },
       discord: {
@@ -352,10 +374,43 @@ const en = {
       menu: 'Eagle Eye'
     },
 
+    communityHelpCenter: {
+      name: 'Community Help Center',
+      label: 'Community Help Center',
+      menu: 'Community Help Center'
+    },
+
+    automation: {
+      name: 'Automations',
+      label: 'Automations',
+      create: {
+        success: 'Automation successfully saved'
+      },
+      update: {
+        success: 'Automation successfully saved'
+      },
+      destroy: {
+        success: 'Automation successfully deleted'
+      },
+      destroyAll: {
+        success: 'Automation(s) successfully deleted'
+      },
+      fields: {
+        type: 'Type',
+        trigger: 'Choose Trigger',
+        status: 'Status'
+      },
+      triggers: {
+        new_activity:
+          'New activity happened in your community',
+        new_member: 'New member joined your community'
+      }
+    },
+
     conversation: {
       name: 'Conversations',
       label: 'Conversations',
-      menu: 'Conversations',
+      menu: 'Community Help Center',
       edit: {
         title: 'Edit Conversation'
       },
@@ -386,7 +441,10 @@ const en = {
         title: 'Title',
         platform: 'Platform',
         channel: 'Channel',
-        published: 'Published'
+        published: 'Published',
+        activityCount: '# of activities',
+        createdAt: 'Date started',
+        lastActive: 'Last activity'
       }
     }
   },
@@ -396,7 +454,8 @@ const en = {
       cubes: {
         Activities: '[Activities] Count',
         Members: '[Members] Count',
-        Conversations: '[Conversations] Count'
+        Conversations: '[Conversations] Count',
+        Organizations: '[Organizations] Count'
       },
       Activities: {
         count: '[Activities] Count',
@@ -408,8 +467,13 @@ const en = {
         count: '[Members] Count',
         score: '[Members] Engagement Level',
         location: '[Members] Location',
-        organisation: '[Members] Organisation',
-        joinedAt: '[Members] Joined Date'
+        organization: '[Members] Organization',
+        joinedAt: '[Members] Joined Date',
+        averageTimeToFirstInteraction:
+          '[Members] Avg. Time To First Interaction'
+      },
+      MemberTags: {
+        count: '[Members] # of Tags'
       },
       Conversations: {
         count: '[Conversations] Count',
@@ -420,7 +484,8 @@ const en = {
         published: '[Conversations] Published'
       },
       Tags: {
-        name: '[Tags] Name'
+        name: '[Tags] Name',
+        count: '[Tags] Count'
       }
     }
   },
@@ -428,7 +493,7 @@ const en = {
   auth: {
     tenants: 'Workspaces',
     profile: {
-      title: 'Profile',
+      title: 'Profile settings',
       success: 'Profile successfully updated'
     },
     createAnAccount: 'Create an account',
@@ -456,7 +521,7 @@ const en = {
       message: `You have no permissions yet. Wait for the admin to grant you privileges.`
     },
     passwordResetEmail: {
-      message: 'Send password reset email',
+      message: 'Send password reset e-mail',
       error: `Email not recognized`
     },
     passwordReset: {
@@ -465,7 +530,7 @@ const en = {
     passwordChange: {
       title: 'Change Password',
       success: 'Password successfully changed',
-      mustMatch: 'Passwords must match'
+      mustMatch: 'Passwords do not match'
     },
     emailAddressVerificationEmail: {
       error: `Email not recognized`
@@ -496,11 +561,11 @@ const en = {
     fields: {
       id: 'Id',
       avatars: 'Avatar',
-      email: 'Email',
+      email: 'E-mail',
       emails: 'Email(s)',
       fullName: 'Name',
-      firstName: 'First Name',
-      lastName: 'Last Name',
+      firstName: 'First name',
+      lastName: 'Last name',
       status: 'Status',
       phoneNumber: 'Phone Number',
       role: 'Role',
@@ -510,14 +575,15 @@ const en = {
       roles: 'Roles',
       createdAtRange: 'Created at',
       password: 'Password',
-      oldPassword: 'Old Password',
-      newPassword: 'New Password',
-      newPasswordConfirmation: 'New Password Confirmation',
+      passwordConfirmation: 'Confirm password',
+      oldPassword: 'Old password',
+      newPassword: 'New password',
+      newPasswordConfirmation: 'Confirm new password',
       rememberMe: 'Remember me'
     },
     status: {
       active: 'Active',
-      invited: 'Invited',
+      invited: 'Invite sent',
       'empty-permissions': 'Waiting for Permissions'
     },
     invite: 'Invite',
@@ -555,20 +621,20 @@ const en = {
   tenant: {
     name: 'tenant',
     label: 'Workspaces',
-    menu: 'Workspaces',
+    menu: 'Manage workspaces',
     list: {
       menu: 'Workspaces',
       title: 'Workspaces'
     },
     create: {
       button: 'Create Workspace',
-      success: 'Workspace successfully saved'
+      success: 'Community has been created'
     },
     update: {
-      success: 'Workspace successfully saved'
+      success: 'Community has been updated'
     },
     destroy: {
-      success: 'Workspace successfully deleted'
+      success: 'Community successfully deleted'
     },
     destroyAll: {
       success: 'Workspace(s) successfully deleted'
@@ -580,9 +646,11 @@ const en = {
       id: 'Id',
       name: 'Name',
       url: 'URL',
-      tenantUrl: 'Workspace URL',
-      tenantName: 'Workspace Name',
-      tenantId: 'Workspace',
+      tenantUrl: 'Community URL',
+      tenantName: 'Community name',
+      tenantPlatforms: 'Community platforms',
+      tenantSize: 'Community size',
+      tenantId: 'Community',
       plan: 'Plan'
     },
     enumerators: {},
@@ -599,8 +667,7 @@ const en = {
     },
     select: 'Select Workspace',
     validation: {
-      url:
-        'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
+      url: 'Your workspace URL can only contain lowercase letters, numbers and dashes (and must start with a letter or number).'
     }
   },
 
@@ -677,6 +744,9 @@ const en = {
       yellow: 'Yellow'
     }
   },
+  integrations: {
+    menu: 'Integrations'
+  },
   dashboard: {
     menu: 'Home',
     message: `This page uses fake data for demonstration purposes only. You can edit it at frontend/src/modules/dashboard/components/dashboard-page.vue.`,
@@ -732,7 +802,7 @@ const en = {
   validation: {
     mixed: {
       default: '${path} is invalid',
-      required: '${path} is required',
+      required: 'This field is required',
       oneOf:
         '${path} must be one of the following values: ${values}',
       notOneOf:
@@ -756,8 +826,7 @@ const en = {
       selected: '${path} must be selected'
     },
     number: {
-      min:
-        '${path} must be greater than or equal to ${min}',
+      min: '${path} must be greater than or equal to ${min}',
       max: '${path} must be less than or equal to ${max}',
       lessThan: '${path} must be less than ${less}',
       moreThan: '${path} must be greater than ${more}',
@@ -778,8 +847,7 @@ const en = {
     },
     array: {
       min: '${path} field must have at least ${min} items',
-      max:
-        '${path} field must have less than or equal to ${max} items'
+      max: '${path} field must have less than or equal to ${max} items'
     }
   },
   /* eslint-disable */
@@ -796,6 +864,11 @@ const en = {
 
   imagesViewer: {
     noImage: 'No image'
+  },
+
+  external: {
+    docs: 'Documentation',
+    community: 'Community'
   }
 }
 

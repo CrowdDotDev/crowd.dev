@@ -10,6 +10,7 @@ export default class EnumeratorField extends GenericField {
     this.required = config.required
     this.placeholder = config.placeholder
     this.hint = config.hint
+    this.filterable = config.filterable || false
   }
 
   _id(option) {

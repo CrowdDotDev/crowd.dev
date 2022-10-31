@@ -3,7 +3,8 @@
  * exports all the models.
  */
 import Sequelize, { DataTypes } from 'sequelize'
-import { getConfig } from '../../config'
+import * as configTypes from '../../config/configTypes'
+import { DB_CONFIG, SERVICE } from '../../config'
 
 const { highlight } = require('cli-highlight')
 
@@ -11,39 +12,43 @@ function models() {
   const database = {} as any
 
   const sequelize = new (<any>Sequelize)(
-    getConfig().DATABASE_DATABASE,
-    getConfig().DATABASE_USERNAME,
-    getConfig().DATABASE_PASSWORD,
+    DB_CONFIG.database,
+    DB_CONFIG.username,
+    DB_CONFIG.password,
     {
-      dialect: getConfig().DATABASE_DIALECT,
-      port: getConfig().DATABASE_PORT ? getConfig().DATABASE_PORT : '5432',
+      dialect: DB_CONFIG.dialect,
+      port: DB_CONFIG.port,
       replication: {
-        read: [{ host: getConfig().DATABASE_HOST_READ }],
-        write: { host: getConfig().DATABASE_HOST_WRITE },
+        read: [
+          {
+            host:
+              SERVICE === configTypes.ServiceType.API ? DB_CONFIG.readHost : DB_CONFIG.writeHost,
+          },
+        ],
+        write: { host: DB_CONFIG.writeHost },
       },
       pool: {
-        max: 200,
+        max: SERVICE === configTypes.ServiceType.API ? 200 : 20,
         min: 0,
         acquire: 30000,
         idle: 10000,
       },
-      logging:
-        getConfig().DATABASE_LOGGING === 'true'
-          ? (log) =>
-              console.log(
-                highlight(log, {
-                  language: 'sql',
-                  ignoreIllegals: true,
-                }),
-              )
-          : false,
+      logging: DB_CONFIG.logging
+        ? (log) =>
+            console.log(
+              highlight(log, {
+                language: 'sql',
+                ignoreIllegals: true,
+              }),
+            )
+        : false,
     },
   )
 
   const modelClasses = [
     require('./activity').default,
     require('./auditLog').default,
-    require('./communityMember').default,
+    require('./member').default,
     require('./file').default,
     require('./integration').default,
     require('./report').default,
@@ -57,6 +62,14 @@ function models() {
     require('./conversation').default,
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
+    require('./automation').default,
+    require('./automationExecution').default,
+    require('./organization').default,
+    require('./organizationCache').default,
+    require('./memberAttributeSettings').default,
+    require('./task').default,
+    require('./note').default,
+    require('./memberActivityAggregatesMV').default,
   ]
 
   for (const notInitmodel of modelClasses) {

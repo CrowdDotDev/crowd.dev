@@ -1,15 +1,15 @@
 import fetch from 'node-fetch'
-import { getConfig } from '../../../config'
+import { SLACK_CONFIG, API_CONFIG } from '../../../config'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export function getSlackStrategy() {
-  const { SLACK_CLIENT_ID, SLACK_CLIENT_SECRET } = getConfig()
   const SlackStrategy = require('passport-slack').Strategy
 
   return new SlackStrategy(
     {
-      clientID: SLACK_CLIENT_ID,
-      clientSecret: SLACK_CLIENT_SECRET,
-      callbackURL: `${getConfig().BACKEND_URL}/slack/callback`,
+      clientID: SLACK_CONFIG.clientId,
+      clientSecret: SLACK_CONFIG.clientSecret,
+      callbackURL: `${API_CONFIG.url}/slack/callback`,
       authorizationURL: 'https://slack.com/oauth/v2/authorize',
       tokenURL: 'https://slack.com/api/oauth.v2.access',
       skipUserProfile: true,
@@ -28,11 +28,11 @@ export function getSlackStrategy() {
         .then((res) => res.json())
         .then((res) => {
           const existingUser = req.user || {}
-          console.log(`access token: ${accessToken}`)
+          // console.log(`access token: ${accessToken}`)
 
           return done(null, {
             ...existingUser,
-            slack: {
+            [PlatformType.SLACK]: {
               botToken: accessToken,
               teamId: res.team.id,
             },

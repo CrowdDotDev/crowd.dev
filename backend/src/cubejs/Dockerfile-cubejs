@@ -1,3 +1,0 @@
-# syntax = docker/dockerfile:experimental
-FROM cubejs/cube
-COPY . /cube/conf

@@ -32,29 +32,29 @@
       />
       <div class="eagle-eye-list-item-body-actions">
         <el-tooltip
+          v-if="!record.status"
           content="This post will be excluded from Inbox searches"
           placement="top"
-          v-if="!record.status"
         >
           <el-button
-            icon="ri-eye-off-line"
-            class="btn btn--secondary"
+            class="btn btn--transparent btn--md"
             @click="handleExcludeClick"
           >
+            <i class="ri-eye-off-line mr-1" />
             Exclude
           </el-button>
         </el-tooltip>
         <el-button
-          icon="ri-arrow-go-back-line"
-          class="btn btn--secondary"
-          @click="handleRevertExcludeClick"
           v-else-if="record.status === 'rejected'"
+          class="btn btn--transparent btn--md"
+          @click="handleRevertExcludeClick"
         >
+          <i class="ri-arrow-go-back-line mr-1" />
           Remove from excluded
         </el-button>
         <span v-else></span>
         <el-button
-          class="btn btn--secondary"
+          class="btn btn-brand btn-brand--bordered btn--md"
           :class="engageButtonClass"
           @click="handleEngageClick"
         >
@@ -76,7 +76,7 @@ import { mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 
 export default {
-  name: 'app-eagle-eye-list-item',
+  name: 'AppEagleEyeListItem',
   props: {
     record: {
       type: Object,
@@ -152,21 +152,19 @@ export default {
   border: 1px solid #e9e9e9;
 
   &-header {
-    @apply px-5 py-4 rounded-t-md flex justify-between items-center;
-    background-color: #fbfbfb;
+    @apply mx-6 py-4 rounded-t-md flex justify-between items-center;
     border-bottom: 1px solid #e9e9e9;
   }
 
   &-body {
-    @apply bg-white rounded-b-md pt-4 pb-3 px-5;
+    @apply bg-white rounded-b-md pt-5;
 
     &-actions {
-      @apply mt-4 pt-3 flex justify-between items-center;
-      border-top: 1px solid #e9e9e9;
+      @apply mt-8 py-4 px-6 flex justify-between items-center bg-gray-50 rounded-b-md;
     }
 
     &-title {
-      @apply text-black font-medium;
+      @apply text-black font-medium mx-6;
 
       &:hover {
         @apply text-gray-800;
@@ -174,7 +172,12 @@ export default {
     }
 
     &-text {
-      @apply text-sm text-gray-600;
+      @apply text-sm text-gray-600 mx-6;
+
+      pre,
+      code {
+        @apply whitespace-pre-wrap;
+      }
     }
   }
 }

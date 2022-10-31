@@ -1,17 +1,17 @@
 import lodash from 'lodash'
-import { getConfig } from '../../../config'
+import { PLANS_CONFIG } from '../../../config'
 import TenantService from '../../../services/tenantService'
 import Plans from '../../../security/plans'
 import ApiResponseHandler from '../../apiResponseHandler'
 
 export default async (req, res) => {
   try {
-    const stripe = require('stripe')(getConfig().PLAN_STRIPE_SECRET_KEY)
+    const stripe = require('stripe')(PLANS_CONFIG.stripeSecretKey)
 
     const event = stripe.webhooks.constructEvent(
       req.rawBody,
       req.headers['stripe-signature'],
-      getConfig().PLAN_STRIPE_WEBHOOK_SIGNING_SECRET,
+      PLANS_CONFIG.stripWebhookSigningSecret,
     )
 
     if (event.type === 'checkout.session.completed') {

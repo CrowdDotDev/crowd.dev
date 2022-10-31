@@ -1,90 +1,280 @@
 .btn {
-  @apply px-4 py-3 rounded-lg shadow-sm font-semibold inline-flex items-center justify-center leading-none text-sm;
+  @apply rounded-md font-medium inline-flex items-center justify-center h-auto box-border;
   transition: all 0.2s;
 
-  &.el-button {
-    span {
-      @apply flex items-center;
-    }
-  }
-
-  &--xl {
-    @apply px-8 py-4;
-  }
-
-  &--lg {
-    @apply px-6 py-3;
+  // Button Sizes
+  &--xs {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    @apply px-2 text-2xs;
   }
 
   &--sm {
-    @apply px-3 py-2 text-sm;
+    @apply px-3 py-1.5 text-xs;
   }
 
-  &--xs {
-    @apply px-2 py-1 text-sm;
+  &--md {
+    @apply px-3 h-10 text-sm;
   }
 
-  &--wide {
-    @apply px-6 py-1 text-sm;
+  &--lg {
+    @apply px-4 py-3 text-base leading-6;
   }
 
+  // TODO: Find a better solution for icon buttons
+  &--icon--sm {
+    @apply p-1.5 text-xs;
+  }
+
+  // Default buttons' variations
   &--primary {
-    @apply bg-primary-900 border border-primary-900 text-white;
+    @apply bg-gray-900 text-white border-none;
 
-    &:hover, &:focus {
-      @apply bg-primary-900 border border-primary-900 text-white opacity-90;
+    &:hover,
+    &:hover:is(a) {
+      @apply cursor-pointer bg-gray-600 text-white;
+    }
+    &:focus {
+      @apply outline outline-1 outline-gray-900 outline-offset-2 bg-gray-900 text-white;
+    }
+    &:active {
+      @apply bg-gray-600 text-white;
+    }
+    &[disabled] {
+      @apply cursor-not-allowed bg-gray-400 text-white;
     }
   }
 
   &--secondary {
-    color: #606266;
-    border: 1px solid #e9e9e9;
-    background-color: #fff;
-    &:focus, &:hover {
-      color: #606266;
-      border: 1px solid #e9e9e9;
-      background-color: #fffbf8;
-      opacity: 0.9;
-    }
+    @apply bg-gray-100 text-gray-600 border-none;
 
-    &--orange {
-      @apply text-primary-900 border-primary-900;
-      &:focus, &:hover {
-        @apply text-primary-900 border-primary-900;
+    &:hover {
+      @apply cursor-pointer bg-gray-200 text-gray-600;
+    }
+    &:focus {
+      @apply outline outline-1 outline-gray-900 outline-offset-2 bg-gray-100 text-gray-600;
+    }
+    &:active {
+      @apply bg-gray-200 text-gray-600;
+    }
+    &[disabled] {
+      @apply cursor-not-allowed bg-gray-100 text-gray-400;
+    }
+  }
+
+  &--bordered {
+    @apply bg-white text-gray-600 border-2 border-gray-200 border-solid;
+
+    &:hover {
+      @apply cursor-pointer bg-gray-100 text-gray-600 border-2  border-gray-200 border-solid;
+    }
+    &:focus {
+      @apply bg-white text-gray-600 border-2  border-gray-200 border-solid outline outline-offset-2 outline-1 outline-gray-900;
+    }
+    &:active {
+      @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
+    }
+    &[disabled] {
+      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-gray-100 border-solid;
+    }
+  }
+
+  &--transparent {
+    @apply bg-transparent text-gray-600 border-none;
+
+    &:hover,
+    &:hover:is(a) {
+      @apply cursor-pointer bg-gray-100 text-gray-600;
+    }
+    &:focus {
+      @apply bg-transparent text-gray-600 border-2  border-gray-200 border-solid;
+    }
+    &:active {
+      @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
+    }
+    &[disabled] {
+      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-gray-100 border-solid;
+    }
+  }
+
+  // Brand buttons' variations
+  &-brand {
+    &--primary {
+      @apply bg-brand-500 text-white border-none;
+
+      &:hover {
+        @apply cursor-pointer bg-brand-600;
+        color: white !important;
+      }
+      &:focus {
+        @apply outline outline-1 outline-gray-900 outline-offset-2 bg-brand-500 text-white;
+      }
+      &:active {
+        @apply bg-brand-600 text-white;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed bg-brand-300 text-white;
       }
     }
 
-    &--red {
-      @apply text-red-900 border-red-900;
-      &:focus, &:hover {
-        @apply text-red-900 border-red-900;
+    &--secondary {
+      @apply bg-brand-50 text-brand-600 border-none;
+
+      &:hover {
+        @apply cursor-pointer bg-brand-100 text-brand-600;
+      }
+      &:focus {
+        @apply outline outline-1 outline-gray-900 outline-offset-2 bg-brand-50 text-brand-600;
+      }
+      &:active {
+        @apply bg-brand-100 text-brand-600;
+      }
+      &[disabled],
+      &.disabled {
+        @apply cursor-not-allowed bg-brand-50 text-brand-300;
       }
     }
 
-    &--green {
-      @apply text-green-900 border-green-900;
-      &:focus, &:hover {
-        @apply text-green-900 border-green-900;
+    &--bordered {
+      @apply bg-white text-brand-600 border-2 border-brand-100 border-solid;
+
+      &:hover {
+        @apply cursor-pointer bg-brand-50 text-brand-600 border-2 border-brand-100 border-solid;
+      }
+      &:focus {
+        @apply bg-white text-brand-600 border-2 border-brand-100 border-solid outline outline-1 outline-gray-900 outline-offset-2;
+      }
+      &:active {
+        @apply bg-brand-100 text-brand-600 border-2 border-brand-100 border-solid;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed bg-white text-brand-300 border-2 border-brand-50 border-solid;
+      }
+    }
+
+    &--transparent {
+      @apply bg-transparent text-brand-600 border-none;
+
+      &:hover {
+        @apply cursor-pointer bg-brand-50 text-brand-600;
+      }
+      &:focus {
+        @apply bg-white text-brand-600 outline outline-1 outline-gray-900 outline-offset-2;
+      }
+      &:active {
+        @apply bg-brand-100 text-brand-600;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed bg-white text-brand-300;
       }
     }
   }
 
-  &--menu-cta {
-    @apply text-white border-white bg-transparent;
-    &:focus, &:hover {
-      @apply text-primary-900 border-primary-900 bg-transparent;
+  // Link buttons
+  &-link {
+    @apply bg-transparent border-0 p-0 rounded-none shadow-none;
+
+    // Size
+    &--sm {
+      @apply text-2xs;
+    }
+    &--md {
+      @apply text-sm;
+    }
+    &--lg {
+      @apply text-base;
+    }
+
+    // Link buttons' variations
+    &--primary {
+      @apply text-brand-500;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-brand-600 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-brand-300 bg-transparent;
+      }
+    }
+    &--secondary {
+      @apply text-gray-900;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-brand-500 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-gray-400 bg-transparent;
+      }
+    }
+    &--success {
+      @apply text-green-500;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-green-600 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-green-300 bg-transparent;
+      }
+    }
+    &--danger {
+      @apply text-red-500;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-red-600 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-red-300 bg-transparent;
+      }
+    }
+    &--warning {
+      @apply text-yellow-500;
+
+      &:hover,
+      &:active,
+      &:focus {
+        @apply cursor-pointer text-yellow-600 bg-transparent;
+      }
+      &[disabled] {
+        @apply cursor-not-allowed text-yellow-300 bg-transparent;
+      }
+    }
+
+    // Decoration {
+    &--underline {
+      @apply underline;
     }
   }
 
   &--link {
-    @apply bg-transparent border-0 p-0 rounded-none text-secondary-900 shadow-none;
+    @apply bg-transparent border-0 p-0 rounded-none text-blue-500 shadow-none;
     &:hover {
-      @apply bg-transparent text-secondary-900 opacity-80;
+      @apply bg-transparent text-blue-500 opacity-80;
+    }
+  }
+
+  &--text {
+    @apply bg-transparent border-0 shadow-none text-brand-500;
+    &:hover,
+    &:focus {
+      @apply text-brand-500;
+      background: #fdedea;
     }
   }
 
   &--full {
     @apply w-full;
+  }
+
+  &--circle {
+    @apply rounded-full h-9 w-9;
   }
 
   &[disabled] {
@@ -93,53 +283,46 @@
     pointer-events: none;
   }
 
-  i:not(:only-child) {
+  i:first-child:not(:only-child) {
     @apply mr-2;
   }
 
-  &--circle {
-    @apply p-0 rounded-full h-7 w-7 flex items-center justify-center text-base flex-shrink-0;
-    i {
-      @apply m-0;
-    }
+  &.el-button + &.el-button {
+    @apply ml-0;
+  }
+}
+
+.btn-group {
+  @apply flex items-center flex-nowrap;
+}
+
+.btn-group > .btn:not(:last-child) {
+  @apply -mr-0.5;
+}
+
+// Identities
+
+.btn {
+  &--twitter,
+  &--twitter:hover {
+    background-color: rgba(29, 155, 240, 0.15);
+    color: #1d9bf0;
   }
 
-  &--email, &--email:hover {
-    @apply border-0 text-primary-900;
-    background-color: rgba(219, 53, 0, 0.1);
-  }
-
-  &--twitter, &--twitter:hover {
-    background-color: rgba(0, 162, 245, 0.1);
-    color: #00A2F5;
-  }
-
-  &--github, &--github:hover {
-    background-color: rgba(89, 89, 89, 0.1);
-    color: #000;
-  }
-
-  &--devto, &--devto:hover {
-    background-color: rgba(89, 89, 89, 0.1);
-    color: #000;
-  }
-
-  &--linkedin, &--linkedin:hover {
+  &--linkedin,
+  &--linkedin:hover {
+    @apply cursor-pointer;
     background-color: rgba(2, 116, 179, 0.1);
-    color: #0274B3;
+    color: #0274b3;
   }
 
-  &--slack {
-    background-color: rgba(235, 179, 47, 0.1);
-    color: #ebb32f;
+  &--discord,
+  &--discord:hover {
+    background-color: rgba(88, 101, 242, 0.15);
   }
 
-  &--discord {
-    background-color: rgba(115, 124, 248, 0.1);
-    color: #737cf8;
-  }
-
-  &--email, &--twitter:hover, &--github:hover &--linkedin:hover {
-    @apply opacity-80;
+  &--slack,
+  &--slack:hover {
+    @apply bg-white;
   }
 }

@@ -8,7 +8,7 @@ import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import getUserContext from '../utils/getUserContext'
 import SequelizeRepository from '../repositories/sequelizeRepository'
-import { PlatformType } from '../../utils/platforms'
+import { PlatformType } from '../../types/integrationEnums'
 
 const path = require('path')
 
@@ -40,7 +40,7 @@ async function conversationInit() {
         // get parent activity
         const parentAct = await as.findById(discordActivity.parentId)
 
-        const transaction = await SequelizeRepository.createTransaction(userContext.database)
+        const transaction = await SequelizeRepository.createTransaction(userContext)
 
         await as.addToConversation(discordActivity.id, parentAct.id, transaction)
 

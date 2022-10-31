@@ -27,11 +27,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -47,11 +47,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(403)
         })
@@ -67,11 +67,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -87,11 +87,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .post(`/api/tenant/${tenantId}/microservice`)
+        .post(`/tenant/${tenantId}/microservice`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -115,11 +115,11 @@ describe('Microservice protected fields tests', () => {
         running: true,
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -142,11 +142,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -168,11 +168,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(403)
         })
@@ -195,11 +195,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -222,11 +222,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'premium',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })
@@ -248,11 +248,11 @@ describe('Microservice protected fields tests', () => {
         variant: 'default',
       }
       return request(app)
-        .put(`/api/tenant/${tenantId}/microservice/${microServiceId}`)
+        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
         .set({
           Authorization: `Bearer ${token}`,
         })
-        .send({ data })
+        .send({ ...data })
         .then((response) => {
           expect(response.statusCode).toBe(200)
         })

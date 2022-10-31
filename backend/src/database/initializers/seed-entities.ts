@@ -9,27 +9,18 @@
  * ts-node seed-entities conversations => Only runs the conversation seeder.(Useful in incremental db updates)
  */
 
-import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
 import conversations from './entities/2022-04-27-add-conversations'
 import microservices from './entities/2022-04-05-add-microservices'
-
-const path = require('path')
+import { IS_DEV_ENV } from '../../config/index'
 
 const arg = process.argv[2]
-
-const env = dotenv.config({
-  path: path.resolve(__dirname, `../../../.env`),
-})
-
-dotenvExpand.expand(env)
 
 /**
  * Seeds all entities. Intended to be used in github actions
  * when creating :latest docker image
  */
 async function seedAllEntities() {
-  if (process.env.NODE_ENV !== 'local') {
+  if (!IS_DEV_ENV) {
     throw new Error('This script is only allowed for development environment!')
   }
 

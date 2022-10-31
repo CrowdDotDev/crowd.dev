@@ -8,6 +8,7 @@ class BaseQuery {
   static USER_SELECT = `{
         login
         name
+        avatarUrl
         id
         isHireable
         twitterUsername
@@ -17,7 +18,21 @@ class BaseQuery {
         bio
         company
         location
+        followers {
+          totalCount
+        }
     }`
+
+  static ORGANIZATION_SELECT = `{
+    email
+    url
+    location
+    name
+    twitterUsername
+    websiteUrl
+    description
+    avatarUrl
+  }`
 
   static PAGE_SELECT = `{
         hasPreviousPage

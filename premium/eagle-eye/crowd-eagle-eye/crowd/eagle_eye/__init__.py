@@ -1,7 +1,9 @@
 import logging
-import dotenv
+from crowd.eagle_eye.config import KUBE_MODE
 
-dotenv.load_dotenv()
+if not KUBE_MODE:
+    import dotenv
+    dotenv.load_dotenv()
 
 root = logging.getLogger()
 if root.handlers:

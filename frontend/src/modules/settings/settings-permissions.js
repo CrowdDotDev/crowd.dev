@@ -15,8 +15,9 @@ export class SettingsPermissions {
     this.edit = permissionChecker.match(
       Permissions.values.settingsEdit
     )
-    this.lockedForCurrentPlan = permissionChecker.lockedForCurrentPlan(
-      Permissions.values.settingsEdit
-    )
+    this.lockedForCurrentPlan =
+      permissionChecker.lockedForCurrentPlan(
+        Permissions.values.settingsEdit
+      )
   }
 }

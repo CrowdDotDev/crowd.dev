@@ -7,7 +7,7 @@ export default async (req, res) => {
   try {
     new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentEdit)
 
-    const payload = await new EagleEyeContentService(req).update(req.params.id, req.body.data)
+    const payload = await new EagleEyeContentService(req).update(req.params.id, req.body)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

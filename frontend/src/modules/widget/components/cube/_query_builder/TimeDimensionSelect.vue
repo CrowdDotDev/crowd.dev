@@ -1,16 +1,18 @@
 <template>
   <div>
-    <label class="block leading-none mb-1"
+    <label
+      class="block text-xs leading-none font-semibold mb-1"
       >Time Dimensions</label
     >
     <el-select
-      :value="
+      :model-value="
         timeDimensions[0] &&
         timeDimensions[0].dimension.name
       "
-      @change="handleTimeChange"
       clearable
       filterable
+      class="w-full"
+      @change="handleTimeChange"
     >
       <el-option
         v-for="item in translatedOptions(
@@ -27,12 +29,22 @@
 <script>
 import { i18n } from '@/i18n'
 export default {
-  props: [
-    'measures',
-    'timeDimensions',
-    'availableTimeDimensions'
-  ],
   name: 'TimeDimensionSelect',
+  props: {
+    measures: {
+      type: Array,
+      default: () => []
+    },
+    timeDimensions: {
+      type: Array,
+      default: () => []
+    },
+    availableTimeDimensions: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['change'],
   data() {
     return {
       measureTimeDimensions: {

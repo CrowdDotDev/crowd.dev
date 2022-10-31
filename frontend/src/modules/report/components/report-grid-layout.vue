@@ -1,69 +1,61 @@
 <template>
   <div
-    class="report-grid-layout"
+    class="report-grid-layout flex-grow"
     :class="
       editable ? 'report-grid-layout--editing' : '-m-2'
     "
   >
-    <el-dialog
-      :visible.sync="widgetModal.visible"
-      :title="
-        widgetModal.action === 'add'
-          ? 'Add Widget'
-          : 'Edit Widget'
-      "
-      custom-class="el-dialog--xl"
-    >
-      <div
-        class="app-page-spinner"
-        v-if="widgetModal.visible === false"
-        v-loading="true"
-      ></div>
-      <app-widget-cube-builder
-        v-else
-        v-model="widgetModal.model"
-        @submit="handleWidgetFormSubmit"
-        @close="widgetModal.visible = false"
-      />
-    </el-dialog>
+    <app-widget-cube-builder
+      v-if="widgetDrawer.visible === true"
+      v-model:widget="widgetDrawer.model"
+      v-model:drawer="widgetDrawer.visible"
+      @submit="handleWidgetFormSubmit"
+    />
     <div
-      class="app-page-spinner"
       v-if="loadingCube"
       v-loading="loadingCube"
+      class="app-page-spinner"
     ></div>
     <div v-else>
       <div
-        class="text-black font-light absolute inset-0 flex flex-col items-center justify-center"
         v-if="!model.widgets || model.widgets.length === 0"
+        class="text-black flex flex-col items-center justify-center rounded border border-dashed border-gray-200 p-12 mx-4 my-8"
       >
-        No widgets were added to the report yet.
-        <button
-          type="button"
-          @click="handleAddWidgetClick"
-          class="btn btn--secondary mt-1"
+        <i
+          class="ri-bar-chart-line ri-6x text-gray-200"
+        ></i>
+        <div class="font-semibold mt-8 mb-4">
+          Add your first widget
+        </div>
+        <div class="text-sm text-gray-600">
+          {{
+            editable
+              ? 'Build a custom widget and start composing your report'
+              : 'Edit your report and compose your first custom widget'
+          }}
+        </div>
+        <el-button
           v-if="editable"
+          type="button"
+          class="btn btn--primary btn--md !h-10 mt-6"
+          @click="handleAddWidgetClick"
         >
-          <span class="flex items-center text-primary-900">
-            <i class="ri-lg ri-add-line mr-1"></i>Add Widget
-          </span>
-        </button>
+          Add Widget
+        </el-button>
         <router-link
+          v-else
           :to="{
             name: 'reportEdit',
-            params: { id: value.id }
+            params: { id: modelValue.id }
           }"
-          class="btn btn--secondary mt-1"
-          v-else
+          class="btn btn--primary btn--md mt-6 !hover:text-white"
         >
-          <span class="flex items-center text-primary-900">
-            <i class="ri-lg ri-pencil-line mr-1"></i>Edit
-            Report
-          </span>
+          Edit report
         </router-link>
       </div>
       <div v-else>
         <grid-layout
-          :layout="layout"
+          v-model:layout="layout"
           :col-num="12"
           :row-height="8"
           :is-draggable="editable"
@@ -75,12 +67,12 @@
         >
           <grid-item
             v-for="item in layout"
+            :key="item.i"
             :x="item.x"
             :y="item.y"
             :w="item.w"
             :h="item.h"
             :i="item.i"
-            :key="item.i"
             @move="
               (i, newX, newY) =>
                 handleWidgetMove(
@@ -101,6 +93,7 @@
             <app-widget-cube-renderer
               :editable="editable"
               :widget="widgets[item.i]"
+              :chart-options="widgets[item.i]"
               @edit="handleWidgetEdit(widgets[item.i])"
               @duplicate="
                 handleWidgetDuplicate(widgets[item.i])
@@ -109,15 +102,13 @@
             ></app-widget-cube-renderer>
           </grid-item>
         </grid-layout>
-        <div class="toolbar" v-if="editable">
+        <div v-if="editable" class="toolbar">
           <button
             type="button"
+            class="btn btn-brand btn-brand--transparent btn--md"
             @click="handleAddWidgetClick"
-            class="btn btn--secondary"
           >
-            <span
-              class="flex items-center text-primary-900"
-            >
+            <span class="flex items-center text-brand-500">
               <i class="ri-lg ri-add-line mr-1"></i>Add
               Widget
             </span>
@@ -129,18 +120,21 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import { mapGetters, mapActions } from 'vuex'
-import VueGridLayout from 'vue-grid-layout'
 import WidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
 import WidgetCubeBuilder from '@/modules/widget/components/cube/widget-cube-builder'
 import { WidgetService } from '@/modules/widget/widget-service'
 import { i18n } from '@/i18n'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
   name: 'ReportGridLayout',
+  components: {
+    'app-widget-cube-builder': WidgetCubeBuilder,
+    'app-widget-cube-renderer': WidgetCubeRenderer
+  },
   props: {
-    value: {
+    modelValue: {
       type: Object,
       default: () => {}
     },
@@ -149,12 +143,20 @@ export default {
       default: false
     }
   },
-  components: {
-    GridLayout: VueGridLayout.GridLayout,
-    GridItem: VueGridLayout.GridItem,
-    'app-widget-cube-builder': WidgetCubeBuilder,
-    'app-widget-cube-renderer': WidgetCubeRenderer
+  emits: ['close'],
+
+  data() {
+    return {
+      model: { ...this.modelValue },
+      widgetDrawer: {
+        visible: false,
+        action: null,
+        model: {}
+      },
+      layout: []
+    }
   },
+
   computed: {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
@@ -171,32 +173,31 @@ export default {
       }, {})
     }
   },
-  data() {
-    return {
-      model: this.value,
-      widgetModal: {
-        visible: false,
-        action: null,
-        model: {}
-      },
-      layout: []
+
+  async created() {
+    if (this.cubejsApi === null) {
+      await this.getCubeToken()
     }
+    this.resetWidgetModel()
+    this.updateLayout()
   },
+
   methods: {
     ...mapActions({
       getCubeToken: 'widget/getCubeToken'
     }),
     handleAddWidgetClick() {
-      this.widgetModal = {
+      this.widgetDrawer = {
         visible: true,
         action: 'add',
         model: JSON.parse(
           JSON.stringify({
             title: 'Untitled',
             type: 'cubejs',
-            reportId: this.value.id
-              ? this.value.id
-              : undefined
+            reportId: this.modelValue.id
+              ? this.modelValue.id
+              : undefined,
+            settings: {}
           })
         )
       }
@@ -221,7 +222,7 @@ export default {
     },
 
     async handleWidgetFormSubmit(widgetModel) {
-      if (this.widgetModal.action === 'add') {
+      if (this.widgetDrawer.action === 'add') {
         const widget = await this.createWidget(widgetModel)
         this.model.widgets.push(widget)
         this.resetWidgetModel()
@@ -233,7 +234,7 @@ export default {
         const index = this.model.widgets.findIndex(
           (w) => w.id === widget.id
         )
-        Vue.set(this.model.widgets, index, widget)
+        this.model.widgets[index] = widget
         this.resetWidgetModel()
       }
 
@@ -250,31 +251,35 @@ export default {
     async handleWidgetMove(widget, newX, newY) {
       widget.settings.layout.x = newX
       widget.settings.layout.y = newY
+
+      await WidgetService.update(widget.id, widget)
     },
 
     async handleWidgetResize(widget, newH, newW) {
       widget.settings.layout.h = newH
       widget.settings.layout.w = newW
+
+      await WidgetService.update(widget.id, widget)
     },
 
     async handleWidgetEdit(widget) {
-      this.widgetModal = {
-        visible: true,
+      this.widgetDrawer = {
         action: 'edit',
         model: JSON.parse(JSON.stringify(widget))
       }
+
+      setTimeout(() => {
+        this.widgetDrawer.visible = true
+      }, 200)
     },
     async handleWidgetDelete(widget) {
       try {
-        await this.$myConfirm(
-          i18n('common.areYouSure'),
-          i18n('common.confirm'),
-          {
-            confirmButtonText: i18n('common.yes'),
-            cancelButtonText: i18n('common.no'),
-            type: 'warning'
-          }
-        )
+        await ConfirmDialog({
+          title: i18n('common.confirm'),
+          message: i18n('common.areYouSure'),
+          confirmButtonText: i18n('common.yes'),
+          cancelButtonText: i18n('common.no')
+        })
 
         await WidgetService.destroyAll([widget.id])
         const index = this.model.widgets.findIndex(
@@ -287,10 +292,12 @@ export default {
       }
     },
     resetWidgetModel() {
-      this.widgetModal.model = {
+      this.widgetDrawer.model = {
         title: 'Untitled',
         type: 'cubejs',
-        reportId: this.value.id ? this.value.id : undefined
+        reportId: this.modelValue.id
+          ? this.modelValue.id
+          : undefined
       }
     },
     updateLayout() {
@@ -304,13 +311,6 @@ export default {
         this.widgets[widget.i].settings.layout = widget
       }
     }
-  },
-  async created() {
-    if (this.cubejsApi === null) {
-      await this.getCubeToken()
-    }
-    this.resetWidgetModel()
-    this.updateLayout()
   }
 }
 </script>
@@ -318,8 +318,6 @@ export default {
 <style lang="scss">
 .report-grid-layout {
   @apply min-h-40 relative;
-}
-.vue-grid-layout {
 }
 .vue-grid-item:not(.vue-grid-placeholder) {
   touch-action: none;

@@ -1,28 +1,16 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore as createVuexStore } from 'vuex'
 import modules from '@/modules'
-import LogRocket from 'logrocket'
-import createPlugin from 'logrocket-vuex'
-
-const logrocketPlugin = createPlugin(LogRocket)
-Vue.use(Vuex)
-
 let store
 
 /**
  * Creates/Sets the Vuex store
  */
-const storeAsync = () => {
+const createStore = () => {
   if (!store) {
-    store = new Vuex.Store({
-      modules: buildStores(),
-      plugins:
-        process.env.NODE_ENV === 'production'
-          ? [logrocketPlugin]
-          : []
+    store = createVuexStore({
+      modules: buildStores()
     })
   }
-
   return store
 }
 
@@ -50,13 +38,19 @@ const buildStores = () => {
  *
  * @returns {{}}
  */
-const buildInitialState = () => {
+const buildInitialState = (excludeAuth = false) => {
   const modules = buildStores()
+
   return Object.keys(modules).reduce((acc, moduleKey) => {
     acc[moduleKey] = {}
-    if (modules[moduleKey].state) {
+    if (
+      ['auth', 'tenant'].includes(moduleKey) &&
+      excludeAuth
+    ) {
+      acc[moduleKey] = store.state[moduleKey]
+    } else if (modules[moduleKey].state) {
       acc[moduleKey] = JSON.parse(
-        JSON.stringify(modules[moduleKey].state)
+        JSON.stringify(modules[moduleKey].state())
       )
     }
 
@@ -64,7 +58,7 @@ const buildInitialState = () => {
     if (subModules) {
       for (const subModuleKey of Object.keys(subModules)) {
         acc[moduleKey][subModuleKey] = JSON.parse(
-          JSON.stringify(subModules[subModuleKey].state)
+          JSON.stringify(subModules[subModuleKey].state())
         )
       }
     }
@@ -72,4 +66,4 @@ const buildInitialState = () => {
   }, {})
 }
 
-export { storeAsync, buildInitialState }
+export { createStore, buildInitialState, store }

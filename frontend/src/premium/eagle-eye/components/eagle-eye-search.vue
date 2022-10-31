@@ -1,84 +1,53 @@
 <template>
   <div class="eagle-eye-search">
-    <div class="flex-grow mx-3">
-      <app-keywords-input
-        v-model="selectedKeywords"
-        placeholder="Enter keywords, or topics..."
-      />
-    </div>
-    <app-eagle-eye-filter />
-    <el-button
-      class="btn btn--primary mx-3"
-      @click="doSearch"
-    >
-      Search
-    </el-button>
+    <app-keywords-input
+      v-model="computedModel"
+      placeholder="Enter keywords, or topics..."
+    />
   </div>
 </template>
 
 <script>
-import AppEagleEyeFilter from './eagle-eye-filter'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions, mapState } from 'vuex'
 
 export default {
-  name: 'app-eagle-eye-search',
-  components: {
-    AppEagleEyeFilter
-  },
+  name: 'AppEagleEyeSearch',
   computed: {
+    ...mapState({
+      filter: (state) => state.eagleEye.filter
+    }),
     ...mapGetters({
-      filter: 'eagleEye/filter',
-      activeTab: 'eagleEye/activeTab'
-    })
-  },
-  data() {
-    return {
-      selectedKeywords: []
+      activeView: 'eagleEye/activeView'
+    }),
+    computedModel: {
+      get() {
+        return this.filter.attributes?.keywords?.value || []
+      },
+      set(value) {
+        this.updateFilterAttribute({
+          name: 'keywords',
+          label: 'Keywords',
+          defaultValue: [],
+          show: false,
+          operator: 'overlap',
+          defaultOperator: 'overlap',
+          type: 'custom',
+          value: value
+        })
+      }
     }
   },
-  watch: {
-    activeTab: {
-      handler(newValue, oldValue) {
-        if (newValue !== oldValue) {
-          this.selectedKeywords = []
-        }
-      }
+  async created() {
+    if (this.computedModel.length > 0) {
+      await this.doFetch({})
     }
   },
   methods: {
     ...mapActions({
-      doPopulate: 'eagleEye/doPopulate',
+      updateFilterAttribute:
+        'eagleEye/updateFilterAttribute',
       doFetch: 'eagleEye/doFetch'
-    }),
-    async doSearch() {
-      const filtersToApply = {
-        ...this.filter,
-        keywords: this.selectedKeywords.join(',')
-      }
-      await this.doFetch({
-        rawFilter: filtersToApply,
-        filter: filtersToApply
-      })
-    }
-  },
-  async created() {
-    const savedKeywords = localStorage.getItem(
-      'eagleEye_keywords'
-    )
-    this.selectedKeywords =
-      savedKeywords && savedKeywords !== ''
-        ? savedKeywords.split(',')
-        : []
-
-    if (savedKeywords) {
-      await this.doSearch()
-    }
+    })
   }
 }
 </script>
-
-<style lang="scss">
-.eagle-eye-search {
-  @apply -mx-3 flex items-start mt-6;
-}
-</style>

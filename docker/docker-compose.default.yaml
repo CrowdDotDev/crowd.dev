@@ -70,8 +70,7 @@ services:
     env_file:
       - ../backend/.env
     command: >
-        sh -c "bash util/initialize-tables.sh && 
-               npm start"
+        sh -c "npm start"
     environment:
       - DOCKER_BUILDKIT=1
     depends_on:

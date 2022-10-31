@@ -1266,7 +1266,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1291,7 +1291,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommunityMember"
+                  "$ref": "#/components/schemas/Member"
                 }
               }
             }
@@ -1310,7 +1310,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1338,7 +1338,7 @@
                 "required": ["data"],
                 "properties": {
                   "data": {
-                    "$ref": "#/components/schemas/CommunityMemberInput"
+                    "$ref": "#/components/schemas/MemberInput"
                   }
                 }
               }
@@ -1351,7 +1351,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommunityMember"
+                  "$ref": "#/components/schemas/Member"
                 }
               }
             }
@@ -1372,7 +1372,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1465,7 +1465,7 @@
                     "rows": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/CommunityMember"
+                        "$ref": "#/components/schemas/Member"
                       }
                     },
                     "count": {
@@ -1493,7 +1493,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1513,7 +1513,7 @@
                 "required": ["data"],
                 "properties": {
                   "data": {
-                    "$ref": "#/components/schemas/CommunityMemberInput"
+                    "$ref": "#/components/schemas/MemberInput"
                   }
                 }
               }
@@ -1526,7 +1526,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommunityMember"
+                  "$ref": "#/components/schemas/Member"
                 }
               }
             }
@@ -1545,7 +1545,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1587,7 +1587,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1654,7 +1654,7 @@
             "bearerAuth": []
           }
         ],
-        "tags": ["CommunityMember"],
+        "tags": ["Member"],
         "parameters": [
           {
             "in": "path",
@@ -1674,7 +1674,7 @@
                 "required": ["data", "importHash"],
                 "properties": {
                   "data": {
-                    "$ref": "#/components/schemas/CommunityMemberInput"
+                    "$ref": "#/components/schemas/MemberInput"
                   },
                   "importHash": {
                     "type": "string"
@@ -1690,7 +1690,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommunityMember"
+                  "$ref": "#/components/schemas/Member"
                 }
               }
             }
@@ -1876,7 +1876,7 @@
           },
           {
             "in": "query",
-            "name": "filter[communityMember]",
+            "name": "filter[member]",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -3580,10 +3580,10 @@
               "$ref": "#/components/schemas/Activity"
             }
           },
-          "communityMembers": {
+          "members": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CommunityMember"
+              "$ref": "#/components/schemas/Member"
             }
           }
         }
@@ -3614,7 +3614,7 @@
               "format": "uuid"
             }
           },
-          "communityMembers": {
+          "members": {
             "type": "array",
             "items": {
               "type": "string",
@@ -3637,7 +3637,7 @@
           "network": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CommunityMember"
+              "$ref": "#/components/schemas/Member"
             }
           },
           "info": {
@@ -3670,7 +3670,7 @@
           }
         }
       },
-      "CommunityMember": {
+      "Member": {
         "allOf": [
           {
             "$ref": "#/components/schemas/GenericEntity"
@@ -3716,7 +3716,7 @@
           }
         }
       },
-      "CommunityMemberInput": {
+      "MemberInput": {
         "type": "object",
         "properties": {
           "username": {
@@ -3785,8 +3785,8 @@
           "info": {
             "type": "string"
           },
-          "communityMember": {
-            "$ref": "#/components/schemas/CommunityMember"
+          "member": {
+            "$ref": "#/components/schemas/Member"
           },
           "crowdInfo": {
             "type": "string"
@@ -3813,7 +3813,7 @@
           "info": {
             "type": "string"
           },
-          "communityMember": {
+          "member": {
             "type": "string",
             "format": "uuid"
           },

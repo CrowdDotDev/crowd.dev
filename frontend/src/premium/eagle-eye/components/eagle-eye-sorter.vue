@@ -1,47 +1,50 @@
 <template>
-  <div class="eagle-eye-sorter -mr-3" :style="computedWidth">
-    <el-select
-      :value="value"
-      popper-class="eagle-eye-popper-class"
-      prefix="sort"
-      @change="handleChange"
-    >
-      <div slot="prefix">Sort:</div>
-      <el-option
-        key="relevance"
-        value="similarityScore"
-        label="Relevance"
-      ></el-option>
-      <el-option
-        key="latest"
-        value="timestamp"
-        label="Latest"
-      ></el-option>
-    </el-select>
+  <div class="eagle-eye-sorter">
+    <app-inline-select-input
+      v-model="computedValue"
+      popper-class="sorter-popper-class"
+      popper-placement="bottom-start"
+      prefix="Sort:"
+      :options="options"
+    />
   </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
+import AppInlineSelectInput from '@/shared/form/inline-select-input'
 export default {
-  name: 'app-eagle-eye-sorter',
+  name: 'AppEagleEyeSorter',
+  components: { AppInlineSelectInput },
   data() {
     return {
-      value: 'similarityScore'
+      options: [
+        {
+          value: 'similarityScore',
+          label: 'Relevance'
+        },
+        {
+          value: 'timestamp',
+          label: 'Latest'
+        }
+      ]
     }
   },
   computed: {
-    ...mapGetters({
-      sorter: 'eagleEye/sorter'
+    ...mapState({
+      sorter: (state) => state.eagleEye.sorter
     }),
-    computedWidth() {
-      return {
-        width:
-          this.value === 'similarityScore'
-            ? '140px'
-            : '116px'
+    computedValue: {
+      get() {
+        return this.sorter.prop
+      },
+      set(v) {
+        this.handleChange(v)
       }
     }
+  },
+  created() {
+    this.value = this.sorter.prop
   },
   methods: {
     ...mapActions({
@@ -54,28 +57,6 @@ export default {
         order: 'descending'
       })
     }
-  },
-  created() {
-    this.value = this.sorter.prop
   }
 }
 </script>
-
-<style lang="scss">
-.el-select-dropdown.eagle-eye-popper-class {
-  .popper__arrow {
-    left: unset !important;
-    right: 35px;
-  }
-}
-.eagle-eye-sorter {
-  .el-input {
-    &__inner {
-      @apply bg-transparent border-none text-left pr-8 pl-10;
-    }
-    &__prefix {
-      @apply flex items-center mr-2 text-gray-400;
-    }
-  }
-}
-</style>

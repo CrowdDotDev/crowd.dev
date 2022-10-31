@@ -1,9 +1,11 @@
 export default {
   namespaced: true,
 
-  state: {
-    menuCollapsed: false,
-    isMobile: false
+  state: () => {
+    return {
+      menuCollapsed: false,
+      isMobile: false
+    }
   },
 
   getters: {
@@ -11,8 +13,8 @@ export default {
     isMobile: (state) => Boolean(state.isMobile),
     paginationLayout: (state) =>
       state.isMobile
-        ? 'total, prev, pager, next'
-        : 'total, sizes, prev, pager, next',
+        ? 'prev, pager, next, slot, total'
+        : 'prev, pager, next, slot, total, sizes',
     labelPosition: (state) =>
       state.isMobile ? 'top' : undefined,
     labelWidthForm: () => undefined,
@@ -31,6 +33,12 @@ export default {
 
     RESIZE(state, payload) {
       state.isMobile = payload.width < 576
+
+      if (payload.width > 768 && payload.width < 1281) {
+        state.menuCollapsed = true
+      } else if (payload.width > 1280) {
+        state.menuCollapsed = false
+      }
     }
   },
 

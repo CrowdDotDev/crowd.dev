@@ -1,6 +1,6 @@
 import assert from 'assert'
 import sendgridMail from '@sendgrid/mail'
-import { getConfig } from '../config'
+import { SENDGRID_CONFIG } from '../config'
 import { AdvancedSuppressionManager } from './helpers/sendgridAsmType'
 
 export default class EmailSender {
@@ -11,8 +11,8 @@ export default class EmailSender {
   constructor(templateId, variables) {
     this.templateId = templateId
     this.variables = variables
-    if (getConfig().SENDGRID_KEY) {
-      sendgridMail.setApiKey(getConfig().SENDGRID_KEY)
+    if (SENDGRID_CONFIG.key) {
+      sendgridMail.setApiKey(SENDGRID_CONFIG.key)
     }
   }
 
@@ -22,10 +22,10 @@ export default class EmailSender {
     }
 
     return {
-      EMAIL_ADDRESS_VERIFICATION: getConfig().SENDGRID_TEMPLATE_EMAIL_ADDRESS_VERIFICATION,
-      INVITATION: getConfig().SENDGRID_TEMPLATE_INVITATION,
-      PASSWORD_RESET: getConfig().SENDGRID_TEMPLATE_PASSWORD_RESET,
-      WEEKLY_ANALYTICS: getConfig().SENDGRID_TEMPLATE_WEEKLY_ANALYTICS,
+      EMAIL_ADDRESS_VERIFICATION: SENDGRID_CONFIG.templateEmailAddressVerification,
+      INVITATION: SENDGRID_CONFIG.templateInvitation,
+      PASSWORD_RESET: SENDGRID_CONFIG.templatePasswordReset,
+      WEEKLY_ANALYTICS: SENDGRID_CONFIG.templateWeeklyAnalytics,
     }
   }
 
@@ -42,14 +42,14 @@ export default class EmailSender {
     }
 
     assert(recipient, 'to is required')
-    assert(getConfig().SENDGRID_EMAIL_FROM, 'SENDGRID_EMAIL_FROM is required')
+    assert(SENDGRID_CONFIG.emailFrom, 'SENDGRID_EMAIL_FROM is required')
     assert(this.templateId, 'templateId is required')
 
     const msg = {
       to: recipient,
       from: {
-        name: getConfig().SENDGRID_NAME_FROM,
-        email: getConfig().SENDGRID_EMAIL_FROM,
+        name: SENDGRID_CONFIG.nameFrom,
+        email: SENDGRID_CONFIG.emailFrom,
       },
       templateId: this.templateId,
       dynamicTemplateData: this.variables,
@@ -69,6 +69,6 @@ export default class EmailSender {
   }
 
   static get isConfigured() {
-    return Boolean(getConfig().SENDGRID_EMAIL_FROM && getConfig().SENDGRID_KEY)
+    return Boolean(SENDGRID_CONFIG.emailFrom && SENDGRID_CONFIG.key)
   }
 }

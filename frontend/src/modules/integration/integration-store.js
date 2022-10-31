@@ -1,19 +1,20 @@
 import { IntegrationService } from '@/modules/integration/integration-service'
 import Errors from '@/shared/error/errors'
-import Vue from 'vue'
 import integrationsJson from '@/jsons/integrations'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import Message from '../../shared/message/message'
 
 export default {
   namespaced: true,
 
-  state: {
-    byId: {},
-    allIds: [],
-    count: 0,
-    loading: false,
-    loaded: false
+  state: () => {
+    return {
+      byId: {},
+      allIds: [],
+      count: 0,
+      loading: false,
+      loaded: false
+    }
   },
 
   getters: {
@@ -85,6 +86,12 @@ export default {
       )
     },
 
+    withErrors: (state, getters) => {
+      return getters.array.filter(
+        (i) => i.status === 'error'
+      )
+    },
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0
@@ -98,7 +105,7 @@ export default {
     FETCH_SUCCESS(state, payload) {
       state.loading = false
       for (let integration of payload.rows) {
-        Vue.set(state.byId, integration.id, integration)
+        state.byId[integration.id] = integration
         if (state.allIds.indexOf(integration.id) === -1) {
           state.allIds.push(integration.id)
         }
@@ -119,7 +126,7 @@ export default {
 
     FIND_SUCCESS(state, record) {
       record.loading = false
-      Vue.set(state.byId, record.id, record)
+      state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
         state.allIds.push(record.id)
       }
@@ -135,7 +142,7 @@ export default {
 
     CREATE_SUCCESS(state, record) {
       state.loading = false
-      Vue.set(state.byId, record.id, record)
+      state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
         state.allIds.push(record.id)
         state.count++
@@ -152,7 +159,7 @@ export default {
 
     DESTROY_SUCCESS(state, id) {
       state.loading = false
-      Vue.delete(state.byId, id)
+      delete state.byId[id]
       const index = state.allIds.indexOf(id)
       state.allIds.splice(index, 1)
       state.count--
@@ -168,7 +175,7 @@ export default {
 
     DESTROY_ALL_SUCCESS(state) {
       state.loading = false
-      Vue.set(state, 'byId', {})
+      state.byId = {}
       state.allIds.splice(0)
       state.count = 0
     },
@@ -199,11 +206,12 @@ export default {
       try {
         commit('DESTROY_STARTED')
 
-        const response = await IntegrationService.destroyAll(
-          [integrationId]
+        await IntegrationService.destroyAll([integrationId])
+        Message.success(
+          'Integration was disconnected successfully'
         )
 
-        commit('DESTROY_SUCCESS', response)
+        commit('DESTROY_SUCCESS', integrationId)
       } catch (error) {
         Errors.handle(error)
         commit('DESTROY_ERROR')
@@ -214,9 +222,10 @@ export default {
       try {
         commit('DESTROY_ALL_STARTED')
 
-        const response = await IntegrationService.destroyAll(
-          integrationIds
-        )
+        const response =
+          await IntegrationService.destroyAll(
+            integrationIds
+          )
 
         commit('DESTROY_ALL_SUCCESS', response)
       } catch (error) {
@@ -244,11 +253,12 @@ export default {
       try {
         commit('CREATE_STARTED')
         // Call the connect function in IntegrationService to handle functionality
-        const integration = await IntegrationService.githubConnect(
-          code,
-          install_id,
-          setupAction
-        )
+        const integration =
+          await IntegrationService.githubConnect(
+            code,
+            install_id,
+            setupAction
+          )
 
         commit('CREATE_SUCCESS', integration)
         Message.success(
@@ -257,9 +267,7 @@ export default {
             title: 'GitHub integration created successfully'
           }
         )
-        routerAsync().push(
-          '/settings?activeTab=integrations'
-        )
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -272,9 +280,8 @@ export default {
       try {
         commit('CREATE_STARTED')
 
-        const integration = await IntegrationService.discordConnect(
-          guildId
-        )
+        const integration =
+          await IntegrationService.discordConnect(guildId)
 
         commit('CREATE_SUCCESS', integration)
         Message.success(
@@ -284,9 +291,7 @@ export default {
               'Discord integration created successfully'
           }
         )
-        routerAsync().push(
-          '/settings?activeTab=integrations'
-        )
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')
@@ -303,10 +308,11 @@ export default {
       try {
         commit('CREATE_STARTED')
 
-        const integration = await IntegrationService.devtoConnect(
-          users,
-          organizations
-        )
+        const integration =
+          await IntegrationService.devtoConnect(
+            users,
+            organizations
+          )
 
         commit('CREATE_SUCCESS', integration)
 
@@ -317,9 +323,7 @@ export default {
           }
         )
 
-        routerAsync().push(
-          '/settings?activeTab=integrations'
-        )
+        router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
         commit('CREATE_ERROR')

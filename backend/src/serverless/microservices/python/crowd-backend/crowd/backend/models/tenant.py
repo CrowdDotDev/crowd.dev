@@ -26,17 +26,11 @@ class Tenant(Base):
     updatedById = Column(String)
 
     # relationships
-    tenantUser = relationship("TenantUser", back_populates="parentTenant", uselist=False)
 
     activities = relationship("Activity", back_populates="parentTenant")
-
-    communityMembers = relationship("CommunityMember", back_populates="parentTenant")
-
-    widgets = relationship("Widget", back_populates="parentTenant")
-
-    reports = relationship("Report", back_populates="parentTenant")
-
+    members = relationship("Member", back_populates="parentTenant")
     microservices = relationship("Microservice", back_populates="parentTenant")
+    integrations = relationship("Integration", back_populates="parentTenant")
 
     # validation
     @validates("name")

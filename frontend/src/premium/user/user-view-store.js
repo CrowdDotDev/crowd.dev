@@ -1,13 +1,15 @@
 import Errors from '@/shared/error/errors'
-import { routerAsync } from '@/router'
+import { router } from '@/router'
 import { UserService } from '@/premium/user/user-service'
 
 export default {
   namespaced: true,
 
-  state: {
-    loading: false,
-    record: null
+  state: () => {
+    return {
+      loading: false,
+      record: null
+    }
   },
 
   getters: {
@@ -41,7 +43,7 @@ export default {
       } catch (error) {
         Errors.handle(error)
         commit('FIND_ERROR')
-        routerAsync().push('/settings')
+        router.push('/settings')
       }
     }
   }

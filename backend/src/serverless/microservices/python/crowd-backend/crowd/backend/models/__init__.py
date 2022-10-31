@@ -1,24 +1,21 @@
 import logging
 
-__version__ = "0.0.6"
-import dotenv  # noqa
 
 from .activity import Activity  # noqa
-from .community_member import CommunityMember  # noqa
-from .tenant_user import TenantUser
+from .member import Member  # noqa
 from .tenant import Tenant
-from .user import User
-from .report import Report
-from .widget import Widget
-from .integration import Integration
 from .microservice import Microservice
+from .integration import Integration
+from ..infrastructure import KUBE_MODE
 
 # from .repo import Repo  # noqa
-
-found = dotenv.find_dotenv(".env")
-found_base = dotenv.find_dotenv(".env")
-dotenv.load_dotenv(found)
-dotenv.load_dotenv(found_base)
+# TODO-kube
+if not KUBE_MODE:
+    import dotenv  # noqa
+    found = dotenv.find_dotenv(".env")
+    found_base = dotenv.find_dotenv(".env")
+    dotenv.load_dotenv(found)
+    dotenv.load_dotenv(found_base)
 
 root = logging.getLogger()
 if root.handlers:

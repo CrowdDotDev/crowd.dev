@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import { v4 as uuid } from 'uuid'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -38,7 +38,14 @@ class TenantRepository {
 
     const record = await options.database.tenant.create(
       {
-        ...lodash.pick(data, ['id', 'name', 'url', 'importHash']),
+        ...lodash.pick(data, [
+          'id',
+          'name',
+          'url',
+          'communitySize',
+          'integrationsRequired',
+          'importHash',
+        ]),
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },
@@ -92,7 +99,16 @@ class TenantRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['id', 'name', 'url', 'onboardedAt', 'hasSampleData', 'importHash']),
+        ...lodash.pick(data, [
+          'id',
+          'name',
+          'url',
+          'communitySize',
+          'integrationsRequired',
+          'onboardedAt',
+          'hasSampleData',
+          'importHash',
+        ]),
         updatedById: currentUser.id,
       },
       {
@@ -290,7 +306,7 @@ class TenantRepository {
       transaction: SequelizeRepository.getTransaction(options),
     })
 
-    return { rows, count }
+    return { rows, count, limit: false, offset: 0 }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
@@ -358,6 +374,28 @@ class TenantRepository {
    */
   static getCurrentTenant(options: IRepositoryOptions) {
     return SequelizeRepository.getCurrentTenant(options)
+  }
+
+  static async getAvailablePlatforms(id, options: IRepositoryOptions) {
+    const query = `
+        SELECT
+        DISTINCT platform
+      FROM (
+        SELECT jsonb_object_keys(username) AS platform
+        FROM members
+        where "tenantId" = :tenantId
+      ) AS subquery
+    `
+    const parameters: any = {
+      tenantId: id,
+    }
+
+    const platforms = await options.database.sequelize.query(query, {
+      replacements: parameters,
+      type: QueryTypes.SELECT,
+    })
+
+    return platforms
   }
 }
 

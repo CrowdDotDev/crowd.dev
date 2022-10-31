@@ -1,23 +1,13 @@
 #nprogress .bar {
-  background: #E94F2E !important;
+  background: #e94f2e !important;
 }
 
 body {
-  background-color: #f4f4f6;
+  @apply bg-gray-50;
 }
 
 .el-main {
   max-height: 100vh;
-}
-
-.el-aside {
-  background-color: #140505;
-  @apply z-10 fixed border-none min-h-screen;
-}
-
-.el-menu {
-  border-right: 0px !important;
-  @apply flex flex-col flex-1;
 }
 
 .el-header .el-dropdown-link-body {
@@ -39,73 +29,21 @@ body {
   margin-right: 24px;
 }
 
-.el-aside {
-  flex-shrink: 0;
+.el-menu-item .el-menu-tooltip__trigger {
+  width: 58px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -12px;
 }
 
-.el-menu-side-nav {
-  flex-shrink: 0;
-  background-color: transparent;
-}
-
-.el-menu-side-nav.hidden {
+.el-popper__arrow {
   display: none;
 }
 
-.el-menu-item {
-  @apply text-sm flex items-center h-10;
-  -webkit-transition: border-color .2s, background-color .2s, color .2s;
-  transition: border-color .2s, background-color .2s, color .2s;
-  color: #ccc;
-
-  &:not(.active) i {
-    color: #ccc;
-  }
-
-  &:hover, &:focus, &:hover i {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #fff;
-  }
-
-  &.is-active {
-    color: #fff;
-  }
-
-  .el-tooltip {
-    display: flex!important;
-    @apply items-center justify-center;
-  }
-}
-
-.el-menu-item.active {
-  @apply relative;
-  outline: none;
-
-  &, i {
-    color: #fff;
-  }
-}
-
-.el-menu.collapsed {
-  .el-menu-item.active:before {
-    content: ' ';
-    @apply absolute h-10 w-10 inset-0 rounded-lg m-auto bg-primary-900;
-  }
-}
-
-.el-menu:not(.collapsed) {
-  .el-menu-item.active {
-    background-color: rgba(255, 255, 255, 0.05);
-
-    &::before {
-      content: ' ';
-      @apply absolute left-0 inset-y-0 w-1 rounded-r-lg bg-primary-900;
-    }
-  }
-}
-
-.w-100 {
-  width: 100%;
+.el-popper.is-dark {
+  @apply font-medium h-6 px-1.5 bg-gray-900 border-none rounded-md flex items-center;
 }
 
 hr {
@@ -132,15 +70,41 @@ hr {
   font-weight: 500;
 }
 
+.el-loading-mask {
+  @apply bg-transparent;
+
+  .el-loading-spinner {
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
+
+    .circular {
+      @apply h-6 w-6;
+    }
+
+    .path {
+      stroke: #111827;
+    }
+  }
+}
+
 .app-page-spinner {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 10rem;
+
+  .el-loading-mask {
+    @apply bg-transparent;
+  }
+  .el-loading-spinner {
+    @apply relative flex items-center justify-center h-full top-auto mt-auto;
+    .circular {
+      @apply w-10 h-10;
+    }
+  }
 }
 
 .el-loading-spinner .path {
-  stroke: #E94F2E;
+  stroke: #e94f2e;
 }
 
 .app-divider {
@@ -216,8 +180,8 @@ hr {
   display: block;
 }
 
-
-.container, .container-fluid {
+.container,
+.container-fluid {
   @apply flex flex-1 mx-auto relative;
   max-width: 800px;
 
@@ -232,4 +196,43 @@ hr {
 
 .el-row {
   flex-wrap: wrap;
+}
+
+[class^='text-limit'], [class*=' text-limit']{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+// Limits text to 1 line
+.text-limit-1 {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+// Limits text to 1 line
+.text-limit-2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+// Limits text to 1 line
+.text-limit-3 {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+// Limits text to 4 lines
+.text-limit-4 {
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+// Disable autocomplete background
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active{
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: #000 !important;
 }

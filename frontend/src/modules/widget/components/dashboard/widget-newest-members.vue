@@ -1,5 +1,5 @@
 <template>
-  <app-widget :config="config" v-if="widget">
+  <app-widget v-if="widget" :config="config">
     <div class="widget-newest-members">
       <div v-if="rows.length > 0">
         <div
@@ -15,15 +15,15 @@
           >
           <div class="flex flex-wrap items-center relative">
             <div
-              class="member"
               v-for="member in Object.values(
                 membersByDate[date]
               )"
               :key="member.id"
+              class="member"
             >
               <router-link
                 :to="{
-                  name: 'communityMemberView',
+                  name: 'memberView',
                   params: { id: member.id }
                 }"
               >
@@ -37,13 +37,13 @@
                 <router-link
                   class="block text-black"
                   :to="{
-                    name: 'communityMemberView',
+                    name: 'memberView',
                     params: { id: member.id }
                   }"
                 >
                   <div class="block leading-none">
                     <span class="block text-sm">{{
-                      member.username.crowdUsername
+                      member.displayName
                     }}</span>
                   </div>
                 </router-link>
@@ -51,12 +51,12 @@
                   class="flex leading-none text-base pt-1"
                 >
                   <el-tooltip
+                    v-if="member.username.github"
                     content="GitHub"
-                    v-if="member.crowdInfo.github"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.github.url"
+                      :href="member.url?.github"
                       target="_blank"
                       class="mr-1"
                     >
@@ -69,12 +69,12 @@
                   </el-tooltip>
 
                   <el-tooltip
+                    v-if="member.username.twitter"
                     content="Twitter"
-                    v-if="member.crowdInfo.twitter"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.twitter.url"
+                      :href="member.url?.twitter"
                       target="_blank"
                     >
                       <img
@@ -86,14 +86,12 @@
                   </el-tooltip>
 
                   <el-tooltip
+                    v-if="member.username.discord"
                     content="Discord"
-                    v-if="member.crowdInfo.discord"
                     placement="top"
                   >
                     <a
-                      :href="
-                        member.crowdInfo.discord.html_url
-                      "
+                      :href="member.url?.discord"
                       target="_blank"
                     >
                       <img
@@ -105,14 +103,12 @@
                   </el-tooltip>
 
                   <el-tooltip
+                    v-if="member.username.slack"
                     content="Slack"
-                    v-if="member.crowdInfo.slack"
                     placement="top"
                   >
                     <a
-                      :href="
-                        member.crowdInfo.slack.html_url
-                      "
+                      :href="member.url?.slack"
                       target="_blank"
                     >
                       <img
@@ -124,12 +120,12 @@
                   </el-tooltip>
 
                   <el-tooltip
+                    v-if="member.username.devto"
                     content="DEV"
-                    v-if="member.crowdInfo.devto"
                     placement="top"
                   >
                     <a
-                      :href="member.crowdInfo.devto.url"
+                      :href="member.url?.devto"
                       target="_blank"
                     >
                       <img
@@ -141,12 +137,11 @@
                   </el-tooltip>
 
                   <el-tooltip
+                    v-if="member.apis"
                     content="API"
-                    v-if="member.crowdInfo.apis"
                     placement="top"
                   >
                     <div
-                      v-if="member.crowdInfo.apis"
                       class="text-sm leading-none h-5 tracking-tighter text-gray-400 hover:text-gray-800 font-semibold"
                     >
                       API
@@ -170,16 +165,22 @@
 
 <script>
 import Widget from '../widget'
-import { CommunityMemberService } from '@/modules/community-member/community-member-service'
+import { MemberService } from '@/modules/member/member-service'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
-  name: 'app-widget-newest-members',
+  name: 'AppWidgetNewestMembers',
   components: {
     'app-widget': Widget
+  },
+  data() {
+    return {
+      rows: [],
+      loading: false
+    }
   },
   computed: {
     ...mapGetters({
@@ -195,7 +196,7 @@ export default {
         title: 'Newest Members',
         rows: this.rows,
         loading: this.loading,
-        link: { name: 'communityMember' },
+        link: { name: 'member' },
         linkLabel: 'View all'
       }
     },
@@ -213,11 +214,16 @@ export default {
       }, {})
     }
   },
-  data() {
-    return {
-      rows: [],
-      loading: false
-    }
+  async created() {
+    this.loading = true
+    const response = await MemberService.list(
+      { type: 'member' },
+      'joinedAt_DESC',
+      15,
+      null
+    )
+    this.rows = response.rows
+    this.loading = false
   },
   methods: {
     timeAgo(date) {
@@ -228,17 +234,6 @@ export default {
         (p) => p.platform === platform
       ).image
     }
-  },
-  async created() {
-    this.loading = true
-    const response = await CommunityMemberService.list(
-      { type: 'member' },
-      'joinedAt_DESC',
-      15,
-      null
-    )
-    this.rows = response.rows
-    this.loading = false
   }
 }
 </script>
