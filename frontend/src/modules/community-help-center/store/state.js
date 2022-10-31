@@ -13,7 +13,7 @@ export default () => {
           attributes: {}
         },
         sorter: {
-          prop: 'activityCount',
+          prop: 'lastActive',
           order: 'descending'
         },
         active: true
@@ -35,7 +35,7 @@ export default () => {
           }
         },
         sorter: {
-          prop: 'activityCount',
+          prop: 'lastActive',
           order: 'descending'
         },
         active: false
@@ -57,7 +57,7 @@ export default () => {
           }
         },
         sorter: {
-          prop: 'activityCount',
+          prop: 'lastActive',
           order: 'descending'
         },
         active: false
@@ -78,7 +78,7 @@ export default () => {
       pageSize: INITIAL_PAGE_SIZE
     },
     sorter: {
-      prop: 'activityCount',
+      prop: 'lastActive',
       order: 'descending'
     },
     settingsVisible: false
