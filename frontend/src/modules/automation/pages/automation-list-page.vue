@@ -22,6 +22,8 @@
           </el-button>
         </div>
       </div>
+
+      <!-- Webhooks list -->
       <app-automation-list-table
         class="pt-4"
         @open-executions-drawer="onOpenExecutionsDrawer"
@@ -30,26 +32,17 @@
         "
       />
     </div>
-    <div
-      v-else
-      class="flex flex-col items-center justify-center pt-20 pb-10"
-    >
-      <i class="ri-flow-chart empty-list-icon mb-8"></i>
 
-      <h5>Start to automate manual tasks</h5>
-      <div
-        class="text-gray-600 text-sm mt-4 w-6/12 text-center"
-      >
-        Create webhook actions for when a new activity
-        happens, or a new member joins your community
-      </div>
-      <el-button
-        class="btn btn--primary btn--md mt-8"
-        @click="isAutomationDrawerOpen = true"
-      >
-        Add webhook
-      </el-button>
-    </div>
+    <!-- Empty state for no webhooks configured -->
+    <app-empty-state-cta
+      v-else
+      icon="ri-flow-chart"
+      title="Start to automate manual tasks"
+      description="Create webhook actions for when a new activity
+        happens, or a new member joins your community"
+      cta-btn="Add webhook"
+      @cta-click="isAutomationDrawerOpen = true"
+    ></app-empty-state-cta>
 
     <!-- Add/Edit Webhook form drawer -->
     <app-webhook-form

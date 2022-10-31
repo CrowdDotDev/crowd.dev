@@ -1,93 +1,124 @@
 <template>
-  <div v-if="!!count" class="mb-2">
-    <app-pagination-sorter
-      :page-size="Number(pagination.pageSize)"
-      :total="count"
-      :current-page="pagination.currentPage"
-      :has-page-counter="false"
-      module="report"
-      position="top"
-    />
-  </div>
-  <div class="app-list-table panel">
-    <app-report-list-toolbar></app-report-list-toolbar>
-    <div class="-mx-6 -mt-6">
-      <el-table
-        ref="table"
-        v-loading="loading"
-        :data="reports"
-        row-key="id"
-        border
-        :row-class-name="rowClass"
-        @sort-change="doChangeSort"
-        @row-click="handleRowClick"
-      >
-        <el-table-column
-          type="selection"
-          width="75"
-        ></el-table-column>
+  <div class="pt-3">
+    <div
+      v-if="loading && !count"
+      v-loading="loading"
+      class="app-page-spinner h-16 !relative !min-h-5"
+    ></div>
 
-        <el-table-column
-          label="Name"
-          prop="name"
-          sortable="custom"
-        >
-          <template #default="scope">
-            <router-link
-              :to="{
-                name: 'reportView',
-                params: {
-                  id: scope.row.id
-                }
-              }"
-              class="flex items-center text-black"
+    <div v-else>
+      <!-- Empty state -->
+      <app-empty-state-cta
+        v-if="count === 0"
+        icon="ri-bar-chart-line"
+        title="No reports yet"
+        description="Start creating reports for your community data"
+        cta-btn="Add report"
+        @cta-click="$emit('cta-click')"
+      ></app-empty-state-cta>
+
+      <div v-else>
+        <!-- Sorter -->
+        <div class="mb-2">
+          <app-pagination-sorter
+            :page-size="Number(pagination.pageSize)"
+            :total="count"
+            :current-page="pagination.currentPage"
+            :has-page-counter="false"
+            module="report"
+            position="top"
+          />
+        </div>
+
+        <!-- Sorters list -->
+        <div class="app-list-table panel">
+          <app-report-list-toolbar></app-report-list-toolbar>
+          <div class="-mx-6 -mt-6">
+            <el-table
+              ref="table"
+              v-loading="loading"
+              :data="reports"
+              row-key="id"
+              border
+              :row-class-name="rowClass"
+              @sort-change="doChangeSort"
+              @row-click="handleRowClick"
             >
-              <span class="font-semibold">{{
-                scope.row.name
-              }}</span>
-            </router-link>
-          </template>
-        </el-table-column>
-        <el-table-column
-          label="# of Widgets"
-          prop="widgetsCount"
-        >
-          <template #default="scope">
-            {{ scope.row.widgets.length }}
-          </template>
-        </el-table-column>
-        <el-table-column label="Visibility">
-          <template #default="scope">
-            <span
-              v-if="scope.row.public"
-              class="badge badge--green"
-              >Public</span
-            >
-            <span v-else class="badge">Private</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="" width="200" fixed="right">
-          <template #default="scope">
-            <div class="table-actions">
-              <app-report-dropdown
-                :report="scope.row"
-              ></app-report-dropdown>
+              <el-table-column
+                type="selection"
+                width="75"
+              ></el-table-column>
+
+              <el-table-column
+                label="Name"
+                prop="name"
+                sortable="custom"
+              >
+                <template #default="scope">
+                  <router-link
+                    :to="{
+                      name: 'reportView',
+                      params: {
+                        id: scope.row.id
+                      }
+                    }"
+                    class="flex items-center text-black"
+                  >
+                    <span class="font-semibold">{{
+                      scope.row.name
+                    }}</span>
+                  </router-link>
+                </template>
+              </el-table-column>
+              <el-table-column
+                label="# of Widgets"
+                prop="widgetsCount"
+              >
+                <template #default="scope">
+                  {{ scope.row.widgets.length }}
+                </template>
+              </el-table-column>
+              <el-table-column label="Visibility">
+                <template #default="scope">
+                  <span
+                    v-if="scope.row.public"
+                    class="badge badge--green"
+                    >Public</span
+                  >
+                  <span v-else class="badge">Private</span>
+                </template>
+              </el-table-column>
+              <el-table-column
+                label=""
+                width="200"
+                fixed="right"
+              >
+                <template #default="scope">
+                  <div class="table-actions">
+                    <app-report-dropdown
+                      :report="scope.row"
+                    ></app-report-dropdown>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div v-if="!!count" class="mt-8 px-6">
+              <app-pagination
+                :total="count"
+                :page-size="Number(pagination.pageSize)"
+                :current-page="pagination.currentPage || 1"
+                module="report"
+                @change-current-page="
+                  doChangePaginationCurrentPage
+                "
+                @change-page-size="
+                  doChangePaginationPageSize
+                "
+              />
             </div>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div v-if="!!count" class="mt-8 px-6">
-        <app-pagination
-          :total="count"
-          :page-size="Number(pagination.pageSize)"
-          :current-page="pagination.currentPage || 1"
-          module="report"
-          @change-current-page="
-            doChangePaginationCurrentPage
-          "
-          @change-page-size="doChangePaginationPageSize"
-        />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -110,10 +141,11 @@ export default {
     'app-report-list-toolbar': ReportListDropdown
   },
 
+  emits: ['cta-click'],
+
   computed: {
     ...mapState({
-      count: (state) => state.report.count,
-      loading: (state) => state.report.loading
+      count: (state) => state.report.count
     }),
     ...mapGetters({
       rows: 'report/rows',

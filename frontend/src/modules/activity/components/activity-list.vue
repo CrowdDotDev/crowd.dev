@@ -7,18 +7,17 @@
     ></div>
     <div v-else>
       <!-- Empty State -->
-      <div v-if="activities.length === 0">
-        <div class="flex justify-center pt-12">
-          <i
-            class="ri-list-check-2 text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
-        <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
-        >
-          There are no activities
-        </p>
-      </div>
+      <app-empty-state-cta
+        v-if="activities.length === 0"
+        icon="ri-list-check-2"
+        title="No activities found"
+        :description="
+          hasFilter
+            ? 'We couldn\'t find any results that match your search criteria, please try a different query'
+            : 'Your community has no activities yet'
+        "
+      ></app-empty-state-cta>
+
       <div v-else>
         <!-- Sorter -->
         <div class="mb-4">
@@ -107,6 +106,11 @@ defineProps({
   }
 })
 
+const hasFilter = computed(
+  () =>
+    !!Object.keys(store.state.activity.filter.attributes)
+      .length
+)
 const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']

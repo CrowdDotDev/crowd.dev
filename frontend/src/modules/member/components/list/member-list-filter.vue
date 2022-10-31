@@ -25,7 +25,7 @@ export default {
 <script setup>
 import { MemberModel } from '@/modules/member/member-model'
 import { useStore } from 'vuex'
-import { onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 
 const store = useStore()
@@ -41,20 +41,6 @@ const customAttributes = computed(() => {
 
 const memberSearch = computed(() => {
   return MemberModel.fields.search.forFilter()
-})
-
-async function doFetch() {
-  const { filter } = store.state.member
-
-  await store.dispatch('member/doFetch', {
-    filter,
-    keepPagination: true
-  })
-}
-
-onMounted(async () => {
-  await store.dispatch('member/doFetchCustomAttributes')
-  await doFetch()
 })
 </script>
 

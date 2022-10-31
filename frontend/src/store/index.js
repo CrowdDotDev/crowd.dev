@@ -40,7 +40,7 @@ const buildStores = () => {
  */
 const buildInitialState = (excludeAuth = false) => {
   const modules = buildStores()
-  console.log(buildStores())
+
   return Object.keys(modules).reduce((acc, moduleKey) => {
     acc[moduleKey] = {}
     if (

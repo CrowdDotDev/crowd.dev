@@ -1,5 +1,21 @@
 <template>
-  <div class="app-list-table panel">
+  <div
+    v-if="loading && !count"
+    v-loading="loading"
+    class="app-page-spinner h-16 !relative !min-h-5"
+  ></div>
+  <div v-else-if="!count && !loading">
+    <app-empty-state-cta
+      icon="ri-question-answer-line"
+      title="No conversations found"
+      :description="
+        hasFilter
+          ? 'We couldn\'t find any results that match your search criteria, please try a different query'
+          : 'Your community has no conversations yet'
+      "
+    ></app-empty-state-cta>
+  </div>
+  <div v-else class="app-list-table panel">
     <app-community-help-center-toolbar></app-community-help-center-toolbar>
     <div class="-mx-6 -mt-4">
       <el-table
@@ -185,6 +201,8 @@ export default {
 
   computed: {
     ...mapState({
+      filters: (state) =>
+        state.communityHelpCenter.filter.attributes,
       loading: (state) =>
         state.communityHelpCenter.list.loading,
       count: (state) => state.communityHelpCenter.list.count
@@ -198,6 +216,10 @@ export default {
       currentTenant: 'auth/currentTenant',
       paginationLayout: 'layout/paginationLayout'
     }),
+
+    hasFilter() {
+      return !!Object.keys(this.filters).length
+    },
 
     hasPermissionToEdit() {
       return new ConversationPermissions(
