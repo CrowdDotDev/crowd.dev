@@ -100,7 +100,9 @@ const computedAttributes = computed(() =>
       a.selected =
         store.state[props.module].filter.attributes[
           a.name
-        ] !== undefined
+        ] !== undefined &&
+        store.state[props.module].filter.attributes[a.name]
+          .show !== false
       return a
     })
 )
