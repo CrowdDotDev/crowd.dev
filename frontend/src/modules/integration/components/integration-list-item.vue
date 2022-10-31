@@ -43,22 +43,7 @@
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
       }}</span>
-      <a
-        v-if="isError"
-        href="https://crowd.dev/discord"
-        target="__blank"
-      >
-        <el-button
-          class="btn btn--bordered"
-          :loading="loadingDisconnect"
-          >Contact us</el-button
-        ></a
-      >
-
-      <app-integration-connect
-        v-if="!isError"
-        :integration="integration"
-      >
+      <app-integration-connect :integration="integration">
         <template
           #default="{
             connect,
