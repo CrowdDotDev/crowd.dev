@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.9.0 - 2022-10-31
+
+### Changes
+
+:fire: A brand-new user interface.
+We completely overhauled our design and user experience (you may not even recognize the app). crowd.dev is now much more intuitive to use, and the product feels more polished.
+
+<img width="1103" alt="Screenshot 2022-10-28 at 15 51 31" src="https://user-images.githubusercontent.com/37874460/198659098-cf43074c-1607-41a5-adf7-47635e247639.png">
+:bust_in_silhouette: Richer member profiles
+Member profiles now show you everything you need to know about an individual in one place, with even richer information on their activity history, tags, engagement level, and much more.
+
+:man-man-boy-boy: Information on represented organizations
+We now show you the total organizations that have been identified in your community, we also update you on any new organizations that are popping up in your community, as well as show you all the active organizations (organizations where members have been active in a given time period). Expect standalone pages for organizations very soon.
+
+:dart:  Powerful filters, sorts, and views
+Our new powerful filters, sorts and views instantly help you to segment, research, and understand your community more effectively. We have included default views, for example, “slipping away” to identify valuable members that may need some extra attention or “influential” to find individuals with high reach.
+
+:thermometer: Sentiment analysis
+We’ve built a model to conduct sentiment analysis for all activities in your community to show you how members are feeling, so you can take informed actions.
+
+:love_letter: Trending conversations
+We help you keep track of all conversations going on in your community, now, we also show you the ones that are trending and pulling a lot of engagement.
+
+:hammer_and_wrench: Custom attributes and identities
+Use our custom attribute function to add specific to you details as well as extra identities for your members beyond their community profiles (e.g., you can add identities using their phone number or extra email).
+
+:key: Social Sign in with Google
+We’ve added social sign-in to make signing up and logging into [crowd.dev](http://crowd.dev/) a breeze. You can now use your Google account.
+
+#### Breaking changes
+
+This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
+
 ## v0.8.0 - 2022-10-07
 
 ### Changes
@@ -30,7 +63,9 @@ All notable changes to this project will be documented in this file.
 - 
 - - When a new member is detected
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - With some additional optional filters.
@@ -41,7 +76,6 @@ All notable changes to this project will be documented in this file.
 </p>
 ### ✨ Enhancements
 - Upgrade Vue from v2 to v3 @mariobalca (#15)
-
 ### 🐞 Bug Fixes
 
 - Fix report create/edit issues introduced on (#15) @mariobalca (#58 and #59)
@@ -68,7 +102,9 @@ All notable changes to this project will be documented in this file.
 - - comments as activities on all articles published by a DEV.to organization
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -81,7 +117,6 @@ All notable changes to this project will be documented in this file.
 ### ✨ Enhancements
 - Tweak eagle eye search bar UI/UX to enhance keyword selection experience. (#13)
 ### 🐞 Bug Fixes
-
 - Fixed EagleEye content filters: when filtering by more than one keyword, we are now using an *or* operation instead of an *and*. @joanreyero #9
 - Fixed an error in engagement score when there are no members in the workspace. @CallmeMehdi (#7)
 - Weekly summary email is now sent to all the workspace users, not just one. @epipav (#10)
