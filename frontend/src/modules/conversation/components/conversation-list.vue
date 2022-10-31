@@ -6,19 +6,18 @@
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
-      <!-- Empty State -->
-      <div v-if="conversations.length === 0">
-        <div class="flex justify-center pt-16">
-          <i
-            class="ri-question-answer-line text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
-        <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
-        >
-          There are no conversations
-        </p>
-      </div>
+      <!-- Empty state -->
+      <app-empty-state-cta
+        v-if="conversations.length === 0"
+        icon="ri-question-answer-line"
+        title="No conversations found"
+        :description="
+          hasFilter
+            ? 'We couldn\'t find any results that match your search criteria, please try a different query'
+            : 'Your community has no conversations yet'
+        "
+      ></app-empty-state-cta>
+
       <div v-else>
         <div class="mb-4">
           <app-pagination-sorter
@@ -103,6 +102,11 @@ defineProps({
   }
 })
 
+const hasFilter = computed(
+  () =>
+    !!Object.keys(store.state.activity.filter.attributes)
+      .length
+)
 const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']

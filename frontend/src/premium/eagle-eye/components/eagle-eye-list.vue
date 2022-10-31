@@ -26,15 +26,12 @@
         >
       </div>
     </div>
-    <div
+
+    <app-empty-state-cta
       v-else
-      class="flex items-center justify-center flex-col text-gray-600 pt-4"
-    >
-      <i class="ri-3x ri-folder-3-line"></i>
-      <span class="text-sm"
-        >{{ computedEmptyStateCopy }}
-      </span>
-    </div>
+      icon="ri-folder-3-line"
+      :title="computedEmptyStateCopy"
+    ></app-empty-state-cta>
   </div>
 </template>
 
