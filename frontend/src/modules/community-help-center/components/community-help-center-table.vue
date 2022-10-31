@@ -205,7 +205,7 @@ export default {
         state.communityHelpCenter.filter.attributes,
       loading: (state) =>
         state.communityHelpCenter.list.loading,
-      count: (state) => state.communityHelpCenter.list.count
+      count: (state) => state.communityHelpCenter.count
     }),
     ...mapGetters({
       rows: 'communityHelpCenter/rows',

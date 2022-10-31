@@ -1,7 +1,7 @@
 <template>
   <div class="pt-3">
     <div
-      v-if="loading && !count"
+      v-if="loading"
       v-loading="loading"
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
