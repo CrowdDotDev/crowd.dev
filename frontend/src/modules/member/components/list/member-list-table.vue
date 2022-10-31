@@ -8,7 +8,7 @@
     <div v-else>
       <!-- Empty State -->
       <app-empty-state-cta
-        v-if="!hasIntegrations"
+        v-if="!hasIntegrations && !hasMembers"
         icon="ri-contacts-line"
         title="No community members yet"
         description="Please connect with one of our available data sources in order to start pulling data from a certain platform"
