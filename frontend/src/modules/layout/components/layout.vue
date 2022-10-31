@@ -21,6 +21,23 @@
             </el-button>
           </div>
         </banner>
+        <banner
+          v-if="shouldShowIntegrationsAlert"
+          variant="alert"
+        >
+          <div
+            class="flex items-center justify-center grow text-sm"
+          >
+            Currently you have integrations with
+            connectivity issues
+            <router-link
+              :to="{ name: 'integration' }"
+              class="btn btn--sm btn--primary ml-4"
+            >
+              Go to Integrations
+            </router-link>
+          </div>
+        </banner>
         <router-view></router-view>
       </el-main>
     </el-container>
@@ -55,8 +72,15 @@ export default {
       isMobile: 'layout/isMobile',
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      integrationsInProgress: 'integration/inProgress'
+      integrationsInProgress: 'integration/inProgress',
+      integrationsWithErrors: 'integration/withErrors'
     }),
+    shouldShowIntegrationsAlert() {
+      return (
+        this.integrationsWithErrors.length > 0 &&
+        this.$route.name !== 'integration'
+      )
+    },
     elMainStyle() {
       if (this.isMobile && !this.collapsed) {
         return {
