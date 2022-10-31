@@ -229,6 +229,8 @@ function setViewingDetails(index) {
 
 async function handleMergeClick(members) {
   try {
+    await MemberService.merge(members[0], members[1])
+
     const index = membersToMerge.value.findIndex(
       (membersToMerge) => {
         return (
@@ -246,6 +248,8 @@ async function handleMergeClick(members) {
 }
 async function handleNotMergeClick(members) {
   try {
+    await MemberService.addToNoMerge(members[0], members[1])
+
     const index = membersToMerge.value.findIndex(
       (membersToMerge) => {
         return (
