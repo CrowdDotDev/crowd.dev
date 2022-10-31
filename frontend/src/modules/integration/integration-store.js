@@ -86,6 +86,12 @@ export default {
       )
     },
 
+    withErrors: (state, getters) => {
+      return getters.array.filter(
+        (i) => i.status === 'error'
+      )
+    },
+
     count: (state) => state.count,
 
     hasRows: (state, getters) => getters.count > 0
