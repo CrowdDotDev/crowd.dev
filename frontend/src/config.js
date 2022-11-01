@@ -57,4 +57,7 @@ const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
+console.log('composedConfig', composedConfig)
+console.log('defaultConfig', defaultConfig)
+console.log('config', config)
 export default config
