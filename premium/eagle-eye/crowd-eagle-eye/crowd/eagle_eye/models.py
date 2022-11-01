@@ -102,7 +102,7 @@ class Vector:
         Returns:
             str: hashed ID
         """
-        return str(int(hashlib.sha256(f'{platform}-{id}'.encode('utf-8')).hexdigest(), 16) % 10**8)
+        return int(hashlib.sha256(f'{platform}-{id}'.encode('utf-8')).hexdigest(), 16) % 10**8
 
     def payload_as_dict(self):
         """

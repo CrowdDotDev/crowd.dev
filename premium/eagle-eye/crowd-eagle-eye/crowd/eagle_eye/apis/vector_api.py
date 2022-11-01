@@ -1,4 +1,5 @@
-import pinecone
+from qdrant_client import QdrantClient
+from qdrant_client.http import models
 import datetime
 import time
 from crowd.eagle_eye.apis import CohereAPI
@@ -15,17 +16,15 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, index_name=None):
+    def __init__(self, index_name=None, do_init=False):
         """
         Initialize the VectorAPI.
 
         Args:
             index_name (str, optional): Name of the DB index. Defaults to "crowddev".
         """
-        if KUBE_MODE:
-            pinecone.init(api_key=VECTOR_API_KEY, environment="us-east-1-aws")
-        else:
-            pinecone.init(api_key=os.environ.get('VECTOR_API_KEY'), environment="us-east-1-aws")
+        self.collection_name = "crowddev"
+        self.client = QdrantClient(host="localhost", port=6333)
 
         if index_name is None:
             if KUBE_MODE:
@@ -33,7 +32,11 @@ class VectorAPI:
             else:
                 index_name = os.environ.get('VECTOR_INDEX')
 
-        self.index = pinecone.Index(index_name)
+        if do_init:
+            self.index = self.client.recreate_collection(
+                name=self.collection_name,
+                vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
+            )
 
     @staticmethod
     def _chunks(iterable, batch_size=80):
@@ -62,12 +65,18 @@ class VectorAPI:
 
         # Pinecone needs the points converted into tuples
         vectors = [
-            (point.id, point.embed, point.payload_as_dict())
-            for point in points
+            models.PointStruct(
+                id=point.id,
+                payload=point.payload_as_dict(),
+                vector=point.embed,
+            ) for point in points
         ]
 
-        for ids_vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
-            self.index.upsert(vectors=ids_vectors_chunk)
+        for vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=vectors_chunk
+            )
 
         return "OK"
 
@@ -83,7 +92,6 @@ class VectorAPI:
         Returns:
             int: timestamp
         """
-        # TODO-test
         now = datetime.datetime.fromtimestamp(start)
         return int((now - datetime.timedelta(days=ndays)).timestamp())
 
@@ -97,9 +105,11 @@ class VectorAPI:
         Returns:
             [str]: list of existing ids.
         """
-        existing = list(self.index.fetch(ids=ids)['vectors'].keys())
-        logger.info('Found %d existing IDs', len(existing))
-        return existing
+        existing = self.client.retrieve(
+            collection_name=self.collection_name,
+            ids=ids,
+        )
+        return [point.id for point in existing.get("result", [])]
 
     def delete(self, ids):
         """
@@ -113,7 +123,12 @@ class VectorAPI:
         """
         if type(ids) == str:
             ids = [ids]
-        return self.index.delete(ids=ids)
+        self.client.delete(
+            collection_name=self.collection_name,
+            points_selector=models.PointIdsList(
+                points=ids
+            ),
+        )
 
     def search(self, query, ndays, exclude, cohere=None):
         """
