@@ -130,14 +130,6 @@
           >
         </a>
       </div>
-      <div class="flex justify-center">
-        <p class="text-sm leading-5 text-center">
-          Don’t have an account yet?
-          <router-link :to="{ name: 'signup' }"
-            >Sign up</router-link
-          >
-        </p>
-      </div>
     </div>
   </div>
 </template>
