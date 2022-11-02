@@ -418,7 +418,7 @@ function start() {
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, scaffold =>, service =>, build =>, build-and-push ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
