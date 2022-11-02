@@ -1,173 +1,187 @@
 <template>
-  <div
-    v-if="loading && !count"
-    v-loading="loading"
-    class="app-page-spinner h-16 !relative !min-h-5"
-  ></div>
-  <div v-else-if="!count && !loading">
-    <app-empty-state-cta
-      icon="ri-question-answer-line"
-      title="No conversations found"
-      :description="
-        hasFilter
-          ? 'We couldn\'t find any results that match your search criteria, please try a different query'
-          : 'Your community has no conversations yet'
-      "
-    ></app-empty-state-cta>
-  </div>
-  <div v-else class="app-list-table panel">
-    <app-community-help-center-toolbar></app-community-help-center-toolbar>
-    <div class="-mx-6 -mt-4">
-      <el-table
-        ref="table"
-        v-loading="loading"
-        :data="conversations"
-        row-key="id"
-        border
-        :default-sort="{
-          prop: 'lastActive',
-          order: 'descending'
-        }"
-        :row-class-name="rowClass"
-        @sort-change="doChangeSort"
-        @row-click="handleRowClick"
-      >
-        <el-table-column
-          type="selection"
-          width="75"
-        ></el-table-column>
-        <el-table-column width="150" label="Status">
-          <template #default="scope">
-            <span
-              v-if="scope.row.published"
-              class="badge badge--green"
-              >Published</span
+  <div class="pt-3">
+    <div
+      v-if="loading"
+      v-loading="loading"
+      class="app-page-spinner h-16 !relative !min-h-5"
+    ></div>
+    <div v-else>
+      <!-- Empty state -->
+      <app-empty-state-cta
+        v-if="!count"
+        icon="ri-question-answer-line"
+        :title="emptyState.title"
+        :description="emptyState.description"
+      ></app-empty-state-cta>
+
+      <!-- Conversations list -->
+      <div v-else class="app-list-table panel">
+        <app-community-help-center-toolbar></app-community-help-center-toolbar>
+        <div class="-mx-6 -mt-4">
+          <el-table
+            ref="table"
+            v-loading="loading"
+            :data="conversations"
+            row-key="id"
+            border
+            :default-sort="{
+              prop: 'lastActive',
+              order: 'descending'
+            }"
+            :row-class-name="rowClass"
+            @sort-change="doChangeSort"
+            @row-click="handleRowClick"
+          >
+            <el-table-column
+              type="selection"
+              width="75"
+            ></el-table-column>
+            <el-table-column width="150" label="Status">
+              <template #default="scope">
+                <span
+                  v-if="scope.row.published"
+                  class="badge badge--green"
+                  >Published</span
+                >
+                <span v-else class="badge"
+                  >Unpublished</span
+                >
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="Conversation title"
+              prop="title"
+              sortable="custom"
             >
-            <span v-else class="badge">Unpublished</span>
-          </template>
-        </el-table-column>
-        <el-table-column
-          label="Conversation title"
-          prop="title"
-          sortable="custom"
-        >
-          <template #default="scope">
-            <div class="font-semibold truncate">
-              {{ scope.row.title }}
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column
-          width="180"
-          label="# of Activities"
-          prop="activityCount"
-          sortable="custom"
-        >
-          <template #default="scope">
-            {{ scope.row.activityCount }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          width="180"
-          label="Last active"
-          prop="lastActive"
-          sortable="custom"
-        >
-          <template #default="scope">
-            {{ timeAgo(scope.row.lastActive) }}
-          </template>
-        </el-table-column>
+              <template #default="scope">
+                <div class="font-semibold truncate">
+                  {{ scope.row.title }}
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column
+              width="180"
+              label="# of Activities"
+              prop="activityCount"
+              sortable="custom"
+            >
+              <template #default="scope">
+                {{ scope.row.activityCount }}
+              </template>
+            </el-table-column>
+            <el-table-column
+              width="180"
+              label="Last active"
+              prop="lastActive"
+              sortable="custom"
+            >
+              <template #default="scope">
+                {{ timeAgo(scope.row.lastActive) }}
+              </template>
+            </el-table-column>
 
-        <el-table-column
-          label="Platform/channel"
-          prop="platform"
-          width="200"
-        >
-          <template #header>
-            <span class="inline-flex items-center">
-              <span class="inline-flex mr-1"
-                >Platform/Channel</span
-              >
-              <el-tooltip placement="top">
-                <template #content>
-                  Channel corresponds to a proper channel
-                  (in Discord and Slack), or a repo (in
-                  GitHub)
-                </template>
-                <i
-                  class="ri-information-line inline-flex items-center mr-2"
-                ></i>
-              </el-tooltip>
-            </span>
-          </template>
-          <template #default="scope">
-            <div class="flex items-center">
-              <span
-                v-if="scope.row.platform === 'github'"
-                class="btn btn--circle btn--github mr-2"
-                ><img
-                  :src="findIcon('github')"
-                  alt="Github"
-                  class="w-4 h-4"
-                />
-              </span>
-              <span
-                v-else-if="scope.row.platform === 'discord'"
-                class="btn btn--circle btn--discord mr-2"
-                ><img
-                  :src="findIcon('discord')"
-                  alt="Discord"
-                  class="w-4 h-4"
-              /></span>
-              <span
-                v-else-if="scope.row.platform === 'slack'"
-                class="btn btn--circle btn--slack mr-2"
-                ><img
-                  :src="findIcon('slack')"
-                  alt="Slack"
-                  class="w-4 h-4"
-              /></span>
-              <span
-                v-else-if="scope.row.platform === 'devto'"
-                class="btn btn--circle btn--devto mr-2"
-                ><img
-                  :src="findIcon('devto')"
-                  alt="DEV"
-                  class="w-4 h-4"
-              /></span>
-              {{ scope.row.channel }}
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="" width="70" fixed="right">
-          <template #default="scope">
-            <div class="table-actions">
-              <app-conversation-dropdown
-                :conversation="scope.row"
-              ></app-conversation-dropdown>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
+            <el-table-column
+              label="Platform/channel"
+              prop="platform"
+              width="200"
+            >
+              <template #header>
+                <span class="inline-flex items-center">
+                  <span class="inline-flex mr-1"
+                    >Platform/Channel</span
+                  >
+                  <el-tooltip placement="top">
+                    <template #content>
+                      Channel corresponds to a proper
+                      channel (in Discord and Slack), or a
+                      repo (in GitHub)
+                    </template>
+                    <i
+                      class="ri-information-line inline-flex items-center mr-2"
+                    ></i>
+                  </el-tooltip>
+                </span>
+              </template>
+              <template #default="scope">
+                <div class="flex items-center">
+                  <span
+                    v-if="scope.row.platform === 'github'"
+                    class="btn btn--circle btn--github mr-2"
+                    ><img
+                      :src="findIcon('github')"
+                      alt="Github"
+                      class="w-4 h-4"
+                    />
+                  </span>
+                  <span
+                    v-else-if="
+                      scope.row.platform === 'discord'
+                    "
+                    class="btn btn--circle btn--discord mr-2"
+                    ><img
+                      :src="findIcon('discord')"
+                      alt="Discord"
+                      class="w-4 h-4"
+                  /></span>
+                  <span
+                    v-else-if="
+                      scope.row.platform === 'slack'
+                    "
+                    class="btn btn--circle btn--slack mr-2"
+                    ><img
+                      :src="findIcon('slack')"
+                      alt="Slack"
+                      class="w-4 h-4"
+                  /></span>
+                  <span
+                    v-else-if="
+                      scope.row.platform === 'devto'
+                    "
+                    class="btn btn--circle btn--devto mr-2"
+                    ><img
+                      :src="findIcon('devto')"
+                      alt="DEV"
+                      class="w-4 h-4"
+                  /></span>
+                  {{ scope.row.channel }}
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label=""
+              width="70"
+              fixed="right"
+            >
+              <template #default="scope">
+                <div class="table-actions">
+                  <app-conversation-dropdown
+                    :conversation="scope.row"
+                  ></app-conversation-dropdown>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
 
-      <div v-if="!!count" class="mt-8 px-6">
-        <app-pagination
-          :total="count"
-          :page-size="Number(pagination.pageSize)"
-          :current-page="pagination.currentPage || 1"
-          module="conversation"
-          @change-current-page="
-            doChangePaginationCurrentPage
-          "
-          @change-page-size="doChangePaginationPageSize"
-        />
+          <div v-if="!!count" class="mt-8 px-6">
+            <app-pagination
+              :total="count"
+              :page-size="Number(pagination.pageSize)"
+              :current-page="pagination.currentPage || 1"
+              module="conversation"
+              @change-current-page="
+                doChangePaginationCurrentPage
+              "
+              @change-page-size="doChangePaginationPageSize"
+            />
+          </div>
+        </div>
+        <app-community-help-center-conversation-drawer
+          :expanded="drawerConversationId !== null"
+          :conversation-id="drawerConversationId"
+          @close="drawerConversationId = null"
+        ></app-community-help-center-conversation-drawer>
       </div>
     </div>
-    <app-community-help-center-conversation-drawer
-      :expanded="drawerConversationId !== null"
-      :conversation-id="drawerConversationId"
-      @close="drawerConversationId = null"
-    ></app-community-help-center-conversation-drawer>
   </div>
 </template>
 
@@ -217,8 +231,53 @@ export default {
       paginationLayout: 'layout/paginationLayout'
     }),
 
+    activeTab() {
+      return this.$route.query.activeTab || ''
+    },
+
     hasFilter() {
-      return !!Object.keys(this.filters).length
+      const parsedFilters = { ...this.filters }
+
+      // Remove published and unpublished filters has they are the default view
+      delete parsedFilters.published
+      delete parsedFilters.unpublished
+
+      // Remove search filter if value is empty
+      if (!parsedFilters.search?.value) {
+        delete parsedFilters.search
+      }
+
+      return !!Object.keys(parsedFilters).length
+    },
+
+    emptyState() {
+      if (this.hasFilter) {
+        return {
+          title: `No ${this.activeTab} conversations found`,
+          description:
+            "We couldn't find any results that match your search criteria, please try a different query"
+        }
+      }
+
+      // Default view
+      const title = `No ${this.activeTab} conversations yet`
+      let description =
+        "We couldn't track any conversations among your community members"
+
+      // Published view
+      if (this.activeTab === 'published') {
+        description =
+          'Start publishing conversations in order to feed your Community Help Center'
+        // Unpublished view
+      } else if (this.activeTab === 'unpublished') {
+        description =
+          "We couldn't find any unpublished conversations"
+      }
+
+      return {
+        title,
+        description
+      }
     },
 
     hasPermissionToEdit() {

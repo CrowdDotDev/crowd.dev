@@ -1,5 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
+import { store } from '@/store'
 
 const CommunityHelpCenterPage = () =>
   import(
@@ -20,6 +21,18 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.conversationRead
+        },
+        beforeEnter: (to) => {
+          if (
+            to.query.activeTab !== undefined &&
+            store.getters['communityHelpCenter/activeView']
+              .id !== to.query.activeTab
+          ) {
+            store.dispatch(
+              'communityHelpCenter/doChangeActiveView',
+              to.query.activeTab
+            )
+          }
         }
       }
     ]
