@@ -29,7 +29,8 @@ const defaultConfig = {
   conversationPublicUrl:
     process.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
   edition: process.env.VUE_APP_EDITION,
-  communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM
+  communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
+  env: process.env.NODE_ENV
 }
 
 const composedConfig = {
@@ -50,14 +51,12 @@ const composedConfig = {
   conversationPublicUrl:
     'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
   edition: 'CROWD_VUE_APP_EDITION',
-  communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM'
+  communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
+  env: 'CROWD_VUE_APP_ENV'
 }
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
-console.log('composedConfig', composedConfig)
-console.log('defaultConfig', defaultConfig)
-console.log('config', config)
 export default config
