@@ -31,7 +31,7 @@ export default () => {
         active: true
       },
       {
-        id: 'recent',
+        id: 'new-and-active',
         label: 'New and active',
         columns: [
           {
@@ -65,7 +65,7 @@ export default () => {
         active: false
       },
       {
-        id: 'active',
+        id: 'most-engaged',
         label: 'Most engaged',
         columns: [
           {

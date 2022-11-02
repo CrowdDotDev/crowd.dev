@@ -6,6 +6,7 @@ export default class JsonField extends GenericField {
     super(name, label)
     this.filterable = config.filterable || false
     this.required = config.required
+    this.requiredUnless = config.requiredUnless
     this.nonEmpty = config.nonEmpty
   }
   forPresenter(value) {
@@ -23,7 +24,7 @@ export default class JsonField extends GenericField {
       yupChain = yupChain.required()
     }
 
-    if (this.nonEmpty) {
+    if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
         test: (json) => {
@@ -40,6 +41,13 @@ export default class JsonField extends GenericField {
       })
     }
 
+    if (this.requiredUnless) {
+      yupChain = yupChain.when(this.requiredUnless, {
+        is: (value) => !value || value === '',
+        then: (schema) => schema.required()
+      })
+    }
+
     return yupChain
   }
 
@@ -50,7 +58,7 @@ export default class JsonField extends GenericField {
       yupChain = yupChain.required()
     }
 
-    if (this.nonEmpty) {
+    if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
         test: (json) => {
@@ -64,6 +72,13 @@ export default class JsonField extends GenericField {
             Object.keys(json).every((k) => !!k && !!json[k])
           )
         }
+      })
+    }
+
+    if (this.requiredUnless) {
+      yupChain = yupChain.when(this.requiredUnless, {
+        is: (value) => !value || value === '',
+        then: (schema) => schema.required()
       })
     }
 

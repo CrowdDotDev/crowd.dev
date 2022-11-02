@@ -13,6 +13,41 @@
       class="identities-form"
       :class="showHeader ? 'col-span-2' : 'col-span-3'"
     >
+      <div class="border-gray-200 last:border-none">
+        <div>
+          <el-form-item class="h-14 !flex items-center">
+            <div>
+              <span
+                class="w-8 h-8 rounded flex items-center justify-center text-base leading-none bg-white text-brand-500 border border-gray-200"
+                ><i class="ri-mail-line"></i
+              ></span>
+            </div>
+            <el-switch
+              v-model="identitiesForm.email.enabled"
+              inactive-text="Email"
+            />
+          </el-form-item>
+
+          <el-form-item
+            v-if="identitiesForm.email.enabled"
+            prop="email"
+            class="mt-1 !mb-6"
+            :rules="[
+              {
+                type: 'email',
+                message:
+                  'Please input correct email address',
+                trigger: ['blur', 'change']
+              }
+            ]"
+          >
+            <el-input
+              v-model="model.email"
+              placeholder="john.doe@gmail.com"
+            />
+          </el-form-item>
+        </div>
+      </div>
       <div
         v-for="[key, value] in Object.entries(
           identitiesForm
@@ -46,6 +81,7 @@
           >
             <el-input
               v-model="model.username[key]"
+              placeholder="johndoe"
               @input="
                 (newValue) =>
                   onInputChange(newValue, key, value)
@@ -74,6 +110,7 @@
 import {
   defineEmits,
   defineProps,
+  reactive,
   computed,
   watch
 } from 'vue'
@@ -111,7 +148,10 @@ watch(model.value.username, (username) => {
   }
 })
 
-const identitiesForm = computed(() => ({
+const identitiesForm = reactive({
+  email: {
+    enabled: props.modelValue.email !== undefined || false
+  },
   devto: {
     enabled:
       props.modelValue.username?.devto !== undefined ||
@@ -152,7 +192,7 @@ const identitiesForm = computed(() => ({
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
   }
-}))
+})
 
 function findPlatform(platform) {
   return integrationsJsonArray.find(
