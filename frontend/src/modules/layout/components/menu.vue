@@ -153,8 +153,12 @@
         </el-tooltip>
 
         <!-- External links -->
-        <el-divider class="border-gray-200" />
+        <el-divider
+          v-if="hasPremiumModules"
+          class="border-gray-200"
+        />
         <el-tooltip
+          v-if="hasPremiumModules"
           :disabled="!isCollapsed"
           effect="dark"
           placement="right"
@@ -181,6 +185,7 @@
           </router-link>
         </el-tooltip>
         <el-tooltip
+          v-if="hasPremiumModules"
           :disabled="!isCollapsed"
           effect="dark"
           placement="right"
@@ -281,6 +286,7 @@ import AppSupportDropdown from './support-dropdown'
 import AppWorkspaceDropdown from './workspace-dropdown'
 import { computed } from 'vue'
 import { i18n } from '@/i18n'
+import config from '@/config'
 
 import { RouterLink, useLink } from 'vue-router'
 
@@ -378,6 +384,10 @@ const isEagleEyeLocked = computed(
       currentTenant.value,
       currentUser.value
     ).lockedForCurrentPlan
+)
+
+const hasPremiumModules = computed(
+  () => config.hasPremiumModules
 )
 
 const classFor = (path, exact = false) => {
