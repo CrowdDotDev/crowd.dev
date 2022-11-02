@@ -27,7 +27,7 @@
       ></app-empty-state-cta>
 
       <app-empty-state-cta
-        v-else-if="hasIntegrations && hasMembers && !count"
+        v-else-if="hasMembers && !count"
         icon="ri-contacts-line"
         title="No members found"
         description="We couldn't find any results that match your search criteria, please try a different query"
