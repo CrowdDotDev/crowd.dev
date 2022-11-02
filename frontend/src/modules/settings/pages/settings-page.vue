@@ -57,16 +57,13 @@ export default {
 
   computed: {
     hasUsersModule() {
-      if (
+      return (
+        config.hasPremiumModules &&
         new UserPermissions(
           this.currentTenant,
           this.currentUser
         ).read
-      ) {
-        return true
-      } else if (config.edition === 'crowd-hosted') {
-        return true
-      } else return config.communityPremium === 'true'
+      )
     },
     computedActiveTab: {
       get() {
