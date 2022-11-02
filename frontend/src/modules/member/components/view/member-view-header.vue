@@ -43,18 +43,25 @@
           # of activities
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{ formattedNumber(member.activityCount) }}
+          {{
+            formattedInformation(
+              member.activityCount,
+              'number'
+            )
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Location
         </p>
-        <p
-          v-if="member.attributes.location"
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ member.attributes.location?.default }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.attributes.location?.default,
+              'string'
+            )
+          }}
         </p>
       </div>
       <div>
@@ -62,31 +69,35 @@
           Member since
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{ formattedDate(member.joinedAt) }}
+          {{
+            formattedInformation(member.joinedAt, 'date')
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Reach
         </p>
-        <p
-          v-if="
-            member.reach.total && member.reach.total !== -1
-          "
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ formattedNumber(member.reach.total) }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.reach.total,
+              'number'
+            )
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last activity
         </p>
-        <p
-          v-if="member.lastActivity"
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ timeAgo(member.lastActivity.createdAt) }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.lastActivity?.createdAt,
+              'relative'
+            )
+          }}
         </p>
       </div>
     </div>
@@ -143,6 +154,28 @@ const timeAgo = (timestamp) => {
 
 const formattedNumber = (number) => {
   return number.toLocaleString('en-US')
+}
+
+const formattedInformation = (value, type) => {
+  // Show dash for empty information
+  if (
+    value === undefined ||
+    value === null ||
+    value === -1
+  ) {
+    return '-'
+  }
+
+  // Render inforamation depending on type
+  if (type === 'date') {
+    return formattedDate(value)
+  } else if (type === 'number') {
+    return formattedNumber(value)
+  } else if (type === 'relative') {
+    return timeAgo(value)
+  }
+
+  return value
 }
 </script>
 
