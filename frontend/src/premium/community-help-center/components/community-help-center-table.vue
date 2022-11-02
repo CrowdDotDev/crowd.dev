@@ -190,11 +190,11 @@ import { ConversationModel } from '@/modules/conversation/conversation-model'
 import { mapGetters, mapActions, mapState } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import { i18n } from '@/i18n'
-import ConversationDropdown from '../../conversation/components/conversation-dropdown'
-import CommunityHelpCenterToolbar from '../../community-help-center/components/community-help-center-toolbar'
+import ConversationDropdown from '../../../modules/conversation/components/conversation-dropdown'
+import CommunityHelpCenterToolbar from './community-help-center-toolbar'
 import computedTimeAgo from '@/utils/time-ago'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import AppCommunityHelpCenterConversationDrawer from '@/modules/community-help-center/components/community-help-center-conversation-drawer'
+import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 
 const { fields } = ConversationModel
 

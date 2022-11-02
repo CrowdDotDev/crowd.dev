@@ -4,7 +4,7 @@ import { store } from '@/store'
 
 const CommunityHelpCenterPage = () =>
   import(
-    '@/modules/community-help-center/pages/community-help-center-page.vue'
+    '@/premium/community-help-center/pages/community-help-center-page.vue'
   )
 
 export default [

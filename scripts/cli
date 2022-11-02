@@ -403,8 +403,6 @@ function start() {
             for IGNORED_SERVICE in "${INGORED_SERVICES[@]}"
             do
                 if [[ "$SERVICE" == "${IGNORED_SERVICE}" ]]; then
-                    whisper "Skipping service $SERVICE!"
-                    nl
                     SKIP=1
                     break
                 fi
@@ -420,7 +418,7 @@ function start() {
     done
 }
 
-SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, scaffold =>, service =>, build =>, build-and-push ]"
+SCRIPT_USAGE="${YELLOW}${PROJECT_NAME} CLI ${RESET}\n\nExample usage: ./cli [ start, start-dev, clean-start, clean-start-dev, start-backend, start-backend-dev, clean-start-backend, clean-start-backend-dev, start-premium, start-premium-dev, clean-start-premium, clean-start-premium-dev, scaffold =>, service =>, build =>, build-and-push ]"
 
 [[ -z "$1" ]] && say "$SCRIPT_USAGE" && exit 1
 while test $# -gt 0
@@ -434,47 +432,68 @@ do
             exit;
         ;;
         start)
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             start
             exit;
         ;;
         start-dev)
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             DEV=1
             start
             exit;
         ;;
         clean-start) 
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-dev)
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             CLEAN_START=1
             DEV=1
             start
             exit;
         ;;
         start-backend)
-            declare -a INGORED_SERVICES=("frontend")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             start
             exit;
         ;;
         start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             DEV=1
             start
             exit;
         ;;
         clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
             CLEAN_START=1
             DEV=1
             start
+            exit;
+        ;;
+        start-premium)
+            start
+            exit;
+        ;;
+        start-premium-dev)
+            DEV=1
+            exit;
+        ;;
+        clean-start-premium)
+            CLEAN_START=1
+            exit;
+        ;;
+        clean-start-premium-dev)
+            CLEAN_START=1
+            DEV=1
             exit;
         ;;
         build)
