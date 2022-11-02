@@ -30,7 +30,7 @@
             <div
               v-for="data of compileData(resultSet)"
               :key="data.type"
-              class="h-2 bg-green-500 border-l border-r rounded-sm transition"
+              class="h-2 border-l border-r rounded-sm transition"
               :style="{
                 width: `${calculatePercentage(data.count)}%`
               }"
@@ -64,7 +64,7 @@
         </div>
         <div
           v-else-if="noData"
-          class="text-xs text-gray-500 italic text-gray-400"
+          class="text-xs italic text-gray-400"
         >
           No data
         </div>
@@ -92,7 +92,7 @@ export default {
       typeClasses: {
         positive: 'bg-green-500',
         negative: 'bg-red-500',
-        neutral: 'bg-yellow-500'
+        neutral: 'bg-gray-400'
       }
     }
   },
