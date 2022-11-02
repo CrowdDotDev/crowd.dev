@@ -143,6 +143,12 @@ export default {
 
   emits: ['cta-click'],
 
+  data() {
+    return {
+      mountTableInterval: null
+    }
+  },
+
   computed: {
     ...mapState({
       loading: (state) => state.report.list.loading,
@@ -182,7 +188,10 @@ export default {
   },
 
   mounted() {
-    this.doMountTable(this.$refs.table)
+    this.mountTableInterval = setInterval(
+      this.doMountTableInterval,
+      1000
+    )
   },
 
   methods: {
@@ -220,6 +229,17 @@ export default {
         name: 'reportView',
         params: { id: row.id }
       })
+    },
+
+    doMountTableInterval() {
+      // TODO: Need to refactor this component to options api and this method to watch instead of setInterval
+      if (
+        this.$refs.table !==
+        this.$store.state.report.list.table
+      ) {
+        this.doMountTable(this.$refs.table)
+        clearInterval(this.mountTableInterval)
+      }
     }
   }
 }

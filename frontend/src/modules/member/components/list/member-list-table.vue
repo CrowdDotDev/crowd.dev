@@ -313,7 +313,6 @@ onMounted(async () => {
   if (store.state.integration.count === 0) {
     await store.dispatch('integration/doFetch')
   }
-  doMountTable(table.value)
 })
 
 function doChangeSort(sorter) {
@@ -334,8 +333,12 @@ function doChangePaginationPageSize(pageSize) {
   )
 }
 
-function doMountTable(tableRef) {
-  store.dispatch('member/doMountTable', tableRef)
+const doMountTableInterval = setInterval(doMountTable, 1000)
+function doMountTable() {
+  if (table.value !== store.state.member.list.table) {
+    store.dispatch('member/doMountTable', table.value)
+    clearInterval(doMountTableInterval)
+  }
 }
 
 function translate(key) {

@@ -209,7 +209,8 @@ export default {
 
   data() {
     return {
-      drawerConversationId: null
+      drawerConversationId: null,
+      mountTableInterval: null
     }
   },
 
@@ -304,7 +305,10 @@ export default {
   },
 
   mounted() {
-    this.doMountTable(this.$refs.table)
+    this.mountTableInterval = setInterval(
+      this.doMountTableInterval,
+      1000
+    )
   },
 
   methods: {
@@ -347,6 +351,17 @@ export default {
 
     handleRowClick(row) {
       this.drawerConversationId = row.id
+    },
+
+    doMountTableInterval() {
+      // TODO: Need to refactor this component to options api and this method to watch instead of setInterval
+      if (
+        this.$refs.table !==
+        this.$store.state.communityHelpCenter.list.table
+      ) {
+        this.doMountTable(this.$refs.table)
+        clearInterval(this.mountTableInterval)
+      }
     }
   }
 }
