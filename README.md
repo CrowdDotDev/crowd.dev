@@ -59,6 +59,8 @@ Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and 
 
 ### Self-hosted version
 
+Our self-hosted version can be ran and deployed by default following our free AGPL license. All premium components will be hidden and inactive with the default configuration. You can contribute to the app without fearinng to violate the premium license. To know more about the premium self-hosted features, check out our docs.
+
 #### Deployment with Kubernetes
 
 Our services can be deployed using Kubernetes, as well as a lightweight development environment using Docker. You can read more about it in our [self-hosting docs](https://docs.crowd.dev/docs/deployment).
