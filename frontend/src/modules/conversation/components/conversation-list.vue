@@ -10,12 +10,8 @@
       <app-empty-state-cta
         v-if="conversations.length === 0"
         icon="ri-question-answer-line"
-        title="No conversations found"
-        :description="
-          hasFilter
-            ? 'We couldn\'t find any results that match your search criteria, please try a different query'
-            : 'Your community has no conversations yet'
-        "
+        :title="emptyState.title"
+        :description="emptyState.description"
       ></app-empty-state-cta>
 
       <div v-else>
@@ -102,11 +98,34 @@ defineProps({
   }
 })
 
-const hasFilter = computed(
-  () =>
-    !!Object.keys(store.state.activity.filter.attributes)
-      .length
-)
+const hasFilter = computed(() => {
+  const parsedFilters = {
+    ...store.state.activity.filter.attributes
+  }
+
+  // Remove search filter if value is empty
+  if (!parsedFilters.search?.value) {
+    delete parsedFilters.search
+  }
+
+  return !!Object.keys(parsedFilters).length
+})
+const emptyState = computed(() => {
+  if (hasFilter.value) {
+    return {
+      title: 'No conversations found',
+      description:
+        "We couldn't find any results that match your search criteria, please try a different query"
+    }
+  }
+
+  return {
+    title: 'No conversations yet',
+    description:
+      "We couldn't track any conversations among your community members"
+  }
+})
+
 const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']
@@ -119,7 +138,7 @@ const isLoadMoreVisible = computed(() => {
   )
 })
 
-function doChangeFilter(filter) {
+const doChangeFilter = (filter) => {
   let sorter = 'lastActive'
 
   if (filter === 'trending') {

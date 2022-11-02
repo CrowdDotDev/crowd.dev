@@ -12,7 +12,7 @@
         v-if="count === 0"
         icon="ri-bar-chart-line"
         title="No reports yet"
-        description="Start creating reports for your community data"
+        description="Please create your first report to start analyzing data from your community"
         cta-btn="Add report"
         @cta-click="$emit('cta-click')"
       ></app-empty-state-cta>
