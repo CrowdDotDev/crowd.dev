@@ -30,7 +30,8 @@ const defaultConfig = {
     process.env.VUE_APP_CONVERSATIONS_PUBLIC_URL,
   edition: process.env.VUE_APP_EDITION,
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
-  env: process.env.NODE_ENV
+  env: process.env.VUE_APP_ENV,
+  hotjarKey: process.env.VUE_APP_HOTJAR_KEY
 }
 
 const composedConfig = {
@@ -52,7 +53,8 @@ const composedConfig = {
     'CROWD_VUE_APP_CONVERSATIONS_PUBLIC_URL',
   edition: 'CROWD_VUE_APP_EDITION',
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
-  env: 'CROWD_VUE_APP_ENV'
+  env: 'CROWD_VUE_APP_ENV',
+  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY'
 }
 
 const config = defaultConfig.backendUrl
