@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "TERM: $TERM"
+
 if [[ -z "$TERM" ]]; then
     RED=""
     GREEN=""
