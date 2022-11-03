@@ -123,7 +123,7 @@ export default async (
             case AutomationType.WEBHOOK:
               await sendWebhookProcessRequest(
                 tenantId,
-                automation.id,
+                automation,
                 member.id,
                 prepareMemberPayload(member),
               )

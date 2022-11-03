@@ -31,7 +31,8 @@ export type ProcessAutomationMessage = BaseNodeMicroserviceMessage & {
 }
 
 export type ProcessWebhookAutomationMessage = BaseNodeMicroserviceMessage & {
-  automationId: string
+  automationId?: string
+  automation?: any
   eventId: string
   payload: any
 }

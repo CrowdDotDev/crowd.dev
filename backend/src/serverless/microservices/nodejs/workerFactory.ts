@@ -37,6 +37,7 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
           return webhookWorker(
             tenant,
             webhookProcessRequest.automationId,
+            webhookProcessRequest.automation,
             webhookProcessRequest.eventId,
             webhookProcessRequest.payload,
           )

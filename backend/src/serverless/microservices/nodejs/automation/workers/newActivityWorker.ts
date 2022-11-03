@@ -160,7 +160,7 @@ export default async (
             case AutomationType.WEBHOOK:
               await sendWebhookProcessRequest(
                 tenantId,
-                automation.id,
+                automation,
                 activity.id,
                 prepareActivityPayload(activity),
               )
