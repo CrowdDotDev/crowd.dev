@@ -42,6 +42,7 @@ import PaginationSorter from '@/shared/pagination/pagination-sorter.vue'
 import InlineSelectInput from '@/shared/form/inline-select-input'
 import Dialog from '@/shared/dialog/dialog'
 import EmptyStateCta from '@/shared/empty-state/empty-state-cta'
+import EmptyState from '@/shared/empty-state/empty-state'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -93,6 +94,7 @@ export default {
     'app-pagination-sorter': PaginationSorter,
     'app-inline-select-input': InlineSelectInput,
     'app-dialog': Dialog,
-    'app-empty-state-cta': EmptyStateCta
+    'app-empty-state-cta': EmptyStateCta,
+    'app-empty-state': EmptyState
   }
 }

@@ -499,6 +499,23 @@ do
             start
             exit;
         ;;
+        start-premium)
+            start
+            exit;
+        ;;
+        start-premium-dev)
+            DEV=1
+            exit;
+        ;;
+        clean-start-premium)
+            CLEAN_START=1
+            exit;
+        ;;
+        clean-start-premium-dev)
+            CLEAN_START=1
+            DEV=1
+            exit;
+        ;;
         build)
             build $2 $3
             exit;

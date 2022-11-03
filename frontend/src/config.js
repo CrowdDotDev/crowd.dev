@@ -61,4 +61,7 @@ const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
+config.hasPremiumModules =
+  config.edition === 'crowd-hosted' ||
+  config.communityPremium === 'true'
 export default config

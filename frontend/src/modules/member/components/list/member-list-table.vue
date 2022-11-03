@@ -27,7 +27,7 @@
       ></app-empty-state-cta>
 
       <app-empty-state-cta
-        v-else-if="hasIntegrations && hasMembers && !count"
+        v-else-if="hasMembers && !count"
         icon="ri-contacts-line"
         title="No members found"
         description="We couldn't find any results that match your search criteria, please try a different query"
@@ -313,7 +313,6 @@ onMounted(async () => {
   if (store.state.integration.count === 0) {
     await store.dispatch('integration/doFetch')
   }
-  doMountTable(table.value)
 })
 
 function doChangeSort(sorter) {
@@ -334,8 +333,12 @@ function doChangePaginationPageSize(pageSize) {
   )
 }
 
-function doMountTable(tableRef) {
-  store.dispatch('member/doMountTable', tableRef)
+const doMountTableInterval = setInterval(doMountTable, 1000)
+function doMountTable() {
+  if (table.value !== store.state.member.list.table) {
+    store.dispatch('member/doMountTable', table.value)
+    clearInterval(doMountTableInterval)
+  }
 }
 
 function translate(key) {
