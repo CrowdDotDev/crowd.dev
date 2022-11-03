@@ -14,7 +14,36 @@ import SettingsRepository from '../repositories/settingsRepository'
 export default class SequelizeTestUtils {
   static async wipeDatabase(db) {
     db = await this.getDatabase(db)
-    await db.sequelize.sync({ force: true })
+    await db.sequelize.query(`
+      truncate table
+        tenants,
+        integrations,
+        activities,
+        members,
+        automations,
+        "automationExecutions",
+        conversations,
+        notes,
+        reports,
+        organizations,
+        "organizationCaches",
+        settings,
+        tags,
+        tasks,
+        users,
+        files,
+        microservices,
+        "eagleEyeContents",
+        "auditLogs"
+      cascade;
+    `)
+  }
+
+  static async refreshMaterializedViews(db) {
+    db = await this.getDatabase(db)
+    await db.sequelize.query(
+      'refresh materialized view concurrently "memberActivityAggregatesMVs";',
+    )
   }
 
   static async getDatabase(db?) {
