@@ -3,7 +3,7 @@
     class="flex items-center py-1 mb-3 mt-2 justify-between"
   >
     <div class="text-gray-500 text-sm">
-      {{ count }} user{{ count === 1 ? '' : 's' }}
+      {{ pluralize('user', count, true) }}
     </div>
 
     <el-button
@@ -119,6 +119,7 @@ import Roles from '@/security/roles'
 import { i18n } from '@/i18n'
 import AppUserDropdown from '../user-dropdown'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import pluralize from 'pluralize'
 
 const { fields } = UserModel
 
@@ -204,7 +205,9 @@ export default {
         this.selectedRows.find((r) => r.id === row.id) !==
         undefined
       return isSelected ? 'is-selected' : ''
-    }
+    },
+
+    pluralize
   }
 }
 </script>
