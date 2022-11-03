@@ -1,6 +1,5 @@
 <template>
-  <div class="member-view-activities panel">
-    <p class="font-medium text-gray-900">Activities</p>
+  <div class="member-view-activities">
     <div class="my-6">
       <el-input
         v-model="query"
@@ -252,14 +251,3 @@ onMounted(async () => {
   await fetchActivities()
 })
 </script>
-
-<style lang="scss">
-.member-view-activities {
-  .el-input-group__append {
-    @apply bg-white;
-  }
-  .activity-header {
-    @apply max-w-full overflow-visible;
-  }
-}
-</style>

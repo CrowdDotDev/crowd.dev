@@ -11,9 +11,9 @@ export default ({
   cancelButtonText = 'Stay on this page',
   cancelButtonClass = 'btn btn--md btn--bordered',
   confirmButtonText = 'Discard',
-  confirmButtonClass = 'btn btn--md btn--primary'
+  confirmButtonClass = 'btn btn--md btn--primary',
+  iconClass = 'ri-error-warning-line'
 }) => {
-  let iconClass = 'ri-error-warning-line'
   let iconColorClass = 'text-yellow-600'
   let iconBgColorClass = 'bg-yellow-100'
 

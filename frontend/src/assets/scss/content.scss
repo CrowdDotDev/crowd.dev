@@ -1,0 +1,23 @@
+.c-content{
+  ul,
+  ol {
+    padding: 0 1rem;
+  }
+
+  p {
+    min-height: 20px;
+  }
+
+  ul {
+    list-style: initial;
+  }
+
+  ol {
+    list-style: number;
+  }
+
+  a {
+    @apply text-brand-500;
+    text-decoration: underline;
+  }
+}

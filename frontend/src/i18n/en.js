@@ -214,6 +214,13 @@ const en = {
       }
     },
 
+    note: {
+      fields: {
+        id: 'ID',
+        body: 'Note'
+      }
+    },
+
     organization: {
       name: 'organization',
       label: 'Organizations',
