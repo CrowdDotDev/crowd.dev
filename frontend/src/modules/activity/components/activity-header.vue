@@ -184,7 +184,7 @@
 
 <script>
 import AppI18n from '../../../shared/i18n/i18n'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import {
   computedArgs,
@@ -249,7 +249,7 @@ export default {
         : 'text-gray-500 hover:opacity-100 hover:cursor-default'
     },
     timeAgo() {
-      return computedTimeAgo(this.activity.timestamp)
+      return formatDateToTimeAgo(this.activity.timestamp)
     }
   },
   methods: {

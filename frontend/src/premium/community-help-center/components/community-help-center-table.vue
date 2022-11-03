@@ -192,7 +192,7 @@ import { ConversationPermissions } from '@/modules/conversation/conversation-per
 import { i18n } from '@/i18n'
 import ConversationDropdown from '../../../modules/conversation/components/conversation-dropdown'
 import CommunityHelpCenterToolbar from './community-help-center-toolbar'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 
@@ -340,7 +340,7 @@ export default {
       return isSelected ? 'is-selected' : ''
     },
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     },
 
     findIcon(platform) {

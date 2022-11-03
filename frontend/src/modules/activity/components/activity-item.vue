@@ -115,7 +115,7 @@
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
@@ -159,7 +159,7 @@ export default {
       )
     },
     timeAgo() {
-      return computedTimeAgo(this.activity.timestamp)
+      return formatDateToTimeAgo(this.activity.timestamp)
     },
     sentiment() {
       if (

@@ -1,4 +1,4 @@
-import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 export const INITIAL_PAGE_SIZE = 20
 
@@ -166,12 +166,12 @@ export const INITIAL_VIEW_SLIPPING_AWAY_FILTER = {
       label: 'Last activity',
       custom: false,
       props: {},
-      defaultValue: moment()
-        .subtract(14, 'days')
-        .format('YYYY-MM-DD'),
-      value: moment()
-        .subtract(14, 'days')
-        .format('YYYY-MM-DD'),
+      defaultValue: formatDate({
+        subtractDays: 14
+      }),
+      value: formatDate({
+        subtractDays: 14
+      }),
       defaultOperator: 'lt',
       operator: 'lt',
       type: 'date',
@@ -188,12 +188,12 @@ export const INITIAL_VIEW_RECENT_FILTER = {
       label: 'Joined date',
       custom: false,
       props: {},
-      defaultValue: moment()
-        .subtract(30, 'days')
-        .format('YYYY-MM-DD'),
-      value: moment()
-        .subtract(30, 'days')
-        .format('YYYY-MM-DD'),
+      defaultValue: formatDate({
+        subtractDays: 30
+      }),
+      value: formatDate({
+        subtractDays: 30
+      }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',
@@ -204,12 +204,12 @@ export const INITIAL_VIEW_RECENT_FILTER = {
       label: 'Last activity',
       custom: false,
       props: {},
-      defaultValue: moment()
-        .subtract(30, 'days')
-        .format('YYYY-MM-DD'),
-      value: moment()
-        .subtract(30, 'days')
-        .format('YYYY-MM-DD'),
+      defaultValue: formatDate({
+        subtractDays: 30
+      }),
+      value: formatDate({
+        subtractDays: 30
+      }),
       defaultOperator: 'gt',
       operator: 'gt',
       type: 'date',

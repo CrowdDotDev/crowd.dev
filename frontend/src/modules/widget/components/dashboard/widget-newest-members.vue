@@ -168,7 +168,7 @@ import Widget from '../widget'
 import { MemberService } from '@/modules/member/member-service'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
 export default {
@@ -227,7 +227,7 @@ export default {
   },
   methods: {
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     },
     findIcon(platform) {
       return integrationsJsonArray.find(

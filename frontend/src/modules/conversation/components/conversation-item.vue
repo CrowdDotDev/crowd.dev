@@ -138,7 +138,7 @@
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
@@ -189,7 +189,7 @@ export default {
   },
   methods: {
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     },
     openConversation() {
       this.$emit('details', this.conversation.id)

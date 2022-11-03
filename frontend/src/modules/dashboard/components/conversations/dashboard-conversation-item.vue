@@ -181,7 +181,7 @@
 import AppAvatar from '@/shared/avatar/avatar'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityChannel from '@/modules/activity/components/activity-channel'
 import AppActivityContent from '@/modules/activity/components/activity-content'
@@ -234,7 +234,7 @@ export default {
   },
   methods: {
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     },
     openConversation() {
       this.$emit('details', this.conversation.id)
