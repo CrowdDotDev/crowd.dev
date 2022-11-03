@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-echo "TERM: $TERM"
-
-if [[ -z "$TERM" ]]; then
+if [[ -z "$TERM" || "$TERM" -eq "dumb" ]]; then
     RED=""
     GREEN=""
     GREY=""
