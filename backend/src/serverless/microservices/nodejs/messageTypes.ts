@@ -10,18 +10,15 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
 }
 
 export type ActivityAutomationData = {
-  activityId: string
-  activityType: string
-  platform: string
-  body: string
-  isTeamMember: boolean
+  activityId?: string
+  activity?: any
 }
 
 export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
 
 export type MemberAutomationData = {
-  memberId: string
-  username: any
+  memberId?: string
+  member?: any
 }
 
 export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData

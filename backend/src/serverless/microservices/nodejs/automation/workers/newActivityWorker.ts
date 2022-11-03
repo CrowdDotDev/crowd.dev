@@ -1,4 +1,3 @@
-import { ActivityAutomationData } from '../../messageTypes'
 import getUserContext from '../../../../../database/utils/getUserContext'
 import ActivityRepository from '../../../../../database/repositories/activityRepository'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
@@ -11,27 +10,23 @@ import {
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 import { prepareMemberPayload } from './newMemberWorker'
-import { IRepositoryOptions } from '../../../../../database/repositories/IRepositoryOptions'
 
 /**
  * Helper function to check whether a single activity should be processed by automation
- * @param activityData Activity data
+ * @param activity Activity data
  * @param automation {AutomationData} Automation data
  */
-export const shouldProcessActivity = (
-  activityData: ActivityAutomationData,
-  automation: AutomationData,
-): boolean => {
+export const shouldProcessActivity = (activity: any, automation: AutomationData): boolean => {
   const settings = automation.settings as NewActivitySettings
 
   let process = true
 
   // check whether activity type matches
   if (settings.types && settings.types.length > 0) {
-    if (!settings.types.includes(activityData.activityType)) {
+    if (!settings.types.includes(activity.type)) {
       console.log(
-        `Ignoring automation ${automation.id} - Activity ${activityData.activityId} type '${
-          activityData.activityType
+        `Ignoring automation ${automation.id} - Activity ${activity.id} type '${
+          activity.type
         }' does not match automation setting types: [${settings.types.join(', ')}]`,
       )
       process = false
@@ -40,10 +35,10 @@ export const shouldProcessActivity = (
 
   // check whether activity platform matches
   if (process && settings.platforms && settings.platforms.length > 0) {
-    if (!settings.platforms.includes(activityData.platform)) {
+    if (!settings.platforms.includes(activity.platform)) {
       console.log(
-        `Ignoring automation ${automation.id} - Activity ${activityData.activityId} platform '${
-          activityData.platform
+        `Ignoring automation ${automation.id} - Activity ${activity.id} platform '${
+          activity.platform
         }' does not match automation setting platforms: [${settings.platforms.join(', ')}]`,
       )
       process = false
@@ -52,20 +47,25 @@ export const shouldProcessActivity = (
 
   // check whether activity content contains any of the keywords
   if (process && settings.keywords && settings.keywords.length > 0) {
-    const body = (activityData.body as string).toLowerCase()
+    const body = (activity.body as string).toLowerCase()
     if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
       console.log(
         `Ignoring automation ${automation.id} - Activity ${
-          activityData.activityId
+          activity.id
         } content does not match automation setting keywords: [${settings.keywords.join(', ')}]`,
       )
       process = false
     }
   }
 
-  if (process && !settings.teamMemberActivities && activityData.isTeamMember) {
+  if (
+    process &&
+    !settings.teamMemberActivities &&
+    activity.member.attributes.isTeamMember &&
+    activity.member.attributes.isTeamMember.custom
+  ) {
     console.log(
-      `Ignoring automation ${automation.id} - Activity ${activityData.activityId} belongs to a team member!`,
+      `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
     )
     process = false
   }
@@ -96,28 +96,15 @@ export const prepareActivityPayload = (activity: any): any => {
   return copy
 }
 
-async function loadActivityData(
-  activityId: string,
-  activity: any | undefined,
-  context: IRepositoryOptions,
-): Promise<any> {
-  if (activity) return activity
-
-  const activityData = await ActivityRepository.findById(activityId, context)
-  return activityData
-}
-
 /**
  * Check whether this activity matches any automations for tenant.
  * If so emit automation process messages to NodeJS microservices SQS queue.
  *
  * @param tenantId tenant unique ID
- * @param activityData activity unique ID
+ * @param activityId activity unique ID
+ * @param activityData activity data
  */
-export default async (
-  tenantId: string,
-  activityAutomationData: ActivityAutomationData,
-): Promise<void> => {
+export default async (tenantId: string, activityId?: string, activityData?: any): Promise<void> => {
   // console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
 
   const userContext = await getUserContext(tenantId)
@@ -131,30 +118,17 @@ export default async (
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)
-      let activity: any | undefined
-      let activityData: ActivityAutomationData =
-        activityAutomationData.activityType !== undefined ? activityAutomationData : undefined
+      let activity: any | undefined = activityData
 
-      if (activityData === undefined) {
-        activity = loadActivityData(activityAutomationData.activityId, undefined, userContext)
-        activityData = {
-          activityId: activity.id,
-          body: activity.body,
-          activityType: activity.type,
-          platform: activity.platform,
-          isTeamMember: activity.member.attributes.isTeamMember
-            ? activity.member.attributes.isTeamMember.custom
-            : false,
-        }
+      if (activity === undefined) {
+        activity = await ActivityRepository.findById(activityId, userContext)
       }
 
       for (const automation of automations) {
-        if (shouldProcessActivity(activityData, automation)) {
+        if (shouldProcessActivity(activity, automation)) {
           console.log(
-            `Activity ${activityData.activityId} is being processed by automation ${automation.id}!`,
+            `Activity ${activity.activityId} is being processed by automation ${automation.id}!`,
           )
-
-          activity = await loadActivityData(activityData.activityId, activity, userContext)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:

@@ -62,13 +62,7 @@ export const sendNewActivityNodeSQSMessage = async (
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    activityId: activity.id,
-    activityType: activity.type,
-    body: activity.body,
-    platform: activity.platform,
-    isTeamMember: activity.member.attributes.isTeamMember
-      ? activity.member.attributes.isTeamMember.custom
-      : false,
+    activity,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     service: 'automation',
   }
@@ -79,8 +73,7 @@ export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): 
   const payload = {
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     tenant,
-    memberId: member.id,
-    username: member.username,
+    member,
     trigger: AutomationTrigger.NEW_MEMBER,
     service: 'automation',
   }
