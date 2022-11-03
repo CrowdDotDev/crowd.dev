@@ -14,6 +14,10 @@
  * 1,022,222,222 -> 1B
  */
 export const formatNumberToCompact = (number) => {
+  if (typeof number !== 'number') {
+    return '-'
+  }
+
   return Intl.NumberFormat('en-US', {
     notation: 'compact',
     maximumFractionDigits: 1
