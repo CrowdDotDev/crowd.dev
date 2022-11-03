@@ -9,13 +9,22 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
   trigger: AutomationTrigger
 }
 
-export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & {
+export type ActivityAutomationData = {
   activityId: string
+  activityType: string
+  platform: string
+  body: string
+  isTeamMember: boolean
 }
 
-export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & {
+export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
+
+export type MemberAutomationData = {
   memberId: string
+  username: any
 }
+
+export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData
 
 export type ProcessAutomationMessage = BaseNodeMicroserviceMessage & {
   automationType: AutomationType

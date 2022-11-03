@@ -57,48 +57,34 @@ async function sendNodeMicroserviceMessage(body: NodeMicroserviceMessage): Promi
 
 export const sendNewActivityNodeSQSMessage = async (
   tenant: string,
-  activityId: string,
+  activity: any,
 ): Promise<void> => {
-  if (KUBE_MODE) {
-    const payload = {
-      type: NodeWorkerMessageType.NODE_MICROSERVICE,
-      tenant,
-      activityId,
-      trigger: AutomationTrigger.NEW_ACTIVITY,
-      service: 'automation',
-    }
-    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
-  } else {
-    await sendNodeMicroserviceMessage({
-      tenant,
-      activityId,
-      trigger: AutomationTrigger.NEW_ACTIVITY,
-      service: 'automation',
-    })
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    tenant,
+    activityId: activity.id,
+    activityType: activity.type,
+    body: activity.body,
+    platform: activity.platform,
+    isTeamMember: activity.member.attributes.isTeamMember
+      ? activity.member.attributes.isTeamMember.custom
+      : false,
+    trigger: AutomationTrigger.NEW_ACTIVITY,
+    service: 'automation',
   }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
-export const sendNewMemberNodeSQSMessage = async (
-  tenant: string,
-  memberId: string,
-): Promise<void> => {
-  if (KUBE_MODE) {
-    const payload = {
-      type: NodeWorkerMessageType.NODE_MICROSERVICE,
-      tenant,
-      memberId,
-      trigger: AutomationTrigger.NEW_MEMBER,
-      service: 'automation',
-    }
-    await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
-  } else {
-    await sendNodeMicroserviceMessage({
-      tenant,
-      memberId,
-      trigger: AutomationTrigger.NEW_MEMBER,
-      service: 'automation',
-    })
+export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    tenant,
+    memberId: member.id,
+    username: member.username,
+    trigger: AutomationTrigger.NEW_MEMBER,
+    service: 'automation',
   }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }
 
 export default sendNodeMicroserviceMessage

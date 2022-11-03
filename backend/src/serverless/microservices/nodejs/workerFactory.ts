@@ -50,10 +50,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
       switch (automationRequest.trigger) {
         case AutomationTrigger.NEW_ACTIVITY:
           const newActivityAutomationRequest = event as NewActivityAutomationMessage
-          return newActivityWorker(tenant, newActivityAutomationRequest.activityId)
+          return newActivityWorker(tenant, newActivityAutomationRequest)
         case AutomationTrigger.NEW_MEMBER:
           const newMemberAutomationRequest = event as NewMemberAutomationMessage
-          return newMemberWorker(tenant, newMemberAutomationRequest.memberId)
+          return newMemberWorker(tenant, newMemberAutomationRequest)
         default:
           throw new Error(`Invalid automation trigger ${automationRequest.trigger}!`)
       }

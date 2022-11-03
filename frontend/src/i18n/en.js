@@ -326,8 +326,7 @@ const en = {
         left_channel: 'left channel'
       },
       devto: {
-        commented: 'commented',
-        post: 'post'
+        comment: 'comment'
       },
       fallback: 'created an activity'
     },

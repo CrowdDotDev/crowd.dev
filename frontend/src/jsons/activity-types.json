@@ -28,13 +28,6 @@
     "channel_joined",
     "left_channel"
   ],
-  "twitter": [
-    "mention",
-    "follow",
-    "hashtag"
-  ],
-  "devto": [
-    "commented",
-    "post"
-  ]
+  "twitter": ["mention", "follow", "hashtag"],
+  "devto": ["comment"]
 }

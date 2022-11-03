@@ -9,24 +9,29 @@ import {
 } from '../../../../../types/automationTypes'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
+import { MemberAutomationData } from '../../messageTypes'
+import { IRepositoryOptions } from '../../../../../database/repositories/IRepositoryOptions'
 
 /**
  * Helper function to check whether a single member should be processed by automation
  * @param member Member data
  * @param automation {AutomationData} Automation data
  */
-export const shouldProcessMember = (member, automation: AutomationData): boolean => {
+export const shouldProcessMember = (
+  memberData: MemberAutomationData,
+  automation: AutomationData,
+): boolean => {
   const settings = automation.settings as NewMemberSettings
 
   let process = true
 
   // check whether member platforms matches
   if (settings.platforms && settings.platforms.length > 0) {
-    const platforms = Object.keys(member.username)
+    const platforms = Object.keys(memberData.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
       console.log(
         `Ignoring automation ${automation.id} - Member ${
-          member.id
+          memberData.memberId
         } platforms do not include any of automation setting platforms: [${settings.platforms.join(
           ', ',
         )}]`,
@@ -58,14 +63,28 @@ export const prepareMemberPayload = (member: any): any => {
   return copy
 }
 
+async function loadMemberData(
+  memberId: string,
+  member: any | undefined,
+  context: IRepositoryOptions,
+): Promise<any> {
+  if (member) return member
+
+  const memberData = await MemberRepository.findById(memberId, context)
+  return memberData
+}
+
 /**
  * Check whether this member matches any automations for tenant.
  * If so emit automation process messages to NodeJS microservices SQS queue.
  *
  * @param tenantId tenant unique ID
- * @param memberId community member unique ID
+ * @param automationMemberData community member data
  */
-export default async (tenantId: string, memberId: string): Promise<void> => {
+export default async (
+  tenantId: string,
+  automationMemberData: MemberAutomationData,
+): Promise<void> => {
   // console.log(`New member automation trigger detected with member id: ${memberId}!`)
 
   const userContext = await getUserContext(tenantId)
@@ -79,11 +98,26 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)
-      const member = await MemberRepository.findById(memberId, userContext, true, false)
+
+      let member: any | undefined
+      let memberData: MemberAutomationData =
+        automationMemberData.username === undefined ? automationMemberData : undefined
+
+      if (memberData === undefined) {
+        member = await loadMemberData(automationMemberData.memberId, member, userContext)
+        memberData = {
+          memberId: member.id,
+          username: member.username,
+        }
+      }
 
       for (const automation of automations) {
-        if (shouldProcessMember(member, automation)) {
-          console.log(`Member ${memberId} is being processed by automation ${automation.id}!`)
+        if (shouldProcessMember(memberData, automation)) {
+          console.log(
+            `Member ${memberData.memberId} is being processed by automation ${automation.id}!`,
+          )
+
+          member = await loadMemberData(automationMemberData.memberId, member, userContext)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
