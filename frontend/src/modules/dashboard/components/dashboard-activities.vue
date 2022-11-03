@@ -12,7 +12,8 @@
           Activities
         </h6>
         <p class="text-2xs text-gray-500">
-          Total: {{ activities.total }}
+          Total:
+          {{ formatNumberToCompact(activities.total) }}
         </p>
       </div>
     </div>
@@ -83,6 +84,8 @@ import AppDashboardConversationList from '@/modules/dashboard/components/convers
 import AppDashboardActivityList from '@/modules/dashboard/components/activity/dashboard-activity-list'
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
+import { formatNumberToCompact } from '@/utils/number'
+
 export default {
   name: 'AppDashboardActivities',
   components: {
@@ -107,6 +110,9 @@ export default {
       'platform',
       'activities'
     ])
+  },
+  methods: {
+    formatNumberToCompact
   }
 }
 </script>

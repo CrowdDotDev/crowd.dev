@@ -84,10 +84,10 @@ import {
   computed,
   watch
 } from 'vue'
-import moment from 'moment'
 import lodash from 'lodash'
 import filterOperators from '../helpers/operators'
 import { attributesAreDifferent } from '../helpers/different-util'
+import { formatDate } from '@/utils/date'
 
 const props = defineProps({
   filter: {
@@ -114,17 +114,17 @@ const valueToString = computed(() => {
       ] || ''
     if (props.filter.type === 'date') {
       if (Array.isArray(props.filter.value)) {
-        const formattedStartDate = moment(
-          props.filter.value[0]
-        ).format('YYYY-MM-DD')
-        const formattedEndDate = moment(
-          props.filter.value[1]
-        ).format('YYYY-MM-DD')
+        const formattedStartDate = formatDate({
+          timestamp: props.filter.value[0]
+        })
+        const formattedEndDate = formatDate({
+          timestamp: props.filter.value[1]
+        })
         return `${operatorLabel} ${formattedStartDate} and ${formattedEndDate}`
       } else {
-        const formattedDate = moment(
-          props.filter.value
-        ).format('YYYY-MM-DD')
+        const formattedDate = formatDate({
+          timestamp: props.filter.value
+        })
         return `${operatorLabel} ${formattedDate}`
       }
     } else if (props.filter.type === 'select') {
