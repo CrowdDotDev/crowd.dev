@@ -27,7 +27,7 @@ export const formatDate = ({
   subtractDays,
   subtractMonths
 }) => {
-  const date = moment(timestamp)
+  const date = timestamp ? moment(timestamp) : moment()
 
   if (subtractDays) {
     date.subtract(subtractDays, 'days')
