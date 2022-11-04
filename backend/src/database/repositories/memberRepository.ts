@@ -76,7 +76,7 @@ class MemberRepository {
   }
 
   static async findMembersWithMergeSuggestions(
-    { limit = 10, offset = 0 },
+    { limit = 20, offset = 0 },
     options: IRepositoryOptions,
   ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
