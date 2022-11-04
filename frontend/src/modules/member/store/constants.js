@@ -34,6 +34,14 @@ export const NOT_TEAM_MEMBER_FILTER = {
   }
 }
 
+export const INITIAL_VIEW_ALL_FILTER = {
+  operator: 'and',
+  attributes: {
+    ...NOT_TEAM_MEMBER_FILTER,
+    ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER
+  }
+}
+
 export const INITIAL_VIEW_ACTIVE_FILTER = {
   operator: 'and',
   attributes: {
@@ -231,6 +239,25 @@ export const INITIAL_VIEW_TEAM_MEMBERS_FILTER = {
       defaultOperator: 'eq',
       operator: 'eq',
       type: 'boolean',
+      expanded: false
+    }
+  }
+}
+
+export const INITIAL_VIEW_INFLUENTIAL_FILTER = {
+  operator: 'and',
+  attributes: {
+    ...NOT_TEAM_MEMBER_FILTER,
+    isTeamMember: {
+      name: 'reach',
+      label: 'Reach',
+      custom: false,
+      props: {},
+      defaultValue: 500,
+      value: 500,
+      defaultOperator: 'gte',
+      operator: 'gte',
+      type: 'number',
       expanded: false
     }
   }

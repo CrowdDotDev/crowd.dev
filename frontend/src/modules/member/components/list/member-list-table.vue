@@ -72,7 +72,7 @@
                 label="Member"
                 prop="displayName"
                 width="220"
-                sortable="custom"
+                sortable
                 fixed
               >
                 <template #default="scope">
@@ -224,7 +224,13 @@ export default {
 import { i18n } from '@/i18n'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { computed, onMounted, ref, defineProps } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref,
+  defineProps,
+  watch
+} from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
@@ -322,6 +328,7 @@ onMounted(async () => {
 
 function doChangeSort(sorter) {
   store.dispatch('member/doChangeSort', sorter)
+  console.log(sorter)
 }
 
 function doChangePaginationCurrentPage(currentPage) {
@@ -338,13 +345,11 @@ function doChangePaginationPageSize(pageSize) {
   )
 }
 
-const doMountTableInterval = setInterval(doMountTable, 1000)
-function doMountTable() {
-  if (table.value !== store.state.member.list.table) {
+watch(table, (newValue) => {
+  if (newValue) {
     store.dispatch('member/doMountTable', table.value)
-    clearInterval(doMountTableInterval)
   }
-}
+})
 
 function translate(key) {
   return i18n(key)
