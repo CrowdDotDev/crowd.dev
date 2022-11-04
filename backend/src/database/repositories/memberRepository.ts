@@ -126,10 +126,10 @@ class MemberRepository {
       const memberToMergeResults = await Promise.all(toMergePromises)
 
       const result = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
-      return { rows: result, count: mems[0].total_count / 2 }
+      return { rows: result, count: mems[0].total_count / 2, limit, offset }
     }
 
-    return { rows: [], count: 0 }
+    return { rows: [], count: 0, limit, offset }
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -861,7 +861,7 @@ class MemberRepository {
 
     rows = await this._populateRelationsForRows(rows, attributesSettings)
 
-    return { rows, count: count.length }
+    return { rows, count: count.length, limit: limit ? Number(limit) : 50, offset:  offset ? Number(offset) : 0}
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
