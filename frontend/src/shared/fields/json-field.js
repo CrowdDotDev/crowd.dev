@@ -1,5 +1,16 @@
 import * as yup from 'yup'
 import GenericField from '@/shared/fields/generic-field'
+function _isJsonEmpty(required, json) {
+  if (!required && !json) {
+    return true
+  }
+  // Object cannot be null or empty and each key must have a value
+  return (
+    !!json &&
+    Object.keys(json).length !== 0 &&
+    Object.keys(json).every((k) => !!k && !!json[k])
+  )
+}
 
 export default class JsonField extends GenericField {
   constructor(name, label, config = {}) {
@@ -27,24 +38,17 @@ export default class JsonField extends GenericField {
     if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
-        test: (json) => {
-          if (!this.required && !json) {
-            return true
-          }
-          // Object cannot be null or empty and each key must have a value
-          return (
-            !!json &&
-            Object.keys(json).length !== 0 &&
-            Object.keys(json).every((k) => !!k && !!json[k])
-          )
-        }
+        test: (json) => _isJsonEmpty(this.required, json)
       })
     }
 
     if (this.requiredUnless) {
       yupChain = yupChain.when(this.requiredUnless, {
         is: (value) => !value || value === '',
-        then: (schema) => schema.required()
+        then: (schema) =>
+          schema.test((json) =>
+            _isJsonEmpty(schema.required(), json)
+          )
       })
     }
 
@@ -61,24 +65,17 @@ export default class JsonField extends GenericField {
     if (this.nonEmpty && !this.requiredUnless) {
       yupChain = yupChain.test({
         name: 'valid required json',
-        test: (json) => {
-          if (!this.required && !json) {
-            return true
-          }
-          // Object cannot be null or empty and each key must have a value
-          return (
-            !!json &&
-            Object.keys(json).length !== 0 &&
-            Object.keys(json).every((k) => !!k && !!json[k])
-          )
-        }
+        test: (json) => _isJsonEmpty(this.required, json)
       })
     }
 
     if (this.requiredUnless) {
       yupChain = yupChain.when(this.requiredUnless, {
         is: (value) => !value || value === '',
-        then: (schema) => schema.required()
+        then: (schema) =>
+          schema.test((json) =>
+            _isJsonEmpty(schema.required(), json)
+          )
       })
     }
 
