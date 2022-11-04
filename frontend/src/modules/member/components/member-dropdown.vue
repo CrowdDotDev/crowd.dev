@@ -110,7 +110,6 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
 import { mapActions, mapGetters } from 'vuex'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
@@ -175,10 +174,13 @@ export default {
     async doDestroyWithConfirm(id) {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete member',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         return this.doDestroy(id)

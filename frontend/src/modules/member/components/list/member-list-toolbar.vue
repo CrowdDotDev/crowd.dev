@@ -55,7 +55,6 @@
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex'
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
-import { i18n } from '@/i18n'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
@@ -119,10 +118,13 @@ export default {
     async doDestroyAllWithConfirm() {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete members',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         await this.doDestroyAll(
