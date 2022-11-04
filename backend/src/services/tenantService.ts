@@ -1,4 +1,3 @@
-import lodash from 'lodash'
 import { TENANT_MODE } from '../config/index'
 import TenantRepository from '../database/repositories/tenantRepository'
 import TenantUserRepository from '../database/repositories/tenantUserRepository'
