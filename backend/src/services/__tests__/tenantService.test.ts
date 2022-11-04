@@ -81,11 +81,15 @@ describe('TenantService tests', () => {
       // only two pairs: [m2, m1] and [m4, m3]
 
       expect(
-        memberToMergeSuggestions[0].sort((a, b) => a.createdAt > b.createdAt ? 1 : -1 ).map((m) => m.id),
+        memberToMergeSuggestions[0]
+          .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+          .map((m) => m.id),
       ).toStrictEqual([member1.id, member2.id])
 
       expect(
-        memberToMergeSuggestions[1].sort((a, b) => a.createdAt > b.createdAt ? 1 : -1).map((m) => m.id),
+        memberToMergeSuggestions[1]
+          .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+          .map((m) => m.id),
       ).toStrictEqual([member3.id, member4.id])
     })
   })

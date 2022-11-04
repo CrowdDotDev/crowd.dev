@@ -102,25 +102,23 @@ class MemberRepository {
       },
     )
 
-    if (mems.length > 0){
+    if (mems.length > 0) {
       const memberPromises = []
       const toMergePromises = []
-  
+
       for (const mem of mems) {
         memberPromises.push(MemberRepository.findById(mem.id, options))
         toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
       }
-  
+
       const memberResults = await Promise.all(memberPromises)
       const memberToMergeResults = await Promise.all(toMergePromises)
-  
-      const toRet = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
-      return  { rows: toRet, count: mems[0].total_count /2 }
+
+      const result = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
+      return { rows: result, count: mems[0].total_count / 2 }
     }
 
-    return { rows: [], count: 0}
-
-
+    return { rows: [], count: 0 }
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
