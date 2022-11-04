@@ -83,8 +83,8 @@ class MemberRepository {
 
     const mems = await options.database.sequelize.query(
       `
-    SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id,
-      mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) mem.id,
+    SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id))))
+      mem.id,
       mtm."toMergeId",
       COUNT(*) OVER() AS total_count
       FROM   members mem
