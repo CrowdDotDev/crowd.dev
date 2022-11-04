@@ -6,19 +6,14 @@
       class="app-page-spinner h-16 !relative !min-h-5"
     ></div>
     <div v-else>
-      <!-- Empty State -->
-      <div v-if="conversations.length === 0">
-        <div class="flex justify-center pt-16">
-          <i
-            class="ri-question-answer-line text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
-        <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
-        >
-          There are no conversations
-        </p>
-      </div>
+      <!-- Empty state -->
+      <app-empty-state-cta
+        v-if="conversations.length === 0"
+        icon="ri-question-answer-line"
+        :title="emptyState.title"
+        :description="emptyState.description"
+      ></app-empty-state-cta>
+
       <div v-else>
         <div class="mb-4">
           <app-pagination-sorter
@@ -103,6 +98,34 @@ defineProps({
   }
 })
 
+const hasFilter = computed(() => {
+  const parsedFilters = {
+    ...store.state.activity.filter.attributes
+  }
+
+  // Remove search filter if value is empty
+  if (!parsedFilters.search?.value) {
+    delete parsedFilters.search
+  }
+
+  return !!Object.keys(parsedFilters).length
+})
+const emptyState = computed(() => {
+  if (hasFilter.value) {
+    return {
+      title: 'No conversations found',
+      description:
+        "We couldn't find any results that match your search criteria, please try a different query"
+    }
+  }
+
+  return {
+    title: 'No conversations yet',
+    description:
+      "We couldn't track any conversations among your community members"
+  }
+})
+
 const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']
@@ -115,7 +138,7 @@ const isLoadMoreVisible = computed(() => {
   )
 })
 
-function doChangeFilter(filter) {
+const doChangeFilter = (filter) => {
   let sorter = 'lastActive'
 
   if (filter === 'trending') {
@@ -124,7 +147,7 @@ function doChangeFilter(filter) {
 
   store.dispatch('activity/doChangeSort', {
     prop: sorter,
-    order: 'DESC'
+    order: 'descending'
   })
 }
 

@@ -1,14 +1,6 @@
 <template>
   <div>
-    <div
-      v-if="loading && executions.length === 0"
-      v-loading="loading"
-      class="app-page-spinner"
-    ></div>
-    <div
-      v-if="executions.length"
-      class="webhook-executions-list-wrapper"
-    >
+    <div class="webhook-executions-list-wrapper">
       <div class="webhook-execution-list-header">
         <div class="font-medium">
           {{
@@ -35,13 +27,21 @@
           Timestamp
         </div>
       </div>
+
       <div
+        v-if="loading"
+        v-loading="loading"
+        class="app-page-spinner"
+      ></div>
+      <!-- Executions list -->
+      <div
+        v-else-if="executions && executions.length > 0"
         v-infinite-scroll="fetchExecutions"
         :infinite-scroll-disabled="disabled"
         class="webhook-execution-list"
         style="overflow: auto"
       >
-        <ul v-if="executions && executions.length > 0">
+        <ul>
           <li
             v-for="execution of executions"
             :key="execution.id"
@@ -81,23 +81,13 @@
           </li>
         </ul>
       </div>
-      <div
-        v-if="loading"
-        v-loading="loading"
-        class="app-page-spinner"
-      ></div>
-    </div>
-    <div v-else class="mt-4">
-      <div class="flex justify-center pt-12">
-        <i
-          class="ri-flow-chart text-4xl h-12 text-gray-300"
-        ></i>
+      <div v-else class="mt-8">
+        <!-- Empty state -->
+        <app-empty-state
+          icon="ri-folder-3-line"
+          description="There are no execution logs yet"
+        ></app-empty-state>
       </div>
-      <p
-        class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
-      >
-        There are no execution logs yet
-      </p>
     </div>
   </div>
 </template>

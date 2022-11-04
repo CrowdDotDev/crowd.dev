@@ -7,18 +7,13 @@
     ></div>
     <div v-else>
       <!-- Empty State -->
-      <div v-if="activities.length === 0">
-        <div class="flex justify-center pt-12">
-          <i
-            class="ri-list-check-2 text-4xl h-12 text-gray-300"
-          ></i>
-        </div>
-        <p
-          class="text-xs leading-5 text-center italic text-gray-400 pt-4 pb-12"
-        >
-          There are no activities
-        </p>
-      </div>
+      <app-empty-state-cta
+        v-if="activities.length === 0"
+        icon="ri-list-check-2"
+        :title="emptyState.title"
+        :description="emptyState.description"
+      ></app-empty-state-cta>
+
       <div v-else>
         <!-- Sorter -->
         <div class="mb-4">
@@ -104,6 +99,34 @@ defineProps({
     type: Object,
     required: false,
     default: () => ({})
+  }
+})
+
+const hasFilter = computed(() => {
+  const parsedFilters = {
+    ...store.state.activity.filter.attributes
+  }
+
+  // Remove search filter if value is empty
+  if (!parsedFilters.search?.value) {
+    delete parsedFilters.search
+  }
+
+  return !!Object.keys(parsedFilters).length
+})
+const emptyState = computed(() => {
+  if (hasFilter.value) {
+    return {
+      title: 'No activities found',
+      description:
+        "We couldn't find any results that match your search criteria, please try a different query"
+    }
+  }
+
+  return {
+    title: 'No activities yet',
+    description:
+      "We couldn't track any community member activities"
   }
 })
 

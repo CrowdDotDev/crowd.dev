@@ -14,8 +14,7 @@ import { buildInitialState } from '@/store'
 export default async function ({ to, store }) {
   if (to.path === '/auth/signin') {
     const initialState = buildInitialState()
-    console.log(initialState)
+
     store.replaceState(initialState)
-    console.log('store replaced')
   }
 }

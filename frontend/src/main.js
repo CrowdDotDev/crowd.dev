@@ -3,6 +3,7 @@ import { createRouter } from '@/router'
 import { createStore } from '@/store'
 import plugins from '@/plugins'
 import modules from '@/modules'
+import config from '@/config'
 
 import {
   init as i18nInit,
@@ -56,5 +57,27 @@ i18nInit()
       $store: store,
       $router: router
     }
+  }
+
+  if (config.env === 'production' && config.hotjarKey) {
+    ;(function (h, o, t, j, a, r) {
+      h.hj =
+        h.hj ||
+        function () {
+          ;(h.hj.q = h.hj.q || []).push(arguments)
+        }
+      h._hjSettings = { hjid: config.hotjarKey, hjsv: 6 }
+      a = o.getElementsByTagName('head')[0]
+      r = o.createElement('script')
+      r.async = 1
+      r.src =
+        t + h._hjSettings.hjid + j + h._hjSettings.hjsv
+      a.appendChild(r)
+    })(
+      window,
+      document,
+      'https://static.hotjar.com/c/hotjar-',
+      '.js?sv='
+    )
   }
 })()

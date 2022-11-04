@@ -13,9 +13,8 @@ export default [
     },
     beforeEnter: () => {
       const initialState = buildInitialState(true)
-      console.log(initialState)
+
       store.replaceState(initialState)
-      console.log('store replaced')
     }
   }
 ]

@@ -1,8 +1,4 @@
 <!-- PROJECT LOGO -->
-
-> **_IMPORTANT:_** This project is still under active development. Be aware that future releases can lead to breaking changes.
-> <br>
-
 <p align="center">
   <a href="https://github.com/CrowdDotDev/crowd.dev">
     <img src="https://user-images.githubusercontent.com/41432658/198395147-20caad79-6989-4827-bb0b-32a406770480.png" alt="Header Logo">
@@ -41,11 +37,15 @@ crowd.dev is here to change this. Self-hosted or hosted by us, with developers i
 
 
 ## ✨ Features
-
-- Integrate with platforms like GitHub, Discord, Slack, Twitter or DEV to establish a single source of truth for your community
-- Get background information about your community members and manage them with tags and automated segmentation
-- Detect relevant conversations and publish them in a community help center to reduce duplicate questions and get your community's content listed on search engines <a href="https://open.crowd.dev/crowd">[example]</a>
+### Core Features
+- Integrate with platforms like GitHub, Discord, Slack, Twitter or DEV to track community activities
+- Get background information about your community members & the companies they belong to and manage them with tags and automated segmentation
 - Analyze your community, create custom metrics, organize them in reports and share them publicly with your community, your investors, or your team
+- Use webhooks to automate routine tasks
+
+### Growth Apps
+- [Community Help Center](https://www.crowd.dev/community-help-center): Detect relevant conversations and publish them in a community help center to reduce duplicate questions and get your community's content listed on search engines
+- [Eagle Eye](https://www.crowd.dev/eagle-eye): Monitor dev-focussed community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically
 
 ## 🔔 Stay up-to-date
 
@@ -58,6 +58,8 @@ Crowd.dev is still in beta and we ship new features every month. To stay in the 
 Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and free way to get started with crowd.dev. We're currently still in closed beta but onboard new communities every week.
 
 ### Self-hosted version
+
+Our self-hosted version can be run and deployed by default following our free AGPL license. All premium components will be hidden and inactive with the default configuration. You can run, deploy, and contribute to the app without fearing to violate the premium license. Check out the [premium self-hosted features docs](https://docs.crowd.dev/docs/premium-self-hosted-apps) to know more about the premium self-hosted features.
 
 #### Deployment with Kubernetes
 

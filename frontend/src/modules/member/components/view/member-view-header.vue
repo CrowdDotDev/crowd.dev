@@ -43,18 +43,25 @@
           # of activities
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{ formattedNumber(member.activityCount) }}
+          {{
+            formattedInformation(
+              member.activityCount,
+              'number'
+            )
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Location
         </p>
-        <p
-          v-if="member.attributes.location"
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ member.attributes.location?.default }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.attributes.location?.default,
+              'string'
+            )
+          }}
         </p>
       </div>
       <div>
@@ -62,31 +69,35 @@
           Member since
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{ formattedDate(member.joinedAt) }}
+          {{
+            formattedInformation(member.joinedAt, 'date')
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Reach
         </p>
-        <p
-          v-if="
-            member.reach.total && member.reach.total !== -1
-          "
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ formattedNumber(member.reach.total) }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.reach.total,
+              'compact'
+            )
+          }}
         </p>
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Last activity
         </p>
-        <p
-          v-if="member.lastActivity"
-          class="mt-1 text-gray-900 text-xs"
-        >
-          {{ timeAgo(member.lastActivity.createdAt) }}
+        <p class="mt-1 text-gray-900 text-xs">
+          {{
+            formattedInformation(
+              member.lastActivity?.createdAt,
+              'relative'
+            )
+          }}
         </p>
       </div>
     </div>
@@ -110,13 +121,17 @@ export default {
 <script setup>
 import { defineProps } from 'vue'
 import moment from 'moment/moment'
-
 import AppMemberSentiment from '@/modules/member/components/member-sentiment'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberDropdown from '@/modules/member/components/member-dropdown'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
-
 import AppTags from '@/modules/tag/components/tag-list'
+import {
+  formatNumberToCompact,
+  formatNumber
+} from '@/utils/number'
+import { formatDateToTimeAgo } from '@/utils/date'
+import { formatDate } from '@/utils/date'
 
 defineProps({
   member: {
@@ -125,24 +140,33 @@ defineProps({
   }
 })
 
-const formattedDate = (timestamp) => {
-  // If the timestamp is 1970, we show "-"
+const formattedInformation = (value, type) => {
+  // Show dash for empty information
   if (
-    moment(timestamp).isBefore(
-      moment().subtract(40, 'years')
-    )
+    value === undefined ||
+    value === null ||
+    value === -1 ||
+    // If the timestamp is 1970, we show "-"
+    (type === 'date' &&
+      moment(value).isBefore(
+        moment().subtract(40, 'years')
+      ))
   ) {
     return '-'
   }
-  return moment(timestamp).format('YYYY-MM-DD')
-}
 
-const timeAgo = (timestamp) => {
-  return moment(timestamp).fromNow()
-}
+  // Render inforamation depending on type
+  if (type === 'date') {
+    return formatDate({ timestamp: value })
+  } else if (type === 'number') {
+    return formatNumber(value)
+  } else if (type === 'relative') {
+    return formatDateToTimeAgo(value)
+  } else if (type === 'compact') {
+    return formatNumberToCompact(value)
+  }
 
-const formattedNumber = (number) => {
-  return number.toLocaleString('en-US')
+  return value
 }
 </script>
 

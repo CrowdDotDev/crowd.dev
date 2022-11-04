@@ -575,6 +575,8 @@ describe('TaskRepository tests', () => {
         await TaskRepository.create(toCreate1, mockIRepositoryOptions)
         await TaskRepository.create(toCreate2, mockIRepositoryOptions)
 
+        await SequelizeTestUtils.refreshMaterializedViews(db)
+
         const member = (
           await MemberRepository.findAndCountAll(
             {
@@ -721,6 +723,8 @@ describe('TaskRepository tests', () => {
       await TaskRepository.create(toCreate1, mockIRepositoryOptions)
       await TaskRepository.create(toCreate2, mockIRepositoryOptions)
       await TaskRepository.create(toCreate3, mockIRepositoryOptions)
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = (
         await MemberRepository.findAndCountAll(

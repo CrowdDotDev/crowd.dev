@@ -91,7 +91,7 @@ import { AutomationModel } from '@/modules/automation/automation-model'
 import { i18n } from '@/i18n'
 import AutomationDropdown from '../automation-dropdown'
 import AutomationToggle from '../automation-toggle'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 const { fields } = AutomationModel
 
 export default {
@@ -168,7 +168,7 @@ export default {
       return isSelected ? 'is-selected' : ''
     },
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     },
     formattedDate(date) {
       return moment(date).format('YYYY-MM-DD HH:mm:ss')

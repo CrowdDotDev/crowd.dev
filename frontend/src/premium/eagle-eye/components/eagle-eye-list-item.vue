@@ -71,7 +71,7 @@
 
 <script>
 import eagleEyeSourcesJson from '@/jsons/eagle-eye-sources.json'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import { mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 
@@ -90,7 +90,7 @@ export default {
       ).image
     },
     timeAgo() {
-      return computedTimeAgo(this.record.timestamp)
+      return formatDateToTimeAgo(this.record.timestamp)
     },
     secondaryInfo() {
       let copy = ''

@@ -9,20 +9,27 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
   trigger: AutomationTrigger
 }
 
-export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & {
-  activityId: string
+export type ActivityAutomationData = {
+  activityId?: string
+  activity?: any
 }
 
-export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & {
-  memberId: string
+export type NewActivityAutomationMessage = BaseNodeMicroserviceMessage & ActivityAutomationData
+
+export type MemberAutomationData = {
+  memberId?: string
+  member?: any
 }
+
+export type NewMemberAutomationMessage = BaseNodeMicroserviceMessage & MemberAutomationData
 
 export type ProcessAutomationMessage = BaseNodeMicroserviceMessage & {
   automationType: AutomationType
 }
 
 export type ProcessWebhookAutomationMessage = BaseNodeMicroserviceMessage & {
-  automationId: string
+  automationId?: string
+  automation?: any
   eventId: string
   payload: any
 }

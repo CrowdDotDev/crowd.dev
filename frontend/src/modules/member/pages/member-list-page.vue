@@ -34,7 +34,10 @@
             </div>
 
             <router-link
-              v-if="hasPermissionToCreate"
+              v-if="
+                hasPermissionToCreate &&
+                (hasIntegrations || hasMembers)
+              "
               :to="{
                 name: 'memberCreate'
               }"
@@ -51,8 +54,14 @@
       </div>
 
       <app-member-list-tabs></app-member-list-tabs>
-      <app-member-list-filter></app-member-list-filter>
-      <app-member-list-table></app-member-list-table>
+      <app-member-list-filter
+        v-if="hasMembers"
+      ></app-member-list-filter>
+      <app-member-list-table
+        :has-integrations="hasIntegrations"
+        :has-members="hasMembers"
+        :is-page-loading="isPageLoading"
+      ></app-member-list-table>
     </div>
   </app-page-wrapper>
 </template>
@@ -65,6 +74,7 @@ import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vu
 import PageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
+import { INITIAL_PAGE_SIZE } from '../store/constants'
 
 export default {
   name: 'AppMemberListPage',
@@ -78,7 +88,9 @@ export default {
 
   data() {
     return {
-      hasMembersToMerge: false
+      hasMembersToMerge: false,
+      hasMembers: false,
+      isPageLoading: true
     }
   },
 
@@ -89,6 +101,10 @@ export default {
       integrations: 'integration/listByPlatform'
     }),
 
+    hasIntegrations() {
+      return !!Object.keys(this.integrations || {}).length
+    },
+
     hasPermissionToCreate() {
       return new MemberPermissions(
         this.currentTenant,
@@ -98,9 +114,24 @@ export default {
   },
 
   async created() {
+    const { filter } = this.$store.state.member
+
+    this.isPageLoading = true
+
+    await this.doFetchIntegrations()
+    await this.doFetchCustomAttributes()
+    await this.doFetch({
+      filter,
+      keepPagination: true
+    })
+
+    const membersList = await this.doGetMembersCount()
     const mergeSuggestions =
       await MemberService.fetchMergeSuggestions()
+
     this.hasMembersToMerge = mergeSuggestions.length > 0
+    this.hasMembers = !!membersList.length
+    this.isPageLoading = false
   },
 
   async mounted() {
@@ -109,8 +140,27 @@ export default {
 
   methods: {
     ...mapActions({
-      doFetchWidgets: 'widget/doFetch'
-    })
+      doFetchWidgets: 'widget/doFetch',
+      doFetchCustomAttributes:
+        'member/doFetchCustomAttributes',
+      doFetch: 'member/doFetch',
+      doFetchIntegrations: 'integration/doFetch'
+    }),
+
+    async doGetMembersCount() {
+      try {
+        const response = await MemberService.list(
+          {},
+          '',
+          INITIAL_PAGE_SIZE,
+          0
+        )
+
+        return response.rows
+      } catch (e) {
+        return null
+      }
+    }
   }
 }
 </script>

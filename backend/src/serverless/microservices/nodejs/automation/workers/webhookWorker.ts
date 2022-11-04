@@ -8,20 +8,25 @@ import AutomationExecutionService from '../../../../../services/automationExecut
  * Actually fire the webhook with the relevant payload
  *
  * @param tenantId tenant unique ID
- * @param automationId automation unique ID
+ * @param automationId automation unique ID (or undefined)
+ * @param automationData automation data (or undefined)
  * @param eventId trigger event unique ID
  * @param payload payload to send
  */
 export default async (
   tenantId: string,
   automationId: string,
+  automationData: any,
   eventId: string,
   payload: any,
 ): Promise<void> => {
   const userContext = await getUserContext(tenantId)
   const automationExecutionService = new AutomationExecutionService(userContext)
 
-  const automation = await new AutomationRepository(userContext).findById(automationId)
+  const automation =
+    automationData !== undefined
+      ? automationData
+      : await new AutomationRepository(userContext).findById(automationId)
   const settings = automation.settings as WebhookSettings
 
   const now = new Date()

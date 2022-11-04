@@ -109,7 +109,7 @@ import {
 
 import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 
 const SearchIcon = h(
   'i', // type
@@ -226,7 +226,7 @@ const findIcon = (platform) => {
   ).image
 }
 const timeAgo = (activity) => {
-  return computedTimeAgo(activity.timestamp)
+  return formatDateToTimeAgo(activity.timestamp)
 }
 
 const debouncedQueryChange = debounce(async () => {

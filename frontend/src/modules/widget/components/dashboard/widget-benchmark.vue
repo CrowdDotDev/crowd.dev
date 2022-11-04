@@ -52,7 +52,7 @@ import Widget from '../widget'
 import BenchmarkSettings from './_settings/_benchmark-settings'
 import GithubGetStarHistory from '@/utils/github-get-star-history'
 import { mapGetters, mapActions } from 'vuex'
-import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 export default {
   name: 'AppWidgetBenchmark',
@@ -68,30 +68,22 @@ export default {
         {
           label: 'Last week',
           value: 'last_week',
-          date: moment()
-            .subtract(7, 'days')
-            .format('YYYY-MM-DD')
+          date: formatDate({ subtractDays: 7 })
         },
         {
           label: 'Last two weeks',
           value: 'last_two_weeks',
-          date: moment()
-            .subtract(14, 'days')
-            .format('YYYY-MM-DD')
+          date: formatDate({ subtractDays: 14 })
         },
         {
           label: 'Last month',
           value: 'last_month',
-          date: moment()
-            .subtract(1, 'months')
-            .format('YYYY-MM-DD')
+          date: formatDate({ subtractMonths: 1 })
         },
         {
           label: 'Last three months',
           value: 'last_three_months',
-          date: moment()
-            .subtract(3, 'months')
-            .format('YYYY-MM-DD')
+          date: formatDate({ subtractMonths: 3 })
         }
       ]
     }
@@ -156,8 +148,7 @@ export default {
     async refreshData(settings) {
       if (
         settings &&
-        settings.last_updated_at !==
-          moment().format('YYYY-MM-DD')
+        settings.last_updated_at !== formatDate()
       ) {
         this.loading = true
         const repositories = settings.repositories
@@ -182,8 +173,7 @@ export default {
           data: {
             settings: {
               repositories,
-              last_updated_at:
-                moment().format('YYYY-MM-DD'),
+              last_updated_at: formatDate(),
               timeframe: timeframe
             }
           }

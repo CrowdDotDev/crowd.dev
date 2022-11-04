@@ -67,6 +67,26 @@
             >.
           </template>
         </app-alert>
+        <app-alert v-if="integrationsWithErrors.length > 0">
+          <template #body>
+            Please disconnect and connect again all the
+            integrations with connectivity issues.
+            <br />
+            If this problem persists, contact us via
+            <a
+              href="mailto:help@crowd.dev"
+              class="font-semibold"
+              >email</a
+            >
+            or engage within our
+            <a
+              href="https://crowd.dev/discord"
+              class="font-semibold"
+            >
+              Discord community</a
+            >.
+          </template>
+        </app-alert>
       </div>
       <app-integration-list />
     </div>
@@ -85,7 +105,8 @@ export default {
 
   computed: {
     ...mapGetters({
-      integrations: 'integration/listByPlatform'
+      integrations: 'integration/listByPlatform',
+      integrationsWithErrors: 'integration/withErrors'
     })
   }
 }

@@ -38,6 +38,7 @@ import UserListPage from '@/premium/user/pages/user-list-page'
 import AutomationListPage from '@/modules/automation/pages/automation-list-page'
 import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'AppSettingsPage',
@@ -56,17 +57,18 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      currentUser: 'auth/currentUser',
+      currentTenant: 'auth/currentTenant'
+    }),
     hasUsersModule() {
-      if (
+      return (
+        config.hasPremiumModules &&
         new UserPermissions(
           this.currentTenant,
           this.currentUser
         ).read
-      ) {
-        return true
-      } else if (config.edition === 'crowd-hosted') {
-        return true
-      } else return config.communityPremium === 'true'
+      )
     },
     computedActiveTab: {
       get() {

@@ -1,5 +1,5 @@
 import StringField from '@/shared/fields/string-field'
-import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 export default class ActivityDateField extends StringField {
   constructor(name, label, config = {}) {
@@ -16,33 +16,33 @@ export default class ActivityDateField extends StringField {
   dropdownOptions() {
     return [
       {
-        value: moment()
-          .subtract(1, 'days')
-          .format('YYYY-MM-DD'),
+        value: formatDate({
+          subtractDays: 1
+        }),
         label: 'Last 24 hours'
       },
       {
-        value: moment()
-          .subtract(7, 'days')
-          .format('YYYY-MM-DD'),
+        value: formatDate({
+          subtractDays: 7
+        }),
         label: 'Last 7 days'
       },
       {
-        value: moment()
-          .subtract(14, 'days')
-          .format('YYYY-MM-DD'),
+        value: formatDate({
+          subtractDays: 14
+        }),
         label: 'Last 14 days'
       },
       {
-        value: moment()
-          .subtract(30, 'days')
-          .format('YYYY-MM-DD'),
+        value: formatDate({
+          subtractDays: 30
+        }),
         label: 'Last 30 days'
       },
       {
-        value: moment()
-          .subtract(90, 'days')
-          .format('YYYY-MM-DD'),
+        value: formatDate({
+          subtractDays: 90
+        }),
         label: 'Last 90 days'
       }
     ]

@@ -4,6 +4,7 @@
       <div class="flex items-center justify-between">
         <h4>Reports</h4>
         <el-button
+          v-if="!!count"
           class="btn btn--primary btn--md"
           @click="isCreatingReport = true"
         >
@@ -15,7 +16,9 @@
         share them publicly
       </div>
     </div>
-    <app-report-list-table></app-report-list-table>
+    <app-report-list-table
+      @cta-click="isCreatingReport = true"
+    ></app-report-list-table>
     <app-report-create-dialog
       v-model="isCreatingReport"
     ></app-report-create-dialog>
@@ -23,7 +26,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import ReportListTable from '@/modules/report/components/report-list-table.vue'
 import AppReportCreateDialog from '@/modules/report/components/report-create-dialog'
@@ -45,6 +48,9 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      count: (state) => state.report.count
+    }),
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'

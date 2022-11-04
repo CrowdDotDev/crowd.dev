@@ -2,6 +2,7 @@ import * as yup from 'yup'
 import moment from 'moment'
 import { i18n } from '@/i18n'
 import GenericField from '@/shared/fields/generic-field'
+import { formatDate } from '@/utils/date'
 
 export default class DateField extends GenericField {
   constructor(name, label, config = {}) {
@@ -33,11 +34,11 @@ export default class DateField extends GenericField {
   }
 
   forFilterPreview(value) {
-    return value ? moment(value).format('YYYY-MM-DD') : null
+    return value ? formatDate({ timestamp: value }) : null
   }
 
   forImportViewTable(value) {
-    return value ? moment(value).format('YYYY-MM-DD') : null
+    return value ? formatDate({ timestamp: value }) : null
   }
 
   forFilterCast() {
@@ -46,7 +47,7 @@ export default class DateField extends GenericField {
       .nullable(true)
       .label(this.label)
       .transform((value) =>
-        value ? moment(value).format('YYYY-MM-DD') : null
+        value ? formatDate({ timestamp: value }) : null
       )
   }
 
@@ -76,7 +77,7 @@ export default class DateField extends GenericField {
       .nullable(true)
       .label(this.label)
       .transform((value) =>
-        value ? moment(value).format('YYYY-MM-DD') : null
+        value ? formatDate({ timestamp: value }) : null
       )
   }
 
@@ -101,7 +102,7 @@ export default class DateField extends GenericField {
         }
       )
       .transform((value) =>
-        value ? moment(value).format('YYYY-MM-DD') : null
+        value ? formatDate({ timestamp: value }) : null
       )
 
     if (this.required) {

@@ -21,19 +21,19 @@ where
       timeDimension: Sentiment.date,
       granularity: `day`,
       refreshKey: {
-        every: `10 minute`,
+        every: `1 minute`,
       },
     },
   },
 
   /*
-  joins: {
-    Members: {
-      sql: `${CUBE}."memberId" = ${Members}."id"`,
-      relationship: `belongsTo`,
+    joins: {
+      Members: {
+        sql: `${CUBE}."memberId" = ${Members}."id"`,
+        relationship: `belongsTo`,
+      },
     },
-  },
-  */
+    */
 
   measures: {
     averageSentiment: {

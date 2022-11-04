@@ -14,31 +14,24 @@ cube(`Members`, {
 
   preAggregations: {
     /*
-    Members: {
-      measures: [Members.count],
-      dimensions: [Members.score, Members.location, Members.tenantId],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-    */
+        Members: {
+          measures: [Members.count],
+          dimensions: [Members.score, Members.location, Members.tenantId],
+          timeDimension: Members.joinedAt,
+          granularity: `day`,
+          refreshKey: {
+            every: `10 minute`,
+          },
+        },
+        */
 
     ActiveMembers: {
       measures: [Members.count],
-      dimensions: [
-        Members.score,
-        Members.location,
-        Members.tenantId,
-        Tags.name,
-        // Activities.date
-      ],
-      // timeDimension: Activities.date,
+      dimensions: [Members.score, Members.location, Members.tenantId, Tags.name],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `10 minute`,
+        every: `1 minute`,
       },
     },
 
@@ -48,7 +41,7 @@ cube(`Members`, {
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `10 minute`,
+        every: `1 minute`,
       },
     },
 
@@ -58,7 +51,7 @@ cube(`Members`, {
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `10 minute`,
+        every: `1 minute`,
       },
     },
   },

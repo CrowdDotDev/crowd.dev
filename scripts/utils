@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-GREY=`tput setaf 7`
-YELLOW=`tput setaf 3`
-RESET=`tput sgr0`
+if [[ ${TERM} == "" || ${TERM} == "dumb" ]]; then
+    RED=""
+    GREEN=""
+    GREY=""
+    YELLOW=""
+    RESET=""
+else
+    RED=`tput setaf 1`
+    GREEN=`tput setaf 2`
+    GREY=`tput setaf 7`
+    YELLOW=`tput setaf 3`
+    RESET=`tput sgr0`
+fi
+
 USER_NAME=`whoami`
 
 yell () {
