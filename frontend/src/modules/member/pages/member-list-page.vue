@@ -128,7 +128,8 @@ export default {
     const mergeSuggestions =
       await MemberService.fetchMergeSuggestions(1, 0)
 
-    this.hasMembersToMerge = mergeSuggestions.length > 0
+    this.hasMembersToMerge =
+      mergeSuggestions.rows.length > 0
     this.hasMembers = !!membersList.length
     this.isPageLoading = false
   },

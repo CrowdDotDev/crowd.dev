@@ -21,7 +21,7 @@
         </div>
       </div>
 
-      <p class="text-gray-500 text-sm mb-1">
+      <p class="text-gray-500 text-sm mb-2">
         {{ count }} suggestions
       </p>
       <div
@@ -277,7 +277,7 @@ async function onLoadMore() {
   loading.value = false
   offset.value += limit.value
   isLoadMoreVisible.value =
-    response.rows.length < limit.value
+    response.rows.length === limit.value
 }
 
 function makePrimary(members) {
