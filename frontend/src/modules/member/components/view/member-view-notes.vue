@@ -58,9 +58,7 @@ const fetchNotes = (page = 0) => {
   notesPage.value = page
   NoteService.list(
     {
-      // members: {
-      //   contains: [props.member.id]
-      // }
+      members: [props.member.id]
     },
     'createdAt_DESC',
     notesLimit,
