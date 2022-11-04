@@ -861,7 +861,12 @@ class MemberRepository {
 
     rows = await this._populateRelationsForRows(rows, attributesSettings)
 
-    return { rows, count: count.length, limit: limit ? Number(limit) : 50, offset:  offset ? Number(offset) : 0}
+    return {
+      rows,
+      count: count.length,
+      limit: limit ? Number(limit) : 50,
+      offset: offset ? Number(offset) : 0,
+    }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
