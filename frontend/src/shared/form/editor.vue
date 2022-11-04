@@ -2,7 +2,7 @@
   <editor-content
     class="editor c-content w-full text-sm leading-5 flex flex-col"
     :data-placeholder="placeholder"
-    :value="value"
+    :value="modelValue"
     :style="{ 'min-height': minHeight }"
     :editor="editor"
   />
@@ -18,9 +18,6 @@ export default {
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import OrderedList from '@tiptap/extension-ordered-list'
-import ListItem from '@tiptap/extension-list-item'
-import BulletList from '@tiptap/extension-bullet-list'
 import {
   ref,
   defineProps,
@@ -61,10 +58,7 @@ const editor = useEditor({
     StarterKit,
     Placeholder.configure({
       placeholder: props.placeholder
-    }),
-    OrderedList,
-    ListItem,
-    BulletList
+    })
   ],
   onUpdate: () => {
     if (editor.value) {

@@ -38,7 +38,7 @@
         <blockquote
           v-if="activity.thread && displayThread"
           class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
-          v-html="activity.thread.body"
+          v-html="$sanitize(activity.thread.body)"
         />
         <span
           v-if="
@@ -54,7 +54,7 @@
           :class="
             showMore && !more ? `text-limit-${limit}` : ''
           "
-          v-html="activity.body"
+          v-html="$sanitize(activity.body)"
         />
       </div>
     </div>

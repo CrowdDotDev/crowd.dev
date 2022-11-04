@@ -17,7 +17,7 @@
     <div
       v-if="!editing"
       class="c-content text-sm leading-5"
-      v-html="props.note.body"
+      v-html="$sanitize(props.note.body)"
     ></div>
     <app-note-editor
       v-else
