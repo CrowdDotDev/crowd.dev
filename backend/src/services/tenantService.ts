@@ -501,7 +501,6 @@ export default class TenantService {
    */
   async findMembersToMerge(args) {
     const memberService = new MemberService(this.options)
-    const { rows } = await memberService.findMembersWithMergeSuggestions(args)
-    return rows
+    return memberService.findMembersWithMergeSuggestions(args)
   }
 }

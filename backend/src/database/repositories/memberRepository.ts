@@ -82,16 +82,27 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const mems = await options.database.sequelize.query(
-      `
-    SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id))))
-      mem.id,
-      mtm."toMergeId",
-      COUNT(*) OVER() AS total_count
-      FROM   members mem
-             INNER JOIN "memberToMerge" mtm
-                     ON mem.id = mtm."memberId"
-      WHERE  mem."tenantId" = :tenantId
-      LIMIT :limit OFFSET :offset`,
+      `SELECT 
+      "membersToMerge".id, 
+      "membersToMerge"."toMergeId",
+      "membersToMerge"."total_count"
+       FROM 
+       (
+        SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
+            mem.id, 
+            mtm."toMergeId", 
+            mem."joinedAt", 
+            COUNT(*) OVER() AS total_count 
+          FROM 
+            members mem 
+            INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
+          WHERE 
+            mem."tenantId" = :tenantId
+        ) AS "membersToMerge" 
+      ORDER BY 
+        "membersToMerge"."joinedAt" DESC 
+      LIMIT :limit OFFSET :offset
+    `,
       {
         replacements: {
           tenantId: currentTenant.id,
@@ -115,10 +126,10 @@ class MemberRepository {
       const memberToMergeResults = await Promise.all(toMergePromises)
 
       const result = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
-      return { rows: result, count: mems[0].total_count / 2 }
+      return { rows: result, count: mems[0].total_count / 2, limit, offset }
     }
 
-    return { rows: [], count: 0 }
+    return { rows: [], count: 0, limit, offset }
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {
@@ -831,7 +842,6 @@ class MemberRepository {
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
-        [Sequelize.literal(`("member".reach->'total')::int`), 'reach'],
         ...dynamicAttributesProjection,
       ],
       limit: limit ? Number(limit) : 50,
@@ -851,7 +861,12 @@ class MemberRepository {
 
     rows = await this._populateRelationsForRows(rows, attributesSettings)
 
-    return { rows, count: count.length }
+    return {
+      rows,
+      count: count.length,
+      limit: limit ? Number(limit) : 50,
+      offset: offset ? Number(offset) : 0,
+    }
   }
 
   static async findAllAutocomplete(query, limit, options: IRepositoryOptions) {
