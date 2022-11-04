@@ -2818,6 +2818,8 @@ describe('MemberService tests', () => {
       const member2Created = await ms.upsert(member2)
       const member3Created = await ms.upsert(member3)
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       // filter and sort by aNumberAttribute default values
       let members = await ms.findAndCountAll({
         advancedFilter: {

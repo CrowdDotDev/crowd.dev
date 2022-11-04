@@ -301,7 +301,7 @@ export default class MemberService {
 
       if (!existing) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
           console.log(`Error triggering new member automation - ${record.id}!`, err)
         }

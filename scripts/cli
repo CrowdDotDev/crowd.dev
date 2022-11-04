@@ -5,6 +5,8 @@ set -eo pipefail
 PROJECT_NAME="crowd"
 DOCKER_NETWORK_SUBNET="${CROWD_NETWORK_SUBNET:-10.90.0.0/24}"
 DOCKER_NETWORK_GATEWAY="${CROWD_NETWORK_GATEWAY:-10.90.0.1}"
+DOCKET_TEST_NETWORK_SUBNET="${CROWD_TEST_NETWORK_SUBNET:-10.91.0.0/24}"
+DOCKER_TEST_NETWORK_GATEWAY="${CROWD_TEST_NETWORK_GATEWAY:-10.91.0.1}"
 
 CLI_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $CLI_HOME/utils
@@ -159,6 +161,10 @@ function scaffold() {
             create-migration) create_migration $2
                 exit;
             ;;
+            up-test)
+                up_test_scaffold
+                exit;
+            ;;
             *) error "Invalid command '$1'" && say "$HELP"
                 exit 1;
             ;;
@@ -270,13 +276,20 @@ function check_container_status() {
     docker container ls -a | grep "${PROJECT_NAME}_${1}_"
 }
 
+# <network-name> <subnet> <gateway>
 function scaffold_set_up_network() {
-    NETWORK_ID=$(docker network ls | grep "${PROJECT_NAME}-bridge" | tr " " "\n" | head -n 1)
+    NETWORK_NAME="$1"
+    NETWORK_SUBNET="$2"
+    NETWORK_GATEWAY="$3"
+
+    set +e pipefail
+    NETWORK_ID=$(docker network ls | grep -F -e "$NETWORK_NAME" | tr " " "\n" | head -n 1)
+    set -e pipefail
 
     if [[ ${NETWORK_ID} ]]; then
-        say "The bridge network is up and running."
+        say "The $NETWORK_NAME network is up and running."
     else
-        docker network create -d bridge --subnet $DOCKER_NETWORK_SUBNET --gateway $DOCKER_NETWORK_GATEWAY "${PROJECT_NAME}-bridge"
+        docker network create -d bridge --subnet "$NETWORK_SUBNET" --gateway "$NETWORK_GATEWAY" "$NETWORK_NAME"
     fi
 }
 
@@ -287,6 +300,27 @@ function migrate_local() {
     say "Applying database migrations!"
     docker run --rm --network "${PROJECT_NAME}-bridge" \
         -e PGHOST=db \
+        -e PGPORT=5432 \
+        -e PGUSER=postgres \
+        -e PGPASSWORD=example \
+        -e PGDATABASE=crowd-web \
+        crowd_flyway
+}
+
+function up_test_scaffold() {
+    scaffold_set_up_network "${PROJECT_NAME}-bridge-test" $DOCKET_TEST_NETWORK_SUBNET $DOCKER_TEST_NETWORK_GATEWAY
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml down
+    $_DC -p "$PROJECT_NAME-test" -f $CLI_HOME/../docker/docker-compose.test.yaml up -d
+    migrate_test
+}
+
+function migrate_test() {
+    say "Building flyway migration image..."
+    docker build -t crowd_flyway -f $CLI_HOME/../backend/src/database/Dockerfile.flyway $CLI_HOME/../backend/src/database
+
+    say "Applying database migrations!"
+    docker run --rm --network "${PROJECT_NAME}-bridge-test" \
+        -e PGHOST=db-test \
         -e PGPORT=5432 \
         -e PGUSER=postgres \
         -e PGPASSWORD=example \
@@ -309,7 +343,8 @@ function create_s3_buckets() {
 }
 
 function up_scaffold() {
-    scaffold_set_up_network && $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
+    scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
+    $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     migrate_local
     create_s3_buckets
@@ -432,48 +467,68 @@ do
             exit;
         ;;
         start)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             start
             exit;
         ;;
         start-dev)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             DEV=1
             start
             exit;
         ;;
         clean-start) 
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-dev)
-            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             CLEAN_START=1
             DEV=1
             start
             exit;
         ;;
         start-backend)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             start
             exit;
         ;;
         start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             DEV=1
             start
             exit;
         ;;
         clean-start-backend)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             CLEAN_START=1
             start
             exit;
         ;;
         clean-start-backend-dev)
-            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "conversations")
+            declare -a INGORED_SERVICES=("frontend" "premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            CLEAN_START=1
+            DEV=1
+            start
+            exit;
+        ;;
+        start-premium)
+            start
+            exit;
+        ;;
+        start-premium-dev)
+            DEV=1
+            start
+            exit;
+        ;;
+        clean-start-premium)
+            CLEAN_START=1
+            start
+            exit;
+        ;;
+        clean-start-premium-dev)
             CLEAN_START=1
             DEV=1
             start

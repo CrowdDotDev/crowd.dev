@@ -8,7 +8,15 @@ services:
       POSTGRES_DB: crowd-web
     ports:
       - 5433:5432
+    networks:
+      - crowd-bridge-test
   search-engine-test:
     image: getmeili/meilisearch:v0.27.2
     ports:
       - 7701:7700
+    networks:
+      - crowd-bridge-test
+
+networks:
+  crowd-bridge-test:
+    external: true
