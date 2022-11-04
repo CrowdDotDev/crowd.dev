@@ -7,7 +7,9 @@ export default () => {
       state.list.ids.map((r) => state.records[r]),
     hasRows: (state) => state.count > 0,
     orderBy: (state, getters) => {
-      const sorter = getters.activeView.sorter
+      const sorter = state.views
+        ? getters.activeView.sorter
+        : state.sorter
 
       // TODO: For now this will remain hard coded, need to check API
       if (!sorter.prop) {
@@ -23,7 +25,9 @@ export default () => {
       return state.records[id]
     },
     limit: (state, getters) => {
-      const pagination = getters.activeView.pagination
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
 
       if (!pagination || !pagination.pageSize) {
         return INITIAL_PAGE_SIZE
@@ -33,7 +37,9 @@ export default () => {
     },
 
     offset: (state, getters) => {
-      const pagination = getters.activeView.pagination
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
 
       if (!pagination || !pagination.pageSize) {
         return 0
@@ -45,8 +51,11 @@ export default () => {
     },
 
     pagination: (state, getters) => {
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
       return {
-        ...getters.activeView.pagination,
+        ...pagination,
         total: state.count,
         showSizeChanger: true
       }

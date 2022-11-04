@@ -38,7 +38,7 @@
             <el-table
               ref="table"
               v-loading="loading"
-              :data="reports"
+              :data="rows"
               row-key="id"
               border
               :row-class-name="rowClass"
@@ -126,122 +126,72 @@
 </template>
 
 <script>
-import { ReportModel } from '@/modules/report/report-model'
-import { mapGetters, mapActions, mapState } from 'vuex'
-import { ReportPermissions } from '@/modules/report/report-permissions'
-import { i18n } from '@/i18n'
-import ReportDropdown from './report-dropdown'
-import ReportListDropdown from './report-list-toolbar'
-
-const { fields } = ReportModel
-
 export default {
-  name: 'AppReportListTable',
-  components: {
-    'app-report-dropdown': ReportDropdown,
-    'app-report-list-toolbar': ReportListDropdown
-  },
+  name: 'AppReportListTable'
+}
+</script>
 
-  emits: ['cta-click'],
+<script setup>
+import { defineEmits, ref, watch, computed } from 'vue'
+import { useStore } from 'vuex'
+import AppReportDropdown from './report-dropdown'
+import AppReportListToolbar from './report-list-toolbar'
+import { useRouter } from 'vue-router/dist/vue-router'
 
-  data() {
-    return {
-      mountTableInterval: null
-    }
-  },
+const store = useStore()
+const router = useRouter()
+defineEmits(['cta-click'])
 
-  computed: {
-    ...mapState({
-      loading: (state) => state.report.list.loading,
-      count: (state) => state.report.count
-    }),
-    ...mapGetters({
-      rows: 'report/rows',
-      pagination: 'report/pagination',
-      selectedRows: 'report/selectedRows',
-      isMobile: 'layout/isMobile',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      paginationLayout: 'layout/paginationLayout'
-    }),
+const table = ref(null)
 
-    hasPermissionToEdit() {
-      return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).edit
-    },
+const loading = computed(
+  () => store.state.report.list.loading
+)
+const count = computed(() => store.state.report.count)
+const rows = computed(() => store.getters['report/rows'])
+const selectedRows = computed(
+  () => store.getters['report/selectedRows']
+)
+const pagination = computed(
+  () => store.getters['report/pagination']
+)
 
-    hasPermissionToDestroy() {
-      return new ReportPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).destroy
-    },
-
-    fields() {
-      return fields
-    },
-
-    reports() {
-      return [...this.rows]
-    }
-  },
-
-  mounted() {
-    this.mountTableInterval = setInterval(
-      this.doMountTableInterval,
-      1000
-    )
-  },
-
-  methods: {
-    ...mapActions({
-      doChangeSort: 'report/doChangeSort',
-      doChangePaginationCurrentPage:
-        'report/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'report/doChangePaginationPageSize',
-      doMountTable: 'report/doMountTable',
-      doDestroy: 'member/doDestroy'
-    }),
-
-    doRefresh() {
-      this.doChangePaginationCurrentPage()
-    },
-
-    presenter(row, fieldName) {
-      return ReportModel.presenter(row, fieldName)
-    },
-
-    translate(key) {
-      return i18n(key)
-    },
-
-    rowClass({ row }) {
-      const isSelected =
-        this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
-      return isSelected ? 'is-selected' : ''
-    },
-
-    handleRowClick(row) {
-      this.$router.push({
-        name: 'reportView',
-        params: { id: row.id }
-      })
-    },
-
-    doMountTableInterval() {
-      // TODO: Need to refactor this component to options api and this method to watch instead of setInterval
-      if (
-        this.$refs.table !==
-        this.$store.state.report.list.table
-      ) {
-        this.doMountTable(this.$refs.table)
-        clearInterval(this.mountTableInterval)
-      }
-    }
+watch(table, (newValue) => {
+  if (newValue) {
+    store.dispatch('report/doMountTable', table.value)
   }
+})
+
+function doChangeSort(sorter) {
+  store.dispatch('report/doChangeSort', sorter)
+}
+
+function doChangePaginationCurrentPage(currentPage) {
+  store.dispatch(
+    'report/doChangePaginationCurrentPage',
+    currentPage
+  )
+}
+
+function doChangePaginationPageSize(pageSize) {
+  store.dispatch(
+    'report/doChangePaginationPageSize',
+    pageSize
+  )
+}
+
+function rowClass({ row }) {
+  const isSelected =
+    selectedRows.value.find((r) => r.id === row.id) !==
+    undefined
+
+  return isSelected ? 'is-selected' : ''
+}
+
+function handleRowClick(row) {
+  router.push({
+    name: 'memberView',
+    params: { id: row.id }
+  })
 }
 </script>

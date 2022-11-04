@@ -328,7 +328,6 @@ onMounted(async () => {
 
 function doChangeSort(sorter) {
   store.dispatch('member/doChangeSort', sorter)
-  console.log(sorter)
 }
 
 function doChangePaginationCurrentPage(currentPage) {
