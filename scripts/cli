@@ -283,7 +283,7 @@ function scaffold_set_up_network() {
     NETWORK_GATEWAY="$3"
 
     set +e pipefail
-    NETWORK_ID=$(docker network ls | grep -F -e "$NETWORK_NAME" | tr " " "\n" | head -n 1)
+    NETWORK_ID=$(docker network ls | grep -F -e "$NETWORK_NAME " | tr " " "\n" | head -n 1)
     set -e pipefail
 
     if [[ ${NETWORK_ID} ]]; then
@@ -574,4 +574,3 @@ do
     esac
     shift
 done
-~
