@@ -74,7 +74,6 @@ import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vu
 import PageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
-import { INITIAL_PAGE_SIZE } from '../store/constants'
 
 export default {
   name: 'AppMemberListPage',
@@ -152,7 +151,7 @@ export default {
         const response = await MemberService.list(
           {},
           '',
-          INITIAL_PAGE_SIZE,
+          1,
           0
         )
 

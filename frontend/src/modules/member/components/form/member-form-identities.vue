@@ -67,6 +67,7 @@
             <el-switch
               v-model="value.enabled"
               :inactive-text="findPlatform(key).name"
+              :disabled="editingDisabled(key)"
               @change="
                 (newValue) => onSwitchChange(newValue, key)
               "
@@ -82,6 +83,7 @@
             <el-input
               v-model="model.username[key]"
               placeholder="johndoe"
+              :disabled="editingDisabled(key)"
               @input="
                 (newValue) =>
                   onInputChange(newValue, key, value)
@@ -119,6 +121,10 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
   modelValue: {
+    type: Object,
+    default: () => {}
+  },
+  record: {
     type: Object,
     default: () => {}
   },
@@ -198,6 +204,12 @@ function findPlatform(platform) {
   return integrationsJsonArray.find(
     (p) => p.platform === platform
   )
+}
+
+function editingDisabled(platform) {
+  return props.record
+    ? props.record.activeOn.includes(platform)
+    : false
 }
 
 function onSwitchChange(value, key) {
