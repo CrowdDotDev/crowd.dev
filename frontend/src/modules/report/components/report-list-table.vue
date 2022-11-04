@@ -190,7 +190,7 @@ function rowClass({ row }) {
 
 function handleRowClick(row) {
   router.push({
-    name: 'memberView',
+    name: 'reportView',
     params: { id: row.id }
   })
 }
