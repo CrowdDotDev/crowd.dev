@@ -116,9 +116,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import UserListToolbar from '@/premium/user/components/list/user-list-toolbar.vue'
 import Roles from '@/security/roles'
-import { i18n } from '@/i18n'
 import AppUserDropdown from '../user-dropdown'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import pluralize from 'pluralize'
 
 const { fields } = UserModel
@@ -183,21 +181,6 @@ export default {
 
     presenter(row, fieldName) {
       return UserModel.presenter(row, fieldName)
-    },
-
-    async doDestroyWithConfirm(id) {
-      try {
-        await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
-        })
-
-        return this.doDestroy(id)
-      } catch (error) {
-        // no
-      }
     },
 
     rowClass({ row }) {

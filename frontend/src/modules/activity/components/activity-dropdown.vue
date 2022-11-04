@@ -22,7 +22,7 @@
         <!--        >-->
         <el-dropdown-item command="activityDelete">
           <i class="ri-delete-bin-line text-red-500 mr-1" />
-          <span class="text-red-500">Delete Activity</span>
+          <span class="text-red-500">Delete activity</span>
         </el-dropdown-item>
       </template>
     </el-dropdown>
@@ -31,7 +31,6 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import { i18n } from '@/i18n'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
@@ -82,10 +81,13 @@ export default {
     async doDestroyWithConfirm() {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete activity',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         await this.doDestroy(this.activity.id)

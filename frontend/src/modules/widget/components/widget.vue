@@ -56,13 +56,13 @@
           command="trigger-duplicate-widget"
           ><i
             class="ri-lg ri-file-copy-line mr-1"
-          />Duplicate Widget</el-dropdown-item
+          />Duplicate widget</el-dropdown-item
         >
         <el-dropdown-item
           v-if="editable"
           command="trigger-edit-widget"
           ><i class="ri-lg ri-pencil-line mr-1" />Edit
-          Widget</el-dropdown-item
+          widget</el-dropdown-item
         >
         <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item
@@ -71,7 +71,7 @@
           ><i
             class="ri-lg ri-delete-bin-line mr-1 !text-red-500"
           /><span class="text-red-500"
-            >Delete Widget</span
+            >Delete widget</span
           ></el-dropdown-item
         >
       </template>
