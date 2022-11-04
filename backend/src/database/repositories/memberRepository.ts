@@ -82,16 +82,27 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const mems = await options.database.sequelize.query(
-      `
-    SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id))))
-      mem.id,
-      mtm."toMergeId",
-      COUNT(*) OVER() AS total_count
-      FROM   members mem
-             INNER JOIN "memberToMerge" mtm
-                     ON mem.id = mtm."memberId"
-      WHERE  mem."tenantId" = :tenantId
-      LIMIT :limit OFFSET :offset`,
+      `SELECT 
+      "membersToMerge".id, 
+      "membersToMerge"."toMergeId",
+      "membersToMerge"."total_count"
+       FROM 
+       (
+        SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id, mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) 
+            mem.id, 
+            mtm."toMergeId", 
+            mem."joinedAt", 
+            COUNT(*) OVER() AS total_count 
+          FROM 
+            members mem 
+            INNER JOIN "memberToMerge" mtm ON mem.id = mtm."memberId" 
+          WHERE 
+            mem."tenantId" = :tenantId
+        ) AS "membersToMerge" 
+      ORDER BY 
+        "membersToMerge"."joinedAt" DESC 
+      LIMIT :limit OFFSET :offset
+    `,
       {
         replacements: {
           tenantId: currentTenant.id,
@@ -831,7 +842,6 @@ class MemberRepository {
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
         [noMergeArray, 'noMergeIds'],
-        [Sequelize.literal(`("member".reach->'total')::int`), 'reach'],
         ...dynamicAttributesProjection,
       ],
       limit: limit ? Number(limit) : 50,
