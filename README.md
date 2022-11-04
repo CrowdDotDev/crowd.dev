@@ -67,7 +67,7 @@ Our services can be deployed using Kubernetes, as well as a lightweight developm
 
 #### Integrations
 
-We currently support four integrations for self-hosting: GitHub, Twitter, Discord and Slack. For each one of them you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
+We currently support all our integrations for self-hosting. For each one of them you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
 
 ### Development environment
 
