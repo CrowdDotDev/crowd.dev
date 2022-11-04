@@ -126,7 +126,7 @@ export default {
 
     const membersList = await this.doGetMembersCount()
     const mergeSuggestions =
-      await MemberService.fetchMergeSuggestions(true)
+      await MemberService.fetchMergeSuggestions(1, 0)
 
     this.hasMembersToMerge = mergeSuggestions.length > 0
     this.hasMembers = !!membersList.length

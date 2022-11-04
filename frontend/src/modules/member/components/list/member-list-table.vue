@@ -71,7 +71,7 @@
               <el-table-column
                 label="Member"
                 prop="displayName"
-                width="220"
+                width="250"
                 sortable
                 fixed
               >
@@ -85,6 +85,10 @@
                     <span class="font-semibold">{{
                       scope.row.displayName
                     }}</span>
+                    <app-member-sentiment
+                      :member="scope.row"
+                      class="ml-2"
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -239,6 +243,7 @@ import AppMemberReach from '../member-reach.vue'
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import AppMemberLastActivity from '../member-last-activity'
+import AppMemberSentiment from '../member-sentiment'
 
 const store = useStore()
 const router = useRouter()

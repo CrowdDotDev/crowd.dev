@@ -22,7 +22,7 @@
       </div>
 
       <p class="text-gray-500 text-sm mb-1">
-        {{ membersToMerge.length }} suggestions
+        {{ count }} suggestions
       </p>
       <div
         v-for="(pair, index) in membersToMerge"
@@ -152,6 +152,24 @@
           </div>
         </div>
       </div>
+      <!-- Load more button -->
+      <div
+        v-if="isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
+      >
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner h-16 w-16 !relative !min-h-fit"
+        ></div>
+        <el-button
+          v-else
+          class="btn btn-link btn-link--primary"
+          @click="onLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -163,25 +181,26 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
-const membersToMerge = ref([])
+let membersToMerge = reactive([])
 const channelsWidth = ref('')
 const viewingDetails = ref({})
+const limit = ref(20)
+const loading = ref(false)
+const count = ref(0)
+const isLoadMoreVisible = ref(true)
+let offset = ref(0)
 
 onMounted(async () => {
-  membersToMerge.value =
-    await MemberService.fetchMergeSuggestions()
-
-  channelsWidth.value = getChannelsWidth(
-    membersToMerge.value
-  )
+  await onLoadMore()
+  channelsWidth.value = getChannelsWidth(membersToMerge)
 
   const newViewingDetails = {}
-  for (let i = 0; i < membersToMerge.value.length; i++) {
+  for (let i = 0; i < membersToMerge.length; i++) {
     newViewingDetails[i] = false
   }
   viewingDetails.value = newViewingDetails
@@ -244,6 +263,21 @@ async function handleNotMergeClick(members) {
   } catch (error) {
     // no
   }
+}
+
+async function onLoadMore() {
+  loading.value = true
+  const response =
+    await MemberService.fetchMergeSuggestions(
+      limit.value,
+      offset.value
+    )
+  membersToMerge.push(...response.rows)
+  count.value = response.count
+  loading.value = false
+  offset.value += limit.value
+  isLoadMoreVisible.value =
+    response.rows.length < limit.value
 }
 
 function makePrimary(members) {
