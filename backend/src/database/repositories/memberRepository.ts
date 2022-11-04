@@ -1,5 +1,5 @@
 import lodash from 'lodash'
-import Sequelize from 'sequelize'
+import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import Error404 from '../../errors/Error404'
@@ -75,78 +75,52 @@ class MemberRepository {
     return this.findById(record.id, options, true, doPopulateRelations)
   }
 
-  static async findMembersWithMergeSuggestions(options: IRepositoryOptions) {
-    const transaction = SequelizeRepository.getTransaction(options)
-
+  static async findMembersWithMergeSuggestions(
+    { limit = 10, offset = 0 },
+    options: IRepositoryOptions,
+  ) {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    const include = [
+    const mems = await options.database.sequelize.query(
+      `
+    SELECT DISTINCT ON (Greatest(Hashtext(Concat(mem.id,
+      mtm."toMergeId")), Hashtext(Concat(mtm."toMergeId", mem.id)))) mem.id,
+      mtm."toMergeId",
+      COUNT(*) OVER() AS total_count
+      FROM   members mem
+             INNER JOIN "memberToMerge" mtm
+                     ON mem.id = mtm."memberId"
+      WHERE  mem."tenantId" = :tenantId
+      LIMIT :limit OFFSET :offset`,
       {
-        model: options.database.member,
-        as: 'toMerge',
-        through: {
-          attributes: [],
+        replacements: {
+          tenantId: currentTenant.id,
+          limit,
+          offset,
         },
-        required: true,
+        type: QueryTypes.SELECT,
       },
-    ]
+    )
 
-    const { rows, count } = await options.database.member.findAndCountAll({
-      where: {
-        tenantId: currentTenant.id,
-      },
-      include,
-      transaction,
-    })
-    const rowsOut = []
-    for (let record of rows) {
-      let organizations =
-        (await record.getOrganizations({
-          transaction,
-          joinTableAttributes: [],
-        })) || []
-
-      organizations = organizations.map((organization) => organization.get({ plain: true }))
-
-      let tags =
-        (await record.getTags({
-          transaction,
-          joinTableAttributes: [],
-        })) || []
-
-      tags = tags.map((tag) => tag.get({ plain: true }))
-
-      const newToMerge = []
-      for (const toMergeRecord of record.toMerge) {
-        const organizations =
-          (await toMergeRecord.getOrganizations({
-            transaction,
-            joinTableAttributes: [],
-          })) || []
-
-        const tags =
-          (await toMergeRecord.getTags({
-            transaction,
-            joinTableAttributes: [],
-          })) || []
-
-        const toMergeRecordOut = toMergeRecord.get({ plain: true })
-
-        toMergeRecordOut.organizations = organizations.map((organization) =>
-          organization.get({ plain: true }),
-        )
-        toMergeRecordOut.tags = tags.map((tag) => tag.get({ plain: true }))
-
-        newToMerge.push(toMergeRecordOut)
+    if (mems.length > 0){
+      const memberPromises = []
+      const toMergePromises = []
+  
+      for (const mem of mems) {
+        memberPromises.push(MemberRepository.findById(mem.id, options))
+        toMergePromises.push(MemberRepository.findById(mem.toMergeId, options))
       }
-      record = record.get({ plain: true })
-      record.organizations = organizations
-      record.tags = tags
-      record.toMerge = newToMerge
-      rowsOut.push(record)
+  
+      const memberResults = await Promise.all(memberPromises)
+      const memberToMergeResults = await Promise.all(toMergePromises)
+  
+      const toRet = memberResults.map((i, idx) => [i, memberToMergeResults[idx]])
+      return  { rows: toRet, count: mems[0].total_count /2 }
     }
 
-    return { rows: rowsOut, count }
+    return { rows: [], count: 0}
+
+
   }
 
   static async addToMerge(id, toMergeId, options: IRepositoryOptions) {

@@ -640,8 +640,8 @@ export default class MemberService {
     )
   }
 
-  async findMembersWithMergeSuggestions() {
-    return MemberRepository.findMembersWithMergeSuggestions(this.options)
+  async findMembersWithMergeSuggestions(args) {
+    return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
   }
 
   async import(data, importHash) {

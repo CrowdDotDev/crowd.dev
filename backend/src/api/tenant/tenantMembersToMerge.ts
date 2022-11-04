@@ -10,7 +10,7 @@ export default async (req, res) => {
 
     req.currentTenant = await new TenantService(req).findById(req.params.id)
 
-    const payload = await new TenantService(req).findMembersToMerge()
+    const payload = await new TenantService(req).findMembersToMerge(req.query)
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {
