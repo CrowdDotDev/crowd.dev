@@ -81,7 +81,10 @@
         </div>
       </div>
       <div v-if="!completed" class="pl-4">
-        <app-task-dropdown :task="null" />
+        <app-task-dropdown
+          :task="null"
+          @edit="emit('edit', props.task)"
+        />
       </div>
     </div>
   </article>
@@ -94,16 +97,25 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineEmits, defineProps } from 'vue'
 import AppTaskDropdown from '@/modules/task/components/task-dropdown'
+import AppAvatar from '@/shared/avatar/avatar'
 
 const props = defineProps({
+  // TODO: change this prop to required once connected
+  task: {
+    type: Object,
+    required: false,
+    default: () => ({})
+  },
   completed: {
     type: Boolean,
     required: false,
     default: false
   }
 })
+
+const emit = defineEmits(['edit'])
 
 // TODO: logic for duesoon and overdue
 const dueSoon = computed(() => false)

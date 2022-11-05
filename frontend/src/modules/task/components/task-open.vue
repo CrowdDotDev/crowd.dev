@@ -13,8 +13,14 @@
     </div>
     <app-task-filters class="pb-6" />
     <div class="-mx-6">
-      <app-task-item class="px-6" />
-      <app-task-item class="px-6" />
+      <app-task-item
+        class="px-6"
+        @edit="emit('editTask', $event)"
+      />
+      <app-task-item
+        class="px-6"
+        @edit="emit('editTask', $event)"
+      />
     </div>
   </section>
 </template>
@@ -30,5 +36,5 @@ import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskFilters from '@/modules/task/components/task-filters'
 import { defineEmits } from 'vue'
 
-const emit = defineEmits(['addTask'])
+const emit = defineEmits(['addTask', 'editTask'])
 </script>

@@ -14,7 +14,8 @@
       <div class="w-full md:w-8/12 lg:w-8/12 px-3">
         <app-task-open
           class="mb-10"
-          @add-task="openForm = true"
+          @add-task="addTask()"
+          @edit-task="editTask($event)"
         />
         <app-task-closed />
       </div>
@@ -23,7 +24,11 @@
       </div>
     </div>
   </div>
-  <app-task-form v-model="openForm" />
+  <app-task-form
+    v-model="openForm"
+    :task="selectedTask"
+    @close="task = null"
+  />
 </template>
 
 <script>
@@ -39,5 +44,16 @@ import AppTaskSuggested from '@/modules/task/components/task-suggested'
 import AppTaskForm from '@/modules/task/components/task-form'
 import { ref } from 'vue'
 
-const openForm = ref(true)
+const openForm = ref(false)
+const selectedTask = ref(null)
+
+const addTask = () => {
+  openForm.value = true
+  selectedTask.value = null
+}
+
+const editTask = (task) => {
+  openForm.value = true
+  selectedTask.value = task
+}
 </script>

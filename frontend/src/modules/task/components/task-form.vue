@@ -217,7 +217,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'close'])
 
 const CalendarIcon = h(
   'i', // type
@@ -246,6 +246,9 @@ const isExpanded = computed({
   },
   set(expanded) {
     emit('update:modelValue', expanded)
+    if (!expanded) {
+      emit('close')
+    }
   }
 })
 
