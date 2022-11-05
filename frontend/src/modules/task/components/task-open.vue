@@ -6,6 +6,7 @@
       </h6>
       <el-button
         class="btn btn--primary btn--md font-medium"
+        @click="emit('addTask')"
       >
         Add task
       </el-button>
@@ -27,4 +28,7 @@ export default {
 <script setup>
 import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskFilters from '@/modules/task/components/task-filters'
+import { defineEmits } from 'vue'
+
+const emit = defineEmits(['addTask'])
 </script>

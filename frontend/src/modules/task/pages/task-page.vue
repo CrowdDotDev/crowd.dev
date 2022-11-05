@@ -12,7 +12,10 @@
     </div>
     <div class="flex flex-wrap -mx-3">
       <div class="w-full md:w-8/12 lg:w-8/12 px-3">
-        <app-task-open class="mb-10" />
+        <app-task-open
+          class="mb-10"
+          @add-task="openForm = true"
+        />
         <app-task-closed />
       </div>
       <div class="w-full md:w-4/12 lg:w-4/12 px-3">
@@ -20,7 +23,7 @@
       </div>
     </div>
   </div>
-  <app-task-form />
+  <app-task-form v-model="openForm" />
 </template>
 
 <script>
@@ -34,4 +37,7 @@ import AppTaskOpen from '@/modules/task/components/task-open'
 import AppTaskClosed from '@/modules/task/components/task-closed'
 import AppTaskSuggested from '@/modules/task/components/task-suggested'
 import AppTaskForm from '@/modules/task/components/task-form'
+import { ref } from 'vue'
+
+const openForm = ref(true)
 </script>
