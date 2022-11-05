@@ -1,0 +1,10 @@
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@gmail.com",
+  "password": "correctPassword",
+  "wrong": {
+    "email": "john@crowd.dev",
+    "password": "wrongPassword"
+  }
+}

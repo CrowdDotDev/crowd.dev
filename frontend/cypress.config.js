@@ -3,8 +3,8 @@ const webpackConfig = require('@vue/cli-service/webpack.config.js')
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:4000',
-    specPattern: 'tests/**/*.spec.js',
+    baseUrl: 'http://localhost:8081',
+    specPattern: 'tests/e2e/*.spec.js',
     supportFile: 'tests/support/index.js'
   },
   folders: {
