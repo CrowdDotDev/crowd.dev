@@ -9,13 +9,14 @@ import {
 } from '../../../../../types/automationTypes'
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
+import { MemberAutomationData } from '../../messageTypes'
 
 /**
  * Helper function to check whether a single member should be processed by automation
  * @param member Member data
  * @param automation {AutomationData} Automation data
  */
-export const shouldProcessMember = (member, automation: AutomationData): boolean => {
+export const shouldProcessMember = (member: any, automation: AutomationData): boolean => {
   const settings = automation.settings as NewMemberSettings
 
   let process = true
@@ -57,15 +58,19 @@ export const prepareMemberPayload = (member: any): any => {
 
   return copy
 }
-
 /**
  * Check whether this member matches any automations for tenant.
  * If so emit automation process messages to NodeJS microservices SQS queue.
  *
  * @param tenantId tenant unique ID
- * @param memberId community member unique ID
+ * @param memberId tenant member ID
+ * @param memberData community member data
  */
-export default async (tenantId: string, memberId: string): Promise<void> => {
+export default async (
+  tenantId: string,
+  memberId?: string,
+  memberData?: MemberAutomationData,
+): Promise<void> => {
   // console.log(`New member automation trigger detected with member id: ${memberId}!`)
 
   const userContext = await getUserContext(tenantId)
@@ -79,17 +84,21 @@ export default async (tenantId: string, memberId: string): Promise<void> => {
 
     if (automations.length > 0) {
       console.log(`Found ${automations.length} automations to process!`)
-      const member = await MemberRepository.findById(memberId, userContext, true, false)
+
+      let member: any | undefined = memberData
+      if (member === undefined) {
+        member = await MemberRepository.findById(memberId, userContext)
+      }
 
       for (const automation of automations) {
         if (shouldProcessMember(member, automation)) {
-          console.log(`Member ${memberId} is being processed by automation ${automation.id}!`)
+          console.log(`Member ${member.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
               await sendWebhookProcessRequest(
                 tenantId,
-                automation.id,
+                automation,
                 member.id,
                 prepareMemberPayload(member),
               )

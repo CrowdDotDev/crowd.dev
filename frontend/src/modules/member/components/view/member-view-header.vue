@@ -82,7 +82,7 @@
           {{
             formattedInformation(
               member.reach.total,
-              'number'
+              'compact'
             )
           }}
         </p>
@@ -121,13 +121,17 @@ export default {
 <script setup>
 import { defineProps } from 'vue'
 import moment from 'moment/moment'
-
 import AppMemberSentiment from '@/modules/member/components/member-sentiment'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberDropdown from '@/modules/member/components/member-dropdown'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
-
 import AppTags from '@/modules/tag/components/tag-list'
+import {
+  formatNumberToCompact,
+  formatNumber
+} from '@/utils/number'
+import { formatDateToTimeAgo } from '@/utils/date'
+import { formatDate } from '@/utils/date'
 
 defineProps({
   member: {
@@ -136,43 +140,30 @@ defineProps({
   }
 })
 
-const formattedDate = (timestamp) => {
-  // If the timestamp is 1970, we show "-"
-  if (
-    moment(timestamp).isBefore(
-      moment().subtract(40, 'years')
-    )
-  ) {
-    return '-'
-  }
-  return moment(timestamp).format('YYYY-MM-DD')
-}
-
-const timeAgo = (timestamp) => {
-  return moment(timestamp).fromNow()
-}
-
-const formattedNumber = (number) => {
-  return number.toLocaleString('en-US')
-}
-
 const formattedInformation = (value, type) => {
   // Show dash for empty information
   if (
     value === undefined ||
     value === null ||
-    value === -1
+    value === -1 ||
+    // If the timestamp is 1970, we show "-"
+    (type === 'date' &&
+      moment(value).isBefore(
+        moment().subtract(40, 'years')
+      ))
   ) {
     return '-'
   }
 
   // Render inforamation depending on type
   if (type === 'date') {
-    return formattedDate(value)
+    return formatDate({ timestamp: value })
   } else if (type === 'number') {
-    return formattedNumber(value)
+    return formatNumber(value)
   } else if (type === 'relative') {
-    return timeAgo(value)
+    return formatDateToTimeAgo(value)
+  } else if (type === 'compact') {
+    return formatNumberToCompact(value)
   }
 
   return value

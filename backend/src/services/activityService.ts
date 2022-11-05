@@ -132,7 +132,7 @@ export default class ActivityService {
 
       if (!existing) {
         try {
-          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record.id)
+          await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
           console.log(`Error triggering new activity automation - ${record.id}!`, err)
         }

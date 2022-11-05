@@ -12,14 +12,17 @@ export default ({
   cancelButtonClass = 'btn btn--md btn--bordered',
   confirmButtonText = 'Discard',
   confirmButtonClass = 'btn btn--md btn--primary',
-  iconClass = 'ri-error-warning-line'
+  icon = 'ri-error-warning-line'
 }) => {
   let iconColorClass = 'text-yellow-600'
   let iconBgColorClass = 'bg-yellow-100'
 
-  if (type === 'error') {
+  if (type === 'danger') {
     iconColorClass = 'text-red-600'
     iconBgColorClass = 'bg-red-100'
+  } else if (type === 'info') {
+    iconColorClass = 'text-gray-500'
+    iconBgColorClass = 'bg-gray-100'
   }
 
   const MessageWithWarnignIcon = h(
@@ -37,7 +40,7 @@ export default ({
           h(
             'i', // type
             {
-              class: `${iconClass} text-lg ${iconColorClass} leading-none`
+              class: `${icon} text-lg ${iconColorClass} leading-none`
             }, // props
             []
           )

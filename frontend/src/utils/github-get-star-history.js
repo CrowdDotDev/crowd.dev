@@ -1,6 +1,7 @@
 import ApolloClient, { gql } from 'apollo-boost'
 import axios from 'axios'
 import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 let bearerToken
 
@@ -63,11 +64,11 @@ export default async function githubGetStarHistory(
 
     pageResult = response.edges
     cursor = pageResult[pageResult.length - 1].cursor
-    lastResultDate = moment(
-      pageResult[pageResult.length - 1].starredAt
-    ).format('YYYY-MM-DD')
+    lastResultDate = formatDate({
+      timestamp: pageResult[pageResult.length - 1].starredAt
+    })
     pageResult.forEach((x) => {
-      dataset.push(moment(x.starredAt).format('YYYY-MM-DD'))
+      dataset.push(formatDate({ timestamp: x.starredAt }))
     })
   } while (
     moment(lastResultDate) > targetDate &&

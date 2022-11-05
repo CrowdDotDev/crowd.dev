@@ -50,7 +50,7 @@
 
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
@@ -112,7 +112,7 @@ export default {
   },
   methods: {
     timeAgo(date) {
-      return computedTimeAgo(date)
+      return formatDateToTimeAgo(date)
     }
   }
 }

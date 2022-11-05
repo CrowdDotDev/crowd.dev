@@ -57,10 +57,10 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         c.platformPretty = platformDisplayNames[c.platform]
 
         const conversationLazyLoaded = await conversationService.findById(c.id)
-        const lastActivity =
+
+        c.lastActivity =
           conversationLazyLoaded.activities[conversationLazyLoaded.activities.length - 1]
-        c.lastActivity = lastActivity.get({ plain: true })
-        c.lastActivity.username = lastActivity.member.username[c.platform]
+        c.lastActivity.username = c.lastActivity.member.username[c.platform]
 
         if (c.lastActivity.body) {
           c.lastActivity.body = convertHtmlToText(c.lastActivity.body)

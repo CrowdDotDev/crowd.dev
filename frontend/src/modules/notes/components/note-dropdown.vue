@@ -63,8 +63,8 @@ const handleCommand = (command) => {
 
 const doDestroyWithConfirm = () => {
   ConfirmDialog({
-    iconClass: 'ri-delete-bin-line',
-    type: 'error',
+    icon: 'ri-delete-bin-line',
+    type: 'danger',
     title: 'Delete note',
     message:
       'Are you sure you want to proceed? You can’t undo this action',

@@ -730,6 +730,8 @@ describe('MemberRepository tests', () => {
         },
       ])
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const members = await MemberRepository.findAndCountAll(
         { filter: {}, orderBy: 'activityCount_DESC' },
         mockIRepositoryOptions,
@@ -782,6 +784,8 @@ describe('MemberRepository tests', () => {
         mockIRepositoryOptions,
       )
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const members = await MemberRepository.findAndCountAll(
         { filter: { tags: [nodeTag.id, vueTag.id] } },
         mockIRepositoryOptions,
@@ -833,6 +837,8 @@ describe('MemberRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAll(
         { filter: { tags: [nodeTag.id] } },
@@ -890,6 +896,8 @@ describe('MemberRepository tests', () => {
         mockIRepositoryOptions,
       )
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const members = await MemberRepository.findAndCountAll(
         { filter: { organizations: [crowd.id, pp.id] } },
         mockIRepositoryOptions,
@@ -925,6 +933,8 @@ describe('MemberRepository tests', () => {
       await MemberRepository.create(user2, mockIRepositoryOptions)
       await MemberRepository.create(user3, mockIRepositoryOptions)
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const members = await MemberRepository.findAndCountAll(
         { filter: { scoreRange: [1, 6] } },
         mockIRepositoryOptions,
@@ -959,6 +969,8 @@ describe('MemberRepository tests', () => {
       await MemberRepository.create(user1, mockIRepositoryOptions)
       await MemberRepository.create(user2, mockIRepositoryOptions)
       await MemberRepository.create(user3, mockIRepositoryOptions)
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const members = await MemberRepository.findAndCountAll(
         { filter: { scoreRange: [7] } },
@@ -1121,6 +1133,8 @@ describe('MemberRepository tests', () => {
           },
         },
       ])
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       let members = await MemberRepository.findAndCountAll(
         {

@@ -71,7 +71,6 @@
 
 <script>
 import { mapActions } from 'vuex'
-import { i18n } from '@/i18n'
 import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
@@ -128,10 +127,22 @@ export default {
     async doDestroyWithConfirm() {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type:
+            this.user.status === 'invited'
+              ? 'info'
+              : 'danger',
+          title:
+            this.user.status === 'invited'
+              ? 'Cancel invite'
+              : 'Delete user',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon:
+            this.user.status === 'invited'
+              ? 'ri-close-circle-line'
+              : 'ri-delete-bin-line'
         })
 
         await this.doDestroy(this.user.id)

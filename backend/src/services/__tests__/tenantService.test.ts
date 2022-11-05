@@ -36,21 +36,21 @@ describe('TenantService tests', () => {
         username: 'member 2',
         platform: PlatformType.DISCORD,
         email: 'member.2@email.com',
-        joinedAt: '2020-05-27T15:13:30Z',
+        joinedAt: '2020-05-26T15:13:30Z',
       }
 
       const memberToCreate3 = {
         username: 'member 3',
         platform: PlatformType.GITHUB,
         email: 'member.3@email.com',
-        joinedAt: '2020-05-27T15:13:30Z',
+        joinedAt: '2020-05-25T15:13:30Z',
       }
 
       const memberToCreate4 = {
         username: 'member 4',
         platform: PlatformType.TWITTER,
         email: 'member.4@email.com',
-        joinedAt: '2020-05-27T15:13:30Z',
+        joinedAt: '2020-05-24T15:13:30Z',
       }
 
       const member1 = await memberService.upsert(memberToCreate1)
@@ -67,10 +67,7 @@ describe('TenantService tests', () => {
       expect(member2.toMerge).toHaveLength(1)
       expect(member4.toMerge).toHaveLength(1)
 
-      const memberToMergeSuggestions = await tenantService.findMembersToMerge()
-
-      console.log('mem sugs: ')
-      console.log(memberToMergeSuggestions)
+      const memberToMergeSuggestions = await tenantService.findMembersToMerge({})
 
       // In the DB there should be:
       // - Member 1 should have member 2 in toMerge
@@ -80,12 +77,18 @@ describe('TenantService tests', () => {
       // But this function should not return duplicates, so we should get
       // only two pairs: [m2, m1] and [m4, m3]
 
+      expect(memberToMergeSuggestions.count).toEqual(2)
+
       expect(
-        memberToMergeSuggestions[0].sort((a, b) => a.createdAt > b.createdAt).map((m) => m.id),
+        memberToMergeSuggestions.rows[0]
+          .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+          .map((m) => m.id),
       ).toStrictEqual([member1.id, member2.id])
 
       expect(
-        memberToMergeSuggestions[1].sort((a, b) => a.createdAt > b.createdAt).map((m) => m.id),
+        memberToMergeSuggestions.rows[1]
+          .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+          .map((m) => m.id),
       ).toStrictEqual([member3.id, member4.id])
     })
   })

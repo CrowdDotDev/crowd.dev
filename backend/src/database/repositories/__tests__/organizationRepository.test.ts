@@ -782,6 +782,8 @@ describe('OrganizationRepository tests', () => {
       await createOrganization(piedpiper, mockIRepositoryOptions)
       await createOrganization(hooli, mockIRepositoryOptions)
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const memberId = await (
         await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)
       ).rows[0].id
@@ -810,6 +812,8 @@ describe('OrganizationRepository tests', () => {
       ])
       await createOrganization(piedpiper, mockIRepositoryOptions)
       await createOrganization(hooli, mockIRepositoryOptions)
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const memberId = await (
         await MemberRepository.findAndCountAll({}, mockIRepositoryOptions)

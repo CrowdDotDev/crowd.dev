@@ -27,6 +27,7 @@
             :has-page-counter="false"
             module="report"
             position="top"
+            @change-sorter="doChangePaginationPageSize"
           />
         </div>
 

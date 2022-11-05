@@ -151,7 +151,12 @@
                 sortable="custom"
               >
                 <template #default="scope">
-                  <app-member-reach :member="scope.row" />
+                  <app-member-reach
+                    :member="{
+                      ...scope.row,
+                      reach: { total: scope.row.reach }
+                    }"
+                  />
                 </template>
               </el-table-column>
 

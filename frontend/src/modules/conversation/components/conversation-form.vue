@@ -128,7 +128,7 @@
         <el-form-item label="Slug" :required="true">
           <el-input v-model="model.slug"></el-input>
           <div class="app-form-hint">
-            Can’t be changed once it’s published
+            Can't be changed once it's published
           </div>
         </el-form-item>
 

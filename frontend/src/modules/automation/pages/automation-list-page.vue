@@ -11,7 +11,7 @@
         :class="count ? 'justify-between' : 'justify-end'"
       >
         <div class="text-gray-500 text-sm">
-          {{ count }} webhook{{ count === 1 ? '' : 's' }}
+          {{ pluralize('webhook', count, true) }}
         </div>
         <div>
           <el-button
@@ -73,6 +73,7 @@ import AppAutomationListTable from '@/modules/automation/components/list/automat
 import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-form'
 import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list'
 import { mapGetters, mapActions } from 'vuex'
+import pluralize from 'pluralize'
 
 export default {
   name: 'AppAutomationListPage',
@@ -127,7 +128,8 @@ export default {
     onCloseExecutionsDrawer() {
       this.isExecutionsDrawerOpen = false
       this.automation = null
-    }
+    },
+    pluralize
   }
 }
 </script>
