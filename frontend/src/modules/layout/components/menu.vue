@@ -74,6 +74,42 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Tasks"
+        >
+          <!-- TODO: add check for permissions -->
+          <router-link
+            id="menu-task"
+            :to="{ path: '/task' }"
+            class="el-menu-item"
+            :class="classFor('/task')"
+          >
+            <div
+              class="flex justify-between items-center w-full"
+            >
+              <div>
+                <i class="ri-checkbox-multiple-line"></i>
+                <span v-if="!isCollapsed" class="pl-2">
+                  Tasks
+                </span>
+              </div>
+              <!-- TODO: add number -->
+              <div
+                v-if="!isCollapsed"
+                class="h-5 flex items-center px-2 bg-brand-100 rounded-full text-2xs font-medium"
+              >
+                2
+              </div>
+            </div>
+          </router-link>
+        </el-tooltip>
+
         <el-tooltip
           :disabled="!isCollapsed"
           effect="dark"
