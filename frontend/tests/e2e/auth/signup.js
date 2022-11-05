@@ -31,6 +31,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('This field is required')
+      .should('exist')
   })
 
   it('Does not submit if Last name is empty', () => {
@@ -46,6 +49,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('This field is required')
+      .should('exist')
   })
 
   it('Does not submit if email is empty', () => {
@@ -61,6 +67,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('This field is required')
+      .should('exist')
   })
 
   it('Does not submit if email is invalid', () => {
@@ -76,6 +85,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('Please input correct email address')
+      .should('exist')
   })
 
   it('Does not submit if password is empty', () => {
@@ -91,6 +103,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('This field is required')
+      .should('exist')
   })
 
   it('Does not submit if password confirmation is empty', () => {
@@ -104,6 +119,9 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form')
+      .contains('This field is required')
+      .should('exist')
   })
 
   it('Does not submit if passwords dont match', () => {
@@ -119,6 +137,8 @@ export default () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signup')
+    cy.get('form').contains('Passwords do not match')
+      .should('exist')
   })
 
   it('Continues to onboarding if all fields are valid', () => {
