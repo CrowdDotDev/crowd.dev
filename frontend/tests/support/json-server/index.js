@@ -36,6 +36,12 @@ server.get('/auth/me', authModule.me)
 server.get('/tenant/:tenantId/cubejs/auth', (req, res) => {
   res.send('cubejs token')
 })
+server.get('/tenant/:tenantId/integration', (req, res) => {
+  res.send({
+    rows: [],
+    count: 0
+  })
+})
 
 // To override the response format to match our API standards
 router.render = (req, res) => {

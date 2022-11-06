@@ -48,6 +48,7 @@
         <span class="pl-3">Previous step</span>
       </el-button>
       <el-button
+        id="onboardFinish"
         class="btn btn--lg btn--primary"
         @click="finish()"
       >
@@ -74,6 +75,7 @@
         that we prepared for you
       </p>
       <el-button
+        id="continueSampleData"
         :loading="populatingData"
         class="btn btn--primary btn--md mb-3 w-full"
         @click="populateData()"
@@ -82,6 +84,7 @@
       </el-button>
       <div class="flex justify-center">
         <div
+          id="closeSampleDataModal"
           class="text-sm font-medium p-2 text-brand-600 cursor-pointer"
           @click="populateDataModal = false"
         >

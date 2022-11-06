@@ -47,6 +47,7 @@
               class="text-green-500"
               spellcheck="false"
               placeholder="Enter organization slug"
+              id="devOrganization"
               @blur="handleOrganizationValidation(org.id)"
             >
               <template #prepend>dev.to/</template>
@@ -98,6 +99,7 @@
               spellcheck="false"
               placeholder="Enter user slug"
               @blur="handleUserValidation(user.id)"
+              id="devUser"
             >
               <template #prepend>dev.to/</template>
               <template #suffix>
@@ -138,6 +140,7 @@
         </el-button>
         <el-button
           class="btn btn--md btn--primary"
+          id="devConnect"
           :disabled="connectDisabled || loading"
           :loading="loading"
           @click="save"

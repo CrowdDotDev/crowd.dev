@@ -15,7 +15,7 @@ module.exports = {
       res.status(400).send('Bad credentials')
     } else {
       users.push({ email, password })
-      res.status(200).send(responses.token.withTenant)
+      res.status(200).send(responses.token.withoutTenant)
     }
   },
   signup(req, res) {

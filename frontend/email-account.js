@@ -1,5 +1,3 @@
-const { defineConfig } = require('cypress')
-const webpackConfig = require('@vue/cli-service/webpack.config.js')
 // use Nodemailer to get an Ethereal email inbox
 // https://nodemailer.com/about/
 const nodemailer = require('nodemailer')
@@ -10,21 +8,7 @@ const simpleParser = require('mailparser').simpleParser
 
 const makeEmailAccount = async () => {
   // Generate a new Ethereal email inbox account
-  console.log('creating mail')
-  const testAccount = await new Promise(
-    (resolve, reject) => {
-      console.log('mailer')
-      nodemailer.createTestAccount((err, account) => {
-        console.log('test', err, reject)
-        if (err) {
-          reject(err)
-        }
-        resolve(account)
-      })
-    }
-  )
-
-  console.log(testAccount)
+  const testAccount = await nodemailer.createTestAccount()
 
   const emailConfig = {
     imap: {
@@ -103,38 +87,4 @@ const makeEmailAccount = async () => {
   }
 }
 
-module.exports = defineConfig({
-  e2e: {
-    baseUrl: 'http://localhost:8081',
-    specPattern: 'tests/e2e/*.spec.js',
-    supportFile: 'tests/support/index.js',
-    setupNodeEvents(on) {
-      on('task', {
-        getEmailAccount() {
-          return new Promise((resolve) => {
-            const account = makeEmailAccount()
-            resolve(account)
-          })
-        }
-      })
-    }
-  },
-  folders: {
-    fixturesFolder: 'tests/fixtures',
-    screenshotsFolder: 'tests/screenshots',
-    videosFolder: 'tests/videos'
-  },
-  component: {
-    devServer: {
-      framework: 'vue',
-      bundler: 'webpack',
-      webpackConfig
-    }
-  },
-  browser: {
-    chromeWebSecurity: false
-  },
-  env: {
-    apiUrl: 'http://localhost:8080'
-  }
-})
+module.exports = makeEmailAccount
