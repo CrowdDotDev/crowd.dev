@@ -518,7 +518,7 @@ export default class UserRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    if (!options || !options.bypassPermissionValidation) {
+    if (getRelations && (!options || !options.bypassPermissionValidation)) {
       if (!isUserInTenant(record, currentTenant)) {
         throw new Error404()
       }

@@ -349,8 +349,8 @@ class NoteRepository {
     })
 
     const getUserRelations = false
-    output.createdBy = await UserRepository.findById(record.createdById, options, getUserRelations)
-    output.createdBy.avatarUrl = null
+    const user = await UserRepository.findById(record.createdById, options, getUserRelations)
+    output.createdBy = {id: user.id, fullName: user.fullName, avatarUrl: null}
 
     return output
   }
