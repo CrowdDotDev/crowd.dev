@@ -30,6 +30,8 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'upsert_members', [member])
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
@@ -52,6 +54,8 @@ describe('Serverless database operations worker tests', () => {
       ]
 
       await worker(tenantId, 'upsert_members', members)
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
@@ -157,6 +161,8 @@ describe('Serverless database operations worker tests', () => {
 
       await worker(tenantId, 'update_members', [{ id: memberId, update: { score: 10 } }])
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
       expect(dbMembers.length).toBe(1)
@@ -191,6 +197,8 @@ describe('Serverless database operations worker tests', () => {
         { id: memberIds[0], update: { score: 10 } },
         { id: memberIds[1], update: { score: 3 } },
       ])
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const dbMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({})).rows
 
@@ -403,6 +411,8 @@ describe('Serverless database operations worker tests', () => {
         [memberIds[1], memberIds[0]],
       ])
 
+      await SequelizeTestUtils.refreshMaterializedViews(db)
+
       const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
         .rows
 
@@ -435,6 +445,8 @@ describe('Serverless database operations worker tests', () => {
       }
 
       await worker(tenantId, 'update_members_to_merge', [])
+
+      await SequelizeTestUtils.refreshMaterializedViews(db)
 
       const dbMergeMembers = (await new MemberService(mockIRepositoryOptions).findAndCountAll({}))
         .rows

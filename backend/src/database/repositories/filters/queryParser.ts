@@ -223,7 +223,11 @@ class QueryParser {
     // it to a postgres array.
     // This is not needed in `Op.in` queries. Simple lists are enough
     if (op === Op.in) {
-      where = Sequelize.where(left, op, Sequelize.literal(`(${right.toString()})`))
+      where = Sequelize.where(
+        left,
+        op,
+        Sequelize.literal(`(${right.map((i) => `'${i}'`).toString()})`),
+      )
     }
 
     if (query[Op.and]) {

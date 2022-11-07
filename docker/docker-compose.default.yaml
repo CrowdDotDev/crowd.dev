@@ -78,7 +78,7 @@ services:
 
   crowd-conversations:
     build:
-      context: ../premium/conversations
+      context: ../premium/community-help-center
       dockerfile: Dockerfile-conversations
     image: crowddotdev/conversations:${CROWD_VERSION}-dev
     ports:

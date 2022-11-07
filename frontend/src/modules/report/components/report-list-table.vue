@@ -12,7 +12,7 @@
         v-if="count === 0"
         icon="ri-bar-chart-line"
         title="No reports yet"
-        description="Start creating reports for your community data"
+        description="Please create your first report to start analyzing data from your community"
         cta-btn="Add report"
         @cta-click="$emit('cta-click')"
       ></app-empty-state-cta>
@@ -27,6 +27,7 @@
             :has-page-counter="false"
             module="report"
             position="top"
+            @change-sorter="doChangePaginationPageSize"
           />
         </div>
 
@@ -143,6 +144,12 @@ export default {
 
   emits: ['cta-click'],
 
+  data() {
+    return {
+      mountTableInterval: null
+    }
+  },
+
   computed: {
     ...mapState({
       loading: (state) => state.report.list.loading,
@@ -182,7 +189,10 @@ export default {
   },
 
   mounted() {
-    this.doMountTable(this.$refs.table)
+    this.mountTableInterval = setInterval(
+      this.doMountTableInterval,
+      1000
+    )
   },
 
   methods: {
@@ -220,6 +230,17 @@ export default {
         name: 'reportView',
         params: { id: row.id }
       })
+    },
+
+    doMountTableInterval() {
+      // TODO: Need to refactor this component to options api and this method to watch instead of setInterval
+      if (
+        this.$refs.table !==
+        this.$store.state.report.list.table
+      ) {
+        this.doMountTable(this.$refs.table)
+        clearInterval(this.mountTableInterval)
+      }
     }
   }
 }

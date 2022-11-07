@@ -113,6 +113,7 @@ import integrationsJsonArray from '@/jsons/integrations.json'
 import AppMemberManageIdentitiesDrawer from '../member-manage-identities-drawer'
 import AppMemberManageAttributesDrawer from '../member-manage-attributes-drawer'
 import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 const store = useStore()
 
@@ -146,8 +147,11 @@ const findIcon = (platform) => {
 
 const formattedComputedAttributeValue = (value) => {
   const dateFormat = 'YYYY-MM-DD'
+
   return moment(value, dateFormat, true).isValid()
-    ? moment(value).format('YYYY-MM-DD')
+    ? formatDate({
+        timestamp: value
+      })
     : value
 }
 </script>

@@ -12,7 +12,7 @@
           Members
         </h6>
         <p class="text-2xs text-gray-500">
-          Total: {{ members.total }}
+          Total: {{ formatNumberToCompact(members.total) }}
         </p>
       </div>
     </div>
@@ -222,6 +222,7 @@ import {
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
 import integrationsJsonArray from '@/jsons/integrations.json'
+import { formatNumberToCompact } from '@/utils/number'
 
 export default {
   name: 'AppDashboardMember',
@@ -281,7 +282,8 @@ export default {
         return 'yesterday'
       }
       return d.format('ddd, MMM D')
-    }
+    },
+    formatNumberToCompact
   }
 }
 </script>

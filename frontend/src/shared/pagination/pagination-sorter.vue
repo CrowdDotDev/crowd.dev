@@ -10,7 +10,6 @@
         }}
         of
       </span>
-      {{ total.toLocaleString('en') }}
       {{ computedLabel }}</span
     >
     <app-inline-select-input
@@ -119,7 +118,12 @@ const computedOptions = computed(() => {
 })
 
 const computedLabel = computed(() => {
-  return pluralize(props.module)
+  const word =
+    props.module === 'community-help-center'
+      ? 'conversation'
+      : props.module
+
+  return pluralize(word, props.total, true)
 })
 
 const count = computed(() => ({

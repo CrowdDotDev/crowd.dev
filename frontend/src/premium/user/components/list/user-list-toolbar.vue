@@ -40,7 +40,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
-import { i18n } from '@/i18n'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 
 export default {
@@ -91,10 +90,13 @@ export default {
     async doDestroyAllWithConfirm() {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete users',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         return this.doDestroyAll(

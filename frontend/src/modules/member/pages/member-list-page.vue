@@ -35,7 +35,8 @@
 
             <router-link
               v-if="
-                hasPermissionToCreate && hasIntegrations
+                hasPermissionToCreate &&
+                (hasIntegrations || hasMembers)
               "
               :to="{
                 name: 'memberCreate'
@@ -54,7 +55,7 @@
 
       <app-member-list-tabs></app-member-list-tabs>
       <app-member-list-filter
-        v-if="hasIntegrations && hasMembers"
+        v-if="hasMembers"
       ></app-member-list-filter>
       <app-member-list-table
         :has-integrations="hasIntegrations"

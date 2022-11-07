@@ -26,7 +26,7 @@
           @click="doPublishAllWithConfirm"
         >
           <i class="ri-lg ri-upload-cloud-2-line mr-1" />
-          Publish Conversations
+          Publish conversations
         </el-dropdown-item>
         <el-dropdown-item
           v-if="hasPermissionToEdit && hasPublishedSelected"
@@ -34,7 +34,7 @@
           @click="doUnpublishAllWithConfirm"
         >
           <i class="ri-lg ri-arrow-go-back-line mr-1" />
-          Unpublish Conversations
+          Unpublish conversations
         </el-dropdown-item>
         <hr class="border-gray-200 my-1 mx-2" />
         <el-dropdown-item
@@ -144,10 +144,13 @@ export default {
     async doDestroyAllWithConfirm() {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete conversations',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         return this.doDestroyAll(

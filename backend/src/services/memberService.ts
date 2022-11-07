@@ -301,7 +301,7 @@ export default class MemberService {
 
       if (!existing) {
         try {
-          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record.id)
+          await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
           console.log(`Error triggering new member automation - ${record.id}!`, err)
         }
@@ -640,8 +640,8 @@ export default class MemberService {
     )
   }
 
-  async findMembersWithMergeSuggestions() {
-    return MemberRepository.findMembersWithMergeSuggestions(this.options)
+  async findMembersWithMergeSuggestions(args) {
+    return MemberRepository.findMembersWithMergeSuggestions(args, this.options)
   }
 
   async import(data, importHash) {

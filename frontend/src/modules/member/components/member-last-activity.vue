@@ -29,7 +29,7 @@
 <script>
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import integrationsJsonArray from '@/jsons/integrations.json'
-import computedTimeAgo from '@/utils/time-ago'
+import { formatDateToTimeAgo } from '@/utils/date'
 import AppSvg from '@/shared/svg/svg'
 
 export default {
@@ -52,7 +52,7 @@ export default {
       )
     },
     timeAgo() {
-      return computedTimeAgo(
+      return formatDateToTimeAgo(
         this.member.lastActivity.timestamp
       )
     }

@@ -59,13 +59,15 @@ Our <a href="https://crowd.dev/#waitlist">cloud version</a> is a fast, easy and 
 
 ### Self-hosted version
 
+To get started with self-hosting, take a look at our [self-hosting docs](https://docs.crowd.dev/docs/getting-started-with-self-hosting).
+
 #### Deployment with Kubernetes
 
 Our services can be deployed using Kubernetes, as well as a lightweight development environment using Docker. You can read more about it in our [self-hosting docs](https://docs.crowd.dev/docs/deployment).
 
 #### Integrations
 
-We currently support four integrations for self-hosting: GitHub, Twitter, Discord and Slack. For each one of them you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
+We currently support all our integrations for self-hosting. For each one of them you will need to create your own application. You can see the steps for each integration in our [self-hosting integrations guide](https://docs.crowd.dev/docs/self-hosting).
 
 ### Development environment
 
@@ -119,6 +121,8 @@ All contributions are highly appreciated. 🙏
 ## ⚖️ License
 
 Distributed under the AGPLv3 License. See `LICENSE` for more information.
+
+Our self-hosted version can be run and deployed by default following our free AGPLv3 license. All premium components will be hidden and inactive with the default configuration. You can run, deploy, and contribute to the app without fearing to violate the premium license. Check out the [premium self-hosted features docs](https://docs.crowd.dev/docs/premium-self-hosted-apps) to know more about the premium self-hosted features.
 
 ## 💌 Acknowledgements
 

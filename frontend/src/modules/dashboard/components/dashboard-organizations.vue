@@ -12,7 +12,8 @@
           Organizations
         </h6>
         <p class="text-2xs text-gray-500">
-          Total: {{ organizations.total }}
+          Total:
+          {{ formatNumberToCompact(organizations.total) }}
         </p>
       </div>
     </div>
@@ -179,6 +180,8 @@ import {
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
+import { formatNumberToCompact } from '@/utils/number'
+
 export default {
   name: 'AppDashboardOrganizations',
   components: {
@@ -232,7 +235,8 @@ export default {
         return 'yesterday'
       }
       return d.format('ddd, MMM D')
-    }
+    },
+    formatNumberToCompact
   }
 }
 </script>

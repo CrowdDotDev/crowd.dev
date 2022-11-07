@@ -16,15 +16,25 @@ export default class ActivitySentimentField extends StringField {
     return [
       {
         value: 'positive',
-        label: 'Positive'
+        label: 'Positive',
+        range: {
+          gte: 67
+        }
       },
       {
         value: 'neutral',
-        label: 'Neutral'
+        label: 'Neutral',
+        range: {
+          gt: 33,
+          lt: 67
+        }
       },
       {
         value: 'negative',
-        label: 'Negative'
+        label: 'Negative',
+        range: {
+          lte: 33
+        }
       }
     ]
   }

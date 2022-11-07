@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 import GenericField from '@/shared/fields/generic-field'
-import moment from 'moment'
+import { formatDate } from '@/utils/date'
 
 export default class DateRangeField extends GenericField {
   forFilterInitialValue(value) {
@@ -19,7 +19,7 @@ export default class DateRangeField extends GenericField {
 
       return originalValue.map((value) => {
         return value
-          ? moment(value).format('YYYY-MM-DD')
+          ? formatDate({ timestamp: value })
           : null
       })
     })
@@ -48,9 +48,7 @@ export default class DateRangeField extends GenericField {
     return `${formatDate(start)} - ${formatDate(end)}`
 
     function formatDate(value) {
-      return value
-        ? moment(value).format('YYYY-MM-DD')
-        : null
+      return value ? formatDate({ timestamp: value }) : null
     }
   }
 }

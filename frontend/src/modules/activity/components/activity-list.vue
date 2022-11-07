@@ -10,12 +10,8 @@
       <app-empty-state-cta
         v-if="activities.length === 0"
         icon="ri-list-check-2"
-        title="No activities found"
-        :description="
-          hasFilter
-            ? 'We couldn\'t find any results that match your search criteria, please try a different query'
-            : 'Your community has no activities yet'
-        "
+        :title="emptyState.title"
+        :description="emptyState.description"
       ></app-empty-state-cta>
 
       <div v-else>
@@ -106,11 +102,34 @@ defineProps({
   }
 })
 
-const hasFilter = computed(
-  () =>
-    !!Object.keys(store.state.activity.filter.attributes)
-      .length
-)
+const hasFilter = computed(() => {
+  const parsedFilters = {
+    ...store.state.activity.filter.attributes
+  }
+
+  // Remove search filter if value is empty
+  if (!parsedFilters.search?.value) {
+    delete parsedFilters.search
+  }
+
+  return !!Object.keys(parsedFilters).length
+})
+const emptyState = computed(() => {
+  if (hasFilter.value) {
+    return {
+      title: 'No activities found',
+      description:
+        "We couldn't find any results that match your search criteria, please try a different query"
+    }
+  }
+
+  return {
+    title: 'No activities yet',
+    description:
+      "We couldn't track any community member activities"
+  }
+})
+
 const count = computed(() => store.state.activity.count)
 const pagination = computed(
   () => store.getters['activity/pagination']

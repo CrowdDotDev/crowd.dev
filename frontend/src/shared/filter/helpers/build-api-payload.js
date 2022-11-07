@@ -38,11 +38,16 @@ function _buildAttributeBlock(attribute) {
       })
     }
   } else if (attribute.name === 'sentiment') {
-    return {
-      'sentiment.label': {
-        eq: attribute.value.map((a) => a.value).join('/')
-      }
-    }
+    return attribute.value.reduce(
+      (obj, a) => {
+        obj.or.push({
+          sentiment: a.range
+        })
+
+        return obj
+      },
+      { or: [] }
+    )
   } else if (attribute.name === 'type') {
     return {
       and: [
