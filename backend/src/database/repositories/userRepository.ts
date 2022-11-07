@@ -503,14 +503,14 @@ export default class UserRepository {
     }))
   }
 
-  static async findById(id, options: IRepositoryOptions) {
+  static async findById(id, options: IRepositoryOptions, getRelations: boolean = true) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     let record = await options.database.user.findByPk(id, {
       transaction,
     })
 
-    record = await this._populateRelations(record, options)
+    record = await this._populateRelations(record, options, getRelations)
 
     if (!record) {
       throw new Error404()
@@ -742,24 +742,30 @@ export default class UserRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(record, options: IRepositoryOptions) {
+  static async _populateRelations(
+    record,
+    options: IRepositoryOptions,
+    getRelations: boolean = true,
+  ) {
     if (!record) {
       return record
     }
 
     const output = record.get({ plain: true })
 
-    output.tenants = await record.getTenants({
-      include: [
-        {
-          model: options.database.tenant,
-          as: 'tenant',
-          required: true,
-          include: ['settings', 'conversationSettings'],
-        },
-      ],
-      transaction: SequelizeRepository.getTransaction(options),
-    })
+    if (getRelations) {
+      output.tenants = await record.getTenants({
+        include: [
+          {
+            model: options.database.tenant,
+            as: 'tenant',
+            required: true,
+            include: ['settings', 'conversationSettings'],
+          },
+        ],
+        transaction: SequelizeRepository.getTransaction(options),
+      })
+    }
 
     return output
   }
