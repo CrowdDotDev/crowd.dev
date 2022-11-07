@@ -118,46 +118,37 @@
                 </template>
                 <template #default="scope">
                   <div class="flex items-center">
-                    <span
+                    <app-platform
                       v-if="scope.row.platform === 'github'"
-                      class="btn btn--circle btn--github mr-2"
-                      ><img
-                        :src="findIcon('github')"
-                        alt="Github"
-                        class="w-4 h-4"
-                      />
-                    </span>
-                    <span
+                      platform="github"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'discord'
                       "
-                      class="btn btn--circle btn--discord mr-2"
-                      ><img
-                        :src="findIcon('discord')"
-                        alt="Discord"
-                        class="w-4 h-4"
-                    /></span>
-                    <span
+                      platform="discord"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'slack'
                       "
-                      class="btn btn--circle btn--slack mr-2"
-                      ><img
-                        :src="findIcon('slack')"
-                        alt="Slack"
-                        class="w-4 h-4"
-                    /></span>
-                    <span
+                      platform="slack"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'devto'
                       "
-                      class="btn btn--circle btn--devto mr-2"
-                      ><img
-                        :src="findIcon('devto')"
-                        alt="DEV"
-                        class="w-4 h-4"
-                    /></span>
-                    {{ scope.row.channel }}
+                      platform="devto"
+                    />
+                    <app-platform
+                      v-else-if="
+                        scope.row.platform === 'twitter'
+                      "
+                      platform="twitter"
+                    />
+                    <span class="ml-2">{{
+                      scope.row.channel
+                    }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -213,7 +204,6 @@ import { defineEmits, ref, watch, computed } from 'vue'
 import { useStore } from 'vuex'
 
 import { formatDateToTimeAgo } from '@/utils/date'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import AppCommunityHelpCenterToolbar from './community-help-center-toolbar'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
@@ -322,12 +312,6 @@ function rowClass({ row }) {
 
 function handleRowClick(row) {
   drawerConversationId.value = row.id
-}
-
-function findIcon(platform) {
-  return integrationsJsonArray.find(
-    (i) => i.platform === platform
-  ).image
 }
 
 function timeAgo(date) {

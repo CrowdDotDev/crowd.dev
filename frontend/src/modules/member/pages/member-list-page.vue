@@ -129,7 +129,7 @@ export default {
       await MemberService.fetchMergeSuggestions(1, 0)
 
     this.hasMembersToMerge =
-      mergeSuggestions.rows.length > 0
+      mergeSuggestions.rows?.length > 0
     this.hasMembers = !!membersList.length
     this.isPageLoading = false
   },
