@@ -742,27 +742,24 @@ export default class UserRepository {
     return Promise.all(rows.map((record) => this._populateRelations(record, options)))
   }
 
-  static async _populateRelations(
-    record,
-    options: IRepositoryOptions,
-  ) {
+  static async _populateRelations(record, options: IRepositoryOptions) {
     if (!record) {
       return record
     }
 
     const output = record.get({ plain: true })
 
-      output.tenants = await record.getTenants({
-        include: [
-          {
-            model: options.database.tenant,
-            as: 'tenant',
-            required: true,
-            include: ['settings', 'conversationSettings'],
-          },
-        ],
-        transaction: SequelizeRepository.getTransaction(options),
-      })
+    output.tenants = await record.getTenants({
+      include: [
+        {
+          model: options.database.tenant,
+          as: 'tenant',
+          required: true,
+          include: ['settings', 'conversationSettings'],
+        },
+      ],
+      transaction: SequelizeRepository.getTransaction(options),
+    })
 
     return output
   }
