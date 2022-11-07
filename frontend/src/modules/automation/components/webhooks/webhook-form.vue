@@ -1,17 +1,10 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isDrawerOpenComputed"
-    custom-class="automation-attributes-drawer"
-    direction="rtl"
-    size="40%"
-    @closed="doCancel"
+    :title="isEditing ? 'Edit webhook' : 'Add webhook'"
+    @close="doCancel"
   >
-    <template #header>
-      <h5 class="text-black">
-        {{ isEditing ? 'Edit webhook' : 'Add webhook' }}
-      </h5>
-    </template>
-    <template #default>
+    <template #content>
       <el-form
         v-if="model"
         ref="form"
@@ -187,6 +180,7 @@
         </div>
       </el-form>
     </template>
+
     <template #footer>
       <div
         class="flex grow items-center"
@@ -223,7 +217,7 @@
         </div>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>

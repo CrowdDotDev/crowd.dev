@@ -1,28 +1,33 @@
 import moment from 'moment'
 import {
-  ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
   INITIAL_PAGE_SIZE,
+  INITIAL_VIEW_ALL_FILTER,
   INITIAL_VIEW_ACTIVE_FILTER,
   INITIAL_VIEW_RECENT_FILTER,
   INITIAL_VIEW_SLIPPING_AWAY_FILTER,
   INITIAL_VIEW_TEAM_MEMBERS_FILTER,
-  NOT_TEAM_MEMBER_FILTER
+  INITIAL_VIEW_INFLUENTIAL_FILTER
 } from './constants'
 
 export default () => {
   return {
     records: {},
-    views: [
-      {
+    views: {
+      all: {
         id: 'all',
         label: 'All members',
         columns: [],
-        filter: {
-          operator: 'and',
-          attributes: {
-            ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
-            ...NOT_TEAM_MEMBER_FILTER
-          }
+        initialFilter: INITIAL_VIEW_ALL_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_ALL_FILTER)
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
         },
         sorter: {
           prop: 'lastActive',
@@ -30,8 +35,8 @@ export default () => {
         },
         active: true
       },
-      {
-        id: 'recent',
+      'new-and-active': {
+        id: 'new-and-active',
         label: 'New and active',
         columns: [
           {
@@ -46,26 +51,48 @@ export default () => {
             width: 150
           }
         ],
-        filter: INITIAL_VIEW_RECENT_FILTER,
+        initialFilter: INITIAL_VIEW_RECENT_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_RECENT_FILTER)
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'joinedAt',
+          order: 'descending'
+        },
         sorter: {
           prop: 'joinedAt',
           order: 'descending'
         },
         active: false
       },
-      {
+      'slipping-away': {
         id: 'slipping-away',
         label: 'Slipping away',
         columns: [],
-        filter: INITIAL_VIEW_SLIPPING_AWAY_FILTER,
+        initialFilter: INITIAL_VIEW_SLIPPING_AWAY_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_SLIPPING_AWAY_FILTER)
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
         sorter: {
           prop: 'lastActive',
           order: 'descending'
         },
         active: false
       },
-      {
-        id: 'active',
+      'most-engaged': {
+        id: 'most-engaged',
         label: 'Most engaged',
         columns: [
           {
@@ -74,45 +101,74 @@ export default () => {
             sortable: true
           }
         ],
-        filter: INITIAL_VIEW_ACTIVE_FILTER,
+        initialFilter: INITIAL_VIEW_ACTIVE_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_ACTIVE_FILTER)
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
         sorter: {
           prop: 'lastActive',
           order: 'descending'
         },
         active: false
       },
-      {
+      influential: {
+        id: 'influential',
+        label: 'Influential',
+        initialFilter: INITIAL_VIEW_INFLUENTIAL_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_INFLUENTIAL_FILTER)
+        ),
+
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'reach',
+          order: 'descending'
+        },
+        sorter: {
+          prop: 'reach',
+          order: 'descending'
+        },
+        active: false
+      },
+      team: {
         id: 'team',
         label: 'Team members',
-        filter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
+        initialFilter: INITIAL_VIEW_TEAM_MEMBERS_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(INITIAL_VIEW_TEAM_MEMBERS_FILTER)
+        ),
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'lastActive',
+          order: 'descending'
+        },
         sorter: {
           prop: 'lastActive',
           order: 'descending'
         },
         active: false
       }
-    ],
+    },
     customAttributes: {},
     list: {
       ids: [],
       loading: false,
       table: false
     },
-    count: 0,
-    filter: {
-      operator: 'and',
-      attributes: {
-        ...ACTIVITY_COUNT_BIGGER_THAN_0_FILTER,
-        ...NOT_TEAM_MEMBER_FILTER
-      }
-    },
-    pagination: {
-      currentPage: 1,
-      pageSize: INITIAL_PAGE_SIZE
-    },
-    sorter: {
-      prop: 'lastActive',
-      order: 'descending'
-    }
+    count: 0
   }
 }

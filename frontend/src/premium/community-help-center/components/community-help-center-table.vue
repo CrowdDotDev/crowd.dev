@@ -35,7 +35,7 @@
             <el-table
               ref="table"
               v-loading="loading"
-              :data="conversations"
+              :data="rows"
               row-key="id"
               border
               :default-sort="{
@@ -118,46 +118,37 @@
                 </template>
                 <template #default="scope">
                   <div class="flex items-center">
-                    <span
+                    <app-platform
                       v-if="scope.row.platform === 'github'"
-                      class="btn btn--circle btn--github mr-2"
-                      ><img
-                        :src="findIcon('github')"
-                        alt="Github"
-                        class="w-4 h-4"
-                      />
-                    </span>
-                    <span
+                      platform="github"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'discord'
                       "
-                      class="btn btn--circle btn--discord mr-2"
-                      ><img
-                        :src="findIcon('discord')"
-                        alt="Discord"
-                        class="w-4 h-4"
-                    /></span>
-                    <span
+                      platform="discord"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'slack'
                       "
-                      class="btn btn--circle btn--slack mr-2"
-                      ><img
-                        :src="findIcon('slack')"
-                        alt="Slack"
-                        class="w-4 h-4"
-                    /></span>
-                    <span
+                      platform="slack"
+                    />
+                    <app-platform
                       v-else-if="
                         scope.row.platform === 'devto'
                       "
-                      class="btn btn--circle btn--devto mr-2"
-                      ><img
-                        :src="findIcon('devto')"
-                        alt="DEV"
-                        class="w-4 h-4"
-                    /></span>
-                    {{ scope.row.channel }}
+                      platform="devto"
+                    />
+                    <app-platform
+                      v-else-if="
+                        scope.row.platform === 'twitter'
+                      "
+                      platform="twitter"
+                    />
+                    <span class="ml-2">{{
+                      scope.row.channel
+                    }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -203,183 +194,127 @@
 </template>
 
 <script>
-import { ConversationModel } from '@/modules/conversation/conversation-model'
-import { mapGetters, mapActions, mapState } from 'vuex'
-import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import { i18n } from '@/i18n'
-import ConversationDropdown from '../../../modules/conversation/components/conversation-dropdown'
-import CommunityHelpCenterToolbar from './community-help-center-toolbar'
+export default {
+  name: 'AppCommunityHelpCenterTable'
+}
+</script>
+
+<script setup>
+import { defineEmits, ref, watch, computed } from 'vue'
+import { useStore } from 'vuex'
+
 import { formatDateToTimeAgo } from '@/utils/date'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
+import AppCommunityHelpCenterToolbar from './community-help-center-toolbar'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 
-const { fields } = ConversationModel
+const store = useStore()
+defineEmits(['cta-click'])
 
-export default {
-  name: 'AppConversationListTable',
-  components: {
-    AppCommunityHelpCenterConversationDrawer,
-    'app-conversation-dropdown': ConversationDropdown,
-    'app-community-help-center-toolbar':
-      CommunityHelpCenterToolbar
-  },
+const table = ref(null)
+const drawerConversationId = ref(null)
 
-  data() {
+const loading = computed(
+  () => store.state.communityHelpCenter.list.loading
+)
+const count = computed(
+  () => store.state.communityHelpCenter.count
+)
+const rows = computed(
+  () => store.getters['communityHelpCenter/rows']
+)
+const selectedRows = computed(
+  () => store.getters['communityHelpCenter/selectedRows']
+)
+const pagination = computed(
+  () => store.getters['communityHelpCenter/pagination']
+)
+
+const activeView = computed(
+  () => store.getters['communityHelpCenter/activeView']
+)
+
+const hasFilter = computed(() => {
+  const parsedFilters = {
+    ...activeView.value.filter.attributes
+  }
+  // Remove published and unpublished filters has they are the default view
+  delete parsedFilters.published
+  delete parsedFilters.unpublished
+  // Remove search filter if value is empty
+  if (!parsedFilters.search?.value) {
+    delete parsedFilters.search
+  }
+  return !!Object.keys(parsedFilters).length
+})
+
+const emptyState = computed(() => {
+  if (hasFilter.value) {
     return {
-      drawerConversationId: null,
-      mountTableInterval: null
-    }
-  },
-
-  computed: {
-    ...mapState({
-      filters: (state) =>
-        state.communityHelpCenter.filter.attributes,
-      loading: (state) =>
-        state.communityHelpCenter.list.loading,
-      count: (state) => state.communityHelpCenter.count
-    }),
-    ...mapGetters({
-      rows: 'communityHelpCenter/rows',
-      pagination: 'communityHelpCenter/pagination',
-      selectedRows: 'communityHelpCenter/selectedRows',
-      isMobile: 'layout/isMobile',
-      currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      paginationLayout: 'layout/paginationLayout'
-    }),
-
-    activeTab() {
-      return this.$route.query.activeTab || ''
-    },
-
-    hasFilter() {
-      const parsedFilters = { ...this.filters }
-
-      // Remove published and unpublished filters has they are the default view
-      delete parsedFilters.published
-      delete parsedFilters.unpublished
-
-      // Remove search filter if value is empty
-      if (!parsedFilters.search?.value) {
-        delete parsedFilters.search
-      }
-
-      return !!Object.keys(parsedFilters).length
-    },
-
-    emptyState() {
-      if (this.hasFilter) {
-        return {
-          title: `No ${this.activeTab} conversations found`,
-          description:
-            "We couldn't find any results that match your search criteria, please try a different query"
-        }
-      }
-
-      // Default view
-      const title = `No ${this.activeTab} conversations yet`
-      let description =
-        "We couldn't track any conversations among your community members"
-
-      // Published view
-      if (this.activeTab === 'published') {
-        description =
-          'Start publishing conversations in order to feed your Community Help Center'
-        // Unpublished view
-      } else if (this.activeTab === 'unpublished') {
-        description =
-          "We couldn't find any unpublished conversations"
-      }
-
-      return {
-        title,
-        description
-      }
-    },
-
-    hasPermissionToEdit() {
-      return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).edit
-    },
-
-    hasPermissionToDestroy() {
-      return new ConversationPermissions(
-        this.currentTenant,
-        this.currentUser
-      ).destroy
-    },
-
-    fields() {
-      return fields
-    },
-
-    conversations() {
-      return [...this.rows]
-    }
-  },
-
-  mounted() {
-    this.mountTableInterval = setInterval(
-      this.doMountTableInterval,
-      1000
-    )
-  },
-
-  methods: {
-    ...mapActions({
-      doChangeSort: 'communityHelpCenter/doChangeSort',
-      doChangePaginationCurrentPage:
-        'communityHelpCenter/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'communityHelpCenter/doChangePaginationPageSize',
-      doMountTable: 'communityHelpCenter/doMountTable'
-    }),
-
-    doRefresh() {
-      this.doChangePaginationCurrentPage()
-    },
-
-    presenter(row, fieldName) {
-      return ConversationModel.presenter(row, fieldName)
-    },
-
-    translate(key) {
-      return i18n(key)
-    },
-
-    rowClass({ row }) {
-      const isSelected =
-        this.selectedRows.find((r) => r.id === row.id) !==
-        undefined
-      return isSelected ? 'is-selected' : ''
-    },
-    timeAgo(date) {
-      return formatDateToTimeAgo(date)
-    },
-
-    findIcon(platform) {
-      return integrationsJsonArray.find(
-        (i) => i.platform === platform
-      ).image
-    },
-
-    handleRowClick(row) {
-      this.drawerConversationId = row.id
-    },
-
-    doMountTableInterval() {
-      // TODO: Need to refactor this component to options api and this method to watch instead of setInterval
-      if (
-        this.$refs.table !==
-        this.$store.state.communityHelpCenter.list.table
-      ) {
-        this.doMountTable(this.$refs.table)
-        clearInterval(this.mountTableInterval)
-      }
+      title: `No ${activeView.value.id} conversations found`,
+      description:
+        "We couldn't find any results that match your search criteria, please try a different query"
     }
   }
+  // Default view
+  const title = `No ${activeView.value.id} conversations yet`
+  let description =
+    "We couldn't track any conversations among your community members"
+  // Published view
+  if (activeView.value.id === 'published') {
+    description =
+      'Start publishing conversations in order to feed your Community Help Center'
+    // Unpublished view
+  } else if (activeView.value.id === 'unpublished') {
+    description =
+      "We couldn't find any unpublished conversations"
+  }
+  return {
+    title,
+    description
+  }
+})
+
+watch(table, (newValue) => {
+  if (newValue) {
+    store.dispatch(
+      'communityHelpCenter/doMountTable',
+      table.value
+    )
+  }
+})
+
+function doChangeSort(sorter) {
+  store.dispatch('communityHelpCenter/doChangeSort', sorter)
+}
+
+function doChangePaginationCurrentPage(currentPage) {
+  store.dispatch(
+    'communityHelpCenter/doChangePaginationCurrentPage',
+    currentPage
+  )
+}
+
+function doChangePaginationPageSize(pageSize) {
+  store.dispatch(
+    'communityHelpCenter/doChangePaginationPageSize',
+    pageSize
+  )
+}
+
+function rowClass({ row }) {
+  const isSelected =
+    selectedRows.value.find((r) => r.id === row.id) !==
+    undefined
+
+  return isSelected ? 'is-selected' : ''
+}
+
+function handleRowClick(row) {
+  drawerConversationId.value = row.id
+}
+
+function timeAgo(date) {
+  return formatDateToTimeAgo(date)
 }
 </script>

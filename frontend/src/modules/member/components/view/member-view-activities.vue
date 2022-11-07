@@ -6,6 +6,7 @@
         placeholder="Search activities"
         :prefix-icon="SearchIcon"
         clearable
+        class="member-view-activities-search"
       >
         <template #append>
           <el-select
@@ -251,3 +252,18 @@ onMounted(async () => {
   await fetchActivities()
 })
 </script>
+
+<style lang="scss">
+.member-view-activities {
+  .el-input-group__append {
+    @apply bg-white;
+  }
+  .activity-header {
+    @apply max-w-full overflow-visible;
+  }
+}
+.member-view-activities-search .el-input-group__append,
+.el-select .el-input .el-input__wrapper {
+  border-radius: 0 4px 4px 0 !important;
+}
+</style>

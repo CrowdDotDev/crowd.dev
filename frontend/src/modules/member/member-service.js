@@ -147,11 +147,19 @@ export class MemberService {
     return response.data
   }
 
-  static async fetchMergeSuggestions() {
+  static async fetchMergeSuggestions(limit, offset) {
     const tenantId = AuthCurrentTenant.get()
 
+    const params = {
+      limit,
+      offset
+    }
+
     const response = await authAxios.get(
-      `/tenant/${tenantId}/membersToMerge`
+      `/tenant/${tenantId}/membersToMerge`,
+      {
+        params
+      }
     )
 
     return response.data

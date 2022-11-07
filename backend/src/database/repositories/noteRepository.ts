@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
@@ -18,6 +19,10 @@ class NoteRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
 
     const record = await options.database.note.create(
       {
@@ -343,8 +348,8 @@ class NoteRepository {
       joinTableAttributes: [],
     })
 
-    output.createdBy = await UserRepository.findById(record.createdById, options)
-    output.createdBy.avatarUrl = null
+    const user = await UserRepository.findById(record.createdById, options)
+    output.createdBy = { id: user.id, fullName: user.fullName, avatarUrl: null }
 
     return output
   }

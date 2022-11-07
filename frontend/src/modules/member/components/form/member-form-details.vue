@@ -7,21 +7,6 @@
           v-model="model[fieldsValue.displayName.name]"
         />
       </el-form-item>
-
-      <el-form-item
-        prop="email"
-        :label="fieldsValue.email.label"
-        :rules="[
-          {
-            type: 'email',
-            message: 'Please input correct email address',
-            trigger: ['blur', 'change']
-          }
-        ]"
-      >
-        <el-input v-model="model[fieldsValue.email.name]" />
-      </el-form-item>
-
       <el-form-item
         :label="fieldsValue.joinedAt.label"
         class="w-6/12 grow-0"

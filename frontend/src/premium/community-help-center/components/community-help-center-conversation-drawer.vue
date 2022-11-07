@@ -1,44 +1,26 @@
 <template>
   <div>
-    <el-drawer
+    <app-drawer
       v-model="isExpanded"
-      :show-close="false"
-      :close-on-click-modal="false"
       :size="600"
+      :has-border="true"
+      title="Conversation"
     >
-      <template #header>
+      <template #header-label>
         <div
-          class="flex justify-between items-center border-b border-gray-200 -mb-4 -mx-6 px-6 pb-6"
+          class="badge"
+          :class="
+            conversation.published ? 'badge--green' : ''
+          "
         >
-          <h2 class="text-lg font-medium text-gray-1000">
-            Conversation
-          </h2>
-          <div class="flex items-center">
-            <div
-              class="badge mr-6"
-              :class="
-                conversation.published ? 'badge--green' : ''
-              "
-            >
-              {{
-                conversation.published
-                  ? 'Published'
-                  : 'Unpublished'
-              }}
-            </div>
-            <button
-              type="button"
-              class="btn btn--transparent btn--md w-10"
-              @click="$emit('close')"
-            >
-              <i
-                class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
-              ></i>
-            </button>
-          </div>
-        </div>
-      </template>
-      <template #default>
+          {{
+            conversation.published
+              ? 'Published'
+              : 'Unpublished'
+          }}
+        </div></template
+      >
+      <template #content>
         <app-conversation-details
           v-if="loadingFind"
           :loading="true"
@@ -90,7 +72,8 @@
           </el-button>
         </div>
       </template>
-    </el-drawer>
+    </app-drawer>
+
     <app-dialog v-model="editingTitle" title="Edit title">
       <template #content>
         <div class="px-6 pb-6">

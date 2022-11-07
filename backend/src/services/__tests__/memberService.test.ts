@@ -1662,25 +1662,19 @@ describe('MemberService tests', () => {
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'memberCount')
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, 'joinedAt')
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, 'memberCount')
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, 'joinedAt')
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, 'memberCount')
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, 'joinedAt')
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, ['memberCount', 'joinedAt'])
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, ['memberCount', 'joinedAt'])
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, ['memberCount', 'joinedAt'])
 
       // remove tasks->member and tasks->activity relations as well (we should be only checking 1-deep relations)
-      task1 = SequelizeTestUtils.objectWithoutKey(task1, 'members')
-      task1 = SequelizeTestUtils.objectWithoutKey(task1, 'activities')
-      task2 = SequelizeTestUtils.objectWithoutKey(task2, 'members')
-      task2 = SequelizeTestUtils.objectWithoutKey(task2, 'activities')
-      task3 = SequelizeTestUtils.objectWithoutKey(task3, 'members')
-      task3 = SequelizeTestUtils.objectWithoutKey(task3, 'activities')
+      task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities'])
+      task2 = SequelizeTestUtils.objectWithoutKey(task2, ['members', 'activities'])
+      task3 = SequelizeTestUtils.objectWithoutKey(task3, ['members', 'activities'])
 
       // remove notes->member relations as well (we should be only checking 1-deep relations)
-      note1 = SequelizeTestUtils.objectWithoutKey(note1, 'members')
-      note2 = SequelizeTestUtils.objectWithoutKey(note2, 'members')
-      note3 = SequelizeTestUtils.objectWithoutKey(note3, 'members')
+      note1 = SequelizeTestUtils.objectWithoutKey(note1, ['members', 'createdBy'])
+      note2 = SequelizeTestUtils.objectWithoutKey(note2, ['members', 'createdBy'])
+      note3 = SequelizeTestUtils.objectWithoutKey(note3, ['members', 'createdBy'])
 
       mergedMember.updatedAt = mergedMember.updatedAt.toISOString().split('T')[0]
 
