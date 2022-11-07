@@ -8,105 +8,62 @@
       <i class="ri-lg ri-settings-2-line mr-1" />
       Settings
     </el-button>
-    <el-drawer
+    <app-drawer
       v-model="computedVisible"
-      title="Community Help Center Settings"
-      :close-on-click-modal="false"
-      :show-close="false"
+      title="Settings"
+      pre-title="Community Help Center"
       size="600px"
       @close="$emit('close')"
     >
-      <template #header>
-        <div>
-          <div class="flex items-center justify-between">
-            <div>
-              <span
-                class="block text-gray-600 text-2xs font-normal leading-none"
-                >Community Help Center</span
-              >
-              <div class="text-lg font-semibold text-black">
-                Settings
-              </div>
-            </div>
-            <button
-              type="button"
-              class="btn btn--transparent btn--md w-10"
-              @click="$emit('close')"
-            >
-              <i
-                class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
-              ></i>
-            </button>
-          </div>
-
-          <toggle v-model="model.enabled" class="mt-6" />
-        </div>
-      </template>
-      <el-form
-        v-if="visible"
-        ref="form"
-        class="w-full form"
-        :model="model"
-        :rules="rules"
-        label-position="top"
-        @submit.prevent="doSubmit"
-      >
-        <!--<app-alert
-          v-if="!hasConversationsConfigured"
-          type="info"
-          class="mb-8 mt-0"
+      <template #content>
+        <toggle v-model="model.enabled" class="mb-6" />
+        <el-form
+          v-if="visible"
+          ref="form"
+          class="w-full form"
+          :model="model"
+          :rules="rules"
+          label-position="top"
+          @submit.prevent="doSubmit"
         >
-          <template #title>
-            Please configure your Community Help Center
-          </template>
-          <template #body>
-            Before publishing any Conversation, your
-            Community Help Center needs to be configured.
-            <br />
-            The mandatory fields are:
-            <span class="font-semibold">Community Name</span
-            >,
-            <span class="font-semibold"
-              >Community Slug</span
-            >
-            and <span class="font-semibold">Website</span>.
-          </template>
-        </app-alert>-->
-        <div class="relative">
-          <div
-            v-if="!model.enabled"
-            class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
-          ></div>
-          <general
-            v-model:tenantSlug="model.tenantSlug"
-            v-model:tenantName="model.tenantName"
-            v-model:customUrl="model.customUrl"
-            :disabled="!model.enabled"
-          />
-          <links
-            v-model:website="model.website"
-            v-model:discordInviteLink="
-              model.discordInviteLink
-            "
-            v-model:slackInviteLink="model.slackInviteLink"
-            v-model:githubInviteLink="
-              model.githubInviteLink
-            "
-            :disabled="!model.enabled"
-          />
-          <auto-publish
-            v-model:status="model.autoPublish.status"
-            v-model:channels="model.autoPublish.channels"
-            :disabled="!model.enabled"
-          />
-          <theming
-            v-model:theme="model.theme"
-            v-model:logoUrl="model.logoUrl"
-            v-model:faviconUrl="model.faviconUrl"
-            :disabled="!model.enabled"
-          />
-        </div>
-      </el-form>
+          <div class="relative">
+            <div
+              v-if="!model.enabled"
+              class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
+            ></div>
+            <general
+              v-model:tenantSlug="model.tenantSlug"
+              v-model:tenantName="model.tenantName"
+              v-model:customUrl="model.customUrl"
+              :disabled="!model.enabled"
+            />
+            <links
+              v-model:website="model.website"
+              v-model:discordInviteLink="
+                model.discordInviteLink
+              "
+              v-model:slackInviteLink="
+                model.slackInviteLink
+              "
+              v-model:githubInviteLink="
+                model.githubInviteLink
+              "
+              :disabled="!model.enabled"
+            />
+            <auto-publish
+              v-model:status="model.autoPublish.status"
+              v-model:channels="model.autoPublish.channels"
+              :disabled="!model.enabled"
+            />
+            <theming
+              v-model:theme="model.theme"
+              v-model:logoUrl="model.logoUrl"
+              v-model:faviconUrl="model.faviconUrl"
+              :disabled="!model.enabled"
+            />
+          </div>
+        </el-form>
+      </template>
       <template #footer>
         <div class="form-buttons">
           <el-button
@@ -126,7 +83,7 @@
           </el-button>
         </div>
       </template>
-    </el-drawer>
+    </app-drawer>
   </div>
 </template>
 

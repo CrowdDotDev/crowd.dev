@@ -1,21 +1,17 @@
 <template>
-  <el-dialog
+  <el-drawer
     v-model="model"
-    :close-on-click-modal="false"
-    :append-to-body="true"
-    :destroy-on-close="true"
+    :custom-class="`${customClass} ${
+      hasBorder ? 'bordered' : ''
+    }`"
     :show-close="false"
-    :custom-class="`${dialogSize} ${customClass}`"
+    :destroy-on-close="true"
+    :close-on-click-modal="false"
+    :size="size"
     @close="onClose"
   >
     <template #header="{ close, titleId, titleClass }">
-      <div
-        v-if="showHeader"
-        class="flex grow justify-between"
-        :class="{
-          'items-center': preTitle || hasActionBtn
-        }"
-      >
+      <div class="flex grow justify-between items-center">
         <div class="h-fit">
           <div
             v-if="preTitle"
@@ -23,24 +19,24 @@
           >
             {{ preTitle }}
           </div>
-          <div
-            class="flex items-center"
-            :class="{
-              'h-6': showLoadingIcon
-            }"
-          >
-            <h5 :id="titleId" :class="titleClass">
+          <div class="flex items-center">
+            <img
+              v-if="preTitleImgSrc"
+              :src="preTitleImgSrc"
+              class="w-6 h-6 mr-2"
+              :alt="preTitleImgAlt"
+            />
+            <h5
+              :id="titleId"
+              class="text-black"
+              :class="titleClass"
+            >
               {{ title }}
             </h5>
-            <div
-              v-if="showLoadingIcon"
-              v-loading="true"
-              class="app-page-spinner w-6 ml-4"
-            ></div>
           </div>
         </div>
         <div class="flex gap-3 items-center">
-          <slot name="actionBtn"></slot>
+          <slot name="header-label"></slot>
           <div class="ml-3">
             <el-button
               class="btn btn--transparent btn--xs w-8 !h-8"
@@ -54,18 +50,23 @@
         </div>
       </div>
     </template>
-    <slot name="content"></slot>
-  </el-dialog>
+
+    <template #default>
+      <slot name="content"></slot>
+    </template>
+    <template v-if="showFooter" #footer>
+      <slot name="footer"></slot>
+    </template>
+  </el-drawer>
 </template>
 
 <script>
 export default {
-  name: 'AppDialog'
+  name: 'AppDrawer'
 }
 </script>
-
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import { defineProps, computed, defineEmits } from 'vue'
 
 const emit = defineEmits(['update:modelValue', 'close'])
 const props = defineProps({
@@ -81,38 +82,34 @@ const props = defineProps({
     type: String,
     required: true
   },
-  size: {
-    type: String,
-    default: () => 'large'
-  },
   customClass: {
     type: String,
     default: () => ''
   },
-  hasActionBtn: {
-    type: Boolean,
-    default: () => false
+  direction: {
+    type: String,
+    default: () => 'rtl'
   },
-  showHeader: {
+  size: {
+    type: String || Number,
+    default: () => '40%'
+  },
+  showFooter: {
     type: Boolean,
     default: () => true
   },
-  showLoadingIcon: {
+  preTitleImgSrc: {
+    type: String,
+    default: () => null
+  },
+  preTitleImgAlt: {
+    type: String,
+    default: () => null
+  },
+  hasBorder: {
     type: Boolean,
     default: () => false
   }
-})
-
-const dialogSize = computed(() => {
-  if (props.size === 'small') {
-    return 'el-dialog--sm'
-  } else if (props.size === 'extra-large') {
-    return 'el-dialog--xl'
-  } else if (props.size === '2extra-large') {
-    return 'el-dialog--2xl'
-  }
-
-  return 'el-dialog--lg'
 })
 
 const model = computed({
