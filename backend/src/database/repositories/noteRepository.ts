@@ -7,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import UserRepository from './userRepository'
 
 const { Op } = Sequelize
 
@@ -228,6 +229,7 @@ class NoteRepository {
         manyToMany: {
           members: {
             table: 'notes',
+            model: 'note',
             relationTable: {
               name: 'memberNotes',
               from: 'noteId',
@@ -340,6 +342,9 @@ class NoteRepository {
       transaction,
       joinTableAttributes: [],
     })
+
+    output.createdBy = await UserRepository.findById(record.createdById, options)
+    output.createdBy.avatarUrl = null
 
     return output
   }
