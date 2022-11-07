@@ -3,6 +3,7 @@
     v-model="isVisible"
     custom-class="integration-twitter-drawer"
     title="Twitter"
+    size="600px"
     pre-title="Integration"
     :pre-title-img-src="logoUrl"
     pre-title-img-alt="Twitter logo"
@@ -14,11 +15,7 @@
           >Track hashtag</span
         >
         <el-form-item>
-          <el-input
-            v-model="hashtag"
-            class="hashtag-input"
-            @change="handleHashtagChange"
-          >
+          <el-input v-model="hashtag" class="hashtag-input">
             <template #prefix>#</template>
           </el-input>
 
@@ -60,7 +57,7 @@ import {
   defineEmits,
   defineProps,
   computed,
-  onMounted,
+  watch,
   ref
 } from 'vue'
 
@@ -72,10 +69,6 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false
-  },
-  hashtags: {
-    type: Array,
-    default: () => []
   },
   connectUrl: {
     type: String,
@@ -94,7 +87,7 @@ const isVisible = computed({
   }
 })
 
-let hashtag = ref('')
+const hashtag = ref(null)
 
 const logoUrl = computed(
   () =>
@@ -109,9 +102,12 @@ const computedConnectUrl = computed(() => {
     : ''
 })
 
-onMounted(() => {
-  hashtag.value = props.hashtags[0]
-})
+watch(
+  () => props.integration,
+  (newValue) => {
+    hashtag.value = newValue.settings?.hashtags[0] || null
+  }
+)
 </script>
 
 <style lang="scss">
