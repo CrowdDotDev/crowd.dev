@@ -1,11 +1,65 @@
 import sharedActions from '@/shared/store/actions'
 import { ReportService } from '@/modules/report/report-service'
 import Errors from '@/shared/error/errors'
-import Message from '@/shared/message/message'
-import { i18n } from '@/i18n'
 
 export default {
   ...sharedActions('report', ReportService),
+  async doFetch(
+    { commit, getters },
+    { keepPagination = false }
+  ) {
+    try {
+      commit('FETCH_STARTED', { keepPagination })
+
+      const response = await ReportService.list(
+        {},
+        getters.orderBy,
+        getters.limit,
+        getters.offset
+      )
+
+      commit('FETCH_SUCCESS', {
+        rows: response.rows,
+        count: response.count
+      })
+    } catch (error) {
+      Errors.handle(error)
+      commit('FETCH_ERROR')
+    }
+  },
+  doChangePagination({ commit, dispatch }, pagination) {
+    commit('PAGINATION_CHANGED', pagination)
+    dispatch('doFetch', {
+      keepPagination: true
+    })
+  },
+
+  doChangePaginationPageSize(
+    { commit, dispatch },
+    pageSize
+  ) {
+    commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
+    dispatch('doFetch', {
+      keepPagination: true
+    })
+  },
+
+  doChangePaginationCurrentPage(
+    { commit, dispatch },
+    currentPage
+  ) {
+    commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
+    dispatch('doFetch', {
+      keepPagination: true
+    })
+  },
+
+  doChangeSort({ commit, dispatch }, sorter) {
+    commit('SORTER_CHANGED', sorter)
+    dispatch('doFetch', {
+      keepPagination: true
+    })
+  },
   async doFindPublic({ commit }, { id, tenantId }) {
     try {
       commit('FIND_STARTED', id)
@@ -17,27 +71,6 @@ export default {
     } catch (error) {
       Errors.handle(error)
       commit('FIND_ERROR', id)
-    }
-  },
-  async doUpdate({ commit }, { id, values }) {
-    try {
-      commit('UPDATE_STARTED')
-
-      const response = await ReportService.update(
-        id,
-        values
-      )
-
-      commit('UPDATE_SUCCESS', response)
-
-      return response
-    } catch (error) {
-      Message.error(i18n('entities.member.update.error'))
-
-      Errors.handle(error)
-      commit('UPDATE_ERROR')
-
-      return false
     }
   }
 }

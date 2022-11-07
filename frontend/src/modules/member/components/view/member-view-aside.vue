@@ -28,7 +28,7 @@
           "
           target="_blank"
         >
-          <div>
+          <div class="flex items-center">
             <span
               class="btn cursor-auto p-2 bg-gray-100 border border-gray-200 mr-3"
               :class="`btn--${platform}`"

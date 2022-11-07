@@ -44,7 +44,20 @@ const model = computed({
   }
 })
 const views = computed(() => {
-  return Object.values(store.state.member.views)
+  return Object.values(store.state.member.views).filter(
+    (v) => v.id !== 'influential' || showInfluential.value
+  )
+})
+
+const integrations = computed(
+  () => store.getters['integration/activeList'] || {}
+)
+
+const showInfluential = computed(() => {
+  return (
+    integrations.value.twitter?.status === 'done' ||
+    integrations.value.github?.status === 'done'
+  )
 })
 
 const resetView = () => {

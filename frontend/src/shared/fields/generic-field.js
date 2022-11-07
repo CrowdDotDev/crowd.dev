@@ -1,4 +1,4 @@
-import { i18n } from '../../i18n'
+import * as yup from 'yup'
 
 export default class GenericField {
   constructor(name, label, config = {}) {
@@ -7,6 +7,7 @@ export default class GenericField {
     this.placeholder = config.placeholder
     this.hint = config.hint
     this.required = config.required
+    this.requiredUnless = config.requiredUnless
     this.config = config
     this.filterable = config.filterable || false
     this.custom = config.custom || false
@@ -41,19 +42,20 @@ export default class GenericField {
   }
 
   forFormRules() {
-    const output = []
+    let yupChain = yup.mixed().label(this.label)
 
     if (this.required) {
-      output.push({
-        required: Boolean(this.required),
-        message: i18n('validation.mixed.required').replace(
-          '${path}',
-          this.label
-        )
+      yupChain = yupChain.required()
+    }
+
+    if (this.requiredUnless) {
+      yupChain = yupChain.when(this.requiredUnless, {
+        is: (value) => !value || value === '',
+        then: (schema) => schema.required()
       })
     }
 
-    return []
+    return yupChain
   }
 
   forFormCast() {

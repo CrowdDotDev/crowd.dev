@@ -93,16 +93,18 @@ const query = ref('')
 const queryInput = ref(null)
 const isExpanded = ref(false)
 
+const activeView = computed(
+  () => store.getters[`${props.module}/activeView`]
+)
 const computedAttributes = computed(() =>
   props.attributes
     .filter((a) => queryFilterFunction(a, query.value))
     .map((a) => {
       a.selected =
-        store.state[props.module].filter.attributes[
-          a.name
-        ] !== undefined &&
-        store.state[props.module].filter.attributes[a.name]
-          .show !== false
+        store.state[props.module].views[activeView.value.id]
+          .filter.attributes[a.name] !== undefined &&
+        store.state[props.module].views[activeView.value.id]
+          .filter.attributes[a.name].show !== false
       return a
     })
 )
@@ -111,9 +113,8 @@ const computedCustomAttributes = computed(() =>
     .filter((a) => queryFilterFunction(a, query.value))
     .map((a) => {
       a.selected =
-        store.state[props.module].filter.attributes[
-          a.name
-        ] !== undefined
+        store.state[props.module].views[activeView.value.id]
+          .filter.attributes[a.name] !== undefined
       a.custom = true
       return a
     })
@@ -127,7 +128,8 @@ function handleDropdownChange(value) {
 }
 function handleOptionClick(v) {
   if (
-    store.state[props.module].filter[v.name] === undefined
+    store.state[props.module].views[activeView.value.id]
+      .filter[v.name] === undefined
   ) {
     store.dispatch(`${props.module}/addFilterAttribute`, {
       ...v.forFilter(),
