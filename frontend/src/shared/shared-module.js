@@ -43,6 +43,7 @@ import InlineSelectInput from '@/shared/form/inline-select-input'
 import Dialog from '@/shared/dialog/dialog'
 import EmptyStateCta from '@/shared/empty-state/empty-state-cta'
 import EmptyState from '@/shared/empty-state/empty-state'
+import Drawer from '@/shared/drawer/drawer'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -95,6 +96,7 @@ export default {
     'app-inline-select-input': InlineSelectInput,
     'app-dialog': Dialog,
     'app-empty-state-cta': EmptyStateCta,
-    'app-empty-state': EmptyState
+    'app-empty-state': EmptyState,
+    'app-drawer': Drawer
   }
 }
