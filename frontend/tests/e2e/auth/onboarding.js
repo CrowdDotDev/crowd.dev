@@ -65,7 +65,7 @@ export default () => {
       .should('exist')
   })
 
-  it('Continues onboarding if all fields are valid',() => {
+  it('Continues onboarding if all fields are valid', () => {
     cy.get('@tenantPlatformSelect').click()
     for (let platform of data.tenant.platforms) {
       cy.get('.el-select-dropdown')
@@ -113,12 +113,14 @@ export default () => {
     cy.get('main section')
       .contains('DEV')
       .closest('article')
-      .contains('Connect')
-      .should('not.exist')
+      .contains('In progress')
+      .should('exist')
   })
 
   it('Should finish onboarding', () => {
     cy.get('#onboardFinish').click()
+    cy.wait(200)
     cy.url().should('not.include', '/onboard')
+    cy.location('pathname').should('eq', '/')
   })
 }

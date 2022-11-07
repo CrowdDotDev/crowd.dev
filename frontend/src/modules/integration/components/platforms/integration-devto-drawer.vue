@@ -43,11 +43,11 @@
         >
           <div class="flex flex-row items-center w-full">
             <el-input
+              id="devOrganization"
               v-model="org.username"
               class="text-green-500"
               spellcheck="false"
               placeholder="Enter organization slug"
-              id="devOrganization"
               @blur="handleOrganizationValidation(org.id)"
             >
               <template #prepend>dev.to/</template>
@@ -95,11 +95,11 @@
         >
           <div class="flex flex-row items-center w-full">
             <el-input
+              id="devUser"
               v-model="user.username"
               spellcheck="false"
               placeholder="Enter user slug"
               @blur="handleUserValidation(user.id)"
-              id="devUser"
             >
               <template #prepend>dev.to/</template>
               <template #suffix>
@@ -139,8 +139,8 @@
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
         <el-button
-          class="btn btn--md btn--primary"
           id="devConnect"
+          class="btn btn--md btn--primary"
           :disabled="connectDisabled || loading"
           :loading="loading"
           @click="save"

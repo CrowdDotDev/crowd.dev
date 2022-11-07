@@ -1,7 +1,7 @@
 import constants from '../../constants.json'
 import data from './data.json'
 
-export default () => {
+export default (inject) => () => {
   before(() => {
     cy.visit(`${constants.url}/auth/signin`)
     cy.url().should('include', '/auth/signin')
@@ -40,7 +40,7 @@ export default () => {
   })
 
   it('Does not submit if password is empty', () => {
-    cy.get('@email').clear().type(data.email)
+    cy.get('@email').clear().type(inject.email)
     cy.get('@password').clear()
 
     cy.get('@submit').click()
@@ -62,12 +62,12 @@ export default () => {
     cy.url().should('include', '/auth/signin')
     cy.get('.el-notification__content').should(
       'contain.text',
-      'Bad credentials'
+      'Sorry, this email does not match any record in our database'
     )
   })
 
   it('Signs in if all fields are valid', () => {
-    cy.get('@email').clear().type(data.email)
+    cy.get('@email').clear().type(inject.email)
     cy.get('@password').clear().type(data.password)
 
     cy.get('@submit').click()
