@@ -100,10 +100,10 @@
         @apply p-0 pl-4;
       }
     }
+  }
 
-    .hover-row {
-      cursor: pointer;
-    }
+  &:not(.not-clickable) .el-table .hover-row {
+    cursor: pointer;
   }
 }
 

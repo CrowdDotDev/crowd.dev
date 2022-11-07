@@ -29,10 +29,7 @@
           target="_blank"
         >
           <div class="flex gap-3 items-center">
-            <app-platform
-              :platform="platform"
-              :platform-name="`${platform}-icon`"
-            />
+            <app-platform :platform="platform" />
             <span class="text-gray-900 text-xs">
               {{ member.username[platform] }}</span
             >

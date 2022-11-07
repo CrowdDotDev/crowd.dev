@@ -3,7 +3,7 @@
     <app-platform
       v-if="member.email"
       platform="email"
-      platform-name="Email"
+      track-event-name="Email"
       :has-tooltip="true"
       tooltip-label="Send e-mail"
       :href="`mailto:${member.email}`"
@@ -13,7 +13,7 @@
       <app-platform
         v-if="!!member.username?.twitter"
         platform="twitter"
-        platform-name="Twitter"
+        track-event-name="Twitter"
         :has-tooltip="true"
         tooltip-label="Twitter profile"
         :href="member.attributes?.url?.twitter || null"
@@ -22,7 +22,7 @@
       <app-platform
         v-if="!!member.username?.github"
         platform="github"
-        platform-name="GitHub"
+        track-event-name="GitHub"
         :has-tooltip="true"
         tooltip-label="GitHub profile"
         :href="member.attributes?.url?.github || null"
@@ -31,7 +31,7 @@
       <app-platform
         v-if="!!member.username?.devto"
         platform="devto"
-        platform-name="Dev.to"
+        track-event-name="Dev.to"
         :has-tooltip="true"
         tooltip-label="DEV profile"
         :href="member.attributes?.url?.devto || null"
@@ -40,14 +40,14 @@
       <app-platform
         v-if="!!member.username?.discord"
         platform="discord"
-        platform-name="Discord"
+        track-event-name="Discord"
         :has-tooltip="true"
         tooltip-label="Discord profile"
       />
       <app-platform
         v-if="!!member.username?.slack"
         platform="slack"
-        platform-name="Slack"
+        track-event-name="Slack"
         :has-tooltip="true"
         tooltip-label="Slack profile"
       />

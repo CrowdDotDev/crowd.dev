@@ -121,35 +121,30 @@
                     <app-platform
                       v-if="scope.row.platform === 'github'"
                       platform="github"
-                      platform-name="Github"
                     />
                     <app-platform
                       v-else-if="
                         scope.row.platform === 'discord'
                       "
                       platform="discord"
-                      platform-name="Discord"
                     />
                     <app-platform
                       v-else-if="
                         scope.row.platform === 'slack'
                       "
                       platform="slack"
-                      platform-name="Slack"
                     />
                     <app-platform
                       v-else-if="
                         scope.row.platform === 'devto'
                       "
                       platform="devto"
-                      platform-name="DEV"
                     />
                     <app-platform
                       v-else-if="
                         scope.row.platform === 'twitter'
                       "
                       platform="twitter"
-                      platform-name="Twitter"
                     />
                     <span class="ml-2">{{
                       scope.row.channel

@@ -14,7 +14,7 @@
       <span class="leading-5">Invite user</span>
     </el-button>
   </div>
-  <div class="user-list-table panel">
+  <div class="app-list-table not-clickable panel">
     <app-user-list-toolbar></app-user-list-toolbar>
     <div class="-mx-6 -mt-6">
       <el-table
@@ -194,22 +194,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.user-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    th {
-      @apply pb-4;
-    }
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-  }
-}
-</style>

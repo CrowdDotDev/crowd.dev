@@ -1,5 +1,5 @@
 <template>
-  <div class="automation-list-table panel">
+  <div class="app-list-table not-clickable panel">
     <div class="-mx-6 -mt-6">
       <el-table
         ref="table"
@@ -176,12 +176,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.automation-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-  }
-}
-</style>

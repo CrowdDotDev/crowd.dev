@@ -24,16 +24,16 @@
             ? 'hover:cursor-pointer'
             : 'hover:cursor-auto'
         } ${getIconClass(platform)}`"
-      @click.stop="trackClick(platformName)"
+      @click.stop="trackClick(trackEventName)"
     >
       <i
-        v-if="platformName === 'Email'"
+        v-if="platform === 'email'"
         class="ri-mail-line"
       ></i>
       <img
         v-else
-        :src="findIcon(platform)"
-        :alt="platformName"
+        :src="imageProperties.image"
+        :alt="imageProperties.name"
         class="member-channels-icon"
     /></a>
 
@@ -44,8 +44,8 @@
       @click.stop
     >
       <img
-        :src="findIcon(platform)"
-        :alt="platformName"
+        :src="imageProperties.image"
+        :alt="imageProperties.name"
         class="member-channels-icon"
       />
     </span>
@@ -59,15 +59,15 @@ export default {
 </script>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, computed } from 'vue'
 import integrationsJsonArray from '@/jsons/integrations.json'
 
-defineProps({
+const props = defineProps({
   platform: {
     type: String,
     required: true
   },
-  platformName: {
+  trackEventName: {
     type: String,
     required: true
   },
@@ -87,6 +87,12 @@ defineProps({
     type: Boolean,
     default: () => false
   }
+})
+
+const imageProperties = computed(() => {
+  return integrationsJsonArray.find(
+    (p) => p.platform === props.platform
+  )
 })
 
 const trackClick = (channel) => {
@@ -109,12 +115,6 @@ const getIconClass = (platform) => {
   } else if (platform === 'slack') {
     return 'btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
   }
-}
-
-const findIcon = (platform) => {
-  return integrationsJsonArray.find(
-    (p) => p.platform === platform
-  ).image
 }
 </script>
 
