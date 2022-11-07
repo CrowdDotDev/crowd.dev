@@ -26,7 +26,7 @@ describe('NoteRepository tests', () => {
       noteCreated.createdAt = noteCreated.createdAt.toISOString().split('T')[0]
       noteCreated.updatedAt = noteCreated.updatedAt.toISOString().split('T')[0]
 
-      const plainUser =  mockIRepositoryOptions.currentUser.get({ plain: true })
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
       const expectedCreatedBy = {
         id: plainUser.id,
         fullName: plainUser.fullName,
@@ -69,7 +69,7 @@ describe('NoteRepository tests', () => {
       noteCreated.createdAt = noteCreated.createdAt.toISOString().split('T')[0]
       noteCreated.updatedAt = noteCreated.updatedAt.toISOString().split('T')[0]
 
-      const plainUser =  mockIRepositoryOptions.currentUser.get({ plain: true })
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
       const expectedCreatedBy = {
         id: plainUser.id,
         fullName: plainUser.fullName,
@@ -255,7 +255,7 @@ describe('NoteRepository tests', () => {
 
       expect(noteUpdated.updatedAt.getTime()).toBeGreaterThan(noteUpdated.createdAt.getTime())
 
-      const plainUser =  mockIRepositoryOptions.currentUser.get({ plain: true })
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
       const expectedCreatedBy = {
         id: plainUser.id,
         fullName: plainUser.fullName,

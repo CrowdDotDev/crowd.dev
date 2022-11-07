@@ -348,9 +348,8 @@ class NoteRepository {
       joinTableAttributes: [],
     })
 
-    const getUserRelations = false
-    const user = await UserRepository.findById(record.createdById, options, getUserRelations)
-    output.createdBy = {id: user.id, fullName: user.fullName, avatarUrl: null}
+    const user = await UserRepository.findById(record.createdById, options)
+    output.createdBy = { id: user.id, fullName: user.fullName, avatarUrl: null }
 
     return output
   }

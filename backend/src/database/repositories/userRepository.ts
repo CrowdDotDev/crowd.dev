@@ -503,14 +503,14 @@ export default class UserRepository {
     }))
   }
 
-  static async findById(id, options: IRepositoryOptions, getRelations: boolean = true) {
+  static async findById(id, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
     let record = await options.database.user.findByPk(id, {
       transaction,
     })
 
-    record = await this._populateRelations(record, options, getRelations)
+    record = await this._populateRelations(record, options)
 
     if (!record) {
       throw new Error404()
@@ -518,7 +518,7 @@ export default class UserRepository {
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
-    if (getRelations && (!options || !options.bypassPermissionValidation)) {
+    if (!options || !options.bypassPermissionValidation) {
       if (!isUserInTenant(record, currentTenant)) {
         throw new Error404()
       }
@@ -745,7 +745,6 @@ export default class UserRepository {
   static async _populateRelations(
     record,
     options: IRepositoryOptions,
-    getRelations: boolean = true,
   ) {
     if (!record) {
       return record
@@ -753,7 +752,6 @@ export default class UserRepository {
 
     const output = record.get({ plain: true })
 
-    if (getRelations) {
       output.tenants = await record.getTenants({
         include: [
           {
@@ -765,7 +763,6 @@ export default class UserRepository {
         ],
         transaction: SequelizeRepository.getTransaction(options),
       })
-    }
 
     return output
   }
