@@ -28,17 +28,11 @@
           "
           target="_blank"
         >
-          <div>
-            <span
-              class="btn cursor-auto p-2 bg-gray-100 border border-gray-200 mr-3"
-              :class="`btn--${platform}`"
-            >
-              <img
-                :src="findIcon(platform)"
-                :alt="`${platform}-icon`"
-                class="w-4 h-4"
-              />
-            </span>
+          <div class="flex gap-3 items-center">
+            <app-platform
+              :platform="platform"
+              :platform-name="`${platform}-icon`"
+            />
             <span class="text-gray-900 text-xs">
               {{ member.username[platform] }}</span
             >
@@ -109,7 +103,6 @@ export default {
 <script setup>
 import { useStore } from 'vuex'
 import { computed, defineProps, ref } from 'vue'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import AppMemberManageIdentitiesDrawer from '../member-manage-identities-drawer'
 import AppMemberManageAttributesDrawer from '../member-manage-attributes-drawer'
 import moment from 'moment'
@@ -138,12 +131,6 @@ const computedCustomAttributes = computed(() => {
     )
   })
 })
-
-const findIcon = (platform) => {
-  return integrationsJsonArray.find(
-    (p) => p.platform === platform
-  ).image
-}
 
 const formattedComputedAttributeValue = (value) => {
   const dateFormat = 'YYYY-MM-DD'

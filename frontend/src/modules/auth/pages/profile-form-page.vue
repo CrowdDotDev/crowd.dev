@@ -3,7 +3,7 @@
     :container-class="'md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-10'"
   >
     <div class="profile-form-page">
-      <h4 class="mt-4 mb-6">
+      <h4 class="mb-6">
         <app-i18n code="auth.profile.title"></app-i18n>
       </h4>
       <el-container

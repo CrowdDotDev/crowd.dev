@@ -14,7 +14,7 @@
       <span class="leading-5">Invite user</span>
     </el-button>
   </div>
-  <div class="app-list-table panel">
+  <div class="user-list-table panel">
     <app-user-list-toolbar></app-user-list-toolbar>
     <div class="-mx-6 -mt-6">
       <el-table
