@@ -1,47 +1,35 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isVisible"
-    class="integration-twitter-drawer"
-    :close-on-click-modal="false"
+    custom-class="integration-twitter-drawer"
+    title="Twitter"
+    pre-title="Integration"
+    :pre-title-img-src="logoUrl"
+    pre-title-img-alt="Twitter logo"
     @close="isVisible = false"
   >
-    <template #header>
-      <div class="block">
-        <span
-          class="block text-gray-600 text-2xs font-normal leading-none"
-          >Integration</span
+    <template #content>
+      <el-form class="form integration-twitter-form">
+        <span class="block text-sm font-medium"
+          >Track hashtag</span
         >
-        <div class="flex items-center pt-2">
-          <img
-            :src="logoUrl"
-            class="w-6 h-6 mr-2"
-            alt="DEV logo"
-          />
-          <div class="text-lg font-semibold text-black">
-            Twitter
-          </div>
-        </div>
-      </div>
-    </template>
-    <el-form class="form integration-twitter-form">
-      <span class="block text-sm font-medium"
-        >Track hashtag</span
-      >
-      <el-form-item>
-        <el-input
-          v-model="hashtag"
-          class="hashtag-input"
-          @change="handleHashtagChange"
-        >
-          <template #prefix>#</template>
-        </el-input>
+        <el-form-item>
+          <el-input
+            v-model="hashtag"
+            class="hashtag-input"
+            @change="handleHashtagChange"
+          >
+            <template #prefix>#</template>
+          </el-input>
 
-        <div class="app-form-hint leading-tight mt-1">
-          Tip: Choose a hashtag that's specific to your
-          company/community for better data
-        </div>
-      </el-form-item>
-    </el-form>
+          <div class="app-form-hint leading-tight mt-1">
+            Tip: Choose a hashtag that's specific to your
+            company/community for better data
+          </div>
+        </el-form-item>
+      </el-form>
+    </template>
+
     <template #footer>
       <div>
         <el-button
@@ -58,7 +46,7 @@
         </a>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 <script>
 import integrationsJsonArray from '@/jsons/integrations.json'

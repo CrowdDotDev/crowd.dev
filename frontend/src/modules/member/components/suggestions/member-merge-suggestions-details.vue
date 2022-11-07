@@ -24,15 +24,11 @@
         </div>
         <button
           v-if="member.id === pair[1].id"
-          class="btn bg-transparent ml-auto"
+          class="btn btn-link btn-link--primary ml-auto"
           @click="handleMakePrimary"
         >
-          <i
-            class="ri-arrow-left-right-line ri-lg text-brand-600"
-          ></i>
-          <span class="text-brand-600 text-xs"
-            >Make primary</span
-          >
+          <i class="ri-arrow-left-right-line"></i>
+          <span>Make primary</span>
         </button>
       </div>
       <span

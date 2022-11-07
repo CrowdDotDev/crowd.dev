@@ -21,13 +21,13 @@
         </div>
       </div>
 
-      <p class="text-gray-500 text-sm mb-1">
-        {{ membersToMerge.length }} suggestions
+      <p class="text-gray-500 text-sm mb-2">
+        {{ count }} suggestions
       </p>
       <div
         v-for="(pair, index) in membersToMerge"
         :key="pair[0].id + '-' + pair[1].id"
-        class="panel mb-6"
+        class="panel mb-6 !pb-0"
       >
         <div class="-mx-6">
           <el-table ref="table" :data="pair" row-key="k1">
@@ -85,91 +85,90 @@
                   v-if="scope.row.id === pair[1].id"
                   class="flex items-center justify-end"
                 >
-                  <button
-                    class="btn bg-transparent mr-4"
+                  <el-button
+                    class="btn btn-link btn-link--primary mr-4"
                     @click="makePrimary(pair)"
                   >
-                    <i
-                      class="ri-arrow-left-right-line ri-lg text-brand-600"
-                    ></i>
-                    <span class="text-brand-600 text-xs"
-                      >Make primary</span
-                    >
-                  </button>
+                    <i class="ri-arrow-left-right-line"></i>
+                    <span>Make primary</span>
+                  </el-button>
                 </div>
               </template>
             </el-table-column>
           </el-table>
           <div
-            class="flex flex-wrap w-full justify-between"
+            class="flex flex-wrap w-full justify-between bg-gray-50 px-6 py-4"
           >
-            <button
-              class="btn merge-suggestion-button btn--transparent mx-4"
+            <el-button
+              class="btn btn--transparent btn--md flex items-center"
               @click="setViewingDetails(index)"
             >
-              <i class="ri-eye-line mr-1"></i> View details
-            </button>
-            <div class="flex flex-wrap">
-              <button
-                class="btn btn--bordered merge-suggestion-button"
+              <i class="ri-eye-line text-lg"></i
+              ><span>View details</span>
+            </el-button>
+            <div class="flex flex-wrap gap-3">
+              <el-button
+                class="btn btn--bordered btn--md"
                 @click="handleNotMergeClick(pair)"
               >
                 Ignore suggestion
-              </button>
-              <button
-                class="btn btn--primary merge-suggestion-button mx-4"
+              </el-button>
+              <el-button
+                class="btn btn--primary btn--md"
                 @click="handleMergeClick(pair)"
               >
                 Merge members
-              </button>
+              </el-button>
             </div>
-            <el-dialog
+
+            <app-dialog
               v-model="viewingDetails[index]"
-              title="Merge suggestion"
-              :append-to-body="true"
-              :close-on-click-modal="false"
-              :show-close="false"
-              :destroy-on-close="true"
-              class="el-dialog--2xl"
-              @close="viewingDetails[index] = false"
+              title="Merging suggestion"
+              size="2extra-large"
             >
-              <template
-                #header="{ close, titleId, titleClass }"
-              >
-                <div class="details-header">
-                  <h3 :id="titleId" :class="titleClass">
-                    Merging suggestion
-                  </h3>
-                  <div class="flex items-center">
-                    <button
-                      class="btn btn--bordered merge-suggestion-button header-merge-suggestion-button"
-                      @click="handleNotMergeClick(pair)"
-                    >
-                      Ignore suggestion
-                    </button>
-                    <button
-                      class="btn btn--primary mx-4 merge-suggestion-button header-merge-suggestion-button"
-                      @click="handleMergeClick(pair)"
-                    >
-                      Merge members
-                    </button>
-                    <button class="btn" @click="close">
-                      <i
-                        class="ri-close-line ri-lg text-gray-400"
-                      ></i>
-                    </button>
-                  </div>
+              <template #actionBtn>
+                <el-button
+                  class="btn btn--bordered btn--md"
+                  @click="handleNotMergeClick(pair)"
+                >
+                  Ignore suggestion
+                </el-button>
+                <el-button
+                  class="btn btn--primary btn--md"
+                  @click="handleMergeClick(pair)"
+                >
+                  Merge members
+                </el-button>
+              </template>
+              <template #content>
+                <div>
+                  <member-merge-suggestions-details
+                    :pair="pair"
+                    @make-primary="makePrimary(pair)"
+                  />
                 </div>
               </template>
-              <div>
-                <member-merge-suggestions-details
-                  :pair="pair"
-                  @make-primary="makePrimary(pair)"
-                />
-              </div>
-            </el-dialog>
+            </app-dialog>
           </div>
         </div>
+      </div>
+      <!-- Load more button -->
+      <div
+        v-if="isLoadMoreVisible"
+        class="flex grow justify-center pt-4"
+      >
+        <div
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner h-16 w-16 !relative !min-h-fit"
+        ></div>
+        <el-button
+          v-else
+          class="btn btn-link btn-link--primary"
+          @click="onLoadMore"
+          ><i class="ri-arrow-down-line"></i
+          ><span class="text-xs">Load more</span></el-button
+        >
       </div>
     </div>
   </div>
@@ -182,25 +181,26 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
-const membersToMerge = ref([])
+let membersToMerge = reactive([])
 const channelsWidth = ref('')
 const viewingDetails = ref({})
+const limit = ref(20)
+const loading = ref(false)
+const count = ref(0)
+const isLoadMoreVisible = ref(true)
+let offset = ref(0)
 
 onMounted(async () => {
-  membersToMerge.value =
-    await MemberService.fetchMergeSuggestions()
-
-  channelsWidth.value = getChannelsWidth(
-    membersToMerge.value
-  )
+  await onLoadMore()
+  channelsWidth.value = getChannelsWidth(membersToMerge)
 
   const newViewingDetails = {}
-  for (let i = 0; i < membersToMerge.value.length; i++) {
+  for (let i = 0; i < membersToMerge.length; i++) {
     newViewingDetails[i] = false
   }
   viewingDetails.value = newViewingDetails
@@ -265,6 +265,21 @@ async function handleNotMergeClick(members) {
   }
 }
 
+async function onLoadMore() {
+  loading.value = true
+  const response =
+    await MemberService.fetchMergeSuggestions(
+      limit.value,
+      offset.value
+    )
+  membersToMerge.push(...response.rows)
+  count.value = response.count
+  loading.value = false
+  offset.value += limit.value
+  isLoadMoreVisible.value =
+    response.rows.length === limit.value
+}
+
 function makePrimary(members) {
   const newToMerge = []
   for (const ms of membersToMerge.value) {
@@ -280,23 +295,3 @@ function makePrimary(members) {
   membersToMerge.value = newToMerge
 }
 </script>
-<style scoped lang="scss">
-.line-clamp {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  text-overflow: ellipsis;
-}
-
-.merge-suggestion-button {
-  @apply mt-4 px-2 text-sm py-2;
-}
-
-.header-merge-suggestion-button {
-  @apply mt-0;
-}
-
-.details-header {
-  @apply flex justify-between items-center;
-}
-</style>

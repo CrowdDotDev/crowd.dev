@@ -71,8 +71,8 @@
               <el-table-column
                 label="Member"
                 prop="displayName"
-                width="220"
-                sortable="custom"
+                width="250"
+                sortable
                 fixed
               >
                 <template #default="scope">
@@ -85,6 +85,10 @@
                     <span class="font-semibold">{{
                       scope.row.displayName
                     }}</span>
+                    <app-member-sentiment
+                      :member="scope.row"
+                      class="ml-2"
+                    />
                   </div>
                 </template>
               </el-table-column>
@@ -224,7 +228,13 @@ export default {
 import { i18n } from '@/i18n'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { computed, onMounted, ref, defineProps } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref,
+  defineProps,
+  watch
+} from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
@@ -233,6 +243,7 @@ import AppMemberReach from '../member-reach.vue'
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import AppMemberLastActivity from '../member-last-activity'
+import AppMemberSentiment from '../member-sentiment'
 
 const store = useStore()
 const router = useRouter()
@@ -338,13 +349,11 @@ function doChangePaginationPageSize(pageSize) {
   )
 }
 
-const doMountTableInterval = setInterval(doMountTable, 1000)
-function doMountTable() {
-  if (table.value !== store.state.member.list.table) {
+watch(table, (newValue) => {
+  if (newValue) {
     store.dispatch('member/doMountTable', table.value)
-    clearInterval(doMountTableInterval)
   }
-}
+})
 
 function translate(key) {
   return i18n(key)

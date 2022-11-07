@@ -98,9 +98,12 @@ defineProps({
   }
 })
 
+const activeView = computed(
+  () => store.getters['activity/activeView']
+)
 const hasFilter = computed(() => {
   const parsedFilters = {
-    ...store.state.activity.filter.attributes
+    ...activeView.value.filter.attributes
   }
 
   // Remove search filter if value is empty

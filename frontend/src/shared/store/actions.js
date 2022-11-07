@@ -8,14 +8,15 @@ export default (moduleName, moduleService = null) => {
   const asyncActions = moduleService
     ? {
         async doFetch(
-          { commit, getters, state },
+          { commit, getters },
           { keepPagination = false }
         ) {
           try {
+            const activeView = getters.activeView
             commit('FETCH_STARTED', { keepPagination })
 
             const response = await moduleService.list(
-              state.filter,
+              activeView.filter,
               getters.orderBy,
               getters.limit,
               getters.offset
@@ -160,92 +161,97 @@ export default (moduleName, moduleService = null) => {
       commit('TABLE_MOUNTED', table)
     },
 
-    doReset({ commit, state, dispatch }) {
+    doReset({ commit, dispatch }) {
       commit('RESETED')
-      return dispatch('doFetch', {
-        filter: state.filter
-      })
+      return dispatch('doFetch', {})
     },
 
-    doResetActiveView({
-      commit,
-      state,
-      dispatch,
-      getters
-    }) {
+    /**
+     *  View-based actions
+     */
+    doResetActiveView({ commit, dispatch, getters }) {
       const activeView = getters.activeView
-      commit('FILTER_CHANGED', activeView.filter)
-      commit('SORTER_CHANGED', activeView.sorter)
+      commit('FILTER_CHANGED', {
+        activeView,
+        filter: activeView.initialFilter
+      })
+      commit('SORTER_CHANGED', {
+        activeView,
+        sorter: activeView.initialSorter
+      })
       return dispatch('doFetch', {
-        filter: state.filter,
         keepPagination: false
       })
     },
 
     doChangePagination(
-      { commit, state, dispatch },
+      { commit, dispatch, getters },
       pagination
     ) {
-      commit('PAGINATION_CHANGED', pagination)
-      const filter = state.filter
+      const activeView = getters.activeView
+      commit('PAGINATION_CHANGED', {
+        activeView,
+        pagination
+      })
       dispatch('doFetch', {
-        filter,
         keepPagination: true
       })
     },
 
     doChangePaginationPageSize(
-      { commit, state, dispatch },
+      { commit, dispatch, getters },
       pageSize
     ) {
-      commit('PAGINATION_PAGE_SIZE_CHANGED', pageSize)
-      const filter = state.filter
+      const activeView = getters.activeView
+      commit('PAGINATION_PAGE_SIZE_CHANGED', {
+        activeView,
+        pageSize
+      })
       dispatch('doFetch', {
-        filter,
         keepPagination: true
       })
     },
 
     doChangePaginationCurrentPage(
-      { commit, state, dispatch },
+      { commit, dispatch, getters },
       currentPage
     ) {
-      commit('PAGINATION_CURRENT_PAGE_CHANGED', currentPage)
-      const filter = state.filter
+      const activeView = getters.activeView
+      commit('PAGINATION_CURRENT_PAGE_CHANGED', {
+        activeView,
+        currentPage
+      })
       dispatch('doFetch', {
-        filter,
         keepPagination: true
       })
     },
 
-    doChangeSort({ commit, state, dispatch }, sorter) {
-      commit('SORTER_CHANGED', sorter)
-      const filter = state.filter
+    doChangeSort({ commit, dispatch, getters }, sorter) {
+      const activeView = getters.activeView
+      commit('SORTER_CHANGED', { activeView, sorter })
       dispatch('doFetch', {
-        filter,
         keepPagination: true
       })
     },
 
     doChangeActiveView(
       { commit, dispatch, getters, state },
-      activeView
+      activeViewId
     ) {
-      commit('ACTIVE_VIEW_CHANGED', activeView)
-      commit('FILTER_CHANGED', getters.activeView.filter)
-      commit('SORTER_CHANGED', getters.activeView.sorter)
+      commit('ACTIVE_VIEW_CHANGED', activeViewId)
 
       const params = new URLSearchParams(
         window.location.search
       )
-      if (params.get('activeTab') !== activeView) {
+      if (params.get('activeTab') !== activeViewId) {
         router.push({
           name: moduleName,
           query: {
             activeTab:
-              activeView === state.views[0].id
+              activeViewId ===
+              Object.values(state.views)[0].id
                 ? undefined
-                : activeView
+                : activeViewId
           }
         })
       }
@@ -272,11 +278,15 @@ export default (moduleName, moduleService = null) => {
       { commit, dispatch, getters },
       attribute
     ) {
+      const activeView = getters.activeView
       let shouldFetch = Array.isArray(attribute.value)
         ? attribute.value.length > 0
         : attribute.value !== null
 
-      commit('FILTER_ATTRIBUTE_ADDED', attribute)
+      commit('FILTER_ATTRIBUTE_ADDED', {
+        activeView,
+        attribute
+      })
 
       if (shouldFetch) {
         dispatch('doFetch', {
@@ -307,12 +317,18 @@ export default (moduleName, moduleService = null) => {
       { commit, dispatch, state, getters },
       attribute
     ) {
+      const activeView = getters.activeView
       let shouldFetch = attributesAreDifferent(
-        state.filter.attributes[attribute.name],
+        state.views[activeView.id].filter.attributes[
+          attribute.name
+        ],
         attribute
       )
 
-      commit('FILTER_ATTRIBUTE_CHANGED', attribute)
+      commit('FILTER_ATTRIBUTE_CHANGED', {
+        activeView,
+        attribute
+      })
 
       if (shouldFetch) {
         dispatch('doFetch', {
@@ -340,14 +356,18 @@ export default (moduleName, moduleService = null) => {
     },
 
     destroyFilterAttribute(
-      { commit, dispatch },
+      { commit, dispatch, getters },
       attribute
     ) {
+      const activeView = getters.activeView
       let shouldFetch = Array.isArray(attribute.value)
         ? attribute.value.length > 0
         : attribute.value !== null
 
-      commit('FILTER_ATTRIBUTE_DESTROYED', attribute)
+      commit('FILTER_ATTRIBUTE_DESTROYED', {
+        activeView,
+        attribute
+      })
 
       if (shouldFetch) {
         dispatch('doFetch', {
@@ -356,15 +376,29 @@ export default (moduleName, moduleService = null) => {
       }
     },
 
-    resetFilterAttribute({ commit, dispatch }, attribute) {
-      commit('FILTER_ATTRIBUTE_RESETED', attribute)
+    resetFilterAttribute(
+      { commit, dispatch, getters },
+      attribute
+    ) {
+      const activeView = getters.activeView
+      commit('FILTER_ATTRIBUTE_RESETED', {
+        activeView,
+        attribute
+      })
       dispatch('doFetch', {
         keepPagination: false
       })
     },
 
-    updateFilterOperator({ commit, dispatch }, operator) {
-      commit('FILTER_OPERATOR_UPDATED', operator)
+    updateFilterOperator(
+      { commit, dispatch, getters },
+      operator
+    ) {
+      const activeView = getters.activeView
+      commit('FILTER_OPERATOR_UPDATED', {
+        activeView,
+        operator
+      })
       dispatch('doFetch', {
         keepPagination: false
       })

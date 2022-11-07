@@ -6,8 +6,10 @@ export default () => {
     rows: (state) =>
       state.list.ids.map((r) => state.records[r]),
     hasRows: (state) => state.count > 0,
-    orderBy: (state) => {
-      const sorter = state.sorter
+    orderBy: (state, getters) => {
+      const sorter = state.views
+        ? getters.activeView.sorter
+        : state.sorter
 
       // TODO: For now this will remain hard coded, need to check API
       if (!sorter.prop) {
@@ -22,8 +24,10 @@ export default () => {
     find: (state) => (id) => {
       return state.records[id]
     },
-    limit: (state) => {
-      const pagination = state.pagination
+    limit: (state, getters) => {
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
 
       if (!pagination || !pagination.pageSize) {
         return INITIAL_PAGE_SIZE
@@ -32,8 +36,10 @@ export default () => {
       return pagination.pageSize
     },
 
-    offset: (state) => {
-      const pagination = state.pagination
+    offset: (state, getters) => {
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
 
       if (!pagination || !pagination.pageSize) {
         return 0
@@ -44,9 +50,12 @@ export default () => {
       return (currentPage - 1) * pagination.pageSize
     },
 
-    pagination: (state) => {
+    pagination: (state, getters) => {
+      const pagination = state.views
+        ? getters.activeView.pagination
+        : state.pagination
       return {
-        ...state.pagination,
+        ...pagination,
         total: state.count,
         showSizeChanger: true
       }
@@ -59,13 +68,18 @@ export default () => {
     },
 
     activeView: (state) => {
-      return state.views.find((v) => v.active)
+      return state.views
+        ? Object.values(state.views).find((v) => v.active)
+        : {
+            pagination: {},
+            sorter: {}
+          }
     },
 
     showResetView: (state, getters) => {
       return filtersAreDifferent(
-        state.filter,
-        getters.activeView.filter
+        getters.activeView.filter,
+        getters.activeView.initialFilter
       )
     },
 

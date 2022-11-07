@@ -108,7 +108,8 @@ class MergeSuggestions:
         # Preprocessing tokens
         token1 = self.preprocess(token1)
         token2 = self.preprocess(token2)
-
+        if (token1 == '' or token2 == ''):
+            return 0
         return self.cosdis(((token1), (token2)))
 
     def calculate_levenshtein_nysiis_distance(self, token1, token2):

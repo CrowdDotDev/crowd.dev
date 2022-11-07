@@ -1,20 +1,22 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="drawerModel"
     size="35%"
     title="Edit identities"
     custom-class="identities-drawer"
   >
-    <el-form :model="memberModel">
-      <app-member-form-identities
-        v-model="memberModel"
-        :show-header="false"
-      />
-    </el-form>
+    <template #content>
+      <el-form :model="memberModel">
+        <app-member-form-identities
+          v-model="memberModel"
+          :show-header="false"
+        />
+      </el-form>
+    </template>
     <template #footer>
       <div style="flex: auto">
         <el-button
-          class="btn btn--secondary btn--md mr-3"
+          class="btn btn--md btn--bordered mr-3"
           @click="handleCancel"
           >Cancel</el-button
         >
@@ -27,7 +29,7 @@
         >
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>
