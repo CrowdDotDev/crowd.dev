@@ -156,6 +156,7 @@ const focus = () => {
 const submit = () => {
   if (props.note) {
     NoteService.update(props.note.id, {
+      members: props.note.members.map((m) => m.id),
       body: note.value
     }).then(() => {
       emit('updated')

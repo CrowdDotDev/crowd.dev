@@ -2,9 +2,14 @@
   <article class="border-t border-gray-200 py-4">
     <div class="flex items-center justify-between pb-4">
       <div class="flex items-center">
-        <app-avatar size="xxs" class="h-6 w-6 mr-2" />
+        <app-avatar
+          :entity="entity"
+          size="xxs"
+          class="h-6 w-6 mr-2"
+        />
         <p class="text-2xs leading-5 text-gray-500">
-          Joana Maia ・ {{ timeAgo(props.note.createdAt) }}
+          {{ props.note.createdBy.fullName }} ・
+          {{ timeAgo(props.note.createdAt) }}
         </p>
       </div>
       <app-note-dropdown
@@ -43,13 +48,14 @@ import {
   ref,
   defineEmits,
   defineExpose,
-  nextTick
+  nextTick,
+  computed
 } from 'vue'
 import AppAvatar from '@/shared/avatar/avatar'
-import computedTimeAgo from '@/utils/time-ago'
 import AppNoteDropdown from '@/modules/notes/components/note-dropdown'
 import AppNoteEditor from '@/modules/notes/components/note-editor'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { formatDateToTimeAgo } from '@/utils/date'
 
 const props = defineProps({
   note: {
@@ -62,9 +68,16 @@ const emit = defineEmits(['reload'])
 
 const { currentUser } = mapGetters('auth')
 
-const timeAgo = computedTimeAgo
+const timeAgo = formatDateToTimeAgo
 const editor = ref(null)
 const editing = ref(false)
+
+const entity = computed(() => {
+  return {
+    avatar: props.note.createdBy.avatarUrl,
+    displayName: props.note.createdBy.fullName
+  }
+})
 
 const edit = () => {
   editing.value = true
