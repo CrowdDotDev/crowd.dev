@@ -18,6 +18,7 @@ export default {
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import Link from '@tiptap/extension-link'
 import {
   ref,
   defineProps,
@@ -58,6 +59,9 @@ const editor = useEditor({
     StarterKit,
     Placeholder.configure({
       placeholder: props.placeholder
+    }),
+    Link.configure({
+      openOnClick: false
     })
   ],
   onUpdate: () => {
