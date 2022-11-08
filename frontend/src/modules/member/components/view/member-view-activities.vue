@@ -7,6 +7,7 @@
         placeholder="Search activities"
         :prefix-icon="SearchIcon"
         clearable
+        class="member-view-activities-search"
       >
         <template #append>
           <el-select
@@ -261,5 +262,12 @@ onMounted(async () => {
   .activity-header {
     @apply max-w-full overflow-visible;
   }
+}
+.member-view-activities-search
+  .el-input-group__append
+  .el-select
+  .el-input
+  .el-input__wrapper {
+  border-radius: 0 4px 4px 0 !important;
 }
 </style>

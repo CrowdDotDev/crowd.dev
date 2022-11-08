@@ -7,12 +7,6 @@ export default () => {
       state.list.ids = []
       state.list.loading = false
       state.count = 0
-      state.filter = {}
-      state.pagination = {}
-      state.sorter = {
-        prop: 'score',
-        order: 'descending'
-      }
 
       if (state.list.table) {
         state.list.table.clearSelection()
@@ -27,52 +21,6 @@ export default () => {
 
     TABLE_MOUNTED(state, payload) {
       state.list.table = payload
-    },
-
-    PAGINATION_CHANGED(state, payload) {
-      state.pagination = payload || {}
-    },
-
-    PAGINATION_CURRENT_PAGE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
-
-      state.pagination = {
-        currentPage: payload || 1,
-        pageSize:
-          previousPagination.pageSize || INITIAL_PAGE_SIZE
-      }
-    },
-
-    PAGINATION_PAGE_SIZE_CHANGED(state, payload) {
-      const previousPagination = state.pagination || {}
-
-      state.pagination = {
-        currentPage: previousPagination.currentPage || 1,
-        pageSize: payload || INITIAL_PAGE_SIZE
-      }
-    },
-
-    SORTER_CHANGED(state, payload) {
-      state.sorter =
-        Object.keys(payload).length > 0
-          ? payload
-          : {
-              prop: 'createdAt',
-              order: 'descending'
-            }
-    },
-
-    ACTIVE_VIEW_CHANGED(state, viewId) {
-      state.views = Object.values(state.views).reduce(
-        (acc, item) => {
-          acc.push({
-            ...item,
-            active: item.id === viewId
-          })
-          return acc
-        },
-        []
-      )
     },
 
     FETCH_STARTED(state, payload) {
@@ -142,40 +90,116 @@ export default () => {
     },
     FIND_ERROR() {},
 
-    FILTER_CHANGED(state, filter) {
+    /**
+     *  View-based mutations
+     */
+
+    PAGINATION_CHANGED(state, payload) {
+      const { activeView, pagination } = payload
+      state.views[activeView.id].pagination =
+        pagination || {}
+    },
+
+    PAGINATION_CURRENT_PAGE_CHANGED(state, payload) {
+      const { activeView, currentPage } = payload
+      const previousPagination =
+        state.views[activeView.id].pagination || {}
+
+      state.views[activeView.id].pagination = {
+        currentPage: currentPage || 1,
+        pageSize:
+          previousPagination.pageSize || INITIAL_PAGE_SIZE
+      }
+    },
+
+    PAGINATION_PAGE_SIZE_CHANGED(state, payload) {
+      const { activeView, pageSize } = payload
+      const previousPagination = state.pagination || {}
+
+      state.views[activeView.id].pagination = {
+        currentPage: previousPagination.currentPage || 1,
+        pageSize: pageSize || INITIAL_PAGE_SIZE
+      }
+    },
+
+    SORTER_CHANGED(state, payload) {
+      const { activeView, sorter } = payload
+      state.views[activeView.id].sorter =
+        Object.keys(sorter).length > 0
+          ? sorter
+          : {
+              prop: 'createdAt',
+              order: 'descending'
+            }
+    },
+
+    ACTIVE_VIEW_CHANGED(state, viewId) {
+      state.views = Object.values(state.views).reduce(
+        (acc, item) => {
+          acc[item.id] = {
+            ...item,
+            active: item.id === viewId
+          }
+          return acc
+        },
+        {}
+      )
+    },
+
+    FILTER_CHANGED(state, payload) {
+      const { activeView, filter } = payload
       const { attributes, operator } = filter
-      state.filter = {
+      state.views[activeView.id].filter = {
         attributes: _.cloneDeep(attributes) || {},
         operator: operator || 'and'
       }
     },
 
-    FILTER_ATTRIBUTE_ADDED(state, attribute) {
-      state.filter.attributes[attribute.name] = attribute
+    FILTER_ATTRIBUTE_ADDED(state, payload) {
+      const { activeView, attribute } = payload
+      state.views[activeView.id].filter.attributes[
+        attribute.name
+      ] = attribute
     },
 
-    FILTER_ATTRIBUTE_CHANGED(state, attribute) {
-      state.filter.attributes[attribute.name] = attribute
+    FILTER_ATTRIBUTE_CHANGED(state, payload) {
+      const { activeView, attribute } = payload
+      state.views[activeView.id].filter.attributes[
+        attribute.name
+      ] = attribute
     },
 
-    FILTER_ATTRIBUTE_DESTROYED(state, attribute) {
-      delete state.filter.attributes[attribute.name]
+    FILTER_ATTRIBUTE_DESTROYED(state, payload) {
+      const { activeView, attribute } = payload
+      delete state.views[activeView.id].filter.attributes[
+        attribute.name
+      ]
       if (
-        Object.keys(state.filter.attributes).length === 0
+        Object.keys(
+          state.views[activeView.id].filter.attributes
+        ).length === 0
       ) {
-        state.filter.operator = 'and'
+        state.views[activeView.id].filter.operator = 'and'
       }
     },
 
-    FILTER_OPERATOR_UPDATED(state, operator) {
-      state.filter.operator = operator
+    FILTER_OPERATOR_UPDATED(state, payload) {
+      const { activeView, operator } = payload
+      state.views[activeView.id].filter.operator = operator
     },
 
-    FILTER_ATTRIBUTE_RESETED(state, attribute) {
-      state.filter.attributes[attribute.name].value =
-        state.filter.attributes[attribute.name].defaultValue
-      state.filter.attributes[attribute.name].operator =
-        state.filter.attributes[
+    FILTER_ATTRIBUTE_RESETED(state, payload) {
+      const { activeView, attribute } = payload
+      state.views[activeView.id].filter.attributes[
+        attribute.name
+      ].value =
+        state.views[activeView.id].filter.attributes[
+          attribute.name
+        ].defaultValue
+      state.views[activeView.id].filter.attributes[
+        attribute.name
+      ].operator =
+        state.views[activeView.id].filter.attributes[
           attribute.name
         ].defaultOperator
     }

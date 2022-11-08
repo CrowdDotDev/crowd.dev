@@ -8,7 +8,7 @@ module.exports = defineConfig({
   e2e: {
     baseUrl: 'http://localhost:8081',
     specPattern: 'tests/e2e/*.spec.js',
-    supportFile: 'tests/support/index.js',
+    supportFile: 'tests/support/index.js'
   },
   folders: {
     fixturesFolder: 'tests/fixtures',

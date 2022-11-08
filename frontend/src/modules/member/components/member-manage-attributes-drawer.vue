@@ -1,35 +1,54 @@
 <template>
+  <!-- This drawer is too customized to use the app-drawer generic component -->
   <el-drawer
     v-model="drawerModel"
     size="35%"
+    :show-close="false"
+    :destroy-on-close="true"
+    :close-on-click-modal="false"
     :custom-class="
       isEditingAttributes
-        ? 'test'
+        ? 'edit-attribute-drawer'
         : 'manage-attribute-drawer'
     "
   >
-    <template #header>
-      <div>
+    <template #header="{ close, titleId, titleClass }">
+      <div class="flex grow justify-between items-center">
+        <div>
+          <el-button
+            v-if="isEditingAttributes"
+            class="btn btn-link btn-link--md btn-link--secondary mb-2"
+            @click="onCloseManageAttributes"
+            ><i class="ri-arrow-left-s-line"></i
+            ><span>Edit attributes</span></el-button
+          >
+          <h5
+            :id="titleId"
+            class="text-black"
+            :class="titleClass"
+          >
+            {{
+              !isEditingAttributes
+                ? 'Edit attributes'
+                : 'Manage global attributes'
+            }}
+          </h5>
+          <el-button
+            v-if="!isEditingAttributes"
+            class="btn btn-link btn-link--sm btn-link--primary"
+            @click="onOpenManageAttributes"
+            >Manage global attributes</el-button
+          >
+        </div>
+
         <el-button
-          v-if="isEditingAttributes"
-          class="btn btn-link btn-link--md btn-link--secondary mb-2"
-          @click="onCloseManageAttributes"
-          ><i class="ri-arrow-left-s-line"></i
-          ><span>Edit attributes</span></el-button
+          class="btn btn--transparent btn--xs w-8 !h-8"
+          @click="close"
         >
-        <h5 class="text-black">
-          {{
-            !isEditingAttributes
-              ? 'Edit attributes'
-              : 'Manage global attributes'
-          }}
-        </h5>
-        <el-button
-          v-if="!isEditingAttributes"
-          class="btn btn-link btn-link--sm btn-link--primary"
-          @click="onOpenManageAttributes"
-          >Manage global attributes</el-button
-        >
+          <i
+            class="ri-close-line text-lg text-gray-400"
+          ></i>
+        </el-button>
       </div>
     </template>
     <template #default>
@@ -191,7 +210,7 @@ const onCloseManageAttributes = () => {
   }
 }
 
-.test {
+.edit-attribute-drawer {
   & .el-drawer__header {
     @apply p-6;
   }

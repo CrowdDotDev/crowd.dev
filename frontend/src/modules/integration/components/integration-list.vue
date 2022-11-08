@@ -20,29 +20,20 @@
         />
       </div>
     </div>
-    <el-dialog
-      :model-value="showGithubDialog"
-      size="600px"
+    <app-dialog
+      v-model="showGithubDialog"
+      size="small"
       title="Finishing the setup"
+      :show-loading-icon="true"
     >
-      <template #header>
-        <div class="flex items-center h-6">
-          <h5>Finishing the setup</h5>
-          <div
-            v-loading="true"
-            class="app-page-spinner w-6 ml-4"
-          ></div>
+      <template #content>
+        <div class="px-6 pb-6">
+          We're finishing the last steps of the
+          <span class="font-semibold">GitHub</span> <br />
+          integration setup, please don't reload the page.
         </div>
       </template>
-      <div class="p-6">
-        <span>
-          We're finishing the last steps of the
-          <span class="font-semibold">GitHub</span>
-          integration setup, please don't <br />
-          reload the page.
-        </span>
-      </div>
-    </el-dialog>
+    </app-dialog>
   </div>
 </template>
 

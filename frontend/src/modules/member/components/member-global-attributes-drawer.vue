@@ -1,18 +1,16 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isDrawerOpen"
     custom-class="attributes-drawer"
-    direction="rtl"
+    title="Manage global attributes"
     size="35%"
-    @closed="() => (isDrawerOpen = false)"
+    :show-footer="false"
   >
-    <template #header>
-      <h5 class="text-black">Manage global attributes</h5>
-    </template>
-    <app-member-form-global-attributes
-      v-model="isDrawerOpen"
-    />
-  </el-drawer>
+    <template #content
+      ><app-member-form-global-attributes
+        v-model="isDrawerOpen"
+    /></template>
+  </app-drawer>
 </template>
 
 <script setup>

@@ -1,138 +1,125 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isVisible"
-    class="integration-devto-drawer"
-    :close-on-click-modal="false"
+    custom-class="integration-devto-drawer"
+    title="DEV"
+    pre-title="Integration"
+    :pre-title-img-src="logoUrl"
+    pre-title-img-alt="DEV logo"
     @close="cancel"
   >
-    <template #header>
-      <div class="block">
-        <span
-          class="block text-gray-600 text-2xs font-normal leading-none"
-          >Integration</span
-        >
-        <div class="flex items-center pt-2">
-          <img
-            :src="logoUrl"
-            class="w-6 h-6 mr-2"
-            alt="DEV logo"
-          />
-          <div class="text-lg font-semibold text-black">
-            DEV
-          </div>
+    <template #content>
+      <el-form class="form integration-devto-form">
+        <div class="flex flex-col">
+          <span class="text-sm font-medium"
+            >Track organization articles</span
+          >
+          <span
+            class="text-2xs font-light mb-2 text-gray-600"
+          >
+            Monitor all articles from organization accounts
+          </span>
+          <el-form-item
+            v-for="org in organizations"
+            :key="org.id"
+            :class="{
+              'is-error': org.touched && !org.valid,
+              'is-success': org.touched && org.valid
+            }"
+          >
+            <div class="flex flex-row items-center w-full">
+              <el-input
+                id="devOrganization"
+                v-model="org.username"
+                class="text-green-500"
+                spellcheck="false"
+                placeholder="Enter organization slug"
+                @blur="handleOrganizationValidation(org.id)"
+              >
+                <template #prepend>dev.to/</template>
+                <template #suffix>
+                  <div
+                    v-if="org.validating"
+                    v-loading="org.validating"
+                    class="flex items-center justify-center w-6 h-6"
+                  ></div>
+                </template>
+              </el-input>
+              <i
+                v-if="!isLastOrganization"
+                class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
+                @click="removeOrganization(org.id)"
+              />
+            </div>
+            <span
+              v-if="org.touched && !org.valid"
+              class="el-form-item__error"
+              >Organization slug is not valid</span
+            >
+          </el-form-item>
+          <a
+            class="cursor-pointer text-sm font-medium text-brand-500"
+            @click="addNewOrganization"
+            >+ Add organization link</a
+          >
+          <span class="text-sm font-medium mt-8"
+            >Track user articles</span
+          >
+          <span
+            class="text-2xs font-light mb-2 text-gray-600"
+          >
+            Monitor articles from individual users, such as
+            team members or community advocates
+          </span>
+          <el-form-item
+            v-for="user in users"
+            :key="user.id"
+            :class="{
+              'is-error': user.touched && !user.valid,
+              'is-success': user.touched && user.valid
+            }"
+          >
+            <div class="flex flex-row items-center w-full">
+              <el-input
+                id="devUser"
+                v-model="user.username"
+                spellcheck="false"
+                placeholder="Enter user slug"
+                @blur="handleUserValidation(user.id)"
+              >
+                <template #prepend>dev.to/</template>
+                <template #suffix>
+                  <div
+                    v-if="user.validating"
+                    v-loading="user.validating"
+                    class="flex items-center justify-center w-6 h-6"
+                  ></div>
+                </template>
+              </el-input>
+              <i
+                v-if="!isLastUser"
+                class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
+                @click="removeUser(user.id)"
+              />
+            </div>
+            <span
+              v-if="user.touched && !user.valid"
+              class="el-form-item__error"
+              >User slug is not valid</span
+            >
+          </el-form-item>
+          <a
+            class="cursor-pointer text-sm font-medium text-brand-500"
+            @click="addNewUser"
+            >+ Add user link</a
+          >
         </div>
-      </div>
+      </el-form>
     </template>
-    <el-form class="form integration-devto-form">
-      <div class="flex flex-col">
-        <span class="text-sm font-medium"
-          >Track organization articles</span
-        >
-        <span
-          class="text-2xs font-light mb-2 text-gray-600"
-        >
-          Monitor all articles from organization accounts
-        </span>
-        <el-form-item
-          v-for="org in organizations"
-          :key="org.id"
-          :class="{
-            'is-error': org.touched && !org.valid,
-            'is-success': org.touched && org.valid
-          }"
-        >
-          <div class="flex flex-row items-center w-full">
-            <el-input
-              id="devOrganization"
-              v-model="org.username"
-              class="text-green-500"
-              spellcheck="false"
-              placeholder="Enter organization slug"
-              @blur="handleOrganizationValidation(org.id)"
-            >
-              <template #prepend>dev.to/</template>
-              <template #suffix>
-                <div
-                  v-if="org.validating"
-                  v-loading="org.validating"
-                  class="flex items-center justify-center w-6 h-6"
-                ></div>
-              </template>
-            </el-input>
-            <i
-              v-if="!isLastOrganization"
-              class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
-              @click="removeOrganization(org.id)"
-            />
-          </div>
-          <span
-            v-if="org.touched && !org.valid"
-            class="el-form-item__error"
-            >Organization slug is not valid</span
-          >
-        </el-form-item>
-        <a
-          class="cursor-pointer text-sm font-medium text-brand-500"
-          @click="addNewOrganization"
-          >+ Add organization link</a
-        >
-        <span class="text-sm font-medium mt-8"
-          >Track user articles</span
-        >
-        <span
-          class="text-2xs font-light mb-2 text-gray-600"
-        >
-          Monitor articles from individual users, such as
-          team members or community advocates
-        </span>
-        <el-form-item
-          v-for="user in users"
-          :key="user.id"
-          :class="{
-            'is-error': user.touched && !user.valid,
-            'is-success': user.touched && user.valid
-          }"
-        >
-          <div class="flex flex-row items-center w-full">
-            <el-input
-              id="devUser"
-              v-model="user.username"
-              spellcheck="false"
-              placeholder="Enter user slug"
-              @blur="handleUserValidation(user.id)"
-            >
-              <template #prepend>dev.to/</template>
-              <template #suffix>
-                <div
-                  v-if="user.validating"
-                  v-loading="user.validating"
-                  class="flex items-center justify-center w-6 h-6"
-                ></div>
-              </template>
-            </el-input>
-            <i
-              v-if="!isLastUser"
-              class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
-              @click="removeUser(user.id)"
-            />
-          </div>
-          <span
-            v-if="user.touched && !user.valid"
-            class="el-form-item__error"
-            >User slug is not valid</span
-          >
-        </el-form-item>
-        <a
-          class="cursor-pointer text-sm font-medium text-brand-500"
-          @click="addNewUser"
-          >+ Add user link</a
-        >
-      </div>
-    </el-form>
     <template #footer>
       <div>
         <el-button
-          class="btn btn--md btn--secondary mr-4"
+          class="btn btn--md btn--bordered mr-4"
           :disabled="loading"
           @click="cancel"
         >
@@ -149,8 +136,9 @@
         </el-button>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
+
 <script>
 import { mapActions } from 'vuex'
 import integrationsJsonArray from '@/jsons/integrations.json'

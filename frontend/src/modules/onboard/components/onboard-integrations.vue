@@ -57,42 +57,44 @@
       </el-button>
     </div>
   </div>
-  <el-dialog
+  <app-dialog
     v-model="populateDataModal"
-    class="plain el-dialog--sm"
-    :show-close="false"
+    size="small"
+    custom-class="onboard-dialog"
+    :show-header="false"
   >
-    <template #header><div></div></template>
-    <div class="p-6">
-      <p class="text-2xl leading-12 pb-2">👀</p>
-      <h4
-        class="text-base leading-6 font-semibold pb-2 text-gray-1000"
-      >
-        Not ready to sync your own data?
-      </h4>
-      <p class="text-sm leading-5 text-gray-500 pb-8">
-        Get to know the product with a set of sample data
-        that we prepared for you
-      </p>
-      <el-button
-        id="continueSampleData"
-        :loading="populatingData"
-        class="btn btn--primary btn--md mb-3 w-full"
-        @click="populateData()"
-      >
-        Continue with sample data
-      </el-button>
-      <div class="flex justify-center">
-        <div
-          id="closeSampleDataModal"
-          class="text-sm font-medium p-2 text-brand-600 cursor-pointer"
-          @click="populateDataModal = false"
+    <template #content>
+      <div class="p-6">
+        <p class="text-2xl leading-12 pb-2">👀</p>
+        <h4
+          class="text-base leading-6 font-semibold pb-2 text-gray-1000"
         >
-          Back to setup
+          Not ready to sync your own data?
+        </h4>
+        <p class="text-sm leading-5 text-gray-500 pb-8">
+          Get to know the product with a set of sample data
+          that we prepared for you
+        </p>
+        <el-button
+          id="continueSampleData"
+          :loading="populatingData"
+          class="btn btn--primary btn--md mb-3 w-full"
+          @click="populateData()"
+        >
+          Continue with sample data
+        </el-button>
+        <div class="flex justify-center">
+          <div
+            id="closeSampleDataModal"
+            class="text-sm font-medium p-2 text-brand-600 cursor-pointer"
+            @click="populateDataModal = false"
+          >
+            Back to setup
+          </div>
         </div>
       </div>
-    </div>
-  </el-dialog>
+    </template>
+  </app-dialog>
 </template>
 
 <script>
@@ -191,3 +193,11 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.onboard-dialog {
+  .el-dialog__header {
+    @apply p-0;
+  }
+}
+</style>

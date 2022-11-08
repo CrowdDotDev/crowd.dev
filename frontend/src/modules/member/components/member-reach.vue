@@ -2,7 +2,7 @@
   <div class="reach">
     <el-tooltip
       ref="tooltip"
-      placement="top"
+      placement="top-start"
       :disabled="member.reach.total === -1"
     >
       <template #content>

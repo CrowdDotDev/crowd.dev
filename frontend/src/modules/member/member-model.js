@@ -21,7 +21,7 @@ const fields = {
   jobTitle: new StringField('jobTitle', label('jobTitle')),
   username: new JsonField('username', label('username'), {
     nonEmpty: true,
-    required: true,
+    requiredUnless: 'email',
     customFilterPreview: (record) => {
       return record
     }
@@ -50,7 +50,7 @@ const fields = {
   ),
   // This is only used to filter members
   platform: new StringField('platform', label('platform'), {
-    required: true
+    requiredUnless: 'email'
   }),
   activities: ActivityField.relationToMany(
     'activities',

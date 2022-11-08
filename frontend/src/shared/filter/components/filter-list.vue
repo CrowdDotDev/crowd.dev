@@ -72,12 +72,20 @@ const props = defineProps({
 })
 
 const store = useStore()
+const activeView = computed(
+  () => store.getters[`${props.module}/activeView`]
+)
 const operator = computed(
-  () => store.state[props.module].filter.operator
+  () =>
+    store.state[props.module].views[activeView.value.id]
+      .filter.operator
 )
 
 const filters = computed(() => {
-  return { ...store.state[props.module].filter.attributes }
+  return {
+    ...store.state[props.module].views[activeView.value.id]
+      .filter.attributes
+  }
 })
 const filtersArray = computed(() =>
   Object.values(filters.value).filter(
