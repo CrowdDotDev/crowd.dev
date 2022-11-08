@@ -2,16 +2,13 @@ import pandas as pd
 import requests
 import hashlib
 import json
-import logging
 import signal
 from bs4 import BeautifulSoup
 from transformers import GPT2TokenizerFast
 from urllib.parse import urlparse
 from reppy.robots import Robots
 import time
-
-
-logger = logging.getLogger(__name__)
+from crowd.eagle_eye.infrastructure.logging import LOGGER
 
 
 def pre_process(df):
@@ -97,7 +94,7 @@ def post_process(df):
                 else:
                     return text
             except Exception as e:  # noqa: E722
-                print(e)
+                LOGGER.error(f"Error {e}")
                 return text
             finally:
                 signal.alarm(0)
@@ -141,17 +138,17 @@ def get_hacker_news_data():
     """
     Get the data from Hacker News.
     """
-    print("Fetching top IDs from Hacker News...")
+    LOGGER.info("Fetching top IDs from Hacker News...")
     top_500 = json.loads(requests.get('https://hacker-news.firebaseio.com/v0/topstories.json').content)
-    print("Done")
-    print("Fetching data from Hacker News...")
+    LOGGER.info("Done")
+    LOGGER.info("Fetching data from Hacker News...")
     ('Starting')
     start = time.time()
     dicts = [
         json.loads(requests.get(f'https://hacker-news.firebaseio.com/v0/item/{story_id}.json').content)
         for story_id in top_500
     ]
-    print(f"Done in {time.time() - start} seconds")
+    LOGGER.info(f"Done in {time.time() - start} seconds")
     df = pd.DataFrame(dicts)
     return pre_process(df)
 
@@ -204,7 +201,7 @@ if __name__ == '__main__':
     df = df[df['text'].notna()]
 
     df1 = df.head(10)
-    print(df1)
+    LOGGER.info(df1)
 
     embeds = co.embed(
         texts=list(df1['combined'].values),
@@ -217,7 +214,7 @@ if __name__ == '__main__':
     df1.drop(columns=['vectorId'], inplace=True)
     payloads = list(df1.T.to_dict().values())
 
-    print(payloads)
+    LOGGER.info(payloads)
 
     client.upsert(
         collection_name="crowddev",

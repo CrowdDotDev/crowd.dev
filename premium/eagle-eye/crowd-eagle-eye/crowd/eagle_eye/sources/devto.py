@@ -1,11 +1,9 @@
 import json
 import requests
 from crowd.eagle_eye.models import Vector, Payload
-import logging
+from crowd.eagle_eye.infrastructure.logging import LOGGER
 import time
 from dateutil import parser
-
-logger = logging.getLogger(__name__)
 
 
 def pre_process(data):
@@ -127,7 +125,7 @@ def devto(sleep=True):
             if 'organization' in post:
                 if sleep:
                     time.sleep(1)
-                logger.info('Organisation request')
+                LOGGER.info('Organisation request')
 
                 post['organization'] = json.loads(requests.get(
                     f'https://dev.to/api/organizations/{post["organization"]["username"]}').content)

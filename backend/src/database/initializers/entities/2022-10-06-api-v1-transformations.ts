@@ -2,7 +2,6 @@ import { QueryTypes } from 'sequelize'
 import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import IntegrationService from '../../../services/integrationService'
-import SequelizeRepository from '../../repositories/sequelizeRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DevtoMemberAttributes } from '../../attributes/member/devto'
@@ -17,18 +16,6 @@ import { CrowdMemberAttributes } from '../../attributes/member/crowd'
 
 export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
-
-  const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-
-  const activityCountQuery = `select count(*) from activities a`
-
-  const activityCount = (
-    await options.database.sequelize.query(activityCountQuery, {
-      type: QueryTypes.SELECT,
-    })
-  )[0].count
-
-  const transformedActivityCount = 0
 
   for (const tenant of tenants) {
     let updateMembers = []
@@ -353,7 +340,6 @@ export default async () => {
       const ACTIVITY_CHUNK_SIZE = 25000
 
       if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
-        const rawLength = updateActivities.length
         splittedBulkActivities = []
 
         while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
@@ -366,12 +352,10 @@ export default async () => {
           splittedBulkActivities.push(updateActivities)
         }
 
-        let counter = ACTIVITY_CHUNK_SIZE
         for (const activityChunk of splittedBulkActivities) {
           await userContext.database.activity.bulkCreate(activityChunk, {
             updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
           })
-          counter += ACTIVITY_CHUNK_SIZE
         }
       } else {
         await userContext.database.activity.bulkCreate(updateActivities, {

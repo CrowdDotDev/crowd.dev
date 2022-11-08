@@ -1,12 +1,11 @@
 import moment from 'moment'
 import request from 'superagent'
-import { API_CONFIG, IS_PROD_ENV, KUBE_MODE } from '../config'
+import { API_CONFIG } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import Error400 from '../errors/Error403'
 import track from '../segment/track'
-import { notLocalLambda } from './aws'
 import { LoggingBase } from './loggingBase'
 
 interface EagleEyeSearchPoint {

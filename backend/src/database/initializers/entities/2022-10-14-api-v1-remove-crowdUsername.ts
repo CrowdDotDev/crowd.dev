@@ -25,7 +25,6 @@ export default async () => {
     const MEMBER_CHUNK_SIZE = 25000
 
     if (updateMembers.length > MEMBER_CHUNK_SIZE) {
-      const rawLength = updateMembers.length
       splittedBulkMembers = []
 
       while (updateMembers.length > MEMBER_CHUNK_SIZE) {

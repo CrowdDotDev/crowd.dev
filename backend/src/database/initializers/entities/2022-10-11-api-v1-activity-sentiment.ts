@@ -20,8 +20,6 @@ export default async () => {
     type: QueryTypes.SELECT,
   })
 
-  const rawLength = activities.length
-
   const splittedActivities = []
   const ACTIVITY_CHUNK_SIZE = 350
 
