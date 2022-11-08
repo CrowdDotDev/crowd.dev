@@ -30,4 +30,13 @@
       @apply text-gray-600;
     }
   }
+
+  &.bordered {
+    .el-drawer__header {
+      @apply mb-6;
+    }
+    .el-drawer__body {
+      @apply border-t border-gray-200;
+    }
+  }
 }

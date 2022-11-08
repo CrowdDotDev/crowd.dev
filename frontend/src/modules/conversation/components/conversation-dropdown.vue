@@ -124,8 +124,10 @@ export default {
       } else if (
         command.action === 'conversationPublicUrl'
       ) {
-        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}-c/${this.record.slug}`
+        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}-c/${command.conversation.slug}`
+
         await navigator.clipboard.writeText(url)
+
         Message.success(
           'Conversation Public URL successfully copied to your clipboard'
         )

@@ -54,17 +54,17 @@
     />
 
     <!-- Executions Drawer -->
-    <el-drawer
+    <app-drawer
       v-model="isExecutionsDrawerOpen"
-      :destroy-on-close="true"
-      :close-on-click-modal="false"
       title="Webhook executions"
-      custom-class="webhook-executions-drawer"
       size="600px"
-      @closed="onCloseExecutionsDrawer"
+      custom-class="webhook-executions-drawer"
+      @close="onCloseExecutionsDrawer"
     >
-      <app-webhook-execution-list :webhook="automation" />
-    </el-drawer>
+      <template #content>
+        <app-webhook-execution-list :webhook="automation" />
+      </template>
+    </app-drawer>
   </div>
 </template>
 

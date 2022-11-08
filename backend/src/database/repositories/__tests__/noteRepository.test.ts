@@ -26,6 +26,13 @@ describe('NoteRepository tests', () => {
       noteCreated.createdAt = noteCreated.createdAt.toISOString().split('T')[0]
       noteCreated.updatedAt = noteCreated.updatedAt.toISOString().split('T')[0]
 
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
+      const expectedCreatedBy = {
+        id: plainUser.id,
+        fullName: plainUser.fullName,
+        avatarUrl: null,
+      }
+
       const expectedNoteCreated = {
         id: noteCreated.id,
         body: note2add.body,
@@ -35,6 +42,7 @@ describe('NoteRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdBy: expectedCreatedBy,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -61,6 +69,13 @@ describe('NoteRepository tests', () => {
       noteCreated.createdAt = noteCreated.createdAt.toISOString().split('T')[0]
       noteCreated.updatedAt = noteCreated.updatedAt.toISOString().split('T')[0]
 
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
+      const expectedCreatedBy = {
+        id: plainUser.id,
+        fullName: plainUser.fullName,
+        avatarUrl: null,
+      }
+
       const expectedNoteFound = {
         id: noteCreated.id,
         body: note2add.body,
@@ -70,6 +85,7 @@ describe('NoteRepository tests', () => {
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdBy: expectedCreatedBy,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
@@ -239,6 +255,13 @@ describe('NoteRepository tests', () => {
 
       expect(noteUpdated.updatedAt.getTime()).toBeGreaterThan(noteUpdated.createdAt.getTime())
 
+      const plainUser = mockIRepositoryOptions.currentUser.get({ plain: true })
+      const expectedCreatedBy = {
+        id: plainUser.id,
+        fullName: plainUser.fullName,
+        avatarUrl: null,
+      }
+
       const noteExpected = {
         id: noteCreated.id,
         body: noteUpdated.body,
@@ -247,6 +270,7 @@ describe('NoteRepository tests', () => {
         updatedAt: noteUpdated.updatedAt,
         deletedAt: null,
         tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdBy: expectedCreatedBy,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         members: [],
