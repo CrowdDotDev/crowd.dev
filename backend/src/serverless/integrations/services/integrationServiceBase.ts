@@ -1,7 +1,7 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
-import { createChildLogger, createServiceChildLogger , Logger } from "../../../utils/logging"
+import { createChildLogger, createServiceChildLogger, Logger } from '../../../utils/logging'
 import {
   IIntegrationStream,
   IProcessStreamResults,
