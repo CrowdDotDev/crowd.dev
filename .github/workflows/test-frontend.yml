@@ -12,11 +12,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Check docker compose
-        run: docker compose version
-
       - name: Start all services
-        run: |
+        run: pwd && ls -al && |
           ./scripts/cli start
 
       - name: Cypress run
