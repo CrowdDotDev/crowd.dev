@@ -73,6 +73,7 @@ const en = {
     sampleDataDeletionCompleted: 'Sample data deletion completed.',
     errors: {
       publishedConversationExists: 'Update failed. Tenant already has published conversations.',
+      nameRequiredOnCreate: 'Name is required on tenant creation.',
     },
   },
 

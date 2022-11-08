@@ -1,6 +1,5 @@
 import lodash from 'lodash'
 import Sequelize, { QueryTypes } from 'sequelize'
-import { v4 as uuid } from 'uuid'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
 import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
@@ -8,6 +7,7 @@ import Error404 from '../../errors/Error404'
 import Error400 from '../../errors/Error400'
 import { isUserInTenant } from '../utils/userTenantUtils'
 import { IRepositoryOptions } from './IRepositoryOptions'
+import getCleanString from '../../utils/getCleanString'
 
 const { Op } = Sequelize
 
@@ -23,7 +23,11 @@ class TenantRepository {
     // in case of multi tenant without subdomain
     // set a random uuid
     console.log('data: ', data)
-    data.url = data.url || uuid()
+    if (!data.name) {
+      throw new Error400(options.language, 'tenant.errors.nameRequiredOnCreate')
+    }
+
+    data.url = data.url || (await TenantRepository.generateTenantUrl(data.name, options))
 
     const existsUrl = Boolean(
       await options.database.tenant.count({
@@ -62,6 +66,35 @@ class TenantRepository {
     return this.findById(record.id, {
       ...options,
     })
+  }
+
+  static async generateTenantUrl(name: string, options: IRepositoryOptions): Promise<string> {
+    const cleanedName = getCleanString(name)
+
+    const nameWordsArray = cleanedName.split(' ')
+
+    let cleanedTenantUrl = ''
+
+    for (let i = 0; i < nameWordsArray.length; i++) {
+      cleanedTenantUrl += `${nameWordsArray[i]}-`
+    }
+
+    // remove trailing dash
+    cleanedTenantUrl = cleanedTenantUrl.replace(/-$/gi, '')
+
+    const checkTenantUrl = await TenantRepository.findAndCountAll(
+      { filter: { url: cleanedTenantUrl } },
+      options,
+    )
+
+    console.log('ctu')
+    console.log(checkTenantUrl)
+
+    if (checkTenantUrl.count > 0) {
+      cleanedTenantUrl += `-${checkTenantUrl.count}`
+    }
+
+    return cleanedTenantUrl
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -272,6 +305,10 @@ class TenantRepository {
 
       if (filter.name) {
         whereAnd.push(SequelizeFilterUtils.ilikeIncludes('tenant', 'name', filter.name))
+      }
+
+      if (filter.url) {
+        whereAnd.push(SequelizeFilterUtils.ilikeIncludes('tenant', 'url', filter.url))
       }
 
       if (filter.createdAtRange) {

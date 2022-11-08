@@ -97,23 +97,6 @@ describe('ConversationService tests', () => {
     })
   })
 
-  describe('getCleanString method', () => {
-    it('Should clean a string with non alphanumeric characters', async () => {
-      const cleanedString = ConversationService.getCleanString('!@#$%^&*()_+abc    !@#$%123')
-      expect(cleanedString).toStrictEqual('abc 123')
-    })
-
-    it('Should return an empty string when an empty string is given', async () => {
-      const cleanedString = ConversationService.getCleanString('')
-      expect(cleanedString).toStrictEqual('')
-    })
-
-    it('Should return an empty string when no alphanumeric characters exist', async () => {
-      const cleanedString = ConversationService.getCleanString('ß!@#$%     ^&*()_+-')
-      expect(cleanedString).toStrictEqual('')
-    })
-  })
-
   describe('generateTitle method', () => {
     it('Should return the same title string if an alphanumeric character exists in title', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
