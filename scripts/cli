@@ -14,7 +14,7 @@ source $CLI_HOME/utils
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
-_DC="docker-compose"
+_DC="docker compose"
 
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
@@ -37,7 +37,7 @@ function prepare_dev_env() {
     which $_DC >> /dev/null 2>&1
 
     if [[ ! $? -eq 0 ]]; then 
-        _DC="docker compose"
+        _DC="docker-compose"
         which $_DC >> /dev/null 2>&1
 
         if [[ ! $? -eq 0 ]]; then
@@ -45,9 +45,6 @@ function prepare_dev_env() {
             exit 1
         fi
     fi
-
-    $_DC version
-    docker version 
 
     set -eo pipefail
 }

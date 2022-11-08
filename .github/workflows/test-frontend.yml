@@ -12,6 +12,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Check docker compose
+        run: docker compose version
+
       - name: Start all services
         run: |
           ./scripts/cli start
