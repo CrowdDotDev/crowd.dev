@@ -6,14 +6,15 @@ import StringArrayField from '@/shared/fields/string-array-field'
 
 const fields = {
   id: new IdField('id', 'ID'),
-  title: new StringField('title', 'Title', {
+  title: new StringField('name', 'Title', {
     required: true
   }),
-  description: new StringField(
-    'description',
-    'Description'
-  ),
+  description: new StringField('body', 'Description'),
   dueDate: new DateTimeField('dueDate', 'Due date'),
+  relatedMembers: new StringArrayField(
+    'members',
+    'Related member(s)'
+  ),
   assignees: new StringArrayField(
     'assignees',
     'Assignee(s)',

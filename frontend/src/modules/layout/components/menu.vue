@@ -101,10 +101,10 @@
               </div>
               <!-- TODO: add number -->
               <div
-                v-if="!isCollapsed"
+                v-if="!isCollapsed && openTasksCount > 0"
                 class="h-5 flex items-center px-2 bg-brand-100 rounded-full text-2xs font-medium"
               >
-                2
+                {{ openTasksCount }}
               </div>
             </div>
           </router-link>
@@ -325,6 +325,7 @@ import { i18n } from '@/i18n'
 import config from '@/config'
 
 import { RouterLink, useLink } from 'vue-router'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const store = useStore()
 const { route } = useLink(RouterLink.props)
@@ -341,6 +342,8 @@ const currentTenant = computed(
 function toggleMenu() {
   store.dispatch('layout/toggleMenu')
 }
+
+const { openTasksCount } = mapGetters('task')
 
 const hasPermissionToSettings = computed(
   () =>

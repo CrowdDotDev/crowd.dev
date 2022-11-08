@@ -38,7 +38,8 @@
             :prop="fields.title.name"
             class="mb-2"
           >
-            <label class="text-sm mb-1 leading-5"
+            <label
+              class="text-sm mb-1 leading-5 font-medium"
               >{{ fields.title.label }}
               <span class="text-brand-500">*</span></label
             >
@@ -65,9 +66,10 @@
             :prop="fields.description.name"
             class="mb-2"
           >
-            <label class="text-sm mb-1 leading-5">{{
-              fields.description.label
-            }}</label>
+            <label
+              class="text-sm mb-1 leading-5 font-medium"
+              >{{ fields.description.label }}</label
+            >
             <el-input
               id="description"
               v-model="model[fields.description.name]"
@@ -88,22 +90,37 @@
             </template>
           </el-form-item>
           <el-form-item
-            :prop="fields.dueDate.name"
-            class="mb-2 w-1/2"
+            ref="relatedMembersFormItem"
+            :prop="fields.relatedMembers.name"
+            class="mb-2"
           >
-            <label class="text-sm mb-1 leading-5">{{
-              fields.dueDate.label
-            }}</label>
-            <el-date-picker
-              v-model="model[fields.dueDate.name]"
-              :prefix-icon="CalendarIcon"
-              :clearable="false"
-              popper-class="date-picker-popper"
-              type="date"
-              value-format="YYYY-MM-DD"
-              format="YYYY-MM-DD"
-              placeholder="YYYY-MM-DD"
-            />
+            <label
+              class="text-sm mb-1 leading-5 font-medium"
+              >{{ fields.relatedMembers.label }}
+            </label>
+            <el-select
+              id="assignees"
+              v-model="model[fields.relatedMembers.name]"
+              autocomplete="disabled"
+              :multiple="true"
+              :filterable="true"
+              :reserve-keyword="false"
+              placeholder="Select option(s)"
+              class="extend"
+              :remote="true"
+              :remote-method="searchMembers"
+              :loading="loadingMembers"
+              @blur="relatedMembersFormItem.validate()"
+            >
+              <el-option
+                v-for="member in members"
+                :key="member.id"
+                :value="member.id"
+                :label="member.displayName"
+                class="px-3 py-2 flex items-center"
+                >{{ member.displayName }}
+              </el-option>
+            </el-select>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -121,7 +138,8 @@
             :prop="fields.assignees.name"
             class="mb-2"
           >
-            <label class="text-sm mb-1 leading-5"
+            <label
+              class="text-sm mb-1 leading-5 font-medium"
               >{{ fields.assignees.label }}
               <span class="text-brand-500">*</span></label
             >
@@ -134,17 +152,50 @@
               :reserve-keyword="false"
               placeholder="Select assignee(s)"
               class="extend"
+              :remote="true"
+              :remote-method="searchTeamMembers"
+              :loading="loadingTeamMembers"
               @blur="assigneesFormItem.validate()"
             >
               <el-option
-                v-for="assignee in assignees"
-                :key="assignee.id"
-                :value="assignee.id"
-                :label="assignee.displayName"
-                class="px-3 py-2 h-10 platform-item"
-                >{{ assignee.displayName }}
+                v-for="teamMember in teamMembers"
+                :key="teamMember.id"
+                :value="teamMember.id"
+                :label="teamMember.fullName"
+                class="px-3 py-2 flex items-center"
+                >{{ teamMember.fullName }}
               </el-option>
             </el-select>
+            <template #error="{ error }">
+              <div class="flex items-center mt-1">
+                <i
+                  class="h-4 flex items-center ri-error-warning-line text-base text-red-500"
+                ></i>
+                <span
+                  class="pl-1 text-2xs text-red-500 leading-4.5"
+                  >{{ error }}</span
+                >
+              </div>
+            </template>
+          </el-form-item>
+          <el-form-item
+            :prop="fields.dueDate.name"
+            class="mb-2 w-1/2"
+          >
+            <label
+              class="text-sm mb-1 leading-5 font-medium"
+              >{{ fields.dueDate.label }}</label
+            >
+            <el-date-picker
+              v-model="model[fields.dueDate.name]"
+              :prefix-icon="CalendarIcon"
+              :clearable="false"
+              popper-class="date-picker-popper"
+              type="date"
+              value-format="YYYY-MM-DD"
+              format="YYYY-MM-DD"
+              placeholder="YYYY-MM-DD"
+            />
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -168,6 +219,7 @@
         <el-button
           class="btn btn--primary btn--md"
           :disabled="!isFormValid"
+          :loading="loading"
           @click="doSubmit()"
         >
           <span v-if="props.task && props.task.id"
@@ -197,6 +249,10 @@ import {
 } from 'vue'
 import { TaskModel } from '@/modules/task/task-model'
 import { FormSchema } from '@/shared/form/form-schema'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import { MemberService } from '@/modules/member/member-service'
+import { UserService } from '@/premium/user/user-service'
+import Message from '@/shared/message/message'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
@@ -237,8 +293,18 @@ const rules = ref({
 const model = ref({
   [fields.assignees.name]: []
 })
-const assignees = ref([])
+
 const assigneesFormItem = ref(null)
+const relatedMembersFormItem = ref(null)
+
+const loading = ref(false)
+
+const loadingMembers = ref(false)
+const members = ref([])
+const loadingTeamMembers = ref(false)
+const teamMembers = ref([])
+
+const { createTask } = mapActions('task')
 
 const isExpanded = computed({
   get() {
@@ -258,9 +324,75 @@ const isFormValid = computed(
     model.value.assignees.length > 0
 )
 
-const doSubmit = () => {
-  console.log('submit')
+const searchMembers = (query) => {
+  if (query) {
+    loadingMembers.value = true
+    MemberService.list(
+      {
+        and: [
+          {
+            or: [
+              { displayName: { textContains: query } },
+              { email: { textContains: query } }
+            ]
+          }
+        ]
+      },
+      'lastActive_DESC',
+      10,
+      0,
+      false
+    ).then(({ rows }) => {
+      members.value = rows
+      loadingMembers.value = false
+    })
+  } else {
+    members.value = []
+  }
 }
 
-defineExpose({ assigneesFormItem })
+const searchTeamMembers = (query) => {
+  if (query) {
+    loadingTeamMembers.value = true
+    UserService.fetchUsers(
+      { fullName: query },
+      '',
+      10,
+      0
+    ).then(({ rows }) => {
+      teamMembers.value = rows
+      loadingTeamMembers.value = false
+    })
+  } else {
+    teamMembers.value = []
+  }
+}
+
+const reset = () => {
+  model.value = {}
+  assigneesFormItem.value.resetField()
+  relatedMembersFormItem.value.resetField()
+}
+
+const doSubmit = () => {
+  loading.value = true
+  createTask({
+    ...model.value,
+    status: 'in-progress',
+    assignedTo: model.value.assignees[0]
+  })
+    .then(() => {
+      Message.success('Task successfully created!')
+      reset()
+      isExpanded.value = false
+    })
+    .catch(() => {
+      Message.error('There was an error creating task')
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+defineExpose({ assigneesFormItem, relatedMembersFormItem })
 </script>
