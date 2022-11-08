@@ -12,9 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Start all services
+        uses: cypress-io/github-action@v4
+          with:
+            start: ./scripts/cli start
+
       - name: Cypress run
         uses: cypress-io/github-action@v4
         with:
-          start: npm run start:json-server, npm run start:test
-          wait-on: 'http://localhost:4000'
+          start: npm run test:e2e:run
+          wait-on: 'http://localhost:8081'
           working-directory: 'frontend'

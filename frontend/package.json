@@ -13,8 +13,8 @@
     "start:test": "vue-cli-service serve --mode test --port 8081",
     "start:json-server": "node tests/support/json-server/index.js",
     "test": "node tests/localhost-runner.js",
-    "test:e2e:open": "node tests/localhost-cy-open.js",
-    "cy:open": "npx cypress open",
+    "test:e2e:open": "wait-on http://localhost:8081 && npx cypress open",
+    "test:e2e:run": "wait-on http://localhost:8081 && npx cypress run",
     "tailwind:view": "tailwind-config-viewer -o"
   },
   "dependencies": {

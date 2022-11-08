@@ -2,14 +2,9 @@ const concurrently = require('concurrently')
 
 const { result } = concurrently(
   [
-    { command: 'npm run start:test', name: 'Vue' },
-    {
-      command: 'npm run start:json-server',
-      name: 'JSON-Server'
-    },
     {
       command:
-        'npx wait-on http://localhost:4000 && npx cypress run',
+        'npx wait-on http://localhost:8081 && npx cypress run',
       name: 'Cypress'
     }
   ],
