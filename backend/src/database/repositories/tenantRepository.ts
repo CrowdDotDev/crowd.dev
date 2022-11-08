@@ -19,10 +19,7 @@ class TenantRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    // URL is required,
-    // in case of multi tenant without subdomain
-    // set a random uuid
-    console.log('data: ', data)
+    // name is required
     if (!data.name) {
       throw new Error400(options.language, 'tenant.errors.nameRequiredOnCreate')
     }
@@ -68,6 +65,13 @@ class TenantRepository {
     })
   }
 
+  /**
+   * Generates hyphen concataned tenant url from the tenant name
+   * If url already exists, appends a incremental number to the url
+   * @param name tenant name
+   * @param options repository options
+   * @returns slug like tenant name to be used in tenant.url
+   */
   static async generateTenantUrl(name: string, options: IRepositoryOptions): Promise<string> {
     const cleanedName = getCleanString(name)
 
@@ -86,9 +90,6 @@ class TenantRepository {
       { filter: { url: cleanedTenantUrl } },
       options,
     )
-
-    console.log('ctu')
-    console.log(checkTenantUrl)
 
     if (checkTenantUrl.count > 0) {
       cleanedTenantUrl += `-${checkTenantUrl.count}`
