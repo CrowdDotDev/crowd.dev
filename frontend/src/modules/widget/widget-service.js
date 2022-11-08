@@ -92,13 +92,10 @@ export class WidgetService {
   static async getCubeToken() {
     const tenantId = AuthCurrentTenant.get()
 
-    if (tenantId) {
-      const response = await authAxios.get(
-        `/tenant/${tenantId}/cubejs/auth`
-      )
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/cubejs/auth`
+    )
 
-      return response.data
-    }
-    return null
+    return response.data
   }
 }
