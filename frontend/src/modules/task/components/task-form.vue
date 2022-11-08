@@ -245,14 +245,16 @@ import {
   defineEmits,
   defineExpose,
   ref,
-  h
+  watch,
+  h,
+  onMounted
 } from 'vue'
 import { TaskModel } from '@/modules/task/task-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
 import { MemberService } from '@/modules/member/member-service'
 import { UserService } from '@/premium/user/user-service'
 import Message from '@/shared/message/message'
+import { TaskService } from '@/modules/task/task-service'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
@@ -304,8 +306,6 @@ const members = ref([])
 const loadingTeamMembers = ref(false)
 const teamMembers = ref([])
 
-const { createTask } = mapActions('task')
-
 const isExpanded = computed({
   get() {
     return props.modelValue
@@ -321,7 +321,34 @@ const isExpanded = computed({
 const isFormValid = computed(
   () =>
     formSchema.isValidSync(model.value) &&
-    model.value.assignees.length > 0
+    (model.value.assignees || []).length > 0
+)
+
+const fillForm = () => {
+  if (props.task) {
+    model.value = {
+      name: props.task.name,
+      body: props.task.body,
+      members: props.task.members.filter((m) => m.id) || [],
+      dueDate: props.task.dueDate
+    }
+  } else {
+    model.value = {
+      members: [],
+      assignees: []
+    }
+  }
+}
+
+watch(
+  () => props.task,
+  () => {
+    fillForm()
+  },
+  {
+    deep: true,
+    immediate: true
+  }
 )
 
 const searchMembers = (query) => {
@@ -376,23 +403,34 @@ const reset = () => {
 
 const doSubmit = () => {
   loading.value = true
-  createTask({
-    ...model.value,
-    status: 'in-progress',
-    assignedTo: model.value.assignees[0]
-  })
-    .then(() => {
-      Message.success('Task successfully created!')
-      reset()
-      isExpanded.value = false
+  if (props.task) {
+    TaskService.update(props.task.id, {
+      ...model.value,
+      assignedTo: model.value.assignees[0]
     })
-    .catch(() => {
-      Message.error('There was an error creating task')
+      .then(() => {
+        Message.success('Task successfully updated!')
+        reset()
+        isExpanded.value = false
+      })
+      .catch(() => {
+        Message.error('There was an error updating task')
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  } else {
+    TaskService.create({
+      ...model.value,
+      status: 'in-progress',
+      assignedTo: model.value.assignees[0]
     })
-    .finally(() => {
-      loading.value = false
-    })
+  }
 }
+
+onMounted(() => {
+  fillForm()
+})
 
 defineExpose({ assigneesFormItem, relatedMembersFormItem })
 </script>

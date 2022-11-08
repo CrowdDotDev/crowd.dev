@@ -8,19 +8,15 @@
         <app-task-closed-dropdown />
       </div>
     </div>
-    <div>
-      <app-task-item :completed="true" />
-      <app-task-item :completed="true" />
-    </div>
+    <div></div>
   </section>
 </template>
 
 <script>
-import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskClosedDropdown from '@/modules/task/components/task-closed-dropdown'
 export default {
   name: 'AppTaskClosed',
-  components: { AppTaskClosedDropdown, AppTaskItem }
+  components: { AppTaskClosedDropdown }
 }
 </script>
 

@@ -2,7 +2,7 @@
   <section class="panel pt-5 pb-4">
     <div class="flex items-center justify-between pb-4">
       <h6 class="text-base leading-6 font-semibold">
-        Open tasks (2)
+        Open tasks ({{ openTasksCount }})
       </h6>
       <el-button
         class="btn btn--primary btn--md font-medium"
@@ -11,16 +11,62 @@
         Add task
       </el-button>
     </div>
-    <app-task-filters class="pb-6" />
+    <div class="flex items-center justify-between pb-6">
+      <div class="flex text-xs text-gray-600">
+        <div
+          v-for="(t, ti) of tabs"
+          :key="t.name"
+          class="px-3 h-8 border border-gray-200 flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
+          :class="[
+            tabClasses(t.name),
+            {
+              'border-r-0 rounded-l-md': ti === 0,
+              'border-l-0 rounded-r-md':
+                ti === tabs.length - 1
+            }
+          ]"
+          @click="changeTab(t)"
+        >
+          {{ t.label }}
+        </div>
+      </div>
+      <app-task-sorting
+        v-if="tasks.length > 0"
+        @change="changeOrder($event)"
+      />
+    </div>
     <div class="-mx-6">
-      <app-task-item
-        class="px-6"
-        @edit="emit('editTask', $event)"
-      />
-      <app-task-item
-        class="px-6"
-        @edit="emit('editTask', $event)"
-      />
+      <div v-if="loading">
+        <app-task-item
+          class="px-6"
+          :loading="true"
+        ></app-task-item>
+        <app-task-item
+          class="px-6"
+          :loading="true"
+        ></app-task-item>
+      </div>
+      <div v-else>
+        <app-task-item
+          v-for="task of tasks"
+          :key="task.id"
+          class="px-6"
+          :task="task"
+          @edit="emit('editTask', $event)"
+          @reload="fetchTasks()"
+        />
+        <div
+          v-if="tasks.length === 0"
+          class="pt-16 pb-14 flex justify-center items-center"
+        >
+          <div
+            class="ri-checkbox-multiple-blank-line text-3xl text-gray-300 flex items-center h-10"
+          ></div>
+          <p class="pl-6 text-sm text-gray-400 italic">
+            {{ tab.emptyText }}
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -33,8 +79,105 @@ export default {
 
 <script setup>
 import AppTaskItem from '@/modules/task/components/task-item'
-import AppTaskFilters from '@/modules/task/components/task-filters'
-import { defineEmits } from 'vue'
+import AppTaskSorting from '@/modules/task/components/task-sorting'
+import { defineEmits, onMounted, ref } from 'vue'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
+import moment from 'moment'
+import { TaskService } from '@/modules/task/task-service'
+import Message from '@/shared/message/message'
 
 const emit = defineEmits(['addTask', 'editTask'])
+
+const { openTasksCount } = mapGetters('task')
+const { currentUser } = mapGetters('auth')
+
+const tabs = ref([
+  {
+    label: 'All',
+    name: 'all',
+    emptyText: 'No open tasks at this moment',
+    filters: {
+      status: { eq: 'in-progress' }
+    }
+  },
+  {
+    label: 'Assigned to me',
+    name: 'mine',
+    emptyText: 'No tasks assigned to you at this moment',
+    filters: {
+      and: [
+        {
+          status: { eq: 'in-progress' }
+        },
+        {
+          members: currentUser.value.id
+        }
+      ]
+    }
+  },
+  {
+    label: 'Overdue',
+    name: 'overdue',
+    emptyText: 'No overdue tasks at this moment',
+    filters: {
+      and: [
+        {
+          status: { eq: 'in-progress' }
+        },
+        {
+          dueDate: { lt: moment().toISOString() }
+        }
+      ]
+    }
+  }
+])
+
+const tasks = ref([])
+const loading = ref(false)
+
+const tab = ref(tabs.value[0])
+const order = ref('createdAt_DESC')
+
+const { getOpenTaskCount } = mapActions('task')
+
+const tabClasses = (tabName) => {
+  return tab.value.name === tabName
+    ? 'bg-gray-100 font-medium text-gray-900'
+    : 'bg-white'
+}
+
+const changeTab = (t) => {
+  tab.value = t
+  fetchTasks()
+}
+
+const changeOrder = (orderBy) => {
+  order.value = orderBy
+  fetchTasks()
+}
+
+onMounted(() => {
+  fetchTasks()
+})
+
+const fetchTasks = () => {
+  const filter = tab.value.filters
+  loading.value = true
+  getOpenTaskCount()
+
+  TaskService.list(filter, order.value, 20, 0)
+    .then(({ rows }) => {
+      tasks.value = rows
+    })
+    .catch(() => {
+      tasks.value = []
+      Message.error('There was an error loading tasks')
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 </script>

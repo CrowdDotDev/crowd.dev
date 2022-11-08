@@ -1,9 +1,54 @@
 <template>
-  <article class="pt-6 pb-5 border-t">
+  <article
+    v-if="loading || !props.task"
+    class="pt-6 pb-5 border-t border-gray-100"
+  >
+    <div class="flex">
+      <div class="pr-6">
+        <app-loading
+          height="20px"
+          width="20px"
+          radius="50%"
+        />
+      </div>
+      <div class="pt-1">
+        <app-loading
+          class="mb-3"
+          height="12px"
+          width="300px"
+          radius="2px"
+        />
+        <app-loading
+          class="mb-8"
+          height="12px"
+          width="420px"
+          radius="2px"
+        />
+        <div class="flex">
+          <app-loading
+            class="mr-6"
+            height="12px"
+            width="120px"
+            radius="2px"
+          />
+          <app-loading
+            height="12px"
+            width="120px"
+            radius="2px"
+          />
+        </div>
+      </div>
+    </div>
+  </article>
+  <article
+    v-else
+    class="pt-6 pb-5 border-t border-gray-100 task"
+    :class="{ closing }"
+  >
     <div class="flex">
       <div class="pr-5">
         <el-tooltip
-          v-if="props.completed"
+          v-if="completed"
           effect="dark"
           content="Unmark as completed"
           placement="top"
@@ -34,56 +79,91 @@
       </div>
       <div
         class="flex-grow pt-0.5"
-        :class="props.completed ? 'opacity-50' : ''"
+        :class="completed ? 'opacity-50' : ''"
       >
         <h6
           class="text-sm font-medium leading-5"
-          :class="props.completed ? 'line-through' : ''"
+          :class="completed ? 'line-through' : ''"
         >
-          Tellus commodo dui etiam vulputate neque neque.
+          {{ props.task.name }}
         </h6>
-        <p class="text-2xs leading-4.5 text-gray-500 pt-1">
-          Tempor congue enim donec mauris, a, commodo tortor
-          cras mi. Nam nulla lobortis sagittis eleifend amet
-          a.
-        </p>
-        <div class="flex pt-4 items-center">
+        <div
+          ref="taskBody"
+          class="text-2xs leading-4.5 text-gray-500 pt-1"
+          :class="
+            displayShowMore && !showMore
+              ? `text-limit-4`
+              : ''
+          "
+        >
+          {{ props.task.body }}
+        </div>
+        <div
+          v-if="displayShowMore"
+          class="text-2xs text-brand-500 mt-3 cursor-pointer"
+          @click.stop="showMore = !showMore"
+        >
+          Show {{ showMore ? 'less' : 'more' }}
+        </div>
+        <div
+          v-if="
+            props.task.members && props.task.members.length
+          "
+          class="pb-1 pt-5 flex items-center"
+        >
+          <p
+            class="text-2xs font-semibold leading-5 text-gray-400 pr-3"
+          >
+            Related member(s):
+          </p>
           <div
-            class="mr-6 flex items-center"
+            v-for="member of props.task.members"
+            :key="member.id"
+            class="mr-2 bg-gray-100 border border-gray-200 rounded-md h-6 flex items-center px-1.5"
+          >
+            <app-avatar
+              :entity="member"
+              size="xxs"
+              class="mr-2"
+            />
+            <p class="text-2xs leading-4">
+              {{ member.displayName }}
+            </p>
+          </div>
+        </div>
+        <div class="flex pt-4 items-center">
+          <div class="pr-3 flex items-center">
+            <div class="flex items-center pr-3">
+              <app-avatar
+                size="xxs"
+                :entity="{ displayName: 'Gasper Grom' }"
+              />
+              <p class="pl-2 text-2xs leading-4">
+                Gasper Grom
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="props.task.dueDate"
+            class="flex items-center"
             :class="dateClass"
           >
             <div
               class="ri-calendar-line text-base h-4 flex items-center"
             ></div>
             <p class="pl-2 text-2xs leading-4">
-              Nov 10, 2022
+              {{ formatDate(props.task.dueDate) }}
               <span v-if="overdue">(overdue)</span>
-            </p>
-          </div>
-          <div class="flex items-center mr-3">
-            <app-avatar
-              size="xxs"
-              :entity="{ displayName: 'Gasper' }"
-            />
-            <p class="pl-2 text-2xs leading-4">
-              November Echo
-            </p>
-          </div>
-          <div class="flex items-center mr-3">
-            <app-avatar
-              size="xxs"
-              :entity="{ displayName: 'Gasper' }"
-            />
-            <p class="pl-2 text-2xs leading-4">
-              November Echo
             </p>
           </div>
         </div>
       </div>
       <div v-if="!completed" class="pl-4">
         <app-task-dropdown
-          :task="null"
+          :task="props.task"
           @edit="emit('edit', props.task)"
+          @deleted="emit('reload')"
         />
       </div>
     </div>
@@ -97,29 +177,59 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineEmits, defineProps } from 'vue'
+import {
+  computed,
+  defineEmits,
+  defineProps,
+  defineExpose,
+  onMounted,
+  ref
+} from 'vue'
 import AppTaskDropdown from '@/modules/task/components/task-dropdown'
 import AppAvatar from '@/shared/avatar/avatar'
+import moment from 'moment'
+import AppLoading from '@/shared/loading/loading-placeholder'
 
 const props = defineProps({
-  // TODO: change this prop to required once connected
   task: {
     type: Object,
     required: false,
     default: () => ({})
   },
-  completed: {
+  loading: {
     type: Boolean,
     required: false,
     default: false
   }
 })
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit', 'reload'])
 
-// TODO: logic for duesoon and overdue
-const dueSoon = computed(() => false)
-const overdue = computed(() => false)
+const showMore = ref(false)
+const displayShowMore = ref(true)
+const taskBody = ref(null)
+const closing = ref(false)
+
+const completed = computed(() => {
+  return props.task && props.task.status !== 'in-progress'
+})
+
+const dueSoon = computed(
+  () =>
+    props.task.dueDate &&
+    moment()
+      .add(1, 'day')
+      .startOf('day')
+      .isAfter(moment(props.task.dueDate))
+)
+const overdue = computed(() => {
+  return (
+    props.task.dueDate &&
+    moment()
+      .startOf('day')
+      .isAfter(moment(props.task.dueDate))
+  )
+})
 
 const dateClass = computed(() => {
   if (overdue.value) {
@@ -131,12 +241,51 @@ const dateClass = computed(() => {
   return 'text-gray-500'
 })
 
+const formatDate = (date) => {
+  return moment(date).format('MMM D, YYYY')
+}
+
 const markAsComplete = () => {
+  closing.value = true
   // TODO: mark as complete
   console.log('mark as complete')
 }
 const unmarkAsComplete = () => {
+  closing.value = true
+
   // TODO: mark as not complete
   console.log('mark as not complete')
 }
+
+onMounted(() => {
+  const body = taskBody.value
+  if (body) {
+    const height = body.clientHeight
+    const scrollHeight = body.scrollHeight
+    displayShowMore.value = scrollHeight > height
+  } else {
+    displayShowMore.value = false
+  }
+})
+
+defineExpose({
+  taskBody
+})
 </script>
+
+<style lang="scss" scoped>
+.task {
+  max-height: 1000px;
+  overflow: auto;
+
+  &.closing {
+    transition: 500ms all;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-top: 0;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+  }
+}
+</style>

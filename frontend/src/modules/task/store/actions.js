@@ -36,10 +36,5 @@ export default {
       commit('SET_MY_TASKS', response)
       return Promise.resolve(response)
     })
-  },
-  createTask(context, data) {
-    return TaskService.create(data).then((task) => {
-      return Promise.resolve(task)
-    })
   }
 }

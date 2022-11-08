@@ -38,6 +38,7 @@
 
 <script>
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import { TaskService } from '@/modules/task/task-service'
 
 export default {
   name: 'AppTaskDropdown',
@@ -47,7 +48,7 @@ export default {
       required: true
     }
   },
-  emits: ['edit'],
+  emits: ['edit', 'deleted'],
   data() {
     return {
       dropdownVisible: false
@@ -63,7 +64,13 @@ export default {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         icon: 'ri-delete-bin-line'
-      }).then(() => {})
+      })
+        .then(() => {
+          return TaskService.delete([this.task.id])
+        })
+        .then(() => {
+          this.$emit('deleted')
+        })
     },
     async handleCommand(command) {
       if (command.action === 'taskDelete') {

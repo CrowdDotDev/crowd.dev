@@ -38,4 +38,20 @@ export class TaskService {
         return response.data
       })
   }
+
+  static delete(ids) {
+    const params = {
+      ids
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    return authAxios
+      .delete(`/tenant/${tenantId}/task`, {
+        params
+      })
+      .then((response) => {
+        return response.data
+      })
+  }
 }
