@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
@@ -7,6 +8,7 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import UserRepository from './userRepository'
 
 const { Op } = Sequelize
 
@@ -17,6 +19,10 @@ class NoteRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
 
     const record = await options.database.note.create(
       {
@@ -228,6 +234,7 @@ class NoteRepository {
         manyToMany: {
           members: {
             table: 'notes',
+            model: 'note',
             relationTable: {
               name: 'memberNotes',
               from: 'noteId',
@@ -340,6 +347,9 @@ class NoteRepository {
       transaction,
       joinTableAttributes: [],
     })
+
+    const user = await UserRepository.findById(record.createdById, options)
+    output.createdBy = { id: user.id, fullName: user.fullName, avatarUrl: null }
 
     return output
   }

@@ -1,13 +1,10 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isVisible"
-    :close-on-click-modal="false"
     :size="480"
+    title="Manage workspaces"
   >
-    <template #header>
-      <h5 class="text-black">Manage workspaces</h5>
-    </template>
-    <template #default>
+    <template #content>
       <div class="flex gap-4 border-b h-8 items-center">
         <div
           class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-70"
@@ -49,29 +46,31 @@
           </button>
         </div>
       </div>
+    </template>
+    <template #footer>
       <router-link
         :to="{ name: 'onboard', query: { action: 'new' } }"
-        class="btn btn--md btn--primary absolute bottom-0 right-0 mb-6 mr-6 !text-white"
-        >Add workspace</router-link
+        ><el-button class="btn btn--md btn--primary"
+          >Add workspace</el-button
+        ></router-link
       >
     </template>
-  </el-drawer>
-  <el-dialog
+  </app-drawer>
+
+  <app-dialog
     v-if="editing"
     v-model="editing"
-    :close-on-click-modal="false"
     title="Edit workspace"
-    :append-to-body="true"
-    :destroy-on-close="true"
-    custom-class="el-dialog--lg"
   >
-    <app-tenant-form
-      v-if="editing"
-      :record="model"
-      @cancel="handleCancel"
-      @success="handleSuccess"
-    />
-  </el-dialog>
+    <template #content>
+      <app-tenant-form
+        v-if="editing"
+        :record="model"
+        @cancel="handleCancel"
+        @success="handleSuccess"
+      />
+    </template>
+  </app-dialog>
 </template>
 
 <script>

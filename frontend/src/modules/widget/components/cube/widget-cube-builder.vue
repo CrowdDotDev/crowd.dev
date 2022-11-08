@@ -1,231 +1,219 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="visible"
-    :close-on-click-modal="false"
-    :show-close="false"
+    title="Edit widget"
     size="600px"
     custom-class="widget-cube-builder"
   >
-    <template #header>
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-medium text-gray-1000">
-          Edit widget
-        </h2>
-
-        <button
-          type="button"
-          class="btn btn--transparent btn--md w-10"
-          @click="visible = false"
-        >
-          <i
-            class="ri-xl w-4 h-4 ri-close-line flex items-center justify-center"
-          ></i>
-        </button>
-      </div>
-    </template>
-    <query-builder
-      style="width: 100%"
-      :cubejs-api="cubejsApi"
-      :query="initialQuery"
-      :initial-chart-type="initialChartType"
-    >
-      <template
-        #builder="{
-          chartType,
-          updateChartType,
-          measures,
-          setMeasures,
-          availableMeasures,
-          dimensions,
-          setDimensions,
-          availableDimensions,
-          timeDimensions,
-          setTimeDimensions,
-          availableTimeDimensions,
-          filters,
-          setFilters,
-          limit,
-          setLimit,
-          orderMembers,
-          updateOrder,
-          isQueryPresent
-        }"
+    <template #content>
+      <query-builder
+        style="width: 100%"
+        :cubejs-api="cubejsApi"
+        :query="initialQuery"
+        :initial-chart-type="initialChartType"
       >
-        <SyncModel
-          v-model:chart-type="model.settings.chartType"
-          :chart-type="chartType"
-        />
-        <div class="overflow-auto flex-grow flex flex-col">
-          <div class="p-6">
-            <div class="w-full mb-6">
-              <label
-                class="block text-xs leading-none font-semibold mb-1"
-                >Name
-                <span class="text-brand-500 ml-0.5"
-                  >*</span
-                ></label
-              >
-              <el-input
-                v-model="model.title"
-                type="text"
-                placeholder="Most active contributors"
-              />
-            </div>
-
-            <div class="w-full mb-6">
-              <ChartType
-                v-model="model.settings.chartType"
-                :chart-type="chartType"
-                :update-chart-type="updateChartType"
-              ></ChartType>
-            </div>
-            <div class="w-full mb-6">
-              <MeasureSelect
-                :translated-options="translatedOptions"
-                :measures="measures"
-                :available-measures="availableMeasures"
-                :set-measures="setMeasures"
-              />
-            </div>
-
-            <div class="w-full mb-6">
-              <DateRangeSelect
-                :time-dimensions="timeDimensions"
-                @change="setTimeDimensions"
-              />
-            </div>
-
-            <div class="w-full mb-6">
-              <TimeDimensionSelect
-                :measures="measures"
-                :available-time-dimensions="
-                  availableTimeDimensions
-                "
-                :time-dimensions="timeDimensions"
-                @change="setTimeDimensions"
-              />
-            </div>
-
-            <div class="w-full mb-6">
-              <DimensionSelect
-                :translated-options="translatedOptions"
-                :measures="measures"
-                :available-dimensions="availableDimensions"
-                :dimensions="dimensions"
-                :set-dimensions="setDimensions"
-              />
-            </div>
-
-            <div class="w-full mb-6">
-              <GranularitySelect
-                :time-dimensions="timeDimensions"
-                :set-time-dimensions="setTimeDimensions"
-              />
-            </div>
-
-            <div class="additional-settings">
-              <button
-                type="button"
-                class="inline-flex items-center leading-none mt-2 text-xs text-gray-600 font cursor-pointer hover:text-gray-900"
-                @click="handleAdditionalSettingsClick"
-              >
-                <i
-                  class="mr-1 text-base"
-                  :class="
-                    additionalSettingsVisible
-                      ? 'ri-arrow-up-s-line'
-                      : 'ri-arrow-down-s-line'
-                  "
-                ></i>
-                Additional settings
-              </button>
-              <div
-                v-if="additionalSettingsVisible"
-                class="my-4"
-              >
-                <Limit
-                  :limit="Number(limit)"
-                  :disabled="!isQueryPresent"
-                  class="px-3 py-2 w-full"
-                  @update="setLimit"
-                />
-                <Order
-                  :order-members="orderMembers"
-                  :disabled="!isQueryPresent"
-                  class="px-3 py-2 w-full"
-                  @order-change="updateOrder.set"
-                  @reorder="updateOrder.reorder"
+        <template
+          #builder="{
+            chartType,
+            updateChartType,
+            measures,
+            setMeasures,
+            availableMeasures,
+            dimensions,
+            setDimensions,
+            availableDimensions,
+            timeDimensions,
+            setTimeDimensions,
+            availableTimeDimensions,
+            filters,
+            setFilters,
+            limit,
+            setLimit,
+            orderMembers,
+            updateOrder,
+            isQueryPresent
+          }"
+        >
+          <SyncModel
+            v-model:chart-type="model.settings.chartType"
+            :chart-type="chartType"
+          />
+          <div
+            class="overflow-auto flex-grow flex flex-col"
+          >
+            <div class="p-6">
+              <div class="w-full mb-6">
+                <label
+                  class="block text-xs leading-none font-semibold mb-1"
+                  >Name
+                  <span class="text-brand-500 ml-0.5"
+                    >*</span
+                  ></label
+                >
+                <el-input
+                  v-model="model.title"
+                  type="text"
+                  placeholder="Most active contributors"
                 />
               </div>
+
+              <div class="w-full mb-6">
+                <ChartType
+                  v-model="model.settings.chartType"
+                  :chart-type="chartType"
+                  :update-chart-type="updateChartType"
+                ></ChartType>
+              </div>
+              <div class="w-full mb-6">
+                <MeasureSelect
+                  :translated-options="translatedOptions"
+                  :measures="measures"
+                  :available-measures="availableMeasures"
+                  :set-measures="setMeasures"
+                />
+              </div>
+
+              <div class="w-full mb-6">
+                <DateRangeSelect
+                  :time-dimensions="timeDimensions"
+                  @change="setTimeDimensions"
+                />
+              </div>
+
+              <div class="w-full mb-6">
+                <TimeDimensionSelect
+                  :measures="measures"
+                  :available-time-dimensions="
+                    availableTimeDimensions
+                  "
+                  :time-dimensions="timeDimensions"
+                  @change="setTimeDimensions"
+                />
+              </div>
+
+              <div class="w-full mb-6">
+                <DimensionSelect
+                  :translated-options="translatedOptions"
+                  :measures="measures"
+                  :available-dimensions="
+                    availableDimensions
+                  "
+                  :dimensions="dimensions"
+                  :set-dimensions="setDimensions"
+                />
+              </div>
+
+              <div class="w-full mb-6">
+                <GranularitySelect
+                  :time-dimensions="timeDimensions"
+                  :set-time-dimensions="setTimeDimensions"
+                />
+              </div>
+
+              <div class="additional-settings">
+                <button
+                  type="button"
+                  class="inline-flex items-center leading-none mt-2 text-xs text-gray-600 font cursor-pointer hover:text-gray-900"
+                  @click="handleAdditionalSettingsClick"
+                >
+                  <i
+                    class="mr-1 text-base"
+                    :class="
+                      additionalSettingsVisible
+                        ? 'ri-arrow-up-s-line'
+                        : 'ri-arrow-down-s-line'
+                    "
+                  ></i>
+                  Additional settings
+                </button>
+                <div
+                  v-if="additionalSettingsVisible"
+                  class="my-4"
+                >
+                  <Limit
+                    :limit="Number(limit)"
+                    :disabled="!isQueryPresent"
+                    class="px-3 py-2 w-full"
+                    @update="setLimit"
+                  />
+                  <Order
+                    :order-members="orderMembers"
+                    :disabled="!isQueryPresent"
+                    class="px-3 py-2 w-full"
+                    @order-change="updateOrder.set"
+                    @reorder="updateOrder.reorder"
+                  />
+                </div>
+              </div>
+              <hr class="mt-6 mb-4" />
+              <div>
+                <FilterComponent
+                  :measures="measures"
+                  :dimensions="dimensions"
+                  :filters="filters"
+                  :set-filters="setFilters"
+                  :available-dimensions="
+                    translatedOptions(availableDimensions)
+                  "
+                ></FilterComponent>
+              </div>
             </div>
-            <hr class="mt-6 mb-4" />
-            <div>
-              <FilterComponent
-                :measures="measures"
-                :dimensions="dimensions"
-                :filters="filters"
-                :set-filters="setFilters"
-                :available-dimensions="
-                  translatedOptions(availableDimensions)
+          </div>
+        </template>
+        <template #default="{ resultSet, validatedQuery }">
+          <SyncModel
+            v-model:model-query="model.settings.query"
+            :query="validatedQuery"
+          ></SyncModel>
+          <div class="border-t border-gray-200">
+            <div
+              class="preview-collapse"
+              @click="handlePreviewChange"
+            >
+              <i
+                :class="
+                  previewExpanded
+                    ? 'ri-arrow-down-s-line'
+                    : 'ri-arrow-up-s-line'
                 "
-              ></FilterComponent>
+                class="text-base mr-1"
+              ></i>
+              Preview
+            </div>
+            <div
+              v-show="previewExpanded"
+              class="preview px-4"
+            >
+              <app-widget-cube
+                v-if="
+                  model.settings.chartType &&
+                  model.settings.query
+                "
+                :widget="
+                  mapWidget(
+                    buildWidgetPreview({
+                      chartType: model.settings.chartType,
+                      query: model.settings.query
+                    }),
+                    resultSet
+                  )
+                "
+                :result-set="resultSet"
+                :chart-options="
+                  chartOptions(
+                    buildWidgetPreview({
+                      chartType: model.settings.chartType,
+                      query: model.settings.query
+                    }),
+                    resultSet
+                  )
+                "
+              ></app-widget-cube>
             </div>
           </div>
-        </div>
-      </template>
-      <template #default="{ resultSet, validatedQuery }">
-        <SyncModel
-          v-model:model-query="model.settings.query"
-          :query="validatedQuery"
-        ></SyncModel>
-        <div class="border-t border-gray-200">
-          <div
-            class="preview-collapse"
-            @click="handlePreviewChange"
-          >
-            <i
-              :class="
-                previewExpanded
-                  ? 'ri-arrow-down-s-line'
-                  : 'ri-arrow-up-s-line'
-              "
-              class="text-base mr-1"
-            ></i>
-            Preview
-          </div>
-          <div
-            v-show="previewExpanded"
-            class="preview px-4"
-          >
-            <app-widget-cube
-              v-if="
-                model.settings.chartType &&
-                model.settings.query
-              "
-              :widget="
-                mapWidget(
-                  buildWidgetPreview({
-                    chartType: model.settings.chartType,
-                    query: model.settings.query
-                  }),
-                  resultSet
-                )
-              "
-              :result-set="resultSet"
-              :chart-options="
-                chartOptions(
-                  buildWidgetPreview({
-                    chartType: model.settings.chartType,
-                    query: model.settings.query
-                  }),
-                  resultSet
-                )
-              "
-            ></app-widget-cube>
-          </div>
-        </div>
-      </template>
-    </query-builder>
+        </template>
+      </query-builder>
+    </template>
     <template #footer>
       <div class="relative">
         <div class="flex items-center justify-end">
@@ -244,7 +232,7 @@
         </div>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>

@@ -11,7 +11,7 @@ export default {
   ...sharedActions('activity'),
 
   async doFetch(
-    { commit, getters, state },
+    { commit, getters },
     { keepPagination = false }
   ) {
     try {
@@ -21,14 +21,14 @@ export default {
 
       if (getters.activeView.type === 'conversations') {
         response = await ConversationService.query(
-          buildApiPayload(state.filter),
+          buildApiPayload(getters.activeView.filter),
           getters.orderBy,
           getters.limit,
           getters.offset
         )
       } else {
         response = await ActivityService.list(
-          state.filter,
+          getters.activeView.filter,
           getters.orderBy,
           getters.limit,
           getters.offset
@@ -96,43 +96,5 @@ export default {
       Errors.handle(error)
       commit('DESTROY_ERROR')
     }
-  },
-
-  async doDestroyAll({ commit, dispatch }, ids) {
-    try {
-      commit('DESTROY_ALL_STARTED')
-
-      await ActivityService.destroyAll(ids)
-
-      commit('DESTROY_ALL_SUCCESS')
-
-      dispatch(`activity/doUnselectAll`, null, {
-        root: true
-      })
-
-      Message.success(
-        i18n('entities.activity.destroyAll.success')
-      )
-
-      router.push('/activities')
-
-      dispatch('doFetch', {
-        keepPagination: true
-      })
-    } catch (error) {
-      Errors.handle(error)
-      commit('DESTROY_ALL_ERROR')
-    }
-  },
-
-  doChangeSort({ commit, state, dispatch }, sorter) {
-    commit('SORTER_CHANGED', sorter)
-
-    const filter = state.filter
-
-    dispatch('doFetch', {
-      filter,
-      keepPagination: false
-    })
   }
 }

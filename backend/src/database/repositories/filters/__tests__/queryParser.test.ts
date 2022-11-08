@@ -291,7 +291,7 @@ describe('QueryParser tests', () => {
                 Sequelize.where(
                   Sequelize.literal(`"activities"."platform"`),
                   Op.in,
-                  Sequelize.literal(`(discord,github)`),
+                  Sequelize.literal(`('discord','github')`),
                 ),
               ],
             },
@@ -498,7 +498,7 @@ describe('QueryParser tests', () => {
                     Sequelize.where(
                       Sequelize.literal(`"activities"."platform"`),
                       Op.in,
-                      Sequelize.literal(`(discord,github)`),
+                      Sequelize.literal(`('discord','github')`),
                     ),
                   ],
                 },

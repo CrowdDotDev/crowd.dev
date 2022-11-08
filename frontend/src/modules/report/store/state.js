@@ -9,10 +9,6 @@ export default () => {
       table: false
     },
     count: 0,
-    filter: {
-      operator: 'and',
-      attributes: {}
-    },
     pagination: {
       currentPage: 1,
       pageSize: INITIAL_PAGE_SIZE

@@ -1,34 +1,16 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isExpanded"
-    :show-close="false"
     :size="600"
+    :show-footer="false"
+    :has-border="true"
+    title="Conversation"
   >
-    <template #header="{ close }">
-      <div
-        class="flex justify-between items-center border-b border-gray-200 -mb-4 -mx-6 px-6 pb-6"
-      >
-        <h2 class="text-lg font-medium text-gray-1000">
-          Conversation
-        </h2>
-        <div class="flex items-center">
-          <div v-if="conversation" class="pr-6">
-            <app-activity-link
-              :activity="conversation.conversationStarter"
-            />
-          </div>
-          <div
-            class="p-2 flex cursor-pointer"
-            @click="close"
-          >
-            <i
-              class="ri-close-line text-xl flex items-center h-6 w-6 text-gray-400"
-            ></i>
-          </div>
-        </div>
-      </div>
-    </template>
-    <template #default>
+    <template v-if="conversation" #header-label
+      ><app-activity-link
+        :activity="conversation.conversationStarter"
+    /></template>
+    <template #content>
       <app-conversation-details
         v-if="loading"
         :loading="true"
@@ -52,7 +34,7 @@
         </div>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>

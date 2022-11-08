@@ -14,7 +14,7 @@
       <span class="leading-5">Invite user</span>
     </el-button>
   </div>
-  <div class="app-list-table panel">
+  <div class="app-list-table not-clickable panel">
     <app-user-list-toolbar></app-user-list-toolbar>
     <div class="-mx-6 -mt-6">
       <el-table
@@ -116,9 +116,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import UserListToolbar from '@/premium/user/components/list/user-list-toolbar.vue'
 import Roles from '@/security/roles'
-import { i18n } from '@/i18n'
 import AppUserDropdown from '../user-dropdown'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import pluralize from 'pluralize'
 
 const { fields } = UserModel
@@ -185,21 +183,6 @@ export default {
       return UserModel.presenter(row, fieldName)
     },
 
-    async doDestroyWithConfirm(id) {
-      try {
-        await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
-        })
-
-        return this.doDestroy(id)
-      } catch (error) {
-        // no
-      }
-    },
-
     rowClass({ row }) {
       const isSelected =
         this.selectedRows.find((r) => r.id === row.id) !==
@@ -211,22 +194,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.user-list-table {
-  @apply relative;
-  .el-table {
-    @apply mt-0 border-t-0;
-
-    th {
-      @apply pb-4;
-    }
-
-    .el-table-column--selection {
-      .cell {
-        @apply p-0 pl-4;
-      }
-    }
-  }
-}
-</style>

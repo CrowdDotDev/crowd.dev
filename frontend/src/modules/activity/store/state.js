@@ -6,14 +6,26 @@ export default () => {
       activities: {},
       conversations: {}
     },
-    views: [
-      {
+    views: {
+      activities: {
         id: 'activities',
         type: 'activities',
         label: 'Recent activities',
+        initialFilter: {
+          operator: 'and',
+          attributes: {}
+        },
         filter: {
           operator: 'and',
           attributes: {}
+        },
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'timestamp',
+          order: 'descending'
         },
         sorter: {
           prop: 'timestamp',
@@ -21,13 +33,25 @@ export default () => {
         },
         active: true
       },
-      {
+      conversations: {
         id: 'conversations',
         type: 'conversations',
         label: 'Conversations',
+        initialFilter: {
+          operator: 'and',
+          attributes: {}
+        },
         filter: {
           operator: 'and',
           attributes: {}
+        },
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'activityCount',
+          order: 'descending'
         },
         sorter: {
           prop: 'activityCount',
@@ -35,23 +59,11 @@ export default () => {
         },
         active: false
       }
-    ],
+    },
     list: {
       ids: [],
       loading: false
     },
-    count: 0,
-    filter: {
-      operator: 'and',
-      attributes: {}
-    },
-    pagination: {
-      currentPage: 1,
-      pageSize: INITIAL_PAGE_SIZE
-    },
-    sorter: {
-      prop: 'timestamp',
-      order: 'descending'
-    }
+    count: 0
   }
 }

@@ -29,7 +29,7 @@
             conversation: conversation
           }"
           ><i class="ri-upload-cloud-2-line mr-1" />Publish
-          Conversation</el-dropdown-item
+          conversation</el-dropdown-item
         >
         <el-dropdown-item
           v-else
@@ -38,7 +38,7 @@
             conversation: conversation
           }"
           ><i class="ri-arrow-go-back-line mr-1" />Unpublish
-          Conversation</el-dropdown-item
+          conversation</el-dropdown-item
         >
       </template>
 
@@ -49,7 +49,7 @@
         }"
         ><i class="ri-delete-bin-line mr-1 text-red" /><span
           class="text-red"
-          >Delete Conversation</span
+          >Delete conversation</span
         ></el-dropdown-item
       >
     </template>
@@ -57,7 +57,6 @@
 </template>
 
 <script>
-import { i18n } from '@/i18n'
 import { mapGetters, mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 import config from '@/config'
@@ -103,10 +102,13 @@ export default {
     async doDestroyWithConfirm(id) {
       try {
         await ConfirmDialog({
-          title: i18n('common.confirm'),
-          message: i18n('common.areYouSure'),
-          confirmButtonText: i18n('common.yes'),
-          cancelButtonText: i18n('common.no')
+          type: 'danger',
+          title: 'Delete conversation',
+          message:
+            "Are you sure you want to proceed? You can't undo this action",
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel',
+          icon: 'ri-delete-bin-line'
         })
 
         return this.doDestroy(id)
@@ -122,8 +124,10 @@ export default {
       } else if (
         command.action === 'conversationPublicUrl'
       ) {
-        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}-c/${this.record.slug}`
+        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}-c/${command.conversation.slug}`
+
         await navigator.clipboard.writeText(url)
+
         Message.success(
           'Conversation Public URL successfully copied to your clipboard'
         )
