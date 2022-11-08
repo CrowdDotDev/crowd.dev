@@ -189,6 +189,7 @@ const handleTogglePublished = async () => {
     conversation.published = true
   }
   loadingUpdate.value = false
+  isExpanded.value = false
 }
 
 const handleEditTitle = async () => {
