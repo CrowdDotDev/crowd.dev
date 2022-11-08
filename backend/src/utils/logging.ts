@@ -15,7 +15,7 @@ export const createServiceLogger = (): Logger => {
   if (serviceLoggerInstance) return serviceLoggerInstance
 
   const options = {
-    name: SERVICE,
+    name: SERVICE || 'unknown-service',
     level: LOG_LEVEL as Bunyan.LogLevel,
     stream: IS_DEV_ENV || IS_TEST_ENV ? PRETTY_FORMAT : JSON_FORMAT,
   }
@@ -40,6 +40,15 @@ export const createChildLogger = (
   }
 
   return parentLogger.child(options, true)
+}
+
+export const createServiceChildLogger = (childName: string, logProperties?: any): Logger => {
+  const options = {
+    component: childName,
+    ...(logProperties || {}),
+  }
+
+  return getServiceLogger().child(options, true)
 }
 
 export const logExecutionTime = async <T>(

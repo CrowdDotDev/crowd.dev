@@ -3,6 +3,9 @@ import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const log = createServiceChildLogger('getProfiles')
 
 /**
  * Get all profiles of an account
@@ -27,9 +30,7 @@ const getProfiles = async (
     },
   })
   if (isInvalid(result, 'profiles')) {
-    console.log('Invalid request in profiles')
-    console.log('Inputs: ', inputs)
-    console.log('Result: ', result)
+    log.warn({ inputs, result }, 'Invalid request in profiles')
   }
   return {
     records: result.value.profiles,

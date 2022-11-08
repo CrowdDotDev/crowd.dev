@@ -2,6 +2,9 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { IIntegrationStream } from '../../../../types/integration/stepResult'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const log = createServiceChildLogger('getMessagesThreads')
 
 async function getMessagesThreads(
   client: SuperfaceClient,
@@ -26,9 +29,7 @@ async function getMessagesThreads(
   })
 
   if (isInvalid(result, 'messages')) {
-    console.log('Invalid request in usecase')
-    console.log('Inputs: ', input)
-    console.log('Result: ', result)
+    log.warn({ input, result }, 'Invalid request in usecase')
   }
 
   let limit

@@ -9,7 +9,6 @@ export default async () => {
 
   // for each tenant
   for (const tenant of tenants.rows) {
-    console.log('processing tenant: ', tenant.id)
     const userContext = await getUserContext(tenant.id)
     const as = new ActivityService(userContext)
 
@@ -20,7 +19,6 @@ export default async () => {
 
     for (const slackActivity of slackActs.rows) {
       if (slackActivity.parentId && slackActivity.conversationId === null) {
-        console.log(`This activity ${slackActivity.id} has a parent id:  ${slackActivity.parentId}`)
         // get parent activity
         const parentAct = await as.findById(slackActivity.parentId)
 

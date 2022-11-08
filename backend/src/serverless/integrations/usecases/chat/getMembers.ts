@@ -1,6 +1,9 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { createServiceChildLogger } from '../../../../utils/logging'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
+
+const log = createServiceChildLogger('getMembers')
 
 async function getMembers(
   client: SuperfaceClient,
@@ -26,9 +29,7 @@ async function getMembers(
   })
 
   if (isInvalid(result, 'members')) {
-    console.log('Invalid request in hashtag')
-    console.log('Inputs: ', input)
-    console.log('Result: ', result)
+    log.warn({ input, result }, 'Invalid request in hashtag')
   }
   let limit
   let timeUntilReset

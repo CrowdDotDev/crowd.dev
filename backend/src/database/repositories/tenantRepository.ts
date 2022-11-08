@@ -22,7 +22,6 @@ class TenantRepository {
     // URL is required,
     // in case of multi tenant without subdomain
     // set a random uuid
-    console.log('data: ', data)
     data.url = data.url || uuid()
 
     const existsUrl = Boolean(

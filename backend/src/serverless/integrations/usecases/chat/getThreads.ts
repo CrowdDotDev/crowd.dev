@@ -2,6 +2,9 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const log = createServiceChildLogger('getThreads')
 
 async function getChannels(
   client: SuperfaceClient,
@@ -17,9 +20,7 @@ async function getChannels(
       parameters: { accessToken },
     })
     if (isInvalid(result, 'threads')) {
-      console.log('Invalid request in getChannels')
-      console.log('Inputs: ', input)
-      console.log('Result: ', result)
+      log.warn({ input, result }, 'Invalid request in getChannels')
     }
     return result.value.threads.map((thread) => ({
       name: thread.name,
@@ -27,7 +28,7 @@ async function getChannels(
       thread: true,
     }))
   } catch (err) {
-    console.log(err)
+    log.error(err, 'Error fetching threads!')
     throw err
   }
 }

@@ -2,6 +2,11 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const { inspect } = require('util')
+
+const log = createServiceChildLogger('getPostsByMention')
 
 /**
  * Find posts that mention a twitter profile
@@ -16,8 +21,6 @@ const getPostsByMention = async (
   page: string | undefined = '',
   afterDate: string | undefined = undefined,
 ): Promise<SocialResponse> => {
-  const { inspect } = require('util')
-
   try {
     const provider = await client.getProvider(PlatformType.TWITTER)
     const profile = await client.getProfile('social-media/posts-lookup')
@@ -31,9 +34,7 @@ const getPostsByMention = async (
       },
     })
     if (isInvalid(result, 'posts')) {
-      console.log('Invalid request in mention')
-      console.log('Inputs: ', inputs)
-      console.log('Result: ', result)
+      log.warn({ inputs, result }, 'Invalid request in mention')
     }
     return {
       records: result.value.posts,
@@ -42,7 +43,11 @@ const getPostsByMention = async (
       timeUntilReset: result.value.rateLimit.resetTimestamp,
     }
   } catch (err) {
-    console.error(inspect(err, false, Infinity, true))
+    log.error(
+      err,
+      { errPayload: inspect(err, false, Infinity, true) },
+      'Error while fetching posts by mentions!',
+    )
     throw err
   }
 }

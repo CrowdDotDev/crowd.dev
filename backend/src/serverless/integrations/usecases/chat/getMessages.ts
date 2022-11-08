@@ -1,6 +1,9 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { createServiceChildLogger } from '../../../../utils/logging'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
+
+const log = createServiceChildLogger('getChannels')
 
 async function getMessages(
   client: SuperfaceClient,
@@ -23,14 +26,12 @@ async function getMessages(
   })
 
   if (isInvalid(result, 'messages')) {
-    console.log('Invalid request in get messages')
-    console.log('Inputs: ', input)
-    console.log('Result: ', result)
+    log.warn({ input, result }, 'Invalid request in get messages')
   }
 
   if ('error' in result) {
     if (result.error.statusCode === 429) {
-      console.log(
+      log.warn(
         `Rate limit exceeded in Get Messages. Wait value in header is ${result.error.properties.rateLimit.retryAfter}`,
       )
       return {
@@ -42,7 +43,7 @@ async function getMessages(
     }
 
     if (result.error.statusCode === 500) {
-      console.log(`Error in messages: ${result.error.properties.detail}`)
+      log.error(result.error, `Error in messages: ${result.error.properties.detail}`)
       return {
         records: [],
         nextPage: page,

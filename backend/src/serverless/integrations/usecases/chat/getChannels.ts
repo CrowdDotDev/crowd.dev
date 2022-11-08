@@ -1,7 +1,10 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { createServiceChildLogger } from '../../../../utils/logging'
 import { Channel, Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { timeout } from '../../../../utils/timing'
+
+const log = createServiceChildLogger('getChannels')
 
 /**
  * Try if a channel is readable
@@ -53,9 +56,7 @@ async function getChannels(
     .getUseCase('GetChannels')
     .perform(input, { provider, parameters })
   if (isInvalid(result, 'channels')) {
-    console.log('Invalid request in getChannels')
-    console.log('Inputs: ', input)
-    console.log('Result: ', result)
+    log.warn({ input, result }, 'Invalid request in getChannels')
   }
   if (tryChannels) {
     const out: Channels = []

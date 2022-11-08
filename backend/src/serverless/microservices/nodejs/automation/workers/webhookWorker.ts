@@ -3,6 +3,9 @@ import getUserContext from '../../../../../database/utils/getUserContext'
 import AutomationRepository from '../../../../../database/repositories/automationRepository'
 import { AutomationExecutionState, WebhookSettings } from '../../../../../types/automationTypes'
 import AutomationExecutionService from '../../../../../services/automationExecutionService'
+import { createServiceChildLogger } from '../../../../../utils/logging'
+
+const log = createServiceChildLogger('webhookWorker')
 
 /**
  * Actually fire the webhook with the relevant payload
@@ -30,7 +33,7 @@ export default async (
   const settings = automation.settings as WebhookSettings
 
   const now = new Date()
-  console.log(`Firing automation ${automationId} for event ${eventId} to url '${settings.url}'!`)
+  log.info(`Firing automation ${automationId} for event ${eventId} to url '${settings.url}'!`)
   const eventPayload = {
     eventId,
     eventType: automation.trigger,
@@ -48,11 +51,11 @@ export default async (
       .set('X-CrowdDotDev-Event-ID', eventId)
 
     success = true
-    console.log(`Webhook response code ${result.statusCode}!`)
+    log.debug(`Webhook response code ${result.statusCode}!`)
   } catch (err) {
-    console.log(
-      `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
+    log.error(
       err,
+      `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
     )
 
     let error: any

@@ -14,8 +14,11 @@ import { tenantSubdomain } from '../tenantSubdomain'
 import Error401 from '../../errors/Error401'
 import identify from '../../segment/identify'
 import track from '../../segment/track'
+import { createServiceChildLogger } from '../../utils/logging'
 
 const BCRYPT_SALT_ROUNDS = 12
+
+const log = createServiceChildLogger('AuthService')
 
 class AuthService {
   static async signup(
@@ -255,7 +258,7 @@ class AuthService {
           bypassPermissionValidation: true,
         })
       } catch (error) {
-        console.error(error)
+        log.error(error, 'Error handling onboard!')
         // In case of invitation acceptance error, does not prevent
         // the user from sign up/in
       }
@@ -361,7 +364,7 @@ class AuthService {
       const token = await UserRepository.generateEmailVerificationToken(email, options)
       link = `${tenantSubdomain.frontendUrl(tenant)}/auth/verify-email?token=${token}`
     } catch (error) {
-      console.error(error)
+      log.error(error, 'Error sending email address verification email!')
       throw new Error400(language, 'auth.emailAddressVerificationEmail.error')
     }
 
@@ -389,7 +392,7 @@ class AuthService {
 
       link = `${tenantSubdomain.frontendUrl(tenant)}/auth/password-reset?token=${token}`
     } catch (error) {
-      console.error(error)
+      log.error(error, 'Error sending password reset email')
       throw new Error400(language, 'auth.passwordReset.error')
     }
 
@@ -488,7 +491,7 @@ class AuthService {
           },
           options,
         )
-        console.log(user)
+        log.debug({ user }, 'User')
       } else if (user && (user.provider !== provider || user.providerId !== providerId)) {
         throw new Error('auth-invalid-provider')
       }

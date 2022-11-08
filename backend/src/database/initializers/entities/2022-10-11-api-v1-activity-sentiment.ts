@@ -10,7 +10,6 @@ import { timeout } from '../../../utils/timing'
  */
 export default async () => {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-  console.time('whole-script-time')
 
   // const activityQuery = `select * from activities a where a."timestamp"  between '2022-09-01' and now() and (a."attributes"->>'sample') is null`
   const activityQuery = `select * from activities a where a."timestamp"  between '2022-09-01' and now() 
@@ -21,8 +20,6 @@ export default async () => {
     type: QueryTypes.SELECT,
   })
 
-  console.log('activities: ')
-  console.log(activities.length)
   const rawLength = activities.length
 
   const splittedActivities = []
@@ -39,8 +36,6 @@ export default async () => {
     splittedActivities.push(activities)
   }
 
-  let processedCount = 0
-
   const activityService = new ActivityService(options)
 
   for (let activityChunk of splittedActivities) {
@@ -49,8 +44,6 @@ export default async () => {
     try {
       sentiments = await activityService.getSentimentBatch(activityChunk)
     } catch (e) {
-      console.log(e)
-      console.log('exception occured. sleeping 2 seconds and retrying...')
       await timeout(3000)
       sentiments = await activityService.getSentimentBatch(activityChunk)
     }
@@ -63,9 +56,5 @@ export default async () => {
     await options.database.activity.bulkCreate(activityChunk, {
       updateOnDuplicate: ['sentiment'],
     })
-    processedCount += activityChunk.length
-    console.log(`${processedCount}/${rawLength} processed`)
   }
-
-  console.timeEnd('whole-script-time')
 }

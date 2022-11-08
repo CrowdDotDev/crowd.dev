@@ -3,6 +3,8 @@ import moment from 'moment'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
 import { sendMessage } from '../../utils/sqs'
+import { NodeWorkerMessageType } from '../types/workerTypes'
+import { AutomationTrigger } from '../../types/automationTypes'
 
 // 15 minute limit for delaying is max for SQS
 const limitSeconds = 15 * 60
@@ -69,4 +71,29 @@ export const sendNodeWorkerMessage = async (
     MessageAttributes: attributes,
     DelaySeconds: delay,
   })
+}
+
+export const sendNewActivityNodeSQSMessage = async (
+  tenant: string,
+  activity: any,
+): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    tenant,
+    activity,
+    trigger: AutomationTrigger.NEW_ACTIVITY,
+    service: 'automation',
+  }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
+}
+
+export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    tenant,
+    member,
+    trigger: AutomationTrigger.NEW_MEMBER,
+    service: 'automation',
+  }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

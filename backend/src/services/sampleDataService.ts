@@ -15,11 +15,13 @@ import { MemberAttributeName } from '../database/attributes/member/enums'
 import { PlatformType } from '../types/integrationEnums'
 import OrganizationService from './organizationService'
 import ConversationService from './conversationService'
+import { LoggingBase } from './loggingBase'
 
-export default class SampleDataService {
+export default class SampleDataService extends LoggingBase {
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -55,7 +57,7 @@ export default class SampleDataService {
     // When importing, we pad that value in days so that most recent activity.timestamp = now()
     const timestampPaddingInDays =
       moment().utc().diff(moment('2022-09-30 21:52:28').utc(), 'days') - 1
-    console.log(`timestampPaddingInDays: ${timestampPaddingInDays}`)
+    this.log.info(`timestampPaddingInDays: ${timestampPaddingInDays}`)
 
     const members = sampleMembersActivities.members
     for (const conv of sampleMembersActivities.conversations) {
@@ -72,7 +74,7 @@ export default class SampleDataService {
         await activityService.createWithMember(act)
       }
     }
-    console.log(`Sample data for tenant ${this.options.currentTenant.id} created succesfully.`)
+    this.log.info(`Sample data for tenant ${this.options.currentTenant.id} created succesfully.`)
   }
 
   /**
@@ -125,7 +127,7 @@ export default class SampleDataService {
         })
       ).rows.map((conv) => conv.id)
 
-      console.log('conversationIDs', conversationIds)
+      this.log.info(`conversationIDs${conversationIds}`)
       await conversationService.destroyBulk(conversationIds)
 
       // delete attribute settings for attributes.sample.crowd as well
@@ -141,6 +143,6 @@ export default class SampleDataService {
       })
     }
 
-    console.log(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
+    this.log.info(`Sample data for tenant ${this.options.currentTenant.id} deleted succesfully.`)
   }
 }

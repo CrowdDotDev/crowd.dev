@@ -3,6 +3,10 @@ import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const log = createServiceChildLogger('getFollowers')
+
 /**
  * Get all followers of an account
  * @param accessToken User token to access the Twitter API
@@ -28,9 +32,7 @@ const getFollowers = async (
     },
   })
   if (isInvalid(result, 'followers')) {
-    console.log('Invalid request in followers')
-    console.log('Inputs: ', inputs)
-    console.log('Result: ', result)
+    log.warn({ inputs, result }, 'Invalid request in followers')
   }
   return {
     records: result.value.followers,

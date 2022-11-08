@@ -5,6 +5,7 @@
 
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
+import { getServiceLogger } from '../../utils/logging'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
 import TenantService from '../../services/tenantService'
@@ -19,6 +20,8 @@ const env = dotenv.config({
 })
 
 dotenvExpand.expand(env)
+
+const log = getServiceLogger()
 
 async function twitterFollowsFixSourceIdsWithTimestamp() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
@@ -43,8 +46,7 @@ async function twitterFollowsFixSourceIdsWithTimestamp() {
       })
 
       for (const activity of activities.rows) {
-        console.log(activity)
-        console.log(activity.communityMember)
+        log.info({ activity }, 'Activity')
         // calculate sourceId with fixed timestamps
         const sourceIdRegenerated = IntegrationServiceBase.generateSourceIdHash(
           activity.communityMember.username.twitter,

@@ -13,8 +13,8 @@ import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
 import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
-import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 import { createChildLogger, logExecutionTime, Logger } from '../utils/logging'
+import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 
 export default class ActivityService {
   options: IServiceOptions

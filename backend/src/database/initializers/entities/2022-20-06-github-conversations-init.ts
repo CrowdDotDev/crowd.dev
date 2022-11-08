@@ -10,7 +10,6 @@ export default async () => {
 
   // for each tenant
   for (const tenant of tenants.rows) {
-    console.log('processing tenant: ', tenant.id)
     const userContext = await getUserContext(tenant.id)
     const as = new ActivityService(userContext)
 
@@ -27,9 +26,6 @@ export default async () => {
 
     for (const githubActivity of githubActs.rows) {
       if (githubActivity.parentId && githubActivity.conversationId === null) {
-        console.log(
-          `This activity ${githubActivity.id} has a parent id:  ${githubActivity.parentId}`,
-        )
         // get parent activity
         const parentAct = await as.findById(githubActivity.parentId)
 

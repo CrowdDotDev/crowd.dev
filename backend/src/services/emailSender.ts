@@ -2,13 +2,15 @@ import assert from 'assert'
 import sendgridMail from '@sendgrid/mail'
 import { SENDGRID_CONFIG } from '../config'
 import { AdvancedSuppressionManager } from './helpers/sendgridAsmType'
+import { LoggingBase } from './loggingBase'
 
-export default class EmailSender {
+export default class EmailSender extends LoggingBase {
   templateId: string
 
   variables: any
 
   constructor(templateId, variables) {
+    super()
     this.templateId = templateId
     this.variables = variables
     if (SENDGRID_CONFIG.key) {
@@ -37,7 +39,7 @@ export default class EmailSender {
    */
   async sendTo(recipient: string, asm?: AdvancedSuppressionManager): Promise<any> {
     if (!EmailSender.isConfigured) {
-      console.error(`Email provider is not configured.`)
+      this.log.error('Email provider is not configured.')
       return undefined
     }
 
@@ -62,8 +64,7 @@ export default class EmailSender {
     try {
       return await sendgridMail.send(msg)
     } catch (error) {
-      console.error('Error sending SendGrid email.')
-      console.error(error)
+      this.log.error(error, 'Error sending SendGrid email.')
       throw error
     }
   }

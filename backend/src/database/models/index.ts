@@ -1,12 +1,15 @@
+import Sequelize, { DataTypes } from 'sequelize'
+import { createChildLogger, getServiceLogger } from '../../utils/logging'
 /**
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
-import Sequelize, { DataTypes } from 'sequelize'
 import * as configTypes from '../../config/configTypes'
 import { DB_CONFIG, SERVICE } from '../../config'
 
 const { highlight } = require('cli-highlight')
+
+const log = createChildLogger('Database', getServiceLogger())
 
 interface Credentials {
   username: string
@@ -70,12 +73,13 @@ function models() {
         idle: 10000,
       },
       logging: DB_CONFIG.logging
-        ? (log) =>
-            console.log(
-              highlight(log, {
+        ? (dbLog) =>
+            log.info(
+              highlight(dbLog, {
                 language: 'sql',
                 ignoreIllegals: true,
               }),
+              'DB LOG',
             )
         : false,
     },

@@ -1,12 +1,15 @@
+import { createServiceChildLogger } from '../../utils/logging'
 import { KUBE_MODE } from '../../config/index'
 import bulkOperations from './operationsWorker'
+
+const log = createServiceChildLogger('dbOperations.handler')
 
 export async function consumer(event) {
   if (!KUBE_MODE) {
     event = JSON.parse(event.Records[0].body)
   }
 
-  console.log('Event: ', event)
+  log.info(`Event: ${event}`)
   const tenantId = event.tenantId || event.tenant_id
 
   if (!tenantId) {

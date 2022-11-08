@@ -1,9 +1,12 @@
 import passport from 'passport'
 import GoogleStrategy from 'passport-google-oauth20'
 import { get } from 'lodash'
+import { createChildLogger, getServiceLogger } from '../../utils/logging'
 import AuthService from '../../services/auth/authService'
 import { databaseInit } from '../../database/databaseConnection'
 import { GOOGLE_CONFIG, API_CONFIG } from '../../config'
+
+const log = createChildLogger('AuthSocial', getServiceLogger())
 
 export default (app, routes) => {
   app.use(passport.initialize())
@@ -58,7 +61,7 @@ export default (app, routes) => {
               done(null, jwtToken)
             })
             .catch((error) => {
-              console.error(error)
+              log.error(error, 'Error while handling google auth!')
               done(error, null)
             })
         },
@@ -87,7 +90,7 @@ export default (app, routes) => {
 
 function handleCallback(res, err, jwtToken) {
   if (err) {
-    console.error(err)
+    log.error(err, 'Error handling social callback!')
     let errorCode = 'generic'
 
     if (['auth-invalid-provider', 'auth-no-email'].includes(err.message)) {

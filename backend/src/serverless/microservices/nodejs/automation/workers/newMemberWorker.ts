@@ -10,6 +10,9 @@ import {
 import MemberRepository from '../../../../../database/repositories/memberRepository'
 import { sendWebhookProcessRequest } from './util'
 import { MemberAutomationData } from '../../messageTypes'
+import { createServiceChildLogger } from '../../../../../utils/logging'
+
+const log = createServiceChildLogger('newMemberWorker')
 
 /**
  * Helper function to check whether a single member should be processed by automation
@@ -25,7 +28,7 @@ export const shouldProcessMember = (member: any, automation: AutomationData): bo
   if (settings.platforms && settings.platforms.length > 0) {
     const platforms = Object.keys(member.username)
     if (!platforms.some((platform) => settings.platforms.includes(platform))) {
-      console.log(
+      log.warn(
         `Ignoring automation ${automation.id} - Member ${
           member.id
         } platforms do not include any of automation setting platforms: [${settings.platforms.join(
@@ -71,8 +74,6 @@ export default async (
   memberId?: string,
   memberData?: MemberAutomationData,
 ): Promise<void> => {
-  // console.log(`New member automation trigger detected with member id: ${memberId}!`)
-
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -83,7 +84,7 @@ export default async (
     })
 
     if (automations.length > 0) {
-      console.log(`Found ${automations.length} automations to process!`)
+      log.info(`Found ${automations.length} automations to process!`)
 
       let member: any | undefined = memberData
       if (member === undefined) {
@@ -92,7 +93,7 @@ export default async (
 
       for (const automation of automations) {
         if (shouldProcessMember(member, automation)) {
-          console.log(`Member ${member.id} is being processed by automation ${automation.id}!`)
+          log.info(`Member ${member.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
@@ -104,15 +105,13 @@ export default async (
               )
               break
             default:
-              console.log(`ERROR: Automation type '${automation.type}' is not supported!`)
+              log.error(`ERROR: Automation type '${automation.type}' is not supported!`)
           }
         }
       }
-    } else {
-      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
-    console.log('Error while processing new member automation trigger!', error)
+    log.error(error, 'Error while processing new member automation trigger!')
     throw error
   }
 }

@@ -2,6 +2,9 @@ import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
+import { createServiceChildLogger } from '../../../../utils/logging'
+
+const log = createServiceChildLogger('findPostsByHashtag')
 
 /**
  * Perform a hashtag lookup with SuperFace
@@ -28,9 +31,7 @@ const findPostsByHashtag = async (
     },
   })
   if (isInvalid(result, 'posts')) {
-    console.log('Invalid request in hashtag')
-    console.log('Inputs: ', inputs)
-    console.log('Result: ', result)
+    log.warn({ inputs, result }, 'Invalid request in hashtag')
   }
   return {
     records: result.value.posts,
