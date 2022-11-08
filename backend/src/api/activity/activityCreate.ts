@@ -1,5 +1,4 @@
 import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import ActivityService from '../../services/activityService'
 import track from '../../segment/track'
@@ -20,15 +19,11 @@ import track from '../../segment/track'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
+  new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
 
-    const payload = await new ActivityService(req).upsert(req.body)
+  const payload = await new ActivityService(req).upsert(req.body)
 
-    track('Activity Manually Created', { ...payload }, { ...req })
+  track('Activity Manually Created', { ...payload }, { ...req })
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

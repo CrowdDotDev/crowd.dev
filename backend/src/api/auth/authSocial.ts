@@ -2,7 +2,6 @@ import passport from 'passport'
 import GoogleStrategy from 'passport-google-oauth20'
 import { get } from 'lodash'
 import AuthService from '../../services/auth/authService'
-import ApiResponseHandler from '../apiResponseHandler'
 import { databaseInit } from '../../database/databaseConnection'
 import { GOOGLE_CONFIG, API_CONFIG } from '../../config'
 
@@ -18,18 +17,14 @@ export default (app, routes) => {
   })
 
   routes.post('/auth/social/onboard', async (req, res) => {
-    try {
-      const payload = await AuthService.handleOnboard(
-        req.currentUser,
-        req.body.invitationToken,
-        req.body.tenantId,
-        req,
-      )
+    const payload = await AuthService.handleOnboard(
+      req.currentUser,
+      req.body.invitationToken,
+      req.body.tenantId,
+      req,
+    )
 
-      await ApiResponseHandler.success(req, res, payload)
-    } catch (error) {
-      await ApiResponseHandler.error(req, res, error)
-    }
+    await req.responseHandler.success(req, res, payload)
   })
 
   if (GOOGLE_CONFIG.clientId) {

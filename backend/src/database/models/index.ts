@@ -8,13 +8,49 @@ import { DB_CONFIG, SERVICE } from '../../config'
 
 const { highlight } = require('cli-highlight')
 
+interface Credentials {
+  username: string
+  password: string
+}
+
+function getCredentials(): Credentials {
+  if (DB_CONFIG.username) {
+    return {
+      username: DB_CONFIG.username,
+      password: DB_CONFIG.password,
+    }
+  }
+
+  switch (SERVICE) {
+    case configTypes.ServiceType.API:
+      return {
+        username: DB_CONFIG.apiUsername,
+        password: DB_CONFIG.apiPassword,
+      }
+    case configTypes.ServiceType.JOB_GENERATOR:
+      return {
+        username: DB_CONFIG.jobGeneratorUsername,
+        password: DB_CONFIG.jobGeneratorPassword,
+      }
+    case configTypes.ServiceType.NODEJS_WORKER:
+      return {
+        username: DB_CONFIG.nodejsWorkerUsername,
+        password: DB_CONFIG.nodejsWorkerPassword,
+      }
+    default:
+      throw new Error('Incorrectly configured database connection settings!')
+  }
+}
+
 function models() {
   const database = {} as any
 
+  const credentials = getCredentials()
+
   const sequelize = new (<any>Sequelize)(
     DB_CONFIG.database,
-    DB_CONFIG.username,
-    DB_CONFIG.password,
+    credentials.username,
+    credentials.password,
     {
       dialect: DB_CONFIG.dialect,
       port: DB_CONFIG.port,
@@ -28,7 +64,7 @@ function models() {
         write: { host: DB_CONFIG.writeHost },
       },
       pool: {
-        max: SERVICE === configTypes.ServiceType.API ? 200 : 20,
+        max: SERVICE === configTypes.ServiceType.API ? 100 : 10,
         min: 0,
         acquire: 30000,
         idle: 10000,

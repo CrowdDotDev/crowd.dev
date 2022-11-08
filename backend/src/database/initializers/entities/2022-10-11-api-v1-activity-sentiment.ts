@@ -41,16 +41,18 @@ export default async () => {
 
   let processedCount = 0
 
+  const activityService = new ActivityService(options)
+
   for (let activityChunk of splittedActivities) {
     let sentiments
 
     try {
-      sentiments = await ActivityService.getSentimentBatch(activityChunk)
+      sentiments = await activityService.getSentimentBatch(activityChunk)
     } catch (e) {
       console.log(e)
       console.log('exception occured. sleeping 2 seconds and retrying...')
       await timeout(3000)
-      sentiments = await ActivityService.getSentimentBatch(activityChunk)
+      sentiments = await activityService.getSentimentBatch(activityChunk)
     }
 
     activityChunk = activityChunk.map((a, index) => {

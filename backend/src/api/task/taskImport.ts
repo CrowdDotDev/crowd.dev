@@ -1,18 +1,13 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.taskImport)
+  new PermissionChecker(req).validateHas(Permissions.values.taskImport)
 
-    await new TaskService(req).import(req.body, req.body.importHash)
+  await new TaskService(req).import(req.body, req.body.importHash)
 
-    const payload = true
+  const payload = true
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

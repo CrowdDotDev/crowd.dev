@@ -1,7 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 // /**
 //  * DELETE /tenant/{tenantId}/task/{id}
@@ -17,15 +16,11 @@ import TaskService from '../../services/taskService'
 //  * @response 429 - Too many requests
 //  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.taskDestroy)
+  new PermissionChecker(req).validateHas(Permissions.values.taskDestroy)
 
-    await new TaskService(req).destroyAll(req.query.ids)
+  await new TaskService(req).destroyAll(req.query.ids)
 
-    const payload = true
+  const payload = true
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

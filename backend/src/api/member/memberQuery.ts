@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import MemberService from '../../services/memberService'
 import track from '../../segment/track'
+import MemberService from '../../services/memberService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * POST /tenant/{tenantId}/member/query
@@ -20,17 +19,13 @@ import track from '../../segment/track'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.memberRead)
+  new PermissionChecker(req).validateHas(Permissions.values.memberRead)
 
-    const payload = await new MemberService(req).query(req.body)
+  const payload = await new MemberService(req).query(req.body)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Member Advanced Fitler', { ...payload }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Member Advanced Fitler', { ...payload }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

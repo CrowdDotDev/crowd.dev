@@ -21,8 +21,16 @@ SQS_SECRET_ACCESS_KEY = os.environ.get("CROWD_SQS_AWS_SECRET_ACCESS_KEY")
 SQS_REGION = os.environ.get("CROWD_SQS_AWS_REGION")
 
 # DB Settings
-DB_USERNAME = os.environ.get("CROWD_DB_USERNAME")
-DB_PASSWORD = os.environ.get("CROWD_DB_PASSWORD")
+
+if "CROWD_DB_PYTHON_WORKER_USERNAME" in os.environ:
+  DB_USERNAME = os.environ.get("CROWD_DB_PYTHON_WORKER_USERNAME")
+  DB_PASSWORD = os.environ.get("CROWD_DB_PYTHON_WORKER_PASSWORD")
+elif "CROWD_DB_USERNAME" in os.environ:
+  DB_USERNAME = os.environ.get("CROWD_DB_USERNAME")
+  DB_PASSWORD = os.environ.get("CROWD_DB_PASSWORD")
+else:
+  raise Exception("No database credentials configured!")
+
 DB_DATABASE = os.environ.get("CROWD_DB_DATABASE")
 DB_HOST = os.environ.get("CROWD_DB_READ_HOST")
 DB_PORT = os.environ.get("CROWD_DB_PORT")

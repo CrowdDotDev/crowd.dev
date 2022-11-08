@@ -1,6 +1,5 @@
 import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
-import ApiResponseHandler from '../apiResponseHandler'
 import AutomationExecutionService from '../../services/automationExecutionService'
 
 /**
@@ -20,26 +19,22 @@ import AutomationExecutionService from '../../services/automationExecutionServic
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.automationRead)
+  new PermissionChecker(req).validateHas(Permissions.values.automationRead)
 
-    let offset = 0
-    if (req.query.offset) {
-      offset = parseInt(req.query.offset, 10)
-    }
-    let limit = 10
-    if (req.query.limit) {
-      limit = parseInt(req.query.limit, 10)
-    }
-
-    const payload = await new AutomationExecutionService(req).findAndCountAll({
-      automationId: req.params.automationId,
-      offset,
-      limit,
-    })
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  let offset = 0
+  if (req.query.offset) {
+    offset = parseInt(req.query.offset, 10)
   }
+  let limit = 10
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit, 10)
+  }
+
+  const payload = await new AutomationExecutionService(req).findAndCountAll({
+    automationId: req.params.automationId,
+    offset,
+    limit,
+  })
+
+  await req.responseHandler.success(req, res, payload)
 }

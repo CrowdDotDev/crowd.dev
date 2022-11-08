@@ -2,7 +2,6 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
-import ApiResponseHandler from '../apiResponseHandler'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -19,14 +18,10 @@ import ApiResponseHandler from '../apiResponseHandler'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
-    const payload = await new AutomationService(req).create(req.body.data)
+  new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
+  const payload = await new AutomationService(req).create(req.body.data)
 
-    track('Automation Created', { ...payload }, { ...req })
+  track('Automation Created', { ...payload }, { ...req })
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

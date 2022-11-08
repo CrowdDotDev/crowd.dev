@@ -1,21 +1,16 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import EagleEyeContentService from '../../services/eagleEyeContentService'
 import track from '../../segment/track'
+import EagleEyeContentService from '../../services/eagleEyeContentService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentSearch)
+  new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentSearch)
 
-    console.log(req.body)
+  console.log(req.body)
 
-    const payload = await new EagleEyeContentService(req).search(req.body)
+  const payload = await new EagleEyeContentService(req).search(req.body)
 
-    track('EagleEyeSearch', { ...req.body }, { ...req })
+  track('EagleEyeSearch', { ...req.body }, { ...req })
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }
