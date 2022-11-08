@@ -91,7 +91,7 @@ class TenantRepository {
     const checkTenantUrl = await TenantRepository.findAndCountAll(
       { filter: { url: cleanedTenantUrl } },
       options,
-      filterUser
+      filterUser,
     )
 
     if (checkTenantUrl.count > 0) {
