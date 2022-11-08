@@ -46,6 +46,9 @@ function prepare_dev_env() {
         fi
     fi
 
+    $_DC version
+    docker version 
+
     set -eo pipefail
 }
 
