@@ -106,24 +106,12 @@ export default class SequelizeTestUtils {
     const randomUser = await this.getRandomUser()
 
     let tenant = await db.tenant.create(randomTenant)
-    let user = await db.user.create(randomUser)
+    const user = await db.user.create(randomUser)
     await db.tenantUser.create({
       roles: ['admin'],
       status: 'active',
       tenantId: tenant.id,
       userId: user.id,
-    })
-
-    user = await db.user.findByPk(user.id, {
-      include: [
-        {
-          model: db.tenantUser,
-          as: 'tenants',
-          where: {
-            tenantId: tenant.id,
-          },
-        },
-      ],
     })
 
     await SettingsRepository.findOrCreateDefault({}, {
