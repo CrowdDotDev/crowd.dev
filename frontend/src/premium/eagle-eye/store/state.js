@@ -107,6 +107,7 @@ export default () => {
         id: 'rejected',
         label: 'Excluded',
         initialFilter: {
+          operator: 'and',
           attributes: {
             status: {
               name: 'status',
@@ -119,6 +120,7 @@ export default () => {
           }
         },
         filter: {
+          operator: 'and',
           attributes: {
             status: {
               name: 'status',
