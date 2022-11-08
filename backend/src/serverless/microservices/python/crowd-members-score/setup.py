@@ -15,6 +15,6 @@ setup(
     packages=find_namespace_packages(include=["crowd.*"]),
     install_requires=[
         "python-dateutil",
-        "sklearn",
+        "scikit-learn",
     ],
 )
