@@ -1,3 +1,4 @@
+from crowd.backend.infrastructure.logging import LOGGER
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member, Integration
@@ -38,7 +39,7 @@ class MergeSuggestions:
 
         # Compute all members
         self.comparison = self.repository.find_all_usernames()
-        print(f"Found {self.comparison} members to compare")
+        LOGGER.info(f"Found {self.comparison} members to compare")
 
         self.test = test
 
@@ -143,7 +144,6 @@ class MergeSuggestions:
         common = v1[1].intersection(v2[1])
         # by definition of cosine distance we have
         out = sum(v1[0][ch] * v2[0][ch] for ch in common) / v1[2] / v2[2]
-        # print(time.time() - start)
         return out
 
     def find_similar_member(self, member, comparison, same_platform=False):
