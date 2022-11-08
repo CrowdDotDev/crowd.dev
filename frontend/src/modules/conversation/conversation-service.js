@@ -22,7 +22,7 @@ export class ConversationService {
 
     const response = await authAxios.delete(
       `/tenant/${tenantId}/conversation`,
-      params
+      { params }
     )
 
     return response.data
