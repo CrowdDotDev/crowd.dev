@@ -22,7 +22,6 @@ class TaskRepository {
       {
         ...lodash.pick(data, ['name', 'body', 'status', 'dueDate', 'importHash']),
 
-        assignedToId: data.assignedTo ? data.assignedTo : null,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,
@@ -38,6 +37,11 @@ class TaskRepository {
     await record.setActivities(data.activities || [], {
       transaction,
     })
+
+    await record.setAssignees(data.assignees || [], {
+      transaction
+    })
+    
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
@@ -401,6 +405,11 @@ class TaskRepository {
     })
 
     output.activities = await record.getActivities({
+      transaction,
+      joinTableAttributes: [],
+    })
+
+    output.assignees = await record.getAssignees({
       transaction,
       joinTableAttributes: [],
     })

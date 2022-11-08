@@ -75,8 +75,10 @@ export default (sequelize) => {
       },
     })
 
-    models.task.belongsTo(models.user, {
-      as: 'assignedTo',
+    models.task.belongsToMany(models.user, {
+      as: 'assignees',
+      through: 'taskAssignees',
+      foreignKey: 'taskId',
     })
 
     models.task.belongsTo(models.user, {
