@@ -13,8 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Start all services
-        run: pwd && ls -al && |
-          ./scripts/cli start
+        run: pwd && ls -al && ./scripts/cli start
 
       - name: Cypress run
         uses: cypress-io/github-action@v4
