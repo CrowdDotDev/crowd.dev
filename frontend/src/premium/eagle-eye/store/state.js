@@ -12,10 +12,25 @@ const savedKeywordsArray =
 export default () => {
   return {
     records: {},
-    views: [
-      {
+    views: {
+      inbox: {
         id: 'inbox',
         label: 'Inbox',
+        initialFilter: {
+          operator: 'and',
+          attributes: {
+            keywords: {
+              name: 'keywords',
+              label: 'Keywords',
+              show: false,
+              operator: 'overlap',
+              defaultOperator: 'overlap',
+              type: 'custom',
+              value: savedKeywordsArray,
+              defaultValue: savedKeywordsArray
+            }
+          }
+        },
         filter: {
           operator: 'and',
           attributes: {
@@ -31,15 +46,36 @@ export default () => {
             }
           }
         },
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'similarityScore',
+          order: 'descending'
+        },
         sorter: {
           prop: 'similarityScore',
           order: 'descending'
         },
         active: true
       },
-      {
+      engaged: {
         id: 'engaged',
         label: 'Engaged',
+        initialFilter: {
+          operator: 'and',
+          attributes: {
+            status: {
+              name: 'status',
+              operator: 'eq',
+              defaultOperator: 'eq',
+              defaultValue: 'engaged',
+              value: 'engaged',
+              show: false
+            }
+          }
+        },
         filter: {
           operator: 'and',
           attributes: {
@@ -53,12 +89,35 @@ export default () => {
             }
           }
         },
-        sorter: {},
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'similarityScore',
+          order: 'descending'
+        },
+        sorter: {
+          prop: 'similarityScore',
+          order: 'descending'
+        },
         active: false
       },
-      {
+      rejected: {
         id: 'rejected',
         label: 'Excluded',
+        initialFilter: {
+          attributes: {
+            status: {
+              name: 'status',
+              operator: 'eq',
+              defaultOperator: 'eq',
+              defaultValue: 'rejected',
+              value: 'rejected',
+              show: false
+            }
+          }
+        },
         filter: {
           attributes: {
             status: {
@@ -71,37 +130,25 @@ export default () => {
             }
           }
         },
-        sorter: {},
+        pagination: {
+          currentPage: 1,
+          pageSize: INITIAL_PAGE_SIZE
+        },
+        initialSorter: {
+          prop: 'similarityScore',
+          order: 'descending'
+        },
+        sorter: {
+          prop: 'similarityScore',
+          order: 'descending'
+        },
         active: false
       }
-    ],
+    },
     list: {
       ids: [],
       loading: false
     },
-    count: 0,
-    filter: {
-      operator: 'and',
-      attributes: {
-        keywords: {
-          name: 'keywords',
-          label: 'Keywords',
-          show: false,
-          operator: 'overlap',
-          defaultOperator: 'overlap',
-          type: 'custom',
-          value: savedKeywordsArray,
-          defaultValue: savedKeywordsArray
-        }
-      }
-    },
-    pagination: {
-      currentPage: 1,
-      pageSize: INITIAL_PAGE_SIZE
-    },
-    sorter: {
-      prop: 'similarityScore',
-      order: 'descending'
-    }
+    count: 0
   }
 }

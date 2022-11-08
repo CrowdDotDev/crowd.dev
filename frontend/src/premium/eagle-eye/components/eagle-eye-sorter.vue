@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import AppInlineSelectInput from '@/shared/form/inline-select-input'
 export default {
   name: 'AppEagleEyeSorter',
@@ -31,9 +31,12 @@ export default {
     }
   },
   computed: {
-    ...mapState({
-      sorter: (state) => state.eagleEye.sorter
+    ...mapGetters({
+      activeView: 'eagleEye/activeView'
     }),
+    sorter() {
+      return this.activeView.sorter
+    },
     computedValue: {
       get() {
         return this.sorter.prop

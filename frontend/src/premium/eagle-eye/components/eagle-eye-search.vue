@@ -19,6 +19,9 @@ export default {
     ...mapGetters({
       activeView: 'eagleEye/activeView'
     }),
+    filter() {
+      return this.activeView.filter
+    },
     computedModel: {
       get() {
         return this.filter.attributes?.keywords?.value || []
