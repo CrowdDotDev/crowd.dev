@@ -86,9 +86,12 @@ class TenantRepository {
     // remove trailing dash
     cleanedTenantUrl = cleanedTenantUrl.replace(/-$/gi, '')
 
+    const filterUser = false
+
     const checkTenantUrl = await TenantRepository.findAndCountAll(
       { filter: { url: cleanedTenantUrl } },
       options,
+      filterUser
     )
 
     if (checkTenantUrl.count > 0) {
