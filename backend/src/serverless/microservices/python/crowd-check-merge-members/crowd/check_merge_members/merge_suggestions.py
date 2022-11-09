@@ -39,7 +39,7 @@ class MergeSuggestions:
 
         # Compute all members
         self.comparison = self.repository.find_all_usernames()
-        LOGGER.info(f"Found {self.comparison} members to compare")
+        LOGGER.info(f"Found {len(self.comparison)} members to compare")
 
         self.test = test
 
