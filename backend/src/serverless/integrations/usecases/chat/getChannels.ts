@@ -1,5 +1,5 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { cleanSuperfaceError } from "../cleanError"
+import { cleanSuperfaceError } from '../cleanError'
 import { createServiceChildLogger } from '../../../../utils/logging'
 import { Channel, Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
