@@ -1,6 +1,5 @@
-import logging
-
 from crowd.backend.infrastructure.config import KUBE_MODE, DB_URL
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository.keys import DBKeys as dbk
 import dns
 import os
@@ -18,7 +17,7 @@ import json
 from datetime import timedelta
 from sqlalchemy import desc, asc
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 _ = dns.version.version
 

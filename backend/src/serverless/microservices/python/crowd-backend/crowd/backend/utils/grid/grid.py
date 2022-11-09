@@ -1,5 +1,6 @@
-from crowd.backend.infrastructure.logging import LOGGER
+from crowd.backend.infrastructure.logging import get_logger
 
+logger = get_logger(__name__)
 
 class BaseGrid:
 
@@ -26,4 +27,4 @@ class GithubGrid(BaseGrid):
     fork = 4
 
 if __name__ == "__main__":
-    LOGGER.info(GithubGrid.get_score("issues-opened"))
+    logger.info(GithubGrid.get_score("issues-opened"))

@@ -3,10 +3,12 @@ import json
 from crowd.backend.enums import Services
 from crowd.backend.infrastructure import SQS
 from crowd.backend.infrastructure.config import PYTHON_WORKER_QUEUE
-from crowd.backend.infrastructure.logging import LOGGER
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.utils.coordinator import base_coordinator
 from crowd.check_merge_members.merge_suggestions_worker import merge_suggestions_worker
 from crowd.members_score import members_score_worker
+
+LOGGER = get_logger(__name__)
 
 sqs = SQS(PYTHON_WORKER_QUEUE)
 

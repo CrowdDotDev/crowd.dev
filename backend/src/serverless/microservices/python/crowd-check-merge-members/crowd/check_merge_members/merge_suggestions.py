@@ -1,15 +1,13 @@
-from crowd.backend.infrastructure.logging import LOGGER
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member, Integration
 import time
-import logging
 import re
 import fuzzy
 from Levenshtein import distance as levenshtein_distance
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class MergeSuggestions:
 
@@ -39,7 +37,7 @@ class MergeSuggestions:
 
         # Compute all members
         self.comparison = self.repository.find_all_usernames()
-        LOGGER.info(f"Found {len(self.comparison)} members to compare")
+        logger.info(f"Found {len(self.comparison)} members to compare")
 
         self.test = test
 

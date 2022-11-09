@@ -1,14 +1,14 @@
 from crowd.backend.infrastructure import SQS
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.enums import Operations
 import os
 from uuid import uuid1 as uuid
 from functools import reduce
-import logging
 import json
 
 from crowd.backend.infrastructure.config import KUBE_MODE, NODEJS_WORKER_QUEUE
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DbOperationsSQS(SQS):

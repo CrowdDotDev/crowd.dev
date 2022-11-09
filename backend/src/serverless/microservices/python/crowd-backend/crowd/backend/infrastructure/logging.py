@@ -5,7 +5,6 @@ from pythonjsonlogger import jsonlogger
 
 from crowd.backend.infrastructure.config import SERVICE, LOG_LEVEL
 
-
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
@@ -19,12 +18,15 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
             log_record['level'] = record.levelname
 
 
-LOGGER = logging.getLogger(SERVICE)
-LOGGER.setLevel(LOG_LEVEL.upper())
+def get_logger(name):
+    logger = logging.getLogger(f"{SERVICE}/{name}")
+    logger.setLevel(LOG_LEVEL.upper())
 
-if not LOGGER.handlers:
-    logHandler = logging.StreamHandler()
-    formatter = CustomJsonFormatter('%(timestamp)s %(level)s %(name)s %(message)s')
-    logHandler.setFormatter(formatter)
-    LOGGER.addHandler(logHandler)
-    LOGGER.propagate = False
+    if not logger.handlers:
+        logHandler = logging.StreamHandler()
+        formatter = CustomJsonFormatter('%(timestamp)s %(level)s %(name)s %(message)s')
+        logHandler.setFormatter(formatter)
+        logger.addHandler(logHandler)
+        logger.propagate = False
+    
+    return logger
