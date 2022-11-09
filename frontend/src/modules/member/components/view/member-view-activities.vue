@@ -1,6 +1,5 @@
 <template>
-  <div class="member-view-activities panel">
-    <p class="font-medium text-gray-900">Activities</p>
+  <div class="member-view-activities">
     <div class="my-6">
       <el-input
         v-model="query"
@@ -71,7 +70,7 @@
         v-loading="loading"
         class="app-page-spinner"
       ></div>
-      <div v-if="!noMore" class="flex justify-center">
+      <div v-if="!noMore" class="flex justify-center pt-4">
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :disabled="loading"
@@ -263,11 +262,8 @@ onMounted(async () => {
     @apply max-w-full overflow-visible;
   }
 }
-.member-view-activities-search
-  .el-input-group__append
-  .el-select
-  .el-input
-  .el-input__wrapper {
+.member-view-activities-search .el-input-group__append,
+.el-select .el-input .el-input__wrapper {
   border-radius: 0 4px 4px 0 !important;
 }
 </style>

@@ -2,48 +2,37 @@
   <el-popover
     placement="right-end"
     :width="230"
-    trigger="click"
+    trigger="hover"
     popper-class="support-popover"
     @show="isDropdownOpen = true"
     @hide="isDropdownOpen = false"
   >
     <template #reference>
       <div class="w-full">
-        <el-tooltip
-          :disabled="!isCollapsed || isDropdownOpen"
-          effect="dark"
-          placement="right"
-          raw-content
-          popper-class="custom-support-menu-tooltip"
-          content="Support"
+        <div
+          class="cursor-pointer flex w-full items-center bg-white hover:bg-gray-50 rounded-md"
+          :class="
+            isDropdownOpen ? 'bg-gray-50' : 'bg-white'
+          "
         >
-          <div
-            class="cursor-pointer flex w-full items-center bg-white hover:bg-gray-50"
-            :class="
-              isDropdownOpen ? 'bg-gray-50' : 'bg-white'
-            "
-          >
-            <div class="el-menu-item">
-              <i class="ri-question-line"></i>
-              <span v-if="!isCollapsed"> Support</span>
-            </div>
+          <div class="el-menu-item">
+            <i class="ri-question-line"></i>
+            <span v-if="!isCollapsed">Help & support</span>
           </div>
-        </el-tooltip>
+        </div>
       </div>
     </template>
 
     <div class="flex flex-col gap-1 mb-1">
-      <div class="popover-item">
-        <a
-          class="flex grow items-center leading-none justify-between"
-          href="https://docs.crowd.dev"
-          target="_blank"
+      <a href="https://docs.crowd.dev" target="_blank">
+        <div
+          class="popover-item flex grow items-center leading-none justify-between"
         >
           <div class="flex gap-2">
             <i
               class="text-base text-gray-400 ri-book-open-line"
             ></i>
-            <span class="text-xs">
+            <span class="text-xs text-gray-900">
               <app-i18n code="external.docs"></app-i18n
             ></span>
           </div>
@@ -51,21 +40,19 @@
           <i
             class="text-base ri-external-link-line text-gray-300"
           ></i>
-        </a>
-      </div>
+        </div>
+      </a>
 
-      <div class="popover-item">
-        <a
-          class="flex grow items-center leading-none justify-between"
-          href="https://crowd.dev/discord"
-          target="_blank"
+      <a href="https://crowd.dev/discord" target="_blank">
+        <div
+          class="popover-item flex grow items-center leading-none justify-between"
         >
           <div class="flex gap-2">
             <app-svg
               name="discord"
               class="w-4 h-4 svg-icon"
             />
-            <span class="text-xs">
+            <span class="text-xs text-gray-900">
               <app-i18n code="external.community"></app-i18n
             ></span>
           </div>
@@ -73,8 +60,21 @@
           <i
             class="text-base ri-external-link-line text-gray-300"
           ></i>
-        </a>
-      </div>
+        </div>
+      </a>
+
+      <a href="mailto:help@crowd.dev">
+        <div class="popover-item">
+          <div class="flex gap-2 items-center">
+            <i
+              class="text-base text-gray-400 ri-mail-line"
+            ></i>
+            <span class="text-xs text-gray-900"
+              >Contact us</span
+            >
+          </div>
+        </div>
+      </a>
     </div>
   </el-popover>
 </template>
@@ -106,17 +106,5 @@ const isCollapsed = computed(
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
   margin-left: 12px !important;
-}
-
-.popover-item.selected {
-  background-color: rgba(253, 237, 234, 0.5);
-
-  & .plan {
-    @apply text-brand-400;
-  }
-}
-
-.custom-support-menu-tooltip {
-  margin-left: -3px !important;
 }
 </style>

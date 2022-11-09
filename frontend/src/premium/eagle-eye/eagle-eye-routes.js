@@ -16,7 +16,7 @@ export default [
     },
     children: [
       {
-        name: 'eagle-eye',
+        name: 'eagleEye',
         path: '/eagle-eye',
         component: EagleEyePage,
         exact: true,

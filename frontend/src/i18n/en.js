@@ -214,6 +214,13 @@ const en = {
       }
     },
 
+    note: {
+      fields: {
+        id: 'ID',
+        body: 'Note'
+      }
+    },
+
     organization: {
       name: 'organization',
       label: 'Organizations',
@@ -376,7 +383,19 @@ const en = {
     communityHelpCenter: {
       name: 'Community Help Center',
       label: 'Community Help Center',
-      menu: 'Community Help Center'
+      menu: 'Community Help Center',
+      create: {
+        success: 'Conversation successfully saved'
+      },
+      update: {
+        success: 'Conversation successfully saved'
+      },
+      destroy: {
+        success: 'Conversation successfully deleted'
+      },
+      destroyAll: {
+        success: 'Conversation(s) successfully deleted'
+      }
     },
 
     automation: {

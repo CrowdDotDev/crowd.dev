@@ -28,7 +28,7 @@
       </a>
       <div
         class="eagle-eye-list-item-body-text"
-        v-html="record.text"
+        v-html="$sanitize(record.text)"
       />
       <div class="eagle-eye-list-item-body-actions">
         <el-tooltip

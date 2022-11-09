@@ -574,4 +574,13 @@ const classFor = (path, exact = false) => {
     @apply flex gap-1.5 items-center;
   }
 }
+
+// Menu popovers
+.popover-item.selected {
+  background-color: rgba(253, 237, 234, 0.5);
+
+  & .plan {
+    @apply text-brand-400;
+  }
+}
 </style>

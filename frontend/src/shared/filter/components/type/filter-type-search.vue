@@ -5,6 +5,7 @@
       :placeholder="placeholder"
       :prefix-icon="SearchIcon"
       clearable
+      @input="debouncedChange"
     >
       <template #append>
         <slot name="dropdown"></slot>
@@ -15,12 +16,20 @@
 <script setup>
 import {
   h,
-  ref,
   defineEmits,
   defineProps,
-  watch
+  watch,
+  ref,
+  computed
 } from 'vue'
 import debounce from 'lodash/debounce'
+import { useStore } from 'vuex'
+
+const SearchIcon = h(
+  'i', // type
+  { class: 'ri-search-line' }, // props
+  []
+)
 
 const props = defineProps({
   module: {
@@ -37,24 +46,34 @@ const props = defineProps({
   }
 })
 const emit = defineEmits(['change'])
-const SearchIcon = h(
-  'i', // type
-  { class: 'ri-search-line' }, // props
-  []
-)
+
+const store = useStore()
 
 const model = ref('')
+const storeSearch = computed(() => {
+  const activeView =
+    store.getters[`${props.module}/activeView`]
 
-const debouncedChange = debounce(() => {
+  return (
+    store.state[props.module].views[activeView.id].filter
+      .attributes.search?.value || ''
+  )
+})
+
+// Reset model value when store is resetted
+watch(
+  () => storeSearch.value,
+  (newValue) => {
+    if (!newValue && newValue !== model.value) {
+      model.value = ''
+    }
+  }
+)
+
+const debouncedChange = debounce((value) => {
   emit('change', {
     ...props.filter,
-    value: model.value
+    value
   })
 }, 300)
-
-watch(model, (newValue, oldValue) => {
-  if (newValue !== oldValue) {
-    debouncedChange()
-  }
-})
 </script>
