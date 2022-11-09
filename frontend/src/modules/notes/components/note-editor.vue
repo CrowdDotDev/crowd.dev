@@ -18,6 +18,8 @@
           class="border border-gray-300 rounded-md pt-2 px-3 pb-10"
           @focus="noteEditorFocused = true"
           @blur="noteEditorFocused = false"
+          @keydown.enter="keydownSubmit($event)"
+          @keydown.esc="cancel()"
         />
         <div
           class="absolute right-3 transition-all transition-200"
@@ -151,6 +153,12 @@ const clear = () => {
 
 const focus = () => {
   editor.value.focus()
+}
+
+const keydownSubmit = (event) => {
+  if (event.metaKey || event.ctrlKey) {
+    submit()
+  }
 }
 
 const submit = () => {
