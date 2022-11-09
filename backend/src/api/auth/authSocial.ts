@@ -1,12 +1,12 @@
+import { get } from 'lodash'
 import passport from 'passport'
 import GoogleStrategy from 'passport-google-oauth20'
-import { get } from 'lodash'
-import { createChildLogger, getServiceLogger } from '../../utils/logging'
-import AuthService from '../../services/auth/authService'
+import { API_CONFIG, GOOGLE_CONFIG } from '../../config'
 import { databaseInit } from '../../database/databaseConnection'
-import { GOOGLE_CONFIG, API_CONFIG } from '../../config'
+import AuthService from '../../services/auth/authService'
+import { createServiceChildLogger } from '../../utils/logging'
 
-const log = createChildLogger('AuthSocial', getServiceLogger())
+const log = createServiceChildLogger('AuthSocial')
 
 export default (app, routes) => {
   app.use(passport.initialize())

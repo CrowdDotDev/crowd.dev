@@ -1,12 +1,12 @@
 import moment from 'moment'
 import { v4 as uuid } from 'uuid'
+import { createChildLogger } from '../../../utils/logging'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import MicroserviceRepository from '../../../database/repositories/microserviceRepository'
 import getUserContext from '../../../database/utils/getUserContext'
 import { IServiceOptions } from '../../../services/IServiceOptions'
 import { singleOrDefault } from '../../../utils/arrays'
 import { IntegrationType, PlatformType } from '../../../types/integrationEnums'
-import { createChildLogger, Logger } from '../../../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../../../types/mq/nodeWorkerIntegrationCheckMessage'
 import {
   IIntegrationStreamRetry,
@@ -22,18 +22,17 @@ import { TwitterIntegrationService } from './integrations/twitterIntegrationServ
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
+import { LoggingBase } from '../../../services/loggingBase'
 
 const MAX_STREAM_RETRIES = 5
 
-export class IntegrationProcessor {
-  private readonly log: Logger
-
+export class IntegrationProcessor extends LoggingBase {
   private readonly integrationServices: IntegrationServiceBase[]
 
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
 
   constructor(options: IServiceOptions) {
-    this.log = createChildLogger(this.constructor.name, options.log, {})
+    super(options)
 
     this.integrationServices = [
       new DevtoIntegrationService(),

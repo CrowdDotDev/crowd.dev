@@ -1,7 +1,12 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import crypto from 'crypto'
-import { createChildLogger, createServiceChildLogger, Logger } from '../../../utils/logging'
+import {
+  getServiceLogger,
+  createChildLogger,
+  createServiceChildLogger,
+  Logger,
+} from '../../../utils/logging'
 import {
   IIntegrationStream,
   IProcessStreamResults,
@@ -151,7 +156,7 @@ export abstract class IntegrationServiceBase {
 
   logger(context: IStepContext): Logger {
     if (context.serviceContext.log) {
-      return createChildLogger(this.type, context.serviceContext.log)
+      return createChildLogger(this.type, context.serviceContext.log || getServiceLogger())
     }
 
     return createServiceChildLogger(this.type)

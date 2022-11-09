@@ -1,15 +1,15 @@
 import Sequelize, { DataTypes } from 'sequelize'
-import { createChildLogger, getServiceLogger } from '../../utils/logging'
+import { createServiceChildLogger } from '../../utils/logging'
 /**
  * This module creates the Sequelize to the database and
  * exports all the models.
  */
-import * as configTypes from '../../config/configTypes'
 import { DB_CONFIG, SERVICE } from '../../config'
+import * as configTypes from '../../config/configTypes'
 
 const { highlight } = require('cli-highlight')
 
-const log = createChildLogger('Database', getServiceLogger())
+const log = createServiceChildLogger('Database')
 
 interface Credentials {
   username: string
