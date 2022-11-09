@@ -69,7 +69,7 @@ export default async (
       error = {
         type: 'http_status',
         message: `POST @ ${settings.url} returned ${err.statusCode} - ${err.statusMessage}!`,
-        body: err.res.body,
+        body: err.res !== undefined ? err.res.body : undefined,
       }
     } else {
       error = {

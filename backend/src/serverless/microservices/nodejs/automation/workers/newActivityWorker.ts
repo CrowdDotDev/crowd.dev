@@ -127,9 +127,7 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
 
       for (const automation of automations) {
         if (shouldProcessActivity(activity, automation)) {
-          log.info(
-            `Activity ${activity.activityId} is being processed by automation ${automation.id}!`,
-          )
+          log.info(`Activity ${activity.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
