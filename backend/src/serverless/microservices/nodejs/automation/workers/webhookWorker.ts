@@ -53,8 +53,7 @@ export default async (
     success = true
     log.debug(`Webhook response code ${result.statusCode}!`)
   } catch (err) {
-    log.error(
-      err,
+    log.warn(
       `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
     )
 
