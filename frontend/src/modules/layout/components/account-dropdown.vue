@@ -120,7 +120,7 @@ function doEditProfile() {
       @apply text-gray-500;
     }
 
-    .svg-icon path {
+    use {
       fill: #6b7280;
     }
   }
