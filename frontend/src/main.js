@@ -14,8 +14,10 @@ import ElementPlus from 'element-plus'
 import VueGridLayout from 'vue-grid-layout'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
+import Vue3Sanitize from 'vue-3-sanitize'
 
 import App from '@/app.vue'
+import { vueSanitizeOptions } from '@/plugins/sanitize'
 
 i18nInit()
 /**
@@ -32,6 +34,7 @@ i18nInit()
 
   app.use(ElementPlus, { locale: getElementUILanguage() })
   app.use(VueGridLayout)
+  app.use(Vue3Sanitize, vueSanitizeOptions)
   app.config.productionTip =
     process.env.NODE_ENV === 'production'
 
