@@ -19,6 +19,7 @@ import track from '../segment/track'
 import getStage from './helpers/getStage'
 import { s3 } from './aws'
 import { PlatformType } from '../types/integrationEnums'
+import getCleanString from '../utils/getCleanString'
 
 export default class ConversationService {
   static readonly MAX_SLUG_WORD_LENGTH = 10
@@ -502,7 +503,7 @@ export default class ConversationService {
    * @returns cleaned title
    */
   async generateTitle(title: string, isHtml: boolean = false): Promise<string> {
-    if (!title || ConversationService.getCleanString(title) === '') {
+    if (!title || getCleanString(title) === '') {
       return `conversation-${await ConversationRepository.count({}, this.options)}`
     }
 
@@ -562,9 +563,9 @@ export default class ConversationService {
    * @returns slug-like string
    *
    */
-  async generateSlug(title: String): Promise<String> {
+  async generateSlug(title: string): Promise<string> {
     // Remove non-standart characters and extra whitespaces
-    const cleanedTitle = ConversationService.getCleanString(title)
+    const cleanedTitle = getCleanString(title)
 
     const slugArray = cleanedTitle.split(' ')
     let cleanedSlug = ''
