@@ -12,7 +12,7 @@ export default function identify(
   timestamp: any = false,
 ) {
   if (event === 'Conversation created') {
-    log.info('Conversation created')
+    log.debug('Conversation created')
   }
   if (
     !IS_TEST_ENV &&

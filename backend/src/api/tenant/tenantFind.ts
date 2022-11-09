@@ -10,7 +10,9 @@ export default async (req, res) => {
     payload = await new TenantService(req).findByUrl(req.query.url)
   }
 
-  identifyTenant(req.currentUser, payload)
+  if (payload) {
+    identifyTenant(req.currentUser, payload)
+  }
 
   await req.responseHandler.success(req, res, payload)
 }

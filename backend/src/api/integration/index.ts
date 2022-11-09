@@ -4,27 +4,37 @@ import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { getTwitterStrategy } from '../../services/auth/passportStrategies/superfaceTwitterStrategy'
 import { getSlackStrategy } from '../../services/auth/passportStrategies/slackStrategy'
+import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
-  app.post(`/tenant/:tenantId/integration/query`, require('./integrationQuery').default)
-  app.post(`/tenant/:tenantId/integration`, require('./integrationCreate').default)
-  app.put(`/tenant/:tenantId/integration/:id`, require('./integrationUpdate').default)
-  app.post(`/tenant/:tenantId/integration/import`, require('./integrationImport').default)
-  app.delete(`/tenant/:tenantId/integration`, require('./integrationDestroy').default)
+  app.post(`/tenant/:tenantId/integration/query`, safeWrap(require('./integrationQuery').default))
+  app.post(`/tenant/:tenantId/integration`, safeWrap(require('./integrationCreate').default))
+  app.put(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationUpdate').default))
+  app.post(`/tenant/:tenantId/integration/import`, safeWrap(require('./integrationImport').default))
+  app.delete(`/tenant/:tenantId/integration`, safeWrap(require('./integrationDestroy').default))
   app.get(
     `/tenant/:tenantId/integration/autocomplete`,
-    require('./integrationAutocomplete').default,
+    safeWrap(require('./integrationAutocomplete').default),
   )
-  app.get(`/tenant/:tenantId/integration`, require('./integrationList').default)
-  app.get(`/tenant/:tenantId/integration/:id`, require('./integrationFind').default)
+  app.get(`/tenant/:tenantId/integration`, safeWrap(require('./integrationList').default))
+  app.get(`/tenant/:tenantId/integration/:id`, safeWrap(require('./integrationFind').default))
 
-  app.put(`/authenticate/:tenantId/:code`, require('./helpers/githubAuthenticate').default)
+  app.put(
+    `/authenticate/:tenantId/:code`,
+    safeWrap(require('./helpers/githubAuthenticate').default),
+  )
   app.put(
     `/discord-authenticate/:tenantId/:guild_id`,
-    require('./helpers/discordAuthenticate').default,
+    safeWrap(require('./helpers/discordAuthenticate').default),
   )
-  app.get('/tenant/:tenantId/devto-validate', require('./helpers/devtoValidators').default)
-  app.post('/tenant/:tenantId/devto-connect', require('./helpers/devtoCreateOrUpdate').default)
+  app.get(
+    '/tenant/:tenantId/devto-validate',
+    safeWrap(require('./helpers/devtoValidators').default),
+  )
+  app.post(
+    '/tenant/:tenantId/devto-connect',
+    safeWrap(require('./helpers/devtoCreateOrUpdate').default),
+  )
 
   if (TWITTER_CONFIG.clientId) {
     passport.use(getTwitterStrategy())
@@ -38,10 +48,14 @@ export default (app) => {
      * This state is sent using the authenticator options and
      * manipulated through twitterStrategy.staticPKCEStore
      */
-    app.get('/twitter/:tenantId/connect', require('./helpers/twitterAuthenticate').default, () => {
-      // The request will be redirected for authentication, so this
-      // function will not be called.
-    })
+    app.get(
+      '/twitter/:tenantId/connect',
+      safeWrap(require('./helpers/twitterAuthenticate').default),
+      () => {
+        // The request will be redirected for authentication, so this
+        // function will not be called.
+      },
+    )
 
     /**
      * OAuth2 callback endpoint.  After user successfully
@@ -75,7 +89,7 @@ export default (app) => {
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
       },
-      require('./helpers/twitterAuthenticateCallback').default,
+      safeWrap(require('./helpers/twitterAuthenticateCallback').default),
     )
   }
 
@@ -87,7 +101,7 @@ export default (app) => {
     passport.use(getSlackStrategy())
 
     // path to start the OAuth flow
-    app.get('/slack/:tenantId/connect', require('./helpers/slackAuthenticate').default)
+    app.get('/slack/:tenantId/connect', safeWrap(require('./helpers/slackAuthenticate').default))
 
     // OAuth callback url
     app.get(
@@ -107,7 +121,7 @@ export default (app) => {
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
       },
-      require('./helpers/slackAuthenticateCallback').default,
+      safeWrap(require('./helpers/slackAuthenticateCallback').default),
     )
   }
 }

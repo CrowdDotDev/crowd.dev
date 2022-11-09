@@ -121,8 +121,8 @@ app.use('/webhooks', webhookRoutes)
 
 const io = require('@pm2/io')
 
-app.use(io.expressErrorHandler())
-
 app.use(errorMiddleware)
+
+app.use(io.expressErrorHandler())
 
 export default app
