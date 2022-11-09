@@ -2,7 +2,8 @@
   <div class="flex">
     <svg v-bind="$attrs">
       <use
-        :xlink:href="`/icons/crowd-icons.svg?#${name}`"
+        :href="`/icons/crowd-icons.svg?#${name}`"
+        fill="#9CA3AF"
       />
     </svg>
   </div>

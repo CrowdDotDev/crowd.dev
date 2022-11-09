@@ -24,17 +24,15 @@
     </template>
 
     <div class="flex flex-col gap-1 mb-1">
-      <div class="popover-item">
-        <a
-          class="popover-item-link"
-          href="https://docs.crowd.dev"
-          target="_blank"
+      <a href="https://docs.crowd.dev" target="_blank">
+        <div
+          class="popover-item flex grow items-center leading-none justify-between"
         >
           <div class="flex gap-2">
             <i
               class="text-base text-gray-400 ri-book-open-line"
             ></i>
-            <span class="text-xs">
+            <span class="text-xs text-gray-900">
               <app-i18n code="external.docs"></app-i18n
             ></span>
           </div>
@@ -42,21 +40,19 @@
           <i
             class="text-base ri-external-link-line text-gray-300"
           ></i>
-        </a>
-      </div>
+        </div>
+      </a>
 
-      <div class="popover-item">
-        <a
-          class="popover-item-link"
-          href="https://crowd.dev/discord"
-          target="_blank"
+      <a href="https://crowd.dev/discord" target="_blank">
+        <div
+          class="popover-item flex grow items-center leading-none justify-between"
         >
           <div class="flex gap-2">
             <app-svg
               name="discord"
               class="w-4 h-4 svg-icon"
             />
-            <span class="text-xs">
+            <span class="text-xs text-gray-900">
               <app-i18n code="external.community"></app-i18n
             ></span>
           </div>
@@ -64,22 +60,21 @@
           <i
             class="text-base ri-external-link-line text-gray-300"
           ></i>
-        </a>
-      </div>
+        </div>
+      </a>
 
-      <div class="popover-item">
-        <a
-          class="popover-item-link"
-          href="mailto:help@crowd.dev"
-        >
-          <div class="flex gap-2">
+      <a href="mailto:help@crowd.dev">
+        <div class="popover-item">
+          <div class="flex gap-2 items-center">
             <i
               class="text-base text-gray-400 ri-mail-line"
             ></i>
-            <span class="text-xs">Contact us</span>
+            <span class="text-xs text-gray-900"
+              >Contact us</span
+            >
           </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
   </el-popover>
 </template>
@@ -111,25 +106,5 @@ const isCollapsed = computed(
   border: none !important;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2) !important;
   margin-left: 12px !important;
-}
-
-.popover-item {
-  @apply p-0;
-
-  &-link {
-    @apply flex grow items-center leading-none justify-between px-3 h-full;
-  }
-
-  &.selected {
-    background-color: rgba(253, 237, 234, 0.5);
-  }
-
-  & .plan {
-    @apply text-brand-400;
-  }
-}
-
-.custom-support-menu-tooltip {
-  margin-left: -3px !important;
 }
 </style>
