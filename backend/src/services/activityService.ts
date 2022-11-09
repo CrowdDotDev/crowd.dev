@@ -13,17 +13,16 @@ import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
 import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
-import { createChildLogger, logExecutionTime, Logger } from '../utils/logging'
+import { logExecutionTime } from '../utils/logging'
 import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import { LoggingBase } from './loggingBase'
 
-export default class ActivityService {
+export default class ActivityService extends LoggingBase {
   options: IServiceOptions
 
-  private readonly log: Logger
-
   constructor(options: IServiceOptions) {
+    super(options)
     this.options = options
-    this.log = createChildLogger('ActivityService', options.log)
   }
 
   /**
