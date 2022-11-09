@@ -18,12 +18,14 @@ export default {
   name: 'AppEagleEyeCounter',
   computed: {
     ...mapState({
-      count: (state) => state.eagleEye.count,
-      filter: (state) => state.eagleEye.filter
+      count: (state) => state.eagleEye.count
     }),
     ...mapGetters({
       activeView: 'eagleEye/activeView'
     }),
+    filter() {
+      return this.activeView.filter
+    },
     typeOfPostsFound() {
       if (this.activeView === 'inbox') {
         return this.hasKeywords ? 'relevant' : 'recommended'

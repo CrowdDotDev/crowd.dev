@@ -124,7 +124,7 @@ export default {
       } else if (
         command.action === 'conversationPublicUrl'
       ) {
-        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}-c/${command.conversation.slug}`
+        const url = `${config.conversationPublicUrl}/${this.currentTenant.url}/${command.conversation.slug}`
 
         await navigator.clipboard.writeText(url)
 

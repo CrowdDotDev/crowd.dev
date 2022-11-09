@@ -50,6 +50,9 @@ const store = useStore()
 
 const count = computed(() => store.state.eagleEye.count)
 const rows = computed(() => store.getters['eagleEye/rows'])
+const activeView = computed(
+  () => store.getters['eagleEye/activeView']
+)
 const loading = computed(
   () => store.state.eagleEye.list.loading
 )
@@ -65,17 +68,13 @@ const isLoadMoreVisible = computed(() => {
 })
 const computedEmptyStateCopy = computed(() => {
   if (
-    store.state.eagleEye.filter.keywords &&
-    store.state.eagleEye.filter.keywords.length > 0
+    activeView.value.filter.keywords &&
+    activeView.value.filter.keywords.length > 0
   ) {
     return 'No posts found based on your search criteria'
-  } else if (
-    store.getters['eagleEye/activeView'].id === 'excluded'
-  ) {
+  } else if (activeView.value.id === 'excluded') {
     return 'No excluded posts'
-  } else if (
-    store.getters['eagleEye/activeView'].id === 'engaged'
-  ) {
+  } else if (activeView.value.id === 'engaged') {
     return 'No engaged posts'
   } else {
     return 'No posts found'
