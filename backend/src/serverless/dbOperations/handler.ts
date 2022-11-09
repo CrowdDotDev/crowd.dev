@@ -9,7 +9,7 @@ export async function consumer(event) {
     event = JSON.parse(event.Records[0].body)
   }
 
-  log.info(`Event: ${event}`)
+  log.debug({ event }, `DbOperations event!`)
   const tenantId = event.tenantId || event.tenant_id
 
   if (!tenantId) {

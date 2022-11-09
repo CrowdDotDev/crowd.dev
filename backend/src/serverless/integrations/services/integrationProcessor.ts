@@ -48,7 +48,7 @@ export class IntegrationProcessor {
       this.tickTrackingMap[intService.type] = 0
     }
 
-    this.log.info(
+    this.log.debug(
       { supportedIntegrations: this.integrationServices.map((i) => i.type) },
       'Successfully detected supported integrations!',
     )
