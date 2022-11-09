@@ -1,4 +1,3 @@
-import logging
 import boto3
 import os
 from uuid import uuid1 as uuid
@@ -6,8 +5,9 @@ import json
 
 from crowd.eagle_eye.config import KUBE_MODE, IS_DEV_ENV, SQS_ENDPOINT_URL, SQS_REGION, \
     SQS_SECRET_ACCESS_KEY, SQS_ACCESS_KEY_ID
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def string_converter(o):
