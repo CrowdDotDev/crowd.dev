@@ -219,8 +219,8 @@ class MembersScore:
         scores_to_update = self.normalise(self.scores)
         logger.info("Done")
 
-        logger.info("Scored to update")
-        logger.info(scores_to_update)
+        # logger.info("Scored to update")
+        # logger.info(scores_to_update)
 
         length = len(scores_to_update)
         changed = 0
