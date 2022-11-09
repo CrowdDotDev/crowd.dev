@@ -14,10 +14,10 @@
     />
     <div
       v-if="notesCount > notes.length"
-      class="flex items-center pt-2"
+      class="flex justify-center pt-4"
     >
       <el-button
-        class="btn btn-link btn-link--primary"
+        class="btn btn-brand btn-brand--transparent"
         @click="fetchNotes(notesPage + 1)"
         ><i class="ri-arrow-down-line"></i
         ><span class="text-xs">Load more</span></el-button

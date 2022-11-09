@@ -70,7 +70,7 @@
         v-loading="loading"
         class="app-page-spinner"
       ></div>
-      <div v-if="!noMore" class="flex justify-center">
+      <div v-if="!noMore" class="flex justify-center pt-4">
         <el-button
           class="btn btn-brand btn-brand--transparent"
           :disabled="loading"
