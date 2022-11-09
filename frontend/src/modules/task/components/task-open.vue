@@ -6,12 +6,15 @@
       </h6>
       <el-button
         class="btn btn--primary btn--md font-medium"
-        @click="emit('addTask')"
+        @click="addTask()"
       >
         Add task
       </el-button>
     </div>
-    <div class="flex items-center justify-between pb-6">
+    <div
+      v-if="closedTasksCount > 0"
+      class="flex items-center justify-between pb-6"
+    >
       <div class="flex text-xs text-gray-600">
         <div
           v-for="(t, ti) of tabs"
@@ -31,7 +34,7 @@
         </div>
       </div>
       <app-task-sorting
-        v-if="tasks.length > 0"
+        v-if="tasks.length > 1"
         @change="changeOrder($event)"
       />
     </div>
@@ -52,8 +55,6 @@
           :key="task.id"
           class="px-6"
           :task="task"
-          @edit="emit('editTask', $event)"
-          @reload="fetchTasks()"
         />
         <div
           v-if="tasks.length === 0"
@@ -80,7 +81,7 @@ export default {
 <script setup>
 import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskSorting from '@/modules/task/components/task-sorting'
-import { defineEmits, onMounted, ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import {
   mapActions,
   mapGetters
@@ -88,10 +89,13 @@ import {
 import moment from 'moment'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
+import { useStore } from 'vuex'
 
-const emit = defineEmits(['addTask', 'editTask'])
+const store = useStore()
 
-const { openTasksCount } = mapGetters('task')
+const { addTask } = mapActions('task')
+const { openTasksCount, closedTasksCount } =
+  mapGetters('task')
 const { currentUser } = mapGetters('auth')
 
 const tabs = ref([
@@ -137,11 +141,10 @@ const tabs = ref([
 
 const tasks = ref([])
 const loading = ref(false)
+const intitialLoad = ref(false)
 
 const tab = ref(tabs.value[0])
 const order = ref('createdAt_DESC')
-
-const { getOpenTaskCount } = mapActions('task')
 
 const tabClasses = (tabName) => {
   return tab.value.name === tabName
@@ -159,14 +162,21 @@ const changeOrder = (orderBy) => {
   fetchTasks()
 }
 
-onMounted(() => {
-  fetchTasks()
+const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'task/reloadOpenTasks') {
+    fetchTasks()
+  }
+})
+
+onBeforeUnmount(() => {
+  storeUnsubscribe()
 })
 
 const fetchTasks = () => {
   const filter = tab.value.filters
-  loading.value = true
-  getOpenTaskCount()
+  if (!intitialLoad.value) {
+    loading.value = true
+  }
 
   TaskService.list(filter, order.value, 20, 0)
     .then(({ rows }) => {
@@ -178,6 +188,7 @@ const fetchTasks = () => {
     })
     .finally(() => {
       loading.value = false
+      intitialLoad.value = true
     })
 }
 </script>

@@ -160,11 +160,7 @@
         </div>
       </div>
       <div v-if="!completed" class="pl-4">
-        <app-task-dropdown
-          :task="props.task"
-          @edit="emit('edit', props.task)"
-          @deleted="emit('reload')"
-        />
+        <app-task-dropdown :task="props.task" />
       </div>
     </div>
   </article>
@@ -179,7 +175,6 @@ export default {
 <script setup>
 import {
   computed,
-  defineEmits,
   defineProps,
   defineExpose,
   onMounted,
@@ -189,6 +184,9 @@ import AppTaskDropdown from '@/modules/task/components/task-dropdown'
 import AppAvatar from '@/shared/avatar/avatar'
 import moment from 'moment'
 import AppLoading from '@/shared/loading/loading-placeholder'
+import { TaskService } from '@/modules/task/task-service'
+import Message from '@/shared/message/message'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   task: {
@@ -203,7 +201,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['edit', 'reload'])
+const { reloadTaskPage } = mapActions('task')
 
 const showMore = ref(false)
 const displayShowMore = ref(true)
@@ -247,14 +245,46 @@ const formatDate = (date) => {
 
 const markAsComplete = () => {
   closing.value = true
-  // TODO: mark as complete
-  console.log('mark as complete')
+
+  Promise.all([
+    TaskService.updateStatus(props.task.id, 'done'),
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve()
+      }, 300)
+    })
+  ])
+    .then(() => {
+      reloadTaskPage()
+      Message.success('Task has been marked as completed')
+    })
+    .catch(() => {
+      closing.value = false
+      Message.error(
+        'There was an error marking task as completed'
+      )
+    })
 }
 const unmarkAsComplete = () => {
   closing.value = true
-
-  // TODO: mark as not complete
-  console.log('mark as not complete')
+  Promise.all([
+    TaskService.updateStatus(props.task.id, 'in-progress'),
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve()
+      }, 300)
+    })
+  ])
+    .then(() => {
+      reloadTaskPage()
+      Message.success('Task has been marked as incomplete')
+    })
+    .catch(() => {
+      closing.value = false
+      Message.error(
+        'There was an error marking task as incomplete'
+      )
+    })
 }
 
 onMounted(() => {
@@ -279,7 +309,7 @@ defineExpose({
   overflow: auto;
 
   &.closing {
-    transition: 500ms all;
+    transition: 300ms all;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     border-top: 0;

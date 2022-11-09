@@ -10,7 +10,7 @@
           ></div>
         </div>
         <h6 class="text-base leading-6 font-semibold pl-3">
-          Suggested tasks
+          Suggestions
         </h6>
       </div>
     </div>
@@ -27,7 +27,7 @@
           {{ task.description }}
         </p>
         <el-button
-          class="btn btn--secondary btn--md w-full"
+          class="btn btn--secondary btn--sm !py-2.5 w-full"
           @click="task.action()"
         >
           {{ task.buttonText }}

@@ -36,5 +36,15 @@ export default {
       commit('SET_MY_TASKS', response)
       return Promise.resolve(response)
     })
-  }
+  },
+  reloadTaskPage({ dispatch }) {
+    dispatch('reloadOpenTasks')
+    dispatch('reloadClosedTasks')
+  },
+  reloadOpenTasks({ dispatch }) {
+    dispatch('getOpenTaskCount')
+  },
+  reloadClosedTasks() {},
+  addTask() {},
+  editTask() {}
 }

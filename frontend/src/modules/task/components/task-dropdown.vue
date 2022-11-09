@@ -39,6 +39,7 @@
 <script>
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { TaskService } from '@/modules/task/task-service'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'AppTaskDropdown',
@@ -48,13 +49,13 @@ export default {
       required: true
     }
   },
-  emits: ['edit', 'deleted'],
   data() {
     return {
       dropdownVisible: false
     }
   },
   methods: {
+    ...mapActions('task', ['reloadTaskPage', 'editTask']),
     doDestroyWithConfirm() {
       ConfirmDialog({
         type: 'danger',
@@ -69,14 +70,14 @@ export default {
           return TaskService.delete([this.task.id])
         })
         .then(() => {
-          this.$emit('deleted')
+          this.reloadTaskPage()
         })
     },
     async handleCommand(command) {
       if (command.action === 'taskDelete') {
         return this.doDestroyWithConfirm()
       } else if (command.action === 'taskEdit') {
-        this.$emit('edit')
+        this.editTask(this.task)
       }
     }
   }

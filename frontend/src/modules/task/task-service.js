@@ -39,6 +39,18 @@ export class TaskService {
       })
   }
 
+  static updateStatus(id, status) {
+    const tenantId = AuthCurrentTenant.get()
+
+    return authAxios
+      .put(
+        `/tenant/${tenantId}/task/${id}/status/${status}`
+      )
+      .then((response) => {
+        return response.data
+      })
+  }
+
   static delete(ids) {
     const params = {
       ids

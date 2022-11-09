@@ -42,7 +42,10 @@ import AppTaskOpen from '@/modules/task/components/task-open'
 import AppTaskClosed from '@/modules/task/components/task-closed'
 import AppTaskSuggested from '@/modules/task/components/task-suggested'
 import AppTaskForm from '@/modules/task/components/task-form'
-import { ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
+import { useStore } from 'vuex'
+
+const store = useStore()
 
 const openForm = ref(false)
 const selectedTask = ref(null)
@@ -56,4 +59,17 @@ const editTask = (task) => {
   openForm.value = true
   selectedTask.value = task
 }
+
+const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'task/addTask') {
+    addTask()
+  }
+  if (action.type === 'task/editTask') {
+    editTask(action.payload)
+  }
+})
+
+onBeforeUnmount(() => {
+  storeUnsubscribe()
+})
 </script>
