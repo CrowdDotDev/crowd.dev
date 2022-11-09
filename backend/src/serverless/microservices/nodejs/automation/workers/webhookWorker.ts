@@ -33,7 +33,7 @@ export default async (
   const settings = automation.settings as WebhookSettings
 
   const now = new Date()
-  log.info(`Firing automation ${automationId} for event ${eventId} to url '${settings.url}'!`)
+  log.info(`Firing automation ${automation.id} for event ${eventId} to url '${settings.url}'!`)
   const eventPayload = {
     eventId,
     eventType: automation.trigger,
@@ -54,7 +54,7 @@ export default async (
     log.debug(`Webhook response code ${result.statusCode}!`)
   } catch (err) {
     log.warn(
-      `Error while firing webhook automation ${automationId} for event ${eventId} to url '${settings.url}'!`,
+      `Error while firing webhook automation ${automation.id} for event ${eventId} to url '${settings.url}'!`,
     )
 
     let error: any
