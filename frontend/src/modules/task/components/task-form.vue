@@ -262,6 +262,7 @@ import { UserService } from '@/premium/user/user-service'
 import Message from '@/shared/message/message'
 import { TaskService } from '@/modules/task/task-service'
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
@@ -283,6 +284,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'close'])
+
+const { reloadTaskPage } = mapActions('task')
 
 const CalendarIcon = h(
   'i', // type
@@ -383,13 +386,15 @@ const reset = () => {
 
 const doSubmit = () => {
   loading.value = true
-  if (props.task) {
+  if (props.task && props.task.id) {
     TaskService.update(props.task.id, {
       ...model.value,
+      members: model.value.members.map((m) => m.id),
       assignedTo: model.value.assignees[0]
     })
       .then(() => {
         Message.success('Task successfully updated!')
+        reloadTaskPage()
         reset()
         isExpanded.value = false
       })
@@ -403,8 +408,21 @@ const doSubmit = () => {
     TaskService.create({
       ...model.value,
       status: 'in-progress',
+      members: model.value.members.map((m) => m.id),
       assignedTo: model.value.assignees[0]
     })
+      .then(() => {
+        Message.success('Task successfully created!')
+        reloadTaskPage()
+        reset()
+        isExpanded.value = false
+      })
+      .catch(() => {
+        Message.error('There was an error creating task')
+      })
+      .finally(() => {
+        loading.value = false
+      })
   }
 }
 

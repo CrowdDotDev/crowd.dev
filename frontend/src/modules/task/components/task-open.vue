@@ -150,7 +150,9 @@ const tabs = ref([
           status: { eq: 'in-progress' }
         },
         {
-          dueDate: { lt: moment().toISOString() }
+          dueDate: {
+            lt: moment().startOf('day').toISOString()
+          }
         }
       ]
     }
@@ -212,6 +214,7 @@ const fetchTasks = (loadMore = false) => {
     .catch(() => {
       if (!loadMore) {
         tasks.value = []
+        taskCount.value = 0
       }
       Message.error('There was an error loading tasks')
     })

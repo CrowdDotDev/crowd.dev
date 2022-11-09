@@ -63,7 +63,7 @@ const sortings = ref([
   {
     label: 'Title',
     subLabel: 'A-Z',
-    value: 'name_ASC'
+    value: 'name_DESC'
   }
 ])
 
