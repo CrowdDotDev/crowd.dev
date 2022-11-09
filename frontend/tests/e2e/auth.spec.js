@@ -10,6 +10,9 @@ import passwordReset from './auth/password-reset'
 Cypress.on('uncaught:exception', () => {
   return false
 })
+Cypress.LocalStorage.clear = function () {
+  return {}
+}
 
 describe('AUTH', function () {
   const serverId = Cypress.env('MAILOSAUR_SERVER_ID')
@@ -17,15 +20,16 @@ describe('AUTH', function () {
 
   before(() => {
     cy.visit(constants.url)
+    cy.clearAllLocalStorage()
   })
 
-  beforeEach(() => {
-    cy.restoreLocalStorage()
-  })
-
-  afterEach(() => {
-    cy.saveLocalStorage()
-  })
+  // beforeEach(() => {
+  //   cy.restoreLocalStorage()
+  // })
+  //
+  // afterEach(() => {
+  //   cy.saveLocalStorage()
+  // })
 
   it('Redirects to signin page', () => {
     cy.url().should('include', '/auth/signin')

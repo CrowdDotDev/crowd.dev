@@ -41,6 +41,10 @@ Cypress.Commands.add('restoreLocalStorage', () => {
   })
 })
 
+Cypress.Commands.add('clearAllLocalStorage', () => {
+  localStorage.clear()
+})
+
 //
 //
 // -- This is a child command --

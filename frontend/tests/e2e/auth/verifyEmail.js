@@ -9,7 +9,7 @@ export default (inject) => () => {
     })
   })
 
-  it('Redirects to signin after successfull verification', () => {
-    cy.location('pathname').should('equal', '/onboard')
+  it('Redirects to signin or onboarding after successfull verification', () => {
+    cy.location('pathname').should('be.oneOf', ['/onboard', '/auth/signin'])
   })
 }

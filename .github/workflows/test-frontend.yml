@@ -26,7 +26,7 @@ jobs:
         working-directory: backend
 
       - name: Start all services
-        run: ./cli start
+        run: ./cli start-e2e
         working-directory: scripts
 
       - name: Cypress run
