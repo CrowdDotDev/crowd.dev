@@ -1,5 +1,6 @@
 import identifyTenant from '../../segment/identifyTenant'
 import TenantService from '../../services/tenantService'
+import Error404 from '../../errors/Error404'
 
 export default async (req, res) => {
   let payload
@@ -11,8 +12,12 @@ export default async (req, res) => {
   }
 
   if (payload) {
-    identifyTenant(req.currentUser, payload)
-  }
+    if (req.currentUser) {
+      identifyTenant(req.currentUser, payload)
+    }
 
-  await req.responseHandler.success(req, res, payload)
+    await req.responseHandler.success(req, res, payload)
+  } else {
+    throw new Error404()
+  }
 }

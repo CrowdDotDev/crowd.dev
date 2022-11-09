@@ -12,7 +12,7 @@ export default function identify(
   timestamp: any = false,
 ) {
   if (event === 'Conversation created') {
-    log.debug('Conversation created')
+    log.trace('Conversation created')
   }
   if (
     !IS_TEST_ENV &&
@@ -37,7 +37,7 @@ export default function identify(
 
     try {
       if (event === 'Conversation created') {
-        log.info('Added conversation')
+        log.trace('Added conversation')
       }
       analytics.track(payload)
     } catch (error) {
