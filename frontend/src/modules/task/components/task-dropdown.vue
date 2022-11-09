@@ -13,6 +13,7 @@
     </button>
     <template #dropdown>
       <el-dropdown-item
+        v-if="task.status === 'in-progress'"
         class="w-55"
         :command="{
           action: 'taskEdit'
@@ -21,7 +22,19 @@
           class="ri-pencil-line mr-1 text-gray-400"
         /><span>Edit task</span></el-dropdown-item
       >
+
       <el-dropdown-item
+        v-if="task.status === 'archived'"
+        class="w-55"
+        :command="{
+          action: 'taskUnarchive'
+        }"
+        ><i
+          class="ri-inbox-unarchive-line mr-1 text-gray-400"
+        /><span>Unarchive task</span></el-dropdown-item
+      >
+      <el-dropdown-item
+        v-if="task.status === 'in-progress'"
         class="w-55"
         divided
         :command="{
@@ -30,6 +43,18 @@
         ><i class="ri-delete-bin-line mr-1 text-red" /><span
           class="text-red"
           >Delete task</span
+        ></el-dropdown-item
+      >
+      <el-dropdown-item
+        v-if="task.status === 'archived'"
+        class="w-55"
+        divided
+        :command="{
+          action: 'taskDeletePermanently'
+        }"
+        ><i class="ri-delete-bin-line mr-1 text-red" /><span
+          class="text-red"
+          >Delete permanently</span
         ></el-dropdown-item
       >
     </template>
@@ -55,7 +80,11 @@ export default {
     }
   },
   methods: {
-    ...mapActions('task', ['reloadTaskPage', 'editTask']),
+    ...mapActions('task', [
+      'reloadTaskPage',
+      'editTask',
+      'reloadArchivedTasks'
+    ]),
     doDestroyWithConfirm() {
       ConfirmDialog({
         type: 'danger',
@@ -73,11 +102,17 @@ export default {
           this.reloadTaskPage()
         })
     },
-    async handleCommand(command) {
+    handleCommand(command) {
       if (command.action === 'taskDelete') {
         return this.doDestroyWithConfirm()
       } else if (command.action === 'taskEdit') {
         this.editTask(this.task)
+      } else if (
+        command.action === 'taskDeletePermanently'
+      ) {
+        TaskService.delete([this.task.id]).then(() => {
+          this.reloadArchivedTasks()
+        })
       }
     }
   }

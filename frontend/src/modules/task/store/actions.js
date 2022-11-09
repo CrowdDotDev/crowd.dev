@@ -45,6 +45,8 @@ export default {
     dispatch('getOpenTaskCount')
   },
   reloadClosedTasks() {},
+  reloadArchivedTasks() {},
   addTask() {},
-  editTask() {}
+  editTask() {},
+  openArchivedTasks() {}
 }

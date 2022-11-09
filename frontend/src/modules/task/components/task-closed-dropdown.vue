@@ -15,11 +15,21 @@
       <el-dropdown-item
         class="w-55"
         :command="{
+          action: 'tasksArchive'
+        }"
+        ><i
+          class="ri-archive-line mr-1 text-gray-400"
+        /><span>Archive all</span></el-dropdown-item
+      >
+      <el-dropdown-item
+        class="w-55"
+        :command="{
           action: 'tasksDelete'
         }"
+        divided
         ><i class="ri-delete-bin-line mr-1 text-red" /><span
           class="text-red"
-          >Delete completed tasks</span
+          >Delete all permanently</span
         ></el-dropdown-item
       >
     </template>
@@ -46,11 +56,16 @@ export default {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         icon: 'ri-delete-bin-line'
-      }).then(() => {})
+      }).then(() => {
+        // TODO: delete all
+      })
     },
     async handleCommand(command) {
       if (command.action === 'tasksDelete') {
         return this.doDestroyWithConfirm()
+      }
+      if (command.action === 'tasksArchive') {
+        // TODO: archive
       }
     }
   }

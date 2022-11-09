@@ -3,6 +3,7 @@ import StringField from '@/shared/fields/string-field'
 import DateTimeField from '@/shared/fields/date-time-field'
 import { GenericModel } from '@/shared/model/generic-model'
 import StringArrayField from '@/shared/fields/string-array-field'
+import { MemberField } from '@/modules/member/member-field'
 
 const fields = {
   id: new IdField('id', 'ID'),
@@ -11,9 +12,10 @@ const fields = {
   }),
   description: new StringField('body', 'Description'),
   dueDate: new DateTimeField('dueDate', 'Due date'),
-  relatedMembers: new StringArrayField(
+  relatedMembers: MemberField.relationToMany(
     'members',
-    'Related member(s)'
+    'Related member(s)',
+    {}
   ),
   assignees: new StringArrayField(
     'assignees',

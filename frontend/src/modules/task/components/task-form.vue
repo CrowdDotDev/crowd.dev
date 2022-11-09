@@ -98,29 +98,36 @@
               class="text-sm mb-1 leading-5 font-medium"
               >{{ fields.relatedMembers.label }}
             </label>
-            <el-select
-              id="assignees"
+            <app-autocomplete-many-input
               v-model="model[fields.relatedMembers.name]"
-              autocomplete="disabled"
-              :multiple="true"
-              :filterable="true"
-              :reserve-keyword="false"
+              :fetch-fn="fields.relatedMembers.fetchFn"
+              :mapper-fn="fields.relatedMembers.mapperFn"
               placeholder="Select option(s)"
-              class="extend"
-              :remote="true"
-              :remote-method="searchMembers"
-              :loading="loadingMembers"
-              @blur="relatedMembersFormItem.validate()"
-            >
-              <el-option
-                v-for="member in members"
-                :key="member.id"
-                :value="member.id"
-                :label="member.displayName"
-                class="px-3 py-2 flex items-center"
-                >{{ member.displayName }}
-              </el-option>
-            </el-select>
+              :in-memory-filter="false"
+            ></app-autocomplete-many-input>
+            <!--            <el-select-->
+            <!--              id="assignees"-->
+            <!--              v-model="model[fields.relatedMembers.name]"-->
+            <!--              autocomplete="disabled"-->
+            <!--              :multiple="true"-->
+            <!--              :filterable="true"-->
+            <!--              :reserve-keyword="false"-->
+            <!--              placeholder="Select option(s)"-->
+            <!--              class="extend"-->
+            <!--              :remote="true"-->
+            <!--              :remote-method="searchMembers"-->
+            <!--              :loading="loadingMembers"-->
+            <!--              @blur="relatedMembersFormItem.validate()"-->
+            <!--            >-->
+            <!--              <el-option-->
+            <!--                v-for="member in members"-->
+            <!--                :key="member.id"-->
+            <!--                :value="member.id"-->
+            <!--                :label="member.displayName"-->
+            <!--                class="px-3 py-2 flex items-center"-->
+            <!--                >{{ member.displayName }}-->
+            <!--              </el-option>-->
+            <!--            </el-select>-->
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -251,10 +258,10 @@ import {
 } from 'vue'
 import { TaskModel } from '@/modules/task/task-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { MemberService } from '@/modules/member/member-service'
 import { UserService } from '@/premium/user/user-service'
 import Message from '@/shared/message/message'
 import { TaskService } from '@/modules/task/task-service'
+import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
@@ -301,8 +308,8 @@ const relatedMembersFormItem = ref(null)
 
 const loading = ref(false)
 
-const loadingMembers = ref(false)
-const members = ref([])
+// const loadingMembers = ref(false)
+// const members = ref([])
 const loadingTeamMembers = ref(false)
 const teamMembers = ref([])
 
@@ -350,33 +357,6 @@ watch(
     immediate: true
   }
 )
-
-const searchMembers = (query) => {
-  if (query) {
-    loadingMembers.value = true
-    MemberService.list(
-      {
-        and: [
-          {
-            or: [
-              { displayName: { textContains: query } },
-              { email: { textContains: query } }
-            ]
-          }
-        ]
-      },
-      'lastActive_DESC',
-      10,
-      0,
-      false
-    ).then(({ rows }) => {
-      members.value = rows
-      loadingMembers.value = false
-    })
-  } else {
-    members.value = []
-  }
-}
 
 const searchTeamMembers = (query) => {
   if (query) {

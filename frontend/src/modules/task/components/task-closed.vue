@@ -4,8 +4,22 @@
       <h6 class="text-base leading-6 font-semibold">
         Completed tasks ({{ tasks.length }})
       </h6>
-      <div>
-        <app-task-closed-dropdown />
+      <div class="flex items-center">
+        <div
+          v-if="archivedTasksCount > 0"
+          class="flex items-center cursor-pointer"
+          @click="openArchivedTasks()"
+        >
+          <div
+            class="ri-archive-line text-base text-gray-600 h-4 flex items-center"
+          ></div>
+          <div
+            class="pl-2 text-xs font-medium leading-5 text-gray-600"
+          >
+            Archived ({{ archivedTasksCount }})
+          </div>
+        </div>
+        <app-task-closed-dropdown class="ml-4" />
       </div>
     </div>
     <div>
@@ -19,6 +33,24 @@
           :key="task.id"
           :task="task"
         />
+        <div
+          v-if="tasks.length < tasksCount"
+          class="flex justify-center pt-8 pb-1"
+        >
+          <div
+            class="flex items-center cursor-pointer"
+            @click="fetchTasks(true)"
+          >
+            <div
+              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
+            ></div>
+            <div
+              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
+            >
+              Load more
+            </div>
+          </div>
+        </div>
         <div
           v-if="tasks.length === 0"
           class="pt-16 pb-14 flex justify-center items-center"
@@ -48,11 +80,17 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
-import { mapState } from '@/shared/vuex/vuex.helpers'
+import {
+  mapActions,
+  mapMutations,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
 
 const store = useStore()
 
-const { closedTasksCount } = mapState('task')
+const { SET_CLOSED_TASK_COUNT } = mapMutations('task')
+const { openArchivedTasks } = mapActions('task')
+const { archivedTasksCount } = mapGetters('task')
 
 const tasks = ref([])
 const tasksCount = ref(0)
@@ -73,7 +111,7 @@ onBeforeUnmount(() => {
   storeUnsubscribe()
 })
 
-const fetchTasks = () => {
+const fetchTasks = (loadMore = false) => {
   if (!initialLoad.value) {
     loading.value = true
   }
@@ -84,15 +122,19 @@ const fetchTasks = () => {
     },
     'updatedAt_DESC',
     20,
-    0
+    loadMore ? tasks.value.length : 0
   )
     .then(({ rows, count }) => {
-      tasks.value = rows
+      tasks.value = loadMore
+        ? [...tasks.value, ...rows]
+        : rows
       tasksCount.value = count
-      closedTasksCount.value = count
+      SET_CLOSED_TASK_COUNT(count)
     })
     .catch(() => {
-      tasks.value = []
+      if (!loadMore) {
+        tasks.value = []
+      }
       Message.error('There was an error loading tasks')
     })
     .finally(() => {

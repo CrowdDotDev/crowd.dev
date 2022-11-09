@@ -19,6 +19,7 @@
           v-for="s of sortings"
           :key="s.value"
           class="!px-3"
+          :class="{ 'bg-brand-25': s.value === sort }"
           @click="changeSorting(s.value)"
         >
           <div class="flex justify-between w-full">

@@ -12,7 +12,7 @@
       </el-button>
     </div>
     <div
-      v-if="closedTasksCount > 0"
+      v-if="closedTasksCount > 0 || openTasksCount > 0"
       class="flex items-center justify-between pb-6"
     >
       <div class="flex text-xs text-gray-600">
@@ -56,6 +56,24 @@
           class="px-6"
           :task="task"
         />
+        <div
+          v-if="tasks.length < taskCount"
+          class="flex justify-center pt-8 pb-1"
+        >
+          <div
+            class="flex items-center cursor-pointer"
+            @click="fetchTasks(true)"
+          >
+            <div
+              class="ri-arrow-down-line text-base text-brand-500 flex items-center h-4"
+            ></div>
+            <div
+              class="pl-2 text-xs leading-5 text-brand-500 font-medium"
+            >
+              Load more
+            </div>
+          </div>
+        </div>
         <div
           v-if="tasks.length === 0"
           class="pt-16 pb-14 flex justify-center items-center"
@@ -140,6 +158,7 @@ const tabs = ref([
 ])
 
 const tasks = ref([])
+const taskCount = ref(0)
 const loading = ref(false)
 const intitialLoad = ref(false)
 
@@ -172,18 +191,28 @@ onBeforeUnmount(() => {
   storeUnsubscribe()
 })
 
-const fetchTasks = () => {
+const fetchTasks = (loadMore = false) => {
   const filter = tab.value.filters
   if (!intitialLoad.value) {
     loading.value = true
   }
 
-  TaskService.list(filter, order.value, 20, 0)
-    .then(({ rows }) => {
-      tasks.value = rows
+  TaskService.list(
+    filter,
+    order.value,
+    20,
+    loadMore ? tasks.value.length : 0
+  )
+    .then(({ rows, count }) => {
+      tasks.value = loadMore
+        ? [...tasks.value, ...rows]
+        : rows
+      taskCount.value = count
     })
     .catch(() => {
-      tasks.value = []
+      if (!loadMore) {
+        tasks.value = []
+      }
       Message.error('There was an error loading tasks')
     })
     .finally(() => {

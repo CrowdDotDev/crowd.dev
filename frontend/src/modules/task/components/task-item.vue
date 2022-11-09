@@ -209,7 +209,7 @@ const taskBody = ref(null)
 const closing = ref(false)
 
 const completed = computed(() => {
-  return props.task && props.task.status !== 'in-progress'
+  return props.task && props.task.status === 'done'
 })
 
 const dueSoon = computed(

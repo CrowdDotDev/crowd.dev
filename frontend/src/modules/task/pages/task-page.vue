@@ -29,6 +29,7 @@
     :task="selectedTask"
     @close="task = null"
   />
+  <app-task-archived v-model="archivedTasks" />
 </template>
 
 <script>
@@ -42,13 +43,18 @@ import AppTaskOpen from '@/modules/task/components/task-open'
 import AppTaskClosed from '@/modules/task/components/task-closed'
 import AppTaskSuggested from '@/modules/task/components/task-suggested'
 import AppTaskForm from '@/modules/task/components/task-form'
-import { onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import AppTaskArchived from '@/modules/task/components/task-archived'
 
 const store = useStore()
 
 const openForm = ref(false)
 const selectedTask = ref(null)
+const archivedTasks = ref(false)
+
+const { reloadTaskPage } = mapActions('task')
 
 const addTask = () => {
   openForm.value = true
@@ -67,6 +73,13 @@ const storeUnsubscribe = store.subscribeAction((action) => {
   if (action.type === 'task/editTask') {
     editTask(action.payload)
   }
+  if (action.type === 'task/openArchivedTasks') {
+    archivedTasks.value = true
+  }
+})
+
+onMounted(() => {
+  reloadTaskPage()
 })
 
 onBeforeUnmount(() => {
