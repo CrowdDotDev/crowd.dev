@@ -116,20 +116,26 @@
           >
             Related member(s):
           </p>
-          <div
+          <router-link
             v-for="member of props.task.members"
             :key="member.id"
-            class="mr-2 bg-gray-100 border border-gray-200 rounded-md h-6 flex items-center px-1.5"
+            :to="{
+              name: 'memberView',
+              params: { id: member.id }
+            }"
+            class="mr-2 bg-gray-100 border group border-gray-200 rounded-md h-6 flex items-center px-1.5 cursor-pointer"
           >
             <app-avatar
               :entity="member"
               size="xxs"
               class="mr-2"
             />
-            <p class="text-2xs leading-4">
+            <p
+              class="text-2xs leading-4 text-gray-900 group-hover:text-brand-500 transition"
+            >
               {{ member.displayName }}
             </p>
-          </div>
+          </router-link>
         </div>
         <div class="flex pt-4 items-center">
           <div class="pr-3 flex items-center">
@@ -203,7 +209,7 @@ const props = defineProps({
 
 const { reloadTaskPage } = mapActions('task')
 
-const showMore = ref(false)
+let showMore = ref(false)
 const displayShowMore = ref(true)
 const taskBody = ref(null)
 const closing = ref(false)
@@ -230,12 +236,15 @@ const overdue = computed(() => {
 })
 
 const dateClass = computed(() => {
-  if (overdue.value) {
-    return 'px-1.5 py-1 text-red-900 bg-red-100 rounded-md'
+  if (props.task.status === 'open') {
+    if (overdue.value) {
+      return 'px-1.5 py-1 text-red-900 bg-red-100 rounded-md'
+    }
+    if (dueSoon.value) {
+      return 'px-1.5 py-1 text-yellow-900 bg-yellow-100 rounded-md'
+    }
   }
-  if (dueSoon.value) {
-    return 'px-1.5 py-1 text-yellow-900 bg-yellow-100 rounded-md'
-  }
+
   return 'text-gray-500'
 })
 

@@ -2,7 +2,7 @@
   <el-drawer
     v-model="isExpanded"
     :show-close="false"
-    :size="480"
+    size="480px"
   >
     <template #header="{ close }">
       <div
@@ -99,35 +99,13 @@
               >{{ fields.relatedMembers.label }}
             </label>
             <app-autocomplete-many-input
+              id="relatedMembers"
               v-model="model[fields.relatedMembers.name]"
               :fetch-fn="fields.relatedMembers.fetchFn"
               :mapper-fn="fields.relatedMembers.mapperFn"
               placeholder="Select option(s)"
               :in-memory-filter="false"
             ></app-autocomplete-many-input>
-            <!--            <el-select-->
-            <!--              id="assignees"-->
-            <!--              v-model="model[fields.relatedMembers.name]"-->
-            <!--              autocomplete="disabled"-->
-            <!--              :multiple="true"-->
-            <!--              :filterable="true"-->
-            <!--              :reserve-keyword="false"-->
-            <!--              placeholder="Select option(s)"-->
-            <!--              class="extend"-->
-            <!--              :remote="true"-->
-            <!--              :remote-method="searchMembers"-->
-            <!--              :loading="loadingMembers"-->
-            <!--              @blur="relatedMembersFormItem.validate()"-->
-            <!--            >-->
-            <!--              <el-option-->
-            <!--                v-for="member in members"-->
-            <!--                :key="member.id"-->
-            <!--                :value="member.id"-->
-            <!--                :label="member.displayName"-->
-            <!--                class="px-3 py-2 flex items-center"-->
-            <!--                >{{ member.displayName }}-->
-            <!--              </el-option>-->
-            <!--            </el-select>-->
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -150,29 +128,14 @@
               >{{ fields.assignees.label }}
               <span class="text-brand-500">*</span></label
             >
-            <el-select
+            <app-autocomplete-many-input
               id="assignees"
               v-model="model[fields.assignees.name]"
-              autocomplete="disabled"
-              :multiple="true"
-              :filterable="true"
-              :reserve-keyword="false"
+              :fetch-fn="fields.assignees.fetchFn"
+              :mapper-fn="fields.assignees.mapperFn"
               placeholder="Select assignee(s)"
-              class="extend"
-              :remote="true"
-              :remote-method="searchTeamMembers"
-              :loading="loadingTeamMembers"
-              @blur="assigneesFormItem.validate()"
-            >
-              <el-option
-                v-for="teamMember in teamMembers"
-                :key="teamMember.id"
-                :value="teamMember.id"
-                :label="teamMember.fullName"
-                class="px-3 py-2 flex items-center"
-                >{{ teamMember.fullName }}
-              </el-option>
-            </el-select>
+              :in-memory-filter="false"
+            ></app-autocomplete-many-input>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -220,7 +183,10 @@
     </template>
     <template #footer>
       <div class="w-full flex justify-end">
-        <el-button class="btn btn--bordered btn--md mr-4">
+        <el-button
+          class="btn btn--bordered btn--md mr-4"
+          @click="isExpanded = false"
+        >
           Cancel
         </el-button>
         <el-button
@@ -258,7 +224,6 @@ import {
 } from 'vue'
 import { TaskModel } from '@/modules/task/task-model'
 import { FormSchema } from '@/shared/form/form-schema'
-import { UserService } from '@/premium/user/user-service'
 import Message from '@/shared/message/message'
 import { TaskService } from '@/modules/task/task-service'
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
@@ -311,11 +276,6 @@ const relatedMembersFormItem = ref(null)
 
 const loading = ref(false)
 
-// const loadingMembers = ref(false)
-// const members = ref([])
-const loadingTeamMembers = ref(false)
-const teamMembers = ref([])
-
 const isExpanded = computed({
   get() {
     return props.modelValue
@@ -334,12 +294,28 @@ const isFormValid = computed(
     (model.value.assignees || []).length > 0
 )
 
+const reset = () => {
+  model.value = {}
+  if (assigneesFormItem.value) {
+    assigneesFormItem.value.resetField()
+  }
+  if (relatedMembersFormItem.value) {
+    relatedMembersFormItem.value.resetField()
+  }
+}
+
 const fillForm = () => {
+  reset()
   if (props.task) {
     model.value = {
       name: props.task.name,
       body: props.task.body,
-      members: props.task.members.filter((m) => m.id) || [],
+      members: (props.task.members || []).filter(
+        (m) => m.id
+      ),
+      assignees: (props.task.assignees || []).filter(
+        (a) => a.id
+      ),
       dueDate: props.task.dueDate
     }
   } else {
@@ -361,36 +337,13 @@ watch(
   }
 )
 
-const searchTeamMembers = (query) => {
-  if (query) {
-    loadingTeamMembers.value = true
-    UserService.fetchUsers(
-      { fullName: query },
-      '',
-      10,
-      0
-    ).then(({ rows }) => {
-      teamMembers.value = rows
-      loadingTeamMembers.value = false
-    })
-  } else {
-    teamMembers.value = []
-  }
-}
-
-const reset = () => {
-  model.value = {}
-  assigneesFormItem.value.resetField()
-  relatedMembersFormItem.value.resetField()
-}
-
 const doSubmit = () => {
   loading.value = true
   if (props.task && props.task.id) {
     TaskService.update(props.task.id, {
       ...model.value,
       members: model.value.members.map((m) => m.id),
-      assignedTo: model.value.assignees[0]
+      assignedTo: model.value.assignees[0].id
     })
       .then(() => {
         Message.success('Task successfully updated!')
@@ -409,7 +362,7 @@ const doSubmit = () => {
       ...model.value,
       status: 'in-progress',
       members: model.value.members.map((m) => m.id),
-      assignedTo: model.value.assignees[0]
+      assignedTo: model.value.assignees[0].id
     })
       .then(() => {
         Message.success('Task successfully created!')

@@ -29,6 +29,17 @@
                 :member-id="member.id"
               />
             </el-tab-pane>
+            <el-tab-pane
+              :label="`Tasks (${
+                (tasksTab && tasksTab.openTaskCount) || 0
+              })`"
+              name="tasks"
+            >
+              <app-member-view-tasks
+                ref="tasksTab"
+                :member="member"
+              />
+            </el-tab-pane>
             <el-tab-pane label="Notes" name="notes">
               <app-member-view-notes :member="member" />
             </el-tab-pane>
@@ -47,13 +58,20 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { defineProps, computed, onMounted, ref } from 'vue'
+import {
+  defineProps,
+  computed,
+  onMounted,
+  ref,
+  defineExpose
+} from 'vue'
 
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
 import AppMemberViewActivities from '@/modules/member/components/view/member-view-activities'
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
+import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks'
 
 const store = useStore()
 const props = defineProps({
@@ -67,6 +85,8 @@ const member = computed(() => {
   return store.getters['member/find'](props.id) || {}
 })
 
+const tasksTab = ref(null)
+
 const loading = ref(true)
 const tab = ref('activities')
 
@@ -79,5 +99,9 @@ onMounted(async () => {
     await store.dispatch('member/doFetchCustomAttributes')
   }
   loading.value = false
+})
+
+defineExpose({
+  tasksTab
 })
 </script>

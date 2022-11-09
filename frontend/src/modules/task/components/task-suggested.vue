@@ -28,9 +28,9 @@
         </p>
         <el-button
           class="btn btn--secondary btn--sm !py-2.5 w-full"
-          @click="task.action()"
+          @click="addTask(task)"
         >
-          {{ task.buttonText }}
+          Add task
         </el-button>
       </article>
     </div>
@@ -45,48 +45,111 @@ export default {
 
 <script setup>
 import { computed, ref } from 'vue'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
+import { MemberService } from '@/modules/member/member-service'
+import moment from 'moment'
+
+const { currentUser } = mapGetters('auth')
+const { editTask } = mapActions('task')
+
+const fetchInfluentalMembers = () =>
+  MemberService.list(
+    {
+      and: [
+        { isTeamMember: { not: true } },
+        {
+          joinedAt: {
+            gt: moment().subtract(30, 'day').toISOString()
+          }
+        },
+        {
+          reach: { gt: 10000 }
+        }
+      ]
+    },
+    'joinedAt_DESC',
+    2,
+    0,
+    false
+  ).then(({ rows }) => ({ members: rows }))
+
+const fetchPoorlyEngagedMembers = () => {
+  return MemberService.list(
+    {
+      and: [
+        { isTeamMember: { not: true } },
+        {
+          lastActive: {
+            lt: moment().subtract(30, 'day').toISOString()
+          }
+        }
+      ]
+    },
+    'lastActive_DESC',
+    2,
+    0,
+    false
+  ).then(({ rows }) => ({ members: rows }))
+}
+
 const suggestedTasks = ref([
   {
-    id: 'integrations',
-    title: 'Setup workspace',
-    description: 'Connect with at least 2 integrations',
-    buttonText: 'Manage integrations',
-    action: () => {
-      console.log('manage integrations')
-    },
-    completed() {
-      return false
-    }
+    id: 'engage',
+    title: 'Engage with relevant content',
+    description:
+      'Engage with at least 5 posts on Eagle today'
   },
   {
-    id: 'users',
-    title: 'Setup workspace',
+    id: 'influential-member',
+    title: 'Reach out to influential members',
     description:
-      'Invite a colleague to your community workspace',
-    buttonText: 'Manage users',
-    action: () => {
-      console.log('Manage users')
-    },
-    completed() {
-      return false
-    }
+      'Connect with new members with over 10k followers',
+    mapData: fetchInfluentalMembers
   },
   {
-    id: 'members',
-    title: 'Influential members',
+    id: 'poorly-engaged',
+    title: 'Reach out to poorly engaged members',
     description:
-      'Reach out to members with over 10k followers (reach)',
-    buttonText: 'Browse members',
-    action: () => {
-      console.log('Browse members')
-    },
-    completed() {
-      return false
-    }
+      'Connect with members with low activity in the last 30 days',
+    mapData: fetchPoorlyEngagedMembers
+  },
+  {
+    id: 'negative-reactions',
+    title: 'Check for negative reactions',
+    description:
+      'React to activities with very negative sentiment'
+  },
+  {
+    id: 'workspace-integrations',
+    title: 'Setup your workpace integrations',
+    description:
+      'Connect with at least 2 data sources that are relevant to your community'
+  },
+  {
+    id: 'team-setup',
+    title: 'Setup your team',
+    description:
+      'Invite colleagues to your community workspace'
   }
 ])
 
-const incompleteTasks = computed(() =>
-  suggestedTasks.value.filter((task) => !task.completed())
-)
+const addTask = (task) => {
+  let call = () => Promise.resolve({})
+  if (task.mapData) {
+    call = task.mapData
+  }
+  call().then((data) => {
+    editTask({
+      name: task.title,
+      body: task.description,
+      assignees: [currentUser],
+      ...data
+    })
+  })
+}
+
+const incompleteTasks = computed(() => suggestedTasks.value)
 </script>
