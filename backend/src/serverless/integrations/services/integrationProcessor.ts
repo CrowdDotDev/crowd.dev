@@ -55,7 +55,7 @@ export class IntegrationProcessor {
   }
 
   async processTick() {
-    this.log.info('Processing integration processor tick!')
+    this.log.trace('Processing integration processor tick!')
 
     for (const intService of this.integrationServices) {
       let trigger = false
@@ -90,12 +90,12 @@ export class IntegrationProcessor {
 
   async processCheck(type: IntegrationType) {
     const logger = createChildLogger('processCheck', this.log, { type })
-    logger.info('Processing integration check!')
+    logger.trace('Processing integration check!')
 
     if (type === IntegrationType.TWITTER_REACH) {
       const microservices = await MicroserviceRepository.findAllByType('twitter_followers')
       if (microservices.length > 0) {
-        this.log.info({ type, count: microservices.length }, 'Found microservices to check!')
+        this.log.debug({ type, count: microservices.length }, 'Found microservices to check!')
         for (const micro of microservices) {
           const microservice = micro as any
           await sendNodeWorkerMessage(
@@ -113,12 +113,12 @@ export class IntegrationProcessor {
           )
         }
       } else {
-        logger.info('Found no microservices to check!')
+        logger.debug('Found no microservices to check!')
       }
     } else {
       const integrations = await IntegrationRepository.findAllActive(type)
       if (integrations.length > 0) {
-        logger.info({ count: integrations.length }, 'Found integrations to check!')
+        logger.debug({ count: integrations.length }, 'Found integrations to check!')
         for (const int of integrations) {
           const integration = int as any
           await sendNodeWorkerMessage(
@@ -132,7 +132,7 @@ export class IntegrationProcessor {
           )
         }
       } else {
-        logger.info('Found no integrations to check!')
+        logger.debug('Found no integrations to check!')
       }
     }
   }
@@ -212,7 +212,7 @@ export class IntegrationProcessor {
       }
 
       // preprocess if needed
-      logger.info('Preprocessing integration!')
+      logger.trace('Preprocessing integration!')
       await intService.preprocess(stepContext)
 
       // detect streams to process for this integration
@@ -235,7 +235,7 @@ export class IntegrationProcessor {
           streams.push(stream)
         }
       } else {
-        logger.info('Detecting streams!')
+        logger.trace('Detecting streams!')
         streams = await intService.getStreams(stepContext)
       }
 
@@ -251,7 +251,7 @@ export class IntegrationProcessor {
 
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
-            logger.info(
+            logger.trace(
               { stream: stream.value, remainingStreams: streams.length },
               `Processing stream.`,
             )
@@ -270,7 +270,7 @@ export class IntegrationProcessor {
 
             for (const operation of processStreamResult.operations) {
               if (operation.records.length > 0) {
-                logger.info(
+                logger.trace(
                   { operationType: operation.type, recordCount: operation.records.length },
                   'Processing bulk operation from stream result!',
                 )
@@ -296,7 +296,7 @@ export class IntegrationProcessor {
             }
 
             if (processStreamResult.sleep !== undefined && processStreamResult.sleep > 0) {
-              logger.info(
+              logger.warn(
                 {
                   remainingStreamCount: streams.length,
                   delayInSeconds: processStreamResult.sleep,

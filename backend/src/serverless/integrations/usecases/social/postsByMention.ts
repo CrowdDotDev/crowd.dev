@@ -3,8 +3,7 @@ import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { createServiceChildLogger } from '../../../../utils/logging'
-
-const { inspect } = require('util')
+import { cleanSuperfaceError } from '../cleanError'
 
 const log = createServiceChildLogger('getPostsByMention')
 
@@ -43,12 +42,7 @@ const getPostsByMention = async (
       timeUntilReset: result.value.rateLimit.resetTimestamp,
     }
   } catch (err) {
-    log.error(
-      err,
-      { errPayload: inspect(err, false, Infinity, true) },
-      'Error while fetching posts by mentions!',
-    )
-    throw err
+    throw cleanSuperfaceError(err)
   }
 }
 

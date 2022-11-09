@@ -119,7 +119,7 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
 
     const articleId = parseInt(stream.value, 10)
 
-    logger.info({ articleId }, 'Processing article!')
+    logger.debug({ articleId }, 'Processing article!')
 
     const comments = await getArticleComments(articleId)
 

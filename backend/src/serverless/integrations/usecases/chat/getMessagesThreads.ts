@@ -3,6 +3,7 @@ import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { IIntegrationStream } from '../../../../types/integration/stepResult'
 import { createServiceChildLogger } from '../../../../utils/logging'
+import { cleanSuperfaceError } from '../cleanError'
 
 const log = createServiceChildLogger('getMessagesThreads')
 
@@ -14,39 +15,43 @@ async function getMessagesThreads(
   page: string,
   perPage: number = 100,
 ): Promise<SocialResponse> {
-  const threadInfo = stream.metadata
-  const input = {
-    destination: threadInfo.channelId,
-    threadId: threadInfo.threadId,
-    limit: perPage,
-    page: page || undefined,
-  }
-  const profile = await client.getProfile('chat/messages-threads')
-  const provider = await client.getProvider(source)
-  const result: any = await profile.getUseCase('GetMessagesThreads').perform(input, {
-    provider,
-    parameters: { accessToken },
-  })
+  try {
+    const threadInfo = stream.metadata
+    const input = {
+      destination: threadInfo.channelId,
+      threadId: threadInfo.threadId,
+      limit: perPage,
+      page: page || undefined,
+    }
+    const profile = await client.getProfile('chat/messages-threads')
+    const provider = await client.getProvider(source)
+    const result: any = await profile.getUseCase('GetMessagesThreads').perform(input, {
+      provider,
+      parameters: { accessToken },
+    })
 
-  if (isInvalid(result, 'messages')) {
-    log.warn({ input, result }, 'Invalid request in usecase')
-  }
+    if (isInvalid(result, 'messages')) {
+      log.warn({ input, result }, 'Invalid request in usecase')
+    }
 
-  let limit
-  let timeUntilReset
-  if (result.value.rateLimit) {
-    limit = result.value.rateLimit.limit
-    timeUntilReset = result.value.rateLimit.resetAfter
-  } else {
-    limit = 100
-    timeUntilReset = 1
-  }
+    let limit
+    let timeUntilReset
+    if (result.value.rateLimit) {
+      limit = result.value.rateLimit.limit
+      timeUntilReset = result.value.rateLimit.resetAfter
+    } else {
+      limit = 100
+      timeUntilReset = 1
+    }
 
-  return {
-    records: result.value.messages,
-    nextPage: result.value.messages.length < input.limit ? '' : result.value.nextPage,
-    limit,
-    timeUntilReset,
+    return {
+      records: result.value.messages,
+      nextPage: result.value.messages.length < input.limit ? '' : result.value.nextPage,
+      limit,
+      timeUntilReset,
+    }
+  } catch (err) {
+    throw cleanSuperfaceError(err)
   }
 }
 

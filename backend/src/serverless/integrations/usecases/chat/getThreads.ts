@@ -3,6 +3,7 @@ import { Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { createServiceChildLogger } from '../../../../utils/logging'
+import { cleanSuperfaceError } from '../cleanError'
 
 const log = createServiceChildLogger('getThreads')
 
@@ -28,8 +29,7 @@ async function getChannels(
       thread: true,
     }))
   } catch (err) {
-    log.error(err, 'Error fetching threads!')
-    throw err
+    throw cleanSuperfaceError(err)
   }
 }
 
