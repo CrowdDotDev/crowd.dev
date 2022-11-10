@@ -1,18 +1,13 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import ReportService from '../../services/reportService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.reportDestroy)
+  new PermissionChecker(req).validateHas(Permissions.values.reportDestroy)
 
-    await new ReportService(req).destroyAll(req.query.ids)
+  await new ReportService(req).destroyAll(req.query.ids)
 
-    const payload = true
+  const payload = true
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

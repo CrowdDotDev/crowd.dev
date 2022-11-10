@@ -1,26 +1,25 @@
 import moment from 'moment/moment'
-import { IntegrationServiceBase } from '../integrationServiceBase'
-import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
-import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
+import { DISCORD_CONFIG } from '../../../../config'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
+import { MemberAttributeName } from '../../../../database/attributes/member/enums'
+import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
-import getThreads from '../../usecases/chat/getThreads'
-import { DISCORD_CONFIG } from '../../../../config'
-import getChannels from '../../usecases/chat/getChannels'
+import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
+import { timeout } from '../../../../utils/timing'
+import Operations from '../../../dbOperations/operations'
+import { DiscordGrid } from '../../grid/discordGrid'
+import { AddActivitiesSingle } from '../../types/messageTypes'
 import { Channels } from '../../types/regularTypes'
+import getChannels from '../../usecases/chat/getChannels'
 import getMembers from '../../usecases/chat/getMembers'
 import getMessages from '../../usecases/chat/getMessages'
-import { createChildLogger } from '../../../../utils/logging'
-import { timeout } from '../../../../utils/timing'
-import { AddActivitiesSingle } from '../../types/messageTypes'
-import { MemberAttributeName } from '../../../../database/attributes/member/enums'
-import { DiscordGrid } from '../../grid/discordGrid'
-import Operations from '../../../dbOperations/operations'
+import getThreads from '../../usecases/chat/getThreads'
+import { IntegrationServiceBase } from '../integrationServiceBase'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -111,7 +110,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger = createChildLogger('processStream', context.serviceContext.log, { stream })
+    const logger = this.logger(context)
 
     // sleep for 2 seconds for rate limit
     await timeout(2000)

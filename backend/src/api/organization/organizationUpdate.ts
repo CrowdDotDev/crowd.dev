@@ -1,7 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import OrganizationService from '../../services/organizationService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * PUT /tenant/{tenantId}/organization/{id}
@@ -20,13 +19,9 @@ import OrganizationService from '../../services/organizationService'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.organizationEdit)
+  new PermissionChecker(req).validateHas(Permissions.values.organizationEdit)
 
-    const payload = await new OrganizationService(req).update(req.params.id, req.body)
+  const payload = await new OrganizationService(req).update(req.params.id, req.body)
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

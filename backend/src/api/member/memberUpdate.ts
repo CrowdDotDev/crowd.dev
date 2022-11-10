@@ -1,9 +1,8 @@
 import lodash from 'lodash'
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import MemberService from '../../services/memberService'
 import track from '../../segment/track'
+import MemberService from '../../services/memberService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * PUT /tenant/{tenantId}/member/{id}
@@ -22,22 +21,18 @@ import track from '../../segment/track'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
+  new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
 
-    const member = await new MemberService(req).findById(req.params.id)
-    const payload = await new MemberService(req).update(req.params.id, req.body)
+  const member = await new MemberService(req).findById(req.params.id)
+  const payload = await new MemberService(req).update(req.params.id, req.body)
 
-    const differentTagIds = lodash.difference(
-      payload.tags.map((t) => t.id),
-      member.tags.map((t) => t.id),
-    )
-    if (differentTagIds.length > 0) {
-      track('Member Tagged', { id: payload.id, tagIds: [...differentTagIds] }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  const differentTagIds = lodash.difference(
+    payload.tags.map((t) => t.id),
+    member.tags.map((t) => t.id),
+  )
+  if (differentTagIds.length > 0) {
+    track('Member Tagged', { id: payload.id, tagIds: [...differentTagIds] }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

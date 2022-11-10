@@ -13,12 +13,15 @@ import ConversationService from './conversationService'
 import telemetryTrack from '../segment/telemetryTrack'
 import ConversationSettingsService from './conversationSettingsService'
 import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
-import { sendNewActivityNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
+import { logExecutionTime } from '../utils/logging'
+import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import { LoggingBase } from './loggingBase'
 
-export default class ActivityService {
+export default class ActivityService extends LoggingBase {
   options: IServiceOptions
 
-  constructor(options) {
+  constructor(options: IServiceOptions) {
+    super(options)
     this.options = options
   }
 
@@ -134,7 +137,11 @@ export default class ActivityService {
         try {
           await sendNewActivityNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
-          console.log(`Error triggering new activity automation - ${record.id}!`, err)
+          this.log.error(
+            err,
+            { activityId: record.id },
+            'Error triggering new activity automation!',
+          )
         }
       }
 
@@ -208,7 +215,7 @@ export default class ActivityService {
    * @param activityArray activity array
    * @returns list of sentiments ordered same as input array
    */
-  static async getSentimentBatch(activityArray) {
+  async getSentimentBatch(activityArray) {
     const ALLOWED_MAX_BYTE_LENGTH = 4500
     let textArray = await Promise.all(
       activityArray.map(async (i) => {
@@ -237,9 +244,11 @@ export default class ActivityService {
       promiseArray.push(textArray)
     }
 
-    console.time('sentiment-api-request')
-    const values = await Promise.all(promiseArray)
-    console.timeEnd('sentiment-api-request')
+    const values = await logExecutionTime(
+      () => Promise.all(promiseArray),
+      this.log,
+      'sentiment-api-request',
+    )
 
     return values.reduce((acc, i) => {
       acc.push(...i)

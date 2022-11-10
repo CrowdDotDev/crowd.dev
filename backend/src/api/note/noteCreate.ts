@@ -1,7 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import NoteService from '../../services/noteService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 // /**
 //  * POST /tenant/{tenantId}/note
@@ -19,13 +18,9 @@ import NoteService from '../../services/noteService'
 //  * @response 429 - Too many requests
 //  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.noteCreate)
+  new PermissionChecker(req).validateHas(Permissions.values.noteCreate)
 
-    const payload = await new NoteService(req).create(req.body)
+  const payload = await new NoteService(req).create(req.body)
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

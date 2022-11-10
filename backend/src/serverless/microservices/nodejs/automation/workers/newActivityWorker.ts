@@ -10,6 +10,9 @@ import {
 } from '../../../../../types/automationTypes'
 import { sendWebhookProcessRequest } from './util'
 import { prepareMemberPayload } from './newMemberWorker'
+import { createServiceChildLogger } from '../../../../../utils/logging'
+
+const log = createServiceChildLogger('newActivityWorker')
 
 /**
  * Helper function to check whether a single activity should be processed by automation
@@ -24,7 +27,7 @@ export const shouldProcessActivity = (activity: any, automation: AutomationData)
   // check whether activity type matches
   if (settings.types && settings.types.length > 0) {
     if (!settings.types.includes(activity.type)) {
-      console.log(
+      log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} type '${
           activity.type
         }' does not match automation setting types: [${settings.types.join(', ')}]`,
@@ -36,7 +39,7 @@ export const shouldProcessActivity = (activity: any, automation: AutomationData)
   // check whether activity platform matches
   if (process && settings.platforms && settings.platforms.length > 0) {
     if (!settings.platforms.includes(activity.platform)) {
-      console.log(
+      log.warn(
         `Ignoring automation ${automation.id} - Activity ${activity.id} platform '${
           activity.platform
         }' does not match automation setting platforms: [${settings.platforms.join(', ')}]`,
@@ -49,7 +52,7 @@ export const shouldProcessActivity = (activity: any, automation: AutomationData)
   if (process && settings.keywords && settings.keywords.length > 0) {
     const body = (activity.body as string).toLowerCase()
     if (!settings.keywords.some((keyword) => body.includes(keyword.trim().toLowerCase()))) {
-      console.log(
+      log.warn(
         `Ignoring automation ${automation.id} - Activity ${
           activity.id
         } content does not match automation setting keywords: [${settings.keywords.join(', ')}]`,
@@ -64,7 +67,7 @@ export const shouldProcessActivity = (activity: any, automation: AutomationData)
     activity.member.attributes.isTeamMember &&
     activity.member.attributes.isTeamMember.custom
   ) {
-    console.log(
+    log.warn(
       `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
     )
     process = false
@@ -105,8 +108,6 @@ export const prepareActivityPayload = (activity: any): any => {
  * @param activityData activity data
  */
 export default async (tenantId: string, activityId?: string, activityData?: any): Promise<void> => {
-  // console.log(`New activity automation trigger detected with activity id: ${activityId}!`)
-
   const userContext = await getUserContext(tenantId)
 
   try {
@@ -117,7 +118,7 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
     })
 
     if (automations.length > 0) {
-      console.log(`Found ${automations.length} automations to process!`)
+      log.info(`Found ${automations.length} automations to process!`)
       let activity: any | undefined = activityData
 
       if (activity === undefined) {
@@ -126,9 +127,7 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
 
       for (const automation of automations) {
         if (shouldProcessActivity(activity, automation)) {
-          console.log(
-            `Activity ${activity.activityId} is being processed by automation ${automation.id}!`,
-          )
+          log.info(`Activity ${activity.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
             case AutomationType.WEBHOOK:
@@ -140,15 +139,13 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
               )
               break
             default:
-              console.log(`ERROR: Automation type '${automation.type}' is not supported!`)
+              log.error(`ERROR: Automation type '${automation.type}' is not supported!`)
           }
         }
       }
-    } else {
-      // console.log(`No automations found for tenant ${tenantId} and new_activity trigger!`)
     }
   } catch (error) {
-    console.log('Error while processing new activity automation trigger!', error)
+    log.error(error, 'Error while processing new activity automation trigger!')
     throw error
   }
 }

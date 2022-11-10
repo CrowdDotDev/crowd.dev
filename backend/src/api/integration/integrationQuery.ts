@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import IntegrationService from '../../services/integrationService'
 import track from '../../segment/track'
+import IntegrationService from '../../services/integrationService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 // /**
 //  * POST /tenant/{tenantId}/integration
@@ -20,17 +19,13 @@ import track from '../../segment/track'
 //  * @response 429 - Too many requests
 //  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.integrationRead)
+  new PermissionChecker(req).validateHas(Permissions.values.integrationRead)
 
-    const payload = await new IntegrationService(req).query(req.body)
+  const payload = await new IntegrationService(req).query(req.body)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Integrations Advanced Fitler', { ...payload }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Integrations Advanced Fitler', { ...payload }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

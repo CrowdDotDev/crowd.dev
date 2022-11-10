@@ -1,6 +1,5 @@
-import AuthService from '../services/auth/authService'
-import ApiResponseHandler from '../api/apiResponseHandler'
 import Error401 from '../errors/Error401'
+import AuthService from '../services/auth/authService'
 
 /**
  * Authenticates and fills the request with the user if it exists.
@@ -14,7 +13,8 @@ export async function authMiddleware(req, res, next) {
     !req.query.crowdToken
 
   if (isTokenEmpty) {
-    return next()
+    next()
+    return
   }
 
   let idToken
@@ -28,7 +28,8 @@ export async function authMiddleware(req, res, next) {
   } else if (req.query.crowdToken) {
     idToken = req.query.crowdToken
   } else {
-    return next()
+    next()
+    return
   }
 
   try {
@@ -36,9 +37,8 @@ export async function authMiddleware(req, res, next) {
 
     req.currentUser = currentUser
 
-    return next()
+    next()
   } catch (error) {
-    console.error(error)
-    return await ApiResponseHandler.error(req, res, new Error401())
+    await req.responseHandler.error(req, res, new Error401())
   }
 }

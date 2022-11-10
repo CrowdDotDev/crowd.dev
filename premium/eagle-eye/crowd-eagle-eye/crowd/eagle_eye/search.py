@@ -1,8 +1,8 @@
 import json
 from crowd.eagle_eye.apis.vector_api import VectorAPI
-import logging
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def remove_duplicates(iter):

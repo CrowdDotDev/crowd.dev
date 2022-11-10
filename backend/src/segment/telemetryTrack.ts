@@ -1,5 +1,8 @@
+import { createServiceChildLogger } from '../utils/logging'
 import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../config'
 import getTenatUser from './trackHelper'
+
+const log = createServiceChildLogger('telemetryTrack')
 
 export default function identify(
   event,
@@ -9,7 +12,7 @@ export default function identify(
   timestamp: any = false,
 ) {
   if (event === 'Conversation created') {
-    console.log('Conversation created')
+    log.trace('Conversation created')
   }
   if (
     !IS_TEST_ENV &&
@@ -34,11 +37,11 @@ export default function identify(
 
     try {
       if (event === 'Conversation created') {
-        console.log('Added conversation')
+        log.trace('Added conversation')
       }
       analytics.track(payload)
     } catch (error) {
-      console.log('ERROR: Could not send the following payload to Segment', payload, error)
+      log.error(error, { payload }, 'ERROR: Could not send the following payload to Segment')
     }
   }
 }

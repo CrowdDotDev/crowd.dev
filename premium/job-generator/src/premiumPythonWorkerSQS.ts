@@ -1,6 +1,9 @@
 import moment from 'moment'
 import { sqs } from './aws'
 import { IS_TEST_ENV, SQS_CONFIG } from './config'
+import { createServiceChildLogger } from './logging'
+
+const log = createServiceChildLogger('PremiumPythonWorkerSQS')
 
 export const sendPremiumPythonWorkerMessage = async (
   body: any,
@@ -11,12 +14,11 @@ export const sendPremiumPythonWorkerMessage = async (
     return
   }
 
-  console.log(
+  log.info(
+    { queue: SQS_CONFIG.premiumPythonWorkerQueue },
     'Sending message to premium python worker queue!',
-    SQS_CONFIG.premiumPythonWorkerQueue,
-    body,
   )
-  const response = await sqs
+  await sqs
     .sendMessage({
       QueueUrl: SQS_CONFIG.premiumPythonWorkerQueue,
       MessageGroupId: groupId || 'premium-python-worker',

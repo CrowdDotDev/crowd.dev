@@ -1,5 +1,4 @@
 import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import ActivityService from '../../services/activityService'
 
@@ -21,15 +20,11 @@ import ActivityService from '../../services/activityService'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    // Check we have the Create permisions
-    new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
-    // Call the createWithMember function in activity service
-    // to create the activity.
-    const payload = await new ActivityService(req).createWithMember(req.body)
+  // Check we have the Create permissions
+  new PermissionChecker(req).validateHas(Permissions.values.activityCreate)
+  // Call the createWithMember function in activity service
+  // to create the activity.
+  const payload = await new ActivityService(req).createWithMember(req.body)
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

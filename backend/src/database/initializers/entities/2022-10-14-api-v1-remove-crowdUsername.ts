@@ -2,19 +2,7 @@ import { QueryTypes } from 'sequelize'
 import SequelizeRepository from '../../repositories/sequelizeRepository'
 
 export default async () => {
-  console.time('remove-crowdUsername-time')
-
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-
-  const memberCountQuery = `select count(*) from members m `
-
-  const memberCount = (
-    await options.database.sequelize.query(memberCountQuery, {
-      type: QueryTypes.SELECT,
-    })
-  )[0].count
-
-  let transformedMemberCount = 0
 
   const totalMembersCount = await getMembersCount(options.database.sequelize)
   let currentMemberCount = 0
@@ -32,17 +20,11 @@ export default async () => {
       }
 
       updateMembers.push(member)
-
-      transformedMemberCount += 1
-      if (transformedMemberCount % 1000 === 0) {
-        console.log(`transforming members: ${transformedMemberCount}/${memberCount}`)
-      }
     }
 
     const MEMBER_CHUNK_SIZE = 25000
 
     if (updateMembers.length > MEMBER_CHUNK_SIZE) {
-      const rawLength = updateMembers.length
       splittedBulkMembers = []
 
       while (updateMembers.length > MEMBER_CHUNK_SIZE) {
@@ -55,15 +37,10 @@ export default async () => {
         splittedBulkMembers.push(updateMembers)
       }
 
-      let counter = MEMBER_CHUNK_SIZE
       for (const memberChunk of splittedBulkMembers) {
-        console.log(`updating member chunk ${counter}/${rawLength}`)
-
         await options.database.member.bulkCreate(memberChunk, {
           updateOnDuplicate: ['username'],
         })
-
-        counter += MEMBER_CHUNK_SIZE
       }
     } else {
       await options.database.member.bulkCreate(updateMembers, {
@@ -74,8 +51,6 @@ export default async () => {
     currentMemberCount += members.length
     currentOffset += members.length
   }
-
-  console.timeEnd('remove-crowdUsername-time')
 }
 
 async function getMembers(seq, limit, offset) {

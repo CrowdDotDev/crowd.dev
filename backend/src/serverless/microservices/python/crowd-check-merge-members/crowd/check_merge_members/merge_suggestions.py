@@ -1,14 +1,13 @@
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member, Integration
 import time
-import logging
 import re
 import fuzzy
 from Levenshtein import distance as levenshtein_distance
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class MergeSuggestions:
 
@@ -38,7 +37,7 @@ class MergeSuggestions:
 
         # Compute all members
         self.comparison = self.repository.find_all_usernames()
-        print(f"Found {self.comparison} members to compare")
+        logger.info(f"Found {len(self.comparison)} members to compare")
 
         self.test = test
 
@@ -136,14 +135,13 @@ class MergeSuggestions:
         return cw, sw, lw
 
     def cosdis(self, ws):
-        logger.info("Calculating cosdis for: {}".format(ws))
+        logger.debug("Calculating cosdis for: {}".format(ws))
         v1 = self.word2vec(ws[0])
         v2 = self.word2vec(ws[1])
         # which characters are common to the two words?
         common = v1[1].intersection(v2[1])
         # by definition of cosine distance we have
         out = sum(v1[0][ch] * v2[0][ch] for ch in common) / v1[2] / v2[2]
-        # print(time.time() - start)
         return out
 
     def find_similar_member(self, member, comparison, same_platform=False):

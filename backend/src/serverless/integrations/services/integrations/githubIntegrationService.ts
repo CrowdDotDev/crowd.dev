@@ -63,6 +63,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
+    const log = this.logger(context)
+
     const availableRepos: Repos = []
     let hasUnavailableRepos = false
     for (const repo of context.integration.settings.repos) {
@@ -72,9 +74,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         await stargazersQuery.getSinglePage('')
         availableRepos.push(repo)
       } catch (e) {
-        console.log(
-          `Repo ${repo.name} will not be parsed. It is not available with the github token`,
-        )
+        log.info(`Repo ${repo.name} will not be parsed. It is not available with the github token`)
         hasUnavailableRepos = true
       }
     }

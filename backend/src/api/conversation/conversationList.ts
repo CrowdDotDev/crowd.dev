@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import ConversationService from '../../services/conversationService'
 import track from '../../segment/track'
+import ConversationService from '../../services/conversationService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * GET /tenant/{tenantId}/conversation
@@ -28,17 +27,13 @@ import track from '../../segment/track'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.conversationRead)
+  new PermissionChecker(req).validateHas(Permissions.values.conversationRead)
 
-    const payload = await new ConversationService(req).findAndCountAll(req.query)
+  const payload = await new ConversationService(req).findAndCountAll(req.query)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Conversations Filtered', { filter: req.query.filter }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Conversations Filtered', { filter: req.query.filter }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import OrganizationService from '../../services/organizationService'
 import track from '../../segment/track'
+import OrganizationService from '../../services/organizationService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * POST /tenant/{tenantId}/organization/query
@@ -20,17 +19,13 @@ import track from '../../segment/track'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
+  new PermissionChecker(req).validateHas(Permissions.values.organizationRead)
 
-    const payload = await new OrganizationService(req).query(req.body)
+  const payload = await new OrganizationService(req).query(req.body)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Organizations Advanced Fitler', { ...payload }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Organizations Advanced Fitler', { ...payload }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

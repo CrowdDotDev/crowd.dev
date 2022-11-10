@@ -1,28 +1,27 @@
 import lodash from 'lodash'
 import sanitizeHtml from 'sanitize-html'
-import { getArticleComments } from '../../usecases/devto/getArticleComments'
-import { createChildLogger } from '../../../../utils/logging'
-import {
-  IIntegrationStream,
-  IProcessStreamResults,
-  IStepContext,
-} from '../../../../types/integration/stepResult'
 import { DevtoMemberAttributes } from '../../../../database/attributes/member/devto'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { GithubMemberAttributes } from '../../../../database/attributes/member/github'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
-import { single, singleOrDefault } from '../../../../utils/arrays'
+import {
+  IIntegrationStream,
+  IProcessStreamResults,
+  IStepContext,
+} from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
+import { single, singleOrDefault } from '../../../../utils/arrays'
+import Operations from '../../../dbOperations/operations'
+import { DevtoGrid } from '../../grid/devtoGrid'
 import { DevtoArticleSettings, DevtoIntegrationSettings } from '../../types/devtoTypes'
+import { AddActivitiesSingle, Member } from '../../types/messageTypes'
+import { getArticleComments } from '../../usecases/devto/getArticleComments'
 import { getAllOrganizationArticles } from '../../usecases/devto/getOrganizationArticles'
+import { getUserById } from '../../usecases/devto/getUser'
 import { getAllUserArticles } from '../../usecases/devto/getUserArticles'
 import { DevtoArticle, DevtoComment, DevtoUser } from '../../usecases/devto/types'
 import { IntegrationServiceBase } from '../integrationServiceBase'
-import { getUserById } from '../../usecases/devto/getUser'
-import { AddActivitiesSingle, Member } from '../../types/messageTypes'
-import { DevtoGrid } from '../../grid/devtoGrid'
-import Operations from '../../../dbOperations/operations'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -115,11 +114,11 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger = createChildLogger('processStream', context.serviceContext.log, { stream })
+    const logger = this.logger(context)
 
     const articleId = parseInt(stream.value, 10)
 
-    logger.info({ articleId }, 'Processing article!')
+    logger.debug({ articleId }, 'Processing article!')
 
     const comments = await getArticleComments(articleId)
 

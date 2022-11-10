@@ -3,6 +3,10 @@ import { SocialResponse } from '../../types/superfaceTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
+import { createServiceChildLogger } from '../../../../utils/logging'
+import { cleanSuperfaceError } from '../cleanError'
+
+const log = createServiceChildLogger('getProfiles')
 
 /**
  * Get all profiles of an account
@@ -16,28 +20,30 @@ const getProfiles = async (
   accessToken: string,
   members: Array<string>,
 ): Promise<SocialResponse> => {
-  const provider = await client.getProvider(PlatformType.TWITTER)
-  const profile = await client.getProfile('social-media/profiles')
+  try {
+    const provider = await client.getProvider(PlatformType.TWITTER)
+    const profile = await client.getProfile('social-media/profiles')
 
-  const inputs = { usernames: members }
-  const result: any = await profile.getUseCase('GetProfilesByUsername').perform(inputs, {
-    provider,
-    parameters: {
-      accessToken,
-    },
-  })
-  if (isInvalid(result, 'profiles')) {
-    console.log('Invalid request in profiles')
-    console.log('Inputs: ', inputs)
-    console.log('Result: ', result)
-  }
-  return {
-    records: result.value.profiles,
-    nextPage: result.value.nextPage,
-    limit: result.value.rateLimit.remainingRequests,
-    timeUntilReset: IntegrationServiceBase.secondsUntilTimestamp(
-      result.value.rateLimit.resetTimestamp,
-    ),
+    const inputs = { usernames: members }
+    const result: any = await profile.getUseCase('GetProfilesByUsername').perform(inputs, {
+      provider,
+      parameters: {
+        accessToken,
+      },
+    })
+    if (isInvalid(result, 'profiles')) {
+      log.warn({ inputs, result }, 'Invalid request in profiles')
+    }
+    return {
+      records: result.value.profiles,
+      nextPage: result.value.nextPage,
+      limit: result.value.rateLimit.remainingRequests,
+      timeUntilReset: IntegrationServiceBase.secondsUntilTimestamp(
+        result.value.rateLimit.resetTimestamp,
+      ),
+    }
+  } catch (err) {
+    throw cleanSuperfaceError(err)
   }
 }
 
