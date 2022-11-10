@@ -38,6 +38,8 @@
 
 <script>
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import { TaskService } from '@/modules/task/task-service'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'AppTaskClosedDropdown',
@@ -47,12 +49,16 @@ export default {
     }
   },
   methods: {
+    ...mapActions('task', [
+      'reloadClosedTasks',
+      'reloadArchivedTasks'
+    ]),
     doDestroyWithConfirm() {
       ConfirmDialog({
         type: 'danger',
         title: 'Delete completed tasks',
         message:
-          'Are you sure you want to delete this task? You can’t undo this action.',
+          'Are you sure you want to delete completed tasks? You can’t undo this action.',
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         icon: 'ri-delete-bin-line'
@@ -60,12 +66,37 @@ export default {
         // TODO: delete all
       })
     },
+    doArchiveWithConfirm() {
+      ConfirmDialog({
+        type: 'danger',
+        title: 'Archive completed tasks',
+        message:
+          'Are you sure you want to archive completed tasks?',
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        icon: 'ri-archive-line'
+      })
+        .then(() => {
+          return TaskService.batch('findAndUpdateAll', {
+            filter: {
+              status: 'done'
+            },
+            update: {
+              status: 'archived'
+            }
+          })
+        })
+        .then(() => {
+          this.reloadClosedTasks()
+          this.reloadArchivedTasks()
+        })
+    },
     async handleCommand(command) {
       if (command.action === 'tasksDelete') {
         return this.doDestroyWithConfirm()
       }
       if (command.action === 'tasksArchive') {
-        // TODO: archive
+        return this.doArchiveWithConfirm()
       }
     }
   }

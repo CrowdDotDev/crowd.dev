@@ -117,14 +117,9 @@ const tabs = ref([
     name: 'open',
     emptyText: 'No open tasks associated with this member',
     filters: {
-      and: [
-        {
-          status: { eq: 'in-progress' }
-        },
-        {
-          members: [props.member.id]
-        }
-      ]
+      type: 'regular',
+      status: 'in-progress',
+      members: [props.member.id]
     }
   },
   {
@@ -133,14 +128,9 @@ const tabs = ref([
     emptyText:
       'No completed tasks associated with this member',
     filters: {
-      and: [
-        {
-          status: { eq: 'done' }
-        },
-        {
-          members: [props.member.id]
-        }
-      ]
+      type: 'regular',
+      status: 'done',
+      members: [props.member.id]
     }
   }
 ])
@@ -231,14 +221,9 @@ const fetchTasks = (loadMore = false) => {
   if (tab.value.name !== 'open') {
     TaskService.list(
       {
-        and: [
-          {
-            status: { eq: 'in-progress' }
-          },
-          {
-            members: [props.member.id]
-          }
-        ]
+        type: 'regular',
+        status: 'in-progress',
+        members: [props.member.id]
       },
       '',
       1,

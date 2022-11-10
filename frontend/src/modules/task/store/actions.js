@@ -7,6 +7,7 @@ export default {
   getOpenTaskCount({ commit }) {
     return TaskService.list(
       {
+        type: 'regular',
         status: { eq: 'in-progress' }
       },
       '',
@@ -26,7 +27,8 @@ export default {
 
     return TaskService.list(
       {
-        assignedTo: { eq: currentUser.id },
+        type: 'regular',
+        assignees: currentUser.id,
         status: { eq: 'in-progress' }
       },
       '',
@@ -46,6 +48,7 @@ export default {
   },
   reloadClosedTasks() {},
   reloadArchivedTasks() {},
+  reloadSuggestedTasks() {},
   addTask() {},
   editTask() {},
   openArchivedTasks() {}

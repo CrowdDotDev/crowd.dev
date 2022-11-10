@@ -85,6 +85,10 @@
         >
           <!-- TODO: add check for permissions -->
           <router-link
+            v-if="
+              hasPermissionToCommunityMember ||
+              isCommunityMemberLocked
+            "
             id="menu-task"
             :to="{ path: '/task' }"
             class="el-menu-item"
@@ -99,7 +103,6 @@
                   Tasks
                 </span>
               </div>
-              <!-- TODO: add number -->
               <div
                 v-if="!isCollapsed && openTasksCount > 0"
                 class="h-5 flex items-center px-2 bg-brand-100 rounded-full text-2xs font-medium"

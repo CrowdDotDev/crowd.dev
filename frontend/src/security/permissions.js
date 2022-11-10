@@ -428,6 +428,64 @@ class Permissions {
         ]
       },
 
+      taskImport: {
+        id: 'taskImport',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      taskCreate: {
+        id: 'taskCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      taskEdit: {
+        id: 'taskEdit',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      taskDestroy: {
+        id: 'taskDestroy',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ],
+        allowedStorage: []
+      },
+      taskRead: {
+        id: 'taskRead',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+      taskAutocomplete: {
+        id: 'taskAutocomplete',
+        allowedRoles: [roles.admin],
+        allowedPlans: [
+          plans.free,
+          plans.premium,
+          plans.enterprise
+        ]
+      },
+
       conversationImport: {
         id: 'conversationImport',
         allowedRoles: [roles.admin],
@@ -560,7 +618,7 @@ class Permissions {
           plans.premium,
           plans.enterprise
         ]
-      }
+      },
     }
   }
 

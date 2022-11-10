@@ -83,9 +83,10 @@ export default {
     ...mapActions('task', [
       'reloadTaskPage',
       'editTask',
-      'reloadArchivedTasks'
+      'reloadArchivedTasks',
+      'reloadClosedTasks'
     ]),
-    doDestroyWithConfirm() {
+    doDestroyWithConfirm(archived) {
       ConfirmDialog({
         type: 'danger',
         title: 'Delete task',
@@ -99,20 +100,32 @@ export default {
           return TaskService.delete([this.task.id])
         })
         .then(() => {
-          this.reloadTaskPage()
+          if (archived) {
+            this.reloadArchivedTasks()
+          } else {
+            this.reloadTaskPage()
+          }
         })
+    },
+    doUnarchive() {
+      return TaskService.update(this.task.id, {
+        status: 'done'
+      }).then(() => {
+        this.reloadClosedTasks()
+        this.reloadArchivedTasks()
+      })
     },
     handleCommand(command) {
       if (command.action === 'taskDelete') {
-        return this.doDestroyWithConfirm()
+        return this.doDestroyWithConfirm(false)
       } else if (command.action === 'taskEdit') {
         this.editTask(this.task)
       } else if (
         command.action === 'taskDeletePermanently'
       ) {
-        TaskService.delete([this.task.id]).then(() => {
-          this.reloadArchivedTasks()
-        })
+        return this.doDestroyWithConfirm(true)
+      } else if (command.action === 'taskUnarchive') {
+        return this.doUnarchive()
       }
     }
   }

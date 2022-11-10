@@ -4,7 +4,7 @@
     class="pt-6 pb-5 border-t border-gray-100"
   >
     <div class="flex">
-      <div class="pr-6">
+      <div v-if="!hideCheck" class="pr-6">
         <app-loading
           height="20px"
           width="20px"
@@ -46,7 +46,7 @@
     :class="{ closing }"
   >
     <div class="flex">
-      <div class="pr-5">
+      <div v-if="!hideCheck" class="pr-5">
         <el-tooltip
           v-if="completed"
           effect="dark"
@@ -55,7 +55,7 @@
         >
           <div
             class="ri-checkbox-circle-fill h-6 flex items-center text-xl text-gray-500 hover:text-gray-900 transition cursor-pointer"
-            @click="unmarkAsComplete()"
+            @click="changeCompletion(false)"
           />
         </el-tooltip>
         <el-tooltip
@@ -66,7 +66,7 @@
         >
           <div
             class="h-6 w-6 group relative cursor-pointer"
-            @click="markAsComplete()"
+            @click="changeCompletion(true)"
           >
             <div
               class="ri-checkbox-blank-circle-line h-6 flex items-center text-xl text-gray-300"
@@ -109,10 +109,10 @@
           v-if="
             props.task.members && props.task.members.length
           "
-          class="pb-1 pt-5 flex items-center"
+          class="pt-5 flex flex-wrap items-center"
         >
           <p
-            class="text-2xs font-semibold leading-5 text-gray-400 pr-3"
+            class="text-2xs font-semibold leading-5 text-gray-400 pr-3 mb-1"
           >
             Related member(s):
           </p>
@@ -123,7 +123,7 @@
               name: 'memberView',
               params: { id: member.id }
             }"
-            class="mr-2 bg-gray-100 border group border-gray-200 rounded-md h-6 flex items-center px-1.5 cursor-pointer"
+            class="mr-2 mb-1 bg-gray-100 border group border-gray-200 rounded-md h-6 flex items-center px-1.5 cursor-pointer"
           >
             <app-avatar
               :entity="member"
@@ -139,13 +139,20 @@
         </div>
         <div class="flex pt-4 items-center">
           <div class="pr-3 flex items-center">
-            <div class="flex items-center pr-3">
+            <div
+              v-for="assignee of props.task.assignees"
+              :key="assignee.id"
+              class="flex items-center pr-3"
+            >
               <app-avatar
                 size="xxs"
-                :entity="{ displayName: 'Gasper Grom' }"
+                :entity="{
+                  displayName: assignee.fullName,
+                  avatar: assignee.avatar
+                }"
               />
               <p class="pl-2 text-2xs leading-4">
-                Gasper Grom
+                {{ assignee.fullName }}
               </p>
             </div>
           </div>
@@ -160,7 +167,13 @@
             ></div>
             <p class="pl-2 text-2xs leading-4">
               {{ formatDate(props.task.dueDate) }}
-              <span v-if="overdue">(overdue)</span>
+              <span
+                v-if="
+                  overdue &&
+                  props.task.status === 'in-progress'
+                "
+                >(overdue)</span
+              >
             </p>
           </div>
         </div>
@@ -204,6 +217,11 @@ const props = defineProps({
     type: Boolean,
     required: false,
     default: false
+  },
+  hideCheck: {
+    type: Boolean,
+    required: false,
+    default: false
   }
 })
 
@@ -236,7 +254,7 @@ const overdue = computed(() => {
 })
 
 const dateClass = computed(() => {
-  if (props.task.status === 'open') {
+  if (props.task.status === 'in-progress') {
     if (overdue.value) {
       return 'px-1.5 py-1 text-red-900 bg-red-100 rounded-md'
     }
@@ -252,11 +270,13 @@ const formatDate = (date) => {
   return moment(date).format('MMM D, YYYY')
 }
 
-const markAsComplete = () => {
+const changeCompletion = (complete) => {
   closing.value = true
 
   Promise.all([
-    TaskService.updateStatus(props.task.id, 'done'),
+    TaskService.update(props.task.id, {
+      status: complete ? 'done' : 'in-progress'
+    }),
     new Promise((resolve) => {
       setTimeout(() => {
         resolve()
@@ -265,33 +285,18 @@ const markAsComplete = () => {
   ])
     .then(() => {
       reloadTaskPage()
-      Message.success('Task has been marked as completed')
-    })
-    .catch(() => {
-      closing.value = false
-      Message.error(
-        'There was an error marking task as completed'
+      Message.success(
+        `Task has been marked as ${
+          complete ? 'completed' : 'incomplete'
+        }`
       )
     })
-}
-const unmarkAsComplete = () => {
-  closing.value = true
-  Promise.all([
-    TaskService.updateStatus(props.task.id, 'in-progress'),
-    new Promise((resolve) => {
-      setTimeout(() => {
-        resolve()
-      }, 300)
-    })
-  ])
-    .then(() => {
-      reloadTaskPage()
-      Message.success('Task has been marked as incomplete')
-    })
     .catch(() => {
       closing.value = false
       Message.error(
-        'There was an error marking task as incomplete'
+        `There was an error marking task as ${
+          complete ? 'completed' : 'incomplete'
+        }`
       )
     })
 }

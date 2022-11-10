@@ -122,7 +122,8 @@ const tabs = ref([
     name: 'all',
     emptyText: 'No open tasks at this moment',
     filters: {
-      status: { eq: 'in-progress' }
+      type: 'regular',
+      status: 'in-progress'
     }
   },
   {
@@ -130,14 +131,9 @@ const tabs = ref([
     name: 'mine',
     emptyText: 'No tasks assigned to you at this moment',
     filters: {
-      and: [
-        {
-          status: { eq: 'in-progress' }
-        },
-        {
-          members: currentUser.value.id
-        }
-      ]
+      type: 'regular',
+      status: 'in-progress',
+      assignees: [currentUser.value.id]
     }
   },
   {
@@ -145,16 +141,11 @@ const tabs = ref([
     name: 'overdue',
     emptyText: 'No overdue tasks at this moment',
     filters: {
-      and: [
-        {
-          status: { eq: 'in-progress' }
-        },
-        {
-          dueDate: {
-            lt: moment().startOf('day').toISOString()
-          }
-        }
-      ]
+      type: 'regular',
+      status: 'in-progress',
+      dueDate: {
+        lt: moment().startOf('day').toISOString()
+      }
     }
   }
 ])

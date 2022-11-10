@@ -14,6 +14,7 @@
           </h2>
           <div
             class="text-2xs leading-4.5 text-brand-500 font-medium"
+            @click="deleteAllPermanently()"
           >
             Delete all permanently
           </div>
@@ -31,14 +32,21 @@
     <template #default>
       <div class="-mt-4">
         <div v-if="loading">
-          <app-task-item :loading="true"></app-task-item>
-          <app-task-item :loading="true"></app-task-item>
+          <app-task-item
+            :loading="true"
+            :hide-check="true"
+          ></app-task-item>
+          <app-task-item
+            :loading="true"
+            :hide-check="true"
+          ></app-task-item>
         </div>
         <div v-else>
           <app-task-item
             v-for="task of tasks"
             :key="task.id"
             :task="task"
+            :hide-check="true"
           />
           <div
             v-if="tasks.length < tasksCount"
@@ -57,6 +65,17 @@
                 Load more
               </div>
             </div>
+          </div>
+          <div
+            v-if="tasks.length === 0"
+            class="pt-16 pb-14 flex justify-center items-center"
+          >
+            <div
+              class="ri-archive-line text-3xl text-gray-300 flex items-center h-10"
+            ></div>
+            <p class="pl-6 text-sm text-gray-400 italic">
+              No archived tasks
+            </p>
           </div>
         </div>
       </div>
@@ -129,6 +148,10 @@ onBeforeUnmount(() => {
   storeUnsubscribe()
 })
 
+const deleteAllPermanently = () => {
+  // TODO: Delete all permanently
+}
+
 const fetchTasks = (loadMore = false) => {
   if (!initialLoad.value) {
     loading.value = true
@@ -136,7 +159,8 @@ const fetchTasks = (loadMore = false) => {
 
   TaskService.list(
     {
-      status: { eq: 'archived' }
+      type: 'regular',
+      status: 'archived'
     },
     'updatedAt_DESC',
     20,

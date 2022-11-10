@@ -39,18 +39,6 @@ export class TaskService {
       })
   }
 
-  static updateStatus(id, status) {
-    const tenantId = AuthCurrentTenant.get()
-
-    return authAxios
-      .put(
-        `/tenant/${tenantId}/task/${id}/status/${status}`
-      )
-      .then((response) => {
-        return response.data
-      })
-  }
-
   static delete(ids) {
     const params = {
       ids
@@ -61,6 +49,19 @@ export class TaskService {
     return authAxios
       .delete(`/tenant/${tenantId}/task`, {
         params
+      })
+      .then((response) => {
+        return response.data
+      })
+  }
+
+  static batch(operation, payload) {
+    const tenantId = AuthCurrentTenant.get()
+
+    return authAxios
+      .post(`/tenant/${tenantId}/task/batch`, {
+        operation,
+        payload
       })
       .then((response) => {
         return response.data

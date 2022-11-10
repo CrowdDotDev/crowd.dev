@@ -9,7 +9,12 @@
         class="flex justify-between items-center -mx-6 px-6"
       >
         <h2 class="text-lg font-semibold text-gray-1000">
-          <span v-if="props.task && props.task.id"
+          <span
+            v-if="
+              props.task &&
+              props.task.id &&
+              props.task.type !== 'suggested'
+            "
             >Edit task</span
           >
           <span v-else>New task</span>
@@ -195,7 +200,12 @@
           :loading="loading"
           @click="doSubmit()"
         >
-          <span v-if="props.task && props.task.id"
+          <span
+            v-if="
+              props.task &&
+              props.task.id &&
+              props.task.type !== 'suggested'
+            "
             >Update</span
           >
           <span v-else>Add task</span>
@@ -250,14 +260,15 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'close'])
 
-const { reloadTaskPage } = mapActions('task')
+const { reloadTaskPage, reloadSuggestedTasks } =
+  mapActions('task')
 
 const CalendarIcon = h(
-  'i', // type
+  'i',
   {
     class:
       'ri-calendar-line text-base leading-none text-gray-400'
-  }, // props
+  },
   []
 )
 
@@ -268,7 +279,8 @@ const rules = ref({
   assignees: fields.assignees.forFormRules()
 })
 const model = ref({
-  [fields.assignees.name]: []
+  [fields.assignees.name]: [],
+  [fields.relatedMembers.name]: []
 })
 
 const assigneesFormItem = ref(null)
@@ -295,7 +307,10 @@ const isFormValid = computed(
 )
 
 const reset = () => {
-  model.value = {}
+  model.value = {
+    [fields.assignees.name]: [],
+    [fields.relatedMembers.name]: []
+  }
   if (assigneesFormItem.value) {
     assigneesFormItem.value.resetField()
   }
@@ -310,12 +325,8 @@ const fillForm = () => {
     model.value = {
       name: props.task.name,
       body: props.task.body,
-      members: (props.task.members || []).filter(
-        (m) => m.id
-      ),
-      assignees: (props.task.assignees || []).filter(
-        (a) => a.id
-      ),
+      members: props.task.members || [],
+      assignees: props.task.assignees || [],
       dueDate: props.task.dueDate
     }
   } else {
@@ -342,11 +353,15 @@ const doSubmit = () => {
   if (props.task && props.task.id) {
     TaskService.update(props.task.id, {
       ...model.value,
+      type: 'regular',
       members: model.value.members.map((m) => m.id),
-      assignedTo: model.value.assignees[0].id
+      assignees: model.value.assignees.map((m) => m.id)
     })
       .then(() => {
         Message.success('Task successfully updated!')
+        if (props.task.type === 'suggested') {
+          reloadSuggestedTasks()
+        }
         reloadTaskPage()
         reset()
         isExpanded.value = false
@@ -361,8 +376,10 @@ const doSubmit = () => {
     TaskService.create({
       ...model.value,
       status: 'in-progress',
-      members: model.value.members.map((m) => m.id),
-      assignedTo: model.value.assignees[0].id
+      members: (model.value.members || []).map((m) => m.id),
+      assignees: (model.value.assignees || []).map(
+        (m) => m.id
+      )
     })
       .then(() => {
         Message.success('Task successfully created!')

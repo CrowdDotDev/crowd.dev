@@ -92,10 +92,10 @@ import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
 import AppTaskItem from '@/modules/task/components/task-item'
-// import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const store = useStore()
-// const { currentUser } = mapGetters('auth')
+const { currentUser } = mapGetters('auth')
 
 const openForm = ref(false)
 const selectedTask = ref(null)
@@ -138,14 +138,9 @@ const fetchTasks = (loadMore = false) => {
 
   TaskService.list(
     {
-      and: [
-        {
-          status: { eq: 'in-progress' }
-        }
-        // {
-        //   assignees: currentUser.value.id
-        // }
-      ]
+      type: 'regular',
+      status: 'in-progress',
+      assignees: [currentUser.value.id]
     },
     '',
     20,

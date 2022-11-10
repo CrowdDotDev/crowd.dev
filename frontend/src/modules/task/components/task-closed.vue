@@ -56,7 +56,7 @@
           class="pt-16 pb-14 flex justify-center items-center"
         >
           <div
-            class="ri-checkbox-multiple-blank-line text-3xl text-gray-300 flex items-center h-10"
+            class="ri-checkbox-multiple-line text-3xl text-gray-300 flex items-center h-10"
           ></div>
           <p class="pl-6 text-sm text-gray-400 italic">
             No completed tasks yet
@@ -118,7 +118,8 @@ const fetchTasks = (loadMore = false) => {
 
   TaskService.list(
     {
-      status: { eq: 'done' }
+      type: 'regular',
+      status: 'done'
     },
     'updatedAt_DESC',
     20,
