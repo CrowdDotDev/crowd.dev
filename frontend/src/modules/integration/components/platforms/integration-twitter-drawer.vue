@@ -10,7 +10,10 @@
     @close="isVisible = false"
   >
     <template #content>
-      <el-form class="form integration-twitter-form">
+      <el-form
+        class="form integration-twitter-form"
+        @submit.prevent
+      >
         <span class="block text-sm font-medium"
           >Track hashtag</span
         >
@@ -39,7 +42,7 @@
           class="btn btn--md btn--primary"
           :href="computedConnectUrl"
         >
-          <app-i18n code="common.connect"></app-i18n>
+          Update
         </a>
       </div>
     </template>
@@ -47,6 +50,8 @@
 </template>
 <script>
 import integrationsJsonArray from '@/jsons/integrations.json'
+import { useRouter, useRoute } from 'vue-router'
+import Message from '@/shared/message/message'
 
 export default {
   name: 'IntegrationTwitterDrawer'
@@ -57,18 +62,20 @@ import {
   defineEmits,
   defineProps,
   computed,
-  watch,
-  ref
+  ref,
+  onMounted
 } from 'vue'
 
+const route = useRoute()
+const router = useRouter()
 const props = defineProps({
-  integration: {
-    type: Object,
-    default: null
-  },
   modelValue: {
     type: Boolean,
     default: false
+  },
+  hashtags: {
+    type: Array,
+    default: () => []
   },
   connectUrl: {
     type: String,
@@ -87,7 +94,11 @@ const isVisible = computed({
   }
 })
 
-const hashtag = ref(null)
+const hashtag = ref(
+  props.hashtags.length
+    ? props.hashtags[props.hashtags.length - 1]
+    : null
+)
 
 const logoUrl = computed(
   () =>
@@ -97,17 +108,17 @@ const logoUrl = computed(
 )
 
 const computedConnectUrl = computed(() => {
-  return hashtag.value
-    ? `${props.connectUrl}&hashtags[]=${hashtag.value}`
-    : ''
+  return `${props.connectUrl}&hashtags[]=${hashtag.value}`
 })
 
-watch(
-  () => props.integration,
-  (newValue) => {
-    hashtag.value = newValue.settings?.hashtags[0] || null
+onMounted(() => {
+  const isConnectionSuccessful = route.query.success
+
+  if (isConnectionSuccessful) {
+    router.replace({ query: null })
+    Message.success('Integration updated successfuly')
   }
-)
+})
 </script>
 
 <style lang="scss">
