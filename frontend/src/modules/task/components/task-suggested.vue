@@ -1,5 +1,5 @@
 <template>
-  <section class="panel px-5 pb-3">
+  <section v-if="tasks.length > 0" class="panel px-5 pb-3">
     <div class="pb-6">
       <div class="flex items-center">
         <div
@@ -44,7 +44,12 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  defineExpose
+} from 'vue'
 import {
   mapActions,
   mapGetters
@@ -111,4 +116,8 @@ const fetchTasks = () => {
       intitialLoad.value = true
     })
 }
+
+defineExpose({
+  taskCount
+})
 </script>

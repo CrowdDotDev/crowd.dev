@@ -618,7 +618,7 @@ class Permissions {
           plans.premium,
           plans.enterprise
         ]
-      },
+      }
     }
   }
 

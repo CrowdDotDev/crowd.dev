@@ -193,7 +193,9 @@ const fetchTasks = (loadMore = false) => {
 
   TaskService.list(
     filter,
-    '',
+    tab.value.name === 'open'
+      ? 'dueDate_ASC'
+      : 'createdAt_DESC',
     20,
     loadMore ? tasks.value.length : 0
   )

@@ -142,7 +142,7 @@ const fetchTasks = (loadMore = false) => {
       status: 'in-progress',
       assignees: [currentUser.value.id]
     },
-    '',
+    'dueDate_ASC',
     20,
     loadMore ? tasks.value.length : 0
   )

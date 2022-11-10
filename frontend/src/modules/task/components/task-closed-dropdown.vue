@@ -62,41 +62,38 @@ export default {
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
         icon: 'ri-delete-bin-line'
-      }).then(() => {
-        // TODO: delete all
-      })
-    },
-    doArchiveWithConfirm() {
-      ConfirmDialog({
-        type: 'danger',
-        title: 'Archive completed tasks',
-        message:
-          'Are you sure you want to archive completed tasks?',
-        confirmButtonText: 'Confirm',
-        cancelButtonText: 'Cancel',
-        icon: 'ri-archive-line'
       })
         .then(() => {
-          return TaskService.batch('findAndUpdateAll', {
+          // TODO: adjust this method when completed
+          return TaskService.batch('findAndDeleteAll', {
             filter: {
               status: 'done'
-            },
-            update: {
-              status: 'archived'
             }
           })
         })
         .then(() => {
           this.reloadClosedTasks()
-          this.reloadArchivedTasks()
         })
+    },
+    doArchive() {
+      return TaskService.batch('findAndUpdateAll', {
+        filter: {
+          status: 'done'
+        },
+        update: {
+          status: 'archived'
+        }
+      }).then(() => {
+        this.reloadClosedTasks()
+        this.reloadArchivedTasks()
+      })
     },
     async handleCommand(command) {
       if (command.action === 'tasksDelete') {
         return this.doDestroyWithConfirm()
       }
       if (command.action === 'tasksArchive') {
-        return this.doArchiveWithConfirm()
+        return this.doArchive()
       }
     }
   }

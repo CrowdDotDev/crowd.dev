@@ -2,30 +2,32 @@
   <el-drawer
     v-model="isExpanded"
     :show-close="false"
-    :size="480"
+    size="480px"
   >
     <template #header="{ close }">
-      <div class="flex justify-between -mx-6 px-6">
-        <div>
-          <h2
-            class="text-lg font-semibold text-gray-1000 mb-1"
-          >
-            Archived tasks ({{ tasksCount }})
-          </h2>
-          <div
-            class="text-2xs leading-4.5 text-brand-500 font-medium"
-            @click="deleteAllPermanently()"
-          >
-            Delete all permanently
+      <div>
+        <div class="flex justify-between">
+          <div>
+            <h2
+              class="text-lg font-semibold text-gray-1000 mb-1"
+            >
+              Archived tasks ({{ tasksCount }})
+            </h2>
+            <div
+              class="text-2xs leading-4.5 text-brand-500 font-medium cursor-pointer"
+              @click="deleteAllPermanently()"
+            >
+              Delete all permanently
+            </div>
           </div>
-        </div>
-        <div
-          class="flex cursor-pointer mt-2"
-          @click="close"
-        >
-          <i
-            class="ri-close-line text-xl flex items-center h-6 w-6 text-gray-400"
-          ></i>
+          <div
+            class="flex cursor-pointer mt-2"
+            @click="close"
+          >
+            <i
+              class="ri-close-line text-xl flex items-center h-6 w-6 text-gray-400"
+            ></i>
+          </div>
         </div>
       </div>
     </template>
@@ -103,6 +105,7 @@ import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
 import { mapMutations } from '@/shared/vuex/vuex.helpers'
+import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -149,7 +152,26 @@ onBeforeUnmount(() => {
 })
 
 const deleteAllPermanently = () => {
-  // TODO: Delete all permanently
+  ConfirmDialog({
+    type: 'danger',
+    title: 'Delete archived tasks',
+    message:
+      'Are you sure you want to delete all archived tasks? You can’t undo this action.',
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
+    icon: 'ri-delete-bin-line'
+  })
+    .then(() => {
+      // TODO: adjust this method when completed
+      return TaskService.batch('findAndDeleteAll', {
+        filter: {
+          status: 'done'
+        }
+      })
+    })
+    .then(() => {
+      this.reloadClosedTasks()
+    })
 }
 
 const fetchTasks = (loadMore = false) => {
