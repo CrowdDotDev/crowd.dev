@@ -24,14 +24,13 @@ export default async (req, res) => {
     new PermissionChecker(req).validateHas(Permissions.values.taskBatch)
 
     let payload
-    switch(req.body.operation){
+    switch (req.body.operation) {
       case 'findAndUpdateAll':
         payload = await new TaskService(req).findAndUpdateAll(req.body.payload)
         break
       default:
         throw new Error400('en', 'tasks.errors.unknownOperation')
     }
-
 
     await ApiResponseHandler.success(req, res, payload)
   } catch (error) {

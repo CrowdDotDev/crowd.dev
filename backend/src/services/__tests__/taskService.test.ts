@@ -41,7 +41,10 @@ describe('TaskService tests', () => {
 
     it('Should work when sending changing assignee user with another user', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const user2 = await UserRepository.create(await SequelizeTestUtils.getRandomUser(), mockIRepositoryOptions)
+      const user2 = await UserRepository.create(
+        await SequelizeTestUtils.getRandomUser(),
+        mockIRepositoryOptions,
+      )
 
       // add user to tenant
       await mockIRepositoryOptions.database.tenantUser.create({
@@ -59,14 +62,17 @@ describe('TaskService tests', () => {
       })
 
       const updated = await service.assignTo(task.id, [user2.id])
-      expect(updated.assignees.map( (i) => i.id)).toStrictEqual([user2.id])
+      expect(updated.assignees.map((i) => i.id)).toStrictEqual([user2.id])
     })
   })
 
   describe('Assign to user by email', () => {
     it('Should work when sending null or undefined', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const user2 = await UserRepository.create(await SequelizeTestUtils.getRandomUser(), mockIRepositoryOptions)
+      const user2 = await UserRepository.create(
+        await SequelizeTestUtils.getRandomUser(),
+        mockIRepositoryOptions,
+      )
 
       // add user to tenant
       await mockIRepositoryOptions.database.tenantUser.create({
@@ -97,7 +103,10 @@ describe('TaskService tests', () => {
 
     it('Should work when sending changing a user for another', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const user2 = await UserRepository.create(await SequelizeTestUtils.getRandomUser(), mockIRepositoryOptions)
+      const user2 = await UserRepository.create(
+        await SequelizeTestUtils.getRandomUser(),
+        mockIRepositoryOptions,
+      )
 
       // add user to tenant
       await mockIRepositoryOptions.database.tenantUser.create({
@@ -115,7 +124,7 @@ describe('TaskService tests', () => {
       })
 
       const updated = await service.assignToByEmail(task.id, user2.email)
-      expect(updated.assignees.map( (i) => i.id)).toStrictEqual([user2.id])
+      expect(updated.assignees.map((i) => i.id)).toStrictEqual([user2.id])
     })
   })
 
@@ -157,7 +166,6 @@ describe('TaskService tests', () => {
     })
   })
 
-
   describe('findAndUpdateAll', () => {
     it('Should find all tasks with given filter, and update found tasks with given payload', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -187,11 +195,11 @@ describe('TaskService tests', () => {
       // change all in-progress to done
       let updated = await service.findAndUpdateAll({
         filter: {
-          status: 'in-progress'
+          status: 'in-progress',
         },
-        update:{
-          status: 'done'
-        }
+        update: {
+          status: 'done',
+        },
       })
 
       expect(updated.rowsUpdated).toStrictEqual(3)
@@ -209,11 +217,11 @@ describe('TaskService tests', () => {
       // change all done to archived
       updated = await service.findAndUpdateAll({
         filter: {
-          status: 'done'
+          status: 'done',
         },
-        update:{
-          status: 'archived'
-        }
+        update: {
+          status: 'archived',
+        },
       })
 
       task1 = await service.findById(task1.id)
@@ -229,11 +237,11 @@ describe('TaskService tests', () => {
       // change all archived to in progress
       updated = await service.findAndUpdateAll({
         filter: {
-          status: 'archived'
+          status: 'archived',
         },
-        update:{
-          status: 'in-progress'
-        }
+        update: {
+          status: 'in-progress',
+        },
       })
 
       task1 = await service.findById(task1.id)
@@ -245,8 +253,6 @@ describe('TaskService tests', () => {
       expect(task2.status).toStrictEqual('in-progress')
       expect(task3.status).toStrictEqual('in-progress')
       expect(task4.status).toStrictEqual('in-progress')
-
     })
-
   })
 })

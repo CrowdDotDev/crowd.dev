@@ -274,19 +274,18 @@ describe('TaskRepository tests', () => {
 
       await TaskRepository.createSuggestedTasks(mockIRepositoryOptions)
 
-      const tasks = await TaskRepository.findAndCountAll({ filter : {}}, mockIRepositoryOptions)
+      const tasks = await TaskRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)
 
       expect(tasks.count).toBe(6)
 
-      expect(tasks.rows.map( (i) => i.name).sort()).toStrictEqual(
-        ['Check for negative reactions',
-         'Engage with relevant content',
-         'Reach out to influential members',
-         'Reach out to poorly engaged members',
-         'Setup your team',
-         'Setup your workpace integrations']
-      )
-      
+      expect(tasks.rows.map((i) => i.name).sort()).toStrictEqual([
+        'Check for negative reactions',
+        'Engage with relevant content',
+        'Reach out to influential members',
+        'Reach out to poorly engaged members',
+        'Setup your team',
+        'Setup your workpace integrations',
+      ])
     })
 
     it('Should create a task with members', async () => {
@@ -586,7 +585,6 @@ describe('TaskRepository tests', () => {
       found.rows[0].members = createdTask2.members.map((member) => member.id)
       found.rows[0].activities = createdTask2.activities.map((activity) => activity.id)
       found.rows[0].assignees = createdTask2.assignees.map((assignee) => assignee.id)
-
 
       expect(found).toStrictEqual({
         rows: [
@@ -1114,7 +1112,7 @@ describe('TaskRepository tests', () => {
       taskUpdated.createdAt = taskUpdated.createdAt.toISOString().split('T')[0]
       taskUpdated.updatedAt = taskUpdated.updatedAt.toISOString().split('T')[0]
 
-      expect(taskUpdated.assignees.map( (i) => i.id)).toStrictEqual([toUpdate])
+      expect(taskUpdated.assignees.map((i) => i.id)).toStrictEqual([toUpdate])
     })
 
     it('Should throw 404 error when trying to update non existent task', async () => {
@@ -1159,11 +1157,24 @@ describe('TaskRepository tests', () => {
     it('Should succesfully bulk update given tasks', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      let task1 = await TaskRepository.create({ name: 'test-task', status:'in-progress' }, mockIRepositoryOptions)
-      let task2 = await TaskRepository.create({ name: 'test-task-2', status:'in-progress' }, mockIRepositoryOptions)
-      let task3 = await TaskRepository.create({ name: 'test-task-3', status:'archived' }, mockIRepositoryOptions)
+      let task1 = await TaskRepository.create(
+        { name: 'test-task', status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
+      let task2 = await TaskRepository.create(
+        { name: 'test-task-2', status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
+      let task3 = await TaskRepository.create(
+        { name: 'test-task-3', status: 'archived' },
+        mockIRepositoryOptions,
+      )
 
-      let result = await TaskRepository.updateBulk([task1.id, task2.id], { status: 'done'} , mockIRepositoryOptions)
+      let result = await TaskRepository.updateBulk(
+        [task1.id, task2.id],
+        { status: 'done' },
+        mockIRepositoryOptions,
+      )
 
       expect(result.rowsUpdated).toBe(2)
 
@@ -1175,7 +1186,11 @@ describe('TaskRepository tests', () => {
       expect(task2.status).toStrictEqual('done')
       expect(task3.status).toStrictEqual('archived')
 
-      result = await TaskRepository.updateBulk([task1.id, task2.id, task3.id], {status: 'in-progress'}, mockIRepositoryOptions)
+      result = await TaskRepository.updateBulk(
+        [task1.id, task2.id, task3.id],
+        { status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
 
       task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
       task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
@@ -1184,8 +1199,6 @@ describe('TaskRepository tests', () => {
       expect(task1.status).toStrictEqual('in-progress')
       expect(task2.status).toStrictEqual('in-progress')
       expect(task3.status).toStrictEqual('in-progress')
-
     })
-
   })
 })
