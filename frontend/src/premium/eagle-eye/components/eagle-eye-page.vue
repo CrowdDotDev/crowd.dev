@@ -32,18 +32,7 @@
           Find relevant content across community platforms
         </div>
       </div>
-      <div
-        v-else-if="loading"
-        v-loading="loading"
-        class="app-page-spinner"
-      ></div>
       <div v-else>
-        <div class="flex justify-between items-center py-3">
-          <app-eagle-eye-counter />
-          <app-eagle-eye-sorter
-            v-if="activeView === 'inbox'"
-          />
-        </div>
         <app-eagle-eye-list />
       </div>
     </div>
@@ -60,8 +49,6 @@ export default {
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppEagleEyeTabs from './eagle-eye-tabs'
 import AppEagleEyeList from './eagle-eye-list'
-import AppEagleEyeCounter from './eagle-eye-counter'
-import AppEagleEyeSorter from './eagle-eye-sorter'
 import AppEagleEyeFilter from './eagle-eye-filter'
 
 import { useStore } from 'vuex'
