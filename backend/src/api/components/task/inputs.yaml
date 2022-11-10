@@ -46,8 +46,7 @@ components:
               type: string
               format: blob
 
-            update: 
+            update:
               description: >-
                 key value object with desired updated fields.
               type: object
-

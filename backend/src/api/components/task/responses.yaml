@@ -61,7 +61,7 @@ components:
           type: integer
       xml:
         name: TasksList
-    
+
     TaskFindAndUpdateAll:
       description: Returns number of tasks updated
       type: object

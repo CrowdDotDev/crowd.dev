@@ -19,17 +19,16 @@ import Error400 from '../../errors/Error400'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-    new PermissionChecker(req).validateHas(Permissions.values.taskBatch)
+  new PermissionChecker(req).validateHas(Permissions.values.taskBatch)
 
-    let payload
-    switch (req.body.operation) {
-      case 'findAndUpdateAll':
-        payload = await new TaskService(req).findAndUpdateAll(req.body.payload)
-        break
-      default:
-        throw new Error400('en', 'tasks.errors.unknownOperation')
-    }
+  let payload
+  switch (req.body.operation) {
+    case 'findAndUpdateAll':
+      payload = await new TaskService(req).findAndUpdateAll(req.body.payload)
+      break
+    default:
+      throw new Error400('en', 'tasks.errors.unknownBatchOperation', req.body.operation)
+  }
 
-    await req.responseHandler.success(req, res, payload)
-
+  await req.responseHandler.success(req, res, payload)
 }
