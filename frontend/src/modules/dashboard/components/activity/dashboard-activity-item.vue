@@ -39,15 +39,21 @@
         <!-- Name -->
         <div class="flex justify-between w-full">
           <div>
-            <router-link
-              :to="{
-                name: 'memberView',
-                params: { id: activity.member.id }
-              }"
-              class="text-2xs leading-4 block text-gray-600 pb-0.5"
-            >
-              {{ activity.member.displayName }}
-            </router-link>
+            <div class="flex items-center pb-0.5">
+              <router-link
+                :to="{
+                  name: 'memberView',
+                  params: { id: activity.member.id }
+                }"
+                class="text-2xs leading-4 block text-gray-600"
+              >
+                {{ activity.member.displayName }}
+              </router-link>
+              <app-member-badge
+                :member="activity.member"
+                class="ml-2"
+              />
+            </div>
             <div class="flex items-center">
               <div>
                 <el-tooltip
@@ -119,10 +125,12 @@ import AppActivityDropdown from '@/modules/activity/components/activity-dropdown
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
+import AppMemberBadge from '@/modules/member/components/member-badge'
 
 export default {
   name: 'AppDashboardActivityItem',
   components: {
+    AppMemberBadge,
     AppActivityMessage,
     AppActivityContent,
     AppLoading,

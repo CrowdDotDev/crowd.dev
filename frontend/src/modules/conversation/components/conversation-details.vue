@@ -39,16 +39,19 @@
       </router-link>
       <!-- conversation info-->
       <div class="pl-3">
-        <router-link
-          :to="{
-            name: 'memberView',
-            params: { id: member.id }
-          }"
-        >
-          <p class="text-2xs leading-4 font-medium mb-1">
-            {{ member.displayName }}
-          </p>
-        </router-link>
+        <div class="flex items-center">
+          <router-link
+            :to="{
+              name: 'memberView',
+              params: { id: member.id }
+            }"
+          >
+            <p class="text-2xs leading-4 font-medium">
+              {{ member.displayName }}
+            </p>
+          </router-link>
+          <app-member-badge :member="member" class="ml-2" />
+        </div>
         <div class="flex">
           <el-tooltip
             effect="dark"
@@ -165,6 +168,7 @@
 </template>
 
 <script>
+import AppMemberBadge from '@/modules/member/components/member-badge'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivityContent from '@/modules/activity/components/activity-content'
@@ -178,6 +182,7 @@ export default {
   name: 'AppConversationDetails',
   components: {
     AppActivityMessage,
+    AppMemberBadge,
     AppConversationReply,
     AppActivitySentiment,
     AppActivityContent,
