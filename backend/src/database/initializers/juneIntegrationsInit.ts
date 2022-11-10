@@ -4,6 +4,7 @@
  */
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
+import { getServiceLogger } from '../../utils/logging'
 import TenantService from '../../services/tenantService'
 import getUserContext from '../utils/getUserContext'
 import IntegrationService from '../../services/integrationService'
@@ -21,12 +22,14 @@ const env = dotenv.config({
 
 dotenvExpand.expand(env)
 
+const log = getServiceLogger()
+
 async function juneIntegrationsInit() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
 
   // for each tenant
   for (const tenant of tenants.rows) {
-    console.log('processing tenant: ', tenant.id)
+    log.info(`processing tenant: ${tenant.id}`)
     const userContext = await getUserContext(tenant.id)
 
     const integrationService = new IntegrationService(userContext)

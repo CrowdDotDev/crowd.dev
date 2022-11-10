@@ -1,3 +1,4 @@
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository import Repository
 from crowd.backend.repository.keys import DBKeys as dbk
 from datetime import datetime
@@ -6,11 +7,10 @@ from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member, Tenant
 import time
 from crowd.backend.utils.datetime import CrowdDateTime as cdt
-import logging
 from sklearn.cluster import KMeans
 import numpy as np
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MembersScore:
@@ -218,9 +218,6 @@ class MembersScore:
         logger.info("Normalising scores...")
         scores_to_update = self.normalise(self.scores)
         logger.info("Done")
-
-        logger.info("Scored to update")
-        logger.info(scores_to_update)
 
         length = len(scores_to_update)
         changed = 0

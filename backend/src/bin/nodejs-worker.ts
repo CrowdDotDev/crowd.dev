@@ -51,7 +51,6 @@ async function handleDelayedMessages() {
       const msg: NodeWorkerMessageBase = JSON.parse(message.Body)
       const messageLogger = createChildLogger('messageHandler', serviceLogger, {
         messageId: message.MessageId,
-        receipt: message.ReceiptHandle,
         type: msg.type,
       })
 
@@ -59,7 +58,7 @@ async function handleDelayedMessages() {
         // re-delay
         const newDelay = parseInt(message.MessageAttributes.remainingDelaySeconds.StringValue, 10)
         const tenantId = message.MessageAttributes.tenantId.StringValue
-        messageLogger.info({ newDelay, tenantId }, 'Re-delaying message!')
+        messageLogger.debug({ newDelay, tenantId }, 'Re-delaying message!')
         await sendNodeWorkerMessage(tenantId, msg, newDelay)
       } else {
         // just emit to the normal queue for processing
@@ -67,7 +66,7 @@ async function handleDelayedMessages() {
 
         if (message.MessageAttributes.targetQueueUrl) {
           const targetQueueUrl = message.MessageAttributes.targetQueueUrl.StringValue
-          messageLogger.info({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
+          messageLogger.debug({ tenantId, targetQueueUrl }, 'Successfully delayed a message!')
           await sendMessage({
             QueueUrl: targetQueueUrl,
             MessageGroupId: tenantId,
@@ -75,7 +74,7 @@ async function handleDelayedMessages() {
             MessageBody: JSON.stringify(msg),
           })
         } else {
-          messageLogger.info({ tenantId }, 'Successfully delayed a message!')
+          messageLogger.debug({ tenantId }, 'Successfully delayed a message!')
           await sendNodeWorkerMessage(tenantId, msg)
         }
       }
@@ -107,12 +106,11 @@ async function handleMessages() {
 
     const messageLogger = createChildLogger('messageHandler', serviceLogger, {
       messageId: message.MessageId,
-      receipt: message.ReceiptHandle,
       type: msg.type,
     })
 
     try {
-      messageLogger.info('Received a new queue message!')
+      messageLogger.debug('Received a new queue message!')
 
       let processFunction: (msg: NodeWorkerMessageBase) => Promise<void>
       let keep = false

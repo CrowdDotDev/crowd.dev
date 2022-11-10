@@ -1,11 +1,11 @@
 import requests
 import signal
 from bs4 import BeautifulSoup
-import logging
 from urllib.parse import urlparse
 from reppy.robots import Robots
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def filter_existing(data, ids):

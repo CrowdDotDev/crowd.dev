@@ -13,8 +13,11 @@ import { gridEntry } from '../grid/grid'
 import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import getOrganization from '../usecases/github/graphql/organizations'
 import { IntegrationServiceBase } from '../services/integrationServiceBase'
+import { createServiceChildLogger } from '../../../utils/logging'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
+
+const log = createServiceChildLogger('GithubWebhook')
 
 export default class GitHubWebhook {
   static platform = PlatformType.GITHUB
@@ -507,10 +510,10 @@ export default class GitHubWebhook {
       const signature = req.headers['x-hub-signature']
       const secret = GITHUB_CONFIG.webhookSecret
 
-      console.log('Verifying webhook...')
+      log.info('Verifying webhook...')
       const isVerified = verifyGithubWebhook(signature, JSON.stringify(req.body), secret) // Returns true if verification succeeds; otherwise, false.
 
-      console.log('Verification', isVerified)
+      log.info('Verification', isVerified)
       if (!isVerified) {
         throw new Error('Webhook not verified')
       }

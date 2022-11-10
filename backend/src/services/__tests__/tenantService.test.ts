@@ -6,6 +6,7 @@ import MicroserviceService from '../microserviceService'
 import { PlatformType } from '../../types/integrationEnums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
+import TaskService from '../taskService'
 
 const db = null
 
@@ -119,7 +120,7 @@ describe('TenantService tests', () => {
   })
 
   describe('create method', () => {
-    it('Should succesfully create the tenant, related default microservices and settings', async () => {
+    it('Should succesfully create the tenant, related default microservices, settings and suggested tasks', async () => {
       const randomUser = await SequelizeTestUtils.getRandomUser()
       let db = null
       db = await SequelizeTestUtils.getDatabase(db)
@@ -187,6 +188,17 @@ describe('TenantService tests', () => {
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
         MemberAttributeName.URL,
+      ])
+
+      const taskService = new TaskService({ ...options, currentTenant: tenantCreated })
+      const suggestedTasks = await taskService.findAndCountAll({ filter: {} })
+      expect(suggestedTasks.rows.map((i) => i.name).sort()).toStrictEqual([
+        'Check for negative reactions',
+        'Engage with relevant content',
+        'Reach out to influential members',
+        'Reach out to poorly engaged members',
+        'Setup your team',
+        'Setup your workpace integrations',
       ])
     })
   })

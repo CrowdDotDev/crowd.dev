@@ -1,9 +1,9 @@
-import logging
 from crowd.github.onboarding.coordinator import coordinator
 from crowd.github.onboarding.check_status import github_onboarding_status
 from crowd.github.onboarding.worker import github_onboarding_worker
+from crowd.backend.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def onboarding_coordinator(event, context):

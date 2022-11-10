@@ -1,7 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
 import TagService from '../../services/tagService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 /**
  * GET /tenant/{tenantId}/tag/{id}
@@ -19,13 +18,9 @@ import TagService from '../../services/tagService'
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.tagRead)
+  new PermissionChecker(req).validateHas(Permissions.values.tagRead)
 
-    const payload = await new TagService(req).findById(req.params.id)
+  const payload = await new TagService(req).findById(req.params.id)
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

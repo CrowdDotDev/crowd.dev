@@ -6,11 +6,13 @@ import MemberRepository from '../database/repositories/memberRepository'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import { enrichOrganization, organizationUrlFromName } from './helpers/enrichment'
+import { LoggingBase } from './loggingBase'
 
-export default class OrganizationService {
+export default class OrganizationService extends LoggingBase {
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -93,7 +95,7 @@ export default class OrganizationService {
           try {
             data.url = await organizationUrlFromName(data.name)
           } catch (error) {
-            console.log(`Could not get URL for ${data.name}: ${error}`)
+            this.log.error(error, `Could not get URL for ${data.name}!`)
           }
         }
         if (data.url) {
@@ -123,7 +125,7 @@ export default class OrganizationService {
               })
             }
           } catch (error) {
-            console.log(`Could not enrich ${data.url}: ${error}`)
+            this.log.error(error, `Could not enrich ${data.url}!`)
           }
         }
       }

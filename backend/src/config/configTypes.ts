@@ -47,8 +47,16 @@ export interface DbConfiguration {
   readHost: string
   writeHost: string
   port: number
-  username: string
-  password: string
+
+  username?: string
+  password?: string
+  apiUsername?: string
+  apiPassword?: string
+  nodejsWorkerUsername?: string
+  nodejsWorkerPassword?: string
+  jobGeneratorUsername?: string
+  jobGeneratorPassword?: string
+
   dialect: string
   database: string
   logging: boolean

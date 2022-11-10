@@ -138,6 +138,10 @@ export default () => {
         (acc, item) => {
           acc[item.id] = {
             ...item,
+            pagination: {
+              ...item.pagination,
+              currentPage: 1
+            },
             active: item.id === viewId
           }
           return acc

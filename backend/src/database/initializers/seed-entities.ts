@@ -1,3 +1,4 @@
+import { getServiceLogger } from '../../utils/logging'
 /**
  * This script is responsible for seeding entity data to database.
  * It has two modes through arguments. `all` OR `seederFileName`
@@ -12,6 +13,8 @@
 import conversations from './entities/2022-04-27-add-conversations'
 import microservices from './entities/2022-04-05-add-microservices'
 import { IS_DEV_ENV } from '../../config/index'
+
+const log = getServiceLogger()
 
 const arg = process.argv[2]
 
@@ -46,7 +49,7 @@ if (arg) {
     seedSelected()
   }
 } else {
-  console.log(
+  log.info(
     'This script needs an argument. To run all initializers `all`, or to run a specific initializer, `initializerName`',
   )
 }

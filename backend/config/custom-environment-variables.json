@@ -40,6 +40,12 @@
     "port": "CROWD_DB_PORT",
     "username": "CROWD_DB_USERNAME",
     "password": "CROWD_DB_PASSWORD",
+    "apiUsername": "CROWD_DB_API_USERNAME",
+    "apiPassword": "CROWD_DB_API_PASSWORD",
+    "nodejsWorkerUsername": "CROWD_DB_NODEJS_WORKER_USERNAME",
+    "nodejsWorkerPassword": "CROWD_DB_NODEJS_WORKER_PASSWORD",
+    "jobGeneratorUsername": "CROWD_DB_JOB_GENERATOR_USERNAME",
+    "jobGeneratorPassword": "CROWD_DB_JOB_GENERATOR_PASSWORD",
     "database": "CROWD_DB_DATABASE"
   },
   "cubejs": {

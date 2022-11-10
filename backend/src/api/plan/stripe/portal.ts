@@ -1,60 +1,55 @@
 import { PLANS_CONFIG } from '../../../config'
-import TenantService from '../../../services/tenantService'
-import Plans from '../../../security/plans'
-import ApiResponseHandler from '../../apiResponseHandler'
-import Error403 from '../../../errors/Error403'
-import { tenantSubdomain } from '../../../services/tenantSubdomain'
 import Error400 from '../../../errors/Error400'
+import Error403 from '../../../errors/Error403'
+import Plans from '../../../security/plans'
+import TenantService from '../../../services/tenantService'
+import { tenantSubdomain } from '../../../services/tenantSubdomain'
 
 export default async (req, res) => {
-  try {
-    if (!PLANS_CONFIG.stripeSecretKey) {
-      throw new Error400(req.language, 'tenant.stripeNotConfigured')
-    }
+  if (!PLANS_CONFIG.stripeSecretKey) {
+    throw new Error400(req.language, 'tenant.stripeNotConfigured')
+  }
 
-    const stripe = require('stripe')(PLANS_CONFIG.stripeSecretKey)
+  const stripe = require('stripe')(PLANS_CONFIG.stripeSecretKey)
 
-    const { currentTenant } = req
-    const { currentUser } = req
+  const { currentTenant } = req
+  const { currentUser } = req
 
-    if (!currentTenant || !currentUser) {
-      throw new Error403(req.language)
-    }
+  if (!currentTenant || !currentUser) {
+    throw new Error403(req.language)
+  }
 
-    if (
-      currentTenant.plan !== Plans.values.free &&
-      currentTenant.planStatus !== 'cancel_at_period_end' &&
-      currentTenant.planUserId !== currentUser.id
-    ) {
-      throw new Error403(req.language)
-    }
+  if (
+    currentTenant.plan !== Plans.values.free &&
+    currentTenant.planStatus !== 'cancel_at_period_end' &&
+    currentTenant.planUserId !== currentUser.id
+  ) {
+    throw new Error403(req.language)
+  }
 
-    let { planStripeCustomerId } = currentTenant
+  let { planStripeCustomerId } = currentTenant
 
-    if (!planStripeCustomerId || currentTenant.planUserId !== currentUser.id) {
-      const stripeCustomer = await stripe.customers.create({
-        email: currentUser.email,
-        metadata: {
-          tenantId: currentTenant.id,
-        },
-      })
-
-      planStripeCustomerId = stripeCustomer.id
-    }
-
-    await new TenantService(req).updatePlanUser(
-      currentTenant.id,
-      planStripeCustomerId,
-      currentUser.id,
-    )
-
-    const session = await stripe.billingPortal.sessions.create({
-      customer: planStripeCustomerId,
-      return_url: `${tenantSubdomain.frontendUrl(currentTenant)}/plan`,
+  if (!planStripeCustomerId || currentTenant.planUserId !== currentUser.id) {
+    const stripeCustomer = await stripe.customers.create({
+      email: currentUser.email,
+      metadata: {
+        tenantId: currentTenant.id,
+      },
     })
 
-    return await ApiResponseHandler.success(req, res, session)
-  } catch (error) {
-    return ApiResponseHandler.error(req, res, error)
+    planStripeCustomerId = stripeCustomer.id
   }
+
+  await new TenantService(req).updatePlanUser(
+    currentTenant.id,
+    planStripeCustomerId,
+    currentUser.id,
+  )
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: planStripeCustomerId,
+    return_url: `${tenantSubdomain.frontendUrl(currentTenant)}/plan`,
+  })
+
+  await req.responseHandler.success(req, res, session)
 }

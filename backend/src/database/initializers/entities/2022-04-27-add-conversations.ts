@@ -8,7 +8,6 @@ export default async () => {
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
 
   for (const tenant of tenants) {
-    console.log('processing tenant: ', tenant.id)
     const userContext = await getUserContext(tenant.id)
     const as = new ActivityService(userContext)
 
@@ -19,9 +18,6 @@ export default async () => {
 
     for (const discordActivity of discordActivities.rows) {
       if (discordActivity.parentId) {
-        console.log(
-          `This activity ${discordActivity.id} has a parent id:  ${discordActivity.parentId}`,
-        )
         // get parent activity
         const parentAct = await as.findById(discordActivity.parentId)
 

@@ -7,6 +7,7 @@
 
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
+import { getServiceLogger } from '../../utils/logging'
 import SequelizeTestUtils from '../utils/sequelizeTestUtils'
 import ActivityService from '../../services/activityService'
 import TagService from '../../services/tagService'
@@ -28,6 +29,8 @@ dotenvExpand.expand(env)
 
 const db = null
 
+const log = getServiceLogger()
+
 async function createSingleTenant() {
   const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
@@ -37,7 +40,7 @@ async function createSingleTenant() {
   const ts = new TagService(mockIRepositoryOptions)
   const ms = new MemberService(mockIRepositoryOptions)
 
-  console.log('Starting seeding the db...')
+  log.info('Starting seeding the db...')
 
   // create activities with members
   for (const activity of activities) {
@@ -91,39 +94,34 @@ async function createSingleTenant() {
     await WidgetRepository.create(widget, mockIRepositoryOptions)
   }
 
-  console.log('Database seeded')
-  console.log('User email: ', mockIRepositoryOptions.currentUser.email)
-  console.log('User password: 12345')
-  console.log('Tenant id: ', mockIRepositoryOptions.currentTenant.id)
-  console.log(
-    '# of members added: ',
-    await mockIRepositoryOptions.database.member.count({
+  log.info('Database seeded')
+  log.info(`User email: ${mockIRepositoryOptions.currentUser.email}`)
+  log.info('User password: 12345')
+  log.info(`Tenant id: ${mockIRepositoryOptions.currentTenant.id}`)
+  log.info(
+    `# of members added: ${await mockIRepositoryOptions.database.member.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
-    }),
+    })}`,
   )
-  console.log(
-    '# of activities added:',
-    await mockIRepositoryOptions.database.activity.count({
+  log.info(
+    `# of activities added:${await mockIRepositoryOptions.database.activity.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
-    }),
+    })}`,
   )
-  console.log(
-    '# of tags added:',
-    await mockIRepositoryOptions.database.tag.count({
+  log.info(
+    `# of tags added:${await mockIRepositoryOptions.database.tag.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
-    }),
+    })}`,
   )
-  console.log(
-    '# of reports added:',
-    await mockIRepositoryOptions.database.report.count({
+  log.info(
+    `# of reports added:${await mockIRepositoryOptions.database.report.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
-    }),
+    })}`,
   )
-  console.log(
-    '# of widgets added:',
-    await mockIRepositoryOptions.database.widget.count({
+  log.info(
+    `# of widgets added:${await mockIRepositoryOptions.database.widget.count({
       tenantId: mockIRepositoryOptions.currentTenant.id,
-    }),
+    })}`,
   )
 }
 

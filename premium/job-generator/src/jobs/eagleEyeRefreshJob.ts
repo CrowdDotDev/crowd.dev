@@ -1,6 +1,9 @@
 import cronGenerator from 'cron-time-generator'
+import { createServiceChildLogger } from '../logging'
 import { sendPremiumPythonWorkerMessage } from '../premiumPythonWorkerSQS'
 import { CrowdJob } from '../types'
+
+const log = createServiceChildLogger('Eagle-eye Refresh Job')
 
 const job: CrowdJob = {
   name: 'Eagle-eye Refresh Job',
@@ -11,7 +14,7 @@ const job: CrowdJob = {
         platform: 'devto',
       })
     } catch (err) {
-      console.log('Error while emitting DEV Eagle-eye refresh message!', err)
+      log.error(err, 'Error while emitting DEV Eagle-eye refresh message!')
     }
 
     try {
@@ -19,7 +22,7 @@ const job: CrowdJob = {
         platform: 'hacker_news',
       })
     } catch (err) {
-      console.log('Error while emitting Hacker News Eagle-eye refresh message!', err)
+      log.error(err, 'Error while emitting Hacker News Eagle-eye refresh message!')
     }
   },
 }

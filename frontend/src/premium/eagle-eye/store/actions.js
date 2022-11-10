@@ -19,7 +19,8 @@ export default {
         await dispatch('doPopulate', {
           keywords:
             getters.activeView.filter.attributes.keywords
-              .value
+              .value,
+          keepPagination
         })
       }
       commit('FETCH_STARTED', {
@@ -55,10 +56,13 @@ export default {
     }
   },
 
-  async doPopulate({ commit }, { keywords }) {
+  async doPopulate(
+    { commit },
+    { keywords, keepPagination }
+  ) {
     try {
       commit('POPULATE_STARTED', {
-        keywords
+        keepPagination
       })
 
       await EagleEyeService.populate(keywords)

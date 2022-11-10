@@ -4,6 +4,7 @@
  */
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
+import { getServiceLogger } from '../../utils/logging'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import getUserContext from '../utils/getUserContext'
@@ -18,12 +19,14 @@ const env = dotenv.config({
 
 dotenvExpand.expand(env)
 
+const log = getServiceLogger()
+
 async function conversationInit() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
 
   // for each tenant
   for (const tenant of tenants.rows) {
-    console.log('processing tenant: ', tenant.id)
+    log.info({ tenantId: tenant.id }, 'Processing tenant!')
     const userContext = await getUserContext(tenant.id)
     const as = new ActivityService(userContext)
 
@@ -34,8 +37,9 @@ async function conversationInit() {
 
     for (const discordActivity of discordActivities.rows) {
       if (discordActivity.parentId) {
-        console.log(
-          `This activity ${discordActivity.id} has a parent id:  ${discordActivity.parentId}`,
+        log.info(
+          { activityId: discordActivity.id, parentId: discordActivity.parentId },
+          'Activity has a parent id!',
         )
         // get parent activity
         const parentAct = await as.findById(discordActivity.parentId)

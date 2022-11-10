@@ -1,10 +1,12 @@
+import { get } from 'lodash'
 import passport from 'passport'
 import GoogleStrategy from 'passport-google-oauth20'
-import { get } from 'lodash'
-import AuthService from '../../services/auth/authService'
-import ApiResponseHandler from '../apiResponseHandler'
+import { API_CONFIG, GOOGLE_CONFIG } from '../../config'
 import { databaseInit } from '../../database/databaseConnection'
-import { GOOGLE_CONFIG, API_CONFIG } from '../../config'
+import AuthService from '../../services/auth/authService'
+import { createServiceChildLogger } from '../../utils/logging'
+
+const log = createServiceChildLogger('AuthSocial')
 
 export default (app, routes) => {
   app.use(passport.initialize())
@@ -18,18 +20,14 @@ export default (app, routes) => {
   })
 
   routes.post('/auth/social/onboard', async (req, res) => {
-    try {
-      const payload = await AuthService.handleOnboard(
-        req.currentUser,
-        req.body.invitationToken,
-        req.body.tenantId,
-        req,
-      )
+    const payload = await AuthService.handleOnboard(
+      req.currentUser,
+      req.body.invitationToken,
+      req.body.tenantId,
+      req,
+    )
 
-      await ApiResponseHandler.success(req, res, payload)
-    } catch (error) {
-      await ApiResponseHandler.error(req, res, error)
-    }
+    await req.responseHandler.success(req, res, payload)
   })
 
   if (GOOGLE_CONFIG.clientId) {
@@ -63,7 +61,7 @@ export default (app, routes) => {
               done(null, jwtToken)
             })
             .catch((error) => {
-              console.error(error)
+              log.error(error, 'Error while handling google auth!')
               done(error, null)
             })
         },
@@ -92,7 +90,7 @@ export default (app, routes) => {
 
 function handleCallback(res, err, jwtToken) {
   if (err) {
-    console.error(err)
+    log.error(err, 'Error handling social callback!')
     let errorCode = 'generic'
 
     if (['auth-invalid-provider', 'auth-no-email'].includes(err.message)) {

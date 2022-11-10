@@ -1,32 +1,27 @@
-import ApiResponseHandler from '../apiResponseHandler'
 import Error403 from '../../errors/Error403'
-import TenantService from '../../services/tenantService'
-import track from '../../segment/track'
-import telemetryTrack from '../../segment/telemetryTrack'
 import identifyTenant from '../../segment/identifyTenant'
+import telemetryTrack from '../../segment/telemetryTrack'
+import track from '../../segment/track'
+import TenantService from '../../services/tenantService'
 
 export default async (req, res) => {
-  try {
-    if (!req.currentUser || !req.currentUser.id) {
-      throw new Error403(req.language)
-    }
-
-    const payload = await new TenantService(req).create(req.body)
-
-    track(
-      'Tenant Created',
-      {
-        id: payload.id,
-        name: payload.name,
-      },
-      { ...req },
-    )
-    identifyTenant(req.currentUser, payload)
-
-    telemetryTrack('Tenant created', {}, { ...req })
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (!req.currentUser || !req.currentUser.id) {
+    throw new Error403(req.language)
   }
+
+  const payload = await new TenantService(req).create(req.body)
+
+  track(
+    'Tenant Created',
+    {
+      id: payload.id,
+      name: payload.name,
+    },
+    { ...req },
+  )
+  identifyTenant(req.currentUser, payload)
+
+  telemetryTrack('Tenant created', {}, { ...req })
+
+  await req.responseHandler.success(req, res, payload)
 }

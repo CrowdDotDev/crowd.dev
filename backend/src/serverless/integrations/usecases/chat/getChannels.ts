@@ -1,7 +1,11 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
+import { cleanSuperfaceError } from '../cleanError'
+import { createServiceChildLogger } from '../../../../utils/logging'
 import { Channel, Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { timeout } from '../../../../utils/timing'
+
+const log = createServiceChildLogger('getChannels')
 
 /**
  * Try if a channel is readable
@@ -46,39 +50,41 @@ async function getChannels(
   accessToken: string,
   tryChannels = true,
 ) {
-  const profile = await client.getProfile('chat/channels')
-  const provider = await client.getProvider(source)
-  const parameters = { accessToken }
-  const result: any = await profile
-    .getUseCase('GetChannels')
-    .perform(input, { provider, parameters })
-  if (isInvalid(result, 'channels')) {
-    console.log('Invalid request in getChannels')
-    console.log('Inputs: ', input)
-    console.log('Result: ', result)
-  }
-  if (tryChannels) {
-    const out: Channels = []
-    for (const channel of result.value.channels) {
-      const limit = await tryChannel(client, source, accessToken, channel)
-      if (limit) {
-        const toOut: Channel = {
-          name: channel.name,
-          id: channel.id,
-        }
-        out.push(toOut)
-        if (limit <= 1 && limit !== false) {
-          await timeout(5 * 1000)
+  try {
+    const profile = await client.getProfile('chat/channels')
+    const provider = await client.getProvider(source)
+    const parameters = { accessToken }
+    const result: any = await profile
+      .getUseCase('GetChannels')
+      .perform(input, { provider, parameters })
+    if (isInvalid(result, 'channels')) {
+      log.warn({ input, result }, 'Invalid request in getChannels')
+    }
+    if (tryChannels) {
+      const out: Channels = []
+      for (const channel of result.value.channels) {
+        const limit = await tryChannel(client, source, accessToken, channel)
+        if (limit) {
+          const toOut: Channel = {
+            name: channel.name,
+            id: channel.id,
+          }
+          out.push(toOut)
+          if (limit <= 1 && limit !== false) {
+            await timeout(5 * 1000)
+          }
         }
       }
+      return out
     }
-    return out
-  }
 
-  return result.value.channels.map((c) => ({
-    name: c.name,
-    id: c.id,
-  }))
+    return result.value.channels.map((c) => ({
+      name: c.name,
+      id: c.id,
+    }))
+  } catch (err) {
+    throw cleanSuperfaceError(err)
+  }
 }
 
 export default getChannels

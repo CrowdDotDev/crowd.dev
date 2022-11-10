@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 // import bodyParser from 'body-parser'
 import helmet from 'helmet'
+import bunyanMiddleware from 'bunyan-middleware'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -10,11 +11,27 @@ import { createRateLimiter } from './apiRateLimiter'
 import { languageMiddleware } from '../middlewares/languageMiddleware'
 import authSocial from './auth/authSocial'
 import setupSwaggerUI from './apiDocumentation'
+import { createServiceLogger } from '../utils/logging'
+import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
+import { errorMiddleware } from '../middlewares/errorMiddleware'
+
+const serviceLogger = createServiceLogger()
 
 const app = express()
 
 // Enables CORS
 app.use(cors({ origin: true }))
+
+// Logging middleware
+app.use(
+  bunyanMiddleware({
+    headerName: 'x-request-id',
+    propertyName: 'requestId',
+    logName: `requestId`,
+    logger: serviceLogger,
+    level: 'trace',
+  }),
+)
 
 // Initializes and adds the database middleware.
 app.use(databaseMiddleware)
@@ -24,6 +41,9 @@ app.use(searchEngineMiddleware)
 
 // Sets the current language of the request
 app.use(languageMiddleware)
+
+// adds our ApiResponseHandler instance to the req object as responseHandler
+app.use(responseHandlerMiddleware)
 
 // Configures the authentication middleware
 // to set the currentUser to the requests
@@ -101,5 +121,8 @@ app.use('/webhooks', webhookRoutes)
 
 const io = require('@pm2/io')
 
+app.use(errorMiddleware)
+
 app.use(io.expressErrorHandler())
+
 export default app

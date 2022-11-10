@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import WidgetService from '../../services/widgetService'
 import track from '../../segment/track'
+import PermissionChecker from '../../services/user/permissionChecker'
+import WidgetService from '../../services/widgetService'
 
 // /**
 //  * POST /tenant/{tenantId}/widget
@@ -20,17 +19,13 @@ import track from '../../segment/track'
 //  * @response 429 - Too many requests
 //  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.widgetRead)
+  new PermissionChecker(req).validateHas(Permissions.values.widgetRead)
 
-    const payload = await new WidgetService(req).query(req.body)
+  const payload = await new WidgetService(req).query(req.body)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Widgets Advanced Fitler', { ...payload }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Widgets Advanced Fitler', { ...payload }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

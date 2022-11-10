@@ -1,12 +1,12 @@
-import logging
 from crowd.backend.models import Member
 from crowd.backend.repository import Repository
 from crowd.backend.controllers import BaseController
+from crowd.backend.infrastructure.logging import get_logger
 from uuid import UUID
 from crowd.backend.enums import Operations
 from crowd.backend.repository.keys import DBKeys as dbk
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MembersController(BaseController):

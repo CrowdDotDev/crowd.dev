@@ -9,18 +9,20 @@ import MemberRepository from '../database/repositories/memberRepository'
 import ActivityRepository from '../database/repositories/activityRepository'
 import TagRepository from '../database/repositories/tagRepository'
 import telemetryTrack from '../segment/telemetryTrack'
-import { sendNewMemberNodeSQSMessage } from '../serverless/microservices/nodejs/nodeMicroserviceSQS'
 import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
 import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
+import { sendNewMemberNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import { LoggingBase } from './loggingBase'
 
-export default class MemberService {
+export default class MemberService extends LoggingBase {
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -303,7 +305,7 @@ export default class MemberService {
         try {
           await sendNewMemberNodeSQSMessage(this.options.currentTenant.id, record)
         } catch (err) {
-          console.log(`Error triggering new member automation - ${record.id}!`, err)
+          this.log.error(err, `Error triggering new member automation - ${record.id}!`)
         }
       }
 
@@ -355,7 +357,6 @@ export default class MemberService {
           fillRelations,
         )
       } else {
-        console.log('here', username, platform)
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
       }
     }

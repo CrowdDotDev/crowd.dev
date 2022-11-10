@@ -1,3 +1,4 @@
 -e ./crowd-backend
 -e ./crowd-check-merge-members
 -e ./crowd-members-score
+python-json-logger

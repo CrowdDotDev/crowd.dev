@@ -19,14 +19,16 @@ import track from '../segment/track'
 import getStage from './helpers/getStage'
 import { s3 } from './aws'
 import { PlatformType } from '../types/integrationEnums'
+import { LoggingBase } from './loggingBase'
 import getCleanString from '../utils/getCleanString'
 
-export default class ConversationService {
+export default class ConversationService extends LoggingBase {
   static readonly MAX_SLUG_WORD_LENGTH = 10
 
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -298,8 +300,7 @@ export default class ConversationService {
   async loadIntoSearchEngine(id: String, transaction: Transaction): Promise<void> {
     const conversation = await ConversationRepository.findById(id, { ...this.options, transaction })
 
-    console.log('found conv: ')
-    console.log(conversation)
+    this.log.info({ conversation }, 'Found conversation!')
 
     let plainActivities = conversation.activities
       .map((act) => {
@@ -337,8 +338,7 @@ export default class ConversationService {
       url: plainActivities[0].url,
     }
 
-    console.log('adding doc to conversation: ')
-    console.log(document)
+    this.log.info({ document }, 'Adding doc to conversation!')
     await new ConversationSearchEngineRepository(this.options).createOrReplace(document)
   }
 
@@ -377,7 +377,7 @@ export default class ConversationService {
                   })
                 }
 
-                console.log(
+                this.log.info(
                   `trying to get bucket ${S3_CONFIG.integrationsAssetsBucket}-${getStage()}`,
                 )
 
@@ -427,9 +427,9 @@ export default class ConversationService {
         (data.published === true || data.published === 'true') &&
         (record.published === true || record.published === 'true')
       ) {
-        console.log('loading into search engine...')
+        this.log.debug('Loading into search engine...')
         await this.loadIntoSearchEngine(record.id, transaction)
-        console.log('done!')
+        this.log.debug('done!')
 
         if (recordBeforeUpdate.published !== record.published && !IS_TEST_ENV) {
           track('Conversation Published', { id: record.id }, { ...this.options })

@@ -1,5 +1,8 @@
 import { WebClient } from '@slack/web-api'
 import { SLACK_CONFIG } from '../config'
+import { createServiceChildLogger } from './logging'
+
+const log = createServiceChildLogger('slackClient')
 
 let slackClientInstance: WebClient | undefined
 
@@ -16,6 +19,6 @@ export const sendSlackAlert = async (text: string): Promise<void> => {
       icon_emoji: ':warning:',
     })
   } else {
-    console.log('Warning: no Slack client defined! Can not send a slack message!')
+    log.warn('No Slack client defined! Can not send a slack message!')
   }
 }

@@ -1,16 +1,12 @@
-import ApiResponseHandler from '../apiResponseHandler'
 import Error403 from '../../errors/Error403'
 
 export default async (req, res) => {
-  try {
-    if (!req.currentUser || !req.currentUser.id) {
-      throw new Error403(req.language)
-    }
-
-    const payload = req.currentUser
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (!req.currentUser || !req.currentUser.id) {
+    await req.responseHandler.error(req, res, new Error403(req.language))
+    return
   }
+
+  const payload = req.currentUser
+
+  await req.responseHandler.success(req, res, payload)
 }

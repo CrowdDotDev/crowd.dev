@@ -1,7 +1,6 @@
-import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
-import ApiResponseHandler from '../apiResponseHandler'
+import PermissionChecker from '../../services/user/permissionChecker'
 import {
   AutomationCriteria,
   AutomationState,
@@ -28,32 +27,28 @@ import {
  * @response 429 - Too many requests
  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.automationRead)
+  new PermissionChecker(req).validateHas(Permissions.values.automationRead)
 
-    let offset = 0
-    if (req.query.offset) {
-      offset = parseInt(req.query.offset, 10)
-    }
-    let limit = 50
-    if (req.query.limit) {
-      limit = parseInt(req.query.limit, 10)
-    }
-
-    const criteria: AutomationCriteria = {
-      type: req.query.filter?.type ? (req.query.filter.type as AutomationType) : undefined,
-      trigger: req.query.filter?.trigger
-        ? (req.query.filter?.trigger as AutomationTrigger)
-        : undefined,
-      state: req.query.filter?.state ? (req.query.filter.state as AutomationState) : undefined,
-      limit,
-      offset,
-    }
-
-    const payload = await new AutomationService(req).findAndCountAll(criteria)
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  let offset = 0
+  if (req.query.offset) {
+    offset = parseInt(req.query.offset, 10)
   }
+  let limit = 50
+  if (req.query.limit) {
+    limit = parseInt(req.query.limit, 10)
+  }
+
+  const criteria: AutomationCriteria = {
+    type: req.query.filter?.type ? (req.query.filter.type as AutomationType) : undefined,
+    trigger: req.query.filter?.trigger
+      ? (req.query.filter?.trigger as AutomationTrigger)
+      : undefined,
+    state: req.query.filter?.state ? (req.query.filter.state as AutomationState) : undefined,
+    limit,
+    offset,
+  }
+
+  const payload = await new AutomationService(req).findAndCountAll(criteria)
+
+  await req.responseHandler.success(req, res, payload)
 }

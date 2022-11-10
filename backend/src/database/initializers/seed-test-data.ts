@@ -1,3 +1,4 @@
+import { getServiceLogger } from '../../utils/logging'
 /**
  * This script is responsible for seeding
  * data to the database for pytest. It will be ran in
@@ -11,6 +12,8 @@ import MicroserviceService from '../../services/microserviceService'
 import { IS_DEV_ENV } from '../../config/index'
 
 import getUserContext from '../utils/getUserContext'
+
+const log = getServiceLogger()
 
 async function updateCheckMergeMicroserviceInit() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
@@ -28,7 +31,7 @@ async function updateCheckMergeMicroserviceInit() {
     }
   }
 
-  console.log(`checkMerge.init set to false for all tenants!`)
+  log.info(`checkMerge.init set to false for all tenants!`)
 }
 
 if (!IS_DEV_ENV) {

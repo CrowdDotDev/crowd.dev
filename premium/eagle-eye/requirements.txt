@@ -2,3 +2,4 @@ wheel
 -e ./crowd-eagle-eye
 flask
 boto3
+python-json-logger

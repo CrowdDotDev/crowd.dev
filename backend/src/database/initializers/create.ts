@@ -1,12 +1,15 @@
+import { getServiceLogger } from '../../utils/logging'
 import models from '../models'
+
+const log = getServiceLogger()
 
 models()
   .sequelize.sync({ alter: true })
   .then(() => {
-    console.log('Database tables created!')
+    log.info('Database tables created!')
     process.exit()
   })
   .catch((error) => {
-    console.error(error)
+    log.error(error, 'Error while creating database tables!')
     process.exit(1)
   })

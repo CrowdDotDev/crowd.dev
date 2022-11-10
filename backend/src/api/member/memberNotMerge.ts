@@ -1,21 +1,16 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import MemberService from '../../services/memberService'
 import track from '../../segment/track'
+import MemberService from '../../services/memberService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.memberAttributesEdit)
-    const payload = await new MemberService(req).addToNoMerge(
-      req.params.memberId,
-      req.body.memberToNotMerge,
-    )
+  new PermissionChecker(req).validateHas(Permissions.values.memberAttributesEdit)
+  const payload = await new MemberService(req).addToNoMerge(
+    req.params.memberId,
+    req.body.memberToNotMerge,
+  )
 
-    track('Ignore merge members', { ...payload }, { ...req })
+  track('Ignore merge members', { ...payload }, { ...req })
 
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
-  }
+  await req.responseHandler.success(req, res, payload)
 }

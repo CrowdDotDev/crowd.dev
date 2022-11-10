@@ -4,13 +4,18 @@ import { NETLIFY_CONFIG } from '../config/index'
 import { IServiceOptions } from './IServiceOptions'
 import ConversationSettingsRepository from '../database/repositories/conversationSettingsRepository'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { LoggingBase } from './loggingBase'
+import { createServiceChildLogger } from '../utils/logging'
 
 const DEFAULT_CONVERSATION_SETTINGS = {}
 
-export default class ConversationSettingsService {
+const log = createServiceChildLogger('ConversationSettingsService')
+
+export default class ConversationSettingsService extends LoggingBase {
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -48,7 +53,7 @@ export default class ConversationSettingsService {
         domain_aliases: domainAliases,
       })
     } catch (error) {
-      console.log(error)
+      log.error(error, 'Error updating custom netflify domain!')
       throw new Error(error.message)
     }
   }
