@@ -3,15 +3,14 @@
     <el-popover
       placement="right-start"
       :width="230"
-      trigger="click"
       popper-class="workspace-popover"
-      @show="isDropdownOpen = true"
-      @hide="isDropdownOpen = false"
+      :visible="isDropdownOpen"
     >
       <template #reference>
         <div class="w-full">
           <el-tooltip
             :disabled="!isCollapsed || isDropdownOpen"
+            hide-after="50"
             effect="dark"
             placement="right"
             raw-content
@@ -115,7 +114,7 @@ export default {
 
 <script setup>
 import { useStore } from 'vuex'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { i18n } from '@/i18n'
 import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer'
 
@@ -141,6 +140,47 @@ const isCollapsed = computed(
 onMounted(async () => {
   await store.dispatch('tenant/doFetch', {})
 })
+
+const clickOutsideListener = (event) => {
+  const component = document.querySelector(
+    `.workspace-popover`
+  )
+  if (
+    // clicks outside
+    !(
+      component === event.target ||
+      component.contains(event.target) ||
+      // we need the following condition to validate clicks
+      // on popovers that are not DOM children of this component,
+      // since popper is adding fixed components to the body directly
+      event.path.some(
+        (o) => o.className?.includes('el-popper') || false
+      )
+    )
+  ) {
+    isDropdownOpen.value = false
+  }
+}
+
+watch(
+  isDropdownOpen,
+  (newValue) => {
+    setTimeout(() => {
+      if (newValue) {
+        document.addEventListener(
+          'click',
+          clickOutsideListener
+        )
+      } else {
+        document.removeEventListener(
+          'click',
+          clickOutsideListener
+        )
+      }
+    }, 500)
+  },
+  { immediate: true }
+)
 
 function doManageWorkspaces() {
   isDropdownOpen.value = false
