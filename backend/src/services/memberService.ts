@@ -357,7 +357,6 @@ export default class MemberService extends LoggingBase {
           fillRelations,
         )
       } else {
-        this.log.info(`here${username}${platform}`)
         throw new Error400(this.options.language, 'activity.platformAndUsernameNotMatching')
       }
     }

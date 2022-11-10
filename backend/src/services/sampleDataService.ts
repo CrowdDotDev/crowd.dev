@@ -127,7 +127,6 @@ export default class SampleDataService extends LoggingBase {
         })
       ).rows.map((conv) => conv.id)
 
-      this.log.info(`conversationIDs${conversationIds}`)
       await conversationService.destroyBulk(conversationIds)
 
       // delete attribute settings for attributes.sample.crowd as well
