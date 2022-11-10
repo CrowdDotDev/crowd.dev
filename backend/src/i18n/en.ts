@@ -60,9 +60,9 @@ const en = {
   },
 
   task: {
-    errors:{
-      unknownBatchOperation: 'Sent batch operation {0} is unknown.'
-    }
+    errors: {
+      unknownBatchOperation: 'Sent batch operation {0} is unknown.',
+    },
   },
 
   tenant: {
