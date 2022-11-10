@@ -1,4 +1,3 @@
-import constants from '../constants.json'
 import signup from './auth/signup'
 import verifyEmail from './auth/verifyEmail'
 import signin from './auth/signin'
@@ -19,17 +18,9 @@ describe('AUTH', function () {
   const email = `${new Date().getTime()}@${serverId}.mailosaur.net`
 
   before(() => {
-    cy.visit(constants.url)
+    cy.visit(Cypress.env('appUrl'))
     cy.clearAllLocalStorage()
   })
-
-  // beforeEach(() => {
-  //   cy.restoreLocalStorage()
-  // })
-  //
-  // afterEach(() => {
-  //   cy.saveLocalStorage()
-  // })
 
   it('Redirects to signin page', () => {
     cy.url().should('include', '/auth/signin')

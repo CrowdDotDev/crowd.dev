@@ -1,9 +1,8 @@
-import constants from '../../constants.json'
 import data from './data.json'
 
 export default (inject) => () => {
   before(() => {
-    cy.visit(`${constants.url}/auth/signup`)
+    cy.visit(`${Cypress.env('appUrl')}/auth/signup`)
     cy.url().should('include', '/auth/signup')
   })
 
@@ -144,7 +143,7 @@ export default (inject) => () => {
 
   it('Signs up if all fields are valid', () => {
     cy.server()
-    cy.route('POST', '/co/authenticate').as('getLogin')
+    cy.route('POST', '/co/authenticate').as('apiSignup')
 
     cy.get('@firstName').clear().type(data.firstName)
     cy.get('@lastName').clear().type(data.lastName)

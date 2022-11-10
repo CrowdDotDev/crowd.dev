@@ -1,9 +1,8 @@
-import constants from '../../constants.json'
 import data from './data.json'
 
 export default (inject) => () => {
   before(() => {
-    cy.visit(`${constants.url}/auth/signin`)
+    cy.visit(`${Cypress.env('appUrl')}/auth/signin`)
     cy.url().should('include', '/auth/signin')
   })
 
