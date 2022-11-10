@@ -20,7 +20,7 @@ class TaskRepository {
 
     const record = await options.database.task.create(
       {
-        ...lodash.pick(data, ['name', 'body', 'status', 'dueDate', 'importHash']),
+        ...lodash.pick(data, ['name', 'body', 'type', 'status', 'dueDate', 'importHash']),
 
         tenantId: tenant.id,
         createdById: currentUser.id,
@@ -39,12 +39,46 @@ class TaskRepository {
     })
 
     await record.setAssignees(data.assignees || [], {
-      transaction
+      transaction,
     })
-    
+
     await this._createAuditLog(AuditLogRepository.CREATE, record, data, options)
 
     return this.findById(record.id, options)
+  }
+
+  static async createSuggestedTasks(options: IRepositoryOptions) {
+    const fs = require('fs')
+    const path = require('path')
+
+    const suggestedTasks = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '../initializers/suggested-tasks.json'), 'utf8'),
+    )
+
+    for (const suggestedTask of suggestedTasks) {
+      await TaskRepository.create({ ...suggestedTask, type: 'suggested' }, options)
+    }
+  }
+
+  static async updateBulk(ids, data, options: IRepositoryOptions) {
+    const currentUser = SequelizeRepository.getCurrentUser(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const records = await options.database.task.update(
+      { ...data, updatedById: currentUser.id },
+      {
+        where: {
+          id: ids,
+          tenantId: currentTenant.id,
+        },
+        transaction,
+      },
+    )
+
+    return { rowsUpdated: records[0] }
   }
 
   static async update(id, data, options: IRepositoryOptions) {
@@ -68,8 +102,7 @@ class TaskRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['name', 'body', 'status', 'dueDate', 'importHash']),
-        assignedToId: data.assignedTo ? data.assignedTo : null,
+        ...lodash.pick(data, ['name', 'body', 'status', 'type', 'dueDate', 'importHash']),
         updatedById: currentUser.id,
       },
       {
@@ -77,13 +110,23 @@ class TaskRepository {
       },
     )
 
-    await record.setMembers(data.members || [], {
-      transaction,
-    })
+    if (data.members) {
+      await record.setMembers(data.members, {
+        transaction,
+      })
+    }
 
-    await record.setActivities(data.activities || [], {
-      transaction,
-    })
+    if (data.activities) {
+      await record.setActivities(data.activities, {
+        transaction,
+      })
+    }
+
+    if (data.assignees) {
+      await record.setAssignees(data.assignees, {
+        transaction,
+      })
+    }
 
     await this._createAuditLog(AuditLogRepository.UPDATE, record, data, options)
 
@@ -210,6 +253,14 @@ class TaskRepository {
         })
       }
 
+      if (filter.type) {
+        advancedFilter.and.push({
+          type: {
+            textContains: filter.type,
+          },
+        })
+      }
+
       if (filter.status) {
         advancedFilter.and.push({
           status: filter.status,
@@ -236,9 +287,9 @@ class TaskRepository {
         }
       }
 
-      if (filter.assignedTo) {
+      if (filter.assignees) {
         advancedFilter.and.push({
-          assignedToId: filter.assignedTo,
+          assignees: filter.assignees,
         })
       }
 
@@ -285,6 +336,15 @@ class TaskRepository {
               name: 'memberTasks',
               from: 'taskId',
               to: 'memberId',
+            },
+          },
+          assignees: {
+            table: 'tasks',
+            model: 'task',
+            relationTable: {
+              name: 'taskAssignees',
+              from: 'taskId',
+              to: 'userId',
             },
           },
           activities: {
@@ -409,10 +469,13 @@ class TaskRepository {
       joinTableAttributes: [],
     })
 
-    output.assignees = await record.getAssignees({
-      transaction,
-      joinTableAttributes: [],
-    })
+    output.assignees = (
+      await record.getAssignees({
+        transaction,
+        joinTableAttributes: [],
+        raw: true,
+      })
+    ).map((a) => ({ id: a.id, avatarUrl: null, fullName: a.fullName }))
 
     return output
   }

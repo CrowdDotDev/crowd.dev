@@ -13,6 +13,6 @@
     "target": "es2017",
     "types": ["node", "jest"]
   },
-  "include": ["src", "src/database/initializers/sample-data.json"],
+  "include": ["src", "src/database/initializers/sample-data.json", "src/database/initializers/suggested-tasks.json"],
   "exclude": ["node_modules"]
 }

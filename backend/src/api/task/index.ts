@@ -22,4 +22,5 @@ export default (app) => {
   app.get(`/tenant/:tenantId/task/autocomplete`, safeWrap(require('./taskAutocomplete').default))
   app.get(`/tenant/:tenantId/task`, safeWrap(require('./taskList').default))
   app.get(`/tenant/:tenantId/task/:id`, safeWrap(require('./taskFind').default))
+  app.post(`/tenant/:tenantId/task/batch`, safeWrap(require('./taskBatchOperations').default))
 }

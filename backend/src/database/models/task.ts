@@ -16,12 +16,19 @@ export default (sequelize) => {
       body: {
         type: DataTypes.TEXT,
       },
+      type: {
+        type: DataTypes.STRING(255),
+        validate: {
+          isIn: [['regular', 'suggested']],
+        },
+        defaultValue: 'regular',
+      },
       status: {
         type: DataTypes.STRING(255),
         validate: {
-          isIn: [['in-progress', 'done', 'cancelled']],
+          isIn: [['in-progress', 'done', 'archived']],
         },
-        defaultValue: null,
+        defaultValue: 'in-progress',
       },
       dueDate: {
         type: DataTypes.DATE,
