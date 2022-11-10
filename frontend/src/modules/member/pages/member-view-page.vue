@@ -19,10 +19,21 @@
           class="col-span-2"
         />
         <app-member-view-aside :member="member" />
-        <app-member-view-activities
-          :member-id="member.id"
-          class="col-span-2"
-        />
+        <div class="panel w-full col-span-2">
+          <el-tabs v-model="tab">
+            <el-tab-pane
+              label="Activities"
+              name="activities"
+            >
+              <app-member-view-activities
+                :member-id="member.id"
+              />
+            </el-tab-pane>
+            <el-tab-pane label="Notes" name="notes">
+              <app-member-view-notes :member="member" />
+            </el-tab-pane>
+          </el-tabs>
+        </div>
       </div>
     </div>
   </app-page-wrapper>
@@ -42,6 +53,7 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
 import AppMemberViewActivities from '@/modules/member/components/view/member-view-activities'
+import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
 
 const store = useStore()
 const props = defineProps({
@@ -56,6 +68,7 @@ const member = computed(() => {
 })
 
 const loading = ref(true)
+const tab = ref('activities')
 
 onMounted(async () => {
   await store.dispatch('member/doFind', props.id)

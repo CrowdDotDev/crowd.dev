@@ -182,11 +182,6 @@
               />
             </div>
           </div>
-          <app-community-help-center-conversation-drawer
-            :expanded="drawerConversationId !== null"
-            :conversation-id="drawerConversationId"
-            @close="drawerConversationId = null"
-          ></app-community-help-center-conversation-drawer>
         </div>
       </div>
     </div>
@@ -206,13 +201,14 @@ import { useStore } from 'vuex'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import AppCommunityHelpCenterToolbar from './community-help-center-toolbar'
-import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 
 const store = useStore()
-defineEmits(['cta-click'])
+const emit = defineEmits([
+  'cta-click',
+  'open-conversation-drawer'
+])
 
 const table = ref(null)
-const drawerConversationId = ref(null)
 
 const loading = computed(
   () => store.state.communityHelpCenter.list.loading
@@ -311,7 +307,7 @@ function rowClass({ row }) {
 }
 
 function handleRowClick(row) {
-  drawerConversationId.value = row.id
+  emit('open-conversation-drawer', row.id)
 }
 
 function timeAgo(date) {
