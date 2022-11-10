@@ -1,6 +1,6 @@
 <template>
   <app-integration-twitter-drawer
-    v-if="hasSettings"
+    v-if="hasSettings && drawerVisible"
     v-model="drawerVisible"
     :hashtags="hashtags"
     :connect-url="connectUrl"
