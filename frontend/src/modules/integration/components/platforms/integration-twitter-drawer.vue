@@ -74,8 +74,6 @@
 </template>
 <script>
 import integrationsJsonArray from '@/jsons/integrations.json'
-import { useRouter, useRoute } from 'vue-router'
-import Message from '@/shared/message/message'
 import { FormSchema } from '@/shared/form/form-schema'
 import StringField from '@/shared/fields/string-field'
 
@@ -88,13 +86,10 @@ import {
   defineEmits,
   defineProps,
   computed,
-  ref,
-  onMounted
+  ref
 } from 'vue'
 import isEqual from 'lodash/isEqual'
 
-const route = useRoute()
-const router = useRouter()
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -160,15 +155,6 @@ const computedConnectUrl = computed(() => {
     : ''
 
   return `${props.connectUrl}${encodedHashtags}`
-})
-
-onMounted(() => {
-  const isConnectionSuccessful = route.query.success
-
-  if (isConnectionSuccessful) {
-    router.replace({ query: null })
-    Message.success('Integration updated successfuly')
-  }
 })
 
 const doReset = () => {

@@ -19,10 +19,15 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import { defineProps, computed, ref } from 'vue'
+import { defineProps, computed, ref, onMounted } from 'vue'
 import config from '@/config'
 import { AuthToken } from '@/modules/auth/auth-token'
 import AppIntegrationTwitterDrawer from './integration-twitter-drawer'
+import { useRouter, useRoute } from 'vue-router'
+import Message from '@/shared/message/message'
+
+const route = useRoute()
+const router = useRouter()
 
 const props = defineProps({
   integration: {
@@ -32,6 +37,15 @@ const props = defineProps({
 })
 const store = useStore()
 const drawerVisible = ref(false)
+
+onMounted(() => {
+  const isConnectionSuccessful = route.query.success
+
+  if (isConnectionSuccessful) {
+    router.replace({ query: null })
+    Message.success('Integration updated successfuly')
+  }
+})
 
 // Only render twitter drawer and settings button, if integration has settings
 const hasSettings = computed(
