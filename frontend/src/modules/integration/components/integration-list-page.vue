@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="mt-10">
-      <div class="mb-8">
+      <div class="mb-6">
         <app-alert
           v-if="
             integrations.github &&
@@ -25,13 +25,12 @@
         >
           <template #body>
             Please invite your GitHub admin to Crowd.dev and
-            ask them to set up the integration. <br />
-            Read more about this in the following
+            ask them to set up the integration.
             <a
               href="https://docs.crowd.dev/docs/github-integration#set-up-with-missing-permissions"
-              class="font-semibold"
-              >documentation</a
-            >.
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              >Read more</a
+            >
           </template>
         </app-alert>
         <app-alert
@@ -41,13 +40,12 @@
           "
         >
           <template #body>
-            Add Slack Bot to channels. <br />
-            Read more about this in the following
+            Add Slack Bot to channels.
             <a
               href="https://docs.crowd.dev/docs/slack-integration#how-to-install"
-              class="font-semibold"
-              >documentation</a
-            >.
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              >Read more</a
+            >
           </template>
         </app-alert>
         <app-alert
@@ -58,21 +56,19 @@
         >
           <template #body>
             Add Discord Bot to the private channels you need
-            it to have access to. <br />
-            Read more about this in the following
+            it to have access to.
             <a
               href="https://docs.crowd.dev/docs/discord-integration#how-to-install"
-              class="font-semibold"
-              >documentation</a
-            >.
+              class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              >Read more</a
+            >
           </template>
         </app-alert>
         <app-alert v-if="integrationsWithErrors.length > 0">
           <template #body>
             Please disconnect and connect again all the
-            integrations with connectivity issues.
-            <br />
-            If this problem persists, contact us via
+            integrations with connectivity issues. If this
+            problem persists, contact us via
             <a
               href="mailto:help@crowd.dev"
               class="font-semibold"
