@@ -1,0 +1,62 @@
+.form .el-select {
+  width: 100%;
+}
+
+// Tags inside select input component
+.el-tag,
+.el-select .el-select__tags .el-tag--info {
+  @apply bg-gray-100 border border-gray-200 text-gray-900;
+}
+
+// Select input
+.el-select {
+  &:hover {
+    @apply border-gray-400;
+  }
+
+  .el-input {
+    min-height: 40px;
+    @apply h-fit leading-10 w-full;
+  }
+}
+
+// Select dropdown popover
+.el-select__popper {
+  box-shadow: 0px 2px 4px rgb(0 0 0 / 25%) !important;
+  border: none !important;
+
+  .el-select-dropdown {
+    @apply p-2;
+
+    & .el-select-dropdown__list {
+      @apply flex flex-col gap-1;
+      margin: 0 !important;
+    }
+
+    // For multiple selection dropdowns
+    &.is-multiple
+      .el-select-dropdown__item.selected::after {
+      @apply bg-brand-600;
+    }
+
+    & .el-select-dropdown__item {
+      @apply text-black rounded hover:bg-gray-50;
+
+      // Select dropdown item prefix
+      span.prefix {
+        @apply mr-2 font-light text-gray-400;
+      }
+
+      // Select dropdown item selected
+      &.selected {
+        @apply font-medium bg-brand-50 text-gray-900;
+      }
+
+      // Select dropdown item on hover
+      &.hover,
+      &:hover {
+        @apply bg-gray-50;
+      }
+    }
+  }
+}

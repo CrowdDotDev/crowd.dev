@@ -1,0 +1,11 @@
+.el-switch {
+  --el-switch-on-color: #e94f2e; // brand-500
+  --el-switch-off-color: #e5e7eb; // Gray-200
+
+  @apply flex grow justify-between items-center ml-4 cursor-pointer;
+
+  // Label
+  & .el-switch__label {
+    @apply text-xs text-gray-900 font-medium;
+  }
+}

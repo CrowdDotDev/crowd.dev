@@ -1,0 +1,63 @@
+// Input/textarea focus, hover colors
+.el-input__wrapper.is-focus,
+.is-focus .el-input__wrapper,
+.el-textarea {
+  --el-input-focus-border: #111827;
+  --el-input-focus-border-color: #111827;
+  --el-select-input-focus-border-color: #111827;
+  --el-input-text-color: #111827;
+  --el-input-hover-border-color: #9ca3af;
+}
+
+// Input/textarea error color
+.el-form-item.is-error {
+  .el-input__wrapper.is-focus,
+  .is-focus .el-input__wrapper,
+  .el-input__wrapper,
+  .el-textarea {
+    --el-color-danger: #ef4444;
+  }
+}
+
+// Inner input/textarea color
+.el-input__inner,
+.el-textarea__inner {
+  @apply text-gray-900;
+}
+
+// Size
+.el-input {
+  @apply h-10 leading-10 w-full;
+}
+
+// Input prepend
+.el-input-group__prepend {
+  @apply font-semibold text-gray-900 px-3 flex gap-1;
+
+  & ~ .el-input__wrapper {
+    @apply rounded-l-none rounded-r-md;
+  }
+}
+
+// Input append
+.el-input-group--append {
+  & ~ .el-input__wrapper {
+    border-radius: 4px 0 0 4px !important;
+  }
+
+  .append-icon {
+    @apply w-10;
+  }
+
+  .el-input-group__append {
+    @apply bg-white h-10 hover:bg-gray-50;
+
+    & button {
+      @apply p-0 flex items-center justify-center;
+    }
+
+    & i {
+      @apply text-gray-600 text-lg;
+    }
+  }
+}

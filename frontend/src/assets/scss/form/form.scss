@@ -1,0 +1,33 @@
+.form .form-buttons {
+  @apply w-full flex justify-end;
+}
+
+.form .form-field {
+  margin-top: 8px;
+}
+
+.form .app-form-hint {
+  @apply text-gray-600;
+  font-size: 12px;
+}
+
+.el-form-item__error {
+  --el-color-danger: #ef4444;
+}
+
+// Form
+.el-form,
+.el-form--default.el-form--label-top {
+  .el-form-item {
+    &__content {
+      @apply mb-4 w-full;
+    }
+  }
+}
+
+.el-form,
+.el-form--default.el-form--label-top {
+  & .el-form-item__label {
+    @apply flex flex-row-reverse gap-1 mb-1 text-xs text-gray-900 font-semibold;
+  }
+}

@@ -16,6 +16,10 @@
             props.note ? 'Note...' : 'Add note...'
           "
           class="border border-gray-300 rounded-md pt-2 px-3 pb-10"
+          :class="{
+            'border-gray-900': noteEditorFocused,
+            'hover:border-gray-400': !noteEditorFocused
+          }"
           @focus="noteEditorFocused = true"
           @blur="noteEditorFocused = false"
           @keydown.enter="keydownSubmit($event)"
