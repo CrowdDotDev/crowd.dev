@@ -163,6 +163,23 @@ export default class TaskService {
     }
   }
 
+  async findAndDeleteAll(args) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const tasks = await TaskRepository.findAndCountAll({ filter: args.filter }, this.options)
+
+      for (const task of tasks.rows) {
+        await TaskRepository.destroy(task.id, this.options, true)
+      }
+      await SequelizeRepository.commitTransaction(transaction)
+      return { rowsDeleted: tasks.count }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
   async findAndCountAll(args) {
     return TaskRepository.findAndCountAll(args, this.options)
   }

@@ -1,3 +1,4 @@
+import TaskRepository from '../../database/repositories/taskRepository'
 import UserRepository from '../../database/repositories/userRepository'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import Roles from '../../security/roles'
@@ -253,6 +254,48 @@ describe('TaskService tests', () => {
       expect(task2.status).toStrictEqual('in-progress')
       expect(task3.status).toStrictEqual('in-progress')
       expect(task4.status).toStrictEqual('in-progress')
+    })
+  })
+  describe('findAndUpdateAll', () => {
+    it('Should find all tasks with given filter, and delete found tasks', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const service = new TaskService(mockIRepositoryOptions)
+
+      await service.create({
+        name: 'Task 1',
+        status: 'in-progress',
+      })
+
+      await service.create({
+        name: 'Task 2',
+        status: 'in-progress',
+      })
+
+      const task3 = await service.create({
+        name: 'Task 3',
+        status: 'archived',
+      })
+
+      await service.create({
+        name: 'Task 4',
+        status: 'in-progress',
+      })
+
+      // change all in-progress to done
+      const deleted = await service.findAndDeleteAll({
+        filter: {
+          status: 'in-progress',
+        },
+      })
+
+      expect(deleted.rowsDeleted).toStrictEqual(3)
+
+      // get all tasks and check count
+      const tasks = await TaskRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)
+
+      expect(tasks.count).toBe(1)
+      expect(tasks.rows[0].id).toStrictEqual(task3.id)
     })
   })
 })

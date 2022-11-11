@@ -26,6 +26,9 @@ export default async (req, res) => {
     case 'findAndUpdateAll':
       payload = await new TaskService(req).findAndUpdateAll(req.body.payload)
       break
+    case 'findAndDeleteAll':
+      payload = await new TaskService(req).findAndDeleteAll(req.body.payload)
+      break
     default:
       throw new Error400('en', 'tasks.errors.unknownBatchOperation', req.body.operation)
   }
