@@ -115,7 +115,7 @@
             <router-link
               :to="{
                 name: 'member',
-                query: { activeTab: 'recent' }
+                query: { activeTab: 'new-and-active' }
               }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
@@ -194,7 +194,7 @@
             <router-link
               :to="{
                 name: 'member',
-                query: { activeTab: 'active' }
+                query: { activeTab: 'most-engaged' }
               }"
               class="text-xs leading-5 font-medium text-red"
               >View more</router-link
