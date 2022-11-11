@@ -1,10 +1,6 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { createServiceChildLogger } from '../../../../utils/logging'
 import { SocialResponse } from '../../types/superfaceTypes'
 import { cleanSuperfaceError } from '../cleanError'
-import isInvalid from '../isInvalid'
-
-const log = createServiceChildLogger('getChannels')
 
 async function getMessages(
   client: SuperfaceClient,
@@ -27,33 +23,18 @@ async function getMessages(
       parameters: { accessToken },
     })
 
-    if (isInvalid(result, 'messages')) {
-      log.warn({ input, result }, 'Invalid request in get messages')
-    }
-
-    if ('error' in result) {
-      if (result.error.statusCode === 429) {
-        log.warn(
-          `Rate limit exceeded in Get Messages. Wait value in header is ${result.error.properties.rateLimit.retryAfter}`,
-        )
-        return {
-          records: [],
-          nextPage: page,
-          limit: 0,
-          timeUntilReset: result.error.properties.rateLimit.retryAfter,
-        }
-      }
-
-      if (result.error.statusCode === 500) {
-        log.error(result.error, `Error in messages: ${result.error.properties.detail}`)
-        return {
-          records: [],
-          nextPage: page,
-          limit: 0,
-          timeUntilReset: 180,
-        }
-      }
-    }
+    // TODO No-SF, do we need this?
+    // if ('error' in result) {
+    //   if (result.error.statusCode === 500) {
+    //     log.error(result.error, `Error in messages: ${result.error.properties.detail}`)
+    //     return {
+    //       records: [],
+    //       nextPage: page,
+    //       limit: 0,
+    //       timeUntilReset: 180,
+    //     }
+    //   }
+    // }
 
     let limit
     let timeUntilReset
@@ -77,5 +58,3 @@ async function getMessages(
 }
 
 export default getMessages
-
-// getMessages('909473151757455420', 'ODc3OTEwNjM0MzA4NzA2MzI0.YR5f_g.TrYuoK2yWA5-LpPlDQ0Nlzc8dOE')
