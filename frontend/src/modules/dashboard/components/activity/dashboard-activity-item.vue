@@ -39,15 +39,12 @@
         <!-- Name -->
         <div class="flex justify-between w-full">
           <div>
-            <router-link
-              :to="{
-                name: 'memberView',
-                params: { id: activity.member.id }
-              }"
-              class="text-2xs leading-4 block text-gray-600 pb-0.5"
-            >
-              {{ activity.member.displayName }}
-            </router-link>
+            <app-member-display-name
+              class="flex items-center pb-0.5"
+              custom-class="text-2xs leading-4 block text-gray-600 mr-2"
+              :member="activity.member"
+              with-link
+            />
             <div class="flex items-center">
               <div>
                 <el-tooltip
@@ -71,6 +68,10 @@
                   ><span class="mx-1">·</span
                   >{{ timeAgo }}</span
                 >
+                <span class="mx-1">·</span>
+                <app-activity-sentiment
+                  :sentiment="activity.sentiment.sentiment"
+                />
               </p>
             </div>
           </div>
@@ -119,10 +120,14 @@ import AppActivityDropdown from '@/modules/activity/components/activity-dropdown
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppDashboardActivityItem',
   components: {
+    AppActivitySentiment,
+    AppMemberDisplayName,
     AppActivityMessage,
     AppActivityContent,
     AppLoading,

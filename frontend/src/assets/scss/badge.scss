@@ -9,11 +9,23 @@
     @apply bg-purple-100 text-purple-900;
   }
 
+  &--brand {
+    @apply bg-brand-500 text-white;
+  }
+
+  &--black {
+    @apply bg-gray-900 text-white;
+  }
+
+  &--gray {
+    @apply bg-gray-400 text-white;
+  }
+
   &--red {
-    @apply bg-red-100 text-green-900;
+    @apply bg-red-100 text-red-900;
   }
 
   &--yellow {
-    @apply bg-yellow-100 text-green-900;
+    @apply bg-yellow-100 text-yellow-900;
   }
 }

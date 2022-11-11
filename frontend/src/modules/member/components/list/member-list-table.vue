@@ -82,13 +82,20 @@
                       size="sm"
                       class="mr-2"
                     />
-                    <span class="font-semibold">{{
-                      scope.row.displayName
-                    }}</span>
-                    <app-member-sentiment
-                      :member="scope.row"
-                      class="ml-2"
-                    />
+                    <div>
+                      <div class="flex items-center h-5">
+                        <span class="font-semibold">{{
+                          scope.row.displayName
+                        }}</span>
+                        <app-member-sentiment
+                          :member="scope.row"
+                          class="ml-2"
+                        />
+                      </div>
+                      <app-member-badge
+                        :member="scope.row"
+                      />
+                    </div>
                   </div>
                 </template>
               </el-table-column>
@@ -238,6 +245,7 @@ import {
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
+import AppMemberBadge from '../member-badge'
 import AppMemberChannels from '../member-channels'
 import AppMemberReach from '../member-reach.vue'
 import AppTagList from '@/modules/tag/components/tag-list'

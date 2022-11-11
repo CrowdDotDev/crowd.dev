@@ -8,7 +8,13 @@
           class="mr-4"
         />
         <div>
-          <h5>{{ member.displayName }}</h5>
+          <div class="flex items-center">
+            <h5>{{ member.displayName }}</h5>
+            <app-member-badge
+              :member="member"
+              class="ml-2"
+            />
+          </div>
           <app-member-organizations
             class="mt-2"
             :member="member"
@@ -124,6 +130,7 @@ import moment from 'moment/moment'
 import AppMemberSentiment from '@/modules/member/components/member-sentiment'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberDropdown from '@/modules/member/components/member-dropdown'
+import AppMemberBadge from '@/modules/member/components/member-badge'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppTags from '@/modules/tag/components/tag-list'
 import {

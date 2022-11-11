@@ -42,7 +42,9 @@
                     />
                   </div>
                   <div class="h-12 text-gray-900">
-                    <div>{{ scope.row.displayName }}</div>
+                    <app-member-display-name
+                      :member="scope.row"
+                    />
                     <div
                       v-if="scope.row.attributes.bio"
                       class="text-gray-500 text-xs pr-4"
@@ -186,6 +188,7 @@ import AppMemberChannels from './../components/member-channels.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import { MemberService } from '../member-service'
 import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 let membersToMerge = reactive([])
 const channelsWidth = ref('')
 const viewingDetails = ref({})

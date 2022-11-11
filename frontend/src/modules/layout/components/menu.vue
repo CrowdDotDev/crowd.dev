@@ -56,6 +56,7 @@
         <!-- Menu items -->
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -111,6 +112,7 @@
 
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -138,6 +140,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -164,6 +167,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -195,6 +199,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -222,6 +227,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -246,13 +252,12 @@
         <div class="grow"></div>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
           popper-class="custom-menu-tooltip"
-          :content="`${i18n(
-            'integrations.menu'
-          )} <i class='ri-external-link-line ml-1.1'></i>`"
+          :content="i18n('integrations.menu')"
         >
           <router-link
             id="menu-integrations"
@@ -268,6 +273,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
