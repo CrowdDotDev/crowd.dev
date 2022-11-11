@@ -22,10 +22,10 @@
           <p
             class="text-2xs leading-5 text-gray-500 flex items-center"
           >
-            <span>{{ member.displayName }}</span>
-            <app-member-badge
+            <app-member-display-name
+              class="inline-flex items-center"
+              custom-class="text-2xs leading-4 font-medium mr-2"
               :member="member"
-              class="ml-1"
             />
             <span class="mx-1">·</span>
             <span>{{ timeAgo(activity.timestamp) }}</span>
@@ -58,14 +58,14 @@
 import AppAvatar from '@/shared/avatar/avatar'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppMemberBadge from '@/modules/member/components/member-badge'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 
 export default {
   name: 'AppConversationReply',
   components: {
-    AppMemberBadge,
+    AppMemberDisplayName,
     AppActivityContent,
     AppActivitySentiment,
     AppLoading,

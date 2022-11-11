@@ -37,15 +37,11 @@
         <!--header -->
         <div class="flex justify-between">
           <div>
-            <div class="flex items-center mb-0.5">
-              <p class="text-2xs leading-4 font-medium">
-                {{ member.displayName }}
-              </p>
-              <app-member-badge
-                :member="member"
-                class="ml-2"
-              />
-            </div>
+            <app-member-display-name
+              :member="member"
+              class="flex items-center mb-0.5"
+              custom-class="text-2xs leading-4 font-medium mr-2"
+            />
             <div class="flex items-center">
               <div class="pr-2">
                 <el-tooltip
@@ -191,12 +187,12 @@ import AppActivityChannel from '@/modules/activity/components/activity-channel'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
-import AppMemberBadge from '@/modules/member/components/member-badge'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 export default {
   name: 'AppDashboardConversationItem',
   components: {
-    AppMemberBadge,
+    AppMemberDisplayName,
     AppConversationReply,
     AppActivityContent,
     AppActivityChannel,

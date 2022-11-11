@@ -20,21 +20,12 @@
       <div class="flex-grow">
         <div class="flex justify-between">
           <div>
-            <div class="flex items-center pb-0.5">
-              <router-link
-                :to="{
-                  name: 'memberView',
-                  params: { id: activity.member.id }
-                }"
-                class="text-2xs leading-4 text-gray-900 font-medium block"
-              >
-                {{ activity.member.displayName }}
-              </router-link>
-              <app-member-badge
-                :member="activity.member"
-                class="ml-2"
-              />
-            </div>
+            <app-member-display-name
+              class="flex items-center pb-0.5"
+              custom-class="text-2xs leading-4 text-gray-900 font-medium block mr-2"
+              :member="activity.member"
+              with-link
+            />
             <div class="flex items-center">
               <div>
                 <!-- platform icon -->
@@ -122,18 +113,18 @@
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
-import AppMemberBadge from '@/modules/member/components/member-badge'
 import AppActivityDropdown from '@/modules/activity/components/activity-dropdown'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivityLink from '@/modules/activity/components/activity-link'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 export default {
   name: 'AppActivityItem',
   components: {
-    AppMemberBadge,
+    AppMemberDisplayName,
     AppActivityLink,
     AppActivityContent,
     AppActivityMessage,

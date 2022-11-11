@@ -12,12 +12,11 @@
       <app-avatar :entity="member" size="xs" />
       <!-- conversation info-->
       <div class="pl-3">
-        <div class="flex items-center mb-1">
-          <p class="text-2xs leading-4 font-medium">
-            {{ member.displayName }}
-          </p>
-          <app-member-badge :member="member" class="ml-2" />
-        </div>
+        <app-member-display-name
+          class="flex items-center mb-1"
+          custom-class="text-2xs leading-4 font-medium mr-2"
+          :member="member"
+        />
         <div class="flex items-center">
           <el-tooltip
             effect="dark"
@@ -143,7 +142,7 @@ import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppMemberBadge from '@/modules/member/components/member-badge'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
@@ -153,7 +152,7 @@ import AppActivitySentiment from '@/modules/activity/components/activity-sentime
 export default {
   name: 'AppConversationItem',
   components: {
-    AppMemberBadge,
+    AppMemberDisplayName,
     AppActivityLink,
     AppActivityMessage,
     AppConversationReply,
