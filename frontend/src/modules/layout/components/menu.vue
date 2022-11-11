@@ -83,12 +83,8 @@
           popper-class="custom-menu-tooltip"
           content="Tasks"
         >
-          <!-- TODO: add check for permissions -->
           <router-link
-            v-if="
-              hasPermissionToCommunityMember ||
-              isCommunityMemberLocked
-            "
+            v-if="hasPermissionToTask || isTaskLocked"
             id="menu-task"
             :to="{ path: '/task' }"
             class="el-menu-item"
@@ -329,6 +325,7 @@ import config from '@/config'
 
 import { RouterLink, useLink } from 'vue-router'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 const store = useStore()
 const { route } = useLink(RouterLink.props)
@@ -359,6 +356,14 @@ const hasPermissionToSettings = computed(
 const hasPermissionToCommunityMember = computed(
   () =>
     new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
+
+const hasPermissionToTask = computed(
+  () =>
+    new TaskPermissions(
       currentTenant.value,
       currentUser.value
     ).read
@@ -399,6 +404,14 @@ const isSettingsLocked = computed(
 const isCommunityMemberLocked = computed(
   () =>
     new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
+
+const isTaskLocked = computed(
+  () =>
+    new TaskPermissions(
       currentTenant.value,
       currentUser.value
     ).lockedForCurrentPlan

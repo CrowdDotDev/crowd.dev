@@ -30,6 +30,7 @@
               />
             </el-tab-pane>
             <el-tab-pane
+              v-if="hasPermissionToTask || isTaskLocked"
               :label="`Tasks (${
                 (tasksTab && tasksTab.openTaskCount) || 0
               })`"
@@ -72,6 +73,8 @@ import AppMemberViewAside from '@/modules/member/components/view/member-view-asi
 import AppMemberViewActivities from '@/modules/member/components/view/member-view-activities'
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
 import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 const store = useStore()
 const props = defineProps({
@@ -81,9 +84,26 @@ const props = defineProps({
   }
 })
 
+const { currentTenant, currentUser } = mapGetters('auth')
+
 const member = computed(() => {
   return store.getters['member/find'](props.id) || {}
 })
+
+const isTaskLocked = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
+const hasPermissionToTask = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
 const tasksTab = ref(null)
 

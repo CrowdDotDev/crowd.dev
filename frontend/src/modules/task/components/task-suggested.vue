@@ -28,6 +28,7 @@
         </p>
         <el-button
           class="btn btn--secondary btn--sm !py-2.5 w-full"
+          :disabled="!taskCreatePermission"
           @click="addTask(task)"
         >
           Add task
@@ -48,7 +49,8 @@ import {
   ref,
   onMounted,
   onBeforeUnmount,
-  defineExpose
+  defineExpose,
+  computed
 } from 'vue'
 import {
   mapActions,
@@ -57,8 +59,9 @@ import {
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
 const { editTask } = mapActions('task')
 
 const store = useStore()
@@ -80,6 +83,14 @@ const storeUnsubscribe = store.subscribeAction((action) => {
     fetchTasks()
   }
 })
+
+const taskCreatePermission = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).create
+)
 
 onBeforeUnmount(() => {
   storeUnsubscribe()

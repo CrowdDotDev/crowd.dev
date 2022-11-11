@@ -1,5 +1,11 @@
 <template>
-  <div v-if="tasks.length > 0" class="panel !p-0">
+  <div
+    v-if="
+      (tasks.length > 0 && hasPermissionToTask) ||
+      isTaskLocked
+    "
+    class="panel !p-0"
+  >
     <!-- header -->
     <div
       class="flex items-center justify-between border-b border-gray-100 px-6 py-5"
@@ -87,15 +93,21 @@ export default {
 
 <script setup>
 import AppTaskForm from '@/modules/task/components/task-form'
-import { onBeforeUnmount, ref, onMounted } from 'vue'
+import {
+  onBeforeUnmount,
+  ref,
+  onMounted,
+  computed
+} from 'vue'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
 import AppTaskItem from '@/modules/task/components/task-item'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 const store = useStore()
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
 
 const openForm = ref(false)
 const selectedTask = ref(null)
@@ -112,6 +124,21 @@ const editTask = (task) => {
   openForm.value = true
   selectedTask.value = task
 }
+
+const isTaskLocked = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
+const hasPermissionToTask = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
 
 const storeUnsubscribe = store.subscribeAction((action) => {
   if (action.type === 'task/reloadOpenTasks') {

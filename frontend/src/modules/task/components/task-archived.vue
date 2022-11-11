@@ -14,6 +14,7 @@
               Archived tasks ({{ tasksCount }})
             </h2>
             <div
+              v-if="taskDestroyPermission"
               class="text-2xs leading-4.5 text-brand-500 font-medium cursor-pointer"
               @click="deleteAllPermanently()"
             >
@@ -104,8 +105,12 @@ import AppTaskItem from '@/modules/task/components/task-item'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
-import { mapMutations } from '@/shared/vuex/vuex.helpers'
+import {
+  mapGetters,
+  mapMutations
+} from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -120,6 +125,8 @@ const store = useStore()
 
 const { SET_ARCHIVED_TASK_COUNT } = mapMutations('task')
 
+const { currentTenant, currentUser } = mapGetters('auth')
+
 const isExpanded = computed({
   get() {
     return props.modelValue
@@ -131,11 +138,18 @@ const isExpanded = computed({
     }
   }
 })
-
 const tasks = ref([])
 const tasksCount = ref(0)
 const loading = ref(false)
 const initialLoad = ref(false)
+
+const taskDestroyPermission = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).destroy
+)
 
 const storeUnsubscribe = store.subscribeAction((action) => {
   if (action.type === 'task/reloadArchivedTasks') {
@@ -162,15 +176,15 @@ const deleteAllPermanently = () => {
     icon: 'ri-delete-bin-line'
   })
     .then(() => {
-      // TODO: adjust this method when completed
       return TaskService.batch('findAndDeleteAll', {
         filter: {
-          status: 'done'
+          status: 'archived'
         }
       })
     })
     .then(() => {
-      this.reloadClosedTasks()
+      fetchTasks()
+      isExpanded.value = false
     })
 }
 
@@ -194,11 +208,16 @@ const fetchTasks = (loadMore = false) => {
         : rows
       tasksCount.value = count
       SET_ARCHIVED_TASK_COUNT(count)
+
+      if (tasksCount.value === 0) {
+        isExpanded.value = false
+      }
     })
     .catch(() => {
       if (!loadMore) {
         tasks.value = []
         tasksCount.value = 0
+        isExpanded.value = false
       }
       Message.error('There was an error loading tasks')
     })

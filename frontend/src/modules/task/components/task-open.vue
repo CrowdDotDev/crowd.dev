@@ -5,6 +5,7 @@
         Open tasks ({{ openTasksCount }})
       </h6>
       <el-button
+        v-if="taskCreatePermission"
         class="btn btn--primary btn--md font-medium"
         @click="addTask()"
       >
@@ -99,7 +100,7 @@ export default {
 <script setup>
 import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskSorting from '@/modules/task/components/task-sorting'
-import { ref, onBeforeUnmount } from 'vue'
+import { ref, onBeforeUnmount, computed } from 'vue'
 import {
   mapActions,
   mapGetters
@@ -108,13 +109,14 @@ import moment from 'moment'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 const store = useStore()
 
 const { addTask } = mapActions('task')
 const { openTasksCount, closedTasksCount } =
   mapGetters('task')
-const { currentUser } = mapGetters('auth')
+const { currentUser, currentTenant } = mapGetters('auth')
 
 const tabs = ref([
   {
@@ -163,6 +165,14 @@ const tabClasses = (tabName) => {
     ? 'bg-gray-100 font-medium text-gray-900'
     : 'bg-white'
 }
+
+const taskCreatePermission = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).create
+)
 
 const changeTab = (t) => {
   tab.value = t

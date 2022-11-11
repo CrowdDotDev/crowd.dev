@@ -1,5 +1,6 @@
 <template>
   <el-dropdown
+    v-if="taskDestroyPermission"
     trigger="click"
     placement="bottom-end"
     @command="handleCommand"
@@ -39,13 +40,23 @@
 <script>
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { TaskService } from '@/modules/task/task-service'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 export default {
   name: 'AppTaskClosedDropdown',
   data() {
     return {
       dropdownVisible: false
+    }
+  },
+  computed: {
+    ...mapGetters('auth', ['currentTenant', 'currentUser']),
+    taskDestroyPermission() {
+      return new TaskPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroy
     }
   },
   methods: {
@@ -64,7 +75,6 @@ export default {
         icon: 'ri-delete-bin-line'
       })
         .then(() => {
-          // TODO: adjust this method when completed
           return TaskService.batch('findAndDeleteAll', {
             filter: {
               status: 'done'

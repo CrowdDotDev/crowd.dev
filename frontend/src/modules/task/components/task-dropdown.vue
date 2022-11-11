@@ -1,5 +1,6 @@
 <template>
   <el-dropdown
+    v-if="taskDestroyPermission || taskEditPermission"
     trigger="click"
     placement="bottom-end"
     @command="handleCommand"
@@ -13,7 +14,10 @@
     </button>
     <template #dropdown>
       <el-dropdown-item
-        v-if="task.status === 'in-progress'"
+        v-if="
+          task.status === 'in-progress' &&
+          taskEditPermission
+        "
         class="w-55"
         :command="{
           action: 'taskEdit'
@@ -24,7 +28,10 @@
       >
 
       <el-dropdown-item
-        v-if="task.status === 'archived'"
+        v-if="
+          task.status === 'archived' &&
+          taskDestroyPermission
+        "
         class="w-55"
         :command="{
           action: 'taskUnarchive'
@@ -34,7 +41,10 @@
         /><span>Unarchive task</span></el-dropdown-item
       >
       <el-dropdown-item
-        v-if="task.status === 'in-progress'"
+        v-if="
+          task.status === 'in-progress' &&
+          taskDestroyPermission
+        "
         class="w-55"
         divided
         :command="{
@@ -46,7 +56,10 @@
         ></el-dropdown-item
       >
       <el-dropdown-item
-        v-if="task.status === 'archived'"
+        v-if="
+          task.status === 'archived' &&
+          taskDestroyPermission
+        "
         class="w-55"
         divided
         :command="{
@@ -64,7 +77,8 @@
 <script>
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { TaskService } from '@/modules/task/task-service'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 export default {
   name: 'AppTaskDropdown',
@@ -77,6 +91,21 @@ export default {
   data() {
     return {
       dropdownVisible: false
+    }
+  },
+  computed: {
+    ...mapGetters('auth', ['currentTenant', 'currentUser']),
+    taskEditPermission() {
+      return new TaskPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).edit
+    },
+    taskDestroyPermission() {
+      return new TaskPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).destroy
     }
   },
   methods: {
