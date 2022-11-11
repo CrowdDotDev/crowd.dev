@@ -8,7 +8,7 @@ import BooleanField from '@/shared/fields/boolean-field'
 import { MemberField } from '@/modules/member/member-field'
 import JsonField from '@/shared/fields/json-field'
 import SearchField from '@/shared/fields/search-field'
-import ActivitySentimentField from './activity-sentiment-field'
+import SentimentField from '@/shared/fields/sentiment-field'
 import ActivityPlatformField from './activity-platform-field'
 import ActivityDateField from './activity-date-field'
 import ActivityTypeField from './activity-type-field'
@@ -80,11 +80,9 @@ const fields = {
     required: true,
     filterable: true
   }),
-  sentiment: new ActivitySentimentField(
-    'sentiment',
-    'Sentiment',
-    { filterable: true }
-  )
+  sentiment: new SentimentField('sentiment', 'Sentiment', {
+    filterable: true
+  })
 }
 
 export class ActivityModel extends GenericModel {
