@@ -170,7 +170,6 @@ import { FormSchema } from '@/shared/form/form-schema'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import { mapActions, mapGetters } from 'vuex'
 import config from '@/config'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import onboardPlatforms from '@/jsons/onboard-platforms.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
 
@@ -193,7 +192,6 @@ export default {
   data() {
     return {
       fields,
-      integrationsJsonArray,
       tenantCommunitySize,
       onboardPlatforms,
       rules: formSchema.rules(),

@@ -225,10 +225,10 @@ import { mapGetters, mapActions } from 'vuex'
 import { AutomationModel } from '@/modules/automation/automation-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import { i18n } from '@/i18n'
-import integrationsJson from '@/jsons/integrations.json'
 import activityTypesJson from '@/jsons/activity-types.json'
 import UrlField from '@/shared/fields/url-field'
 import isEqual from 'lodash/isEqual'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
@@ -305,9 +305,8 @@ export default {
       return this.integrationsActive.map((item) => {
         return {
           value: item.platform,
-          label: integrationsJson.find(
-            (i) => i.platform === item.platform
-          ).name
+          label: CrowdIntegrations.getConfig(item.platform)
+            .name
         }
       })
     },

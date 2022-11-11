@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full" :class="computedClass">
+  <div class="s panel" :class="computedClass">
     <div class="flex items-center justify-between">
       <img
         :alt="integration.name"
@@ -100,16 +100,11 @@ const props = defineProps({
   integration: {
     type: Object,
     default: () => {}
-  },
-  onboard: {
-    type: Boolean,
-    default: false
   }
 })
 
 const computedClass = computed(() => {
   return {
-    panel: !props.onboard,
     'integration-custom':
       props.integration.platform === 'custom'
   }

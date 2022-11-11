@@ -51,7 +51,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardIntegrations',
@@ -69,9 +69,7 @@ export default {
       fetchIntegrations: 'doFetch'
     }),
     platformDetails(platform) {
-      return integrationsJsonArray.find(
-        (i) => i.platform === platform
-      )
+      return CrowdIntegrations.getConfig(platform)
     }
   }
 }

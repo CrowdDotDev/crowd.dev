@@ -1,26 +1,11 @@
 <template>
   <div class="flex">
-    <!-- discord, slack -->
-    <app-activity-slack-message
-      v-if="activity.platform === 'slack'"
+    <component
+      :is="platformConfig.activityMessage"
+      v-if="platformConfig.activityMessage"
       :activity="activity"
       :short="short"
-    />
-    <app-activity-discord-message
-      v-else-if="activity.platform === 'discord'"
-      :activity="activity"
-      :short="short"
-    />
-    <app-activity-devto-message
-      v-else-if="activity.platform === 'devto'"
-      :activity="activity"
-      :short="short"
-    />
-    <app-activity-github-message
-      v-else-if="activity.platform === 'github'"
-      :activity="activity"
-      :short="short"
-    />
+    ></component>
     <!-- other -->
     <template v-else>
       <app-i18n
@@ -36,17 +21,10 @@
 <script>
 import AppI18n from '@/shared/i18n/i18n'
 import { computedArgs } from '@/modules/activity/activity.helpers'
-import AppActivitySlackMessage from '@/modules/activity/components/integrations/slack/activity-slack-message'
-import AppActivityDiscordMessage from '@/modules/activity/components/integrations/discord/activity-discord-message'
-import AppActivityDevtoMessage from '@/modules/activity/components/integrations/devto/activity-devto-message'
-import AppActivityGithubMessage from '@/modules/activity/components/integrations/github/activity-github-message'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 export default {
   name: 'AppActivityMessage',
   components: {
-    AppActivityGithubMessage,
-    AppActivityDevtoMessage,
-    AppActivityDiscordMessage,
-    AppActivitySlackMessage,
     AppI18n
   },
   props: {
@@ -61,6 +39,11 @@ export default {
     }
   },
   computed: {
+    platformConfig() {
+      return CrowdIntegrations.getConfig(
+        this.activity.platform
+      )
+    },
     computedMessage() {
       return `entities.activity.${this.activity.platform}.${this.activity.type}`
     },
