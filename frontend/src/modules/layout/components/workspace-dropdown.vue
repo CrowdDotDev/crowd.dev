@@ -190,6 +190,8 @@ function doManageWorkspaces() {
 async function doSwitchTenant(tenant) {
   isDropdownOpen.value = false
   await store.dispatch('auth/doSelectTenant', tenant)
+  await store.dispatch('integration/doReset')
+  await store.dispatch('integration/doFetch')
 }
 
 function planLabelOf(plan) {

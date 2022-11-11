@@ -328,6 +328,12 @@ export default {
         Errors.handle(error)
         commit('CREATE_ERROR')
       }
+    },
+
+    doReset({ state }) {
+      state.byId = {}
+      state.allIds.splice(0)
+      state.count = 0
     }
   }
 }
