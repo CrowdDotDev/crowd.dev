@@ -92,7 +92,14 @@
               :mapper-fn="fields.relatedMembers.mapperFn"
               placeholder="Select option(s)"
               :in-memory-filter="false"
-            ></app-autocomplete-many-input>
+            >
+              <template #option="{item}">
+                <div class="flex items-center">
+                  <app-avatar size="xxs" :entity="item"></app-avatar>
+                  <p class="pl-2">{{ item.displayName }}</p>
+                </div>
+              </template>
+            </app-autocomplete-many-input>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -122,7 +129,14 @@
               :mapper-fn="fields.assignees.mapperFn"
               placeholder="Select assignee(s)"
               :in-memory-filter="false"
-            ></app-autocomplete-many-input>
+            >
+              <template #option="{item}">
+                <div class="flex items-center">
+                  <app-avatar size="xxs" :entity="item"></app-avatar>
+                  <p class="pl-2">{{ item.displayName }}</p>
+                </div>
+              </template>
+            </app-autocomplete-many-input>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -221,6 +235,7 @@ import { TaskService } from '@/modules/task/task-service'
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import AppDrawer from '@/shared/drawer/drawer'
+import AppAvatar from "@/shared/avatar/avatar";
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,

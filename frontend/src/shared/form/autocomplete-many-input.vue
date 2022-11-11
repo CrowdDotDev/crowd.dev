@@ -32,6 +32,7 @@
       :label="record.label"
       :value="record"
     >
+      <slot name="option" :item="record"></slot>
     </el-option>
   </el-select>
 </template>
