@@ -19,6 +19,7 @@
         </div>
       </div>
       <button
+        v-if="taskCreatePermission"
         class="btn btn--primary btn--sm !px-3"
         @click="addTask()"
       >
@@ -94,13 +95,16 @@ import {
   onBeforeUnmount,
   ref,
   onMounted,
-  defineExpose
+  defineExpose,
+  computed
 } from 'vue'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
 import AppTaskItem from '@/modules/task/components/task-item'
 import AppTaskForm from '@/modules/task/components/task-form'
+import { TaskPermissions } from '@/modules/task/task-permissions'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   member: {
@@ -110,6 +114,7 @@ const props = defineProps({
 })
 
 const store = useStore()
+const { currentTenant, currentUser } = mapGetters('auth')
 
 const tabs = ref([
   {
@@ -143,6 +148,14 @@ const loading = ref(false)
 
 const openForm = ref(false)
 const selectedTask = ref(null)
+
+const taskCreatePermission = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).create
+)
 
 const addTask = () => {
   openForm.value = true

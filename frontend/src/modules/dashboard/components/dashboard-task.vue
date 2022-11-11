@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="
-      (tasks.length > 0 && hasPermissionToTask) ||
-      isTaskLocked
+      tasks.length > 0 && (hasPermissionToTask ||
+      isTaskLocked)
     "
     class="panel !p-0"
   >
@@ -30,6 +30,7 @@
           All tasks
         </router-link>
         <button
+          v-if="taskCreatePermission"
           class="btn btn--secondary btn--sm !py-2.5 !px-3"
           @click="addTask()"
         >
@@ -138,6 +139,14 @@ const hasPermissionToTask = computed(
       currentTenant.value,
       currentUser.value
     ).read
+)
+
+const taskCreatePermission = computed(
+  () =>
+    new TaskPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).create
 )
 
 const storeUnsubscribe = store.subscribeAction((action) => {
