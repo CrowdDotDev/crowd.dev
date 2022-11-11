@@ -29,6 +29,13 @@ export interface SlackChannel {
   is_member?: boolean
 }
 
+export interface SlackTeam {
+  id: string
+  name: string
+  url: string
+  domain: string
+}
+
 export type SlackChannels = SlackChannel[]
 
 export interface SlackMessage {
@@ -36,6 +43,7 @@ export interface SlackMessage {
   type: string
   text: string
   reactions?: any
+  attachments?: any
   user: string
   thread_ts?: string
 }
