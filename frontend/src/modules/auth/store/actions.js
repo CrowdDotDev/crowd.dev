@@ -8,6 +8,7 @@ import { router } from '@/router'
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { TenantService } from '@/modules/tenant/tenant-service'
+import { buildInitialState, store } from '@/store'
 
 export default {
   async doInit({ commit, dispatch }) {
@@ -246,6 +247,10 @@ export default {
 
     AuthCurrentTenant.set(tenant)
     await dispatch('doRefreshCurrentUser')
+
+    const initialState = buildInitialState(true)
+
+    store.replaceState(initialState)
 
     router.push('/')
   },

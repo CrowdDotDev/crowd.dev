@@ -91,7 +91,6 @@ import {
   defineProps,
   computed,
   ref,
-  onMounted,
   onUnmounted
 } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
@@ -157,10 +156,6 @@ const integrationInProgressInterval = setInterval(
   fetchIntegrationInProgress,
   10000
 )
-
-onMounted(async () => {
-  await fetchIntegrationInProgress()
-})
 
 onUnmounted(() => {
   clearInterval(integrationInProgressInterval)
