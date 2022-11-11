@@ -119,6 +119,7 @@ const fields = {
   fullName: new StringField('fullName', label('fullName')),
   email: new StringField('email', label('email'), {
     required: true,
+    email: true,
     max: 255
   }),
   role: new EnumeratorField(

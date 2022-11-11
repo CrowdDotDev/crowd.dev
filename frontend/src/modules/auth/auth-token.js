@@ -8,10 +8,10 @@ export class AuthToken {
   }
 
   static set(token, rememberMe) {
+    inMemoryToken = token
     if (rememberMe) {
       localStorage.setItem('jwt', token || '')
     } else {
-      inMemoryToken = token
       localStorage.setItem('jwt', '')
     }
   }

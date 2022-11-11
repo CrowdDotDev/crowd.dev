@@ -9,6 +9,7 @@
   >
     <template #reference>
       <div
+        id="accountDropdown"
         class="cursor-pointer flex w-full h-16 items-center hover:bg-gray-50 account-btn"
         :class="isDropdownOpen ? 'bg-gray-50' : 'bg-white'"
       >
@@ -52,7 +53,11 @@
         ></span>
       </div>
     </div>
-    <div class="popover-item" @click="doSignout">
+    <div
+      id="logout"
+      class="popover-item"
+      @click="doSignout"
+    >
       <i
         class="text-base text-gray-400 ri-logout-box-r-line"
       ></i>
