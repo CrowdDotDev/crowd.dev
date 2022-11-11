@@ -222,9 +222,7 @@
           placement="right"
           raw-content
           popper-class="custom-menu-tooltip"
-          :content="`${i18n(
-            'integrations.menu'
-          )} <i class='ri-external-link-line ml-1.1'></i>`"
+          :content="i18n('integrations.menu')"
         >
           <router-link
             id="menu-integrations"
