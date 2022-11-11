@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="
-      tasks.length > 0 && (hasPermissionToTask ||
-      isTaskLocked)
+      tasks.length > 0 &&
+      (hasPermissionToTask || isTaskLocked)
     "
     class="panel !p-0"
   >
