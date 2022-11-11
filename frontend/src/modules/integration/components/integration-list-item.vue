@@ -87,7 +87,12 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import { defineProps, computed, ref } from 'vue'
+import {
+  defineProps,
+  computed,
+  ref,
+  onUnmounted
+} from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
 
 const store = useStore()
@@ -151,6 +156,10 @@ const integrationInProgressInterval = setInterval(
   fetchIntegrationInProgress,
   10000
 )
+
+onUnmounted(() => {
+  clearInterval(integrationInProgressInterval)
+})
 </script>
 <style lang="scss">
 .integration-custom {
