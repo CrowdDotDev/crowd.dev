@@ -24,7 +24,7 @@
           >
             <app-member-display-name
               class="inline-flex items-center"
-              custom-class="text-2xs leading-4 font-medium mr-2"
+              custom-class="mr-2"
               :member="member"
             />
             <span class="mx-1">·</span>

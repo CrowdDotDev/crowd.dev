@@ -40,7 +40,7 @@
       <!-- conversation info-->
       <div class="pl-3">
         <app-member-display-name
-          class="flex items-center"
+          class="flex items-center mb-1"
           custom-class="text-2xs leading-4 font-medium mr-2"
           :member="member"
           with-link
