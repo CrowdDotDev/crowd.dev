@@ -1,34 +1,16 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isExpanded"
-    :show-close="false"
+    :title="
+      props.task &&
+      props.task.id &&
+      props.task.type !== 'suggested'
+        ? 'Edit task'
+        : 'New task'
+    "
     size="480px"
   >
-    <template #header="{ close }">
-      <div
-        class="flex justify-between items-center -mx-6 px-6"
-      >
-        <h2 class="text-lg font-semibold text-gray-1000">
-          <span
-            v-if="
-              props.task &&
-              props.task.id &&
-              props.task.type !== 'suggested'
-            "
-            >Edit task</span
-          >
-          <span v-else>New task</span>
-        </h2>
-        <div class="flex items-center">
-          <div class="flex cursor-pointer" @click="close">
-            <i
-              class="ri-close-line text-xl flex items-center h-6 w-6 text-gray-400"
-            ></i>
-          </div>
-        </div>
-      </div>
-    </template>
-    <template #default>
+    <template #content>
       <div class="-mt-3">
         <el-form
           ref="form"
@@ -212,7 +194,7 @@
         </el-button>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>
@@ -238,6 +220,7 @@ import Message from '@/shared/message/message'
 import { TaskService } from '@/modules/task/task-service'
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
+import AppDrawer from '@/shared/drawer/drawer'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,

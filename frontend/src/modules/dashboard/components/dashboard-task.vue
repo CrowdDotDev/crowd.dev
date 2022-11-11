@@ -1,14 +1,11 @@
 <template>
   <div
-    v-if="
-      tasks.length > 0 &&
-      (hasPermissionToTask || isTaskLocked)
-    "
+    v-if="hasPermissionToTask || isTaskLocked"
     class="panel !p-0"
   >
     <!-- header -->
     <div
-      class="flex items-center justify-between border-b border-gray-100 px-6 py-5"
+      class="flex items-center justify-between px-6 py-5"
     >
       <div class="flex items-center">
         <div
@@ -31,7 +28,7 @@
         </router-link>
         <button
           v-if="taskCreatePermission"
-          class="btn btn--secondary btn--sm !py-2.5 !px-3"
+          class="btn btn--secondary btn--sm"
           @click="addTask()"
         >
           Add task
@@ -58,6 +55,19 @@
           class="px-6"
           :task="task"
         />
+        <div
+          v-if="tasks.length === 0"
+          class="pt-3 pb-4 flex justify-center items-center"
+        >
+          <div
+            class="ri-checkbox-multiple-blank-line text-3xl h-10 flex items-center text-gray-300"
+          ></div>
+          <div
+            class="pl-6 text-sm leading-5 italic text-gray-400"
+          >
+            No tasks assigned to you at this moment
+          </div>
+        </div>
         <div
           v-if="tasks.length < taskCount"
           class="flex justify-center pt-8 pb-1"
@@ -115,6 +125,7 @@ const selectedTask = ref(null)
 const tasks = ref([])
 const taskCount = ref(0)
 const loading = ref(false)
+const intitialLoad = ref(false)
 
 const addTask = () => {
   openForm.value = true
@@ -170,7 +181,9 @@ onBeforeUnmount(() => {
 })
 
 const fetchTasks = (loadMore = false) => {
-  loading.value = true
+  if (!intitialLoad.value) {
+    loading.value = true
+  }
 
   TaskService.list(
     {
@@ -196,6 +209,7 @@ const fetchTasks = (loadMore = false) => {
     })
     .finally(() => {
       loading.value = false
+      intitialLoad.value = true
     })
 }
 </script>

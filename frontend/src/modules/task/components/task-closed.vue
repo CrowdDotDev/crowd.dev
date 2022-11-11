@@ -19,7 +19,10 @@
             Archived ({{ archivedTasksCount }})
           </div>
         </div>
-        <app-task-closed-dropdown class="ml-4" />
+        <app-task-closed-dropdown
+          v-if="tasksCount > 0"
+          class="ml-4"
+        />
       </div>
     </div>
     <div>

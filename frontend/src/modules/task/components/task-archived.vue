@@ -1,38 +1,21 @@
 <template>
-  <el-drawer
+  <app-drawer
     v-model="isExpanded"
+    :title="`Archived tasks (${tasksCount})`"
     :show-close="false"
     size="480px"
+    :title-class="'font-semibold'"
   >
-    <template #header="{ close }">
-      <div>
-        <div class="flex justify-between">
-          <div>
-            <h2
-              class="text-lg font-semibold text-gray-1000 mb-1"
-            >
-              Archived tasks ({{ tasksCount }})
-            </h2>
-            <div
-              v-if="taskDestroyPermission"
-              class="text-2xs leading-4.5 text-brand-500 font-medium cursor-pointer"
-              @click="deleteAllPermanently()"
-            >
-              Delete all permanently
-            </div>
-          </div>
-          <div
-            class="flex cursor-pointer mt-2"
-            @click="close"
-          >
-            <i
-              class="ri-close-line text-xl flex items-center h-6 w-6 text-gray-400"
-            ></i>
-          </div>
-        </div>
+    <template #belowTitle>
+      <div
+        v-if="taskDestroyPermission"
+        class="text-2xs leading-4.5 text-brand-500 font-medium cursor-pointer"
+        @click="deleteAllPermanently()"
+      >
+        Delete all permanently
       </div>
     </template>
-    <template #default>
+    <template #content>
       <div class="-mt-4">
         <div v-if="loading">
           <app-task-item
@@ -83,7 +66,7 @@
         </div>
       </div>
     </template>
-  </el-drawer>
+  </app-drawer>
 </template>
 
 <script>
@@ -111,6 +94,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
 import { TaskPermissions } from '@/modules/task/task-permissions'
+import AppDrawer from '@/shared/drawer/drawer'
 const props = defineProps({
   modelValue: {
     type: Boolean,
