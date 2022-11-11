@@ -801,6 +801,7 @@ export default class UserRepository {
       ...otherData,
       id: user.id,
       email: user.email,
+      fullName: user.fullName,
       roles,
       status,
       invitationToken: tenantUser?.invitationToken,

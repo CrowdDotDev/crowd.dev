@@ -11,6 +11,7 @@ const db = null
 const toCreate = {
   name: 'name',
   body: 'body',
+  type: 'regular',
   status: 'done',
   dueDate: new Date(),
 }
@@ -58,6 +59,8 @@ async function getToCreate(task, options, from = { fromMembers: [], fromActiviti
   const { fromMembers, fromActivities } = from
   task.members = []
   task.activities = []
+  task.assignees = []
+
   for (const sampleMember of fromMembers) {
     task.members.push((await MemberRepository.create(sampleMember, options)).id)
   }
@@ -66,7 +69,7 @@ async function getToCreate(task, options, from = { fromMembers: [], fromActiviti
     sampleActivity.member = memberId
     task.activities.push((await ActivityRepository.create(sampleActivity, options)).id)
   }
-  task.assignedTo = options ? options.currentUser.id : null
+  task.assignees.push(options.currentUser.id)
   return task
 }
 
@@ -90,8 +93,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.createdAt = createdTask.createdAt.toISOString().split('T')[0]
       createdTask.updatedAt = createdTask.updatedAt.toISOString().split('T')[0]
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskCreated = {
         id: createdTask.id,
@@ -121,8 +123,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.members = createdTask.members.map((member) => member.id)
       createdTask.activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskCreated = {
         id: createdTask.id,
@@ -159,8 +160,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.members = createdTask.members.map((member) => member.id)
       createdTask.activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskCreated = {
         id: createdTask.id,
@@ -197,8 +197,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.members = createdTask.members.map((member) => member.id)
       createdTask.activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskCreated = {
         id: createdTask.id,
@@ -231,8 +230,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.members = createdTask.members.map((member) => member.id)
       createdTask.activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskCreated = {
         id: createdTask.id,
@@ -246,8 +244,187 @@ describe('TaskRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
       }
       expect(createdTask).toStrictEqual(expectedTaskCreated)
-      expect(createdTask.assignedToId).toBe(mockAssignee.currentUser.id)
-      expect(createdTask.assignedToId).not.toBe(mockIRepositoryOptions.currentUser.id)
+      expect(createdTask.assignees[0]).toBe(mockAssignee.currentUser.id)
+      expect(createdTask.assignees[0]).not.toBe(mockIRepositoryOptions.currentUser.id)
+    })
+
+    it('Should throw an error when status is something not allowed', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const task2add = {
+        name: 'Task 2',
+        status: 'something',
+      }
+
+      await expect(() => TaskRepository.create(task2add, mockIRepositoryOptions)).rejects.toThrow()
+    })
+
+    it('Should throw sequelize not null error -- name field is required', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const task2add = {}
+
+      await expect(() => TaskRepository.create(task2add, mockIRepositoryOptions)).rejects.toThrow()
+    })
+  })
+
+  describe('createSuggestedTasks method', () => {
+    it('Should create the static suggested tasks succesfully', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      await TaskRepository.createSuggestedTasks(mockIRepositoryOptions)
+
+      const tasks = await TaskRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)
+
+      expect(tasks.count).toBe(6)
+
+      expect(tasks.rows.map((i) => i.name).sort()).toStrictEqual([
+        'Check for negative reactions',
+        'Engage with relevant content',
+        'Reach out to influential members',
+        'Reach out to poorly engaged members',
+        'Setup your team',
+        'Setup your workpace integrations',
+      ])
+    })
+
+    it('Should create a task with members', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
+        fromMembers: sampleMembers,
+        fromActivities: [],
+      })
+      const createdTask = await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+
+      createdTask.createdAt = createdTask.createdAt.toISOString().split('T')[0]
+      createdTask.updatedAt = createdTask.updatedAt.toISOString().split('T')[0]
+
+      createdTask.members = createdTask.members.map((member) => member.id)
+      createdTask.activities = createdTask.activities.map((activity) => activity.id)
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
+
+      const expectedTaskCreated = {
+        id: createdTask.id,
+        ...toCreate1,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      expect(createdTask).toStrictEqual(expectedTaskCreated)
+      expect(createdTask.members.length).toBe(sampleMembers.length)
+
+      // Make sure the task exists in the member
+      for (const memberId of createdTask.members) {
+        const found = await MemberRepository.findById(memberId, mockIRepositoryOptions)
+        expect(found.tasks[0].id).toBe(createdTask.id)
+      }
+    })
+
+    it('Should create a task with activities', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
+        fromMembers: [],
+        fromActivities: sampleActivities,
+      })
+      const createdTask = await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+
+      createdTask.createdAt = createdTask.createdAt.toISOString().split('T')[0]
+      createdTask.updatedAt = createdTask.updatedAt.toISOString().split('T')[0]
+
+      createdTask.members = createdTask.members.map((member) => member.id)
+      createdTask.activities = createdTask.activities.map((activity) => activity.id)
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
+
+      const expectedTaskCreated = {
+        id: createdTask.id,
+        ...toCreate1,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      expect(createdTask).toStrictEqual(expectedTaskCreated)
+      expect(createdTask.activities.length).toBe(sampleActivities.length)
+
+      // Make sure the task exists in the member
+      for (const activityId of createdTask.activities) {
+        const found = await ActivityRepository.findById(activityId, mockIRepositoryOptions)
+        expect(found.tasks[0].id).toBe(createdTask.id)
+      }
+    })
+
+    it('Should create a task with members and activities', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
+        fromMembers: sampleMembers,
+        fromActivities: sampleActivities,
+      })
+      const createdTask = await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+
+      createdTask.createdAt = createdTask.createdAt.toISOString().split('T')[0]
+      createdTask.updatedAt = createdTask.updatedAt.toISOString().split('T')[0]
+
+      createdTask.members = createdTask.members.map((member) => member.id)
+      createdTask.activities = createdTask.activities.map((activity) => activity.id)
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
+
+      const expectedTaskCreated = {
+        id: createdTask.id,
+        ...toCreate1,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      expect(createdTask).toStrictEqual(expectedTaskCreated)
+      expect(createdTask.activities.length).toBe(sampleActivities.length)
+      expect(createdTask.members.length).toBe(sampleMembers.length)
+    })
+
+    it('Should create a task with a different assignee as the user creating it', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mockAssignee = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      const toCreate1 = await getToCreate(toCreate, mockAssignee, {
+        fromMembers: [],
+        fromActivities: [],
+      })
+      const createdTask = await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+
+      createdTask.createdAt = createdTask.createdAt.toISOString().split('T')[0]
+      createdTask.updatedAt = createdTask.updatedAt.toISOString().split('T')[0]
+
+      createdTask.members = createdTask.members.map((member) => member.id)
+      createdTask.activities = createdTask.activities.map((activity) => activity.id)
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
+
+      const expectedTaskCreated = {
+        id: createdTask.id,
+        ...toCreate1,
+        importHash: null,
+        createdAt: SequelizeTestUtils.getNowWithoutTime(),
+        updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+        deletedAt: null,
+        tenantId: mockIRepositoryOptions.currentTenant.id,
+        createdById: mockIRepositoryOptions.currentUser.id,
+        updatedById: mockIRepositoryOptions.currentUser.id,
+      }
+      expect(createdTask).toStrictEqual(expectedTaskCreated)
+      expect(createdTask.assignees[0]).toBe(mockAssignee.currentUser.id)
+      expect(createdTask.assignees[0]).not.toBe(mockIRepositoryOptions.currentUser.id)
     })
 
     it('Should throw an error when status is something not allowed', async () => {
@@ -285,8 +462,7 @@ describe('TaskRepository tests', () => {
 
       createdTask.members = createdTask.members.map((member) => member.id)
       createdTask.activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      createdTask.assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       const expectedTaskFound = {
         id: createdTask.id,
@@ -303,6 +479,7 @@ describe('TaskRepository tests', () => {
 
       taskById.createdAt = taskById.createdAt.toISOString().split('T')[0]
       taskById.updatedAt = taskById.updatedAt.toISOString().split('T')[0]
+      taskById.assignees = taskById.assignees.map((assignee) => assignee.id)
 
       expect(taskById).toStrictEqual(expectedTaskFound)
     })
@@ -382,6 +559,7 @@ describe('TaskRepository tests', () => {
       const toCreate2 = await getToCreate(
         {
           name: 'Task 2',
+          type: 'regular',
           status: 'done',
         },
         mockIRepositoryOptions,
@@ -399,16 +577,14 @@ describe('TaskRepository tests', () => {
 
       found.rows[1].members = createdTask.members.map((member) => member.id)
       found.rows[1].activities = createdTask.activities.map((activity) => activity.id)
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
+      found.rows[1].assignees = createdTask.assignees.map((assignee) => assignee.id)
 
       found.rows[0].createdAt = createdTask2.createdAt.toISOString().split('T')[0]
       found.rows[0].updatedAt = createdTask2.updatedAt.toISOString().split('T')[0]
 
       found.rows[0].members = createdTask2.members.map((member) => member.id)
       found.rows[0].activities = createdTask2.activities.map((activity) => activity.id)
-      toCreate2.assignedToId = toCreate2.assignedTo
-      delete toCreate2.assignedTo
+      found.rows[0].assignees = createdTask2.assignees.map((assignee) => assignee.id)
 
       expect(found).toStrictEqual({
         rows: [
@@ -469,6 +645,31 @@ describe('TaskRepository tests', () => {
         expect(found.rows[0].name).toBe('Task')
       })
 
+      it('by type', async () => {
+        const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+        const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
+          fromMembers: [],
+          fromActivities: [],
+        })
+        const toCreate2 = await getToCreate(
+          {
+            name: 'Suggested task',
+            type: 'suggested',
+          },
+          mockIRepositoryOptions,
+        )
+        await TaskRepository.create(toCreate1, mockIRepositoryOptions)
+        await TaskRepository.create(toCreate2, mockIRepositoryOptions)
+
+        const found = await TaskRepository.findAndCountAll(
+          { filter: { type: 'suggested' } },
+          mockIRepositoryOptions,
+        )
+        expect(found.count).toBe(1)
+        expect(found.rows[0].name).toBe('Suggested task')
+      })
+
       it('by status', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
@@ -494,7 +695,7 @@ describe('TaskRepository tests', () => {
         expect(found.rows[0].status).toBe('done')
       })
 
-      it('by assignedTo', async () => {
+      it('by assignees', async () => {
         const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
         const options2 = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
@@ -515,11 +716,11 @@ describe('TaskRepository tests', () => {
         const toFilter = options2.currentUser.id.toString()
 
         const found = await TaskRepository.findAndCountAll(
-          { filter: { assignedTo: toFilter } },
+          { filter: { assignees: [toFilter] } },
           mockIRepositoryOptions,
         )
         expect(found.count).toBe(1)
-        expect(found.rows[0].assignedToId).toBe(options2.currentUser.id)
+        expect(found.rows[0].assignees[0].id).toBe(options2.currentUser.id)
       })
 
       it('by dueDate', async () => {
@@ -811,8 +1012,6 @@ describe('TaskRepository tests', () => {
 
       taskUpdated.createdAt = taskUpdated.createdAt.toISOString().split('T')[0]
       taskUpdated.updatedAt = taskUpdated.updatedAt.toISOString().split('T')[0]
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
 
       const taskExpected = {
         id: taskCreated.id,
@@ -855,8 +1054,6 @@ describe('TaskRepository tests', () => {
 
       taskUpdated.createdAt = taskUpdated.createdAt.toISOString().split('T')[0]
       taskUpdated.updatedAt = taskUpdated.updatedAt.toISOString().split('T')[0]
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
 
       expect(taskUpdated.members.length).toBe(1)
       expect(taskUpdated.members[0].id).toStrictEqual(newMembers[0])
@@ -887,14 +1084,12 @@ describe('TaskRepository tests', () => {
 
       taskUpdated.createdAt = taskUpdated.createdAt.toISOString().split('T')[0]
       taskUpdated.updatedAt = taskUpdated.updatedAt.toISOString().split('T')[0]
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
 
       expect(taskUpdated.activities.length).toBe(1)
       expect(taskUpdated.activities[0].id).toStrictEqual(newActivities[0])
     })
 
-    it('Should succesfully update assignedTo', async () => {
+    it('Should succesfully update assignees', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const toCreate1 = await getToCreate(toCreate, mockIRepositoryOptions, {
@@ -910,16 +1105,14 @@ describe('TaskRepository tests', () => {
 
       const taskUpdated = await TaskRepository.update(
         taskCreated.id,
-        { assignedTo: toUpdate },
+        { assignees: [toUpdate] },
         mockIRepositoryOptions,
       )
 
       taskUpdated.createdAt = taskUpdated.createdAt.toISOString().split('T')[0]
       taskUpdated.updatedAt = taskUpdated.updatedAt.toISOString().split('T')[0]
-      toCreate1.assignedToId = toCreate1.assignedTo
-      delete toCreate1.assignedTo
 
-      expect(taskUpdated.assignedToId).toBe(toUpdate)
+      expect(taskUpdated.assignees.map((i) => i.id)).toStrictEqual([toUpdate])
     })
 
     it('Should throw 404 error when trying to update non existent task', async () => {
@@ -957,6 +1150,55 @@ describe('TaskRepository tests', () => {
       await expect(() =>
         TaskRepository.destroy(randomUUID(), mockIRepositoryOptions),
       ).rejects.toThrowError(new Error404())
+    })
+  })
+
+  describe('updateBulk method', () => {
+    it('Should succesfully bulk update given tasks', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
+      let task1 = await TaskRepository.create(
+        { name: 'test-task', status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
+      let task2 = await TaskRepository.create(
+        { name: 'test-task-2', status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
+      let task3 = await TaskRepository.create(
+        { name: 'test-task-3', status: 'archived' },
+        mockIRepositoryOptions,
+      )
+
+      let result = await TaskRepository.updateBulk(
+        [task1.id, task2.id],
+        { status: 'done' },
+        mockIRepositoryOptions,
+      )
+
+      expect(result.rowsUpdated).toBe(2)
+
+      task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
+      task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
+      task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
+
+      expect(task1.status).toStrictEqual('done')
+      expect(task2.status).toStrictEqual('done')
+      expect(task3.status).toStrictEqual('archived')
+
+      result = await TaskRepository.updateBulk(
+        [task1.id, task2.id, task3.id],
+        { status: 'in-progress' },
+        mockIRepositoryOptions,
+      )
+
+      task1 = await TaskRepository.findById(task1.id, mockIRepositoryOptions)
+      task2 = await TaskRepository.findById(task2.id, mockIRepositoryOptions)
+      task3 = await TaskRepository.findById(task3.id, mockIRepositoryOptions)
+
+      expect(task1.status).toStrictEqual('in-progress')
+      expect(task2.status).toStrictEqual('in-progress')
+      expect(task3.status).toStrictEqual('in-progress')
     })
   })
 })

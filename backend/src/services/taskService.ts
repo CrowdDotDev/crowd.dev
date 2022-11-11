@@ -45,16 +45,13 @@ export default class TaskService {
    * @param id Id of the task to assign
    * @param userId Id of the user to assign the task to. Send null for unassigning the task.
    */
-  async assignTo(id, userId) {
-    let foundUserId
-    if (userId === null || userId === undefined) {
-      foundUserId = null
-    } else {
-      foundUserId = (await UserRepository.findById(userId, this.options)).id
+  async assignTo(id: string, userIds: string[]) {
+    if (userIds === null || userIds === undefined) {
+      userIds = []
     }
-
+    const users = await UserRepository.filterIdsInTenant(userIds, this.options)
     return this.update(id, {
-      assignedTo: foundUserId,
+      assignees: users,
     })
   }
 
@@ -64,15 +61,15 @@ export default class TaskService {
    * @param email Email of the user to assign the task to.
    */
   async assignToByEmail(id, email) {
-    let foundUserId
+    let userIds
     if (email === null || email === undefined) {
-      foundUserId = null
+      userIds = []
     } else {
-      foundUserId = (await UserRepository.findByEmail(email, this.options)).id
+      userIds = [(await UserRepository.findByEmail(email, this.options)).id]
     }
 
     return this.update(id, {
-      assignedTo: foundUserId,
+      assignees: userIds,
     })
   }
 
@@ -146,6 +143,41 @@ export default class TaskService {
 
   async findAllAutocomplete(search, limit) {
     return TaskRepository.findAllAutocomplete(search, limit, this.options)
+  }
+
+  async findAndUpdateAll(args) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const tasks = await TaskRepository.findAndCountAll({ filter: args.filter }, this.options)
+      const bulkResult = await TaskRepository.updateBulk(
+        tasks.rows.map((i) => i.id),
+        args.update,
+        { ...this.options, transaction },
+      )
+      await SequelizeRepository.commitTransaction(transaction)
+      return bulkResult
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
+  }
+
+  async findAndDeleteAll(args) {
+    const transaction = await SequelizeRepository.createTransaction(this.options)
+
+    try {
+      const tasks = await TaskRepository.findAndCountAll({ filter: args.filter }, this.options)
+
+      for (const task of tasks.rows) {
+        await TaskRepository.destroy(task.id, this.options, true)
+      }
+      await SequelizeRepository.commitTransaction(transaction)
+      return { rowsDeleted: tasks.count }
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
+    }
   }
 
   async findAndCountAll(args) {
