@@ -7,7 +7,6 @@ export default {
   name: 'Slack',
   backgroundColor: '#FFFFFF',
   borderColor: '#E5E7EB',
-  active: true,
   description:
     'Connect Slack to sync messages, threads, and new joiners.',
   image:
