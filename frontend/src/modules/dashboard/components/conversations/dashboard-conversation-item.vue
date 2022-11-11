@@ -37,11 +37,11 @@
         <!--header -->
         <div class="flex justify-between">
           <div>
-            <p
-              class="text-2xs leading-4 font-medium mb-0.5"
-            >
-              {{ member.displayName }}
-            </p>
+            <app-member-display-name
+              :member="member"
+              class="flex items-center mb-0.5"
+              custom-class="text-2xs leading-4 font-medium mr-2"
+            />
             <div class="flex items-center">
               <div class="pr-2">
                 <el-tooltip
@@ -187,10 +187,12 @@ import AppActivityChannel from '@/modules/activity/components/activity-channel'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 export default {
   name: 'AppDashboardConversationItem',
   components: {
+    AppMemberDisplayName,
     AppConversationReply,
     AppActivityContent,
     AppActivityChannel,

@@ -39,16 +39,12 @@
       </router-link>
       <!-- conversation info-->
       <div class="pl-3">
-        <router-link
-          :to="{
-            name: 'memberView',
-            params: { id: member.id }
-          }"
-        >
-          <p class="text-2xs leading-4 font-medium mb-1">
-            {{ member.displayName }}
-          </p>
-        </router-link>
+        <app-member-display-name
+          class="flex items-center mb-1"
+          custom-class="text-2xs leading-4 font-medium mr-2"
+          :member="member"
+          with-link
+        />
         <div class="flex">
           <el-tooltip
             effect="dark"
@@ -173,10 +169,12 @@ import AppLoading from '@/shared/loading/loading-placeholder'
 import AppAvatar from '@/shared/avatar/avatar'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 export default {
   name: 'AppConversationDetails',
   components: {
+    AppMemberDisplayName,
     AppActivityMessage,
     AppConversationReply,
     AppActivitySentiment,

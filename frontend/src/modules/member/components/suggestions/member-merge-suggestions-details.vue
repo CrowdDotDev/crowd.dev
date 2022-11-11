@@ -19,9 +19,10 @@
           size="sm"
           class="mr-2"
         />
-        <div class="pt-2 text-gray-900">
-          {{ member.displayName }}
-        </div>
+        <app-member-display-name
+          custom-class="pt-2 text-gray-900"
+          :member="scope.row"
+        />
         <button
           v-if="member.id === pair[1].id"
           class="btn btn-link btn-link--primary ml-auto"
@@ -131,7 +132,8 @@ export default {
 
 <script setup>
 import { defineProps, computed, defineEmits } from 'vue'
-import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import AppMemberOrganizations from '@/modules/member/components/member-organizations'
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
 import integrationsJsonArray from '@/jsons/integrations.json'

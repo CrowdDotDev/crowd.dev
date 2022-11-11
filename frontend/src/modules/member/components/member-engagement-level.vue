@@ -1,11 +1,6 @@
 <template>
   <div class="member-engagement-level-wrapper">
-    <div v-if="member.team" class="">
-      <div class="font-semibold text-gray-400">
-        Team member
-      </div>
-    </div>
-    <div v-else class="leading-none">
+    <div class="leading-none">
       <div
         v-if="computedEngagementLevel.value === -1"
         class="inline-flex items-center justify-center"
