@@ -6,7 +6,7 @@ require('dotenv').config({
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:8081',
+    baseUrl: 'https://apptest-kube.crowd.dev',
     specPattern: 'tests/e2e/*.spec.js',
     supportFile: 'tests/support/index.js'
   },
@@ -26,8 +26,8 @@ module.exports = defineConfig({
     chromeWebSecurity: false
   },
   env: {
-    appUrl: 'http://localhost:8081',
-    apiUrl: 'http://localhost:8080',
+    appUrl: 'https://apptest-kube.crowd.dev',
+    apiUrl: 'https://apptest-kube.crowd.dev/api',
     MAILOSAUR_API_KEY: process.env.MAILOSAUR_API_KEY,
     MAILOSAUR_SERVER_ID: process.env.MAILOSAUR_SERVER_ID
   }

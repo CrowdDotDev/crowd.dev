@@ -143,7 +143,10 @@
       </div>
     </div>
     <router-link :to="{ name: 'signin' }">
-      <el-button class="btn btn--primary btn--lg w-full">
+      <el-button
+        id="continueSignIn"
+        class="btn btn--primary btn--lg w-full"
+      >
         Continue to sign in
       </el-button>
     </router-link>

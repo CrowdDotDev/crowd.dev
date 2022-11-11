@@ -121,6 +121,7 @@
           </span>
         </label>
         <el-radio-group
+          id="tenantSize"
           v-model="model[fields.tenantSize.name]"
           class="radio-chips"
           size="large"
@@ -214,7 +215,10 @@ export default {
     },
 
     isFormValid() {
-      return formSchema.isValidSync(this.model)
+      return (
+        formSchema.isValidSync(this.model) &&
+        this.model[fields.tenantPlatforms.name].length > 0
+      )
     }
   },
   watch: {

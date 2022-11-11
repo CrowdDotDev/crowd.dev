@@ -58,7 +58,7 @@ const props = defineProps({
 })
 
 const loading = computed(
-  () => store.getters['integration/loading']
+  () => store.getters['integration/loadingFetch']
 )
 const integrationsArray = computed(() => {
   return props.onboard

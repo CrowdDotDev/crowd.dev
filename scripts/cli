@@ -14,7 +14,7 @@ source $CLI_HOME/utils
 CONTAINERS=`ls $CLI_HOME/services | sed 's/\.[^.]*$//'`
 BUILDERS=`ls $CLI_HOME/builders | sed 's/\.[^.]*$//'`
 
-_DC="docker-compose"
+_DC="docker compose"
 
 function prepare_dev_env() {
     if [[ ! -f "$CLI_HOME/../backend/.env.override.local" ]]; then
@@ -36,15 +36,18 @@ function prepare_dev_env() {
 
     which $_DC >> /dev/null 2>&1
 
-    if [[ ! $? -eq 0 ]]; then 
-        _DC="docker compose"
+    if [[ ! $? -eq 0 ]]; then
+        _DC="docker-compose"
         which $_DC >> /dev/null 2>&1
 
         if [[ ! $? -eq 0 ]]; then
-            error "Docker compose not detected!" 
+            error "Docker compose not detected!"
             exit 1
         fi
     fi
+
+    say "DOCKER COMPOSE VERSION:"
+    $_DC version
 
     set -eo pipefail
 }
@@ -449,7 +452,7 @@ function start() {
             start_service $SERVICE
             nl
         fi
-        unset SKIP      
+        unset SKIP
     done
 }
 
@@ -462,12 +465,17 @@ do
         scaffold) scaffold $2 $3 $4 $5
             exit;
         ;;
-        service) 
+        service)
             service $2 $3 $4 $5
             exit;
         ;;
         start)
             declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
+            start
+            exit;
+        ;;
+        start-e2e)
+            declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center" "python-worker" "job-generator")
             start
             exit;
         ;;
@@ -477,7 +485,7 @@ do
             start
             exit;
         ;;
-        clean-start) 
+        clean-start)
             declare -a INGORED_SERVICES=("premium-api" "premium-job-generator" "premium-python-worker" "community-help-center")
             CLEAN_START=1
             start

@@ -29,6 +29,7 @@
           >
             <div class="flex flex-row items-center w-full">
               <el-input
+                id="devOrganization"
                 v-model="org.username"
                 class="text-green-500"
                 spellcheck="false"
@@ -80,6 +81,7 @@
           >
             <div class="flex flex-row items-center w-full">
               <el-input
+                id="devUser"
                 v-model="user.username"
                 spellcheck="false"
                 placeholder="Enter user slug"
@@ -124,6 +126,7 @@
           <app-i18n code="common.cancel"></app-i18n>
         </el-button>
         <el-button
+          id="devConnect"
           class="btn btn--md btn--primary"
           :disabled="connectDisabled || loading"
           :loading="loading"
