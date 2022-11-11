@@ -285,7 +285,7 @@ export default {
 
         commit('CREATE_SUCCESS', integration)
         Message.success(
-          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          'The first activities will show up in a couple of seconds. <br /> This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
               'Discord integration created successfully'
