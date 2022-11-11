@@ -58,7 +58,7 @@
             />
           </el-tooltip>
           <div class="flex-grow">
-            <p class="text-xs leading-4 pl-2 flex">
+            <p class="text-xs leading-4 pl-2">
               <!-- activity message -->
               <app-activity-message
                 :activity="conversation.conversationStarter"

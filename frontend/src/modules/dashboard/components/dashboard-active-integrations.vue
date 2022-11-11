@@ -16,7 +16,8 @@
         <div
           class="w-8 h-8 rounded-full border flex items-center justify-center"
           :style="{
-            background: platformDetails(active).color,
+            background:
+              platformDetails(active).backgroundColor,
             'border-color':
               platformDetails(active).borderColor
           }"
