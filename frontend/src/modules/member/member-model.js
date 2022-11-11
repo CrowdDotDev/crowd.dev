@@ -95,7 +95,7 @@ const fields = {
   score: new IntegerField('score', label('score')),
   averageSentiment: new SentimentField(
     'averageSentiment',
-    'Avg Sentiment',
+    'Avg. sentiment',
     {
       filterable: true
     }
@@ -107,7 +107,7 @@ const fields = {
   ),
   engagementLevel: new MemberEngagementLevelField(
     'score',
-    'Engagement Level',
+    'Engagement level',
     { filterable: true }
   ),
   // This field is just for filtering/searching
