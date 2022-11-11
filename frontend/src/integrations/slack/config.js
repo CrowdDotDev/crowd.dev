@@ -1,6 +1,5 @@
 import SlackConnect from './components/slack-connect'
 import SlackActivityMessage from './components/activity/slack-activity-message'
-import SlackActivityChannel from './components/activity/slack-activity-channel'
 
 export default {
   enabled: true,
@@ -13,5 +12,4 @@ export default {
     'https://cdn-icons-png.flaticon.com/512/3800/3800024.png',
   connectComponent: SlackConnect,
   activityMessage: SlackActivityMessage,
-  activityChannel: SlackActivityChannel
 }

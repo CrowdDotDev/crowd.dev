@@ -1,5 +1,6 @@
 <template>
   <app-i18n
+    v-if="!channelOnly"
     :code="computedMessage"
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
@@ -13,17 +14,23 @@
         'channel_joined',
         'channel_left',
         'reaction_added'
-      ].includes(activity.type) && !short
+      ].includes(activity.type) &&
+      !short &&
+      !channelOnly
     "
     class="inline-block ml-1"
   >
-    <span v-if="!short" class="text-gray-900">{{
-      ['channel_joined', 'channel_left'].includes(
-        activity.type
-      )
-        ? ''
-        : 'in channel'
-    }}</span>
+    <span
+      v-if="!short && !channelOnly"
+      class="text-gray-900"
+      >{{
+        ['channel_joined', 'channel_left'].includes(
+          activity.type
+        )
+          ? ''
+          : 'in channel'
+      }}</span
+    >
     <span
       v-if="activity.channel"
       class="text-brand-500 truncate max-w-2xs"
@@ -45,6 +52,11 @@ export default {
       required: true
     },
     short: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    channelOnly: {
       type: Boolean,
       required: false,
       default: false

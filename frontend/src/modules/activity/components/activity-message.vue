@@ -4,11 +4,13 @@
       :is="platformConfig.activityMessage"
       v-if="platformConfig.activityMessage"
       :activity="activity"
+      :channel-only="channelOnly"
       :short="short"
     ></component>
     <!-- other -->
     <template v-else>
       <app-i18n
+        v-if="!channelOnly"
         :code="computedMessage"
         :args="computedArgs"
         :fallback="'entities.activity.fallback'"
@@ -33,6 +35,11 @@ export default {
       required: true
     },
     short: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    channelOnly: {
       type: Boolean,
       required: false,
       default: false

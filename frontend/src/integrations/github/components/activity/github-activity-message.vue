@@ -1,5 +1,6 @@
 <template>
   <app-i18n
+    v-if="!channelOnly"
     :code="computedMessage"
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
@@ -9,7 +10,7 @@
     v-if="
       !['fork', 'star', 'unstar'].includes(activity.type) &&
       !short &&
-      activity.channel
+      activity.channel && !channelOnly
     "
     class="ml-1"
     >in</span
@@ -36,6 +37,11 @@ export default {
       required: true
     },
     short: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    channelOnly: {
       type: Boolean,
       required: false,
       default: false

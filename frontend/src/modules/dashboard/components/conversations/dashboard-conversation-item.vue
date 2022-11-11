@@ -63,10 +63,11 @@
                     class="text-red text-xs leading-4"
                     @click.stop
                   >
-                    <app-activity-channel
+                    <app-activity-message
                       :activity="
                         conversation.conversationStarter
                       "
+                      :channel-only="true"
                     />
                   </p>
                   <span
@@ -182,20 +183,20 @@ import AppAvatar from '@/shared/avatar/avatar'
 import AppConversationDropdown from '@/modules/conversation/components/conversation-dropdown'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
-import AppActivityChannel from '@/modules/activity/components/activity-channel'
 import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppConversationReply from '@/modules/conversation/components/conversation-reply'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppActivityMessage from '@/modules/activity/components/activity-message'
 
 export default {
   name: 'AppDashboardConversationItem',
   components: {
+    AppActivityMessage,
     AppMemberDisplayName,
     AppConversationReply,
     AppActivityContent,
-    AppActivityChannel,
     AppLoading,
     AppConversationDropdown,
     AppAvatar,

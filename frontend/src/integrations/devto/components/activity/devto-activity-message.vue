@@ -1,11 +1,12 @@
 <template>
   <app-i18n
+    v-if="!channelOnly"
     code="entities.activity.devto.commented"
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
     :class="{ truncate: short }"
   ></app-i18n>
-  <span>&nbsp;on a&nbsp;</span>
+  <span v-if="!channelOnly">&nbsp;on a&nbsp;</span>
   &nbsp;<a
     v-if="!short"
     :href="
@@ -30,6 +31,11 @@ export default {
       required: true
     },
     short: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    channelOnly: {
       type: Boolean,
       required: false,
       default: false

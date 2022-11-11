@@ -1,7 +1,6 @@
 import DevtoConnect from './components/devto-connect'
 import DevtoActivityMessage from './components/activity/devto-activity-message'
 import DevtoActivityContent from './components/activity/devto-activity-content'
-import DevtoActivityChannel from './components/activity/devto-activity-channel'
 
 export default {
   enabled: true,
@@ -15,5 +14,4 @@ export default {
   connectComponent: DevtoConnect,
   activityMessage: DevtoActivityMessage,
   activityContent: DevtoActivityContent,
-  activityChannel: DevtoActivityChannel
 }

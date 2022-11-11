@@ -1,7 +1,6 @@
 import DiscordConnect from './components/discord-connect'
 import DiscordActivityMessage from './components/activity/discord-activity-message'
 import DiscordActivityContent from './components/activity/discord-activity-content'
-import DiscordActivityChannel from './components/activity/discord-activity-channel'
 
 export default {
   enabled: true,
@@ -15,5 +14,4 @@ export default {
   connectComponent: DiscordConnect,
   activityMessage: DiscordActivityMessage,
   activityContent: DiscordActivityContent,
-  activityChannel: DiscordActivityChannel
 }
