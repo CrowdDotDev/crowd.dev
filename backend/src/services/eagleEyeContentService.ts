@@ -1,12 +1,12 @@
 import moment from 'moment'
 import request from 'superagent'
-import { API_CONFIG, IS_PROD_ENV, KUBE_MODE } from '../config'
+import { API_CONFIG } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import Error400 from '../errors/Error403'
 import track from '../segment/track'
-import { notLocalLambda } from './aws'
+import { LoggingBase } from './loggingBase'
 
 interface EagleEyeSearchPoint {
   vectorId: string
@@ -25,10 +25,11 @@ interface EagleEyeSearchPoint {
 
 type EagleEyeSearchOutput = EagleEyeSearchPoint[]
 
-export default class EagleEyeContentService {
+export default class EagleEyeContentService extends LoggingBase {
   options: IServiceOptions
 
   constructor(options) {
+    super(options)
     this.options = options
   }
 
@@ -98,52 +99,21 @@ export default class EagleEyeContentService {
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
 
-    // TODO-kube
-    if (KUBE_MODE) {
-      if (API_CONFIG.premiumApiUrl) {
-        try {
-          const response = await request
-            .post(`${API_CONFIG.premiumApiUrl}/search`)
-            .send({ queries: keywords, nDays, filters })
+    if (API_CONFIG.premiumApiUrl) {
+      try {
+        const response = await request
+          .post(`${API_CONFIG.premiumApiUrl}/search`)
+          .send({ queries: keywords, nDays, filters })
 
-          const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
-          await this.bulkUpsert(fromEagleEye)
-          return fromEagleEye
-        } catch (error) {
-          console.log('error while calling eagle eye server!', error)
-          throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
-        }
-      } else {
-        return [] as EagleEyeSearchOutput
+        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+        await this.bulkUpsert(fromEagleEye)
+        return fromEagleEye
+      } catch (error) {
+        this.log.error(error, 'error while calling eagle eye server!')
+        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
       }
-    }
-
-    // TODO-kube
-    const lambdaArn = IS_PROD_ENV
-      ? 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-prod-search'
-      : 'arn:aws:lambda:eu-central-1:359905442998:function:EagleEye-staging-search'
-    const params = {
-      FunctionName: lambdaArn,
-      Payload: JSON.stringify({ queries: keywords, ndays: nDays, filters }),
-    }
-    try {
-      // Call Eagle Eye lambda function
-      let fromEagleEye: EagleEyeSearchOutput = JSON.parse(
-        (await notLocalLambda.invoke(params).promise()).Payload,
-      )
-      if (typeof fromEagleEye === 'string') {
-        fromEagleEye = JSON.parse(fromEagleEye)
-      }
-      console.log('FromEagleEye')
-      console.log(fromEagleEye)
-      await this.bulkUpsert(fromEagleEye)
-
-      return {
-        status: 'success',
-      }
-    } catch (error) {
-      console.log('error', error)
-      throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+    } else {
+      return [] as EagleEyeSearchOutput
     }
   }
 

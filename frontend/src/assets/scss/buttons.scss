@@ -31,7 +31,7 @@
     @apply bg-gray-900 text-white border-none;
 
     &:hover,
-    &:hover:is(a) {
+    &:hover:is(a):not(.disabled) {
       @apply cursor-pointer bg-gray-600 text-white;
     }
     &:focus {
@@ -40,7 +40,8 @@
     &:active {
       @apply bg-gray-600 text-white;
     }
-    &[disabled] {
+    &[disabled],
+    &.disabled {
       @apply cursor-not-allowed bg-gray-400 text-white;
     }
   }

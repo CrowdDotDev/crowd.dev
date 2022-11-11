@@ -17,7 +17,6 @@
   <app-integration-twitter
     v-else-if="integration.platform === 'twitter'"
     :integration="integration"
-    :onboard="onboard"
   >
     <template #default="{ connect, settings, hasSettings }">
       <slot

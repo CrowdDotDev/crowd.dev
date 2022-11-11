@@ -1,7 +1,8 @@
 import { createRateLimiter } from '../apiRateLimiter'
+import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
-  app.put(`/auth/password-reset`, require('./authPasswordReset').default)
+  app.put(`/auth/password-reset`, safeWrap(require('./authPasswordReset').default))
 
   const emailRateLimiter = createRateLimiter({
     max: 6,
@@ -12,13 +13,13 @@ export default (app) => {
   app.post(
     `/auth/send-email-address-verification-email`,
     emailRateLimiter,
-    require('./authSendEmailAddressVerificationEmail').default,
+    safeWrap(require('./authSendEmailAddressVerificationEmail').default),
   )
 
   app.post(
     `/auth/send-password-reset-email`,
     emailRateLimiter,
-    require('./authSendPasswordResetEmail').default,
+    safeWrap(require('./authSendPasswordResetEmail').default),
   )
 
   const signInRateLimiter = createRateLimiter({
@@ -27,7 +28,7 @@ export default (app) => {
     message: 'errors.429',
   })
 
-  app.post(`/auth/sign-in`, signInRateLimiter, require('./authSignIn').default)
+  app.post(`/auth/sign-in`, signInRateLimiter, safeWrap(require('./authSignIn').default))
 
   const signUpRateLimiter = createRateLimiter({
     max: 20,
@@ -35,13 +36,13 @@ export default (app) => {
     message: 'errors.429',
   })
 
-  app.post(`/auth/sign-up`, signUpRateLimiter, require('./authSignUp').default)
+  app.post(`/auth/sign-up`, signUpRateLimiter, safeWrap(require('./authSignUp').default))
 
-  app.put(`/auth/profile`, require('./authUpdateProfile').default)
+  app.put(`/auth/profile`, safeWrap(require('./authUpdateProfile').default))
 
-  app.put(`/auth/change-password`, require('./authPasswordChange').default)
+  app.put(`/auth/change-password`, safeWrap(require('./authPasswordChange').default))
 
-  app.put(`/auth/verify-email`, require('./authVerifyEmail').default)
+  app.put(`/auth/verify-email`, safeWrap(require('./authVerifyEmail').default))
 
-  app.get(`/auth/me`, require('./authMe').default)
+  app.get(`/auth/me`, safeWrap(require('./authMe').default))
 }

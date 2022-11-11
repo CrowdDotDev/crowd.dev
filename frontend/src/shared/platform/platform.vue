@@ -69,7 +69,7 @@ const props = defineProps({
   },
   trackEventName: {
     type: String,
-    required: true
+    default: () => null
   },
   hasTooltip: {
     type: Boolean,

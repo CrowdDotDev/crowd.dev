@@ -1,13 +1,6 @@
 from crowd.backend.repository import Repository
 from crowd.backend.infrastructure import DbOperationsSQS
 
-import uuid
-
-import logging
-
-
-logger = logging.getLogger(__name__)
-
 
 class BaseController(object):
     """

@@ -1,22 +1,14 @@
 import requests
 import json
-import logging
 import json
 from crowd.eagle_eye.sources import hacker_news
 from crowd.eagle_eye.sources import devto
 from crowd.eagle_eye.sources import post_process
 from crowd.eagle_eye.apis import CohereAPI
 from crowd.eagle_eye.apis.vector_api import VectorAPI
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-root = logging.getLogger()
-if root.handlers:
-    for handler in root.handlers:
-        root.removeHandler(handler)
-logging.basicConfig(
-    format="%(asctime)s.%(msecs)03d %(levelname)s [%(filename)s:%(lineno)s] %(message)s", level=logging.INFO
-)
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def scheduled_main(source):

@@ -7,7 +7,6 @@ import OrganizationRepository from '../../repositories/organizationRepository'
 
 export default async () => {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-  console.time('whole-script-time')
 
   // const tenants = await TenantService._findAndCountAllForEveryUser({})
 
@@ -18,10 +17,8 @@ export default async () => {
   })
 
   tenants = tenants.filter((i) => i.id !== '62712f6f-94e8-41e5-8cb7-87e3d272830b')
-  let count = 1
   // for each tenant
   for (const tenant of tenants) {
-    console.log(`processing organizations of ${tenant.id}`)
     const userContext = await getUserContext(tenant.id)
 
     const ghIntegration = await userContext.database.integration.findOne({
@@ -43,8 +40,6 @@ export default async () => {
       })
 
       for (const org of organizations) {
-        console.log(org.name)
-
         // check if organization already exists in the cache by name
         const record = await userContext.database.organizationCache.findOne({
           where: {
@@ -89,7 +84,6 @@ export default async () => {
               })
 
               // delete current organization
-              console.log(`removing ${org.id} because ${findOrg.id} was already enriched!`)
               await OrganizationRepository.destroy(org.id, userContext, true)
             } else {
               // it's not in cache, create it
@@ -118,7 +112,6 @@ export default async () => {
                 })
 
                 // delete foundByName organization
-                console.log(`removing ${findByName[0].id} because ${org.id} will be enriched!`)
                 await OrganizationRepository.destroy(findByName[0].id, userContext, true)
               }
 
@@ -169,12 +162,7 @@ export default async () => {
             userContext,
           )
         }
-
-        count += 1
-        console.log(`organizations parsed: ${count}/32651`)
       }
     }
   }
-
-  console.timeEnd('whole-script-time')
 }

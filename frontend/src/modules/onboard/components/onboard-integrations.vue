@@ -73,6 +73,7 @@
         </h4>
         <p class="text-sm leading-5 text-gray-500 pb-8">
           Get to know the product with a set of sample data
+          <br />
           that we prepared for you
         </p>
         <el-button

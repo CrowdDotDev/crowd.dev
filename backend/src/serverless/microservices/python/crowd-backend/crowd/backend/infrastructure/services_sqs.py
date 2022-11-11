@@ -1,12 +1,12 @@
 from crowd.backend.infrastructure import SQS
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.enums import Services
 import os
-import logging
 
 from crowd.backend.infrastructure.config import KUBE_MODE, PYTHON_WORKER_QUEUE
 from crowd.backend.models import microservice
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ServicesSQS(SQS):

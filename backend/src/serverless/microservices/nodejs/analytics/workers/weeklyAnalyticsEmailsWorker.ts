@@ -11,6 +11,9 @@ import { platformDisplayNames } from '../../../../../types/platformDisplayNames'
 import getStage from '../../../../../services/helpers/getStage'
 import { s3 } from '../../../../../services/aws'
 import UserRepository from '../../../../../database/repositories/userRepository'
+import { createServiceChildLogger } from '../../../../../utils/logging'
+
+const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
 /**
  * Sends weekly analytics emails of a given tenant
@@ -190,7 +193,7 @@ async function platformIconExists(platform: string): Promise<boolean> {
     return true
   } catch (error) {
     // If there are access problems to bucket, or bucket doesn't exist, or file doesn't exist
-    console.log(error)
+    log.error(error, { platform }, 'Error checking if platform icon exists!')
     return false
   }
 }

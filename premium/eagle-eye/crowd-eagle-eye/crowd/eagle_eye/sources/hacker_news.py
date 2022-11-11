@@ -1,9 +1,9 @@
 import json
 import requests
 from crowd.eagle_eye.models import Vector, Payload
-import logging
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def pre_process(data):

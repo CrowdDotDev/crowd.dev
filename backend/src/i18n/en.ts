@@ -59,6 +59,12 @@ const en = {
     },
   },
 
+  task: {
+    errors: {
+      unknownBatchOperation: 'Sent batch operation {0} is unknown.',
+    },
+  },
+
   tenant: {
     exists: 'There is already a workspace on this application.',
     url: {
@@ -73,6 +79,7 @@ const en = {
     sampleDataDeletionCompleted: 'Sample data deletion completed.',
     errors: {
       publishedConversationExists: 'Update failed. Tenant already has published conversations.',
+      nameRequiredOnCreate: 'Name is required on tenant creation.',
     },
   },
 

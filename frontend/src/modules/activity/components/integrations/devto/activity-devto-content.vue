@@ -3,7 +3,7 @@
     <div v-if="activity.parent && displayThread">
       <blockquote
         class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
-        v-html="activity.parent.body"
+        v-html="$sanitize(activity.parent.body)"
       />
     </div>
 
@@ -11,7 +11,7 @@
       v-if="displayBody"
       ref="body"
       :class="bodyClass"
-      v-html="activity.body"
+      v-html="$sanitize(activity.body)"
     />
   </div>
 </template>

@@ -11,7 +11,6 @@ async function conversationInit() {
     apiKey: SEARCH_ENGINE_CONFIG.apiKey,
   })
   const docs = await client.index('conversations').search('', { limit: 1000000 })
-  console.log(docs.hits.length)
   for (const doc of docs.hits) {
     if (doc.category) {
       const newDoc = { ...doc, channel: doc.category } as any

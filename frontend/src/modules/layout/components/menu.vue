@@ -56,6 +56,7 @@
         <!-- Menu items -->
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -76,6 +77,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -103,6 +105,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -129,6 +132,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -160,6 +164,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -187,6 +192,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -211,13 +217,12 @@
         <div class="grow"></div>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
           popper-class="custom-menu-tooltip"
-          :content="`${i18n(
-            'integrations.menu'
-          )} <i class='ri-external-link-line ml-1.1'></i>`"
+          :content="i18n('integrations.menu')"
         >
           <router-link
             id="menu-integrations"
@@ -233,6 +238,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
+          hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -533,6 +539,15 @@ const classFor = (path, exact = false) => {
 
   span:first-child {
     @apply flex gap-1.5 items-center;
+  }
+}
+
+// Menu popovers
+.popover-item.selected {
+  background-color: rgba(253, 237, 234, 0.5);
+
+  & .plan {
+    @apply text-brand-400;
   }
 }
 </style>

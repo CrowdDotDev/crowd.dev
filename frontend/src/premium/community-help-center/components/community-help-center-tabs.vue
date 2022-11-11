@@ -53,6 +53,6 @@ const views = computed(() => {
 })
 
 const resetView = () => {
-  store.dispatch('member/doResetActiveView')
+  store.dispatch('communityHelpCenter/doResetActiveView')
 }
 </script>

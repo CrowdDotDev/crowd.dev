@@ -9,6 +9,16 @@ IS_DEV_ENV = os.environ.get("SERVICE_ENV") == "development" or \
 IS_PROD_ENV = os.environ.get("SERVICE_ENV") == "production"
 IS_STAGING_ENV = os.environ.get("SERVICE_ENV") == "staging"
 
+SERVICE = os.environ.get("SERVICE")
+
+LOG_LEVEL = os.environ.get("LOG_LEVEL") or "INFO"
+if LOG_LEVEL == "TRACE":
+    LOG_LEVEL = "DEBUG"
+elif LOG_LEVEL == "FATAL":
+    LOG_LEVEL = "CRITICAL"
+elif LOG_LEVEL == "WARN":
+    LOG_LEVEL = "WARNING"
+
 COHERE_API_KEY = os.environ.get("CROWD_COHERE_API_KEY")
 VECTOR_API_KEY = os.environ.get("CROWD_VECTOR_API_KEY")
 VECTOR_INDEX = os.environ.get("CROWD_VECTOR_INDEX")

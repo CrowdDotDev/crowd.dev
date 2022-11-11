@@ -1,15 +1,18 @@
 import { CronJob } from 'cron'
 import jobs from './jobs'
+import { createServiceLogger } from './logging'
+
+const log = createServiceLogger()
 
 for (const job of jobs) {
   const cronJob = new CronJob(
     job.cronTime,
     async () => {
-      console.log(`Triggering premium job: ${job.name}!`)
+      log.info(`Triggering premium job: ${job.name}!`)
       try {
         await job.onTrigger()
       } catch (err) {
-        console.log(`Error while executing premium job: ${job.name}!`, err)
+        log.error(err, `Error while executing premium job: ${job.name}!`)
       }
     },
     null,
@@ -17,6 +20,6 @@ for (const job of jobs) {
     'Europe/Berlin',
   )
   if (cronJob.running) {
-    console.log(`Scheduled premium job: ${job.name}!`)
+    log.info(`Scheduled premium job: ${job.name}!`)
   }
 }

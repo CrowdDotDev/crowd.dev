@@ -2,7 +2,6 @@ import { QueryTypes } from 'sequelize'
 import TenantService from '../../../services/tenantService'
 import getUserContext from '../../utils/getUserContext'
 import IntegrationService from '../../../services/integrationService'
-import SequelizeRepository from '../../repositories/sequelizeRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
 import { DevtoMemberAttributes } from '../../attributes/member/devto'
@@ -16,35 +15,11 @@ import MemberService from '../../../services/memberService'
 import { CrowdMemberAttributes } from '../../attributes/member/crowd'
 
 export default async () => {
-  console.time('transformations-time')
-
   const tenants = (await TenantService._findAndCountAllForEveryUser({ filter: {} })).rows
-
-  const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-
-  const memberCountQuery = `select count(*) from members m `
-
-  const memberCount = (
-    await options.database.sequelize.query(memberCountQuery, {
-      type: QueryTypes.SELECT,
-    })
-  )[0].count
-
-  const activityCountQuery = `select count(*) from activities a`
-
-  const activityCount = (
-    await options.database.sequelize.query(activityCountQuery, {
-      type: QueryTypes.SELECT,
-    })
-  )[0].count
-
-  let transformedMemberCount = 0
-  let transformedActivityCount = 0
 
   for (const tenant of tenants) {
     let updateMembers = []
     let updateActivities = []
-    console.log('processing tenant: ', tenant.id)
 
     const userContext = await getUserContext(tenant.id)
     const is = new IntegrationService(userContext)
@@ -105,7 +80,6 @@ export default async () => {
           await memberAttributesService.createPredefined(TwitterMemberAttributes)
           break
         default:
-          console.log('Unknown platform')
           break
       }
     }
@@ -128,8 +102,6 @@ export default async () => {
       type: QueryTypes.SELECT,
     })
 
-    // console.log('found members with raw query')
-    // console.log(members)
     const nameMemberMapping = {}
 
     const orgNameMemberIdMappings = {}
@@ -219,17 +191,11 @@ export default async () => {
         displayName,
         attributes,
       })
-
-      transformedMemberCount += 1
-      if (transformedMemberCount % 1000 === 0) {
-        console.log(`transforming members: ${transformedMemberCount}/${memberCount}`)
-      }
     }
 
     const { randomUUID } = require('crypto')
 
     if (Object.keys(orgNameMemberIdMappings).length !== 0) {
-      console.log('bulk updating organizations...')
       let organizationsQuery = `INSERT INTO "organizations" ("id", "name", "createdAt", "updatedAt", "tenantId") VALUES `
       for (const organisationName of Object.keys(orgNameMemberIdMappings)) {
         organizationsQuery += `('${randomUUID()}', '${organisationName.replace(
@@ -250,7 +216,6 @@ export default async () => {
         a += 1
       }
 
-      console.log('bulk updating memberOrganisations...')
       let memberOrganisationsQuery = `
       INSERT INTO "memberOrganizations" ("createdAt", "updatedAt", "memberId", "organizationId") VALUES `
       for (const organisationId of Object.keys(nameMemberMapping)) {
@@ -266,13 +231,11 @@ export default async () => {
       await seq.query(memberOrganisationsQuery, {
         type: QueryTypes.INSERT,
       })
-      console.log('done!')
     }
 
     const MEMBER_CHUNK_SIZE = 25000
 
     if (updateMembers.length > MEMBER_CHUNK_SIZE) {
-      const rawLength = updateMembers.length
       const splittedBulkMembers = []
 
       while (updateMembers.length > MEMBER_CHUNK_SIZE) {
@@ -285,15 +248,10 @@ export default async () => {
         splittedBulkMembers.push(updateMembers)
       }
 
-      let counter = MEMBER_CHUNK_SIZE
       for (const memberChunk of splittedBulkMembers) {
-        console.log(`updating member chunk ${counter}/${rawLength}`)
-
         await userContext.database.member.bulkCreate(memberChunk, {
           updateOnDuplicate: ['displayName', 'attributes'],
         })
-
-        counter += MEMBER_CHUNK_SIZE
       }
     } else {
       await userContext.database.member.bulkCreate(updateMembers, {
@@ -308,7 +266,6 @@ export default async () => {
     while (currentActivityCount < totalActivityCount) {
       const LIMIT = 200000
 
-      console.log(`getting activities with limit: ${LIMIT}, offset: ${currentOffset}`)
       updateActivities = []
       let splittedBulkActivities = []
       const activities = await getActivities(seq, tenant.id, LIMIT, currentOffset)
@@ -378,18 +335,11 @@ export default async () => {
           attributes,
           channel,
         })
-
-        transformedActivityCount += 1
-        if (transformedActivityCount % 1000 === 0) {
-          console.log(`transforming activities: ${transformedActivityCount}/${activityCount}`)
-        }
       }
-      console.log(`bulk updating tenant [${tenant.id}] activities...`)
 
       const ACTIVITY_CHUNK_SIZE = 25000
 
       if (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
-        const rawLength = updateActivities.length
         splittedBulkActivities = []
 
         while (updateActivities.length > ACTIVITY_CHUNK_SIZE) {
@@ -402,13 +352,10 @@ export default async () => {
           splittedBulkActivities.push(updateActivities)
         }
 
-        let counter = ACTIVITY_CHUNK_SIZE
         for (const activityChunk of splittedBulkActivities) {
-          console.log(`updating activity chunk ${counter}/${rawLength}`)
           await userContext.database.activity.bulkCreate(activityChunk, {
             updateOnDuplicate: ['body', 'url', 'title', 'attributes', 'channel'],
           })
-          counter += ACTIVITY_CHUNK_SIZE
         }
       } else {
         await userContext.database.activity.bulkCreate(updateActivities, {
@@ -419,10 +366,7 @@ export default async () => {
       currentActivityCount += activities.length
       currentOffset += activities.length
     }
-
-    console.log('done!')
   }
-  console.timeEnd('transformations-time')
 }
 
 async function getActivityCount(seq, tenantId) {

@@ -5,17 +5,22 @@ import Errors from '@/shared/error/errors'
 export default {
   ...sharedActions('eagleEye'),
   async doFetch(
-    { commit, getters, state, dispatch },
+    { commit, getters, dispatch },
     { keepPagination = false }
   ) {
     try {
       if (
-        state.filter.attributes.keywords &&
-        state.filter.attributes.keywords.value &&
-        state.filter.attributes.keywords.value.length > 0
+        getters.activeView.filter.attributes.keywords &&
+        getters.activeView.filter.attributes.keywords
+          .value &&
+        getters.activeView.filter.attributes.keywords.value
+          .length > 0
       ) {
         await dispatch('doPopulate', {
-          keywords: state.filter.attributes.keywords.value
+          keywords:
+            getters.activeView.filter.attributes.keywords
+              .value,
+          keepPagination
         })
       }
       commit('FETCH_STARTED', {
@@ -23,19 +28,21 @@ export default {
       })
 
       const response = await EagleEyeService.list(
-        state.filter,
+        getters.activeView.filter,
         getters.orderBy,
         getters.limit,
         getters.offset
       )
 
       if (
-        state.filter.attributes.keywords &&
-        state.filter.attributes.keywords.value?.length > 0
+        getters.activeView.filter.attributes.keywords &&
+        getters.activeView.filter.attributes.keywords.value
+          ?.length > 0
       ) {
         localStorage.setItem(
           'eagleEye_keywords',
-          state.filter.attributes.keywords.value
+          getters.activeView.filter.attributes.keywords
+            .value
         )
       }
 
@@ -49,10 +56,13 @@ export default {
     }
   },
 
-  async doPopulate({ commit }, { keywords }) {
+  async doPopulate(
+    { commit },
+    { keywords, keepPagination }
+  ) {
     try {
       commit('POPULATE_STARTED', {
-        keywords
+        keepPagination
       })
 
       await EagleEyeService.populate(keywords)

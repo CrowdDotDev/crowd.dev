@@ -1,11 +1,10 @@
+from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository import Repository
 from crowd.backend.repository.keys import DBKeys as dbk
 from crowd.backend.controllers import MembersController
 from crowd.backend.models import Member
-import logging
 
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class CheckMergeDefault:
     def __init__(self, tenant_id, repository=False, test=False):

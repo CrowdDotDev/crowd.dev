@@ -2,8 +2,25 @@ import sharedMutations from '@/shared/store/mutations'
 
 export default {
   ...sharedMutations(),
-  POPULATE_STARTED(state) {
+  FETCH_SUCCESS(state, { rows, count }) {
+    state.list.loading = false
+
+    for (const record of rows) {
+      state.records[record.id] = record
+      if (!state.list.ids.includes(record.id)) {
+        state.list.ids.push(record.id)
+      }
+    }
+
+    state.count = count
+  },
+
+  POPULATE_STARTED(state, { keepPagination }) {
     state.list.loading = true
+
+    if (!keepPagination) {
+      state.list.ids.length = 0
+    }
   },
 
   POPULATE_SUCCESS(state) {

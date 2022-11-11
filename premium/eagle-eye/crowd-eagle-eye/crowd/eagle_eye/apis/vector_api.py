@@ -2,12 +2,12 @@ import pinecone
 import datetime
 import time
 from crowd.eagle_eye.apis import CohereAPI
-import logging
 import itertools
 import os
 from crowd.eagle_eye.config import KUBE_MODE, VECTOR_API_KEY, VECTOR_INDEX
+from crowd.eagle_eye.infrastructure.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VectorAPI:

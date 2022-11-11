@@ -22,6 +22,9 @@
     "@cubejs-client/vue3": "^0.31.0",
     "@octokit/core": "^3.5.1",
     "@tailwindcss/postcss7-compat": "^2.2.17",
+    "@tiptap/extension-placeholder": "^2.0.0-beta.199",
+    "@tiptap/starter-kit": "^2.0.0-beta.199",
+    "@tiptap/vue-3": "^2.0.0-beta.199",
     "apollo-boost": "^0.4.9",
     "axios": "^0.22.0",
     "chart.js": "^3.7.0",
@@ -46,6 +49,7 @@
     "remixicon": "^2.5.0",
     "uuid": "8.3.0",
     "vue": "^3.2.29",
+    "vue-3-sanitize": "^0.1.4",
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.2",
     "vue-router": "^4.1.5",
@@ -55,6 +59,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@tiptap/extension-link": "^2.0.0-beta.202",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.1",
     "@vue/cli-service": "^5.0.1",

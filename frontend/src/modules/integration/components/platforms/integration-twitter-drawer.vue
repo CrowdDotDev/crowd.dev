@@ -10,12 +10,18 @@
     @close="isVisible = false"
   >
     <template #content>
-      <el-form class="form integration-twitter-form">
-        <span class="block text-sm font-medium"
-          >Track hashtag</span
-        >
+      <el-form
+        class="form integration-twitter-form"
+        @submit.prevent
+      >
+        <span class="block text-sm font-medium">{{
+          hashtagField.label
+        }}</span>
         <el-form-item>
-          <el-input v-model="hashtag" class="hashtag-input">
+          <el-input
+            v-model="model.hashtag"
+            class="hashtag-input"
+          >
             <template #prefix>#</template>
           </el-input>
 
@@ -28,25 +34,48 @@
     </template>
 
     <template #footer>
-      <div>
+      <div
+        class="flex grow items-center"
+        :class="
+          hasFormChanged ? 'justify-between' : 'justify-end'
+        "
+      >
         <el-button
-          class="btn btn--md btn--bordered mr-4"
-          @click="isVisible = false"
+          v-if="hasFormChanged"
+          class="btn btn-link btn-link--primary"
+          @click="doReset"
+          ><i class="ri-arrow-go-back-line"></i>
+          <span>Reset changes</span></el-button
         >
-          <app-i18n code="common.cancel"></app-i18n>
-        </el-button>
-        <a
-          class="btn btn--md btn--primary"
-          :href="computedConnectUrl"
-        >
-          <app-i18n code="common.connect"></app-i18n>
-        </a>
+        <div class="flex gap-4">
+          <el-button
+            class="btn btn--md btn--bordered"
+            @click="isVisible = false"
+          >
+            <app-i18n code="common.cancel"></app-i18n>
+          </el-button>
+          <a
+            class="btn btn--md btn--primary"
+            :class="{
+              disabled: !hasFormChanged
+            }"
+            :href="
+              hasFormChanged
+                ? computedConnectUrl
+                : undefined
+            "
+          >
+            Update
+          </a>
+        </div>
       </div>
     </template>
   </app-drawer>
 </template>
 <script>
 import integrationsJsonArray from '@/jsons/integrations.json'
+import { FormSchema } from '@/shared/form/form-schema'
+import StringField from '@/shared/fields/string-field'
 
 export default {
   name: 'IntegrationTwitterDrawer'
@@ -57,18 +86,18 @@ import {
   defineEmits,
   defineProps,
   computed,
-  watch,
   ref
 } from 'vue'
+import isEqual from 'lodash/isEqual'
 
 const props = defineProps({
-  integration: {
-    type: Object,
-    default: null
-  },
   modelValue: {
     type: Boolean,
     default: false
+  },
+  hashtags: {
+    type: Array,
+    default: () => []
   },
   connectUrl: {
     type: String,
@@ -77,6 +106,32 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const parsedHashtags = computed(() =>
+  props.hashtags.length
+    ? props.hashtags[props.hashtags.length - 1]
+    : ''
+)
+const hashtagField = new StringField(
+  'hashtag',
+  'Track hashtag'
+)
+const formSchema = ref(new FormSchema([hashtagField]))
+const model = ref(
+  formSchema.value.initialValues({
+    hashtag: parsedHashtags.value
+  })
+)
+
+const hasFormChanged = computed(
+  () =>
+    !isEqual(
+      formSchema.value.initialValues({
+        hashtag: parsedHashtags.value
+      }),
+      model.value
+    )
+)
 
 const isVisible = computed({
   get() {
@@ -87,8 +142,6 @@ const isVisible = computed({
   }
 })
 
-const hashtag = ref(null)
-
 const logoUrl = computed(
   () =>
     integrationsJsonArray.find(
@@ -97,17 +150,18 @@ const logoUrl = computed(
 )
 
 const computedConnectUrl = computed(() => {
-  return hashtag.value
-    ? `${props.connectUrl}&hashtags[]=${hashtag.value}`
+  const encodedHashtags = model.value.hashtag
+    ? `&hashtags[]=${model.value.hashtag}`
     : ''
+
+  return `${props.connectUrl}${encodedHashtags}`
 })
 
-watch(
-  () => props.integration,
-  (newValue) => {
-    hashtag.value = newValue.settings?.hashtags[0] || null
-  }
-)
+const doReset = () => {
+  model.value = formSchema.value.initialValues({
+    hashtag: parsedHashtags.value
+  })
+}
 </script>
 
 <style lang="scss">

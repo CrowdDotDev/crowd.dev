@@ -1,8 +1,7 @@
-import PermissionChecker from '../../services/user/permissionChecker'
-import ApiResponseHandler from '../apiResponseHandler'
 import Permissions from '../../security/permissions'
-import ReportService from '../../services/reportService'
 import track from '../../segment/track'
+import ReportService from '../../services/reportService'
+import PermissionChecker from '../../services/user/permissionChecker'
 
 // /**
 //  * POST /tenant/{tenantId}/report
@@ -20,17 +19,13 @@ import track from '../../segment/track'
 //  * @response 429 - Too many requests
 //  */
 export default async (req, res) => {
-  try {
-    new PermissionChecker(req).validateHas(Permissions.values.reportRead)
+  new PermissionChecker(req).validateHas(Permissions.values.reportRead)
 
-    const payload = await new ReportService(req).query(req.body)
+  const payload = await new ReportService(req).query(req.body)
 
-    if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-      track('Reports Advanced Fitler', { ...payload }, { ...req })
-    }
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+  if (req.query.filter && Object.keys(req.query.filter).length > 0) {
+    track('Reports Advanced Fitler', { ...payload }, { ...req })
   }
+
+  await req.responseHandler.success(req, res, payload)
 }

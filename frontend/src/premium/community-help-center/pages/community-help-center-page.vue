@@ -32,7 +32,15 @@
     </div>
     <app-community-help-center-tabs />
     <app-community-help-center-filter />
-    <app-community-help-center-table />
+    <app-community-help-center-table
+      @open-conversation-drawer="onConversationDrawerOpen"
+    />
+
+    <app-community-help-center-conversation-drawer
+      :expanded="!!drawerConversationId"
+      :conversation-id="drawerConversationId"
+      @close="onConversationDrawerClose"
+    ></app-community-help-center-conversation-drawer>
   </app-page-wrapper>
 </template>
 
@@ -43,6 +51,7 @@ import AppCommunityHelpCenterTable from '@/premium/community-help-center/compone
 import AppCommunityHelpCenterTabs from '@/premium/community-help-center/components/community-help-center-tabs'
 import AppCommunityHelpCenterFilter from '@/premium/community-help-center/components/community-help-center-filter'
 import AppCommunityHelpCenterSettings from '@/premium/community-help-center/components/community-help-center-settings'
+import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 import config from '@/config'
 
 export default {
@@ -53,7 +62,14 @@ export default {
     AppCommunityHelpCenterTable,
     AppCommunityHelpCenterTabs,
     AppCommunityHelpCenterFilter,
-    AppCommunityHelpCenterSettings
+    AppCommunityHelpCenterSettings,
+    AppCommunityHelpCenterConversationDrawer
+  },
+
+  data() {
+    return {
+      drawerConversationId: null
+    }
   },
 
   computed: {
@@ -78,7 +94,13 @@ export default {
         'communityHelpCenter/doOpenSettingsDrawer',
       doCloseSettingsDrawer:
         'communityHelpCenter/doCloseSettingsDrawer'
-    })
+    }),
+    onConversationDrawerOpen(id) {
+      this.drawerConversationId = id
+    },
+    onConversationDrawerClose() {
+      this.drawerConversationId = null
+    }
   }
 }
 </script>

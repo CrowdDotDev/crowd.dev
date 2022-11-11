@@ -1,21 +1,23 @@
-import ApiResponseHandler from '../apiResponseHandler'
-import TenantService from '../../services/tenantService'
 import identifyTenant from '../../segment/identifyTenant'
+import TenantService from '../../services/tenantService'
+import Error404 from '../../errors/Error404'
 
 export default async (req, res) => {
-  try {
-    let payload
+  let payload
 
-    if (req.params.id) {
-      payload = await new TenantService(req).findById(req.params.id)
-    } else {
-      payload = await new TenantService(req).findByUrl(req.query.url)
+  if (req.params.id) {
+    payload = await new TenantService(req).findById(req.params.id)
+  } else {
+    payload = await new TenantService(req).findByUrl(req.query.url)
+  }
+
+  if (payload) {
+    if (req.currentUser) {
+      identifyTenant(req.currentUser, payload)
     }
 
-    identifyTenant(req.currentUser, payload)
-
-    await ApiResponseHandler.success(req, res, payload)
-  } catch (error) {
-    await ApiResponseHandler.error(req, res, error)
+    await req.responseHandler.success(req, res, payload)
+  } else {
+    throw new Error404()
   }
 }

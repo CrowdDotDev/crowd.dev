@@ -22,6 +22,7 @@ import ConversationRepository from '../database/repositories/conversationReposit
 import MemberAttributeSettingsService from './memberAttributeSettingsService'
 import { DefaultMemberAttributes } from '../database/attributes/member/default'
 import { TenantMode } from '../config/configTypes'
+import TaskRepository from '../database/repositories/taskRepository'
 
 export default class TenantService {
   options: IServiceOptions
@@ -233,6 +234,13 @@ export default class TenantService {
           { ...this.options, transaction, currentTenant: record },
         )
       }
+
+      // create suggested tasks
+      await TaskRepository.createSuggestedTasks({
+        ...this.options,
+        transaction,
+        currentTenant: record,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 

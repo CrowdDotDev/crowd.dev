@@ -6,6 +6,7 @@
 import fetch from 'node-fetch'
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
+import { getServiceLogger } from '../../utils/logging'
 import TenantService from '../../services/tenantService'
 import ActivityService from '../../services/activityService'
 import IntegrationService from '../../services/integrationService'
@@ -20,6 +21,8 @@ const env = dotenv.config({
 })
 
 dotenvExpand.expand(env)
+
+const log = getServiceLogger()
 
 async function discordSetParentForThreads() {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
@@ -47,15 +50,14 @@ async function discordSetParentForThreads() {
 
       const discordChannelMapping = []
 
-      console.log('Discord integration: ')
-      console.log(discordIntegration)
+      log.info({ discordIntegration }, 'Discord integration!')
 
       for (const channel of discordIntegration.settings.channels) {
         discordChannelMapping[channel.name] = { id: channel.id, type: 'channel' }
       }
 
       // Logging channel mapping:
-      console.log(discordChannelMapping)
+      log.info({ discordChannelMapping }, 'Discord channel mapping!')
 
       // Get thread starter activities
       const acts = (
@@ -83,10 +85,9 @@ async function discordSetParentForThreads() {
             )
 
             while (moreActsFromApi.length > 0) {
-              console.log(
-                `getting next 50 thread messages... anchor is: ${
-                  moreActsFromApi[moreActsFromApi.length - 1].id
-                }`,
+              log.info(
+                { anhor: moreActsFromApi[moreActsFromApi.length - 1].id },
+                'Getting next 50 thread messagess...',
               )
               await new Promise((resolve) => {
                 setTimeout(resolve, 500)
@@ -113,12 +114,13 @@ async function discordSetParentForThreads() {
                   sourceParentId: act.sourceId,
                   parent: act.id,
                 })
-                console.log(
-                  `child activity [${childCrowdActivityRowsAndCount.rows[0].id}] crowdInfo and parent updated!`,
+                log.info(
+                  { activityId: childCrowdActivityRowsAndCount.rows[0].id },
+                  'Child activity crowdInfo and parent updated!',
                 )
               } else {
-                console.log(`thread child cannot be found in the db sourceId: ${childSourceId}`)
-                console.log(`found count is: ${childCrowdActivityRowsAndCount.count}`)
+                log.info(`thread child cannot be found in the db sourceId: ${childSourceId}`)
+                log.info(`found count is: ${childCrowdActivityRowsAndCount.count}`)
               }
             }
 
@@ -132,7 +134,7 @@ async function discordSetParentForThreads() {
                 discordIntegration.integrationIdentifier
               }/${discordChannelMapping[act.crowdInfo.channel].id}/${act.sourceId}`
               await actService.update(act.id, { crowdInfo: parentCrowdInfo })
-              console.log(`parent activity [${act.id}] crowdInfo updated!`)
+              log.info(`parent activity [${act.id}] crowdInfo updated!`)
             }
           } else if (act.crowdInfo.thread === false || act.crowdInfo.thread === 'false') {
             // not a thread starter and not a thread message
@@ -145,7 +147,7 @@ async function discordSetParentForThreads() {
                 discordIntegration.integrationIdentifier
               }/${discordChannelMapping[act.crowdInfo.channel].id}/${act.sourceId}`
               await actService.update(act.id, { crowdInfo: parentCrowdInfo })
-              console.log(`activity [${act.id}] crowdInfo updated!`)
+              log.info(`activity [${act.id}] crowdInfo updated!`)
             }
           }
         }
@@ -155,11 +157,11 @@ async function discordSetParentForThreads() {
 }
 
 async function getThreadMessages(threadId, before = null) {
-  console.log(`getting messages of threadID: ${threadId}`)
+  log.info(`getting messages of threadID: ${threadId}`)
   let url = `https://discord.com/api/v9/channels/${threadId}/messages`
   if (before) {
     url += `?before=${before}`
-    console.log(`paginated url is: ${url}`)
+    log.info(`paginated url is: ${url}`)
   }
 
   return fetch(url, {
@@ -167,7 +169,7 @@ async function getThreadMessages(threadId, before = null) {
   })
     .then((res) => res.json())
     .then((res) => {
-      console.log('Found thread activities in api: ', res)
+      log.info({ res }, 'Found thread activities in api!')
       return res
     })
 }

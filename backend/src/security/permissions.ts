@@ -470,6 +470,11 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
+      taskBatch: {
+        id: 'taskBatch',
+        allowedRoles: [roles.admin, roles.readonly],
+        allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
+      },
       noteImport: {
         id: 'noteImport',
         allowedRoles: [roles.admin],

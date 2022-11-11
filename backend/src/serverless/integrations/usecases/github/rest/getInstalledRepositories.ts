@@ -1,5 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import { createServiceChildLogger } from '../../../../../utils/logging'
 import { Repos } from '../../../types/regularTypes'
+
+const log = createServiceChildLogger('getInstalledRepositories')
 
 export const getInstalledRepositories = async (installToken: string): Promise<Repos> => {
   try {
@@ -28,7 +31,7 @@ export const getInstalledRepositories = async (installToken: string): Promise<Re
 
     return []
   } catch (err: any) {
-    console.log(err)
+    log.error(err, 'Error fetching installed repositories!')
     throw err
   }
 }
