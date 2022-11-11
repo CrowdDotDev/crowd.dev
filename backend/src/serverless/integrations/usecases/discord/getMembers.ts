@@ -6,7 +6,7 @@ import {
 } from '../../types/discordTypes'
 import { createServiceChildLogger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getMembers')
+const log = createServiceChildLogger('getDiscordMembers')
 
 async function getMembers(input: DiscordGetMembersInput): Promise<DiscordGetMembersOutput> {
   try {

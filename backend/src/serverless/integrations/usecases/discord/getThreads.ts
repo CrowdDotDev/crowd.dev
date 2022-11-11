@@ -2,7 +2,7 @@ import axios from 'axios'
 import { DiscordChannels, DiscordGetChannelsInput } from '../../types/discordTypes'
 import { createServiceChildLogger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getThreads')
+const log = createServiceChildLogger('getDiscordThreads')
 
 async function getThreads(input: DiscordGetChannelsInput): Promise<DiscordChannels> {
   try {

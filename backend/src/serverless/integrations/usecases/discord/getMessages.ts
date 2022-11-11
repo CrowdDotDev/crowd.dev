@@ -6,7 +6,7 @@ import {
 } from '../../types/discordTypes'
 import { createServiceChildLogger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getChannels')
+const log = createServiceChildLogger('getDiscordMessages')
 
 async function getMessages(input: DiscordGetMessagesInput): Promise<DiscordParsedReponse> {
   try {
@@ -60,6 +60,7 @@ async function getMessages(input: DiscordGetMessagesInput): Promise<DiscordParse
         timeUntilReset: err.response.headers['x-ratelimit-reset-after'],
       }
     }
+    log.error({ err, input }, 'Error while getting messages from Discord')
     throw err
   }
 }

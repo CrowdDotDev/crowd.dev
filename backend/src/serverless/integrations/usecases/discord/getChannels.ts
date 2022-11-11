@@ -9,7 +9,7 @@ import { createServiceChildLogger } from '../../../../utils/logging'
 import getMessages from './getMessages'
 import { timeout } from '../../../../utils/timing'
 
-const log = createServiceChildLogger('getChannels')
+const log = createServiceChildLogger('getDiscordChannels')
 
 /**
  * Try if a channel is readable
