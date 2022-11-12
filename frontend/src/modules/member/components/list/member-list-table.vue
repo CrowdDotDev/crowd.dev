@@ -165,7 +165,7 @@
                   <app-member-reach
                     :member="{
                       ...scope.row,
-                      reach: { total: scope.row.reach }
+                      reach: scope.row.reach
                     }"
                   />
                 </template>
