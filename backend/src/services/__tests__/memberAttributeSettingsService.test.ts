@@ -423,14 +423,20 @@ describe('MemberAttributeSettingService tests', () => {
       })
 
       // create predefined method should still return shared attributes `url` and `id`
-      const [idCreatedTwitter, _avatarUrlCreated, urlCreatedTwitter] = attributes
+      const [
+        idCreatedTwitter,
+        _avatarUrlCreated,
+        urlCreatedTwitter,
+        bioCreatedTwitter,
+        locationCreatedTwitter,
+      ] = attributes
 
       const [
         _idCreatedDevTo,
         _urlCreatedDevTo,
         nameCreatedDevTo,
-        bioCreatedDevTo,
-        locationCreatedDevTo,
+        _bioCreatedDevTo,
+        _locationCreatedDevTo,
       ] = attributes2
 
       const [id, url, name, bio, location] = DevtoMemberAttributes
@@ -476,7 +482,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: name.label,
         },
         {
-          id: bioCreatedDevTo.id,
+          id: bioCreatedTwitter.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -489,7 +495,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: bio.label,
         },
         {
-          id: locationCreatedDevTo.id,
+          id: locationCreatedTwitter.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
