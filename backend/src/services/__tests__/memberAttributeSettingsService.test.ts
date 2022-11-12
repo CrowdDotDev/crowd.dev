@@ -440,7 +440,12 @@ describe('MemberAttributeSettingService tests', () => {
       ] = attributes2
 
       const [id, url, name, bio, location] = DevtoMemberAttributes
-
+      console.log('urlCreatedTwitter', urlCreatedTwitter.id)
+      console.log('urlCreatedDevTo', _urlCreatedDevTo.id)
+      console.log('bioCreatedTwitter', bioCreatedTwitter.id)
+      console.log('bioCreatedDevTo', _bioCreatedDevTo.id)
+      console.log('locationCreatedTwitter', locationCreatedTwitter.id)
+      console.log('locationCreatedDevTo', _locationCreatedDevTo.id)
       const expected = [
         {
           id: idCreatedTwitter.id,
@@ -456,7 +461,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: id.label,
         },
         {
-          id: urlCreatedTwitter.id,
+          id: _urlCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -482,7 +487,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: name.label,
         },
         {
-          id: bioCreatedTwitter.id,
+          id: _bioCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -495,7 +500,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: bio.label,
         },
         {
-          id: locationCreatedTwitter.id,
+          id: _locationCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -517,7 +522,7 @@ describe('MemberAttributeSettingService tests', () => {
       expect(allAttributes.count).toBe(6)
       const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'avatarUrl', 'sourceId'])
+      expect(allAttributeNames).toEqual(['name', 'url', 'bio', 'location', 'avatarUrl', 'sourceId'])
     })
   })
   describe('create tests', () => {
