@@ -265,9 +265,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated, avatarUrlCreated, urlCreated] = attributes
+      const [idCreated, avatarUrlCreated, urlCreated, bioCreated, locationCreated] = attributes
 
-      const [id, avatarUrl, url] = TwitterMemberAttributes
+      const [id, avatarUrl, url, bio, location] = TwitterMemberAttributes
 
       const expected = [
         {
@@ -308,6 +308,32 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: url.canDelete,
           name: url.name,
           label: url.label,
+        },
+        {
+          id: bioCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: bio.show,
+          type: bio.type,
+          canDelete: bio.canDelete,
+          name: bio.name,
+          label: bio.label,
+        },
+        {
+          id: locationCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: location.show,
+          type: location.type,
+          canDelete: location.canDelete,
+          name: location.name,
+          label: location.label,
         },
       ]
 
