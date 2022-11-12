@@ -173,6 +173,9 @@ export default class ActivityService extends LoggingBase {
       }
     }
     if (IS_DEV_ENV) {
+      if (data.body === '' || data.body === undefined) {
+        return {}
+      }
       // Return a random number between 0 and 100
       const score = Math.floor(Math.random() * 100)
       let label = 'neutral'

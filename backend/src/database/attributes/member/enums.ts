@@ -12,7 +12,7 @@ export enum MemberAttributeName {
   SAMPLE = 'sample',
   JOB_TITLE = 'jobTitle',
   IS_TEAM_MEMBER = 'isTeamMember',
-  TIMEZONE = 'TIMEZONE',
+  TIMEZONE = 'timezone',
 }
 
 export const MemberAttributes = {

@@ -23,6 +23,11 @@ export interface SlackGetMembersInput {
   perPage: number | 100
 }
 
+export interface SlackGetMemberInput {
+  token: string
+  userId: string
+}
+
 export interface SlackChannel {
   id: string
   name: string
@@ -42,6 +47,7 @@ export interface SlackMessage {
   ts: string
   type: string
   text: string
+  subtype?: string
   reactions?: any
   attachments?: any
   user: string
@@ -82,4 +88,8 @@ export interface SlackGetMessagesOutput extends SlackParsedReponse {
 
 export interface SlackGetMembersOutput extends SlackParsedReponse {
   records: SlackMembers | []
+}
+
+export interface SlackGetMemberOutput extends SlackParsedReponse {
+  records: SlackMember
 }
