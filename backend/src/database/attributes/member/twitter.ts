@@ -18,6 +18,20 @@ export const TwitterMemberAttributes: Attribute[] = [
     show: false,
   },
   {
+    name: MemberAttributes[MemberAttributeName.LOCATION].name,
+    label: MemberAttributes[MemberAttributeName.LOCATION].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.BIO].name,
+    label: MemberAttributes[MemberAttributeName.BIO].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
+  {
     name: MemberAttributes[MemberAttributeName.URL].name,
     label: MemberAttributes[MemberAttributeName.URL].label,
     type: AttributeType.URL,

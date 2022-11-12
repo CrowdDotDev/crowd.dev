@@ -1,4 +1,3 @@
-import { SuperfaceClient } from '@superfaceai/one-sdk'
 import moment from 'moment'
 import lodash from 'lodash'
 import { IntegrationServiceBase } from '../integrationServiceBase'
@@ -13,10 +12,10 @@ import {
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { TwitterMemberAttributes } from '../../../../database/attributes/member/twitter'
 import { Endpoint } from '../../types/regularTypes'
-import { SocialResponse } from '../../types/superfaceTypes'
-import getFollowers from '../../usecases/social/followers'
-import findPostsByMention from '../../usecases/social/postsByMention'
-import findPostsByHashtag from '../../usecases/social/postsByHashtag'
+import { TwitterMembers, TwitterParsedPosts } from '../../types/twitterTypes'
+import getFollowers from '../../usecases/twitter/getFollowers'
+import findPostsByMention from '../../usecases/twitter/getPostsByMention'
+import findPostsByHashtag from '../../usecases/twitter/getPostsByHashtag'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { TwitterGrid } from '../../grid/twitterGrid'
@@ -62,7 +61,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const { fn, arg } = TwitterIntegrationService.getSuperfaceUsecase(
+    const { fn, arg } = TwitterIntegrationService.getUsecase(
       stream.value,
       context.pipelineData.profileId,
     )
@@ -71,13 +70,12 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ? undefined
       : moment().utc().subtract(TwitterIntegrationService.maxRetrospect, 'seconds').toISOString()
 
-    const { records, nextPage, limit, timeUntilReset } = await fn(
-      context.pipelineData.superface,
-      context.integration.token,
-      arg,
-      stream.metadata.page,
-      afterDate,
-    )
+    const { records, nextPage, limit, timeUntilReset } = await fn({
+      token: context.integration.token,
+      page: stream.metadata.page,
+      perPage: 100,
+      ...arg,
+    })
 
     const nextPageStream = nextPage
       ? { value: stream.value, metadata: { page: nextPage } }
@@ -195,7 +193,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
    * @param records List of records coming from the API
    * @returns List of activities and members
    */
-  parseFollowers(context: IStepContext, records: Array<any>): Array<AddActivitiesSingle> {
+  parseFollowers(context: IStepContext, records: TwitterMembers): Array<AddActivitiesSingle> {
     const timestampObj = context.onboarding
       ? moment('1970-01-01T00:00:00+00:00').utc()
       : moment().utc()
@@ -214,14 +212,26 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       url: `https://twitter.com/${record.username}`,
       member: {
         username: record.username,
-        reach: { [PlatformType.TWITTER]: record.followersCount },
+        reach: { [PlatformType.TWITTER]: record.public_metrics.followers_count },
         attributes: {
           [MemberAttributeName.SOURCE_ID]: {
             [PlatformType.TWITTER]: record.id,
           },
-          [MemberAttributeName.AVATAR_URL]: {
-            [PlatformType.TWITTER]: record.imageUrl,
-          },
+          ...(record.profile_image_url && {
+            [MemberAttributeName.AVATAR_URL]: {
+              [PlatformType.TWITTER]: record.profile_image_url,
+            },
+          }),
+          ...(record.location && {
+            [MemberAttributeName.LOCATION]: {
+              [PlatformType.TWITTER]: record.location,
+            },
+          }),
+          ...(record.description && {
+            [MemberAttributeName.BIO]: {
+              [PlatformType.TWITTER]: record.description,
+            },
+          }),
           [MemberAttributeName.URL]: {
             [PlatformType.TWITTER]: `https://twitter.com/${record.username}`,
           },
@@ -253,7 +263,7 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
    */
   parsePosts(
     context: IStepContext,
-    records: Array<any>,
+    records: TwitterParsedPosts,
     stream: IIntegrationStream,
   ): Array<AddActivitiesSingle> {
     return records.map((record) => {
@@ -262,23 +272,39 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
         platform: PlatformType.TWITTER,
         type: stream.value === 'mentions' ? 'mention' : 'hashtag',
         sourceId: record.id,
-        timestamp: moment(Date.parse(record.createdAt)).utc().toDate(),
+        timestamp: moment(Date.parse(record.created_at)).utc().toDate(),
         body: record.text ? record.text : '',
-        url: record.url ? record.url : '',
+        url: `https://twitter.com/i/status/${record.id}`,
         attributes: {
           attachments: record.attachments ? record.attachments : [],
+          entities: record.entities ? record.entities : [],
         },
         member: {
-          username: record.author.username,
+          username: record.member.username,
           attributes: {
             [MemberAttributeName.SOURCE_ID]: {
-              [PlatformType.TWITTER]: record.author.id,
+              [PlatformType.TWITTER]: record.member.id,
             },
             [MemberAttributeName.URL]: {
-              [PlatformType.TWITTER]: `https://twitter.com/${record.author.username}`,
+              [PlatformType.TWITTER]: `https://twitter.com/${record.member.username}`,
             },
+            ...(record.member.profile_image_url && {
+              [MemberAttributeName.AVATAR_URL]: {
+                [PlatformType.TWITTER]: record.member.profile_image_url,
+              },
+            }),
+            ...(record.member.location && {
+              [MemberAttributeName.LOCATION]: {
+                [PlatformType.TWITTER]: record.member.location,
+              },
+            }),
+            ...(record.member.description && {
+              [MemberAttributeName.BIO]: {
+                [PlatformType.TWITTER]: record.member.description,
+              },
+            }),
           },
-          reach: { [PlatformType.TWITTER]: record.author.followersCount },
+          reach: { [PlatformType.TWITTER]: record.member.public_metrics.followers_count },
         },
         score: stream.value === 'mentions' ? TwitterGrid.mention.score : TwitterGrid.hashtag.score,
         isKeyAction:
@@ -328,34 +354,28 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
   }
 
   /**
-   * Get the Superface usecase for the given endpoint with its main argument
+   * Get the usecase for the given endpoint with its main argument
    * @param stream The stream we are currently targeting
    * @param profileId The ID of the profile we are getting data for
    * @returns The function to call, as well as its main argument
    */
-  private static getSuperfaceUsecase(
+  private static getUsecase(
     stream: string,
     profileId: string,
   ): {
-    fn: (
-      client: SuperfaceClient,
-      accessToken: string,
-      arg: string,
-      page?: string,
-      afterDate?: string | undefined,
-    ) => Promise<SocialResponse>
-    arg: string
+    fn
+    arg: any
   } {
     switch (stream) {
       case 'followers':
-        return { fn: getFollowers, arg: profileId }
+        return { fn: getFollowers, arg: { profileId } }
       case 'mentions':
-        return { fn: findPostsByMention, arg: profileId }
+        return { fn: findPostsByMention, arg: { profileId } }
       default: {
         const hashtag = stream.includes('#')
           ? stream.slice(stream.indexOf('#') + 1)
           : stream.slice(stream.indexOf('/') + 1)
-        return { fn: findPostsByHashtag, arg: hashtag }
+        return { fn: findPostsByHashtag, arg: { hashtag } }
       }
     }
   }
@@ -376,7 +396,6 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
 
     context.pipelineData = {
       ...context.pipelineData,
-      superface,
       profileId: context.integration.integrationIdentifier,
     }
   }
