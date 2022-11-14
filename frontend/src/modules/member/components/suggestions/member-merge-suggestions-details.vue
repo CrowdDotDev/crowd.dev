@@ -15,13 +15,13 @@
     >
       <div class="flex mb-4">
         <app-avatar
-          :entity="props.pair[0]"
+          :entity="member"
           size="sm"
           class="mr-2"
         />
         <app-member-display-name
           custom-class="pt-2 text-gray-900"
-          :member="scope.row"
+          :member="member"
         />
         <button
           v-if="member.id === pair[1].id"

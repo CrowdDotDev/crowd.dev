@@ -1,4 +1,5 @@
 import moment from 'moment/moment'
+import { DiscordMessages, DiscordMembers, DiscordMention } from '../../types/discordTypes'
 import { DISCORD_CONFIG } from '../../../../config'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
@@ -15,10 +16,10 @@ import Operations from '../../../dbOperations/operations'
 import { DiscordGrid } from '../../grid/discordGrid'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import { Channels } from '../../types/regularTypes'
-import getChannels from '../../usecases/chat/getChannels'
-import getMembers from '../../usecases/chat/getMembers'
-import getMessages from '../../usecases/chat/getMessages'
-import getThreads from '../../usecases/chat/getThreads'
+import getChannels from '../../usecases/discord/getChannels'
+import getMembers from '../../usecases/discord/getMembers'
+import getMessages from '../../usecases/discord/getMessages'
+import getThreads from '../../usecases/discord/getThreads'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 
 /* eslint class-methods-use-this: 0 */
@@ -30,26 +31,28 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   static readonly MAX_RETROSPECT = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
+  public token: string
+
   constructor() {
     super(IntegrationType.DISCORD, 20)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
+
+    this.token = `Bot ${DISCORD_CONFIG.token}`
   }
 
   async preprocess(context: IStepContext): Promise<void> {
     const guildId = context.integration.integrationIdentifier
-    const superface = IntegrationServiceBase.superfaceClient()
 
-    const threads: Channels = await getThreads(superface, guildId, DISCORD_CONFIG.token)
-    let channelsFromDiscordAPI: Channels = await getChannels(
-      superface,
-      PlatformType.DISCORD,
-      {
-        server: guildId,
-      },
-      DISCORD_CONFIG.token,
-    )
+    const threads: Channels = await getThreads({
+      guildId,
+      token: this.token,
+    })
+    let channelsFromDiscordAPI: Channels = await getChannels({
+      guildId,
+      token: this.token,
+    })
 
     const channels = context.integration.settings.channels
       ? context.integration.settings.channels
@@ -77,7 +80,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         return acc
       }, {}),
       guildId: context.integration.integrationIdentifier,
-      superface: IntegrationServiceBase.superfaceClient(),
     }
   }
 
@@ -120,17 +122,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       retryCount++
     ) {
       try {
-        const { fn, arg } = DiscordIntegrationService.getSuperfaceUsecase(
+        const { fn, arg } = DiscordIntegrationService.getUsecase(
           stream.value,
           context.pipelineData.guildId,
         )
-        const { records, nextPage, limit, timeUntilReset } = await fn(
-          context.pipelineData.superface,
-          PlatformType.DISCORD,
-          DISCORD_CONFIG.token,
-          arg,
-          stream.metadata.page,
-        )
+        const { records, nextPage, limit, timeUntilReset } = await fn({
+          ...arg,
+          token: this.token,
+          page: stream.metadata.page,
+          perPage: 100,
+        })
 
         const nextPageStream = nextPage
           ? { value: stream.value, metadata: { page: nextPage } }
@@ -227,17 +228,17 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   parseActivities(
     stream: IIntegrationStream,
     context: IStepContext,
-    records: Array<object>,
+    records: DiscordMessages | DiscordMembers,
   ): AddActivitiesSingle[] {
     switch (stream.value) {
       case 'members':
-        return this.parseMembers(context.integration.tenantId, records)
+        return this.parseMembers(context.integration.tenantId, records as DiscordMembers)
       default:
         return this.parseMessages(
           context.pipelineData.guildId,
           context.integration.tenantId,
           context.pipelineData.channelsInfo,
-          records,
+          records as DiscordMessages,
           stream,
         )
     }
@@ -246,7 +247,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   parseMembers(tenantId: string, records: Array<any>): Array<AddActivitiesSingle> {
     // We only need the members if they are not bots
     return records.reduce((acc, record) => {
-      if (!record.isBot) {
+      if (!record.user.bot) {
+        let avatarUrl: string | boolean = false
+
+        if (record.user.avatar !== null && record.user.avatar !== undefined) {
+          avatarUrl = `https://cdn.discordapp.com/avatars/${record.user.id}/${record.user.avatar}.png`
+        }
         acc.push({
           tenant: tenantId,
           platform: PlatformType.DISCORD,
@@ -254,16 +260,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           sourceId: IntegrationServiceBase.generateSourceIdHash(
             record.id,
             'joined_guild',
-            moment(record.joinedAt).utc().unix().toString(),
+            moment(record.joined_at).utc().unix().toString(),
             PlatformType.DISCORD,
           ),
-          timestamp: moment(record.joinedAt).utc().toDate(),
+          timestamp: moment(record.joined_at).utc().toDate(),
           member: {
-            username: record.username,
+            username: record.user.username,
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.id,
               },
+              ...(avatarUrl && {
+                [MemberAttributeName.AVATAR_URL]: {
+                  [PlatformType.DISCORD]: avatarUrl,
+                },
+              }),
             },
           },
           score: DiscordGrid.join.score,
@@ -278,7 +289,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     guildId: string,
     tenantId: string,
     channelsInfo: any,
-    records: Array<any>,
+    records: DiscordMessages,
     stream: IIntegrationStream,
   ): Array<AddActivitiesSingle> {
     return records.reduce((acc, record) => {
@@ -291,19 +302,26 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       }
 
       // record.parentId means that it's a reply
-      if (record.parentId) {
-        parent = record.parentId
+      if (record.message_reference && record.message_reference.message_id) {
+        parent = record.message_reference.message_id
       }
 
-      if (!record.isBot) {
+      let avatarUrl: string | boolean = false
+      if (record.author.avatar !== null && record.author.avatar !== undefined) {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${record.author.id}/${record.author.avatar}.png`
+      }
+
+      if (!record.author.bot) {
         const activityObject = {
           tenant: tenantId,
           platform: PlatformType.DISCORD,
           type: 'message',
           sourceId: record.id,
           sourceParentId: parent,
-          timestamp: moment(record.createdAt).utc().toDate(),
-          body: record.text ? DiscordIntegrationService.removeMentions(record.text) : '',
+          timestamp: moment(record.timestamp).utc().toDate(),
+          body: record.content
+            ? DiscordIntegrationService.replaceMentions(record.content, record.mentions)
+            : '',
           url: `https://discordapp.com/channels/${guildId}/${stream.value}/${record.id}`,
           channel: channelInfo.name,
           attributes: {
@@ -317,15 +335,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
               [MemberAttributeName.SOURCE_ID]: {
                 [PlatformType.DISCORD]: record.author.id,
               },
+              ...(avatarUrl && {
+                [MemberAttributeName.AVATAR_URL]: {
+                  [PlatformType.DISCORD]: avatarUrl,
+                },
+              }),
             },
           },
           score: DiscordGrid.message.score,
           isKeyAction: DiscordGrid.message.isKeyAction,
         } as any
-
-        if (record.hasThread) {
-          activityObject.attributes.threadStarter = record.hasThread
-        }
 
         acc.push(activityObject)
       }
@@ -338,10 +357,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
    * @param text Message text
    * @returns Message text, swapping mention IDs by mentions
    */
-  private static removeMentions(text: string): string {
-    const mentionsText = text.replace(/<@!?[^>]*>/g, '@mention')
-    // Replace several occurrences of mentions by one mention
-    return mentionsText.replace(/(@mention+\s?){2,}/, '@mentions')
+  private static replaceMentions(text: string, mentions: [DiscordMention] | undefined): string {
+    if (mentions === undefined) return text
+
+    // Replace <@!123456789> by @username
+    text = text.replace(/<@!(\d+)>/g, (match, id) => {
+      const mention = mentions.find((m) => m.id === id)
+      return mention ? `@${mention.username}` : match
+    })
+    // Replace <@123456789> by @username
+    text = text.replace(/<@(\d+)>/g, (match, id) => {
+      const mention = mentions.find((m) => m.id === id)
+      return mention ? `@${mention.username}` : match
+    })
+
+    return text
   }
 
   /**
@@ -350,18 +380,18 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
    * @param guildId The ID of the profile we are getting data for
    * @returns The function to call, as well as its main argument
    */
-  private static getSuperfaceUsecase(
+  private static getUsecase(
     stream: string,
     guildId: string,
   ): {
     fn: Function
-    arg: string
+    arg: any
   } {
     switch (stream) {
       case 'members':
-        return { fn: getMembers, arg: guildId }
+        return { fn: getMembers, arg: { guildId } }
       default:
-        return { fn: getMessages, arg: stream }
+        return { fn: getMessages, arg: { channelId: stream } }
     }
   }
 }
