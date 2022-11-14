@@ -57,19 +57,6 @@ hr {
   }
 }
 
-.app-content-page {
-  @apply mt-5 p-6 bg-white overflow-y-hidden rounded;
-  border: 1px solid #e9e9e9;
-}
-
-.app-content-title {
-  margin-top: 0;
-  margin-bottom: 16px;
-  font-size: 1.5em;
-  color: rgba(0, 0, 0, 0.85);
-  font-weight: 500;
-}
-
 .el-loading-mask {
   @apply bg-transparent;
 
@@ -107,79 +94,6 @@ hr {
   stroke: #e94f2e;
 }
 
-.app-divider {
-  display: table;
-  white-space: nowrap;
-  text-align: center;
-  background: transparent;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
-  font-size: 16px;
-  margin: 16px 0;
-
-  display: block;
-  height: 1px;
-  width: 100%;
-  margin: 24px 0;
-  clear: both;
-
-  position: relative;
-  top: -0.06em;
-
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(0, 0, 0, 0.65);
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  background: #e8e8e8;
-}
-
-.app-avatar {
-  border: 1px solid #fff;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.65);
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: inline-block;
-  text-align: center;
-  background: #ccc;
-  color: #fff;
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-  vertical-align: middle;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  border-radius: 50%;
-}
-
-.app-avatar > * {
-  line-height: 32px;
-  margin-left: 1px;
-}
-
-.app-avatar.app-avatar-sm {
-  width: 24px;
-  height: 24px;
-  line-height: 24px;
-  border-radius: 50%;
-}
-
-.app-avatar.app-avatar-sm > * {
-  line-height: 24px;
-}
-
-.app-avatar img {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 .container,
 .container-fluid {
   @apply flex flex-1 mx-auto relative;
@@ -198,7 +112,8 @@ hr {
   flex-wrap: wrap;
 }
 
-[class^='text-limit'], [class*=' text-limit']{
+[class^='text-limit'],
+[class*=' text-limit'] {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -232,7 +147,7 @@ hr {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active{
+input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
   -webkit-text-fill-color: #000 !important;
 }
