@@ -89,15 +89,14 @@
         </h6>
         <div
           ref="taskBody"
-          class="text-2xs leading-4.5 text-gray-500 pt-1"
+          class="text-2xs leading-4.5 text-gray-500 pt-1 c-content"
           :class="
             displayShowMore && !showMore
               ? `text-limit-4`
               : ''
           "
-        >
-          {{ props.task.body }}
-        </div>
+          v-html="$sanitize(props.task.body)"
+        ></div>
         <div
           v-if="displayShowMore"
           class="text-2xs text-brand-500 mt-3 cursor-pointer"

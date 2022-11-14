@@ -55,19 +55,59 @@
           class="px-6"
           :task="task"
         />
-        <div
-          v-if="tasks.length === 0"
-          class="pt-3 pb-4 flex justify-center items-center"
-        >
+        <div v-if="tasks.length === 0">
           <div
-            class="ri-checkbox-multiple-blank-line text-3xl h-10 flex items-center text-gray-300"
-          ></div>
-          <div
-            class="pl-6 text-sm leading-5 italic text-gray-400"
+            v-if="suggestedTasks.length > 0"
+            class="pt-2 px-6"
           >
-            No tasks assigned to you at this moment
+            <p
+              class="text-2xs font-semibold uppercase text-gray-400 tracking-1 pb-4"
+            >
+              Task suggestions:
+            </p>
+            <div class="flex flex-wrap -mx-2">
+              <div
+                v-for="suggested of suggestedTasks"
+                :key="suggested.id"
+                class="w-full md:w-1/3 lg:w-1/3 px-2 pb-2"
+              >
+                <article
+                  class="border border-gray-200 rounded-lg p-4 h-full flex-grow"
+                >
+                  <h6
+                    class="text-2xs leading-4.5 font-semibold pb-1"
+                  >
+                    {{ suggested.name }}
+                  </h6>
+                  <div
+                    class="text-xs leading-5 text-gray-500 pb-3 c-content"
+                    v-html="$sanitize(suggested.body)"
+                  ></div>
+                  <div
+                    class="text-xs font-medium leading-5 text-brand-500 cursor-pointer"
+                    @click="addSuggested(suggested)"
+                  >
+                    + Add task
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+          <div
+            v-else
+            class="pt-3 pb-4 flex justify-center items-center"
+          >
+            <div
+              class="ri-checkbox-multiple-blank-line text-3xl h-10 flex items-center text-gray-300"
+            ></div>
+            <div
+              class="pl-6 text-sm leading-5 italic text-gray-400"
+            >
+              No tasks assigned to you at this moment
+            </div>
           </div>
         </div>
+
         <div
           v-if="tasks.length < taskCount"
           class="flex justify-center pt-8 pb-1"
@@ -123,6 +163,7 @@ const { currentUser, currentTenant } = mapGetters('auth')
 const openForm = ref(false)
 const selectedTask = ref(null)
 const tasks = ref([])
+const suggestedTasks = ref([])
 const taskCount = ref(0)
 const loading = ref(false)
 const intitialLoad = ref(false)
@@ -164,6 +205,9 @@ const storeUnsubscribe = store.subscribeAction((action) => {
   if (action.type === 'task/reloadOpenTasks') {
     fetchTasks()
   }
+  if (action.type === 'task/reloadSuggestedTasks') {
+    fetchSuggestedTasks()
+  }
   if (action.type === 'task/addTask') {
     addTask()
   }
@@ -172,7 +216,15 @@ const storeUnsubscribe = store.subscribeAction((action) => {
   }
 })
 
+const addSuggested = (task) => {
+  editTask({
+    ...task,
+    assignees: [currentUser.value]
+  })
+}
+
 onMounted(() => {
+  fetchSuggestedTasks()
   fetchTasks()
 })
 
@@ -212,10 +264,31 @@ const fetchTasks = (loadMore = false) => {
       intitialLoad.value = true
     })
 }
+
+const fetchSuggestedTasks = () => {
+  TaskService.list(
+    {
+      type: 'suggested'
+    },
+    'createdAt_DESC',
+    3,
+    0
+  )
+    .then(({ rows }) => {
+      suggestedTasks.value = rows
+    })
+    .catch(() => {
+      Message.error('There was an error loading tasks')
+    })
+}
 </script>
 
 <style>
 .widget-content {
   max-height: 420px;
+}
+
+.suggested {
+  max-width: 282px;
 }
 </style>

@@ -15,8 +15,9 @@ const fetchUser = (query, limit) => {
     0
   ).then(({ rows }) => {
     return rows.map((r) => ({
+      ...r,
       id: r.id,
-      label: r.fullName,
+      label: r.fullName
     }))
   })
 }
@@ -37,7 +38,7 @@ const fetchMembers = (query, limit) => {
     return rows.map((r) => ({
       ...r,
       id: r.id,
-      label: r.displayName,
+      label: r.displayName
     }))
   })
 }

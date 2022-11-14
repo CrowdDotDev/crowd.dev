@@ -23,9 +23,10 @@
         <h6 class="text-2xs font-semibold leading-4.5 pb-1">
           {{ task.name }}
         </h6>
-        <p class="text-xs leading-5 text-gray-600 pb-4">
-          {{ task.body }}
-        </p>
+        <div
+          class="text-xs leading-5 text-gray-600 pb-4 c-content"
+          v-html="$sanitize(task.body)"
+        ></div>
         <el-button
           class="btn btn--secondary btn--sm !py-2.5 w-full"
           :disabled="!taskCreatePermission"

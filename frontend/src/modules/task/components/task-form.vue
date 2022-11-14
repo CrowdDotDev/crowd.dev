@@ -57,13 +57,14 @@
               class="text-sm mb-1 leading-5 font-medium"
               >{{ fields.description.label }}</label
             >
-            <el-input
+            <app-editor
               id="description"
               v-model="model[fields.description.name]"
+              min-height="120px"
               autocomplete="disable-autocomplete"
               type="textarea"
-              rows="5"
-            ></el-input>
+              class="border border-gray-300 rounded-md pt-2 px-3 pb-10"
+            ></app-editor>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
                 <i
@@ -93,9 +94,12 @@
               placeholder="Select option(s)"
               :in-memory-filter="false"
             >
-              <template #option="{item}">
-                <div class="flex items-center">
-                  <app-avatar size="xxs" :entity="item"></app-avatar>
+              <template #option="{ item }">
+                <div class="flex items-center -mx-2">
+                  <app-avatar
+                    size="xxs"
+                    :entity="item"
+                  ></app-avatar>
                   <p class="pl-2">{{ item.displayName }}</p>
                 </div>
               </template>
@@ -130,10 +134,16 @@
               placeholder="Select assignee(s)"
               :in-memory-filter="false"
             >
-              <template #option="{item}">
-                <div class="flex items-center">
-                  <app-avatar size="xxs" :entity="item"></app-avatar>
-                  <p class="pl-2">{{ item.displayName }}</p>
+              <template #option="{ item }">
+                <div class="flex items-center -mx-2">
+                  <app-avatar
+                    size="xxs"
+                    :entity="{
+                      displayName: item.fullName,
+                      avatar: item.avatar
+                    }"
+                  ></app-avatar>
+                  <p class="pl-2">{{ item.fullName }}</p>
                 </div>
               </template>
             </app-autocomplete-many-input>
@@ -235,7 +245,8 @@ import { TaskService } from '@/modules/task/task-service'
 import AppAutocompleteManyInput from '@/shared/form/autocomplete-many-input'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import AppDrawer from '@/shared/drawer/drawer'
-import AppAvatar from "@/shared/avatar/avatar";
+import AppAvatar from '@/shared/avatar/avatar'
+import AppEditor from '@/shared/form/editor'
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
