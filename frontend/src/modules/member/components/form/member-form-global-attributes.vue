@@ -38,6 +38,7 @@
                   :key="typeOption.value"
                   :label="typeOption.label"
                   :value="typeOption.value"
+                  @mouseleave="onSelectMouseLeave"
                 />
               </el-select>
             </el-form-item>
@@ -123,6 +124,7 @@ import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes.js'
 import cloneDeep from 'lodash/cloneDeep'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({

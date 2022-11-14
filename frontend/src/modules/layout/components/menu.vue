@@ -56,7 +56,7 @@
         <!-- Menu items -->
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -77,7 +77,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -105,7 +105,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -132,7 +132,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -164,7 +164,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -192,7 +192,7 @@
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -217,7 +217,7 @@
         <div class="grow"></div>
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content
@@ -238,7 +238,7 @@
         </el-tooltip>
         <el-tooltip
           :disabled="!isCollapsed"
-          hide-after="50"
+          :hide-after="50"
           effect="dark"
           placement="right"
           raw-content

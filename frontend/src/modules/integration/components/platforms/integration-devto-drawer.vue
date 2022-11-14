@@ -10,7 +10,7 @@
   >
     <template #content>
       <el-form class="form integration-devto-form">
-        <div class="flex flex-col">
+        <div class="flex flex-col gap-2 items-start">
           <span class="text-sm font-medium"
             >Track organization articles</span
           >
@@ -22,12 +22,15 @@
           <el-form-item
             v-for="org in organizations"
             :key="org.id"
+            class="mb-4 w-full"
             :class="{
               'is-error': org.touched && !org.valid,
               'is-success': org.touched && org.valid
             }"
           >
-            <div class="flex flex-row items-center w-full">
+            <div
+              class="flex flex-row items-center w-full gap-4"
+            >
               <el-input
                 id="devOrganization"
                 v-model="org.username"
@@ -45,11 +48,15 @@
                   ></div>
                 </template>
               </el-input>
-              <i
+              <el-button
                 v-if="!isLastOrganization"
-                class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
+                class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeOrganization(org.id)"
-              />
+              >
+                <i
+                  class="ri-delete-bin-line text-lg text-black"
+                ></i>
+              </el-button>
             </div>
             <span
               v-if="org.touched && !org.valid"
@@ -57,10 +64,10 @@
               >Organization slug is not valid</span
             >
           </el-form-item>
-          <a
-            class="cursor-pointer text-sm font-medium text-brand-500"
+          <el-button
+            class="btn btn-link btn-link--primary"
             @click="addNewOrganization"
-            >+ Add organization link</a
+            >+ Add organization link</el-button
           >
           <span class="text-sm font-medium mt-8"
             >Track user articles</span
@@ -74,12 +81,15 @@
           <el-form-item
             v-for="user in users"
             :key="user.id"
+            class="mb-4 w-full"
             :class="{
               'is-error': user.touched && !user.valid,
               'is-success': user.touched && user.valid
             }"
           >
-            <div class="flex flex-row items-center w-full">
+            <div
+              class="flex flex-row items-center w-full gap-4"
+            >
               <el-input
                 id="devUser"
                 v-model="user.username"
@@ -96,11 +106,15 @@
                   ></div>
                 </template>
               </el-input>
-              <i
+              <el-button
                 v-if="!isLastUser"
-                class="cursor-pointer ml-4 ri-delete-bin-line text-gray-600 text-base hover:text-gray-900"
+                class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeUser(user.id)"
-              />
+              >
+                <i
+                  class="ri-delete-bin-line text-lg text-black"
+                ></i>
+              </el-button>
             </div>
             <span
               v-if="user.touched && !user.valid"
@@ -108,10 +122,10 @@
               >User slug is not valid</span
             >
           </el-form-item>
-          <a
-            class="cursor-pointer text-sm font-medium text-brand-500"
+          <el-button
+            class="btn btn-link btn-link--primary"
             @click="addNewUser"
-            >+ Add user link</a
+            >+ Add user link</el-button
           >
         </div>
       </el-form>

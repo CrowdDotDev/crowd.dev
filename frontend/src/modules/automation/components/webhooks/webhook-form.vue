@@ -48,6 +48,7 @@
                     'entities.automation.triggers.new_activity'
                   )
                 "
+                @mouseleave="onSelectMouseLeave"
               />
               <el-option
                 key="new_member"
@@ -57,6 +58,7 @@
                     'entities.automation.triggers.new_member'
                   )
                 "
+                @mouseleave="onSelectMouseLeave"
               />
             </el-select>
           </el-form-item>
@@ -83,6 +85,7 @@
                       :key="platform.value"
                       :value="platform.value"
                       :label="platform.label"
+                      @mouseleave="onSelectMouseLeave"
                     />
                   </el-select>
                 </el-form-item>
@@ -103,6 +106,7 @@
                       :key="platform.value"
                       :value="platform.value"
                       :label="platform.label"
+                      @mouseleave="onSelectMouseLeave"
                     />
                   </el-select>
                 </el-form-item>
@@ -110,7 +114,6 @@
               <el-form-item label="Including keyword(s)">
                 <app-keywords-input
                   v-model="model.settings.keywords"
-                  class="w-full"
                 />
               </el-form-item>
               <el-checkbox
@@ -145,6 +148,7 @@
                     :key="platform.value"
                     :value="platform.value"
                     :label="platform.label"
+                    @mouseleave="onSelectMouseLeave"
                   />
                 </el-select>
               </el-form-item>
@@ -229,6 +233,7 @@ import integrationsJson from '@/jsons/integrations.json'
 import activityTypesJson from '@/jsons/activity-types.json'
 import UrlField from '@/shared/fields/url-field'
 import isEqual from 'lodash/isEqual'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const { fields } = AutomationModel
 const formSchema = new FormSchema([
@@ -384,7 +389,9 @@ export default {
 
     doCancel() {
       this.$emit('cancel')
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

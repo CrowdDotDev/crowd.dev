@@ -11,21 +11,20 @@
   >
     <template #content>
       <el-form
+        label-position="top"
         class="form integration-twitter-form"
         @submit.prevent
       >
-        <span class="block text-sm font-medium">{{
-          hashtagField.label
-        }}</span>
-        <el-form-item>
+        <el-form-item :label="hashtagField.label">
           <el-input
             v-model="model.hashtag"
+            clearable
             class="hashtag-input"
           >
-            <template #prefix>#</template>
+            <template #prefix><span>#</span></template>
           </el-input>
 
-          <div class="app-form-hint leading-tight mt-1">
+          <div class="app-form-hint leading-tight mt-2">
             Tip: Choose a hashtag that's specific to your
             company/community for better data
           </div>

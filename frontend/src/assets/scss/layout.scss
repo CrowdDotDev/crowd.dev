@@ -10,34 +10,14 @@ body {
   max-height: 100vh;
 }
 
-.el-header .el-dropdown-link-body {
-  cursor: pointer;
-  height: 60px;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.el-header .el-dropdown-link-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.el-header .i18n-select {
-  margin-right: 24px;
-}
-
+// Menu
 .el-menu-item .el-menu-tooltip__trigger {
+  @apply items-center justify-center flex;
   width: 58px;
   left: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   margin-left: -12px;
 }
-
+// Popper
 .el-popper__arrow {
   display: none;
 }
@@ -46,15 +26,16 @@ body {
   @apply font-medium h-6 px-1.5 bg-gray-900 border-none rounded-md flex items-center;
 }
 
+// Overlay
+.el-overlay {
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.15);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+// Divider
 hr {
   @apply border-t;
   border-color: #e9e9e9;
-}
-
-@media (max-width: 576px) {
-  .hide-xs {
-    display: none;
-  }
 }
 
 .el-loading-mask {
@@ -92,20 +73,6 @@ hr {
 
 .el-loading-spinner .path {
   stroke: #e94f2e;
-}
-
-.container,
-.container-fluid {
-  @apply flex flex-1 mx-auto relative;
-  max-width: 800px;
-
-  @screen lg {
-    @apply px-8;
-  }
-}
-
-.container-fluid {
-  @apply max-w-full;
 }
 
 .el-row {

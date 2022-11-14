@@ -7,6 +7,7 @@
       :key="index"
       :label="item.label"
       :value="item.value"
+      @mouseleave="onSelectMouseLeave"
     >
     </el-option>
   </el-select>
@@ -14,6 +15,7 @@
 
 <script>
 import { MemberModel } from '@/modules/member/member-model'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const { fields } = MemberModel
 
@@ -42,6 +44,9 @@ export default {
         this.$emit('update:modelValue', newValue.split('-'))
       }
     }
+  },
+  methods: {
+    onSelectMouseLeave
   }
 }
 </script>

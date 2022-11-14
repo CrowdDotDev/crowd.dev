@@ -48,7 +48,7 @@
         <el-dropdown-menu class="w-42">
           <!-- all platforms -->
           <el-dropdown-item
-            :class="{ 'bg-brand-25': platform === 'all' }"
+            :class="{ 'bg-brand-50': platform === 'all' }"
             @click="setPlatform('all')"
           >
             All platforms
@@ -61,7 +61,7 @@
             :key="integration"
             :divided="ii === 0"
             :class="{
-              'bg-brand-25': platform === integration
+              'bg-brand-50': platform === integration
             }"
             @click="setPlatform(integration)"
             >{{ platformDetails(integration).name }}

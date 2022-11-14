@@ -18,6 +18,7 @@
               :key="integration.id"
               :value="integration.platform"
               :label="integration.label"
+              @mouseleave="onSelectMouseLeave"
             ></el-option>
           </el-select>
         </template>
@@ -96,7 +97,7 @@ import integrationsJson from '@/jsons/integrations.json'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 import AppActivityContent from '@/modules/activity/components/activity-content'
-
+import { onSelectMouseLeave } from '@/utils/select'
 import {
   defineProps,
   computed,
@@ -106,7 +107,6 @@ import {
   onMounted,
   watch
 } from 'vue'
-
 import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import { formatDateToTimeAgo } from '@/utils/date'
@@ -257,13 +257,13 @@ onMounted(async () => {
 .member-view-activities {
   .el-input-group__append {
     @apply bg-white;
+
+    .el-select .el-input .el-input__wrapper {
+      border-radius: 0 4px 4px 0 !important;
+    }
   }
   .activity-header {
     @apply max-w-full overflow-visible;
   }
-}
-.member-view-activities-search .el-input-group__append,
-.el-select .el-input .el-input__wrapper {
-  border-radius: 0 4px 4px 0 !important;
 }
 </style>

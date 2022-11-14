@@ -22,12 +22,15 @@
         :key="item.label"
         :value="item.value"
         :label="item.label"
+        @mouseleave="onSelectMouseLeave"
       ></el-option>
     </el-select>
   </div>
 </template>
 
 <script>
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'DateRangeSelect',
   props: {
@@ -88,7 +91,9 @@ export default {
           ...(item ? { dateRange: item } : null)
         }
       ])
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

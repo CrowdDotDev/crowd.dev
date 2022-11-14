@@ -35,6 +35,7 @@
               :key="option.value"
               :label="option.label"
               :value="option.value"
+              @mouseleave="onSelectMouseLeave"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -120,6 +121,7 @@ import { i18n } from '@/i18n'
 import Message from '@/shared/message/message'
 import config from '@/config'
 import isEqual from 'lodash/isEqual'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const { fields } = UserModel
 const formSchema = new FormSchema([
@@ -206,7 +208,9 @@ export default {
 
     i18n(code) {
       return i18n(code)
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

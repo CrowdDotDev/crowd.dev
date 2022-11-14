@@ -17,7 +17,7 @@
           "
           class="border border-gray-300 rounded-md pt-2 px-3 pb-10"
           :class="{
-            'border-gray-900': noteEditorFocused,
+            'border-gray-600': noteEditorFocused,
             'hover:border-gray-400': !noteEditorFocused
           }"
           @focus="noteEditorFocused = true"

@@ -76,6 +76,7 @@
             :value="integration.value"
             :label="integration.label"
             class="px-3 py-2 h-10 platform-item"
+            @mouseleave="onSelectMouseLeave"
           >
             <div class="flex items-center h-6">
               <el-checkbox
@@ -173,6 +174,7 @@ import config from '@/config'
 import integrationsJsonArray from '@/jsons/integrations.json'
 import onboardPlatforms from '@/jsons/onboard-platforms.json'
 import tenantCommunitySize from '@/jsons/tenant-community-size.json'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const { fields } = TenantModel
 const formSchema = new FormSchema([
@@ -261,7 +263,9 @@ export default {
           this.loading = false
           this.$emit('saved')
         })
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>
@@ -270,9 +274,6 @@ export default {
 .platform-item {
   &::after {
     display: none;
-  }
-  &.selected {
-    background: #fdedea !important;
   }
 }
 </style>

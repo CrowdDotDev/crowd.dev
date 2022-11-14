@@ -19,6 +19,7 @@
         v-for="item in granularityOptions"
         :key="item.name"
         :value="item.name"
+        @mouseleave="onSelectMouseLeave"
         >{{ item.name }}</el-option
       >
     </el-select>
@@ -27,6 +28,8 @@
 
 <script>
 import { GRANULARITIES } from '@cubejs-client/vue3'
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'GranularitySelect',
   props: {
@@ -63,7 +66,9 @@ export default {
           dateRange: this.timeDimensions[0]['dateRange']
         }
       ])
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

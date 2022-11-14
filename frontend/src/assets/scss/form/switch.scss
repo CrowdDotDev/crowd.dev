@@ -1,6 +1,10 @@
 .el-switch {
-  --el-switch-on-color: #e94f2e; // brand-500
+  --el-switch-on-color: #e94f2e; // Brand-500
   --el-switch-off-color: #e5e7eb; // Gray-200
+
+  &:hover {
+    --el-switch-off-color: #d1d5db; // Gray-300
+  }
 
   @apply flex grow justify-between items-center ml-4 cursor-pointer;
 
