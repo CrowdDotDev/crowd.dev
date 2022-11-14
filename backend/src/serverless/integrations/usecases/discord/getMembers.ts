@@ -4,13 +4,13 @@ import {
   DiscordGetMembersOutput,
   DiscordMembers,
 } from '../../types/discordTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { Logger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getDiscordMembers')
-
-async function getMembers(input: DiscordGetMembersInput): Promise<DiscordGetMembersOutput> {
+async function getMembers(
+  input: DiscordGetMembersInput,
+  logger: Logger,
+): Promise<DiscordGetMembersOutput> {
   try {
-    log.info({ input }, 'Getting members from Discord')
     let url = `https://discord.com/api/v10/guilds/${input.guildId}/members?limit=${input.perPage}`
     if (input.page !== undefined && input.page !== '') {
       url += `&after=${input.page}`
@@ -36,7 +36,7 @@ async function getMembers(input: DiscordGetMembersInput): Promise<DiscordGetMemb
     }
   } catch (err) {
     if (err.response.status === 429) {
-      log.warn(
+      logger.warn(
         `Rate limit exceeded in Get Members. Wait value in header is ${err.response.headers['x-ratelimit-reset-after']}`,
       )
       return {
@@ -46,7 +46,7 @@ async function getMembers(input: DiscordGetMembersInput): Promise<DiscordGetMemb
         timeUntilReset: err.response.headers['x-ratelimit-reset-after'],
       }
     }
-    log.error({ err, input }, 'Error while getting members from Discord')
+    logger.error({ err, input }, 'Error while getting members from Discord')
     throw err
   }
 }

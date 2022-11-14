@@ -5,11 +5,9 @@ import {
   DiscordGetChannelsInput,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
 import getMessages from './getMessages'
 import { timeout } from '../../../../utils/timing'
-
-const log = createServiceChildLogger('getDiscordChannels')
+import { Logger } from '../../../../utils/logging'
 
 /**
  * Try if a channel is readable
@@ -17,9 +15,9 @@ const log = createServiceChildLogger('getDiscordChannels')
  * @param channel Channel ID
  * @returns Limit if the channel is readable, false otherwise
  */
-async function tryChannel(input: DiscordGetMessagesInput): Promise<any> {
+async function tryChannel(input: DiscordGetMessagesInput, logger: Logger): Promise<any> {
   try {
-    const result = await getMessages(input)
+    const result = await getMessages(input, logger, false)
     if (result.limit) {
       return result.limit
     }
@@ -31,6 +29,7 @@ async function tryChannel(input: DiscordGetMessagesInput): Promise<any> {
 
 async function getChannels(
   input: DiscordGetChannelsInput,
+  logger: Logger,
   tryChannels = true,
 ): Promise<DiscordChannels> {
   try {
@@ -48,12 +47,15 @@ async function getChannels(
     if (tryChannels) {
       const out: DiscordChannels = []
       for (const channel of result) {
-        const limit = await tryChannel({
-          channelId: channel.id,
-          token: input.token,
-          perPage: 1,
-          page: undefined,
-        })
+        const limit = await tryChannel(
+          {
+            channelId: channel.id,
+            token: input.token,
+            perPage: 1,
+            page: undefined,
+          },
+          logger,
+        )
         if (limit) {
           const toOut: DiscordChannel = {
             name: channel.name,
@@ -73,7 +75,7 @@ async function getChannels(
       id: c.id,
     }))
   } catch (err) {
-    log.error({ err, input }, 'Error while getting channels from Discord')
+    logger.error({ err, input }, 'Error while getting channels from Discord')
     throw err
   }
 }
