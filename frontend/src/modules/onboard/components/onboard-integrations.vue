@@ -99,10 +99,10 @@
 </template>
 
 <script>
-import integrations from '@/jsons/integrations.json'
 import { mapActions, mapGetters } from 'vuex'
 import AppOnboardIntegrationsConnect from '@/modules/onboard/components/onboard-integrations-connect'
 import { TenantService } from '@/modules/tenant/tenant-service'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppOnboardIntegrations',
@@ -123,9 +123,9 @@ export default {
     ]),
     ...mapGetters('auth', ['currentTenant']),
     activeIntegrations() {
-      return integrations
-        .filter((integration) => integration.active)
-        .map((i) => this.mapper(i))
+      return CrowdIntegrations.mappedEnabledConfigs(
+        this.$store
+      )
     }
   },
   mounted() {
@@ -170,12 +170,6 @@ export default {
       'doGithubConnect'
     ]),
     ...mapActions('auth', ['doFinishOnboard']),
-    mapper(integration) {
-      return {
-        ...integration,
-        ...this.findByPlatform(integration.platform)
-      }
-    },
     finish() {
       if (this.count > 0) {
         this.doFinishOnboard()

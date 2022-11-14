@@ -18,7 +18,6 @@ import ViewItemRelationToOne from '@/shared/view/view-item-relation-to-one.vue'
 import ViewItemRelationToMany from '@/shared/view/view-item-relation-to-many.vue'
 import ListItemRelationToOne from '@/shared/list/list-item-relation-to-one.vue'
 import ListItemRelationToMany from '@/shared/list/list-item-relation-to-many.vue'
-import FilterPreview from '@/shared/filter/filter-preview.vue'
 import FilterDropdown from '@/shared/filter/components/filter-dropdown.vue'
 import FilterSearch from '@/shared/filter/components/type/filter-type-search'
 import FilterList from '@/shared/filter/components/filter-list.vue'
@@ -31,7 +30,6 @@ import FilterTypeBoolean from '@/shared/filter/components/type/filter-type-boole
 import FilterTypeNumber from '@/shared/filter/components/type/filter-type-number'
 import FilterTypeString from '@/shared/filter/components/type/filter-type-string'
 import FilterTypeDate from '@/shared/filter/components/type/filter-type-date'
-import FilterToggle from '@/shared/filter/filter-toggle.vue'
 import Avatar from '@/shared/avatar/avatar.vue'
 import SquaredAvatar from '@/shared/avatar/squared-avatar.vue'
 import Alert from '@/shared/alert/alert.vue'
@@ -72,7 +70,6 @@ export default {
     'app-list-item-relation-to-one': ListItemRelationToOne,
     'app-list-item-relation-to-many':
       ListItemRelationToMany,
-    'app-filter-preview': FilterPreview,
     'app-filter-list': FilterList,
     'app-filter-type-select': FilterTypeSelect,
     'app-filter-type-select-multi': FilterTypeSelectMulti,
@@ -85,7 +82,6 @@ export default {
     'app-filter-type-date': FilterTypeDate,
     'app-filter-search': FilterSearch,
     'app-filter-dropdown': FilterDropdown,
-    'app-filter-toggle': FilterToggle,
     'app-avatar': Avatar,
     'app-squared-avatar': SquaredAvatar,
     'app-alert': Alert,

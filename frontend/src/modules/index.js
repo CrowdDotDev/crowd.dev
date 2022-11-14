@@ -6,9 +6,7 @@ import layout from '@/modules/layout/layout-module'
 import dashboard from '@/modules/dashboard/dashboard-module'
 import onboard from '@/modules/onboard/onboard-module'
 import tenant from '@/modules/tenant/tenant-module'
-import plan from '@/modules/plan/plan-module'
 import settings from '@/modules/settings/settings-module'
-import auditLog from '@/modules/audit-log/audit-log-module'
 import integration from '@/modules/integration/integration-module'
 import member from '@/modules/member/member-module'
 import tag from '@/modules/tag/tag-module'
@@ -30,8 +28,6 @@ const modules = {
   settings,
   auth,
   tenant,
-  plan,
-  auditLog,
   layout,
   integration,
   member,

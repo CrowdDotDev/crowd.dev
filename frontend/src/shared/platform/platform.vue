@@ -60,7 +60,7 @@ export default {
 
 <script setup>
 import { defineProps, computed } from 'vue'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const props = defineProps({
   platform: {
@@ -90,9 +90,7 @@ const props = defineProps({
 })
 
 const imageProperties = computed(() => {
-  return integrationsJsonArray.find(
-    (p) => p.platform === props.platform
-  )
+  return CrowdIntegrations.getConfig(props.platform)
 })
 
 const trackClick = (channel) => {

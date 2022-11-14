@@ -7,22 +7,24 @@ import {
   IStepContext,
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
+import { SlackMessages } from '../../types/slackTypes'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../../database/attributes/member/slack'
 import { Channels } from '../../types/regularTypes'
-import getChannels from '../../usecases/chat/getChannels'
+import getChannels from '../../usecases/slack/getChannels'
 import { Thread } from '../../types/iteratorTypes'
-import getMembers from '../../usecases/chat/getMembers'
-import getMessagesThreads from '../../usecases/chat/getMessagesThreads'
-import getMessages from '../../usecases/chat/getMessages'
+import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
+import getMessages from '../../usecases/slack/getMessages'
+import getTeam from '../../usecases/slack/getTeam'
 import { timeout } from '../../../../utils/timing'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { SlackGrid } from '../../grid/slackGrid'
 import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 import Operations from '../../../dbOperations/operations'
+import getMember from '../../usecases/slack/getMember'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -40,13 +42,9 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const superface = IntegrationServiceBase.superfaceClient()
-
     let channelsFromSlackAPI: Channels = await getChannels(
-      superface,
-      PlatformType.SLACK,
-      { types: ['public'] },
-      context.integration.token,
+      { token: context.integration.token },
+      this.logger(context),
     )
 
     const channels = context.integration.settings.channels
@@ -60,12 +58,15 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       return c
     })
 
+    const team = await getTeam({ token: context.integration.token }, this.logger(context))
+    const teamUrl = team.url
+
     const members = context.integration.settings.members ? context.integration.settings.members : {}
 
     context.pipelineData = {
-      superface,
       members,
       channels: channelsFromSlackAPI,
+      teamUrl,
       channelsInfo: channelsFromSlackAPI.reduce((acc, channel) => {
         acc[channel.id] = {
           name: channel.name,
@@ -84,7 +85,6 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
     return context.pipelineData.channels
       .map((c) => c.id)
-      .concat(['members'])
       .map((c) => ({
         value: c,
         metadata: { page: '' },
@@ -97,15 +97,16 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     await timeout(1000)
 
-    const { fn, arg } = SlackIntegrationService.getSuperfaceUsecase(stream)
+    const { fn, arg } = this.getUsecase(stream)
 
     const { records, nextPage, limit, timeUntilReset } = await fn(
-      context.pipelineData.superface,
-      PlatformType.SLACK,
-      context.integration.token,
-      arg,
-      stream.metadata.page,
-      200,
+      {
+        token: context.integration.token,
+        ...arg,
+        page: stream.metadata.page,
+        perPage: 200,
+      },
+      this.logger(context),
     )
 
     const nextPageStream: IIntegrationStream = nextPage
@@ -122,11 +123,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const { activities, additionalStreams } = await SlackIntegrationService.parseActivities(
-      records,
-      stream,
-      context,
-    )
+    const { activities, additionalStreams } = await this.parseActivities(records, stream, context)
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
     return {
@@ -156,32 +153,85 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     })
   }
 
-  private static async parseActivities(
+  private async parseActivities(
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
     switch (stream.value) {
-      case 'members':
-        const parseMembersResult = await this.parseMembers(records, context)
-
-        return {
-          activities: parseMembersResult.activities,
-          additionalStreams: parseMembersResult.additionalStreams,
-        }
-
       case 'threads':
-        const parseMessagesInThreadsResult = this.parseMessagesInThreads(records, stream, context)
+        const parseMessagesInThreadsResult = await this.parseMessagesInThreads(
+          records,
+          stream,
+          context,
+        )
         return {
           activities: parseMessagesInThreadsResult.activities,
           additionalStreams: parseMessagesInThreadsResult.additionalStreams,
         }
       default:
-        const parseMessagesResult = this.parseMessages(records, stream, context)
+        const parseMessagesResult = await this.parseMessages(records, stream, context)
         return {
           activities: parseMessagesResult.activities,
           additionalStreams: parseMessagesResult.additionalStreams,
         }
+    }
+  }
+
+  /**
+   * Get the URL for a Slack message
+   * @param stream Stream we are parsing
+   * @param pipelineData Pipeline data
+   * @param record Message record
+   * @returns Return the url: workspaceUrl + channelUrl + messageUrl
+   */
+  private static getUrl(stream, pipelineData, record) {
+    const channelId = stream.value === 'threads' ? stream.metadata.channelId : stream.value
+    return `${pipelineData.teamUrl}archives/${channelId}/p${record.ts.replace('.', '')}`
+  }
+
+  private async parseMemberAndUpdateContext(context, userId): Promise<any> {
+    if (context.pipelineData.members[userId]) {
+      if (context.pipelineData.members[userId] === 'bot') {
+        return { member: undefined, context }
+      }
+      return { member: { username: context.pipelineData.members[userId] }, context }
+    }
+    const memberResponse = await getMember(
+      { token: context.integration.token, userId },
+      this.logger(context),
+    )
+    const record = memberResponse.records
+    const member = {
+      displayName: record.profile.real_name,
+      username: record.name,
+      email: record.profile.email,
+      attributes: {
+        [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.SLACK]: record.id,
+        },
+        ...(record.profile.image_72 && {
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.SLACK]: record.profile.image_72,
+          },
+        }),
+        ...(record.tz_label && {
+          [MemberAttributeName.TIMEZONE]: {
+            [PlatformType.SLACK]: record.tz_label,
+          },
+        }),
+        ...(record.profile.title && {
+          [MemberAttributeName.JOB_TITLE]: {
+            [PlatformType.SLACK]: record.profile.title,
+          },
+        }),
+      },
+    }
+
+    context.pipelineData.members[userId] = record.is_bot ? 'bot' : member.username
+    return {
+      member: record.is_bot ? undefined : member,
+      context,
     }
   }
 
@@ -192,51 +242,63 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param context
    * @returns List of activities and members
    */
-  private static parseMessages(
-    records: Array<any>,
+  private async parseMessages(
+    records: SlackMessages,
     stream: IIntegrationStream,
     context: IStepContext,
-  ): { activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] } {
+  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
     const newStreams: IIntegrationStream[] = []
+    const activities: AddActivitiesSingle[] = []
+    for (const record of records) {
+      const newMemberContext = await this.parseMemberAndUpdateContext(context, record.user)
+      const member = newMemberContext.member
 
-    const activities = records.reduce((acc, record) => {
-      if (!record.isBot && context.pipelineData.members[record.author?.id]) {
-        const body = record.text
+      if (member !== undefined) {
+        context = newMemberContext.context
+        let body = record.text
           ? SlackIntegrationService.removeMentions(record.text, context.pipelineData)
           : ''
-        acc.push({
+
+        let activityType
+        let score
+        let isKeyAction
+        if (record.subtype === 'channel_join') {
+          activityType = 'channel_joined'
+          score = SlackGrid.join.score
+          isKeyAction = SlackGrid.join.isKeyAction
+          body = undefined
+        } else {
+          activityType = 'message'
+          score = SlackGrid.message.score
+          isKeyAction = SlackGrid.message.isKeyAction
+        }
+        activities.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
-          type: 'message',
-          sourceId: record.id,
+          type: activityType,
+          sourceId: record.ts,
           sourceParentId: '',
-          timestamp: moment(record.createdAt).utc().toDate(),
+          timestamp: moment(parseInt(record.ts, 10) * 1000)
+            .utc()
+            .toDate(),
           body,
-          url: record.url ? record.url : '',
+          url: SlackIntegrationService.getUrl(stream, context.pipelineData, record),
           channel: context.pipelineData.channelsInfo[stream.value].name,
           attributes: {
             thread: false,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
-          member: {
-            username: context.pipelineData.members[record.author.id],
-            attributes: {
-              [MemberAttributeName.SOURCE_ID]: {
-                [PlatformType.SLACK]: record.author.id,
-              },
-            },
-          },
-          score: SlackGrid.message.score,
-          isKeyAction: SlackGrid.message.isKeyAction,
+          score,
+          isKeyAction,
+          member,
         })
-
-        if (record.hasThread) {
+        if (record.thread_ts) {
           newStreams.push({
             value: 'threads',
             metadata: {
               page: '',
-              threadId: record.threadId,
+              threadId: record.thread_ts,
               channel: context.pipelineData.channelsInfo[stream.value].name,
               channelId: stream.value,
               placeholder: body,
@@ -245,9 +307,8 @@ export class SlackIntegrationService extends IntegrationServiceBase {
           })
         }
       }
-      return acc
-    }, [])
-
+    }
+    await SlackIntegrationService.updateMembers(context)
     return {
       activities,
       additionalStreams: newStreams,
@@ -261,26 +322,32 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param context
    * @returns List of activities and members
    */
-  private static parseMessagesInThreads(
-    records: any[],
+  private async parseMessagesInThreads(
+    records: SlackMessages,
     stream: IIntegrationStream,
     context: IStepContext,
-  ): { activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] } {
+  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
     const threadInfo = stream.metadata
-    const activities = records.reduce((acc, record) => {
-      if (!record.isBot && context.pipelineData.members[record.author.id]) {
+    const activities: AddActivitiesSingle[] = []
+    for (const record of records) {
+      const newMemberContext = await this.parseMemberAndUpdateContext(context, record.user)
+      const member = newMemberContext.member
+      context = newMemberContext.context
+      if (member !== undefined) {
         const body = record.text
           ? SlackIntegrationService.removeMentions(record.text, context.pipelineData)
           : ''
-        acc.push({
+        activities.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.SLACK,
           type: 'message',
-          sourceId: record.id,
+          sourceId: record.ts,
           sourceParentId: threadInfo.threadId,
-          timestamp: moment.unix(record.createdAt).utc().toDate(),
+          timestamp: moment(parseInt(record.ts, 10) * 1000)
+            .utc()
+            .toDate(),
           body,
-          url: record.url ? record.url : '',
+          url: SlackIntegrationService.getUrl(stream, context.pipelineData, record),
           channel: threadInfo.channel,
           attributes: {
             thread: {
@@ -290,21 +357,13 @@ export class SlackIntegrationService extends IntegrationServiceBase {
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
           },
-          member: {
-            username: context.pipelineData.members[record.author.id],
-            attributes: {
-              [MemberAttributeName.SOURCE_ID]: {
-                [PlatformType.SLACK]: record.author.id,
-              },
-            },
-          },
+          member,
           score: SlackGrid.message.score,
           isKeyAction: SlackGrid.message.isKeyAction,
         })
       }
-      return acc
-    }, [])
-
+    }
+    await SlackIntegrationService.updateMembers(context)
     return {
       activities,
       additionalStreams: [],
@@ -329,57 +388,6 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     }
 
     return text
-  }
-
-  /**
-   * Map the members records to the format of the message to add activities and members
-   * @param records List of records coming from the API
-   * @param context
-   * @returns List of activities and members
-   */
-  private static async parseMembers(
-    records: any[],
-    context: IStepContext,
-  ): Promise<{ activities: AddActivitiesSingle[]; additionalStreams: IIntegrationStream[] }> {
-    // We only need the members if they are not bots
-    const activities = records.reduce((acc, record) => {
-      if (
-        !(
-          record.isBot ||
-          record.username === 'Slackbot' ||
-          record.id in context.pipelineData.members
-        )
-      ) {
-        context.pipelineData.members[record.id] = record.username
-        acc.push({
-          tenant: context.integration.tenantId,
-          platform: PlatformType.SLACK,
-          type: 'channel_joined',
-          sourceId: record.id,
-          timestamp: context.onboarding
-            ? moment('1970-01-01T00:00:00+00:00').utc().toDate()
-            : moment().utc().toDate(),
-          member: {
-            username: record.username,
-            attributes: {
-              [MemberAttributeName.SOURCE_ID]: {
-                [PlatformType.SLACK]: record.id,
-              },
-            },
-          },
-          score: SlackGrid.join.score,
-          isKeyAction: SlackGrid.join.isKeyAction,
-        })
-      }
-      return acc
-    }, [])
-
-    // Call the updateMembers. This needs to happen synchronously every time
-    await this.updateMembers(context)
-    return {
-      activities,
-      additionalStreams: [],
-    }
   }
 
   /**
@@ -439,21 +447,22 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   /**
-   * Get the Superface usecase for the given endpoint with its main argument
+   * Get the usecase for the given endpoint with its main argument
    * @param stream The stream we are currently targeting
    * @returns The function to call, as well as its main argument
    */
-  private static getSuperfaceUsecase(stream: IIntegrationStream): {
+  private getUsecase(stream: IIntegrationStream): {
     fn: Function
     arg: any
   } {
     switch (stream.value) {
-      case 'members':
-        return { fn: getMembers, arg: stream.value }
       case 'threads':
-        return { fn: getMessagesThreads, arg: stream }
+        return {
+          fn: getMessagesThreads,
+          arg: { threadId: stream.metadata.threadId, channelId: stream.metadata.channelId },
+        }
       default:
-        return { fn: getMessages, arg: stream.value }
+        return { fn: getMessages, arg: { channelId: stream.value } }
     }
   }
 }

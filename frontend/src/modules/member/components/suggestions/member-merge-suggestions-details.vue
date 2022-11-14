@@ -136,8 +136,8 @@ import AppMemberDisplayName from '@/modules/member/components/member-display-nam
 import AppMemberOrganizations from '@/modules/member/components/member-organizations'
 import AppTagList from '@/modules/tag/components/tag-list'
 import AppMemberEngagementLevel from '../member-engagement-level'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import AppMemberMergeSuggestionsDetailsIdentities from './member-merge-suggestions-details-identities'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const props = defineProps({
   pair: {
@@ -149,15 +149,16 @@ const props = defineProps({
 const emit = defineEmits(['makePrimary'])
 
 const identities = computed(() => {
-  const integrationsFiltered = integrationsJsonArray.filter(
-    (x) =>
-      Object.keys(props.pair[0].username).includes(
-        x.platform
-      ) ||
-      Object.keys(props.pair[1].username).includes(
-        x.platform
-      )
-  )
+  const integrationsFiltered =
+    CrowdIntegrations.configs.filter(
+      (x) =>
+        Object.keys(props.pair[0].username).includes(
+          x.platform
+        ) ||
+        Object.keys(props.pair[1].username).includes(
+          x.platform
+        )
+    )
   const out = []
 
   if (props.pair[0].email || props.pair[1].email) {

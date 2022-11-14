@@ -116,7 +116,7 @@ import {
   computed,
   watch
 } from 'vue'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -201,9 +201,7 @@ const identitiesForm = reactive({
 })
 
 function findPlatform(platform) {
-  return integrationsJsonArray.find(
-    (p) => p.platform === platform
-  )
+  return CrowdIntegrations.getConfig(platform)
 }
 
 function editingDisabled(platform) {

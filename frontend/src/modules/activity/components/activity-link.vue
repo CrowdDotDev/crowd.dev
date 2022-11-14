@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppActivityLink',
@@ -26,8 +26,8 @@ export default {
   },
   computed: {
     platform() {
-      return integrationsJsonArray.find(
-        (i) => i.platform === this.activity.platform
+      return CrowdIntegrations.getConfig(
+        this.activity.platform
       )
     }
   }

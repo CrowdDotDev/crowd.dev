@@ -28,9 +28,9 @@
 
 <script>
 import AppActivityMessage from '@/modules/activity/components/activity-message'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppSvg from '@/shared/svg/svg'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppMemberLastActivity',
@@ -46,9 +46,8 @@ export default {
   },
   computed: {
     platform() {
-      return integrationsJsonArray.find(
-        (i) =>
-          i.platform === this.member.lastActivity.platform
+      return CrowdIntegrations.getConfig(
+        this.member.lastActivity.platform
       )
     },
     timeAgo() {

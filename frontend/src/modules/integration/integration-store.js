@@ -1,8 +1,8 @@
 import { IntegrationService } from '@/modules/integration/integration-service'
 import Errors from '@/shared/error/errors'
-import integrationsJson from '@/jsons/integrations'
 import { router } from '@/router'
 import Message from '../../shared/message/message'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   namespaced: true,
@@ -38,9 +38,10 @@ export default {
 
     list: (state) => {
       return Object.keys(state.byId).reduce((acc, key) => {
-        const integrationJsonData = integrationsJson.find(
-          (i) => i.platform === state.byId[key].platform
-        )
+        const integrationJsonData =
+          CrowdIntegrations.getConfig(
+            state.byId[key].platform
+          )
         acc[key] = {
           ...state.byId[key],
           ...integrationJsonData
@@ -51,9 +52,10 @@ export default {
 
     listByPlatform: (state) => {
       return Object.keys(state.byId).reduce((acc, key) => {
-        const integrationJsonData = integrationsJson.find(
-          (i) => i.platform === state.byId[key].platform
-        )
+        const integrationJsonData =
+          CrowdIntegrations.getConfig(
+            state.byId[key].platform
+          )
         acc[state.byId[key].platform] = {
           ...state.byId[key],
           ...integrationJsonData

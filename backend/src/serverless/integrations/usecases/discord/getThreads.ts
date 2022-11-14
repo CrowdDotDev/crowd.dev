@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { DiscordChannels, DiscordGetChannelsInput } from '../../types/discordTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { Logger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getDiscordThreads')
-
-async function getThreads(input: DiscordGetChannelsInput): Promise<DiscordChannels> {
+async function getThreads(
+  input: DiscordGetChannelsInput,
+  logger: Logger,
+): Promise<DiscordChannels> {
   try {
     const config = {
       method: 'get',
@@ -23,7 +24,7 @@ async function getThreads(input: DiscordGetChannelsInput): Promise<DiscordChanne
       thread: true,
     }))
   } catch (err) {
-    log.error({ err, input }, 'Error while getting threads from Discord')
+    logger.error({ err, input }, 'Error while getting threads from Discord')
     throw err
   }
 }

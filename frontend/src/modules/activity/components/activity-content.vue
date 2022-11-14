@@ -10,9 +10,10 @@
       class="mt-3"
     ></div>
     <div class="content">
-      <app-activity-discord-content
+      <component
+        :is="platformConfig.activityContent"
         v-if="
-          activity.body && activity.platform === 'discord'
+          activity.body && platformConfig.activityContent
         "
         ref="content"
         :activity="activity"
@@ -21,19 +22,7 @@
         :body-class="
           showMore && !more ? `text-limit-${limit}` : ''
         "
-      />
-      <app-activity-devto-content
-        v-else-if="
-          activity.body && activity.platform === 'devto'
-        "
-        ref="content"
-        :activity="activity"
-        :display-body="displayBody"
-        :display-thread="displayThread"
-        :body-class="
-          showMore && !more ? `text-limit-${limit}` : ''
-        "
-      />
+      ></component>
       <div v-else-if="activity.body">
         <blockquote
           v-if="activity.thread && displayThread"
@@ -77,16 +66,10 @@
 
 <script>
 import joypixels from 'emoji-toolkit'
-import integrationsJsonArray from '@/jsons/integrations.json'
-import AppActivityDiscordContent from '@/modules/activity/components/integrations/discord/activity-discord-content'
-import AppActivityDevtoContent from '@/modules/activity/components/integrations/devto/activity-devto-content'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppActivityContent',
-  components: {
-    AppActivityDevtoContent,
-    AppActivityDiscordContent
-  },
   props: {
     activity: {
       type: Object,
@@ -136,9 +119,9 @@ export default {
     }
   },
   computed: {
-    platform() {
-      return integrationsJsonArray.find(
-        (i) => i.platform === this.activity.platform
+    platformConfig() {
+      return CrowdIntegrations.getConfig(
+        this.activity.platform
       )
     }
   },
