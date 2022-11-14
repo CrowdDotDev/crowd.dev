@@ -191,47 +191,55 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   private async parseMemberAndUpdateContext(context, userId): Promise<any> {
-    if (context.pipelineData.members[userId]) {
-      if (context.pipelineData.members[userId] === 'bot') {
+    try {
+      if (userId === undefined) {
         return { member: undefined, context }
       }
-      return { member: { username: context.pipelineData.members[userId] }, context }
-    }
-    const memberResponse = await getMember(
-      { token: context.integration.token, userId },
-      this.logger(context),
-    )
-    const record = memberResponse.records
-    const member = {
-      displayName: record.profile.real_name,
-      username: record.name,
-      email: record.profile.email,
-      attributes: {
-        [MemberAttributeName.SOURCE_ID]: {
-          [PlatformType.SLACK]: record.id,
+      if (context.pipelineData.members[userId]) {
+        if (context.pipelineData.members[userId] === 'bot') {
+          return { member: undefined, context }
+        }
+        return { member: { username: context.pipelineData.members[userId] }, context }
+      }
+      const memberResponse = await getMember(
+        { token: context.integration.token, userId },
+        this.logger(context),
+      )
+      const record = memberResponse.records
+      const member = {
+        displayName: record.profile.real_name,
+        username: record.name,
+        email: record.profile.email,
+        attributes: {
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.SLACK]: record.id,
+          },
+          ...(record.profile.image_72 && {
+            [MemberAttributeName.AVATAR_URL]: {
+              [PlatformType.SLACK]: record.profile.image_72,
+            },
+          }),
+          ...(record.tz_label && {
+            [MemberAttributeName.TIMEZONE]: {
+              [PlatformType.SLACK]: record.tz_label,
+            },
+          }),
+          ...(record.profile.title && {
+            [MemberAttributeName.JOB_TITLE]: {
+              [PlatformType.SLACK]: record.profile.title,
+            },
+          }),
         },
-        ...(record.profile.image_72 && {
-          [MemberAttributeName.AVATAR_URL]: {
-            [PlatformType.SLACK]: record.profile.image_72,
-          },
-        }),
-        ...(record.tz_label && {
-          [MemberAttributeName.TIMEZONE]: {
-            [PlatformType.SLACK]: record.tz_label,
-          },
-        }),
-        ...(record.profile.title && {
-          [MemberAttributeName.JOB_TITLE]: {
-            [PlatformType.SLACK]: record.profile.title,
-          },
-        }),
-      },
-    }
+      }
 
-    context.pipelineData.members[userId] = record.is_bot ? 'bot' : member.username
-    return {
-      member: record.is_bot ? undefined : member,
-      context,
+      context.pipelineData.members[userId] = record.is_bot ? 'bot' : member.username
+      return {
+        member: record.is_bot ? undefined : member,
+        context,
+      }
+    } catch (e) {
+      this.logger(context).error('Error getting member in Slack', { userId })
+      throw e
     }
   }
 
