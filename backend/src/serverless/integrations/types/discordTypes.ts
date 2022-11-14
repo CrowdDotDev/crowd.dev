@@ -8,6 +8,7 @@ export interface DiscordGetMessagesInput {
   token: string
   page: string | undefined
   perPage: number | 100
+  showError?: boolean
 }
 
 export interface DiscordGetMembersInput {
@@ -21,7 +22,6 @@ export interface DiscordChannel {
   id: string
   name: string
   thread?: boolean
-  [x: string | number | symbol]: unknown
 }
 
 export type DiscordChannels = DiscordChannel[]

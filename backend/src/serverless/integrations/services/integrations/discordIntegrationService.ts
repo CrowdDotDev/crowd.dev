@@ -45,14 +45,20 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   async preprocess(context: IStepContext): Promise<void> {
     const guildId = context.integration.integrationIdentifier
 
-    const threads: Channels = await getThreads({
-      guildId,
-      token: this.token,
-    })
-    let channelsFromDiscordAPI: Channels = await getChannels({
-      guildId,
-      token: this.token,
-    })
+    const threads: Channels = await getThreads(
+      {
+        guildId,
+        token: this.token,
+      },
+      this.logger(context),
+    )
+    let channelsFromDiscordAPI: Channels = await getChannels(
+      {
+        guildId,
+        token: this.token,
+      },
+      this.logger(context),
+    )
 
     const channels = context.integration.settings.channels
       ? context.integration.settings.channels
@@ -126,12 +132,15 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           stream.value,
           context.pipelineData.guildId,
         )
-        const { records, nextPage, limit, timeUntilReset } = await fn({
-          ...arg,
-          token: this.token,
-          page: stream.metadata.page,
-          perPage: 100,
-        })
+        const { records, nextPage, limit, timeUntilReset } = await fn(
+          {
+            ...arg,
+            token: this.token,
+            page: stream.metadata.page,
+            perPage: 100,
+          },
+          logger,
+        )
 
         const nextPageStream = nextPage
           ? { value: stream.value, metadata: { page: nextPage } }
