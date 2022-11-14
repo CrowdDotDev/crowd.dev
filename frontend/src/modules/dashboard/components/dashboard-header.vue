@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="flex flex-wrap justify-between border-b border-gray-200"
-  >
+  <div class="flex flex-wrap justify-between">
     <div class="pb-2">
       <h4 class="text-xl font-semibold leading-9">
         Overview of
@@ -9,7 +7,6 @@
           currentTenant.name
         }}</span>
       </h4>
-      <app-dashboard-filters />
     </div>
     <div class="w-full lg:w-auto md:w-auto pb-2">
       <p
@@ -27,11 +24,9 @@ import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-a
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import { activitiesChart } from '@/modules/dashboard/dashboard.cube'
-import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
 export default {
   name: 'AppDashboardHeader',
   components: {
-    AppDashboardFilters,
     AppDashboardIntegrations
   },
   computed: {

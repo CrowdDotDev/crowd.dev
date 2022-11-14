@@ -49,6 +49,7 @@
             <app-activity-content
               class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
+              :show-more="true"
             />
           </div>
           <template #dot>

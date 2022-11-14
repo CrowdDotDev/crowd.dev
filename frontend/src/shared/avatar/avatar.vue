@@ -109,7 +109,7 @@ export default {
     @apply h-5 w-5;
 
     span {
-      @apply text-2xs;
+      @apply text-3xs;
     }
   }
 }

@@ -15,6 +15,7 @@ import widget from '@/modules/widget/widget-module'
 import report from '@/modules/report/report-module'
 import automation from '@/modules/automation/automation-module'
 import organization from '@/modules/organization/organization-module'
+import task from '@/modules/task/task-module'
 
 import communityHelpCenter from '@/premium/community-help-center/community-help-center-module'
 import eagleEye from '@/premium/eagle-eye/eagle-eye-module'
@@ -35,7 +36,8 @@ const modules = {
   widget,
   report,
   automation,
-  organization
+  organization,
+  task
 }
 
 if (config.hasPremiumModules) {
