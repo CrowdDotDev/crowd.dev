@@ -68,6 +68,9 @@ describe('Github webhooks tests', () => {
           [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: '',
           },
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.GITHUB]: '',
+          },
           [MemberAttributeName.LOCATION]: {
             [PlatformType.GITHUB]: '',
           },
@@ -97,6 +100,9 @@ describe('Github webhooks tests', () => {
           [MemberAttributeName.URL]: {
             [PlatformType.GITHUB]: 'https://github.com/joanreyero',
             [PlatformType.TWITTER]: 'https://twitter.com/reyero',
+          },
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.GITHUB]: '',
           },
           [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: '',
@@ -142,6 +148,9 @@ describe('Github webhooks tests', () => {
           },
           [MemberAttributeName.WEBSITE_URL]: {
             [PlatformType.GITHUB]: 'https://crowd.dev',
+          },
+          [MemberAttributeName.AVATAR_URL]: {
+            [PlatformType.GITHUB]: '',
           },
           [MemberAttributeName.BIO]: {
             [PlatformType.GITHUB]: 'Bio goes here',

@@ -9,7 +9,7 @@ import {
 } from '../../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './twitterIntegrationService'
 import MemberRepository from '../../../../database/repositories/memberRepository'
-import getProfiles from '../../usecases/social/profiles'
+import getProfiles from '../../usecases/twitter/getProfiles'
 import { Updates } from '../../types/messageTypes'
 import MemberService from '../../../../services/memberService'
 import Operations from '../../../dbOperations/operations'
@@ -68,9 +68,11 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     const members = stream.metadata.members.map((m) => m.username)
     const { records, nextPage, limit, timeUntilReset } = await getProfiles(
-      context.pipelineData.superface,
-      context.integration.token,
-      members,
+      {
+        usernames: members,
+        token: context.integration.token,
+      },
+      this.logger(context),
     )
 
     const nextPageStream = nextPage
