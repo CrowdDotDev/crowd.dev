@@ -65,7 +65,7 @@ class NoteRepository {
       throw new Error404()
     }
 
-    if (data.body){
+    if (data.body) {
       data.body = sanitizeHtml(data.body).trim()
     }
 

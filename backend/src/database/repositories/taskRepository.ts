@@ -19,7 +19,7 @@ class TaskRepository {
 
     const transaction = SequelizeRepository.getTransaction(options)
 
-    if (data.body){
+    if (data.body) {
       data.body = sanitizeHtml(data.body).trim()
     }
 
@@ -105,7 +105,7 @@ class TaskRepository {
       throw new Error404()
     }
 
-    if (data.body){
+    if (data.body) {
       data.body = sanitizeHtml(data.body).trim()
     }
 
