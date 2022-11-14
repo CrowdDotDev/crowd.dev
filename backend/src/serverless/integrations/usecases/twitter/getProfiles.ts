@@ -4,10 +4,7 @@ import {
   TwitterGetFollowersOutput,
   TwitterGetProfilesByUsernameInput,
 } from '../../types/twitterTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
-import { cleanSuperfaceError } from '../cleanError'
-
-const log = createServiceChildLogger('getProfiles')
+import { Logger } from '../../../../utils/logging'
 
 /**
  * Get profiles by username
@@ -16,6 +13,7 @@ const log = createServiceChildLogger('getProfiles')
  */
 const getProfiles = async (
   input: TwitterGetProfilesByUsernameInput,
+  logger: Logger,
 ): Promise<TwitterGetFollowersOutput> => {
   try {
     const config = {
@@ -36,8 +34,8 @@ const getProfiles = async (
       timeUntilReset,
     }
   } catch (err) {
-    log.error({ err, input }, 'Error while getting profiles from Twitter')
-    throw cleanSuperfaceError(err)
+    logger.error({ err, input }, 'Error while getting profiles from Twitter')
+    throw err
   }
 }
 

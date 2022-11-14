@@ -5,10 +5,7 @@ import {
   TwitterGetPostsOutput,
   TwitterParsedPosts,
 } from '../../types/twitterTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
-import { cleanSuperfaceError } from '../cleanError'
-
-const log = createServiceChildLogger('getPostsByHashtag')
+import { Logger } from '../../../../utils/logging'
 
 /**
  * Get paginated posts by hashtag
@@ -17,6 +14,7 @@ const log = createServiceChildLogger('getPostsByHashtag')
  */
 const getPostsByHashtag = async (
   input: TwitterGetPostsByHashtagInput,
+  logger: Logger,
 ): Promise<TwitterGetPostsOutput> => {
   try {
     let url = `https://api.twitter.com/2/tweets/search/recent?max_results=${input.perPage}&tweet.fields=id,text,created_at,entities,referenced_tweets,attachments&expansions=attachments.media_keys,author_id&media.fields=duration_ms,height,media_key,preview_image_url,type,url,width,alt_text&user.fields=name,description,location,public_metrics,url,verified,profile_image_url&query=%23${input.hashtag}`
@@ -60,8 +58,8 @@ const getPostsByHashtag = async (
       timeUntilReset,
     }
   } catch (err) {
-    log.error({ err, input }, 'Error while getting messages from Twitter')
-    throw cleanSuperfaceError(err)
+    logger.error({ err, input }, 'Error while getting messages from Twitter')
+    throw err
   }
 }
 

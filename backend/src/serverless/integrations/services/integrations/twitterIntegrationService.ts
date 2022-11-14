@@ -70,12 +70,15 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ? undefined
       : moment().utc().subtract(TwitterIntegrationService.maxRetrospect, 'seconds').toISOString()
 
-    const { records, nextPage, limit, timeUntilReset } = await fn({
-      token: context.integration.token,
-      page: stream.metadata.page,
-      perPage: 100,
-      ...arg,
-    })
+    const { records, nextPage, limit, timeUntilReset } = await fn(
+      {
+        token: context.integration.token,
+        page: stream.metadata.page,
+        perPage: 100,
+        ...arg,
+      },
+      this.logger(context),
+    )
 
     const nextPageStream = nextPage
       ? { value: stream.value, metadata: { page: nextPage } }

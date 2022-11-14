@@ -67,10 +67,13 @@ export class TwitterReachIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const members = stream.metadata.members.map((m) => m.username)
-    const { records, nextPage, limit, timeUntilReset } = await getProfiles({
-      usernames: members,
-      token: context.integration.token,
-    })
+    const { records, nextPage, limit, timeUntilReset } = await getProfiles(
+      {
+        usernames: members,
+        token: context.integration.token,
+      },
+      this.logger(context),
+    )
 
     const nextPageStream = nextPage
       ? { value: stream.value, metadata: { page: nextPage } }

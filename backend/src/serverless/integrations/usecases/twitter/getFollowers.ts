@@ -1,10 +1,7 @@
 import axios from 'axios'
 import moment from 'moment'
 import { TwitterGetFollowersInput, TwitterGetFollowersOutput } from '../../types/twitterTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
-import { cleanSuperfaceError } from '../cleanError'
-
-const log = createServiceChildLogger('getFollowers')
+import { Logger } from '../../../../utils/logging'
 
 /**
  * Get all followers of an account
@@ -13,6 +10,7 @@ const log = createServiceChildLogger('getFollowers')
  */
 const getFollowers = async (
   input: TwitterGetFollowersInput,
+  logger: Logger,
 ): Promise<TwitterGetFollowersOutput> => {
   try {
     const config = {
@@ -33,8 +31,8 @@ const getFollowers = async (
       timeUntilReset,
     }
   } catch (err) {
-    log.error({ err, input }, 'Error while getting messages from Twitter')
-    throw cleanSuperfaceError(err)
+    logger.error({ err, input }, 'Error while getting messages from Twitter')
+    throw err
   }
 }
 
