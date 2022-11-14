@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { SlackMessages, SlackParsedReponse, SlackGetMessagesInput } from '../../types/slackTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { Logger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getSlackMessages')
-
-async function getMessages(input: SlackGetMessagesInput): Promise<SlackParsedReponse> {
+async function getMessages(
+  input: SlackGetMessagesInput,
+  logger: Logger,
+): Promise<SlackParsedReponse> {
   try {
     const config = {
       method: 'get',
@@ -27,7 +28,7 @@ async function getMessages(input: SlackGetMessagesInput): Promise<SlackParsedRep
       timeUntilReset,
     }
   } catch (err) {
-    log.error({ err, input }, 'Error while getting messages from Slack')
+    logger.error({ err, input }, 'Error while getting messages from Slack')
     throw err
   }
 }

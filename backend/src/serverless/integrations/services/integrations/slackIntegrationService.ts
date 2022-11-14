@@ -15,7 +15,6 @@ import { SlackMemberAttributes } from '../../../../database/attributes/member/sl
 import { Channels } from '../../types/regularTypes'
 import getChannels from '../../usecases/slack/getChannels'
 import { Thread } from '../../types/iteratorTypes'
-// import getMembers from '../../usecases/slack/getMembers'
 import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
 import getMessages from '../../usecases/slack/getMessages'
 import getTeam from '../../usecases/slack/getTeam'
@@ -43,7 +42,10 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    let channelsFromSlackAPI: Channels = await getChannels({ token: context.integration.token })
+    let channelsFromSlackAPI: Channels = await getChannels(
+      { token: context.integration.token },
+      this.logger(context),
+    )
 
     const channels = context.integration.settings.channels
       ? context.integration.settings.channels
@@ -56,7 +58,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       return c
     })
 
-    const team = await getTeam({ token: context.integration.token })
+    const team = await getTeam({ token: context.integration.token }, this.logger(context))
     const teamUrl = team.url
 
     const members = context.integration.settings.members ? context.integration.settings.members : {}
@@ -95,14 +97,17 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     await timeout(1000)
 
-    const { fn, arg } = SlackIntegrationService.getUsecase(stream)
+    const { fn, arg } = this.getUsecase(stream)
 
-    const { records, nextPage, limit, timeUntilReset } = await fn({
-      token: context.integration.token,
-      ...arg,
-      page: stream.metadata.page,
-      perPage: 200,
-    })
+    const { records, nextPage, limit, timeUntilReset } = await fn(
+      {
+        token: context.integration.token,
+        ...arg,
+        page: stream.metadata.page,
+        perPage: 200,
+      },
+      this.logger(context),
+    )
 
     const nextPageStream: IIntegrationStream = nextPage
       ? { value: stream.value, metadata: { ...(stream.metadata || {}), page: nextPage } }
@@ -118,11 +123,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       }
     }
 
-    const { activities, additionalStreams } = await SlackIntegrationService.parseActivities(
-      records,
-      stream,
-      context,
-    )
+    const { activities, additionalStreams } = await this.parseActivities(records, stream, context)
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
     return {
@@ -152,7 +153,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     })
   }
 
-  private static async parseActivities(
+  private async parseActivities(
     records: any[],
     stream: IIntegrationStream,
     context: IStepContext,
@@ -189,14 +190,17 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     return `${pipelineData.teamUrl}archives/${channelId}/p${record.ts.replace('.', '')}`
   }
 
-  private static async parseMemberAndUpdateContext(context, userId): Promise<any> {
+  private async parseMemberAndUpdateContext(context, userId): Promise<any> {
     if (context.pipelineData.members[userId]) {
       if (context.pipelineData.members[userId] === 'bot') {
         return { member: undefined, context }
       }
       return { member: { username: context.pipelineData.members[userId] }, context }
     }
-    const memberResponse = await getMember({ token: context.integration.token, userId })
+    const memberResponse = await getMember(
+      { token: context.integration.token, userId },
+      this.logger(context),
+    )
     const record = memberResponse.records
     const member = {
       displayName: record.profile.real_name,
@@ -238,7 +242,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param context
    * @returns List of activities and members
    */
-  private static async parseMessages(
+  private async parseMessages(
     records: SlackMessages,
     stream: IIntegrationStream,
     context: IStepContext,
@@ -246,10 +250,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const newStreams: IIntegrationStream[] = []
     const activities: AddActivitiesSingle[] = []
     for (const record of records) {
-      const newMemberContext = await SlackIntegrationService.parseMemberAndUpdateContext(
-        context,
-        record.user,
-      )
+      const newMemberContext = await this.parseMemberAndUpdateContext(context, record.user)
       const member = newMemberContext.member
 
       if (member !== undefined) {
@@ -307,7 +308,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         }
       }
     }
-    await this.updateMembers(context)
+    await SlackIntegrationService.updateMembers(context)
     return {
       activities,
       additionalStreams: newStreams,
@@ -321,7 +322,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param context
    * @returns List of activities and members
    */
-  private static async parseMessagesInThreads(
+  private async parseMessagesInThreads(
     records: SlackMessages,
     stream: IIntegrationStream,
     context: IStepContext,
@@ -329,10 +330,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
     const threadInfo = stream.metadata
     const activities: AddActivitiesSingle[] = []
     for (const record of records) {
-      const newMemberContext = await SlackIntegrationService.parseMemberAndUpdateContext(
-        context,
-        record.user,
-      )
+      const newMemberContext = await this.parseMemberAndUpdateContext(context, record.user)
       const member = newMemberContext.member
       context = newMemberContext.context
       if (member !== undefined) {
@@ -365,7 +363,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         })
       }
     }
-    await this.updateMembers(context)
+    await SlackIntegrationService.updateMembers(context)
     return {
       activities,
       additionalStreams: [],
@@ -453,7 +451,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
    * @param stream The stream we are currently targeting
    * @returns The function to call, as well as its main argument
    */
-  private static getUsecase(stream: IIntegrationStream): {
+  private getUsecase(stream: IIntegrationStream): {
     fn: Function
     arg: any
   } {

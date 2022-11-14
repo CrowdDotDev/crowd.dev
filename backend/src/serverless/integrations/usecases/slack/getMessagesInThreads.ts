@@ -4,12 +4,11 @@ import {
   SlackParsedReponse,
   SlackGetMessagesInThreadsInput,
 } from '../../types/slackTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
-
-const log = createServiceChildLogger('getSlackMessagesInThreads')
+import { Logger } from '../../../../utils/logging'
 
 async function getMessagesInThreads(
   input: SlackGetMessagesInThreadsInput,
+  logger: Logger,
 ): Promise<SlackParsedReponse> {
   try {
     const config = {
@@ -32,7 +31,7 @@ async function getMessagesInThreads(
       timeUntilReset,
     }
   } catch (err) {
-    log.error({ err, input }, 'Error while getting messages from Slack')
+    logger.error({ err, input }, 'Error while getting messages from Slack')
     throw err
   }
 }

@@ -1,10 +1,8 @@
 import axios from 'axios'
 import { SlackTeam, SlackGetChannelsInput } from '../../types/slackTypes'
-import { createServiceChildLogger } from '../../../../utils/logging'
+import { Logger } from '../../../../utils/logging'
 
-const log = createServiceChildLogger('getSlackChannels')
-
-async function getChannels(input: SlackGetChannelsInput): Promise<SlackTeam> {
+async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackTeam> {
   try {
     const config = {
       method: 'get',
@@ -19,7 +17,7 @@ async function getChannels(input: SlackGetChannelsInput): Promise<SlackTeam> {
 
     return result
   } catch (err) {
-    log.error({ err, input }, 'Error while getting channels from Slack')
+    logger.error({ err, input }, 'Error while getting channels from Slack')
     throw err
   }
 }
