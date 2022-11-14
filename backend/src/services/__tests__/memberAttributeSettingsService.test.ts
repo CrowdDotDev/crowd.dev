@@ -323,9 +323,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated] = attributes
+      const [idCreated, avatarUrlCreated, jobTitleCreated, timezoneCreated] = attributes
 
-      const [id] = SlackMemberAttributes
+      const [id, avatarUrl, jobTitle, timezone] = SlackMemberAttributes
 
       const expected = [
         {
@@ -340,6 +340,45 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: id.canDelete,
           name: id.name,
           label: id.label,
+        },
+        {
+          id: avatarUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: avatarUrl.show,
+          type: avatarUrl.type,
+          canDelete: avatarUrl.canDelete,
+          name: avatarUrl.name,
+          label: avatarUrl.label,
+        },
+        {
+          id: jobTitleCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: jobTitle.show,
+          type: jobTitle.type,
+          canDelete: jobTitle.canDelete,
+          name: jobTitle.name,
+          label: jobTitle.label,
+        },
+        {
+          id: timezoneCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: timezone.show,
+          type: timezone.type,
+          canDelete: timezone.canDelete,
+          name: timezone.name,
+          label: timezone.label,
         },
       ]
 

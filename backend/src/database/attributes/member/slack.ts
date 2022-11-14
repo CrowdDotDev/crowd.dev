@@ -10,4 +10,25 @@ export const SlackMemberAttributes: Attribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.AVATAR_URL].name,
+    label: MemberAttributes[MemberAttributeName.AVATAR_URL].label,
+    type: AttributeType.URL,
+    canDelete: false,
+    show: false,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.TIMEZONE].name,
+    label: MemberAttributes[MemberAttributeName.TIMEZONE].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
+  {
+    name: MemberAttributes[MemberAttributeName.JOB_TITLE].name,
+    label: MemberAttributes[MemberAttributeName.JOB_TITLE].label,
+    type: AttributeType.STRING,
+    canDelete: false,
+    show: true,
+  },
 ]
