@@ -65,6 +65,10 @@ class NoteRepository {
       throw new Error404()
     }
 
+    if (data.body){
+      data.body = sanitizeHtml(data.body).trim()
+    }
+
     record = await record.update(
       {
         ...lodash.pick(data, ['body', 'importHash']),
