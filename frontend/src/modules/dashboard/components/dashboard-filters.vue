@@ -74,7 +74,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardFilters',
@@ -120,9 +120,7 @@ export default {
       setFilters: 'dashboard/setFilters'
     }),
     platformDetails(platform) {
-      return integrationsJsonArray.find(
-        (i) => i.platform === platform
-      )
+      return CrowdIntegrations.getConfig(platform)
     },
     periodStateClasses(period) {
       return this.period === period

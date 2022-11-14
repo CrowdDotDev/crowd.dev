@@ -139,7 +139,6 @@
 
 <script>
 import AppAvatar from '@/shared/avatar/avatar'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
@@ -148,6 +147,7 @@ import AppConversationReply from '@/modules/conversation/components/conversation
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivityLink from '@/modules/activity/components/activity-link'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppConversationItem',
@@ -176,8 +176,8 @@ export default {
   emits: ['details'],
   computed: {
     platform() {
-      return integrationsJsonArray.find(
-        (i) => i.platform === this.conversation.platform
+      return CrowdIntegrations.getConfig(
+        this.conversation.platform
       )
     },
     member() {

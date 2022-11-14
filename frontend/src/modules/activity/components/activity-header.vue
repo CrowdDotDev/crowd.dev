@@ -185,11 +185,11 @@
 <script>
 import AppI18n from '../../../shared/i18n/i18n'
 import { formatDateToTimeAgo } from '@/utils/date'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import {
   computedArgs,
   computedMessage
 } from '@/modules/activity/activity.helpers'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppActivityHeader',
@@ -234,13 +234,13 @@ export default {
       return computedArgs(this.activity)
     },
     computedPlatformIcon() {
-      return integrationsJsonArray.find(
-        (p) => p.platform === this.activity.platform
+      return CrowdIntegrations.getConfig(
+        this.activity.platform
       ).image
     },
     computedPlatformName() {
-      return integrationsJsonArray.find(
-        (p) => p.platform === this.activity.platform
+      return CrowdIntegrations.getConfig(
+        this.activity.platform
       ).name
     },
     computedActivityClass() {

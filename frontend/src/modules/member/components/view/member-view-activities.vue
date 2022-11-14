@@ -92,7 +92,6 @@ export default {
 <script setup>
 import _ from 'lodash'
 import { useStore } from 'vuex'
-import integrationsJson from '@/jsons/integrations.json'
 import AppActivityMessage from '@/modules/activity/components/activity-message'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 import AppActivityContent from '@/modules/activity/components/activity-content'
@@ -110,6 +109,7 @@ import {
 import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import { formatDateToTimeAgo } from '@/utils/date'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const SearchIcon = h(
   'i', // type
@@ -131,8 +131,7 @@ const activeIntegrations = computed(() => {
   return Object.keys(activeIntegrationList).map((i) => {
     return {
       ...activeIntegrationList[i],
-      label: integrationsJson.find((j) => j.platform === i)
-        .name
+      label: CrowdIntegrations.getConfig(i).name
     }
   })
 })
@@ -221,9 +220,7 @@ const fetchActivities = async () => {
 }
 
 const findIcon = (platform) => {
-  return integrationsJson.find(
-    (p) => p.platform === platform
-  ).image
+  return CrowdIntegrations.getConfig(platform).image
 }
 const timeAgo = (activity) => {
   return formatDateToTimeAgo(activity.timestamp)

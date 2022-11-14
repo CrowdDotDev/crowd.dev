@@ -58,7 +58,7 @@
             />
           </el-tooltip>
           <div class="flex-grow">
-            <p class="text-xs leading-4 pl-2 flex">
+            <p class="text-xs leading-4 pl-2">
               <!-- activity message -->
               <app-activity-message
                 :activity="conversation.conversationStarter"
@@ -167,9 +167,9 @@ import AppActivityContent from '@/modules/activity/components/activity-content'
 import AppActivitySentiment from '@/modules/activity/components/activity-sentiment'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppAvatar from '@/shared/avatar/avatar'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatDateToTimeAgo } from '@/utils/date'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppConversationDetails',
@@ -201,8 +201,8 @@ export default {
   emits: ['edit-title'],
   computed: {
     platform() {
-      return integrationsJsonArray.find(
-        (i) => i.platform === this.conversation.platform
+      return CrowdIntegrations.getConfig(
+        this.conversation.platform
       )
     },
     member() {

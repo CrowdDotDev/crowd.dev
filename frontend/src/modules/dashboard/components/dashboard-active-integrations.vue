@@ -16,7 +16,8 @@
         <div
           class="w-8 h-8 rounded-full border flex items-center justify-center"
           :style="{
-            background: platformDetails(active).color,
+            background:
+              platformDetails(active).backgroundColor,
             'border-color':
               platformDetails(active).borderColor
           }"
@@ -51,7 +52,7 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex'
-import integrationsJsonArray from '@/jsons/integrations.json'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardIntegrations',
@@ -69,9 +70,7 @@ export default {
       fetchIntegrations: 'doFetch'
     }),
     platformDetails(platform) {
-      return integrationsJsonArray.find(
-        (i) => i.platform === platform
-      )
+      return CrowdIntegrations.getConfig(platform)
     }
   }
 }
