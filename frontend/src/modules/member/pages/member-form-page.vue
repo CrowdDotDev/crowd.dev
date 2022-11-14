@@ -156,7 +156,6 @@ const formSchema = computed(
       fields.joinedAt,
       fields.tags,
       fields.username,
-      fields.platform,
       fields.organizations,
       fields.attributes,
       ...getCustomAttributes(

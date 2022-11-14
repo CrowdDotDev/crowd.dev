@@ -26,7 +26,7 @@ class MembersScore:
 
         self.fetch_scores()
         self.team_members = [
-            member.id for member in self.repository.find_all(Member, query={"attributes.team.default": True})
+            member.id for member in self.repository.find_all(Member, query={"attributes.isTeamMember.default": True})
         ]
 
         self.send = send
