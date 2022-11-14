@@ -75,6 +75,41 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <el-tooltip
+          :disabled="!isCollapsed"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          content="Tasks"
+        >
+          <router-link
+            v-if="hasPermissionToTask || isTaskLocked"
+            id="menu-task"
+            :to="{ path: '/task' }"
+            class="el-menu-item"
+            :class="classFor('/task')"
+          >
+            <div
+              class="flex justify-between items-center w-full"
+            >
+              <div>
+                <i class="ri-checkbox-multiple-line"></i>
+                <span v-if="!isCollapsed" class="pl-2">
+                  Tasks
+                </span>
+              </div>
+              <div
+                v-if="!isCollapsed && openTasksCount > 0"
+                class="h-5 flex items-center px-2 bg-brand-100 rounded-full text-2xs font-medium"
+              >
+                {{ openTasksCount }}
+              </div>
+            </div>
+          </router-link>
+        </el-tooltip>
+
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -295,6 +330,8 @@ import { i18n } from '@/i18n'
 import config from '@/config'
 
 import { RouterLink, useLink } from 'vue-router'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 
 const store = useStore()
 const { route } = useLink(RouterLink.props)
@@ -312,6 +349,8 @@ function toggleMenu() {
   store.dispatch('layout/toggleMenu')
 }
 
+const { openTasksCount } = mapGetters('task')
+
 const hasPermissionToSettings = computed(
   () =>
     new SettingsPermissions(
@@ -323,6 +362,14 @@ const hasPermissionToSettings = computed(
 const hasPermissionToCommunityMember = computed(
   () =>
     new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).read
+)
+
+const hasPermissionToTask = computed(
+  () =>
+    new TaskPermissions(
       currentTenant.value,
       currentUser.value
     ).read
@@ -363,6 +410,14 @@ const isSettingsLocked = computed(
 const isCommunityMemberLocked = computed(
   () =>
     new MemberPermissions(
+      currentTenant.value,
+      currentUser.value
+    ).lockedForCurrentPlan
+)
+
+const isTaskLocked = computed(
+  () =>
+    new TaskPermissions(
       currentTenant.value,
       currentUser.value
     ).lockedForCurrentPlan

@@ -338,6 +338,9 @@ export default class GitHubWebhook {
         [MemberAttributeName.URL]: {
           [PlatformType.GITHUB]: member.url,
         },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.GITHUB]: member.avatarUrl || '',
+        },
         [MemberAttributeName.BIO]: {
           [PlatformType.GITHUB]: member.bio || '',
         },

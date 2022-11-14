@@ -65,3 +65,7 @@
 .el-dropdown-menu--large {
   @apply p-0;
 }
+
+.el-select-dropdown.is-multiple .el-select-dropdown__item.selected, .el-select-dropdown .el-select-dropdown__item.selected {
+  @apply text-brand-500;
+}

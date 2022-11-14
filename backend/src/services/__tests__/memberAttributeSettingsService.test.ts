@@ -265,9 +265,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated, avatarUrlCreated, urlCreated] = attributes
+      const [idCreated, avatarUrlCreated, urlCreated, bioCreated, locationCreated] = attributes
 
-      const [id, avatarUrl, url] = TwitterMemberAttributes
+      const [id, avatarUrl, url, bio, location] = TwitterMemberAttributes
 
       const expected = [
         {
@@ -309,6 +309,32 @@ describe('MemberAttributeSettingService tests', () => {
           name: url.name,
           label: url.label,
         },
+        {
+          id: bioCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: bio.show,
+          type: bio.type,
+          canDelete: bio.canDelete,
+          name: bio.name,
+          label: bio.label,
+        },
+        {
+          id: locationCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: location.show,
+          type: location.type,
+          canDelete: location.canDelete,
+          name: location.name,
+          label: location.label,
+        },
       ]
 
       expect(attributes).toEqual(expected)
@@ -323,9 +349,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated] = attributes
+      const [idCreated, avatarUrlCreated, jobTitleCreated, timezoneCreated] = attributes
 
-      const [id] = SlackMemberAttributes
+      const [id, avatarUrl, jobTitle, timezone] = SlackMemberAttributes
 
       const expected = [
         {
@@ -340,6 +366,45 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: id.canDelete,
           name: id.name,
           label: id.label,
+        },
+        {
+          id: avatarUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: avatarUrl.show,
+          type: avatarUrl.type,
+          canDelete: avatarUrl.canDelete,
+          name: avatarUrl.name,
+          label: avatarUrl.label,
+        },
+        {
+          id: jobTitleCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: jobTitle.show,
+          type: jobTitle.type,
+          canDelete: jobTitle.canDelete,
+          name: jobTitle.name,
+          label: jobTitle.label,
+        },
+        {
+          id: timezoneCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: timezone.show,
+          type: timezone.type,
+          canDelete: timezone.canDelete,
+          name: timezone.name,
+          label: timezone.label,
         },
       ]
 
@@ -358,18 +423,29 @@ describe('MemberAttributeSettingService tests', () => {
       })
 
       // create predefined method should still return shared attributes `url` and `id`
-      const [idCreatedTwitter, _avatarUrlCreated, urlCreatedTwitter] = attributes
+      const [
+        idCreatedTwitter,
+        _avatarUrlCreated,
+        urlCreatedTwitter,
+        bioCreatedTwitter,
+        locationCreatedTwitter,
+      ] = attributes
 
       const [
         _idCreatedDevTo,
         _urlCreatedDevTo,
         nameCreatedDevTo,
-        bioCreatedDevTo,
-        locationCreatedDevTo,
+        _bioCreatedDevTo,
+        _locationCreatedDevTo,
       ] = attributes2
 
       const [id, url, name, bio, location] = DevtoMemberAttributes
-
+      console.log('urlCreatedTwitter', urlCreatedTwitter.id)
+      console.log('urlCreatedDevTo', _urlCreatedDevTo.id)
+      console.log('bioCreatedTwitter', bioCreatedTwitter.id)
+      console.log('bioCreatedDevTo', _bioCreatedDevTo.id)
+      console.log('locationCreatedTwitter', locationCreatedTwitter.id)
+      console.log('locationCreatedDevTo', _locationCreatedDevTo.id)
       const expected = [
         {
           id: idCreatedTwitter.id,
@@ -385,7 +461,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: id.label,
         },
         {
-          id: urlCreatedTwitter.id,
+          id: _urlCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -411,7 +487,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: name.label,
         },
         {
-          id: bioCreatedDevTo.id,
+          id: _bioCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -424,7 +500,7 @@ describe('MemberAttributeSettingService tests', () => {
           label: bio.label,
         },
         {
-          id: locationCreatedDevTo.id,
+          id: _locationCreatedDevTo.id,
           createdAt: SequelizeTestUtils.getNowWithoutTime(),
           updatedAt: SequelizeTestUtils.getNowWithoutTime(),
           createdById: mockIRepositoryOptions.currentUser.id,
@@ -446,7 +522,7 @@ describe('MemberAttributeSettingService tests', () => {
       expect(allAttributes.count).toBe(6)
       const allAttributeNames = allAttributes.rows.map((attribute) => attribute.name)
 
-      expect(allAttributeNames).toEqual(['bio', 'location', 'name', 'url', 'avatarUrl', 'sourceId'])
+      expect(allAttributeNames).toEqual(['name', 'url', 'bio', 'location', 'avatarUrl', 'sourceId'])
     })
   })
   describe('create tests', () => {

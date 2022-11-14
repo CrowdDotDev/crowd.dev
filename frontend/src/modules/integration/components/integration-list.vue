@@ -10,15 +10,14 @@
       ></div>
     </div>
     <div v-else class="grid grid-cols-3 grid-rows-4 gap-4">
-      <div
+      <app-integration-list-item
         v-for="integration in integrationsArray"
         :key="integration.platform"
-      >
-        <app-integration-list-item
-          :integration="integration"
-          :onboard="onboard"
-        />
-      </div>
+        :integration="integration"
+      />
+      <app-integration-list-item
+        :integration="customIntegration"
+      />
     </div>
     <app-dialog
       v-model="showGithubDialog"
@@ -46,8 +45,8 @@ export default {
 import { useStore } from 'vuex'
 import { defineProps, computed, onMounted, ref } from 'vue'
 
-import integrationsJsonArray from '@/jsons/integrations.json'
 import AppIntegrationListItem from '@/modules/integration/components/integration-list-item'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 const store = useStore()
 const props = defineProps({
@@ -57,33 +56,22 @@ const props = defineProps({
   }
 })
 
+const customIntegration = ref({
+  platform: 'custom',
+  name: 'Build your own',
+  description:
+    'Use our integration framework to build your own connector.',
+  image: '/images/custom-integration.svg'
+})
+
 const loading = computed(
   () => store.getters['integration/loadingFetch']
 )
 const integrationsArray = computed(() => {
   return props.onboard
-    ? integrationsJsonArray
-        .filter((i) =>
-          [
-            'github',
-            'slack',
-            'discord',
-            'twitter',
-            'devto'
-          ].includes(i.platform)
-        )
-        .map(mapper)
-    : integrationsJsonArray.map(mapper)
+    ? CrowdIntegrations.mappedEnabledConfigs(store)
+    : CrowdIntegrations.mappedConfigs(store)
 })
-
-const mapper = (integration) => {
-  return {
-    ...integration,
-    ...store.getters['integration/findByPlatform'](
-      integration.platform
-    )
-  }
-}
 
 const showGithubDialog = ref(false)
 

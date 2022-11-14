@@ -34,6 +34,7 @@
       :value="record"
       @mouseleave="onSelectMouseLeave"
     >
+      <slot name="option" :item="record"></slot>
     </el-option>
   </el-select>
 </template>

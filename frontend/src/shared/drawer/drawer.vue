@@ -34,6 +34,7 @@
               {{ title }}
             </h5>
           </div>
+          <slot name="belowTitle" />
         </div>
         <div class="flex gap-3 items-center">
           <slot name="header-label"></slot>

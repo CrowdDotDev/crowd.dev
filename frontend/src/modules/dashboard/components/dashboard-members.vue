@@ -221,8 +221,8 @@ import {
 } from '@/modules/dashboard/dashboard.cube'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import AppDashboardMemberItem from '@/modules/dashboard/components/member/dashboard-member-item'
-import integrationsJsonArray from '@/jsons/integrations.json'
 import { formatNumberToCompact } from '@/utils/number'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardMember',
@@ -254,9 +254,7 @@ export default {
   },
   methods: {
     getPlatformDetails(platform) {
-      return integrationsJsonArray.find(
-        (i) => i.platform === platform
-      )
+      return CrowdIntegrations.getConfig(platform)
     },
     getTimeText: function (index) {
       const current = this.formatTime(
