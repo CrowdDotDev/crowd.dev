@@ -13,5 +13,5 @@ export default {
     'https://cdn-icons-png.flaticon.com/512/5968/5968756.png',
   connectComponent: DiscordConnect,
   activityMessage: DiscordActivityMessage,
-  activityContent: DiscordActivityContent,
+  activityContent: DiscordActivityContent
 }

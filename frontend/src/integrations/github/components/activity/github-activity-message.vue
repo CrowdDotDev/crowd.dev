@@ -10,7 +10,8 @@
     v-if="
       !['fork', 'star', 'unstar'].includes(activity.type) &&
       !short &&
-      activity.channel && !channelOnly
+      activity.channel &&
+      !channelOnly
     "
     class="ml-1"
     >in</span

@@ -15,7 +15,7 @@ defineProps({
   integration: {
     type: Object,
     default: () => {}
-  },
+  }
 })
 
 const connect = () => {
