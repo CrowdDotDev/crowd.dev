@@ -136,9 +136,9 @@ describe('MemberAttributeSettingService tests', () => {
         return attribute
       })
 
-      const [idCreated] = attributes
+      const [idCreated, avatarUrlCreated] = attributes
 
-      const [id] = DiscordMemberAttributes
+      const [id, avatarUrl] = DiscordMemberAttributes
 
       const expected = [
         {
@@ -153,6 +153,19 @@ describe('MemberAttributeSettingService tests', () => {
           canDelete: id.canDelete,
           name: id.name,
           label: id.label,
+        },
+        {
+          id: avatarUrlCreated.id,
+          createdAt: SequelizeTestUtils.getNowWithoutTime(),
+          updatedAt: SequelizeTestUtils.getNowWithoutTime(),
+          createdById: mockIRepositoryOptions.currentUser.id,
+          updatedById: mockIRepositoryOptions.currentUser.id,
+          tenantId: mockIRepositoryOptions.currentTenant.id,
+          show: avatarUrl.show,
+          type: avatarUrl.type,
+          canDelete: avatarUrl.canDelete,
+          name: avatarUrl.name,
+          label: avatarUrl.label,
         },
       ]
 

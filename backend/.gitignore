@@ -8,3 +8,5 @@ dist/
 **/.cubestore
 **/local-events
 **/local_events
+
+**/try.ts
