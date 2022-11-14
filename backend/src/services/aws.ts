@@ -150,7 +150,7 @@ export async function detectSentimentBatch(textArray) {
         negative,
         neutral: 100 * i.SentimentScore.Neutral,
         mixed: 100 * i.SentimentScore.Mixed,
-        sentiment: Math.round(100 * ((positive - negative) / (2 * (positive + negative)) + 0.5)),
+        sentiment: Math.round(50 + (positive - negative) / 2),
       }
     })
 

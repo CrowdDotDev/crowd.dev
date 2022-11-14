@@ -30,7 +30,7 @@
             <div
               v-for="data of compileData(resultSet)"
               :key="data.type"
-              class="h-2 border-l border-r rounded-sm transition"
+              class="h-2 border-l border-r rounded-sm transition cursor-pointer"
               :style="{
                 width: `${calculatePercentage(data.count)}%`
               }"
@@ -40,16 +40,18 @@
               ]"
               @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
+              @click="handleSentimentClick(data.type)"
             ></div>
           </div>
           <div>
             <div
               v-for="data of compileData(resultSet)"
               :key="data.type"
-              class="flex justify-between pb-2"
+              class="flex justify-between pb-2 cursor-pointer"
               :class="hoverSentimentClass(data.type)"
               @mouseover="hoveredSentiment = data.type"
               @mouseleave="hoveredSentiment = ''"
+              @click="handleSentimentClick(data.type)"
             >
               <p class="text-sm font-medium capitalize">
                 {{ data.type }}
@@ -150,6 +152,12 @@ export default {
       }, 0)
 
       return finalResult
+    },
+    handleSentimentClick(sentiment) {
+      this.$router.push({
+        name: 'activity',
+        query: { sentiment }
+      })
     }
   }
 }

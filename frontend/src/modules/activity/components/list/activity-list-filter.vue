@@ -26,6 +26,7 @@ import { ActivityModel } from '@/modules/activity/activity-model'
 import { ConversationModel } from '@/modules/conversation/conversation-model'
 import { useStore } from 'vuex'
 import { onMounted, defineProps, computed } from 'vue'
+import SentimentField from '@/shared/fields/sentiment-field'
 
 const store = useStore()
 const props = defineProps({
@@ -75,6 +76,26 @@ onMounted(async () => {
   // Ob Conversations tab, the fetch is already done on the changeActiveView action
   if (activeView.value.type !== 'conversations') {
     await doFetch()
+  }
+
+  const params = new URLSearchParams(window.location.search)
+
+  if (
+    params.get('sentiment') &&
+    activeView.value.type === 'activities'
+  ) {
+    const sentimentField = new SentimentField(
+      'sentiment',
+      'Sentiment'
+    )
+    await store.dispatch(`activity/addFilterAttribute`, {
+      ...sentimentField.forFilter(),
+      value: [
+        sentimentField
+          .dropdownOptions()
+          .find((o) => o.value === params.get('sentiment'))
+      ]
+    })
   }
 })
 

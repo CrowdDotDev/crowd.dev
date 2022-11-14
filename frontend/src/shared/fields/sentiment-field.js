@@ -1,6 +1,6 @@
-import StringField from '@/shared/fields/string-field'
+import GenericField from '@/shared/fields/string-field'
 
-export default class ActivitySentimentField extends StringField {
+export default class SentimentField extends GenericField {
   constructor(name, label, config = {}) {
     super(name, label)
 

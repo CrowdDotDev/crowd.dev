@@ -59,7 +59,7 @@ export default (inject) => () => {
 
     cy.url().should('not.include', '/onboard')
     cy.url().should('include', '/auth/signin')
-    cy.get('.el-notification__content').should(
+    cy.get('.el-notification__group').should(
       'contain.text',
       'Sorry, this email does not match any record in our database'
     )

@@ -10,4 +10,11 @@ export const DiscordMemberAttributes: Attribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.AVATAR_URL].name,
+    label: MemberAttributes[MemberAttributeName.AVATAR_URL].label,
+    type: AttributeType.URL,
+    canDelete: false,
+    show: false,
+  },
 ]

@@ -1,15 +1,36 @@
 .el-notification {
-  width: 450px;
+  @apply border-0 border-l rounded-lg px-4 w-120 min-h-11;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.1), 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  &.error {
+    border-left: 2px solid #EF4444;
+  }
+
+  &.success {
+    border-left: 2px solid #10B981;
+  }
 }
 
 .el-notification__title {
-  @apply font-semibold text-black m-0;
+  @apply font-semibold text-xs text-black m-0;
 }
 
 .el-notification__content {
-  font-size: 14px;
-  line-height: 21px;
-  margin: 0;
-  color: #606266;
-  text-align: justify
+  @apply text-2xs text-gray-600;
+}
+
+.el-notification__group {
+  @apply mx-2;
+}
+
+.el-notification__closeBtn {
+  svg {
+    @apply stroke-gray-300 transition;
+    stroke-width: 48px;
+    &:hover {
+      @apply stroke-gray-400;
+    }
+  }
 }
