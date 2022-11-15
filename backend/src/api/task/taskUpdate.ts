@@ -31,6 +31,12 @@ export default async (req, res) => {
       { id: payload.id, dueDate: payload.dueDate, members: payload.members },
       { ...req },
     )
+  } if (taskBeforeUpdate.status === 'in-progress' && payload.status === 'done') {
+    track(
+      'Task Completed',
+      { id: payload.id, dueDate: payload.dueDate, members: payload.members, status: payload.status },
+      { ...req },
+    )
   } else {
     track(
       'Task Updated',
