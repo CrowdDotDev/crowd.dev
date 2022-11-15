@@ -1,54 +1,51 @@
 cube(`MemberOrganizations`, {
-  sql: `SELECT * FROM public."memberOrganizations"`,
+    sql: `SELECT * FROM public."memberOrganizations"`,
 
-  preAggregations: {
-    // Pre-Aggregations definitions go here
-    // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started
-  },
+    preAggregations: {},
 
-  joins: {
-    Organizations: {
-      sql: `${CUBE}."organizationId" = ${Organizations}.id`,
-      relationship: `belongsTo`,
+    joins: {
+        Organizations: {
+            sql: `${CUBE}."organizationId" = ${Organizations}.id`,
+            relationship: `belongsTo`,
+        },
+
+        Activities: {
+            sql: `${CUBE}."memberId" = ${Activities}."memberId"`,
+            relationship: `hasMany`,
+        },
     },
 
-    Activities: {
-      sql: `${CUBE}."memberId" = ${Activities}."memberId"`,
-      relationship: `hasMany`,
-    },
-  },
+    measures: {},
 
-  measures: {},
+    dimensions: {
+        id: {
+            sql: `${CUBE}."memberId" || '-' || ${CUBE}."organizationid"`,
+            type: `string`,
+            primaryKey: true,
+        },
 
-  dimensions: {
-    id: {
-      sql: `${CUBE}."memberId" || '-' || ${CUBE}."organizationid"`,
-      type: `string`,
-      primaryKey: true,
-    },
+        organizationid: {
+            sql: `${CUBE}."organizationId"`,
+            type: `string`,
+            shown: false,
+        },
 
-    organizationid: {
-      sql: `${CUBE}."organizationId"`,
-      type: `string`,
-      shown: false,
-    },
+        memberid: {
+            sql: `${CUBE}."memberId"`,
+            type: `string`,
+            shown: false,
+        },
 
-    memberid: {
-      sql: `${CUBE}."memberId"`,
-      type: `string`,
-      shown: false,
-    },
+        createdat: {
+            sql: `${CUBE}."createdAt"`,
+            type: `time`,
+            shown: false,
+        },
 
-    createdat: {
-      sql: `${CUBE}."createdAt"`,
-      type: `time`,
-      shown: false,
+        updatedat: {
+            sql: `${CUBE}."updatedAt"`,
+            type: `time`,
+            shown: false,
+        },
     },
-
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
-      type: `time`,
-      shown: false,
-    },
-  },
 })

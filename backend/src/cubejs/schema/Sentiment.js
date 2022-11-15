@@ -1,5 +1,5 @@
 cube(`Sentiment`, {
-  sql: `select
+    sql: `select
   a."tenantId" ,
   a."platform" ,
   a."timestamp" ,
@@ -14,61 +14,52 @@ from
 where
   a.sentiment->>'sentiment' is not null`,
 
-  preAggregations: {
-    Sentiment: {
-      measures: [Sentiment.averageSentiment],
-      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
-      timeDimension: Sentiment.date,
-      granularity: `day`,
-      refreshKey: {
-        every: `1 minute`,
-      },
-    },
-  },
-
-  /*
-    joins: {
-      Members: {
-        sql: `${CUBE}."memberId" = ${Members}."id"`,
-        relationship: `belongsTo`,
-      },
-    },
-    */
-
-  measures: {
-    averageSentiment: {
-      type: 'avg',
-      sql: `sentiment`,
-      // shown: false,
-    },
-  },
-
-  dimensions: {
-    tenantId: {
-      sql: `${CUBE}."tenantId"`,
-      type: `string`,
-      shown: false,
+    preAggregations: {
+        Sentiment: {
+            measures: [Sentiment.averageSentiment],
+            dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
+            timeDimension: Sentiment.date,
+            granularity: `day`,
+            refreshKey: {
+                every: `1 minute`,
+            },
+        },
     },
 
-    id: {
-      sql: `id`,
-      type: `string`,
-      primaryKey: true,
+
+    measures: {
+        averageSentiment: {
+            type: 'avg',
+            sql: `sentiment`,
+        },
     },
 
-    platform: {
-      sql: `platform`,
-      type: `string`,
-    },
+    dimensions: {
+        tenantId: {
+            sql: `${CUBE}."tenantId"`,
+            type: `string`,
+            shown: false,
+        },
 
-    mood: {
-      sql: `mood`,
-      type: `string`,
-    },
+        id: {
+            sql: `id`,
+            type: `string`,
+            primaryKey: true,
+        },
 
-    date: {
-      sql: `timestamp`,
-      type: `time`,
+        platform: {
+            sql: `platform`,
+            type: `string`,
+        },
+
+        mood: {
+            sql: `mood`,
+            type: `string`,
+        },
+
+        date: {
+            sql: `timestamp`,
+            type: `time`,
+        },
     },
-  },
 })
