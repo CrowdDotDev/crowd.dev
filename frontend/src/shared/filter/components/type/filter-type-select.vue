@@ -96,13 +96,9 @@ const handleOptionClick = (option) => {
 
     &.is-selected,
     &:focus.is-selected {
-      background-color: #fff5f4;
-      @apply relative;
+      @apply relative bg-brand-50;
       i {
         @apply mr-3 text-brand-600;
-      }
-      &:hover {
-        @apply bg-brand-50;
       }
     }
   }

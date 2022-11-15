@@ -12,13 +12,7 @@
       </span>
     </div>
     <div>
-      <el-switch
-        v-model="model"
-        style="
-          --el-switch-on-color: #22c55e;
-          --el-switch-off-color: #cbd5e1;
-        "
-      />
+      <el-switch v-model="model" />
     </div>
   </div>
 </template>

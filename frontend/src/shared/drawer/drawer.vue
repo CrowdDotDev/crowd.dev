@@ -92,7 +92,7 @@ const props = defineProps({
     default: () => 'rtl'
   },
   size: {
-    type: String || Number,
+    type: [String, Number],
     default: () => '40%'
   },
   showFooter: {

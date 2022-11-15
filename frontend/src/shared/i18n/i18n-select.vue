@@ -10,6 +10,7 @@
         :key="language.id"
         :label="language.label"
         :value="language.id"
+        @mouseleave="onSelectMouseLeave"
       ></el-option>
     </el-select>
   </div>
@@ -18,6 +19,7 @@
 <script>
 import { I18nUtil } from '@/shared/i18n/i18n-util'
 import { getLanguages, getLanguageCode } from '@/i18n'
+import { onSelectMouseLeave } from '@/utils/select'
 
 export default {
   name: 'AppI18nSelect',
@@ -37,7 +39,9 @@ export default {
   methods: {
     doChangeLanguage(language) {
       I18nUtil.doChangeLanguage(language)
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

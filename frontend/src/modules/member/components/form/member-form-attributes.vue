@@ -66,11 +66,13 @@
                 key="true"
                 label="True"
                 :value="true"
+                @mouseleave="onSelectMouseLeave"
               />
               <el-option
                 key="false"
                 label="False"
                 :value="false"
+                @mouseleave="onSelectMouseLeave"
               />
             </el-select>
 
@@ -106,6 +108,7 @@ import {
   h,
   watch
 } from 'vue'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const CalendarIcon = h(
   'i', // type

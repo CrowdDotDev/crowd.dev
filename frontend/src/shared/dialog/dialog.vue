@@ -5,7 +5,7 @@
     :append-to-body="true"
     :destroy-on-close="true"
     :show-close="false"
-    :custom-class="`${dialogSize} ${customClass}`"
+    :class="`${dialogSize} ${customClass}`"
     @close="onClose"
   >
     <template #header="{ close, titleId, titleClass }">

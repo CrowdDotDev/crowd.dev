@@ -142,6 +142,7 @@ function handleOptionClick(v) {
 <style lang="scss">
 .filter-dropdown {
   &-search .el-input__wrapper {
+    border: none !important;
     @apply shadow-none;
     &.is-focus,
     &:hover {

@@ -2,10 +2,6 @@
   <div class="flex items-center">
     <el-switch
       :model-value="automation.state === 'active'"
-      style="
-        --el-switch-on-color: #22c55e;
-        --el-switch-off-color: #cbd5e1;
-      "
       class="!grow-0 !ml-0"
       @change="handleChange"
     />

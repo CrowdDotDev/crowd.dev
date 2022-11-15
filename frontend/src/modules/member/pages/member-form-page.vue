@@ -21,6 +21,7 @@
         <el-main class="p-6">
           <el-form
             ref="formRef"
+            class="form"
             label-position="top"
             :rules="rules"
             :model="formModel"
@@ -424,8 +425,7 @@ async function onSubmit() {
       @apply mb-6;
     }
 
-    & .app-tags-input,
-    .el-select {
+    & .app-tags-input {
       @apply w-full;
     }
 
@@ -451,21 +451,5 @@ async function onSubmit() {
     .el-form-item__content {
     @apply flex mb-0;
   }
-}
-
-.el-select-dropdown.is-multiple
-  .el-select-dropdown__item.selected,
-.el-select-dropdown .el-select-dropdown__item.selected {
-  @apply font-medium  text-gray-900;
-}
-
-.el-select-dropdown.is-multiple
-  .el-select-dropdown__item.selected {
-  @apply bg-brand-50;
-}
-
-.el-select-dropdown.is-multiple
-  .el-select-dropdown__item.selected::after {
-  @apply bg-gray-900;
 }
 </style>

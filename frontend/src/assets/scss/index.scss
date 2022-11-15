@@ -8,16 +8,9 @@
 /* You can add global styles to this file, and also import other style files */
 @import 'layout';
 @import 'typography';
-@import 'auth';
-@import 'onboard';
-@import 'form';
 @import 'filter';
-@import 'colors';
-@import 'settings';
 @import 'table';
-@import 'view';
 @import 'buttons';
-@import 'dropdown';
 @import 'tags';
 @import 'dialogs';
 @import 'panel';
@@ -26,10 +19,17 @@
 @import 'drawer';
 @import 'animations';
 @import 'confirm-dialog';
-@import 'date-picker';
 @import 'timeline';
 @import 'badge';
-@import 'radio';
 @import 'content';
+@import 'popover';
+@import 'form/date-picker';
+@import 'form/radio';
+@import 'form/form';
+@import 'form/dropdown';
+@import 'form/select';
+@import 'form/input';
+@import 'form/checkbox';
+@import 'form/switch';
 
 @import '~remixicon/fonts/remixicon.css';
