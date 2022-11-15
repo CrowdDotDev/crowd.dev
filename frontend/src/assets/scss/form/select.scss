@@ -14,6 +14,8 @@
 
 // Select input
 .el-select {
+  --el-select-border-color-hover: unset;
+
   &:hover {
     @apply border-gray-400;
   }
@@ -21,6 +23,38 @@
   .el-input {
     min-height: 40px;
     @apply h-fit leading-10 w-full;
+
+    // Override box-shadow with border properties
+    &.is-disabled .el-input__wrapper:hover {
+      box-shadow: none;
+    }
+
+    &.is-focus .el-input__wrapper,
+    .el-input__wrapper.is-focus {
+      box-shadow: none !important;
+      border: 1px solid var(--el-input-focus-border-color);
+    }
+  }
+}
+
+// Select input as input group append
+// Override box-shadow with border properties
+.el-input-group--append .el-input-group__append .el-select {
+  &:hover .el-input__wrapper {
+    border: 1px solid var(--el-input-hover-border-color);
+    box-shadow: none !important;
+    margin-left: -1px;
+  }
+
+  .el-input.is-focus .el-input__wrapper {
+    border: 1px solid var(--el-input-focus-border-color);
+    box-shadow: none !important;
+    margin-left: -1px;
+  }
+
+  .el-input .el-input__wrapper {
+    box-shadow: none !important;
+    margin-left: -1px;
   }
 }
 

@@ -257,7 +257,7 @@ onMounted(async () => {
     @apply bg-white;
 
     .el-select .el-input .el-input__wrapper {
-      border-radius: 0 4px 4px 0 !important;
+      border-radius: 0 6px 6px 0 !important;
     }
   }
   .activity-header {

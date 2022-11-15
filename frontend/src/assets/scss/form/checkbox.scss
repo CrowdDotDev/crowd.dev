@@ -1,4 +1,6 @@
 .el-checkbox {
+  --el-checkbox-checked-text-color: #000000; //Black
+
   // Label
   &__label {
     @apply text-black font-normal;
@@ -13,10 +15,11 @@
         left: 7px;
         top: 2px;
       }
+    }
 
-      &:hover {
-        @apply border-gray-400;
-      }
+    &:not(.is-disabled):not(.is-checked)
+      .el-checkbox__inner:hover {
+      @apply border-gray-400;
     }
 
     // Indeterminate state

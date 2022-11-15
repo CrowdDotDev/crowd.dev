@@ -17,6 +17,36 @@
   .el-input__wrapper,
   .el-textarea {
     --el-color-danger: #ef4444;
+    box-shadow: none;
+    border: 1px solid var(--el-color-danger);
+  }
+}
+
+// Override box-shadow with border properties
+.el-input {
+  &.is-disabled .el-input__wrapper {
+    box-shadow: none;
+  }
+
+  .el-input__wrapper,
+  .el-textarea__inner {
+    @apply rounded-md;
+    box-shadow: none;
+    border: 1px solid var(--el-input-border-color);
+  }
+
+  &:not(.is-disabled) .el-input__wrapper,
+  .el-textarea__inner {
+    &:hover {
+      box-shadow: none;
+      border: 1px solid var(--el-input-hover-border-color);
+    }
+
+    &.is-focus,
+    &:focus {
+      box-shadow: none;
+      border: 1px solid var(--el-input-focus-border-color);
+    }
   }
 }
 
@@ -33,7 +63,7 @@
 
 // Input prepend
 .el-input-group__prepend {
-  @apply font-semibold text-gray-900 px-3 flex gap-1;
+  @apply font-semibold text-gray-900 px-3 flex gap-1 rounded-l-md rounded-r-none;
 
   & ~ .el-input__wrapper {
     @apply rounded-l-none rounded-r-md;
@@ -42,8 +72,8 @@
 
 // Input append
 .el-input-group--append {
-  & ~ .el-input__wrapper {
-    border-radius: 4px 0 0 4px !important;
+  & > .el-input__wrapper {
+    border-radius: 6px 0 0 6px !important;
   }
 
   .append-icon {
