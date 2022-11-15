@@ -1,5 +1,8 @@
 <template>
-  <div v-if="isNew || isTeam" class="flex items-center">
+  <div
+    v-if="isNew || isTeam"
+    class="member-badge flex items-center"
+  >
     <el-tooltip
       v-if="isNew"
       placement="top"
@@ -71,3 +74,10 @@ const computedTooltipContent = function (tooltip) {
     : `Team member`
 }
 </script>
+
+<style lang="scss">
+.flex > .member-display-name + .member-badge,
+.inline-flex > .member-display-name + .member-badge {
+  @apply ml-2;
+}
+</style>
