@@ -2,7 +2,7 @@
   <div>
     <component
       :is="customComponent"
-      :class="customClass"
+      :class="`member-display-name ${customClass}`"
       :to="
         withLink
           ? {

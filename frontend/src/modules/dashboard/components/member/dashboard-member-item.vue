@@ -22,7 +22,7 @@
       <app-member-display-name
         :member="member"
         class="flex items-center"
-        custom-class="text-xs leading-5 font-medium text-gray-900 group-hover:text-brand-500 transition mr-2"
+        custom-class="text-xs leading-5 font-medium text-gray-900 group-hover:text-brand-500 transition"
       />
       <p class="text-2xs leading-4 !text-gray-500">
         <slot />

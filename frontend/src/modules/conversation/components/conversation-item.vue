@@ -13,8 +13,8 @@
       <!-- conversation info-->
       <div class="pl-3">
         <app-member-display-name
-          class="flex items-center mb-1"
-          custom-class="text-2xs leading-4 font-medium mr-2"
+          class="flex items-center mb-0.5"
+          custom-class="text-2xs leading-4 font-medium"
           :member="member"
         />
         <div class="flex items-center">
@@ -29,7 +29,7 @@
               :src="platform.image"
             />
           </el-tooltip>
-          <div class="flex-grow">
+          <div class="flex-grow leading-none">
             <p
               class="text-xs leading-4 pl-2 flex flex-wrap"
             >
