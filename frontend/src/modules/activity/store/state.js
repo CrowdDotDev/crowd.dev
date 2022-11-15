@@ -1,4 +1,7 @@
-import { INITIAL_PAGE_SIZE, TRENDING_CONVERSATIONS_FILTER } from './constants'
+import {
+  INITIAL_PAGE_SIZE,
+  TRENDING_CONVERSATIONS_FILTER
+} from './constants'
 
 export default () => {
   return {
