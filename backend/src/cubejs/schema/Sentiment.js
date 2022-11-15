@@ -1,5 +1,5 @@
 cube(`Sentiment`, {
-    sql: `select
+  sql: `select
   a."tenantId" ,
   a."platform" ,
   a."timestamp" ,
@@ -14,52 +14,51 @@ from
 where
   a.sentiment->>'sentiment' is not null`,
 
-    preAggregations: {
-        Sentiment: {
-            measures: [Sentiment.averageSentiment],
-            dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
-            timeDimension: Sentiment.date,
-            granularity: `day`,
-            refreshKey: {
-                every: `1 minute`,
-            },
-        },
+  preAggregations: {
+    Sentiment: {
+      measures: [Sentiment.averageSentiment],
+      dimensions: [Sentiment.platform, Sentiment.mood, Sentiment.tenantId],
+      timeDimension: Sentiment.date,
+      granularity: `day`,
+      refreshKey: {
+        every: `1 minute`,
+      },
+    },
+  },
+
+  measures: {
+    averageSentiment: {
+      type: 'avg',
+      sql: `sentiment`,
+    },
+  },
+
+  dimensions: {
+    tenantId: {
+      sql: `${CUBE}."tenantId"`,
+      type: `string`,
+      shown: false,
     },
 
-
-    measures: {
-        averageSentiment: {
-            type: 'avg',
-            sql: `sentiment`,
-        },
+    id: {
+      sql: `id`,
+      type: `string`,
+      primaryKey: true,
     },
 
-    dimensions: {
-        tenantId: {
-            sql: `${CUBE}."tenantId"`,
-            type: `string`,
-            shown: false,
-        },
-
-        id: {
-            sql: `id`,
-            type: `string`,
-            primaryKey: true,
-        },
-
-        platform: {
-            sql: `platform`,
-            type: `string`,
-        },
-
-        mood: {
-            sql: `mood`,
-            type: `string`,
-        },
-
-        date: {
-            sql: `timestamp`,
-            type: `time`,
-        },
+    platform: {
+      sql: `platform`,
+      type: `string`,
     },
+
+    mood: {
+      sql: `mood`,
+      type: `string`,
+    },
+
+    date: {
+      sql: `timestamp`,
+      type: `time`,
+    },
+  },
 })
