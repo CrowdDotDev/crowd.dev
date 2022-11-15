@@ -78,9 +78,9 @@ import AppConversationDrawer from '@/modules/conversation/components/conversatio
 import AppPaginationSorter from '@/shared/pagination/pagination-sorter'
 import { defineProps, computed, ref } from 'vue'
 import { useStore } from 'vuex'
+import { TRENDING_CONVERSATIONS_FILTER } from '@/modules/activity/store/constants'
 
 const store = useStore()
-const sorterFilter = ref('trending')
 const conversationId = ref(null)
 
 defineProps({
@@ -100,6 +100,11 @@ defineProps({
 
 const activeView = computed(
   () => store.getters['activity/activeView']
+)
+const sorterFilter = computed(() =>
+  activeView.value?.sorter.prop === 'activityCount'
+    ? 'trending'
+    : 'recentActivity'
 )
 const hasFilter = computed(() => {
   const parsedFilters = {
@@ -143,9 +148,22 @@ const isLoadMoreVisible = computed(() => {
 
 const doChangeFilter = (filter) => {
   let sorter = 'lastActive'
+  const payload = {
+    activeView: activeView.value,
+    attribute:
+      TRENDING_CONVERSATIONS_FILTER.attributes.lastActive
+  }
 
   if (filter === 'trending') {
+    // Add lastActive filter for 'Trending' sorter
+    store.commit('activity/FILTER_ATTRIBUTE_ADDED', payload)
     sorter = 'activityCount'
+  } else {
+    // Remove lastActive filter for 'Most recent activity' sorter
+    store.commit(
+      'activity/FILTER_ATTRIBUTE_DESTROYED',
+      payload
+    )
   }
 
   store.dispatch('activity/doChangeSort', {

@@ -230,7 +230,7 @@ export default (moduleName, moduleService = null) => {
       const activeView = getters.activeView
       commit('SORTER_CHANGED', { activeView, sorter })
       dispatch('doFetch', {
-        keepPagination: true
+        keepPagination: false
       })
     },
 
