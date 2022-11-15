@@ -18,7 +18,7 @@
         <div class="flex justify-between items-center py-3">
           <app-eagle-eye-counter />
           <app-eagle-eye-sorter
-            v-if="activeView === 'inbox'"
+            v-if="activeView.id === 'inbox'"
           />
         </div>
 
