@@ -33,15 +33,15 @@
           <el-table ref="table" :data="pair" row-key="k1">
             <el-table-column label="Member" min-width="150">
               <template #default="scope">
-                <div class="flex items-center">
-                  <div class="h-12">
+                <div class="flex items-start">
+                  <div class="min-h-12">
                     <app-avatar
                       :entity="scope.row"
                       size="sm"
-                      class="mr-2"
+                      class="mr-2 mt-0.5"
                     />
                   </div>
-                  <div class="h-12 text-gray-900">
+                  <div class="min-h-12 text-gray-900">
                     <app-member-display-name
                       :member="scope.row"
                     />
