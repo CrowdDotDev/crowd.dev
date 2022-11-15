@@ -96,5 +96,15 @@ export default {
       Errors.handle(error)
       commit('DESTROY_ERROR')
     }
+  },
+
+  doChangeSort({ commit, dispatch, getters }, sorter) {
+    const activeView = getters.activeView
+
+    commit('SORTER_CHANGED', { activeView, sorter })
+
+    dispatch('doFetch', {
+      keepPagination: false
+    })
   }
 }
