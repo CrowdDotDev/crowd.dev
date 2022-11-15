@@ -40,7 +40,7 @@
             <app-member-display-name
               :member="member"
               class="flex items-center mb-0.5"
-              custom-class="text-2xs leading-4 font-medium mr-2"
+              custom-class="text-2xs leading-4 font-medium"
             />
             <div class="flex items-center">
               <div class="pr-2">

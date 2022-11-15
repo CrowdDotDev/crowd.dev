@@ -48,6 +48,7 @@
           :key="channel.value"
           :label="channel.label"
           :value="channel.value"
+          @mouseleave="onSelectMouseLeave"
         ></el-option>
       </el-select>
     </el-form-item>
@@ -57,6 +58,7 @@
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
 import { useStore } from 'vuex'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const store = useStore()
 const props = defineProps({

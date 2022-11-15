@@ -24,8 +24,9 @@
           >
             <app-member-display-name
               class="inline-flex items-center"
-              custom-class="mr-2"
+              custom-class="text-gray-500"
               :member="member"
+              with-link
             />
             <span class="mx-1">·</span>
             <span>{{ timeAgo(activity.timestamp) }}</span>

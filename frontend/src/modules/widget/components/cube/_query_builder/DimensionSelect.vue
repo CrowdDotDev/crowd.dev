@@ -15,6 +15,7 @@
         filterable
         :disabled="measures.length === 0"
         class="w-full"
+        @mouseleave="onSelectMouseLeave"
       >
         <el-option
           v-for="item in translatedOptions(
@@ -30,6 +31,8 @@
 </template>
 
 <script>
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'DimensionSelect',
   props: {
@@ -116,6 +119,10 @@ export default {
         return this.setDimensions([value])
       }
     }
+  },
+
+  methods: {
+    onSelectMouseLeave
   }
 }
 </script>

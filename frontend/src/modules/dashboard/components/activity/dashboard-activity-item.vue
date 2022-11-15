@@ -41,7 +41,7 @@
           <div>
             <app-member-display-name
               class="flex items-center pb-0.5"
-              custom-class="text-2xs leading-4 block text-gray-600 mr-2"
+              custom-class="text-2xs leading-4 block text-gray-600"
               :member="activity.member"
               with-link
             />

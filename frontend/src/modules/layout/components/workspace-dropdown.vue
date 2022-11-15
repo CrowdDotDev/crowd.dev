@@ -10,7 +10,7 @@
         <div class="w-full">
           <el-tooltip
             :disabled="!isCollapsed || isDropdownOpen"
-            hide-after="50"
+            :hide-after="50"
             effect="dark"
             placement="right"
             raw-content

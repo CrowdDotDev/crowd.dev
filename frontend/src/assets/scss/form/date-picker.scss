@@ -113,3 +113,16 @@
     }
   }
 }
+
+// Date editor
+.el-date-editor--daterange.el-input,
+.el-date-editor--daterange.el-input__inner,
+.el-date-editor--timerange.el-input,
+.el-date-editor--timerange.el-input__inner {
+  @apply w-auto;
+}
+
+.el-date-editor.el-input,
+.el-date-editor.el-input__wrapper {
+  @apply h-10 leading-10 w-full;
+}

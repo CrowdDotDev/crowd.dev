@@ -20,6 +20,7 @@
       v-show="showCreateSuggestion"
       :label="currentQuery"
       :created="true"
+      @mouseleave="onSelectMouseLeave"
     >
       <span class="prefix">{{ createPrefix }}</span>
       <span>{{ currentQuery }}</span>
@@ -29,6 +30,7 @@
       :key="record.id"
       :label="record.label"
       :value="record"
+      @mouseleave="onSelectMouseLeave"
     >
     </el-option>
   </el-select>
@@ -36,6 +38,7 @@
 
 <script>
 import isString from 'lodash/isString'
+import { onSelectMouseLeave } from '@/utils/select'
 
 const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
@@ -178,7 +181,9 @@ export default {
         this.localOptions = []
         this.loading = false
       }
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

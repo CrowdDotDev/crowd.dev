@@ -40,12 +40,12 @@
       <!-- conversation info-->
       <div class="pl-3">
         <app-member-display-name
-          class="flex items-center mb-1"
-          custom-class="text-2xs leading-4 font-medium mr-2"
+          class="flex items-center mb-0.5"
+          custom-class="text-2xs leading-4 font-medium text-gray-900"
           :member="member"
           with-link
         />
-        <div class="flex">
+        <div class="flex items-center">
           <el-tooltip
             effect="dark"
             :content="platform.name"
@@ -57,8 +57,8 @@
               :src="platform.image"
             />
           </el-tooltip>
-          <div class="flex-grow">
-            <p class="text-xs leading-4 pl-2">
+          <div class="flex-grow leading-none">
+            <p class="text-xs pl-2 inline-flex">
               <!-- activity message -->
               <app-activity-message
                 :activity="conversation.conversationStarter"

@@ -8,13 +8,15 @@
   .el-input__wrapper,
   .el-input__wrapper.is-focus,
   .el-input__wrapper:hover {
-    @apply h-8 bg-gray-50 shadow-none border-none rounded-md;
+    border: none !important;
+    @apply h-8 bg-gray-50 shadow-none rounded-md;
 
     input {
       &,
       &:hover,
       &:focus {
-        @apply bg-gray-50 shadow-none border-none outline-none h-full min-h-8;
+        border: none !important;
+        @apply bg-gray-50 shadow-none outline-none h-full min-h-8;
       }
     }
   }

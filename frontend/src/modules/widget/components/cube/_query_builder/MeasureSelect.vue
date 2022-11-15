@@ -19,12 +19,15 @@
         :key="item.value"
         :label="item.label"
         :value="item.value"
+        @mouseleave="onSelectMouseLeave"
       ></el-option>
     </el-select>
   </div>
 </template>
 
 <script>
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'MeasureSelect',
   props: {
@@ -44,6 +47,9 @@ export default {
       type: Function,
       default: () => {}
     }
+  },
+  methods: {
+    onSelectMouseLeave
   }
 }
 </script>

@@ -60,7 +60,7 @@
           >
             <template #suffix>
               <span
-                class="ri-eye-line text-base text-gray-400"
+                class="ri-eye-line text-base text-gray-400 cursor-pointer"
                 @click="
                   display.password = !display.password
                 "

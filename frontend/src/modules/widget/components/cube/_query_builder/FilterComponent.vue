@@ -37,6 +37,7 @@
                 :key="item.value"
                 :value="item.value"
                 :label="item.label"
+                @mouseleave="onSelectMouseLeave"
               ></el-option>
             </el-select>
           </div>
@@ -52,6 +53,7 @@
                 v-for="actionItem in actionItems"
                 :key="actionItem.value"
                 :value="actionItem.value"
+                @mouseleave="onSelectMouseLeave"
               >
                 {{ actionItem.text }}
               </el-option>
@@ -96,6 +98,8 @@
 
 <script>
 import { v4 as uuid } from 'uuid'
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'FilterComponent',
   props: {
@@ -273,7 +277,9 @@ export default {
         })
 
       this.setFilters(newFilters)
-    }
+    },
+
+    onSelectMouseLeave
   }
 }
 </script>

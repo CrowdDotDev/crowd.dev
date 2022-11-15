@@ -63,7 +63,14 @@
               min-height="120px"
               autocomplete="disable-autocomplete"
               type="textarea"
-              class="border border-gray-300 rounded-md pt-2 px-3 pb-10"
+              class="border rounded-md pt-2 px-3 pb-10"
+              :class="{
+                'border-gray-600': noteEditorFocused,
+                'border-gray-300': !noteEditorFocused,
+                'hover:border-gray-400': !noteEditorFocused
+              }"
+              @focus="noteEditorFocused = true"
+              @blur="noteEditorFocused = false"
             ></app-editor>
             <template #error="{ error }">
               <div class="flex items-center mt-1">
@@ -268,6 +275,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'close'])
+const noteEditorFocused = ref(false)
 
 const { reloadTaskPage, reloadSuggestedTasks } =
   mapActions('task')

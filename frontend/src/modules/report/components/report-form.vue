@@ -70,7 +70,7 @@ watch(model, () => {
 </script>
 
 <style lang="scss">
-.report-form {
+.el-input.report-form {
   &-title {
     @apply h-16 mb-6;
     .el-input__wrapper {
@@ -78,13 +78,14 @@ watch(model, () => {
       transition: all 0.2s ease;
 
       &:hover {
-        @apply bg-gray-100 border-gray-300;
+        @apply rounded-none border-0 border-b border-gray-300;
       }
 
       &.is-focus,
       &:focus,
       &:active {
-        @apply border-gray-300 outline-none shadow-none;
+        @apply rounded-none border-0 border-b border-gray-300 shadow-none;
+        outline: unset;
       }
     }
   }

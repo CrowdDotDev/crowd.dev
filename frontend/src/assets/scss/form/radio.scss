@@ -1,0 +1,58 @@
+.el-radio-group {
+  @apply block;
+
+  &.radio-button-group {
+    .el-radio-button {
+      @apply border-gray-200;
+
+      &__original-radio:checked + .el-radio-button__inner {
+        @apply bg-brand-50 border-brand-500 text-gray-900;
+        box-shadow: -1px 0 0 0 #e94f2e;
+      }
+
+      .el-radio-button__inner {
+        @apply w-full text-gray-600;
+      }
+
+      &:hover .el-radio-button__inner {
+        @apply text-brand-500;
+      }
+    }
+  }
+
+  &.radio-chips {
+    .el-radio-button {
+      @apply mr-3 mb-3;
+
+      .el-radio-button__inner {
+        @apply border border-solid shadow-none border-gray-300 h-10 px-3 rounded-md flex items-center font-normal transition text-black;
+
+        &:hover {
+          @apply bg-gray-50 text-black;
+        }
+      }
+
+      &.is-active {
+        .el-radio-button__inner {
+          @apply border border-l-brand-500 shadow-none border-brand-500 rounded-md font-medium text-black bg-brand-50;
+        }
+      }
+    }
+  }
+
+  .el-radio {
+    @apply block;
+
+    &__label {
+      @apply text-2xs text-gray-900;
+    }
+
+    .el-radio__input.is-checked + .el-radio__label {
+      @apply text-gray-900;
+    }
+
+    .el-radio__input.is-checked .el-radio__inner {
+      @apply bg-brand-500 border-brand-500;
+    }
+  }
+}

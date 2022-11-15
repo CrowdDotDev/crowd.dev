@@ -9,7 +9,6 @@
         v-for="(keyword, idx) in innerKeywords"
         v-bind="$attrs"
         :key="keyword"
-        size="small"
         type="info"
         effect="light"
         :disable-transitions="true"
@@ -156,6 +155,8 @@ export default {
 
 <style lang="scss">
 .app-keywords-input {
+  @apply w-full;
+
   .el-keywords-input-wrapper {
     @apply relative text-sm bg-white shadow-none border border-solid border-gray-300 rounded-md pr-2 pl-1 flex items-center flex-wrap;
     background-image: none;

@@ -21,6 +21,7 @@
         :key="item.value"
         :value="item.value"
         :label="item.label"
+        @mouseleave="onSelectMouseLeave"
       ></el-option>
     </el-select>
   </div>
@@ -28,6 +29,8 @@
 
 <script>
 import { i18n } from '@/i18n'
+import { onSelectMouseLeave } from '@/utils/select'
+
 export default {
   name: 'TimeDimensionSelect',
   props: {
@@ -95,7 +98,8 @@ export default {
           label: i18n('widget.cubejs.' + i.name)
         }
       })
-    }
+    },
+    onSelectMouseLeave
   }
 }
 </script>
