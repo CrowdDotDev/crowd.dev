@@ -1,4 +1,4 @@
-import { INITIAL_PAGE_SIZE } from './constants'
+import { INITIAL_PAGE_SIZE, TRENDING_CONVERSATIONS_FILTER } from './constants'
 
 export default () => {
   return {
@@ -39,11 +39,11 @@ export default () => {
         label: 'Conversations',
         initialFilter: {
           operator: 'and',
-          attributes: {}
+          attributes: TRENDING_CONVERSATIONS_FILTER
         },
         filter: {
           operator: 'and',
-          attributes: {}
+          attributes: TRENDING_CONVERSATIONS_FILTER
         },
         pagination: {
           currentPage: 1,
