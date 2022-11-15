@@ -123,7 +123,9 @@ const computedCustomAttributes = computed(() => {
   ).filter((attribute) => {
     return (
       attribute.show &&
-      attribute.canDelete &&
+      !['bio', 'url', 'location', 'jobTitle'].includes(
+        attribute.name
+      ) &&
       props.member.attributes[attribute.name]
     )
   })
