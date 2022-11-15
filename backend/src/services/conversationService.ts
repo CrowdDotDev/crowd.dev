@@ -314,32 +314,36 @@ export default class ConversationService extends LoggingBase {
           act.body !== '' || (act.attributes.attachments && act.attributes.attachments.length > 0),
       )
 
-    // mark first(parent) activity as conversation starter for convenience
-    plainActivities[0].conversationStarter = true
+    if (plainActivities.length > 0) {
+      // mark first(parent) activity as conversation starter for convenience
+      plainActivities[0].conversationStarter = true
 
-    const activitiesBodies = plainActivities.map((a) => a.body)
+      const activitiesBodies = plainActivities.map((a) => a.body)
 
-    const channel = ConversationService.getChannelFromActivity(plainActivities[0])
-    if (plainActivities[0].platform === PlatformType.SLACK) {
-      plainActivities = await this.downloadSlackAttachments(plainActivities)
+      const channel = ConversationService.getChannelFromActivity(plainActivities[0])
+      if (plainActivities[0].platform === PlatformType.SLACK) {
+        plainActivities = await this.downloadSlackAttachments(plainActivities)
+      }
+
+      const document = {
+        id: conversation.id,
+        tenantSlug: this.options.currentTenant.url,
+        title: conversation.title,
+        platform: plainActivities[0].platform,
+        channel: ConversationService.sanitizeChannel(channel),
+        slug: conversation.slug,
+        activities: plainActivities,
+        activitiesBodies,
+        lastActive: plainActivities[plainActivities.length - 1].timestamp,
+        views: 0,
+        url: plainActivities[0].url,
+      }
+
+      this.log.info({ document }, 'Adding doc to conversation!')
+      await new ConversationSearchEngineRepository(this.options).createOrReplace(document)
     }
 
-    const document = {
-      id: conversation.id,
-      tenantSlug: this.options.currentTenant.url,
-      title: conversation.title,
-      platform: plainActivities[0].platform,
-      channel: ConversationService.sanitizeChannel(channel),
-      slug: conversation.slug,
-      activities: plainActivities,
-      activitiesBodies,
-      lastActive: plainActivities[plainActivities.length - 1].timestamp,
-      views: 0,
-      url: plainActivities[0].url,
-    }
-
-    this.log.info({ document }, 'Adding doc to conversation!')
-    await new ConversationSearchEngineRepository(this.options).createOrReplace(document)
+    this.log.info(`Conversation ${id} doesn't have publishable activities.`)
   }
 
   /**
