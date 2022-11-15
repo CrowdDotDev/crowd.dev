@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from "../../segment/track"
+import track from '../../segment/track'
 
 /**
  * PUT /tenant/{tenantId}/task/{id}
@@ -31,16 +31,27 @@ export default async (req, res) => {
       { id: payload.id, dueDate: payload.dueDate, members: payload.members },
       { ...req },
     )
-  } if (taskBeforeUpdate.status === 'in-progress' && payload.status === 'done') {
+  }
+  if (taskBeforeUpdate.status === 'in-progress' && payload.status === 'done') {
     track(
       'Task Completed',
-      { id: payload.id, dueDate: payload.dueDate, members: payload.members, status: payload.status },
+      {
+        id: payload.id,
+        dueDate: payload.dueDate,
+        members: payload.members,
+        status: payload.status,
+      },
       { ...req },
     )
   } else {
     track(
       'Task Updated',
-      { id: payload.id, dueDate: payload.dueDate, members: payload.members, status: payload.status },
+      {
+        id: payload.id,
+        dueDate: payload.dueDate,
+        members: payload.members,
+        status: payload.status,
+      },
       { ...req },
     )
   }
