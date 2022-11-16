@@ -5,6 +5,13 @@ import { ConversationService } from '@/modules/conversation/conversation-service
 import moment from 'moment'
 
 export default {
+  async reset({ dispatch }) {
+    dispatch('setFilters', {
+      period: 7,
+      platform: 'all'
+    })
+  },
+
   // Set new filters & fetch new data
   async setFilters(
     { commit, dispatch },
