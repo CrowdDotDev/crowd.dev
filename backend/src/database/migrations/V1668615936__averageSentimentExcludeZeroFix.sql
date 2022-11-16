@@ -23,7 +23,7 @@ create materialized view "memberActivityAggregatesMVs" as
            )            AS "averageSentiment"
     from members m
          left outer join activities a on m.id = a."memberId" and a."deletedAt" is null
-    group by m.id;
+    group by m.id
 );
 
 
