@@ -69,7 +69,7 @@
           v-if="editable"
           command="trigger-delete-widget"
           ><i
-            class="ri-lg ri-delete-bin-line mr-1 !text-red-500"
+            class="ri-lg ri-delete-bin-line mr-1 text-red-500"
           /><span class="text-red-500"
             >Delete widget</span
           ></el-dropdown-item

@@ -47,10 +47,9 @@
           action: 'conversationDelete',
           conversation: conversation
         }"
-        class="!text-red-500"
         ><i
-          class="ri-delete-bin-line mr-1 !text-red-500"
-        /><span class="text-red"
+          class="ri-delete-bin-line mr-1 text-red-500"
+        /><span class="text-red-500"
           >Delete conversation</span
         ></el-dropdown-item
       >

@@ -34,7 +34,7 @@
         <el-divider class="border-gray-200 my-2" />
         <el-dropdown-item command="userDelete"
           ><i
-            class="text-base mr-2 !text-red-500"
+            class="text-base mr-2 text-red-500"
             :class="
               user.status === 'invited'
                 ? 'ri-close-circle-line'

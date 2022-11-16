@@ -50,8 +50,9 @@
         :command="{
           action: 'taskDelete'
         }"
-        ><i class="ri-delete-bin-line mr-1 text-red" /><span
-          class="text-red"
+        ><i
+          class="ri-delete-bin-line mr-1 text-red-500"
+        /><span class="text-red-500"
           >Delete task</span
         ></el-dropdown-item
       >
@@ -65,8 +66,9 @@
         :command="{
           action: 'taskDeletePermanently'
         }"
-        ><i class="ri-delete-bin-line mr-1 text-red" /><span
-          class="text-red"
+        ><i
+          class="ri-delete-bin-line mr-1 text-red-500"
+        /><span class="text-red-500"
           >Delete permanently</span
         ></el-dropdown-item
       >
