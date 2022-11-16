@@ -1,6 +1,7 @@
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import track from '../../segment/track'
 
 /**
  * POST /tenant/{tenantId}/task
@@ -21,6 +22,12 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.taskCreate)
 
   const payload = await new TaskService(req).create(req.body)
+
+  track(
+    'Task Created',
+    { id: payload.id, dueDate: payload.dueDate, members: payload.members },
+    { ...req },
+  )
 
   await req.responseHandler.success(req, res, payload)
 }
