@@ -45,13 +45,14 @@
           task.status === 'in-progress' &&
           taskDestroyPermission
         "
-        class="w-55"
+        class="w-55 !text-red-500"
         divided
         :command="{
           action: 'taskDelete'
         }"
-        ><i class="ri-delete-bin-line mr-1 text-red" /><span
-          class="text-red"
+        ><i
+          class="ri-delete-bin-line mr-1 !text-red-500"
+        /><span class="text-red"
           >Delete task</span
         ></el-dropdown-item
       >
@@ -60,13 +61,14 @@
           task.status === 'archived' &&
           taskDestroyPermission
         "
-        class="w-55"
+        class="w-55 !text-red-500"
         divided
         :command="{
           action: 'taskDeletePermanently'
         }"
-        ><i class="ri-delete-bin-line mr-1 text-red" /><span
-          class="text-red"
+        ><i
+          class="ri-delete-bin-line mr-1 !text-red-500"
+        /><span class="text-red"
           >Delete permanently</span
         ></el-dropdown-item
       >
