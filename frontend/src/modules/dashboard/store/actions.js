@@ -6,7 +6,7 @@ import moment from 'moment'
 
 export default {
   async reset({ dispatch }) {
-    dispatch('setFilter', {
+    dispatch('setFilters', {
       period: 7,
       platform: 'all'
     })
