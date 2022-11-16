@@ -1,6 +1,5 @@
 import express from 'express'
 import cors from 'cors'
-// import bodyParser from 'body-parser'
 import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import { authMiddleware } from '../middlewares/authMiddleware'
@@ -14,10 +13,27 @@ import setupSwaggerUI from './apiDocumentation'
 import { createServiceLogger } from '../utils/logging'
 import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
+import { createRedisClient, RedisCache } from '../utils/redis'
 
 const serviceLogger = createServiceLogger()
 
 const app = express()
+
+setImmediate(async () => {
+  const client = await createRedisClient(true)
+  await client.ping()
+
+  const cache = new RedisCache('test', client)
+
+  await cache.setValue('blabla', '123')
+  const value = await cache.getValue('blabla')
+  console.log(value)
+
+  console.log(await cache.getValueByKeyPattern('bla*'))
+  await cache.deleteByKeyPattern('bla*')
+
+  console.log(await cache.getValue('blabla'))
+})
 
 // Enables CORS
 app.use(cors({ origin: true }))

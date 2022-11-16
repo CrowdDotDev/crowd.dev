@@ -46,9 +46,6 @@ function prepare_dev_env() {
         fi
     fi
 
-    say "DOCKER COMPOSE VERSION:"
-    $_DC version
-
     set -eo pipefail
 }
 
