@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { SlackChannels, SlackGetChannelsInput } from '../../types/slackTypes'
 import { Logger } from '../../../../utils/logging'
+import { timeout } from '../../../../utils/timing'
 
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackChannels> {
+  await timeout(1000)
+
   try {
     const config = {
       method: 'get',
