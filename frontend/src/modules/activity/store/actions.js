@@ -87,7 +87,9 @@ export default {
         i18n('entities.activity.destroy.success')
       )
 
-      router.push('/activities')
+      if (router.currentRoute.name === 'dashboard') {
+        router.push({ name: 'activity' })
+      }
 
       dispatch('doFetch', {
         keepPagination: true
