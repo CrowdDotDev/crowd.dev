@@ -27,8 +27,29 @@ export default {
   // Fetch trending conversations
   async getTrendingConversations({ commit, state }) {
     state.conversations.loading = true
+    const { platform, period } = state.filters
     return ConversationService.query(
-      {},
+      {
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .startOf('day')
+                .subtract(period - 1, 'day')
+                .toISOString()
+            }
+          },
+          ...(platform !== 'all'
+            ? [
+                {
+                  platform: {
+                    eq: platform
+                  }
+                }
+              ]
+            : [])
+        ]
+      },
       'lastActive_DESC',
       5,
       0
