@@ -2,7 +2,7 @@ import { TaskService } from '@/modules/task/task-service'
 
 export default {
   doInit({ dispatch }) {
-    dispatch('getOpenTaskCount')
+    dispatch('getMyOpenTasks')
   },
   getOpenTaskCount({ commit }) {
     return TaskService.list(
@@ -28,7 +28,7 @@ export default {
     return TaskService.list(
       {
         type: 'regular',
-        assignees: currentUser.id,
+        assignees: [currentUser.id],
         status: { eq: 'in-progress' }
       },
       '',
