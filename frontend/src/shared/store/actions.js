@@ -57,7 +57,9 @@ export default (moduleName, moduleService = null) => {
               i18n(`entities.${moduleName}.destroy.success`)
             )
 
-            router.push({ name: moduleName })
+            if (router.currentRoute.name === 'dashboard') {
+              router.push({ name: moduleName })
+            }
 
             dispatch('doFetch', {
               keepPagination: true
@@ -86,7 +88,9 @@ export default (moduleName, moduleService = null) => {
               )
             )
 
-            router.push({ name: moduleName })
+            if (router.currentRoute.name === 'dashboard') {
+              router.push({ name: moduleName })
+            }
 
             dispatch('doFetch', {
               keepPagination: true

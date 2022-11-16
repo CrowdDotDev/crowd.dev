@@ -51,11 +51,30 @@ export default {
   name: 'AppDashboardActivityList',
   components: { AppDashboardActivityItem },
   emits: { count: null },
+  data() {
+    return {
+      storeUnsubscribe: () => {}
+    }
+  },
   computed: {
     ...mapGetters('dashboard', [
       'recentActivities',
       'activities'
     ])
+  },
+  created() {
+    this.storeUnsubscribe = this.$store.subscribe(
+      (mutation) => {
+        if (mutation.type === 'activity/DESTROY_SUCCESS') {
+          this.$store.dispatch(
+            'dashboard/getRecentActivities'
+          )
+        }
+      }
+    )
+  },
+  beforeUnmount() {
+    this.storeUnsubscribe()
   }
 }
 </script>
