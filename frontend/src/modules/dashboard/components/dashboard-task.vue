@@ -202,6 +202,10 @@ const taskCreatePermission = computed(
 )
 
 const storeUnsubscribe = store.subscribeAction((action) => {
+  if (action.type === 'auth/doRefreshCurrentUser') {
+    fetchTasks()
+    fetchSuggestedTasks()
+  }
   if (action.type === 'task/reloadOpenTasks') {
     fetchTasks()
   }
