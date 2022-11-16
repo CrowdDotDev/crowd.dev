@@ -4,7 +4,7 @@
   </article>
   <article
     v-else
-    class="panel mb-6 cursor-pointer"
+    class="conversation-item panel"
     @click="openConversation()"
   >
     <div class="flex items-center pb-8">
@@ -201,3 +201,12 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+.conversation-item {
+  @apply mb-6 cursor-pointer;
+  &:hover {
+    box-shadow: 0px 1px 10px rgba(0, 0, 0, 0.15);
+  }
+}
+</style>
