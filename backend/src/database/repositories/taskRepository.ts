@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html'
 import lodash from 'lodash'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
@@ -17,6 +18,10 @@ class TaskRepository {
     const tenant = SequelizeRepository.getCurrentTenant(options)
 
     const transaction = SequelizeRepository.getTransaction(options)
+
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
+    }
 
     const record = await options.database.task.create(
       {
@@ -98,6 +103,10 @@ class TaskRepository {
 
     if (!record) {
       throw new Error404()
+    }
+
+    if (data.body) {
+      data.body = sanitizeHtml(data.body).trim()
     }
 
     record = await record.update(
