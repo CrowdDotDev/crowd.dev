@@ -104,9 +104,9 @@ export default {
       return !measure
         ? []
         : this.availableDimensions.filter((t) => {
-            return this.measureDimensions[
+            return !!this.measureDimensions[
               measure.name
-            ].includes(t.name)
+            ]?.includes(t.name)
           })
     },
     value: {

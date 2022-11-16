@@ -12,13 +12,16 @@
         translatedOptions(measures).map((i) => i.label)
       "
       class="w-full"
-      @change="(m) => setMeasures([m])"
+      @change="onSelectChange"
     >
       <el-option
         v-for="item in translatedOptions(availableMeasures)"
         :key="item.value"
         :label="item.label"
         :value="item.value"
+        :class="{
+          selected: selectedMeasure.includes(item.value)
+        }"
         @mouseleave="onSelectMouseLeave"
       ></el-option>
     </el-select>
@@ -48,8 +51,18 @@ export default {
       default: () => {}
     }
   },
+  data() {
+    return {
+      selectedMeasure: []
+    }
+  },
   methods: {
-    onSelectMouseLeave
+    onSelectMouseLeave,
+
+    onSelectChange(m) {
+      this.selectedMeasure = [m]
+      this.setMeasures([m])
+    }
   }
 }
 </script>
