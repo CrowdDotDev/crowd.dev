@@ -2,16 +2,9 @@
 cube(`Identities`, {
   sql: `select distinct unnest(ARRAY(SELECT jsonb_object_keys(m.username))) AS name, "m"."tenantId" as "tenantId"
     from members m`,
-  preAggregations: {
-    // Pre-Aggregations definitions go here
-    // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started
-    // activeOrganizations: {
-    //   measures: [Organizations.count],
-    //   dimensions: [Organizations.tenantId],
-    //   timeDimension: Activities.date,
-    //   granularity: `day`,
-    // },
-  },
+
+  preAggregations: {},
+
   joins: {
     MemberIdentities: {
       sql: `${CUBE}.name = ${MemberIdentities}."identityName"`,

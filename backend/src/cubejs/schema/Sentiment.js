@@ -26,20 +26,10 @@ where
     },
   },
 
-  /*
-    joins: {
-      Members: {
-        sql: `${CUBE}."memberId" = ${Members}."id"`,
-        relationship: `belongsTo`,
-      },
-    },
-    */
-
   measures: {
     averageSentiment: {
       type: 'avg',
       sql: `sentiment`,
-      // shown: false,
     },
   },
 

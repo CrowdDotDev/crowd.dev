@@ -13,18 +13,6 @@ cube(`Members`, {
       GROUP BY m.id`,
 
   preAggregations: {
-    /*
-        Members: {
-          measures: [Members.count],
-          dimensions: [Members.score, Members.location, Members.tenantId],
-          timeDimension: Members.joinedAt,
-          granularity: `day`,
-          refreshKey: {
-            every: `10 minute`,
-          },
-        },
-        */
-
     ActiveMembers: {
       measures: [Members.count],
       dimensions: [Members.score, Members.location, Members.tenantId, Tags.name],

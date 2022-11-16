@@ -1,10 +1,7 @@
 cube(`MemberOrganizations`, {
   sql: `SELECT * FROM public."memberOrganizations"`,
 
-  preAggregations: {
-    // Pre-Aggregations definitions go here
-    // Learn more here: https://cube.dev/docs/caching/pre-aggregations/getting-started
-  },
+  preAggregations: {},
 
   joins: {
     Organizations: {
