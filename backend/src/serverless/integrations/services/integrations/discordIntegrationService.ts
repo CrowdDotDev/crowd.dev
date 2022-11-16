@@ -21,6 +21,8 @@ import getMembers from '../../usecases/discord/getMembers'
 import getMessages from '../../usecases/discord/getMessages'
 import getThreads from '../../usecases/discord/getThreads'
 import { IntegrationServiceBase } from '../integrationServiceBase'
+import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
+import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -34,12 +36,30 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   public token: string
 
   constructor() {
-    super(IntegrationType.DISCORD, 20)
+    super(IntegrationType.DISCORD, 60)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
 
     this.token = `Bot ${DISCORD_CONFIG.token}`
+  }
+
+  override async triggerIntegrationCheck(integrations: any[]): Promise<void> {
+    let initialDelaySeconds = 0
+    for (const integration of integrations) {
+      await sendNodeWorkerMessage(
+        integration.tenantId,
+        new NodeWorkerIntegrationProcessMessage(
+          this.type,
+          integration.tenantId,
+          false,
+          integration.id,
+        ),
+        initialDelaySeconds,
+      )
+
+      initialDelaySeconds += 120
+    }
   }
 
   async preprocess(context: IStepContext): Promise<void> {

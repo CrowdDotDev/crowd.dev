@@ -15,6 +15,8 @@ import {
 } from '../../../types/integration/stepResult'
 import { IntegrationType } from '../../../types/integrationEnums'
 import { IS_TEST_ENV } from '../../../config'
+import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
+import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -49,6 +51,20 @@ export abstract class IntegrationServiceBase {
     this.globalLimit = 0
     this.onboardingLimitModifierFactor = 1.0
     this.limitResetFrequencySeconds = 0
+  }
+
+  async triggerIntegrationCheck(integrations: any[]): Promise<void> {
+    for (const integration of integrations) {
+      await sendNodeWorkerMessage(
+        integration.tenantId,
+        new NodeWorkerIntegrationProcessMessage(
+          this.type,
+          integration.tenantId,
+          false,
+          integration.id,
+        ),
+      )
+    }
   }
 
   async preprocess(context: IStepContext): Promise<void> {
