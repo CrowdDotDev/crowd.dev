@@ -9,7 +9,7 @@
     "build:staging": "vue-cli-service build --mode staging",
     "start": "vue-cli-service serve --mode localhost --port 8081",
     "start:dev": "vue-cli-service serve --mode localhost --port 8081",
-    "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vue-cli-service serve --mode production --port 8081",
+    "start:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && vue-cli-service serve --mode localhost --port 8081",
     "test": "node tests/localhost-runner.js",
     "test:e2e:open": "wait-on http://localhost:8081 && npx cypress open",
     "test:e2e:run": "wait-on http://localhost:8081 && npx cypress run",
