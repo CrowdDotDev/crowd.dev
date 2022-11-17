@@ -21,114 +21,115 @@
         </div>
       </div>
 
-      <p class="text-gray-500 text-sm mb-2">
-        {{ count }} suggestions
-      </p>
-      <div
-        v-for="(pair, index) in membersToMerge"
-        :key="pair[0].id + '-' + pair[1].id"
-        class="panel mb-6 !pb-0"
-      >
-        <div class="-mx-6">
-          <el-table ref="table" :data="pair" row-key="k1">
-            <el-table-column label="Member" min-width="150">
-              <template #default="scope">
-                <div class="flex items-start">
-                  <div class="min-h-12">
-                    <app-avatar
-                      :entity="scope.row"
-                      size="sm"
-                      class="mr-2 mt-0.5"
-                    />
-                  </div>
-                  <div class="min-h-12 text-gray-900">
-                    <app-member-display-name
-                      :member="scope.row"
-                    />
-                    <div
-                      v-if="scope.row.attributes.bio"
-                      class="text-gray-500 text-xs pr-4"
-                    >
-                      {{ scope.row.attributes.bio.default }}
-                    </div>
-                    <div
-                      v-else
-                      class="text-gray-500 text-xs pr-4"
-                    >
-                      -
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="Organization & Title"
-              width="250"
-            >
-              <template #default="scope">
-                <app-member-organizations
-                  :member="scope.row"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column
-              label="Identities"
-              :width="channelsWidth"
-            >
-              <template #default="scope">
-                <app-member-channels
-                  :member="scope.row"
-                ></app-member-channels>
-              </template>
-            </el-table-column>
-            <el-table-column>
-              <template #default="scope">
-                <div
-                  v-if="scope.row.id === pair[1].id"
-                  class="flex items-center justify-end"
-                >
-                  <el-button
-                    class="btn btn-link btn-link--primary mr-4"
-                    @click="makePrimary(pair)"
-                  >
-                    <i class="ri-arrow-left-right-line"></i>
-                    <span>Make primary</span>
-                  </el-button>
-                </div>
-              </template>
-            </el-table-column>
-          </el-table>
+      <!-- Loading -->
+      <div v-if="loading && membersToMerge?.length === 0">
+        <div
+          class="flex items-center justify-center w-full"
+        >
           <div
-            class="flex flex-wrap w-full justify-between bg-gray-50 px-6 py-4"
-          >
-            <el-button
-              class="btn btn--transparent btn--md flex items-center"
-              @click="setViewingDetails(index)"
-            >
-              <i class="ri-eye-line text-lg"></i
-              ><span>View details</span>
-            </el-button>
-            <div class="flex flex-wrap gap-3">
-              <el-button
-                class="btn btn--bordered btn--md"
-                @click="handleNotMergeClick(pair)"
-              >
-                Ignore suggestion
-              </el-button>
-              <el-button
-                class="btn btn--primary btn--md"
-                @click="handleMergeClick(pair)"
-              >
-                Merge members
-              </el-button>
-            </div>
+            v-loading="loading"
+            class="app-page-spinner h-16 w-16 !relative !min-h-fit"
+          ></div>
+        </div>
+      </div>
 
-            <app-dialog
-              v-model="viewingDetails[index]"
-              title="Merging suggestion"
-              size="2extra-large"
+      <!-- Merging suggestions list -->
+      <div v-else-if="!!membersToMerge.length">
+        <p class="text-gray-500 text-sm mb-2">
+          {{ count }} suggestions
+        </p>
+        <div
+          v-for="(pair, index) in membersToMerge"
+          :key="pair[0].id + '-' + pair[1].id"
+          class="panel mb-6 !pb-0"
+        >
+          <div class="-mx-6">
+            <el-table ref="table" :data="pair" row-key="k1">
+              <el-table-column
+                label="Member"
+                min-width="150"
+              >
+                <template #default="scope">
+                  <div class="flex items-start">
+                    <div class="min-h-12">
+                      <app-avatar
+                        :entity="scope.row"
+                        size="sm"
+                        class="mr-2 mt-0.5"
+                      />
+                    </div>
+                    <div class="min-h-12 text-gray-900">
+                      <app-member-display-name
+                        :member="scope.row"
+                      />
+                      <div
+                        v-if="scope.row.attributes.bio"
+                        class="text-gray-500 text-xs pr-4"
+                      >
+                        {{
+                          scope.row.attributes.bio.default
+                        }}
+                      </div>
+                      <div
+                        v-else
+                        class="text-gray-500 text-xs pr-4"
+                      >
+                        -
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                label="Organization & Title"
+                width="250"
+              >
+                <template #default="scope">
+                  <app-member-organizations
+                    :member="scope.row"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column
+                label="Identities"
+                :width="channelsWidth"
+              >
+                <template #default="scope">
+                  <app-member-channels
+                    :member="scope.row"
+                  ></app-member-channels>
+                </template>
+              </el-table-column>
+              <el-table-column>
+                <template #default="scope">
+                  <div
+                    v-if="scope.row.id === pair[1].id"
+                    class="flex items-center justify-end"
+                  >
+                    <el-button
+                      class="btn btn-link btn-link--primary mr-4"
+                      @click="makePrimary(index)"
+                    >
+                      <i
+                        class="ri-arrow-left-right-line"
+                      ></i>
+                      <span>Make primary</span>
+                    </el-button>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div
+              class="flex flex-wrap w-full justify-between bg-gray-50 px-6 py-4"
             >
-              <template #actionBtn>
+              <el-button
+                class="btn btn--transparent btn--md flex items-center"
+                @click="setViewingDetails(index)"
+              >
+                <i class="ri-eye-line text-lg"></i
+                ><span>View details</span>
+              </el-button>
+              <div class="flex flex-wrap gap-3">
                 <el-button
                   class="btn btn--bordered btn--md"
                   @click="handleNotMergeClick(pair)"
@@ -141,22 +142,49 @@
                 >
                   Merge members
                 </el-button>
-              </template>
-              <template #content>
-                <div>
-                  <member-merge-suggestions-details
-                    :pair="pair"
-                    @make-primary="makePrimary(pair)"
-                  />
-                </div>
-              </template>
-            </app-dialog>
+              </div>
+
+              <app-dialog
+                v-model="viewingDetails[index]"
+                title="Merging suggestion"
+                size="2extra-large"
+              >
+                <template #actionBtn>
+                  <el-button
+                    class="btn btn--bordered btn--md"
+                    @click="handleNotMergeClick(pair)"
+                  >
+                    Ignore suggestion
+                  </el-button>
+                  <el-button
+                    class="btn btn--primary btn--md"
+                    @click="handleMergeClick(pair)"
+                  >
+                    Merge members
+                  </el-button>
+                </template>
+                <template #content>
+                  <div>
+                    <member-merge-suggestions-details
+                      :pair="pair"
+                      @make-primary="makePrimary(index)"
+                    />
+                  </div>
+                </template>
+              </app-dialog>
+            </div>
           </div>
         </div>
       </div>
+      <div v-else>
+        <p class="text-gray-500 text-sm mb-2">
+          0 suggestions
+        </p>
+      </div>
+
       <!-- Load more button -->
       <div
-        v-if="isLoadMoreVisible"
+        v-if="isLoadMoreVisible && !!membersToMerge?.length"
         class="flex grow justify-center pt-4"
       >
         <div
@@ -189,6 +217,8 @@ import AppMemberOrganizations from '@/modules/member/components/member-organizat
 import { MemberService } from '../member-service'
 import MemberMergeSuggestionsDetails from '../components/suggestions/member-merge-suggestions-details.vue'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import Message from '@/shared/message/message'
+
 let membersToMerge = reactive([])
 const channelsWidth = ref('')
 const viewingDetails = ref({})
@@ -234,67 +264,71 @@ async function handleMergeClick(members) {
   try {
     await MemberService.merge(members[0], members[1])
 
-    const index = membersToMerge.value.findIndex(
-      (membersToMerge) => {
-        return (
-          membersToMerge[0].id === members[0].id &&
-          membersToMerge[1].id
-        )
-      }
-    )
+    Message.success('Members merged successfuly')
 
-    membersToMerge.value.splice(index, 1)
+    await onFetch()
   } catch (error) {
     console.log(error)
-    // no
+
+    Message.error('There was an error merging members')
   }
 }
 async function handleNotMergeClick(members) {
   try {
     await MemberService.addToNoMerge(members[0], members[1])
 
-    const index = membersToMerge.value.findIndex(
-      (membersToMerge) => {
-        return (
-          membersToMerge[0].id === members[0].id &&
-          membersToMerge[1].id
-        )
-      }
+    Message.success(
+      'Merging suggestion ignored successfuly'
     )
 
-    membersToMerge.value.splice(index, 1)
+    await onFetch()
   } catch (error) {
-    // no
+    Message.error(
+      'There was an error ignoring the merging suggestion'
+    )
   }
 }
 
 async function onLoadMore() {
-  loading.value = true
-  const response =
-    await MemberService.fetchMergeSuggestions(
-      limit.value,
-      offset.value
+  try {
+    loading.value = true
+
+    const response =
+      await MemberService.fetchMergeSuggestions(
+        limit.value,
+        offset.value
+      )
+
+    membersToMerge.push(...response.rows)
+    count.value = response.count
+    loading.value = false
+    offset.value += limit.value
+    isLoadMoreVisible.value =
+      response.rows.length === limit.value
+  } catch (e) {
+    Message.error(
+      'There was an error loading the merging suggestions'
     )
-  membersToMerge.push(...response.rows)
-  count.value = response.count
-  loading.value = false
-  offset.value += limit.value
-  isLoadMoreVisible.value =
-    response.rows.length === limit.value
+  }
 }
 
-function makePrimary(members) {
+async function onFetch() {
+  // Reset
+  loading.value = true
+  membersToMerge.splice(0, membersToMerge.length)
+  count.value = 0
+  offset.value = 0
+
+  await onLoadMore()
+}
+
+function makePrimary(index) {
   const newToMerge = []
-  for (const ms of membersToMerge.value) {
-    if (
-      members[0].id === ms[0].id &&
-      members[1].id === ms[1].id
-    ) {
-      newToMerge.push([ms[1], ms[0]])
-    } else {
-      newToMerge.push(ms)
-    }
+
+  for (const ms of membersToMerge[index]) {
+    newToMerge.unshift(ms)
   }
-  membersToMerge.value = newToMerge
+
+  membersToMerge.splice(index, 1, newToMerge)
 }
 </script>
