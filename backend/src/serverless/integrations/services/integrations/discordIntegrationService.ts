@@ -37,7 +37,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   public token: string
 
   constructor() {
-    super(IntegrationType.DISCORD, 90)
+    super(IntegrationType.DISCORD, 60)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
