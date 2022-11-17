@@ -115,21 +115,13 @@ export class IntegrationProcessor extends LoggingBase {
         logger.debug('Found no microservices to check!')
       }
     } else {
+      // get the relevant integration service that is supposed to be configured already
+      const intService = singleOrDefault(this.integrationServices, (s) => s.type === type)
+
       const integrations = await IntegrationRepository.findAllActive(type)
       if (integrations.length > 0) {
         logger.debug({ count: integrations.length }, 'Found integrations to check!')
-        for (const int of integrations) {
-          const integration = int as any
-          await sendNodeWorkerMessage(
-            integration.tenantId,
-            new NodeWorkerIntegrationProcessMessage(
-              type,
-              integration.tenantId,
-              false,
-              integration.id,
-            ),
-          )
-        }
+        await intService.triggerIntegrationCheck(integrations)
       } else {
         logger.debug('Found no integrations to check!')
       }
