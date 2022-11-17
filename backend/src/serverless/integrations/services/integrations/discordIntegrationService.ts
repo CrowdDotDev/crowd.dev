@@ -1,4 +1,5 @@
 import moment from 'moment/moment'
+import lodash from 'lodash'
 import { DiscordMessages, DiscordMembers, DiscordMention } from '../../types/discordTypes'
 import { DISCORD_CONFIG } from '../../../../config'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
@@ -36,7 +37,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   public token: string
 
   constructor() {
-    super(IntegrationType.DISCORD, 60)
+    super(IntegrationType.DISCORD, 90)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
@@ -46,17 +47,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   override async triggerIntegrationCheck(integrations: any[]): Promise<void> {
     let initialDelaySeconds = 0
-    for (const integration of integrations) {
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(
-          this.type,
+    const batches = lodash.chunk(integrations, 2)
+
+    for (const batch of batches) {
+      for (const integration of batch) {
+        await sendNodeWorkerMessage(
           integration.tenantId,
-          false,
-          integration.id,
-        ),
-        initialDelaySeconds,
-      )
+          new NodeWorkerIntegrationProcessMessage(
+            this.type,
+            integration.tenantId,
+            false,
+            integration.id,
+          ),
+          initialDelaySeconds,
+        )
+      }
 
       initialDelaySeconds += 120
     }
