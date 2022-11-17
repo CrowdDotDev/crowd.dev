@@ -103,7 +103,6 @@
               <div
                 v-if="!isCollapsed && myOpenTasksCount > 0"
                 class="task-badge"
-                :class="taskBadgeClass()"
               >
                 {{ myOpenTasksCount }}
               </div>
@@ -464,21 +463,6 @@ const classFor = (path, exact = false) => {
     routePath === path || routePath.startsWith(path + '/')
   return {
     'is-active': active
-  }
-}
-
-const taskBadgeClass = function () {
-  const overdue = computed(
-    () => store.getters['task/myOpenOverdueTasks']
-  )
-  const dueSoon = computed(
-    () => store.getters['task/myOpenDueSoonTasks']
-  )
-
-  if (overdue.value.length > 0) {
-    return 'text-red-900 bg-red-100'
-  } else if (dueSoon.value.length > 0) {
-    return 'text-yellow-900 bg-yellow-100'
   }
 }
 </script>
