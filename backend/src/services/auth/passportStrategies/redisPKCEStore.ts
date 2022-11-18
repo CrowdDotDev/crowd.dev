@@ -54,7 +54,7 @@ class RedisPKCEStore {
       redirectUrl: state.redirectUrl,
     }).toString()
 
-    this.cache.setValue(req.currentUser.id, JSON.stringify(sstate)).then(() => {
+    this.cache.setValue(req.currentUser.id, JSON.stringify(sstate), 300).then(() => {
       callback(null, stateSearchParams)
     })
   }

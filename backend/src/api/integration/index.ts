@@ -1,5 +1,5 @@
 import passport from 'passport'
-import { TWITTER_CONFIG, SLACK_CONFIG } from '../../config'
+import { TWITTER_CONFIG, SLACK_CONFIG, API_CONFIG } from '../../config'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
 import { safeWrap } from '../../middlewares/errorMiddleware'
@@ -72,7 +72,7 @@ export default (app) => {
       '/twitter/callback',
       passport.authenticate('twitter', {
         session: false,
-        failureRedirect: '/',
+        failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       }),
       (req, _res, next) => {
         const crowdToken = new URLSearchParams(req.query.state).get('crowdToken')
@@ -102,7 +102,7 @@ export default (app) => {
       '/slack/callback',
       passport.authorize('slack', {
         session: false,
-        failureRedirect: '/',
+        failureRedirect: `${API_CONFIG.frontendUrl}/integrations?error=true`,
       }),
       (req, _res, next) => {
         const { crowdToken } = JSON.parse(Buffer.from(req.query.state, 'base64').toString())
