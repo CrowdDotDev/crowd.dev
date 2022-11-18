@@ -51,17 +51,18 @@
         <div class="app-list-table panel">
           <transition name="el-fade-in">
             <div
-              v-show="isTableHovered"
+              v-show="isScrollbarVisible"
               class="absolute z-10 top-0 left-0 w-full"
-              @mouseover="isTableHovered = true"
+              @mouseover="onTableMouseover"
+              @mouseleave="onTableMouseLeft"
             >
               <el-scrollbar
                 id="custom-scrollbar"
                 ref="scrollbarRef"
-                wrap-class="custom-scrollbar-class"
                 height="10px"
                 always
-                @scroll="scroll"
+                @scroll="onCustomScrollbarScroll"
+                @pointerdown="onScrollMousedown"
               >
                 <div
                   :style="{
@@ -73,9 +74,14 @@
             </div>
           </transition>
           <app-member-list-toolbar
-            @mouseover="onmouseover"
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
           ></app-member-list-toolbar>
-          <div class="-mx-6 -mt-6" @mouseover="onmouseover">
+          <div
+            class="-mx-6 -mt-6"
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
+          >
             <el-table
               id="members-table"
               ref="table"
@@ -276,11 +282,11 @@ const store = useStore()
 const router = useRouter()
 const table = ref(null)
 const scrollbarRef = ref()
+const tableBodyRef = ref()
+const tableHeaderRef = ref()
+const isScrollbarVisible = ref(false)
 const isTableHovered = ref(false)
-const tableBody = ref()
-const tableHeader = ref()
-const cursorDown = ref(false)
-const thumb = ref()
+const isCursorDown = ref(false)
 
 const props = defineProps({
   hasIntegrations: {
@@ -361,23 +367,26 @@ const pagination = computed(
   () => store.getters['member/pagination']
 )
 
+document.onmouseup = () => {
+  // As soon as mouse is released, set scrollbar visibility
+  // according to wether the mouse is hovering the table or not
+  isScrollbarVisible.value = isTableHovered.value
+  isCursorDown.value = false
+}
+
 onMounted(async () => {
   if (store.state.integration.count === 0) {
     await store.dispatch('integration/doFetch')
   }
 })
 
-document.onmouseup = () => {
-  console.log('up', { cursorDown: cursorDown.value })
-  cursorDown.value = false
-}
-
+// Remove listeners on unmount
 onUnmounted(() => {
-  tableBody.value.removeEventListener(
+  tableBodyRef.value.removeEventListener(
     'scroll',
     onTableBodyScroll
   )
-  tableHeader.value.removeEventListener(
+  tableHeaderRef.value.removeEventListener(
     'scroll',
     onTableHeaderScroll
   )
@@ -400,7 +409,14 @@ function doChangePaginationPageSize(pageSize) {
     pageSize
   )
 }
+
 watch(table, (newValue) => {
+  if (newValue) {
+    store.dispatch('member/doMountTable', table.value)
+  }
+
+  // Add scroll events to table, it's not possible to access it from 'el-table'
+  // as the overflowed element is within it
   const tableBodyEl = document.querySelector(
     '#members-table .el-scrollbar__wrap'
   )
@@ -409,8 +425,8 @@ watch(table, (newValue) => {
   )
 
   if (tableBodyEl) {
-    tableBody.value = tableBodyEl
-    tableBody.value.addEventListener(
+    tableBodyRef.value = tableBodyEl
+    tableBodyRef.value.addEventListener(
       'scroll',
       onTableBodyScroll
     )
@@ -418,28 +434,11 @@ watch(table, (newValue) => {
 
   if (tableHeaderEl) {
     tableHeaderEl.style.overflow = 'auto'
-    tableHeader.value = tableHeaderEl
-    tableHeader.value.addEventListener(
+    tableHeaderRef.value = tableHeaderEl
+    tableHeaderRef.value.addEventListener(
       'scroll',
       onTableHeaderScroll
     )
-  }
-
-  if (newValue) {
-    store.dispatch('member/doMountTable', table.value)
-  }
-})
-
-watch(scrollbarRef, (newValue) => {
-  if (newValue) {
-    const thumbEl = document.querySelector(
-      '.custom-scrollbar-class'
-    )
-
-    thumb.value = thumbEl
-    thumb.value.addEventListener('mousedown', () => {
-      console.log('down')
-    })
   }
 })
 
@@ -474,34 +473,43 @@ function onSecondaryBtnClick() {
   })
 }
 
-function scroll({ scrollLeft }) {
+// On custom scrollbar scroll, set the table scroll with the same value
+const onCustomScrollbarScroll = ({ scrollLeft }) => {
   table.value.setScrollLeft(scrollLeft)
 }
 
-function onTableBodyScroll() {
+// On table body scroll, set the custom scrollbar scroll with the same value
+const onTableBodyScroll = () => {
   scrollbarRef.value.setScrollLeft(
-    tableBody.value.scrollLeft
+    tableBodyRef.value.scrollLeft
   )
 }
 
-function onTableHeaderScroll() {
+// On table header scroll, set the custom scrollbar scroll with the same value
+const onTableHeaderScroll = () => {
   scrollbarRef.value.setScrollLeft(
-    tableHeader.value.scrollLeft
+    tableHeaderRef.value.scrollLeft
   )
-  table.value.setScrollLeft(tableHeader.value.scrollLeft)
+  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft)
 }
 
-const onmouseover = () => {
+const onScrollMousedown = () => {
+  isCursorDown.value = true
+}
+
+const onTableMouseover = () => {
   isTableHovered.value = true
-  // const el = document.querySelector(
-  //   '#custom-scrollbar .el-scrollbar__bar.is-horizontal'
-  // )
+  isScrollbarVisible.value = true
+}
 
-  // el.style.display = 'block'
+const onTableMouseLeft = () => {
+  isTableHovered.value = false
+  isScrollbarVisible.value = isCursorDown.value
 }
 </script>
 
 <style lang="scss">
+// Hide table header scrollbar
 #members-table .el-table__header-wrapper {
   // IE, Edge and Firefox
   -ms-overflow-style: none;
