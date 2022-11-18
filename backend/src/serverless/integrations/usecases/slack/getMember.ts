@@ -7,7 +7,7 @@ async function getMembers(
   input: SlackGetMemberInput,
   logger: Logger,
 ): Promise<SlackGetMemberOutput> {
-  await timeout(1000)
+  await timeout(2000)
 
   try {
     const config = {

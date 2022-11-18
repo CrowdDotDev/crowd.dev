@@ -4,7 +4,7 @@ import { Logger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
 
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackTeam> {
-  await timeout(1000)
+  await timeout(2000)
 
   try {
     const config = {

@@ -7,7 +7,7 @@ async function getMessages(
   input: SlackGetMessagesInput,
   logger: Logger,
 ): Promise<SlackParsedReponse> {
-  await timeout(1000)
+  await timeout(2000)
 
   try {
     const config = {
