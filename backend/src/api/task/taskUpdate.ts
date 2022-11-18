@@ -1,6 +1,7 @@
 import Permissions from '../../security/permissions'
 import TaskService from '../../services/taskService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import track from '../../segment/track'
 
 /**
  * PUT /tenant/{tenantId}/task/{id}
@@ -21,7 +22,39 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.taskEdit)
 
+  const taskBeforeUpdate = await new TaskService(req).findById(req.params.id)
   const payload = await new TaskService(req).update(req.params.id, req.body)
+
+  if (taskBeforeUpdate.type === 'suggested') {
+    track(
+      'Task Created (from suggestion)',
+      { id: payload.id, dueDate: payload.dueDate, members: payload.members },
+      { ...req },
+    )
+  }
+  if (taskBeforeUpdate.status === 'in-progress' && payload.status === 'done') {
+    track(
+      'Task Completed',
+      {
+        id: payload.id,
+        dueDate: payload.dueDate,
+        members: payload.members,
+        status: payload.status,
+      },
+      { ...req },
+    )
+  } else {
+    track(
+      'Task Updated',
+      {
+        id: payload.id,
+        dueDate: payload.dueDate,
+        members: payload.members,
+        status: payload.status,
+      },
+      { ...req },
+    )
+  }
 
   await req.responseHandler.success(req, res, payload)
 }

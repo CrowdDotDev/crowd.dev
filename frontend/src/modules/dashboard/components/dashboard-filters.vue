@@ -3,7 +3,7 @@
     <!-- period filters -->
     <div class="flex text-xs text-gray-600">
       <div
-        class="px-3 h-8 border border-gray-200 border-r-0 rounded-l-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
+        class="px-3 h-8 border border-gray-200 border-r-0 rounded-l-md flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
         :class="periodStateClasses(7)"
         @click="setPeriod(7)"
       >
@@ -17,7 +17,7 @@
         14D
       </div>
       <div
-        class="px-3 h-8 border border-gray-200 border-l-0 rounded-r-md flex items-center justify-center bg-white transition hover:bg-gray-50 cursor-pointer"
+        class="px-3 h-8 border border-gray-200 border-l-0 rounded-r-md flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
         :class="periodStateClasses(30)"
         @click="setPeriod(30)"
       >
@@ -80,7 +80,8 @@ export default {
   name: 'AppDashboardFilters',
   data() {
     return {
-      platformDropdownOpen: false
+      platformDropdownOpen: false,
+      storeUnsubscribe: () => {}
     }
   },
   computed: {
@@ -114,6 +115,18 @@ export default {
         }
       }
     }
+  },
+  mounted() {
+    this.storeUnsubscribe = this.$store.subscribeAction(
+      (action) => {
+        if (action.type === 'auth/doRefreshCurrentUser') {
+          this.$store.dispatch('dashboard/reset')
+        }
+      }
+    )
+  },
+  beforeUnmount() {
+    this.storeUnsubscribe()
   },
   methods: {
     ...mapActions({

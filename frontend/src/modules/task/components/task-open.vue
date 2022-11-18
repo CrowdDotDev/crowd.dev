@@ -114,8 +114,11 @@ import { TaskPermissions } from '@/modules/task/task-permissions'
 const store = useStore()
 
 const { addTask } = mapActions('task')
-const { openTasksCount, closedTasksCount } =
-  mapGetters('task')
+const {
+  openTasksCount,
+  closedTasksCount,
+  myOpenTasksCount
+} = mapGetters('task')
 const { currentUser, currentTenant } = mapGetters('auth')
 
 const tabs = ref([
@@ -157,7 +160,10 @@ const taskCount = ref(0)
 const loading = ref(false)
 const intitialLoad = ref(false)
 
-const tab = ref(tabs.value[0])
+const tab =
+  myOpenTasksCount.value > 0
+    ? ref(tabs.value[1])
+    : ref(tabs.value[0])
 const order = ref('createdAt_DESC')
 
 const tabClasses = (tabName) => {

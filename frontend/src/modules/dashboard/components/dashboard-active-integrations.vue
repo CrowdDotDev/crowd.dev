@@ -56,6 +56,11 @@ import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardIntegrations',
+  data() {
+    return {
+      storeUnsubscribe: () => {}
+    }
+  },
   computed: {
     ...mapGetters('integration', {
       activeIntegrations: 'activeList'
@@ -64,6 +69,15 @@ export default {
   async mounted() {
     window.analytics.page('Dashboard')
     await this.fetchIntegrations()
+    this.storeUnsubscribe =
+      await this.$store.subscribeAction(async (action) => {
+        if (action.type === 'auth/doRefreshCurrentUser') {
+          await this.fetchIntegrations()
+        }
+      })
+  },
+  beforeUnmount() {
+    this.storeUnsubscribe()
   },
   methods: {
     ...mapActions('integration', {

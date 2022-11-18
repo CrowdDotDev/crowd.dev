@@ -1,11 +1,14 @@
 import axios from 'axios'
 import { SlackGetMembersInput, SlackGetMembersOutput, SlackMembers } from '../../types/slackTypes'
 import { Logger } from '../../../../utils/logging'
+import { timeout } from '../../../../utils/timing'
 
 async function getMembers(
   input: SlackGetMembersInput,
   logger: Logger,
 ): Promise<SlackGetMembersOutput> {
+  await timeout(1000)
+
   try {
     const config = {
       method: 'get',

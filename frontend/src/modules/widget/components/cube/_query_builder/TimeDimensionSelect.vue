@@ -56,7 +56,9 @@ export default {
           'Members.joinedAt',
           'Activities.date'
         ],
-        'Conversations.count': ['Conversations.createdat']
+        'Conversations.count': ['Conversations.createdat'],
+        'Sentiment.averageSentiment': ['Sentiment.date'],
+        'Organizations.count': ['Organizations.createdat']
       }
     }
   },
@@ -66,9 +68,9 @@ export default {
       return !measure
         ? []
         : this.availableTimeDimensions.filter((t) => {
-            return this.measureTimeDimensions[
+            return !!this.measureTimeDimensions[
               measure.name
-            ].includes(t.name)
+            ]?.includes(t.name)
           })
     }
   },

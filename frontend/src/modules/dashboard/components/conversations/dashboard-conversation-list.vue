@@ -67,7 +67,8 @@ export default {
   },
   data() {
     return {
-      conversationId: null
+      conversationId: null,
+      storeUnsubscribe: () => {}
     }
   },
   computed: {
@@ -75,6 +76,23 @@ export default {
       'trendingConversations',
       'conversations'
     ])
+  },
+  created() {
+    this.storeUnsubscribe = this.$store.subscribe(
+      (mutation) => {
+        if (
+          mutation.type ===
+          'communityHelpCenter/DESTROY_SUCCESS'
+        ) {
+          this.$store.dispatch(
+            'dashboard/getTrendingConversations'
+          )
+        }
+      }
+    )
+  },
+  beforeUnmount() {
+    this.storeUnsubscribe()
   }
 }
 </script>

@@ -504,6 +504,17 @@ const en = {
       Tags: {
         name: '[Tags] Name',
         count: '[Tags] Count'
+      },
+      Identities: {
+        count: '[Identities] Count'
+      },
+      Organizations: {
+        count: '[Organizations] Count',
+        createdat: '[Organizations] Date'
+      },
+      Sentiment: {
+        averageSentiment: '[Sentiment] Average',
+        date: '[Sentiment] Date'
       }
     }
   },

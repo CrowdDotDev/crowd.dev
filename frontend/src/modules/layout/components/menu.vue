@@ -101,10 +101,10 @@
                 </span>
               </div>
               <div
-                v-if="!isCollapsed && openTasksCount > 0"
-                class="h-5 flex items-center px-2 bg-brand-100 rounded-full text-2xs font-medium"
+                v-if="!isCollapsed && myOpenTasksCount > 0"
+                class="task-badge"
               >
-                {{ openTasksCount }}
+                {{ myOpenTasksCount }}
               </div>
             </div>
           </router-link>
@@ -349,7 +349,7 @@ function toggleMenu() {
   store.dispatch('layout/toggleMenu')
 }
 
-const { openTasksCount } = mapGetters('task')
+const { myOpenTasksCount } = mapGetters('task')
 
 const hasPermissionToSettings = computed(
   () =>
@@ -604,5 +604,13 @@ const classFor = (path, exact = false) => {
   & .plan {
     @apply text-brand-400;
   }
+}
+
+.task-badge {
+  @apply h-5 flex items-center px-2 bg-gray-100 rounded-full text-2xs font-medium;
+}
+
+.el-menu-item.is-active .task-badge {
+  @apply bg-brand-100;
 }
 </style>

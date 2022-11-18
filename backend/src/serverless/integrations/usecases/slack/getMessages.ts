@@ -1,11 +1,14 @@
 import axios from 'axios'
 import { SlackMessages, SlackParsedReponse, SlackGetMessagesInput } from '../../types/slackTypes'
 import { Logger } from '../../../../utils/logging'
+import { timeout } from '../../../../utils/timing'
 
 async function getMessages(
   input: SlackGetMessagesInput,
   logger: Logger,
 ): Promise<SlackParsedReponse> {
+  await timeout(1000)
+
   try {
     const config = {
       method: 'get',

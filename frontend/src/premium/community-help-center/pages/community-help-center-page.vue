@@ -10,20 +10,28 @@
             @open="doOpenSettingsDrawer"
             @close="doCloseSettingsDrawer"
           />
-          <a
-            :href="
-              isConfigured
-                ? computedCrowdOpenLink
-                : undefined
-            "
-            target="_blank"
-            class="btn btn-brand--secondary btn--md"
-            :class="{
-              disabled: !isConfigured
-            }"
-            ><i class="ri-external-link-line mr-2"></i>Open
-            public page</a
+          <el-tooltip
+            content="Activate the public page in Settings"
+            placement="top"
+            :disabled="isConfigured"
           >
+            <div>
+              <a
+                :href="
+                  isConfigured
+                    ? computedCrowdOpenLink
+                    : undefined
+                "
+                target="_blank"
+                class="btn btn-brand--secondary btn--md"
+                :class="{
+                  disabled: !isConfigured
+                }"
+                ><i class="ri-external-link-line mr-2"></i
+                >Open public page</a
+              >
+            </div>
+          </el-tooltip>
         </div>
       </div>
       <div class="text-xs text-gray-500">
