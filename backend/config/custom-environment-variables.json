@@ -107,7 +107,8 @@
     "callbackUrl": "CROWD_GOOGLE_CALLBACK_URL"
   },
   "discord": {
-    "token": "CROWD_DISCORD_TOKEN"
+    "token": "CROWD_DISCORD_TOKEN",
+    "token2": "CROWD_DISCORD_TOKEN_2"
   },
   "github": {
     "appId": "CROWD_GITHUB_APP_ID",
