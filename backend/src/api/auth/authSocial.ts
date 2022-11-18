@@ -1,8 +1,5 @@
-import { get } from 'lodash'
 import passport from 'passport'
-import GoogleStrategy from 'passport-google-oauth20'
 import { API_CONFIG, GOOGLE_CONFIG } from '../../config'
-import { databaseInit } from '../../database/databaseConnection'
 import AuthService from '../../services/auth/authService'
 import { createServiceChildLogger } from '../../utils/logging'
 
@@ -31,42 +28,6 @@ export default (app, routes) => {
   })
 
   if (GOOGLE_CONFIG.clientId) {
-    passport.use(
-      new GoogleStrategy(
-        {
-          clientID: GOOGLE_CONFIG.clientId,
-          clientSecret: GOOGLE_CONFIG.clientSecret,
-          callbackURL: GOOGLE_CONFIG.callbackUrl,
-        },
-        (accessToken, refreshToken, profile, done) => {
-          databaseInit()
-            .then((database) => {
-              const email = get(profile, 'emails[0].value')
-              const emailVerified = get(profile, 'emails[0].verified', false)
-              const displayName = get(profile, 'displayName')
-              const { firstName, lastName } = splitFullName(displayName)
-
-              return AuthService.signinFromSocial(
-                'google',
-                profile.id,
-                email,
-                emailVerified,
-                firstName,
-                lastName,
-                displayName,
-                { database },
-              )
-            })
-            .then((jwtToken) => {
-              done(null, jwtToken)
-            })
-            .catch((error) => {
-              log.error(error, 'Error while handling google auth!')
-              done(error, null)
-            })
-        },
-      ),
-    )
 
     routes.get(
       '/auth/social/google',
@@ -102,20 +63,4 @@ function handleCallback(res, err, jwtToken) {
   }
 
   res.redirect(`${API_CONFIG.frontendUrl}/?social=true&authToken=${jwtToken}`)
-}
-
-function splitFullName(fullName) {
-  let firstName
-  let lastName
-
-  if (fullName && fullName.split(' ').length > 1) {
-    const [firstNameArray, ...lastNameArray] = fullName.split(' ')
-    firstName = firstNameArray
-    lastName = lastNameArray.join(' ')
-  } else {
-    firstName = fullName || null
-    lastName = null
-  }
-
-  return { firstName, lastName }
 }

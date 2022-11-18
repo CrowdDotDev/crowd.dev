@@ -34,7 +34,7 @@ class RedisPKCEStore {
     }
 
     if (!state.userId) {
-      return callback(new Error('userId in state is required for PKCE check'))
+      return callback(new Error('userId in state is required for PKCE check.'))
     }
 
     let sstate = {
