@@ -49,9 +49,35 @@
 
         <!-- Members list -->
         <div class="app-list-table panel">
-          <app-member-list-toolbar></app-member-list-toolbar>
-          <div class="-mx-6 -mt-6">
+          <transition name="el-fade-in">
+            <div
+              v-show="isTableHovered"
+              class="absolute z-10 top-0 left-0 w-full"
+              @mouseover="isTableHovered = true"
+            >
+              <el-scrollbar
+                id="custom-scrollbar"
+                ref="scrollbarRef"
+                wrap-class="custom-scrollbar-class"
+                height="10px"
+                always
+                @scroll="scroll"
+              >
+                <div
+                  :style="{
+                    width: tableWidth,
+                    height: '10px'
+                  }"
+                ></div>
+              </el-scrollbar>
+            </div>
+          </transition>
+          <app-member-list-toolbar
+            @mouseover="onmouseover"
+          ></app-member-list-toolbar>
+          <div class="-mx-6 -mt-6" @mouseover="onmouseover">
             <el-table
+              id="members-table"
               ref="table"
               v-loading="loading"
               :data="rows"
@@ -231,6 +257,7 @@ import { useRouter } from 'vue-router'
 import {
   computed,
   onMounted,
+  onUnmounted,
   ref,
   defineProps,
   watch
@@ -248,6 +275,12 @@ import AppMemberSentiment from '../member-sentiment'
 const store = useStore()
 const router = useRouter()
 const table = ref(null)
+const scrollbarRef = ref()
+const isTableHovered = ref(false)
+const tableBody = ref()
+const tableHeader = ref()
+const cursorDown = ref(false)
+const thumb = ref()
 
 const props = defineProps({
   hasIntegrations: {
@@ -296,6 +329,9 @@ const showReach = computed(() => {
 
 const rows = computed(() => store.getters['member/rows'])
 const count = computed(() => store.state.member.count)
+const tableWidth = computed(() => {
+  return store.state.member.list.table?.bodyWidth
+})
 const loading = computed(
   () =>
     store.state.member.list.loading || props.isPageLoading
@@ -331,6 +367,22 @@ onMounted(async () => {
   }
 })
 
+document.onmouseup = () => {
+  console.log('up', { cursorDown: cursorDown.value })
+  cursorDown.value = false
+}
+
+onUnmounted(() => {
+  tableBody.value.removeEventListener(
+    'scroll',
+    onTableBodyScroll
+  )
+  tableHeader.value.removeEventListener(
+    'scroll',
+    onTableHeaderScroll
+  )
+})
+
 function doChangeSort(sorter) {
   store.dispatch('member/doChangeSort', sorter)
 }
@@ -348,10 +400,46 @@ function doChangePaginationPageSize(pageSize) {
     pageSize
   )
 }
-
 watch(table, (newValue) => {
+  const tableBodyEl = document.querySelector(
+    '#members-table .el-scrollbar__wrap'
+  )
+  const tableHeaderEl = document.querySelector(
+    '#members-table .el-table__header-wrapper'
+  )
+
+  if (tableBodyEl) {
+    tableBody.value = tableBodyEl
+    tableBody.value.addEventListener(
+      'scroll',
+      onTableBodyScroll
+    )
+  }
+
+  if (tableHeaderEl) {
+    tableHeaderEl.style.overflow = 'auto'
+    tableHeader.value = tableHeaderEl
+    tableHeader.value.addEventListener(
+      'scroll',
+      onTableHeaderScroll
+    )
+  }
+
   if (newValue) {
     store.dispatch('member/doMountTable', table.value)
+  }
+})
+
+watch(scrollbarRef, (newValue) => {
+  if (newValue) {
+    const thumbEl = document.querySelector(
+      '.custom-scrollbar-class'
+    )
+
+    thumb.value = thumbEl
+    thumb.value.addEventListener('mousedown', () => {
+      console.log('down')
+    })
   }
 })
 
@@ -385,4 +473,43 @@ function onSecondaryBtnClick() {
     name: 'memberCreate'
   })
 }
+
+function scroll({ scrollLeft }) {
+  table.value.setScrollLeft(scrollLeft)
+}
+
+function onTableBodyScroll() {
+  scrollbarRef.value.setScrollLeft(
+    tableBody.value.scrollLeft
+  )
+}
+
+function onTableHeaderScroll() {
+  scrollbarRef.value.setScrollLeft(
+    tableHeader.value.scrollLeft
+  )
+  table.value.setScrollLeft(tableHeader.value.scrollLeft)
+}
+
+const onmouseover = () => {
+  isTableHovered.value = true
+  // const el = document.querySelector(
+  //   '#custom-scrollbar .el-scrollbar__bar.is-horizontal'
+  // )
+
+  // el.style.display = 'block'
+}
 </script>
+
+<style lang="scss">
+#members-table .el-table__header-wrapper {
+  // IE, Edge and Firefox
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  // Chrome, Safari and Opera
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+</style>
