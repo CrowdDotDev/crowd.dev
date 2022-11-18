@@ -1,10 +1,10 @@
+import TwitterStrategy from '@superfaceai/passport-twitter-oauth2'
 import { API_CONFIG, TWITTER_CONFIG } from '../../../config'
 import RedisPKCEStore from './redisPKCEStore'
-import { RedisCache } from '../../../utils/redis'
+import { RedisCache, RedisClient } from '../../../utils/redis'
 
-const TwitterStrategy = require('@superfaceai/passport-twitter-oauth2')
 
-export function getTwitterStrategy(redis) {
+export function getTwitterStrategy(redis:RedisClient): TwitterStrategy {
   const redisPKCEStore = new RedisPKCEStore(new RedisCache('twitterPKCE', redis))
   return new TwitterStrategy(
     {

@@ -7,7 +7,7 @@ import { createServiceChildLogger } from '../../../utils/logging'
 
 const log = createServiceChildLogger('AuthSocial')
 
-export function getGoogleStrategy() {
+export function getGoogleStrategy(): GoogleStrategy {
   return new GoogleStrategy(
     {
       clientID: GOOGLE_CONFIG.clientId,
