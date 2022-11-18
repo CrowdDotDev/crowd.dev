@@ -3,7 +3,7 @@ import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
 import lodash from 'lodash'
-import { GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config'
+import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config/index'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -14,6 +14,8 @@ import { IntegrationType, PlatformType } from '../types/integrationEnums'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
+
+const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
 export default class IntegrationService {
   options: IServiceOptions
@@ -292,6 +294,7 @@ export default class IntegrationService {
     const integration = await this.createOrUpdate({
       platform: PlatformType.DISCORD,
       integrationIdentifier: guildId,
+      token: discordToken,
       settings: { channels: [], updateMemberAttributes: true },
       status: 'in-progress',
     })

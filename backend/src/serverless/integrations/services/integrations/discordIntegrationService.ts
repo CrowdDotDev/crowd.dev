@@ -45,6 +45,14 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     this.token = `Bot ${DISCORD_CONFIG.token}`
   }
 
+  private getToken(context: IStepContext): string {
+    if (context.integration.token) {
+      return `Bot ${context.integration.token}`
+    }
+
+    return this.token
+  }
+
   override async triggerIntegrationCheck(integrations: any[]): Promise<void> {
     let initialDelaySeconds = 0
     const batches = lodash.chunk(integrations, 2)
@@ -73,14 +81,14 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     const threads: Channels = await getThreads(
       {
         guildId,
-        token: this.token,
+        token: this.getToken(context),
       },
       this.logger(context),
     )
     let channelsFromDiscordAPI: Channels = await getChannels(
       {
         guildId,
-        token: this.token,
+        token: this.getToken(context),
       },
       this.logger(context),
     )
@@ -160,7 +168,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         const { records, nextPage, limit, timeUntilReset } = await fn(
           {
             ...arg,
-            token: this.token,
+            token: this.getToken(context),
             page: stream.metadata.page,
             perPage: 100,
           },

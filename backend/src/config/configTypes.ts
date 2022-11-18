@@ -120,6 +120,7 @@ export interface GoogleConfiguration {
 
 export interface DiscordConfiguration {
   token: string
+  token2: string
   maxRetrospectInSeconds: number
   globalLimit?: number
   limitResetFrequencyDays?: number

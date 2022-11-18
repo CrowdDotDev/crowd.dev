@@ -163,6 +163,7 @@ export const DISCORD_CONFIG: DiscordConfiguration = KUBE_MODE
   ? config.get<DiscordConfiguration>('discord')
   : {
       token: process.env.DISCORD_TOKEN,
+      token2: process.env.DISCORD_TOKEN,
       maxRetrospectInSeconds: Number(process.env.DISCORD_MAX_RETROSPECT_IN_SECONDS || 3600),
       globalLimit: Number(process.env.DISCORD_GLOBAL_LIMIT || Infinity),
     }
