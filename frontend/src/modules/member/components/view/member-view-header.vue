@@ -85,12 +85,7 @@
           Reach
         </p>
         <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedInformation(
-              member.reach.total,
-              'compact'
-            )
-          }}
+          <app-member-reach :member="member" />
         </p>
       </div>
       <div>
@@ -127,6 +122,7 @@ export default {
 <script setup>
 import { defineProps } from 'vue'
 import moment from 'moment/moment'
+import AppMemberReach from '@/modules/member/components/member-reach'
 import AppMemberSentiment from '@/modules/member/components/member-sentiment'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberDropdown from '@/modules/member/components/member-dropdown'
