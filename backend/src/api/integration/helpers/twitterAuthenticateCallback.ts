@@ -5,11 +5,11 @@ import IntegrationService from '../../../services/integrationService'
 export default async (req, res) => {
   // Checking we have permision to edit the integration
   new PermissionChecker(req).validateHas(Permissions.values.integrationEdit)
-  
+
   const urlSearchParams = new URLSearchParams(req.query.state)
-  const redirectUrl = urlSearchParams.get("redirectUrl")
-  const hashtags = urlSearchParams.get("hashtags")
-  
+  const redirectUrl = urlSearchParams.get('redirectUrl')
+  const hashtags = urlSearchParams.get('hashtags')
+
   const integrationData = {
     profileId: req.user.twitter.profile.id,
     token: req.user.twitter.accessToken,

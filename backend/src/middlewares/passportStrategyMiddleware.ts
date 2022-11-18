@@ -1,6 +1,7 @@
 import passport from 'passport'
 import { TWITTER_CONFIG, SLACK_CONFIG } from '../config'
-import { getTwitterStrategy, getSlackStrategy } from '../services/auth/passportStrategies/twitterStrategy'
+import { getTwitterStrategy } from '../services/auth/passportStrategies/twitterStrategy'
+import { getSlackStrategy } from '../services/auth/passportStrategies/slackStrategy'
 import { getServiceLogger } from '../utils/logging'
 
 const log = getServiceLogger()

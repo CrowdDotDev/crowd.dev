@@ -2,7 +2,6 @@ import passport from 'passport'
 import { TWITTER_CONFIG, SLACK_CONFIG } from '../../config'
 import { authMiddleware } from '../../middlewares/authMiddleware'
 import TenantService from '../../services/tenantService'
-import { getSlackStrategy } from '../../services/auth/passportStrategies/slackStrategy'
 import { safeWrap } from '../../middlewares/errorMiddleware'
 
 export default (app) => {
@@ -76,13 +75,13 @@ export default (app) => {
         failureRedirect: '/',
       }),
       (req, _res, next) => {
-        const crowdToken = (new URLSearchParams(req.query.state)).get("crowdToken")
+        const crowdToken = new URLSearchParams(req.query.state).get('crowdToken')
         req.headers.authorization = `Bearer ${crowdToken}`
         next()
       },
       authMiddleware,
       async (req, _res, next) => {
-        const tenantId = (new URLSearchParams(req.query.state)).get("tenantId")
+        const tenantId = new URLSearchParams(req.query.state).get('tenantId')
         req.currentTenant = await new TenantService(req).findById(tenantId)
         next()
       },
@@ -95,7 +94,6 @@ export default (app) => {
    * These should be super similar to Twitter's, since we're also using passport.js
    */
   if (SLACK_CONFIG.clientId) {
-
     // path to start the OAuth flow
     app.get('/slack/:tenantId/connect', safeWrap(require('./helpers/slackAuthenticate').default))
 

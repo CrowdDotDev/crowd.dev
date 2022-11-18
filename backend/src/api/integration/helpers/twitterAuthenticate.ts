@@ -13,7 +13,7 @@ export default async (req, res, next) => {
     hashtags: req.query.hashtags,
     crowdToken: req.query.crowdToken,
     platform: PlatformType.TWITTER,
-    userId: req.currentUser.id
+    userId: req.currentUser.id,
   }
 
   const authenticator = passport.authenticate('twitter', {
