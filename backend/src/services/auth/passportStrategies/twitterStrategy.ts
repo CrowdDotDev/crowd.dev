@@ -3,8 +3,7 @@ import { API_CONFIG, TWITTER_CONFIG } from '../../../config'
 import RedisPKCEStore from './redisPKCEStore'
 import { RedisCache, RedisClient } from '../../../utils/redis'
 
-
-export function getTwitterStrategy(redis:RedisClient): TwitterStrategy {
+export function getTwitterStrategy(redis: RedisClient): TwitterStrategy {
   const redisPKCEStore = new RedisPKCEStore(new RedisCache('twitterPKCE', redis))
   return new TwitterStrategy(
     {

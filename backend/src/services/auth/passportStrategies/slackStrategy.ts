@@ -3,7 +3,7 @@ import SlackStrategy from 'passport-slack'
 import { SLACK_CONFIG, API_CONFIG } from '../../../config'
 import { PlatformType } from '../../../types/integrationEnums'
 
-export function getSlackStrategy():SlackStrategy {
+export function getSlackStrategy(): SlackStrategy {
   return new SlackStrategy(
     {
       clientID: SLACK_CONFIG.clientId,
