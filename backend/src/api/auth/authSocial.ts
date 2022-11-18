@@ -28,7 +28,6 @@ export default (app, routes) => {
   })
 
   if (GOOGLE_CONFIG.clientId) {
-
     routes.get(
       '/auth/social/google',
       passport.authenticate('google', {
