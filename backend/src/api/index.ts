@@ -14,6 +14,8 @@ import { createServiceLogger } from '../utils/logging'
 import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddleware'
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { createRedisClient, RedisCache } from '../utils/redis'
+import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
+import { redisMiddleware } from '../middlewares/redisMiddleware'
 
 const serviceLogger = createServiceLogger()
 
@@ -54,6 +56,12 @@ app.use(databaseMiddleware)
 
 // Initialize search engine
 app.use(searchEngineMiddleware)
+
+// initialize redis
+app.use(redisMiddleware)
+
+// initialize passport strategies
+app.use(passportStrategyMiddleware)
 
 // Sets the current language of the request
 app.use(languageMiddleware)
