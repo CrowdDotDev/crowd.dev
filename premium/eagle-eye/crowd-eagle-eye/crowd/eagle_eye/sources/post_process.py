@@ -110,7 +110,9 @@ def post_process(data, existing_ids, max_text_chars=2000):
     for point in data:
         # If there is no text, we try to get it from the destination URL
         if not point.payload.text and point.payload.destination_url:
-            text = fill_text(point.payload.destination_url)
+            # This is commented for now. Giving better results.
+            # text = fill_text(point.payload.destination_url)
+            text = ''
 
             # We do not want that whole text in the text field. It is likely dirty and long.
             # Instead we give an HTML link to the destination URL.
@@ -121,7 +123,7 @@ def post_process(data, existing_ids, max_text_chars=2000):
             # Cap to max_text_chars characters
             point.payload.text = text[:max_text_chars]
 
-        point.combined = "Title: " + point.payload.title + "; Content: " + text
+        point.combined = point.payload.title + "\n " + text
 
         out.append(point)
 

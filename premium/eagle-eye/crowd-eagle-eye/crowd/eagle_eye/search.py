@@ -26,21 +26,22 @@ def remove_duplicates(iter):
     return [filter_dict[key] for key in filter_dict]
 
 
-def transform(query, post):
+def transform(query, id, score, metadata):
     """
     Transform a set of results for crowd.dev's Node.js API
 
     Args:
         query (str): strings to test with
+        id (int): id of the post
+        score (float): similarity score
         post (dict): post coming from the vector DB
 
     Returns:
         dict: transformed dict for crowd.dev's API
     """
-    metadata = post['metadata']
 
     return {
-        'vectorId': post['id'],
+        'vectorId': id,
         'sourceId': metadata['sourceId'],
         'title': metadata['title'],
         'url': metadata['url'],
@@ -48,7 +49,7 @@ def transform(query, post):
         'username': metadata['username'],
         'platform': metadata['platform'],
         'timestamp': metadata['timestamp'],
-        'similarityScore': post['score'],
+        'similarityScore': score,
         'userAttributes': json.loads(metadata.get('userAttributes', '{}')),
         'postAttributes': json.loads(metadata.get('postAttributes', '{}')),
         'keywords': [query, ]
@@ -60,11 +61,18 @@ def search_main(queries, ndays, exclude):
     vector = VectorAPI()
     out = []
     for query in queries:
-        results = vector.search(query, ndays, exclude)['matches']
-
-        for result in results:
-            if result['score'] > 0.1:
-                out.append(transform(query, result))
+        results = vector.search(query, ndays, exclude)
+        for scoredPoint in results:
+            out.append(transform(query, scoredPoint.id, scoredPoint.score, scoredPoint.payload))
     out = remove_duplicates(out)
-    logger.info(f"Search done. Returning {list(map(lambda x: x.get('title', ''), out))}")
+    # TODO: Remove
+    from pprint import pprint
+    out = sorted(out, key=lambda x: x['similarityScore'], reverse=True)
+    p = [{'score': point['similarityScore'], 'title': point['title'],
+          'url': point['url'], 'id': point['vectorId']} for point in out]
+    pprint(p)
     return json.dumps(out)
+
+
+if __name__ == '__main__':
+    search_main(['data-centric nlp'], 7, [79441250, 25615038])

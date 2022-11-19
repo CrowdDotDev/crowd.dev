@@ -147,16 +147,25 @@ class VectorAPI:
         if embed_api is None:
             embed_api = EmbedAPI()
         start = self._get_timestamp(ndays)
-
         # Embed the query into a vector
         vector = embed_api.embed_one(query)
-
-        return self.index.query(
-            vector=vector,
-            top_k=20,
-            filter={
-                "timestamp": {"$gte": start},
-                "vectorId": {"$nin": exclude}
-            },
-            includeMetadata=True
+        return self.client.search(
+            collection_name=self.collection_name,
+            query_vector=vector,
+            limit=20,
+            score_threshold=0.1,
+            query_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="timestamp",
+                        range=models.Range(
+                            gte=start,
+                        ),
+                    )
+                ],
+                must_not=[
+                    models.HasIdCondition(has_id=exclude),
+                ]
+            ),
+            with_payload=True,
         )

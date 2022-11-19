@@ -16,7 +16,7 @@ class EmbedAPI:
                                       give preference to left or right hand side. 
                                       Defaults to 'LEFT'.
         """
-        self.model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
+        self.model = SentenceTransformer('multi-qa-mpnet-base-dot-v1')
         self.truncate = truncate
 
     def embed_points(self, points):
@@ -61,4 +61,4 @@ class EmbedAPI:
         Returns:
             [[float]]: embed vector
         """
-        return self.embed_texts([text, ])
+        return self.embed_texts([text, ])[0]

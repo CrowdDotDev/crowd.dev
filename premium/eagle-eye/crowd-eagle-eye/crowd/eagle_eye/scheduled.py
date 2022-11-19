@@ -11,12 +11,12 @@ from crowd.eagle_eye.infrastructure.logging import get_logger
 logger = get_logger(__name__)
 
 
-def scheduled_main(source):
+def scheduled_main(source, restart=False):
     """
     Main function.
     It will get the data from Hacker News, process the data that was not yet in the database, vectorise it, and save it to the database.
     """
-    vector_api = VectorAPI()
+    vector_api = VectorAPI(do_init=restart)
     embed_api = EmbedAPI()
 
     if source == 'hacker_news':
@@ -37,4 +37,4 @@ def scheduled_main(source):
 
 
 if __name__ == '__main__':
-    scheduled_main('hacker_news')
+    scheduled_main('devto', restart=False)
