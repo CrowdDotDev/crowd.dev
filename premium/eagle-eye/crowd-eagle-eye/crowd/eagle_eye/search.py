@@ -56,7 +56,19 @@ def transform(query, id, score, metadata):
     }
 
 
-def search_main(queries, ndays, exclude, exact_keywords=[]):
+def search_main(queries, ndays, exclude, exact_keywords):
+    """
+    Perform a similarity search on the vector DB.
+
+    Args:
+        queries ([str]): List of strings to search with
+        ndays (int): Maximum number of days to search in
+        exclude ([int]): IDs to exclude from the search
+        exact_keywords ([str]): Exact keywords to match
+
+    Returns:
+        _type_: _description_
+    """
     logger.info(f"Starting search for queries {queries}")
     vector = VectorAPI()
     out = []
@@ -74,7 +86,15 @@ def search_main(queries, ndays, exclude, exact_keywords=[]):
     return json.dumps(out)
 
 
-def keyword_match(ndays, exclude, exact_keywords=[]):
+def keyword_match(ndays, exclude, exact_keywords):
+    """
+    Perform a keyword match on the vector DB.
+
+    Args:
+        ndays (int): Maximum number of days to search in
+        exclude ([int]): IDs to exclude from the search
+        exact_keywords ([str]): Exact keywords to match
+    """
     vector = VectorAPI()
     results = vector.keyword_match(ndays, exclude, exact_keywords)
     out = []
