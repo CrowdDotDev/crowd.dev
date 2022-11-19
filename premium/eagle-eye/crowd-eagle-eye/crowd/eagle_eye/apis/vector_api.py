@@ -2,7 +2,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 import datetime
 import time
-from crowd.eagle_eye.apis import CohereAPI
+from crowd.eagle_eye.apis import EmbedAPI
 import itertools
 import os
 from crowd.eagle_eye.config import KUBE_MODE, VECTOR_API_KEY, VECTOR_INDEX
@@ -35,7 +35,7 @@ class VectorAPI:
         if do_init:
             self.index = self.client.recreate_collection(
                 collection_name=self.collection_name,
-                vectors_config=models.VectorParams(size=1024, distance=models.Distance.COSINE),
+                vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
             )
 
     @staticmethod
@@ -108,7 +108,6 @@ class VectorAPI:
             collection_name=self.collection_name,
             ids=ids,
         )
-        print(existing)
 
         return [point.id for point in existing]
 
@@ -131,7 +130,7 @@ class VectorAPI:
             ),
         )
 
-    def search(self, query, ndays, exclude, cohere=None):
+    def search(self, query, ndays, exclude, embed_api=None):
         """
         Perform a search on the vector database.
         We can set number of days ago, and exclude certain ids.
@@ -140,17 +139,17 @@ class VectorAPI:
             query (str): query to perform, for example a keyword
             ndays (int): maximum number of days ago to search
             exclude ([str]): list of ids to exclude from the search
-            cohere (CohereAPI, optional): Already initialised CohereAPI. Defaults to None.
+            embed_api (EmbedAPI, optional): Already initialised EmbedAPI. Defaults to None.
 
         Returns:
             [dict]: list of results
         """
-        if cohere is None:
-            cohere = CohereAPI()
+        if embed_api is None:
+            embed_api = EmbedAPI()
         start = self._get_timestamp(ndays)
 
         # Embed the query into a vector
-        vector = cohere.embed_one(query)
+        vector = embed_api.embed_one(query)
 
         return self.index.query(
             vector=vector,

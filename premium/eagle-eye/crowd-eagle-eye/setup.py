@@ -14,6 +14,6 @@ setup(
     name="crowd-eagle-eye",
     packages=find_namespace_packages(include=["crowd.*"]),
     install_requires=["requests", "bs4", "qdrant-client", "cohere",
-                      "reppy", "python-dotenv", "python-dateutil", "python-dotenv"],
+                      "reppy", "python-dotenv", "python-dateutil", "python-dotenv", "sentence-transformers"],
 
 )
