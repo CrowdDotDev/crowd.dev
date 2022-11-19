@@ -86,7 +86,8 @@ class Vector:
         """
         # Pay
         self.payload = Payload(id, **payload) if type(payload) == 'dict' else payload
-        self.id = self.sourceId = self.payload.vectorId
+        self.sourceId = self.payload.vectorId
+        self.id = Vector.make_id(id, payload.platform)
         self.combined = combined
         self.embed = embed
 

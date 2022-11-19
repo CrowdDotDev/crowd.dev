@@ -2,12 +2,13 @@ import cohere
 import os
 from crowd.eagle_eye.config import KUBE_MODE, COHERE_API_KEY
 
+
 class CohereAPI:
     """
     API for cohere.Client. Used to embed vectors.
     """
 
-    def __init__(self, model='medium', truncate='LEFT'):
+    def __init__(self, model='small', truncate='LEFT'):
         """
         Cohere constructor.
 

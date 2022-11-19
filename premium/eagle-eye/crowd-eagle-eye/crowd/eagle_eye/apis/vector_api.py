@@ -34,8 +34,8 @@ class VectorAPI:
 
         if do_init:
             self.index = self.client.recreate_collection(
-                name=self.collection_name,
-                vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
+                collection_name=self.collection_name,
+                vectors_config=models.VectorParams(size=1024, distance=models.Distance.COSINE),
             )
 
     @staticmethod
@@ -48,10 +48,10 @@ class VectorAPI:
             batch_size (int, optional): The size of each chunk. Defaults to 80.
         """
         it = iter(iterable)
-        chunk = tuple(itertools.islice(it, batch_size))
+        chunk = list(itertools.islice(it, batch_size))
         while chunk:
             yield chunk
-            chunk = tuple(itertools.islice(it, batch_size))
+            chunk = list(itertools.islice(it, batch_size))
 
     def upsert(self, points):
         """
@@ -63,7 +63,6 @@ class VectorAPI:
         if (len(points) == 0):
             return
 
-        # Pinecone needs the points converted into tuples
         vectors = [
             models.PointStruct(
                 id=point.id,
@@ -109,7 +108,9 @@ class VectorAPI:
             collection_name=self.collection_name,
             ids=ids,
         )
-        return [point.id for point in existing.get("result", [])]
+        print(existing)
+
+        return [point.id for point in existing]
 
     def delete(self, ids):
         """
