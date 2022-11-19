@@ -130,7 +130,45 @@ class VectorAPI:
             ),
         )
 
-    def search(self, query, ndays, exclude, embed_api=None):
+    def make_filters(self, ndays, exclude, exact_keywords):
+        """
+        Make filters for search or scrolling
+
+        Args:
+            ndays (int): number of days ago to search
+            exclude ([int]): List of IDs to exclude
+            exact_keywords ([str]): List of keywords to match exactly. It will match any.
+
+        Returns:
+            models.Filter: Qdrant filter
+        """
+        start = self._get_timestamp(ndays)
+        should = []
+        if exact_keywords:
+            for exact_keyword in exact_keywords:
+                for key in ['title', 'text']:
+                    should.append(
+                        models.FieldCondition(
+                            key=key,
+                            match=models.MatchText(text=exact_keyword),
+                        )
+                    )
+        return models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="timestamp",
+                    range=models.Range(
+                        gte=start,
+                    ),
+                )
+            ],
+            should=should,
+            must_not=[
+                models.HasIdCondition(has_id=exclude),
+            ]
+        )
+
+    def search(self, query, ndays, exclude, exact_keywords=False, embed_api=None):
         """
         Perform a search on the vector database.
         We can set number of days ago, and exclude certain ids.
@@ -146,26 +184,22 @@ class VectorAPI:
         """
         if embed_api is None:
             embed_api = EmbedAPI()
-        start = self._get_timestamp(ndays)
         # Embed the query into a vector
         vector = embed_api.embed_one(query)
+
         return self.client.search(
             collection_name=self.collection_name,
             query_vector=vector,
             limit=20,
             score_threshold=0.1,
-            query_filter=models.Filter(
-                must=[
-                    models.FieldCondition(
-                        key="timestamp",
-                        range=models.Range(
-                            gte=start,
-                        ),
-                    )
-                ],
-                must_not=[
-                    models.HasIdCondition(has_id=exclude),
-                ]
-            ),
+            query_filter=self.make_filters(ndays, exclude, exact_keywords),
+            with_payload=True,
+        )
+
+    def keyword_match(self, ndays, exclude, exact_keywords):
+        return self.client.scroll(
+            collection_name=self.collection_name,
+            scroll_filter=self.make_filters(ndays, exclude, exact_keywords),
+            limit=100,
             with_payload=True,
         )
