@@ -19,6 +19,7 @@ import bulkOperations from '../../dbOperations/operationsWorker'
 import { DiscordIntegrationService } from './integrations/discordIntegrationService'
 import { IIntegrationStream, IStepContext } from '../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
+import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
@@ -37,6 +38,7 @@ export class IntegrationProcessor extends LoggingBase {
     this.integrationServices = [
       new DevtoIntegrationService(),
       new DiscordIntegrationService(),
+      new HackerNewsIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),

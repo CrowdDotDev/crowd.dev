@@ -35,6 +35,10 @@ export default (app) => {
     '/tenant/:tenantId/devto-connect',
     safeWrap(require('./helpers/devtoCreateOrUpdate').default),
   )
+  app.post(
+    '/tenant/:tenantId/hackernews-connect',
+    safeWrap(require('./helpers/hackerNewsCreateOrUpdate').default),
+  )
 
   if (TWITTER_CONFIG.clientId) {
     passport.use(getTwitterStrategy())

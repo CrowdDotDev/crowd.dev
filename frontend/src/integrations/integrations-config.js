@@ -3,7 +3,7 @@ import discord from './discord'
 import slack from './slack'
 import twitter from './twitter'
 import devto from './devto'
-import hackerNews from './hackerNews'
+import hackernews from './hackernews'
 import discourse from './discourse'
 import stackoverflow from './stackoverflow'
 import reddit from './reddit'
@@ -19,7 +19,7 @@ class IntegrationsConfig {
       slack,
       twitter,
       devto,
-      hackerNews,
+      hackernews,
       discourse,
       stackoverflow,
       reddit,

@@ -13,7 +13,7 @@ export default {
 </script>
 <script setup>
 import { defineProps, ref } from 'vue'
-import AppHackerNewsConnectDrawer from '@/integrations/hackerNews/components/hackerNews-connect-drawer'
+import AppHackerNewsConnectDrawer from '@/integrations/hackernews/components/hackerNews-connect-drawer'
 
 defineProps({
   integration: {

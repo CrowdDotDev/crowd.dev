@@ -27,7 +27,7 @@ import { IntegrationServiceBase } from '../integrationServiceBase'
 
 export class HackerNewsIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.HACKER_NEWS, 20)
+    super(IntegrationType.HACKER_NEWS, 2 * 60)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {

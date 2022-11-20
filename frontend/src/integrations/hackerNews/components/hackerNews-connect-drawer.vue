@@ -108,7 +108,7 @@ export default {
   emits: ['update:modelValue'],
   data() {
     return {
-      logoUrl: CrowdIntegrations.getConfig('hackerNews').image,
+      logoUrl: CrowdIntegrations.getConfig('hackernews').image,
       users: [],
       keywords: [],
       loading: false

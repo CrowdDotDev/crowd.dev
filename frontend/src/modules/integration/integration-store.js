@@ -343,7 +343,7 @@ export default {
         commit('CREATE_STARTED')
 
         const integration =
-          await IntegrationService.doHackerNewsConnect(
+          await IntegrationService.hackerNewsConnect(
             keywords
           )
 
