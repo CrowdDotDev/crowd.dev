@@ -120,8 +120,14 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       displayName: post.user.id,
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
-          [PlatformType.DISCORD]: post.user.id,
+          [PlatformType.HACKERNEWS]: post.user.id,
         },
+        [MemberAttributeName.KARMA]: {
+          [PlatformType.HACKERNEWS]: post.user.karma,
+        },
+        [MemberAttributeName.LOCATION]: {
+          [PlatformType.HACKERNEWS]: post.user.about,
+        }
       }
     }
     return {
