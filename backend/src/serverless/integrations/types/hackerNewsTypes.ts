@@ -27,6 +27,7 @@ export interface HackerNewsPost {
   score: number
   time: number
   title: string
+  text: string
   type: string
   url: string
 }

@@ -7,8 +7,9 @@ import {
   IProcessStreamResults,
   IStepContext,
 } from '../../../../types/integration/stepResult'
-import { IntegrationType } from '../../../../types/integrationEnums'
+import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
+import getPost from '../../usecases/hackerNews/getPost'
 import { HackerNewsGrid } from '../../grid/hackerNewsGrid'
 import {
   EagleEyeResponse,
@@ -63,13 +64,13 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const logger = this.logger(context)
     let newStreams: IIntegrationStream[]
 
-    const post: HackerNewsResponse = await getHackerNewsPost(stream.value, context)
+    const post: HackerNewsResponse = await getPost(stream.value, logger)
 
     if (post.kids !== undefined) {
       newStreams = post.kids.map((a: number) => ({ value: a.toString() }))
     }
 
-    const parsedPost = this.parsePost(post)
+    const parsedPost = this.parsePost(context.integration.tenantId, post)
 
     const activities: AddActivitiesSingle[] = [parsedPost]
 
@@ -88,6 +89,44 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
       sleep,
       newStreams,
+    }
+  }
+
+  parsePost(tenantId, post: HackerNewsResponse): AddActivitiesSingle {
+    const type = post.kids?.length ? 'comment' : 'post'
+
+    const activity = {
+      tenant: tenantId,
+      sourceId: post.id.toString(),
+      ...(post.parent && { sourceParentId: post.parent.toString() }),
+      type,
+      platform: 'hackernews',
+      timestamp: new Date(post.time * 1000),
+      body: sanitizeHtml(post.text),
+      title: post.title,
+      url: post.url,
+      score: HackerNewsGrid[type].score,
+      isKeyAction: HackerNewsGrid[type].isKeyAction,
+      attributes: {
+        commentsCount: post.descendants,
+        score: post.score,
+        type: post.type,
+      },
+    }
+
+    const member = {
+      username: post.user.id,
+      platform: 'hackernews',
+      displayName: post.user.id,
+      attributes: {
+        [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.DISCORD]: post.user.id,
+        },
+      }
+    }
+    return {
+      ...activity,
+      member: member,
     }
   }
 }
