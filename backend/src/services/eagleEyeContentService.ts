@@ -117,6 +117,24 @@ export default class EagleEyeContentService extends LoggingBase {
     }
   }
 
+  async keywordMatch(args) {
+    const { keywords, nDays } = args
+
+    if (API_CONFIG.premiumApiUrl) {
+      try {
+        const response = await request
+          .post(`${API_CONFIG.premiumApiUrl}/keyword-match`)
+          .send({ exactKeywords: keywords, nDays })
+        return JSON.parse(response.text)
+      } catch (error) {
+        this.log.error(error, 'error while calling eagle eye server!')
+        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+      }
+    } else {
+      return [] as EagleEyeSearchOutput
+    }
+  }
+
   async update(id, data) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
