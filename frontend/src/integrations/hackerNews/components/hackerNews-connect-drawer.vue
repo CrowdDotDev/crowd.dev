@@ -108,7 +108,8 @@ export default {
   emits: ['update:modelValue'],
   data() {
     return {
-      logoUrl: CrowdIntegrations.getConfig('hackernews').image,
+      logoUrl:
+        CrowdIntegrations.getConfig('hackernews').image,
       users: [],
       keywords: [],
       loading: false
@@ -127,8 +128,9 @@ export default {
       }
     },
     isValid() {
-      const relevantKeywords =
-        this.keywords.filter((k) => !!k.keyword)
+      const relevantKeywords = this.keywords.filter(
+        (k) => !!k.keyword
+      )
       for (const org of relevantKeywords) {
         if (!org.valid) return false
       }
@@ -149,8 +151,7 @@ export default {
       if (this.integration.settings && !empty) {
         return (
           validOrgs.length ===
-            this.integration.settings.keywords
-              .length &&
+            this.integration.settings.keywords.length &&
           validOrgs.every((o) =>
             this.integration.settings.keywords.includes(
               o.keyword
@@ -163,7 +164,7 @@ export default {
     },
     isLastKeyword() {
       return this.keywords.length === 1
-    },
+    }
   },
   watch: {
     integration: {
@@ -192,9 +193,8 @@ export default {
       this.keywords = []
 
       if (this.integration && this.integration.settings) {
-        
-        this.integration.settings.keywords.forEach(
-          (k) => this.addNewKeyword(k)
+        this.integration.settings.keywords.forEach((k) =>
+          this.addNewKeyword(k)
         )
       }
 
@@ -206,7 +206,8 @@ export default {
     addNewKeyword(keyword) {
       this.keywords.push({
         id: this.maxId + 1,
-        keyword: typeof keyword === 'string' ||
+        keyword:
+          typeof keyword === 'string' ||
           keyword instanceof String
             ? keyword
             : '',
@@ -217,9 +218,7 @@ export default {
     },
 
     handleKeywordValidation(id) {
-      const keyword = this.keywords.find(
-        (o) => o.id === id
-      )
+      const keyword = this.keywords.find((o) => o.id === id)
       keyword.valid = !!keyword.keyword
     },
 
@@ -237,13 +236,12 @@ export default {
     async save() {
       this.loading = true
 
-      const relevantKeywords =
-        this.keywords.filter((k) => !!k.keyword)
-      
+      const relevantKeywords = this.keywords.filter(
+        (k) => !!k.keyword
+      )
+
       await this.doHackerNewsConnect({
-        keywords: relevantKeywords.map(
-          (k) => k.keyword
-        )
+        keywords: relevantKeywords.map((k) => k.keyword)
       })
 
       this.isVisible = false

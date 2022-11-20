@@ -9,9 +9,7 @@
   <span v-if="!channelOnly">&nbsp;on a&nbsp;</span>
   &nbsp;<a
     v-if="!short"
-    :href="
-      activity.url
-    "
+    :href="activity.url"
     class="text-brand-500 truncate max-w-2xs"
     target="_blank"
   >

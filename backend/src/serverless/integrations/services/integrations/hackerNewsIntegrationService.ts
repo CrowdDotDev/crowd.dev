@@ -55,8 +55,8 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     return context.pipelineData.posts.map((a: EagleEyeResponse) => ({
       value: a.sourceId.slice(a.sourceId.lastIndexOf(':') + 1),
       metadata: {
-        channel: a.keywords[0]
-      }
+        channel: a.keywords[0],
+      },
     }))
   }
 
@@ -70,7 +70,10 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const post: HackerNewsResponse = await getPost(stream.value, logger)
 
     if (post.kids !== undefined) {
-      newStreams = post.kids.map((a: number) => ({ value: a.toString(), metadata: stream.metadata }))
+      newStreams = post.kids.map((a: number) => ({
+        value: a.toString(),
+        metadata: stream.metadata,
+      }))
     }
 
     const parsedPost = this.parsePost(context.integration.tenantId, stream.metadata.channel, post)
@@ -131,8 +134,8 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         },
         [MemberAttributeName.LOCATION]: {
           [PlatformType.HACKERNEWS]: post.user.about,
-        }
-      }
+        },
+      },
     }
     return {
       ...activity,

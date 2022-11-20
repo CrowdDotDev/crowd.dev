@@ -332,10 +332,7 @@ export default {
       }
     },
 
-    async doHackerNewsConnect(
-      { commit },
-      { keywords }
-    ) {
+    async doHackerNewsConnect({ commit }, { keywords }) {
       // Function to connect to Dev.to. We just need to store the
       // users and organizations we want to track
 

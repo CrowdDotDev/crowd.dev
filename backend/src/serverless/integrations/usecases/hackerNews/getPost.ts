@@ -2,10 +2,7 @@ import axios from 'axios'
 import { HackerNewsPost, HackerNewsResponse, HackerNewsUser } from '../../types/hackerNewsTypes'
 import { Logger } from '../../../../utils/logging'
 
-async function getPost(
-  input: string,
-  logger: Logger,
-): Promise<HackerNewsResponse> {
+async function getPost(input: string, logger: Logger): Promise<HackerNewsResponse> {
   try {
     const postUrl = `https://hacker-news.firebaseio.com/v0/item/${input}.json`
     const postConfig = {
@@ -23,7 +20,6 @@ async function getPost(
     }
 
     const userResponse: HackerNewsUser = (await axios(userConfig)).data
-
 
     return {
       ...postResponse,
