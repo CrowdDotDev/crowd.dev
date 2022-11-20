@@ -54,6 +54,9 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
     return context.pipelineData.posts.map((a: EagleEyeResponse) => ({
       value: a.sourceId.slice(a.sourceId.lastIndexOf(':') + 1),
+      metadata: {
+        channel: a.keywords[0]
+      }
     }))
   }
 
@@ -67,10 +70,10 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const post: HackerNewsResponse = await getPost(stream.value, logger)
 
     if (post.kids !== undefined) {
-      newStreams = post.kids.map((a: number) => ({ value: a.toString() }))
+      newStreams = post.kids.map((a: number) => ({ value: a.toString(), metadata: stream.metadata }))
     }
 
-    const parsedPost = this.parsePost(context.integration.tenantId, post)
+    const parsedPost = this.parsePost(context.integration.tenantId, stream.metadata.channel, post)
 
     const activities: AddActivitiesSingle[] = [parsedPost]
 
@@ -92,9 +95,9 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  parsePost(tenantId, post: HackerNewsResponse): AddActivitiesSingle {
-    const type = post.kids?.length ? 'comment' : 'post'
-
+  parsePost(tenantId, channel, post: HackerNewsResponse): AddActivitiesSingle {
+    const type = post.parent ? 'comment' : 'post'
+    const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
     const activity = {
       tenant: tenantId,
       sourceId: post.id.toString(),
@@ -104,7 +107,8 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       timestamp: new Date(post.time * 1000),
       body: sanitizeHtml(post.text),
       title: post.title,
-      url: post.url,
+      url,
+      channel,
       score: HackerNewsGrid[type].score,
       isKeyAction: HackerNewsGrid[type].isKeyAction,
       attributes: {

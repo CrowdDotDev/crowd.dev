@@ -6,7 +6,6 @@
         v-html="$sanitize(activity.parent.body)"
       />
     </div>
-
     <span
       v-if="displayBody"
       ref="body"

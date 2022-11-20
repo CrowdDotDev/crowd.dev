@@ -1,7 +1,7 @@
 <template>
   <app-i18n
     v-if="!channelOnly"
-    code="entities.activity.hackerNews.commented"
+    :code="computedMessage"
     :args="computedArgs"
     :fallback="'entities.activity.fallback'"
     :class="{ truncate: short }"
@@ -10,12 +10,12 @@
   &nbsp;<a
     v-if="!short"
     :href="
-      activity.articleUrl || activity.attributes.articleUrl
+      activity.url
     "
     class="text-brand-500 truncate max-w-2xs"
     target="_blank"
   >
-    {{ activity.title || activity.attributes.articleTitle }}
+    {{ activity.channel }}
   </a>
 </template>
 
@@ -43,7 +43,7 @@ export default {
   },
   computed: {
     computedMessage() {
-      return `entities.activity.${this.activity.platform}.commented`
+      return `entities.activity.${this.activity.platform}.${this.activity.type}`
     },
     computedArgs() {
       return computedArgs(this.activity)

@@ -3,6 +3,7 @@ import { IServiceOptions } from '../../../../services/IServiceOptions'
 import { EagleEyeResponses, EagleEyeInput } from '../../types/hackerNewsTypes'
 import { Logger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
+import { IS_DEV_ENV } from '../../../../config'
 import EagleEyeContentService from '../../../../services/eagleEyeContentService'
 
 async function getChannels(
@@ -13,14 +14,14 @@ async function getChannels(
   await timeout(2000)
 
   try {
-    // const eagleEyeService = new EagleEyeContentService(options)
-    // return await eagleEyeService.keywordMatch({ keywords: input.keywords, nDays: input.nDays })
-    const postUrl = `https://hacker-news.firebaseio.com/v0/topstories.json`
+    if (IS_DEV_ENV) {
+      const postUrl = `https://hacker-news.firebaseio.com/v0/topstories.json`
     const postConfig = {
       method: 'get',
       url: postUrl,
     }
     const posts = await axios(postConfig)
+    const kws = input.keywords
     const out = []
     for (const post of posts.data.slice(0, 5)) {
       out.push({
@@ -38,11 +39,16 @@ async function getChannels(
           commentsCount: 0,
           score: 0
         },
-        keywords: ['string']
+        // Keywords: a random entry of kws
+        keywords: [kws[Math.floor(Math.random() * kws.length)]]
       })
+    
     }
-    console.log(out)
+      
     return out
+    }
+    const eagleEyeService = new EagleEyeContentService(options)
+    return await eagleEyeService.keywordMatch({ keywords: input.keywords, nDays: input.nDays })
   } catch (err) {
     logger.error({ err, input }, 'Error while getting posts by keyword in EagleEye')
     throw err

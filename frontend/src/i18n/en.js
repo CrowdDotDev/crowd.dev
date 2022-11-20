@@ -335,6 +335,10 @@ const en = {
       devto: {
         comment: 'comment'
       },
+      hackernews: {
+        post: 'post',
+        comment: 'comment'
+      },
       fallback: 'created an activity'
     },
 
