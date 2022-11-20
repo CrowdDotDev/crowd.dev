@@ -39,6 +39,10 @@ def transform(query, id, score, metadata):
     Returns:
         dict: transformed dict for crowd.dev's API
     """
+    if query == '':
+        keywords = []
+    else:
+        keywords = [query]
 
     return {
         'vectorId': id,
@@ -52,7 +56,7 @@ def transform(query, id, score, metadata):
         'similarityScore': score,
         'userAttributes': json.loads(metadata.get('userAttributes', '{}')),
         'postAttributes': json.loads(metadata.get('postAttributes', '{}')),
-        'keywords': [query, ]
+        'keywords': keywords
     }
 
 
@@ -86,7 +90,7 @@ def search_main(queries, ndays, exclude, exact_keywords):
     return json.dumps(out)
 
 
-def keyword_match(ndays, exclude, exact_keywords):
+def keyword_match(ndays, exclude, exact_keywords, platform):
     """
     Perform a keyword match on the vector DB.
 
@@ -96,12 +100,17 @@ def keyword_match(ndays, exclude, exact_keywords):
         exact_keywords ([str]): Exact keywords to match
     """
     vector = VectorAPI()
-    results = vector.keyword_match(ndays, exclude, exact_keywords)
+    results = vector.keyword_match(ndays, exclude, exact_keywords, platform)
     out = []
     if type(results[0]) == list:
         results = results[0]
     for returned_point in results:
-        out.append(transform('', returned_point.id, 1, returned_point.payload))
+        transformed = transform('', returned_point.id, 1, returned_point.payload)
+        # Check exactly which keywords matched
+        for keyword in exact_keywords:
+            if keyword in transformed['title'] or keyword in transformed['text']:
+                transformed['keywords'].append(keyword)
+        out.append(transformed)
 
      # TODO: Remove
     from pprint import pprint
@@ -114,4 +123,4 @@ def keyword_match(ndays, exclude, exact_keywords):
 
 if __name__ == '__main__':
     # search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=['Machine learning', 'Serverless'])
-    keyword_match(7, [], exact_keywords=['Machine learning', 'Serverless'])
+    keyword_match(7, [], exact_keywords=['Machine learning', 'Serverless'], platform='hacker_news')

@@ -130,7 +130,7 @@ class VectorAPI:
             ),
         )
 
-    def make_filters(self, ndays, exclude, exact_keywords):
+    def make_filters(self, ndays, exclude, exact_keywords, platform=None):
         """
         Make filters for search or scrolling
 
@@ -153,15 +153,24 @@ class VectorAPI:
                             match=models.MatchText(text=exact_keyword),
                         )
                     )
-        return models.Filter(
-            must=[
+        must = [
+            models.FieldCondition(
+                key="timestamp",
+                range=models.Range(
+                    gte=start,
+                ),
+            )
+        ]
+        if platform:
+            must.append(
                 models.FieldCondition(
-                    key="timestamp",
-                    range=models.Range(
-                        gte=start,
-                    ),
+                    key="platform",
+                    match=models.MatchText(text=platform),
                 )
-            ],
+            )
+
+        return models.Filter(
+            must=must,
             should=should,
             must_not=[
                 models.HasIdCondition(has_id=exclude),
@@ -196,10 +205,10 @@ class VectorAPI:
             with_payload=True,
         )
 
-    def keyword_match(self, ndays, exclude, exact_keywords):
+    def keyword_match(self, ndays, exclude, exact_keywords, platform=None):
         return self.client.scroll(
             collection_name=self.collection_name,
-            scroll_filter=self.make_filters(ndays, exclude, exact_keywords),
+            scroll_filter=self.make_filters(ndays, exclude, exact_keywords, platform),
             limit=100,
             with_payload=True,
         )

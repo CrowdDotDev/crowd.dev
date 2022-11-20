@@ -37,4 +37,4 @@ def scheduled_main(source, restart=False):
 
 
 if __name__ == '__main__':
-    scheduled_main('devto', restart=False)
+    scheduled_main('hacker_news', restart=False)

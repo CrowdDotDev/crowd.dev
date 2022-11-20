@@ -27,5 +27,6 @@ def search():
     logger.info(f"Eagle Eye: received request for keyword_match: {body}")
     ndays = body.get('nDays', 10)
     exclude = body.get('filters', [])
+    platform = body.get('platform', None)
     exact_keywords = body.get('exactKeywords', [])
-    return keyword_match(ndays, exclude, exact_keywords)
+    return keyword_match(ndays, exclude, exact_keywords, platform)
