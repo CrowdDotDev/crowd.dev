@@ -113,6 +113,21 @@ export class IntegrationService {
     return response.data
   }
 
+  static async hackerNewsConnect(keywords) {
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get()
+
+    // Calling connect devto function in the backend.
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/hackernews-connect`,
+      {
+        keywords
+      }
+    )
+
+    return response.data
+  }
+
   static async githubConnect(code, installId, setupAction) {
     // Ask backend to connect to GitHub through Oauth.
     // Install_id is the GitHub app installation id.
