@@ -21,7 +21,7 @@ export async function passportStrategyMiddleware(req, res, next) {
       passport.use(getGoogleStrategy())
     }
   } catch (error) {
-    log.error(error, 'Error connecting to redis!')
+    log.error(error, 'Error getting some passport strategies!')
   } finally {
     next()
   }
