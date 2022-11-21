@@ -59,6 +59,16 @@ services:
     networks:
       - crowd-bridge
 
+  redis:
+    image: crowddotdev/redis:1669030011.68836df
+    command: 'redis-server /redis.conf --requirepass crowdtest'
+    volumes:
+      - redis-dev:/data
+    ports:
+      - 6379:6379
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
 
