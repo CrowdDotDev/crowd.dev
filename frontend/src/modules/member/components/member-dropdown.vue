@@ -93,12 +93,13 @@
         <div class="p-6 flex relative">
           <div class="grow">
             <app-member-suggestions-details
-              :pair="memberPair"
+              :pair="pair"
+              @make-primary="handleMakePrimaryClick"
             />
           </div>
           <app-member-selection-dropdown
             v-if="memberToMerge === null"
-            :id="member.id"
+            :id="primaryMember.id"
             v-model="memberToMerge"
             class="bg-white absolute w-2/5 right-0 inset-y-0 z-10 flex justify-center"
             style="margin-right: 5px"
@@ -136,9 +137,11 @@ export default {
   },
   data() {
     return {
+      primaryMember: null,
       memberToMerge: null,
       isMergeDialogOpen: false,
-      isMergeLoading: false
+      isMergeLoading: false,
+      pair: []
     }
   },
   computed: {
@@ -146,16 +149,6 @@ export default {
       currentTenant: 'auth/currentTenant',
       currentUser: 'auth/currentUser'
     }),
-    memberPair() {
-      if (this.memberToMerge) {
-        return [this.member, this.memberToMerge]
-      } else {
-        return [
-          this.member,
-          { username: {}, attributes: {} }
-        ]
-      }
-    },
     isReadOnly() {
       return (
         new MemberPermissions(
@@ -163,6 +156,24 @@ export default {
           this.currentUser
         ).edit === false
       )
+    }
+  },
+  watch: {
+    memberToMerge(newMember, oldMember) {
+      // Reset member to merge
+      if (!newMember) {
+        this.pair = [
+          this.primaryMember,
+          { username: {}, attributes: {} }
+        ]
+        // Switch primary member with member to merge
+      } else if (newMember?.id === this.primaryMember.id) {
+        this.primaryMember = oldMember
+        this.pair.reverse()
+        // Add new member to member to merge
+      } else if (newMember) {
+        this.pair = [this.primaryMember, newMember]
+      }
     }
   },
   methods: {
@@ -224,6 +235,11 @@ export default {
           this.doFind(command.member.id)
         }
       } else if (command.action === 'memberMerge') {
+        this.primaryMember = this.member
+        this.pair = [
+          this.primaryMember,
+          { username: {}, attributes: {} }
+        ]
         this.isMergeDialogOpen = true
       } else {
         return this.$router.push({
@@ -235,16 +251,20 @@ export default {
     handleChangeMemberClick() {
       this.memberToMerge = null
     },
+    handleMakePrimaryClick() {
+      this.memberToMerge = this.primaryMember
+    },
     async handleMergeClick() {
       try {
         this.isMergeLoading = true
+
         await this.$store.dispatch('member/doMerge', {
-          memberToKeep: this.member,
+          memberToKeep: this.primaryMember,
           memberToMerge: this.memberToMerge
         })
       } catch (error) {
         console.log(error)
-        // no
+        Message.error('There was an error merging members')
       }
       this.isMergeLoading = false
     }
