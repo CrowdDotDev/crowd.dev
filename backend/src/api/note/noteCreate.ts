@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
 import NoteService from '../../services/noteService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from "../../segment/track"
+import track from '../../segment/track'
 
 /**
  * POST /tenant/{tenantId}/note
@@ -23,11 +23,7 @@ export default async (req, res) => {
 
   const payload = await new NoteService(req).create(req.body)
 
-  track(
-    'Note Created',
-    { id: payload.id },
-    { ...req },
-  )
+  track('Note Created', { id: payload.id }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

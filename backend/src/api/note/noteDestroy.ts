@@ -1,7 +1,7 @@
 import Permissions from '../../security/permissions'
 import NoteService from '../../services/noteService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import track from "../../segment/track"
+import track from '../../segment/track'
 
 /**
  * DELETE /tenant/{tenantId}/note/{id}
@@ -23,11 +23,7 @@ export default async (req, res) => {
 
   const payload = true
 
-  track(
-    'Note Destroyed',
-    {},
-    { ...req },
-  )
+  track('Note Destroyed', {}, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }
