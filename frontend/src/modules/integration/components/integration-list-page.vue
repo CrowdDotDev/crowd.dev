@@ -29,6 +29,7 @@
             <a
               href="https://docs.crowd.dev/docs/github-integration#set-up-with-missing-permissions"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>
@@ -44,6 +45,7 @@
             <a
               href="https://docs.crowd.dev/docs/slack-integration#how-to-install"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>
@@ -60,6 +62,7 @@
             <a
               href="https://docs.crowd.dev/docs/discord-integration#how-to-install"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>
