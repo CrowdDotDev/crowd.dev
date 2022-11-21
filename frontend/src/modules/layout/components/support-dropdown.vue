@@ -17,7 +17,7 @@
         >
           <div class="el-menu-item">
             <i class="ri-question-line"></i>
-            <span v-if="!isCollapsed">Help & support</span>
+            <span v-if="!isCollapsed">Help</span>
           </div>
         </div>
       </div>
