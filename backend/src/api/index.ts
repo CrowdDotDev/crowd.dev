@@ -22,7 +22,6 @@ const serviceLogger = createServiceLogger()
 const app = express()
 
 setImmediate(async () => {
-
   const redis = await createRedisClient(true)
 
   // Enables CORS
@@ -136,7 +135,6 @@ setImmediate(async () => {
   app.use(errorMiddleware)
 
   app.use(io.expressErrorHandler())
-
 })
 
 export default app
