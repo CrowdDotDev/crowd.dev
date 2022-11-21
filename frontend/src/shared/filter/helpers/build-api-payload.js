@@ -91,9 +91,22 @@ function _buildAttributeBlock(attribute) {
       }, [])
     }
   } else if (attribute.operator === 'between') {
-    // TODO: Chech if this exceptions is needed
+    const bottomLimit = attribute.value[0]
+    const topLimit = attribute.value[1]
+
     rule = {
-      between: attribute.value
+      // Range from ... to
+      ...(!!(topLimit && bottomLimit) && {
+        between: attribute.value
+      }),
+      // Range from ...
+      ...(!!(bottomLimit && !topLimit) && {
+        gte: bottomLimit
+      }),
+      // Range ... to
+      ...(!!(!bottomLimit && topLimit) && {
+        lte: topLimit
+      })
     }
   } else if (attribute.operator === null) {
     rule = Array.isArray(attribute.value)

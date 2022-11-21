@@ -3,13 +3,14 @@
     class="filter-type-number filter-with-operator-and-input"
   >
     <app-inline-select-input
+      v-if="defaultOperator !== 'between'"
       v-model="operator"
       popper-placement="bottom-start"
       prefix="Number:"
       class="mb-2"
       :options="computedOperatorOptions"
     />
-    <div class="flex -mx-1">
+    <div class="flex -mx-1 gap-2">
       <el-input
         ref="inputRef"
         v-model="model"
@@ -21,7 +22,6 @@
           operator === 'is_empty' ||
           operator === 'is_not_empty'
         "
-        class="mx-1"
       ></el-input>
       <el-input
         v-if="operator === 'between'"
@@ -32,7 +32,6 @@
           operator === 'is_empty' ||
           operator === 'is_not_empty'
         "
-        class="mx-1"
       ></el-input>
     </div>
   </div>
@@ -57,6 +56,10 @@ import operators from '@/shared/filter/helpers/operators'
 const props = defineProps({
   value: {
     type: [Array, Number],
+    default: null
+  },
+  defaultOperator: {
+    type: String,
     default: null
   },
   operator: {
@@ -133,6 +136,7 @@ watch(expanded, async (newValue) => {
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
   }
 }
