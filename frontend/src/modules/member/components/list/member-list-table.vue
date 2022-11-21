@@ -52,7 +52,7 @@
           <transition name="el-fade-in">
             <div
               v-show="isScrollbarVisible"
-              class="absolute z-10 top-0 left-0 w-full"
+              class="absolute z-20 top-0 left-0 w-full"
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             >
