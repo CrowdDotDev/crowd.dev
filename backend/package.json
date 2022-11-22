@@ -25,7 +25,8 @@
     "stripe:login": "stripe login",
     "stripe:start": "stripe listen --forward-to localhost:8080/api/plan/stripe/webhook",
     "lint": "npx eslint .",
-    "format": "npx prettier --write ."
+    "format": "npx prettier --write .",
+    "script:process-integration": "SERVICE=script ts-node ./src/bin/scripts/process-integration.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
@@ -48,6 +49,8 @@
     "bunyan-middleware": "^1.0.2",
     "clearbit": "^1.3.5",
     "cli-highlight": "2.1.6",
+    "command-line-args": "^5.2.1",
+    "command-line-usage": "^6.1.3",
     "config": "^3.3.8",
     "cors": "2.8.5",
     "cron": "^2.1.0",
