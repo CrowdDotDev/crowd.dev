@@ -276,7 +276,7 @@ export class IntegrationProcessor extends LoggingBase {
               processStreamResult = await intService.processStream(stream, stepContext)
             } catch (err) {
               if (err.rateLimitResetSeconds) {
-                delay = err.RateLimitResetSeconds + 5
+                delay = err.rateLimitResetSeconds + 5
                 stopProcessing = true
               } else {
                 throw err
