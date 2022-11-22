@@ -8,6 +8,12 @@
     "jwtExpiresIn": "CROWD_API_JWT_EXPIRES_IN",
     "premiumApiUrl": "CROWD_PREMIUM_API_URL"
   },
+  "redis": {
+    "username": "CROWD_REDIS_USERNAME",
+    "password": "CROWD_REDIS_PASSWORD",
+    "host": "CROWD_REDIS_HOST",
+    "port": "CROWD_REDIS_PORT"
+  },
   "sqs": {
     "host": "CROWD_SQS_HOST",
     "port": "CROWD_SQS_PORT",

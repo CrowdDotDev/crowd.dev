@@ -1,11 +1,10 @@
 import fetch from 'node-fetch'
+import SlackStrategy from 'passport-slack'
 import { SLACK_CONFIG, API_CONFIG } from '../../../config'
 import { PlatformType } from '../../../types/integrationEnums'
 
-export function getSlackStrategy() {
-  const SlackStrategy = require('passport-slack').Strategy
-
-  return new SlackStrategy(
+export function getSlackStrategy(): SlackStrategy {
+  return new SlackStrategy.Strategy(
     {
       clientID: SLACK_CONFIG.clientId,
       clientSecret: SLACK_CONFIG.clientSecret,

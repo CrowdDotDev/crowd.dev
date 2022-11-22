@@ -20,6 +20,7 @@ import {
   ComprehendConfiguration,
   ClearbitConfiguration,
   DevtoConfiguration,
+  RedisConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -46,6 +47,8 @@ export const LOG_LEVEL: string = process.env.LOG_LEVEL || 'info'
 export const IS_CLOUD_ENV: boolean = IS_PROD_ENV || IS_STAGING_ENV
 
 export const SQS_CONFIG: SQSConfiguration = config.get<SQSConfiguration>('sqs')
+
+export const REDIS_CONFIG: RedisConfiguration = config.get<RedisConfiguration>('redis')
 
 export const S3_CONFIG: S3Configuration = KUBE_MODE
   ? config.get<S3Configuration>('s3')

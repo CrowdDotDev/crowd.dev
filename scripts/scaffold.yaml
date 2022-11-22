@@ -43,14 +43,14 @@ services:
     networks:
       - crowd-bridge
 
-  s3:
-    image: scireum/s3-ninja:8.0.0
-    ports:
-      - 9000:9000
-    volumes:
-      - s3-dev:/home/sirius/data
-    networks:
-      - crowd-bridge
+  # s3:
+  #   image: scireum/s3-ninja:8.0.0
+  #   ports:
+  #     - 9000:9000
+  #   volumes:
+  #     - s3-dev:/home/sirius/data
+  #   networks:
+  #     - crowd-bridge
 
   sqs:
     build:
@@ -74,6 +74,17 @@ services:
     networks:
       - crowd-bridge
 
+  redis:
+    build:
+      context: scaffold/redis
+    command: 'redis-server /redis.conf --requirepass crowdtest'
+    volumes:
+      - redis-dev:/data
+    ports:
+      - 6379:6379
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true
@@ -82,3 +93,4 @@ volumes:
   pgdata-dev:
   search-dev:
   s3-dev:
+  redis-dev:
