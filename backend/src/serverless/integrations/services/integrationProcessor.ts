@@ -1,3 +1,5 @@
+// noinspection ExceptionCaughtLocallyJS
+
 import moment from 'moment'
 import { v4 as uuid } from 'uuid'
 import { createChildLogger } from '../../../utils/logging'
@@ -204,7 +206,18 @@ export class IntegrationProcessor extends LoggingBase {
 
       // preprocess if needed
       logger.trace('Preprocessing integration!')
-      await intService.preprocess(stepContext)
+      try {
+        await intService.preprocess(stepContext)
+      } catch (err) {
+        if (err.rateLimitResetSeconds) {
+          // need to delay integration processing
+          logger.warn(err, 'Rate limit reached while preprocessing integration! Delaying...')
+          await sendNodeWorkerMessage(req.tenantId, req, err.rateLimitResetSeconds + 5)
+          return
+        }
+
+        throw err
+      }
 
       // detect streams to process for this integration
       let streams: IIntegrationStream[]
@@ -227,11 +240,23 @@ export class IntegrationProcessor extends LoggingBase {
         }
       } else {
         logger.trace('Detecting streams!')
-        streams = await intService.getStreams(stepContext)
+        try {
+          streams = await intService.getStreams(stepContext)
+        } catch (err) {
+          if (err.rateLimitResetSeconds) {
+            // need to delay integration processing
+            logger.warn(err, 'Rate limit reached while getting integration streams! Delaying...')
+            await sendNodeWorkerMessage(req.tenantId, req, err.rateLimitResetSeconds + 5)
+            return
+          }
+
+          throw err
+        }
       }
 
       // delay for retries/continuing with the remaining streams (in seconds)
       let delay: number = 5
+      let stopProcessing = false
 
       if (streams.length > 0) {
         logger.info({ streamCount: streams.length }, 'Detected streams to process!')
@@ -246,7 +271,22 @@ export class IntegrationProcessor extends LoggingBase {
               { stream: stream.value, remainingStreams: streams.length },
               `Processing stream.`,
             )
-            const processStreamResult = await intService.processStream(stream, stepContext)
+            let processStreamResult
+            try {
+              processStreamResult = await intService.processStream(stream, stepContext)
+            } catch (err) {
+              if (err.rateLimitResetSeconds) {
+                delay = err.RateLimitResetSeconds + 5
+                stopProcessing = true
+              } else {
+                throw err
+              }
+            }
+
+            if (stopProcessing) {
+              failedStreams.push(stream)
+              break
+            }
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
               logger.info(
@@ -368,6 +408,10 @@ export class IntegrationProcessor extends LoggingBase {
                 retryCount,
                 stream: failedStream,
               })
+
+              if (delay < retryCount * 5) {
+                delay = retryCount * 5
+              }
             }
           }
 

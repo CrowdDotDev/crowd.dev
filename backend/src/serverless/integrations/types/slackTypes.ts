@@ -71,25 +71,15 @@ export interface SlackMember {
 
 export type SlackMembers = SlackMember[]
 
-export interface SlackParsedReponse {
+export interface SlackParsedResponse {
   records: any
   nextPage: string
-  limit: number
-  timeUntilReset: number
 }
 
-export interface SlackGetChannelsOutput extends SlackParsedReponse {
-  records: SlackChannels
-}
-
-export interface SlackGetMessagesOutput extends SlackParsedReponse {
-  records: SlackMessages | []
-}
-
-export interface SlackGetMembersOutput extends SlackParsedReponse {
+export interface SlackGetMembersOutput extends SlackParsedResponse {
   records: SlackMembers | []
 }
 
-export interface SlackGetMemberOutput extends SlackParsedReponse {
+export interface SlackGetMemberOutput extends SlackParsedResponse {
   records: SlackMember
 }
