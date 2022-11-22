@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="isNew || isTeam"
-    class="member-badge flex items-center"
+    class="member-badge flex items-center ml-1"
   >
     <el-tooltip
       v-if="isNew"
