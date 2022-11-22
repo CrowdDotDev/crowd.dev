@@ -230,8 +230,8 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     const nextPageStream = result.hasPreviousPage
-    ? { value: stream.value, metadata: { repo:stream.metadata.repo,  page: result.startCursor } }
-    : undefined
+      ? { value: stream.value, metadata: { repo: stream.metadata.repo, page: result.startCursor } }
+      : undefined
 
     const activities = await GithubIntegrationService.parseActivities(result.data, stream, context)
 
@@ -243,7 +243,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
       ],
       newStreams,
-      nextPageStream
+      nextPageStream,
     }
   }
 
