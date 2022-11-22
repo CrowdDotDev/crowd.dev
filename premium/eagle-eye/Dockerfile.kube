@@ -12,3 +12,5 @@ RUN python -m venv --copies ./venv && . ./venv/bin/activate && \
   ls ./venv/bin
 
 RUN  pip install -r requirements.txt
+USER root
+RUN mkdir /.cache && chmod -R 777 /.cache

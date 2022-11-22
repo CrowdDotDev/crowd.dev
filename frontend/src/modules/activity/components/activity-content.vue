@@ -166,4 +166,8 @@ export default {
     font-size: 16px;
   }
 }
+
+.title {
+    @apply text-sm font-medium;
+  }
 </style>

@@ -90,7 +90,7 @@ def search_main(queries, ndays, exclude, exact_keywords):
     return json.dumps(out)
 
 
-def keyword_match(ndays, exclude, exact_keywords, platform):
+def keyword_match_main(ndays, exclude, exact_keywords, platform):
     """
     Perform a keyword match on the vector DB.
 
@@ -119,8 +119,9 @@ def keyword_match(ndays, exclude, exact_keywords, platform):
           'url': point['url'], 'id': point['vectorId']} for point in out]
     pprint(p)
     out = remove_duplicates(out)
+    return json.dumps(out)
 
 
 if __name__ == '__main__':
-    # search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=['Machine learning', 'Serverless'])
-    keyword_match(7, [], exact_keywords=['Machine learning', 'Serverless'], platform='hacker_news')
+    search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=[])
+    # keyword_match_main(7, [], exact_keywords=['Machine learning', 'Serverless'], platform='hacker_news')

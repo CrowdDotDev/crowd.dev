@@ -74,6 +74,13 @@ services:
     networks:
       - crowd-bridge
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - 6333:6333
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true

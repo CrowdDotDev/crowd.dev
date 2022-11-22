@@ -33,6 +33,10 @@ export default class MemberIdentitiesField extends StringField {
       {
         value: 'devto',
         label: 'DEV'
+      },
+      {
+        value: 'hackernews',
+        label: 'Hacker News'
       }
     ]
   }

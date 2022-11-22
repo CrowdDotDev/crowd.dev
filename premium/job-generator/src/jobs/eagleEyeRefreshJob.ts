@@ -7,7 +7,8 @@ const log = createServiceChildLogger('Eagle-eye Refresh Job')
 
 const job: CrowdJob = {
   name: 'Eagle-eye Refresh Job',
-  cronTime: cronGenerator.every(2).hours(),
+  // TODO: Change this to a 1 hour
+  cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
     try {
       await sendPremiumPythonWorkerMessage({

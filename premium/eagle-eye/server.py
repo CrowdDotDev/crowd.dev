@@ -1,5 +1,5 @@
 from flask import Flask
-from crowd.eagle_eye.search import search_main, keyword_match
+from crowd.eagle_eye.search import search_main, keyword_match_main
 from crowd.eagle_eye.infrastructure.logging import get_logger
 from flask import request
 from flask.logging import default_handler
@@ -22,11 +22,16 @@ def search():
 
 
 @app.route("/keyword-match", methods=['POST'])
-def search():
-    body = request.get_json()
-    logger.info(f"Eagle Eye: received request for keyword_match: {body}")
-    ndays = body.get('nDays', 10)
-    exclude = body.get('filters', [])
-    platform = body.get('platform', None)
-    exact_keywords = body.get('exactKeywords', [])
-    return keyword_match(ndays, exclude, exact_keywords, platform)
+def keyword_match():
+    try:
+        body = request.get_json()
+        logger.info(f"Eagle Eye: received request for keyword_match: {body}")
+        ndays = body.get('nDays', 10)
+        exclude = body.get('filters', [])
+        platform = body.get('platform', None)
+        exact_keywords = body.get('exactKeywords', [])
+        out = keyword_match_main(ndays, exclude, exact_keywords, platform)
+        return out
+    except Exception as e:
+        logger.error(f"Error in keyword_match: {e}")
+        raise e

@@ -24,7 +24,8 @@ class VectorAPI:
             index_name (str, optional): Name of the DB index. Defaults to "crowddev".
         """
         self.collection_name = "crowddev"
-        self.client = QdrantClient(host="localhost", port=6333)
+        # TODO - make this configurable
+        self.client = QdrantClient(host="qdrant", port=6333)
 
         if index_name is None:
             if KUBE_MODE:
@@ -206,6 +207,7 @@ class VectorAPI:
         )
 
     def keyword_match(self, ndays, exclude, exact_keywords, platform=None):
+        ndays = min(ndays, 10000)
         return self.client.scroll(
             collection_name=self.collection_name,
             scroll_filter=self.make_filters(ndays, exclude, exact_keywords, platform),
