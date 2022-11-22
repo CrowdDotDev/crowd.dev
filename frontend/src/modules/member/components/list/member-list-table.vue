@@ -121,6 +121,9 @@
                       :member="scope.row"
                       class="ml-2"
                     />
+                     <app-member-badge
+                        :member="scope.row"
+                      />
                   </div>
                 </template>
               </el-table-column>
@@ -269,6 +272,7 @@ import {
   watch
 } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
+import AppMemberBadge from '../member-badge'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
 import AppMemberChannels from '../member-channels'
