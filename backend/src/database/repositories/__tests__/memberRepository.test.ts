@@ -1538,7 +1538,7 @@ describe('MemberRepository tests', () => {
             'identities',
             'activeOn',
             'joinedAt',
-            'activityCount',
+            'activityCount'
           ]),
         ],
         noMerge: [],
