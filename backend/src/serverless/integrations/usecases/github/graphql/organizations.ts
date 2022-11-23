@@ -16,8 +16,10 @@ const getOrganization = async (name: string, token: string): Promise<any> => {
       },
     })
 
+    const sanitizedName = name.replaceAll('\\', '')
+
     const organizationsQuery = `{
-      search(query: "type:org ${name}", type: USER, first: 10) {
+      search(query: "type:org ${sanitizedName}", type: USER, first: 10) {
         nodes {
           ... on Organization ${BaseQuery.ORGANIZATION_SELECT}
           }
