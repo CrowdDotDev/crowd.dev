@@ -17,8 +17,8 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
       type: 'number',
       expanded: false
     },
-    activeSince: {
-      name: 'activeSince',
+    joinedAt: {
+      name: 'joinedAt',
       label: 'Active since',
       custom: false,
       props: {},
