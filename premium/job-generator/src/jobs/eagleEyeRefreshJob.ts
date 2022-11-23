@@ -10,20 +10,20 @@ const job: CrowdJob = {
   // TODO: Change this to a 1 hour
   cronTime: cronGenerator.every(1).minutes(),
   onTrigger: async () => {
-    try {
-      await sendPremiumPythonWorkerMessage({
-        platform: 'devto',
-      })
-    } catch (err) {
-      log.error(err, 'Error while emitting DEV Eagle-eye refresh message!')
-    }
-
+    // HackerNews should stay first so the integration will work quickly
     try {
       await sendPremiumPythonWorkerMessage({
         platform: 'hacker_news',
       })
     } catch (err) {
       log.error(err, 'Error while emitting Hacker News Eagle-eye refresh message!')
+    }
+    try {
+      await sendPremiumPythonWorkerMessage({
+        platform: 'devto',
+      })
+    } catch (err) {
+      log.error(err, 'Error while emitting DEV Eagle-eye refresh message!')
     }
   },
 }

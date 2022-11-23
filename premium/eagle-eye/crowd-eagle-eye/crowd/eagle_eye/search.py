@@ -116,12 +116,12 @@ def keyword_match_main(ndays, exclude, exact_keywords, platform):
     from pprint import pprint
     out = sorted(out, key=lambda x: x['similarityScore'], reverse=True)
     p = [{'score': point['similarityScore'], 'title': point['title'],
-          'url': point['url'], 'id': point['vectorId']} for point in out]
+          'url': point['url'], 'id': point['vectorId'], 'body': point['text']} for point in out]
     pprint(p)
     out = remove_duplicates(out)
     return json.dumps(out)
 
 
 if __name__ == '__main__':
-    search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=[])
-    # keyword_match_main(7, [], exact_keywords=['Machine learning', 'Serverless'], platform='hacker_news')
+    # search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=[])
+    keyword_match_main(7, [], exact_keywords=['Alphabet'], platform='hacker_news')

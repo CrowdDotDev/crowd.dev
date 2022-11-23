@@ -7,6 +7,7 @@ from dateutil import parser
 
 logger = get_logger(__name__)
 
+
 def pre_process(data):
     """
     Process dev.to data.
@@ -126,7 +127,6 @@ def devto(sleep=True):
             if 'organization' in post:
                 if sleep:
                     time.sleep(1)
-                logger.info('Organisation request')
 
                 post['organization'] = json.loads(requests.get(
                     f'https://dev.to/api/organizations/{post["organization"]["username"]}').content)

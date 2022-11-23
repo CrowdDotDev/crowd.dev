@@ -112,7 +112,7 @@ def post_process(data, existing_ids, max_text_chars=2000):
         if not point.payload.text and point.payload.destination_url:
             # This is commented for now. Giving better results.
             # text = fill_text(point.payload.destination_url)
-            text = ''
+            text = point.payload.destination_url
 
             # We do not want that whole text in the text field. It is likely dirty and long.
             # Instead we give an HTML link to the destination URL.

@@ -101,6 +101,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
   parsePost(tenantId, channel, post: HackerNewsResponse): AddActivitiesSingle {
     const type = post.parent ? 'comment' : 'post'
     const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
+    const body = post.text !== undefined && post.text !== '' ? sanitizeHtml(post.text) : `<a href="${post.url}" target="_blank">${post.url}</a>`
     const activity = {
       tenant: tenantId,
       sourceId: post.id.toString(),
@@ -108,7 +109,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       type,
       platform: 'hackernews',
       timestamp: new Date(post.time * 1000),
-      body: sanitizeHtml(post.text),
+      body,
       title: post.title,
       url,
       channel,
@@ -116,7 +117,9 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       isKeyAction: HackerNewsGrid[type].isKeyAction,
       attributes: {
         commentsCount: post.descendants,
+        destinationUrl: post.url,
         score: post.score,
+        ...(post.parent && { parentUrl: `https://news.ycombinator.com/item?id=${post.parent.toString()}` }),
         type: post.type,
       },
     }
