@@ -199,7 +199,7 @@
 
               <el-table-column
                 label="Identities"
-                width="220"
+                width="240"
               >
                 <template #default="scope">
                   <app-member-channels
