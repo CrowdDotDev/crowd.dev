@@ -1,5 +1,8 @@
 import { INITIAL_PAGE_SIZE } from './constants'
-import { INITIAL_VIEW_NEW_AND_ACTIVE_FILTER } from './constants'
+import {
+  INITIAL_VIEW_NEW_AND_ACTIVE_FILTER,
+  INITIAL_VIEW_ENTERPRISE_SIZE_FILTER
+} from './constants'
 
 export default () => {
   return {
@@ -79,40 +82,12 @@ export default () => {
       'enterprise-size': {
         id: 'enterprise-size',
         label: 'Enterprise size',
-        filter: {
-          operator: 'and',
-          attributes: {
-            employeesRange: {
-              name: 'activityCount',
-              label: '# of activities',
-              custom: false,
-              props: {},
-              defaultValue: [1001, 5000],
-              value: [1001, 5000],
-              defaultOperator: 'between',
-              operator: 'between',
-              type: 'number',
-              expanded: false
-            }
-          }
-        },
-        initialFilter: {
-          operator: 'and',
-          attributes: {
-            employeesRange: {
-              name: 'activityCount',
-              label: '# of activities',
-              custom: false,
-              props: {},
-              defaultValue: [1001, 5000],
-              value: [1001, 5000],
-              defaultOperator: 'between',
-              operator: 'between',
-              type: 'number',
-              expanded: false
-            }
-          }
-        },
+        initialFilter: INITIAL_VIEW_ENTERPRISE_SIZE_FILTER,
+        filter: JSON.parse(
+          JSON.stringify(
+            INITIAL_VIEW_ENTERPRISE_SIZE_FILTER
+          )
+        ),
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE

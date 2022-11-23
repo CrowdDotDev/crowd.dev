@@ -35,3 +35,21 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
     }
   }
 }
+
+export const INITIAL_VIEW_ENTERPRISE_SIZE_FILTER = {
+  operator: 'and',
+  attributes: {
+    employeesRange: {
+      name: 'activityCount',
+      label: '# of activities',
+      custom: false,
+      props: {},
+      defaultValue: [1001, 5000],
+      value: [1001, 5000],
+      defaultOperator: 'between',
+      operator: 'between',
+      type: 'number',
+      expanded: false
+    }
+  }
+}
