@@ -1,7 +1,6 @@
 import { OrganizationService } from '@/modules/organization/organization-service'
 import sharedActions from '@/shared/store/actions'
 import organizationListExporterFields from '@/modules/organization/organization-list-exporter-fields'
-import { MemberService } from '@/modules/member/member-service'
 import Exporter from '@/shared/exporter/exporter'
 import Errors from '@/shared/error/errors'
 
@@ -23,7 +22,7 @@ export default {
 
       const filter = state.filter
 
-      const response = await MemberService.list(
+      const response = await OrganizationService.list(
         filter,
         getters.orderBy,
         null,
@@ -32,7 +31,7 @@ export default {
 
       new Exporter(
         organizationListExporterFields,
-        'member'
+        'organization'
       ).transformAndExportAsExcelFile(response.rows)
 
       commit('EXPORT_SUCCESS')
