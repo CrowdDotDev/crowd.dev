@@ -265,21 +265,23 @@ class QueryParser {
       }"  = '${QueryParser.uuid(item)}'`
     }, '')
 
+    const joinField = mapping.overrideJoinField ?? 'id'
+
     // Find all the rows in the table that have the items we are filtering on
     // For example, find all members that have the tags with id1 or id2
     const literal = Sequelize.literal(
-      `(SELECT "${mapping.table}".id FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}".id WHERE ${items})`,
+      `(SELECT "${mapping.table}"."${joinField}" FROM "${mapping.table}" INNER JOIN "${mapping.relationTable.name}" ON "${mapping.relationTable.name}"."${mapping.relationTable.from}" = "${mapping.table}"."${joinField}" WHERE ${items})`,
     )
 
     // It coudl be that we have more than 1 many to many filter, so we could need to append. For example:
     // {tags: [id1, id2], organizations: [id3, id4]}
     if (query[Op.and]) {
       query[Op.and].push(
-        Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal),
+        Sequelize.where(Sequelize.literal(`"${mapping.model}"."${joinField}"`), Op.in, literal),
       )
     } else {
       query[Op.and] = [
-        Sequelize.where(Sequelize.literal(`"${mapping.model}"."id"`), Op.in, literal),
+        Sequelize.where(Sequelize.literal(`"${mapping.model}"."${joinField}"`), Op.in, literal),
       ]
     }
 

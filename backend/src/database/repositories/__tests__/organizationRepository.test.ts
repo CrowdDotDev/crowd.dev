@@ -4,6 +4,7 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import Error404 from '../../../errors/Error404'
 import MemberRepository from '../memberRepository'
 import { PlatformType } from '../../../types/integrationEnums'
+import ActivityRepository from '../activityRepository'
 
 const db = null
 
@@ -91,6 +92,7 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activityCount: 0,
         activeOn: [],
         identities: [],
         importHash: null,
@@ -136,6 +138,7 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 2,
+        activityCount: 0,
         lastActive: null,
         joinedAt: null,
         activeOn: [],
@@ -173,6 +176,7 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activityCount: 0,
         activeOn: [],
         identities: [],
         lastActive: null,
@@ -560,7 +564,17 @@ describe('OrganizationRepository tests', () => {
     async function createOrganization(organization: any, options, members = []) {
       const memberIds = []
       for (const member of members) {
-        const memberCreated = await MemberRepository.create(member, options)
+        const memberCreated = await MemberRepository.create(
+          SequelizeTestUtils.objectWithoutKey(member, 'activities'),
+          options,
+        )
+
+        if (member.activities) {
+          for (const activity of member.activities) {
+            await ActivityRepository.create({ ...activity, member: memberCreated.id }, options)
+          }
+        }
+
         memberIds.push(memberCreated.id)
       }
       organization.members = memberIds
@@ -777,6 +791,14 @@ describe('OrganizationRepository tests', () => {
           username: { github: 'joan' },
           displayName: 'Joan',
           joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-05-27T15:13:30Z',
+              platform: PlatformType.GITHUB,
+              sourceId: '#sourceId1',
+            },
+          ],
         },
       ])
       await createOrganization(piedpiper, mockIRepositoryOptions)
@@ -799,6 +821,193 @@ describe('OrganizationRepository tests', () => {
 
       expect(found.count).toEqual(1)
       expect(found.rows[0].name).toBe('crowd.dev')
+    })
+
+    it('Should filter by activityCount', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
+        {
+          username: { github: 'joan' },
+          displayName: 'Joan',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-05-27T15:13:30Z',
+              platform: PlatformType.GITHUB,
+              sourceId: '#sourceId1',
+            },
+          ],
+        },
+        {
+          username: { github: 'anil' },
+          displayName: 'anil',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-06-27T15:13:30Z',
+              platform: PlatformType.TWITTER,
+              sourceId: '#sourceId2',
+            },
+          ],
+        },
+      ])
+      await createOrganization(piedpiper, mockIRepositoryOptions)
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            activityCount: {
+              gte: 2,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toBe(1)
+      expect(found.rows).toStrictEqual([org1])
+    })
+
+    it('Should filter by memberCount', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const org1 = await createOrganization(crowddev, mockIRepositoryOptions, [
+        {
+          username: { github: 'joan' },
+          displayName: 'Joan',
+          joinedAt: moment().toDate(),
+        },
+        {
+          username: { github: 'anil' },
+          displayName: 'anil',
+          joinedAt: moment().toDate(),
+        },
+        {
+          username: { github: 'uros' },
+          displayName: 'uros',
+          joinedAt: moment().toDate(),
+        },
+      ])
+      const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
+        {
+          username: { github: 'mario' },
+          displayName: 'mario',
+          joinedAt: moment().toDate(),
+        },
+        {
+          username: { github: 'igor' },
+          displayName: 'igor',
+          joinedAt: moment().toDate(),
+        },
+      ])
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            memberCount: {
+              gte: 2,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toBe(2)
+      expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([
+        org1,
+        org2,
+      ])
+    })
+
+    it('Should filter by joinedAt', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      await createOrganization(crowddev, mockIRepositoryOptions, [
+        {
+          username: { github: 'joan' },
+          displayName: 'Joan',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-05-27T15:13:30Z',
+              platform: PlatformType.GITHUB,
+              sourceId: '#sourceId1',
+            },
+          ],
+        },
+        {
+          username: { github: 'anil' },
+          displayName: 'anil',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-04-27T15:13:30Z',
+              platform: PlatformType.SLACK,
+              sourceId: '#sourceId2',
+            },
+          ],
+        },
+        {
+          username: { github: 'uros' },
+          displayName: 'uros',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2020-03-27T15:13:30Z',
+              platform: PlatformType.TWITTER,
+              sourceId: '#sourceId3',
+            },
+          ],
+        },
+      ])
+      const org2 = await createOrganization(piedpiper, mockIRepositoryOptions, [
+        {
+          username: { github: 'mario' },
+          displayName: 'mario',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2022-03-27T15:13:30Z',
+              platform: PlatformType.DEVTO,
+              sourceId: '#sourceId4',
+            },
+          ],
+        },
+        {
+          username: { github: 'igor' },
+          displayName: 'igor',
+          joinedAt: moment().toDate(),
+          activities: [
+            {
+              type: 'activity',
+              timestamp: '2022-02-27T15:13:30Z',
+              platform: PlatformType.DEVTO,
+              sourceId: '#sourceId4',
+            },
+          ],
+        },
+      ])
+      await createOrganization(hooli, mockIRepositoryOptions)
+
+      const found = await OrganizationRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            joinedAt: {
+              gte: '2022-02-27',
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(found.count).toBe(1)
+      expect(found.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([org2])
     })
 
     it('Should work with advanced filters', async () => {
@@ -940,6 +1149,7 @@ describe('OrganizationRepository tests', () => {
         id: organizationCreated.id,
         ...toCreate,
         memberCount: 0,
+        activityCount: 0,
         activeOn: [],
         identities: [],
         lastActive: null,

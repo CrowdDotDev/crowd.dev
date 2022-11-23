@@ -20,6 +20,7 @@ export interface ManyToManyType {
   [key: string]: {
     table: string
     model?: string
+    overrideJoinField?: string
     relationTable: {
       name: string
       from: string

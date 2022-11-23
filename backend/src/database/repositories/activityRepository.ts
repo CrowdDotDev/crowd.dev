@@ -507,6 +507,18 @@ class ActivityRepository {
         nestedFields: {
           sentiment: 'sentiment.sentiment',
         },
+        manyToMany: {
+          organizations: {
+            table: 'activities',
+            model: 'activity',
+            overrideJoinField: 'memberId',
+            relationTable: {
+              name: 'memberOrganizations',
+              from: 'memberId',
+              to: 'organizationId',
+            },
+          },
+        },
       },
       options,
     )
