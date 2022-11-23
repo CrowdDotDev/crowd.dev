@@ -1531,14 +1531,14 @@ describe('MemberRepository tests', () => {
             'identities',
             'activeOn',
             'joinedAt',
-            'activityCount'
+            'activityCount',
           ]),
           SequelizeTestUtils.objectWithoutKey(org2Plain, [
             'lastActive',
             'identities',
             'activeOn',
             'joinedAt',
-            'activityCount'
+            'activityCount',
           ]),
         ],
         noMerge: [],
