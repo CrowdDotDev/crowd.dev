@@ -57,9 +57,10 @@ if (parameters.help || !parameters.integration) {
 } else {
   setImmediate(async () => {
     const integrationIds = parameters.integration.split(',')
-    for (const integrationId of integrationIds) {
-      const onboarding = parameters.onboarding
+    const onboarding = parameters.onboarding
 
+    for (const integrationId of integrationIds) {
+      
       const options = await SequelizeRepository.getDefaultIRepositoryOptions()
       const integration = await options.database.integration.findOne({
         where: { id: integrationId },
