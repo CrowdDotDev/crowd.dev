@@ -60,7 +60,6 @@ if (parameters.help || !parameters.integration) {
     const onboarding = parameters.onboarding
 
     for (const integrationId of integrationIds) {
-      
       const options = await SequelizeRepository.getDefaultIRepositoryOptions()
       const integration = await options.database.integration.findOne({
         where: { id: integrationId },
