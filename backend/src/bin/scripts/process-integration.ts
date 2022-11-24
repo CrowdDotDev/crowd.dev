@@ -17,7 +17,8 @@ const options = [
     alias: 'i',
     typeLabel: '{underline integrationId}',
     type: String,
-    description: 'The unique ID of integration that you would like to process.',
+    description:
+      'The unique ID of integration that you would like to process. Use comma delimiter when sending multiple integrations.',
   },
   {
     name: 'onboarding',
@@ -55,30 +56,31 @@ if (parameters.help || !parameters.integration) {
   console.log(usage)
 } else {
   setImmediate(async () => {
-    const integrationId = parameters.integration
+    const integrationIds = parameters.integration.split(',')
     const onboarding = parameters.onboarding
 
-    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const integration = await options.database.integration.findOne({
-      where: { id: integrationId },
-    })
+    for (const integrationId of integrationIds) {
+      const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+      const integration = await options.database.integration.findOne({
+        where: { id: integrationId },
+      })
 
-    if (!integration) {
-      log.error({ integrationId }, 'Integration not found!')
-      process.exit(1)
-    } else {
-      log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
-      await sendNodeWorkerMessage(
-        integration.tenantId,
-        new NodeWorkerIntegrationProcessMessage(
-          integration.platform,
+      if (!integration) {
+        log.error({ integrationId }, 'Integration not found!')
+        process.exit(1)
+      } else {
+        log.info({ integrationId, onboarding }, 'Integration found - triggering SQS message!')
+        await sendNodeWorkerMessage(
           integration.tenantId,
-          onboarding,
-          integration.id,
-        ),
-      )
-
-      process.exit(0)
+          new NodeWorkerIntegrationProcessMessage(
+            integration.platform,
+            integration.tenantId,
+            onboarding,
+            integration.id,
+          ),
+        )
+      }
     }
+    process.exit(0)
   })
 }
