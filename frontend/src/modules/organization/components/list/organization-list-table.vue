@@ -39,10 +39,43 @@
 
         <!-- Organizations list -->
         <div class="app-list-table panel">
-          <app-organization-list-toolbar></app-organization-list-toolbar>
+          <transition name="el-fade-in">
+            <div
+              v-show="isScrollbarVisible"
+              class="absolute z-20 top-0 left-0 w-full"
+              @mouseover="onTableMouseover"
+              @mouseleave="onTableMouseLeft"
+            >
+              <el-scrollbar
+                id="custom-scrollbar"
+                ref="scrollbarRef"
+                height="10px"
+                always
+                @scroll="onCustomScrollbarScroll"
+                @pointerdown="onScrollMousedown"
+              >
+                <div
+                  :style="{
+                    width: tableWidth,
+                    height: '10px'
+                  }"
+                ></div>
+              </el-scrollbar>
+            </div>
+          </transition>
 
-          <div class="-mx-6 -mt-6">
+          <app-organization-list-toolbar
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
+          ></app-organization-list-toolbar>
+
+          <div
+            class="-mx-6 -mt-6"
+            @mouseover="onTableMouseover"
+            @mouseleave="onTableMouseLeft"
+          >
             <el-table
+              id="organizations-table"
               ref="table"
               :data="rows"
               :default-sort="defaultSort"
@@ -192,7 +225,13 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineProps, ref, watch } from 'vue'
+import {
+  computed,
+  defineProps,
+  ref,
+  watch,
+  onUnmounted
+} from 'vue'
 import { useRouter } from 'vue-router'
 import {
   mapState,
@@ -229,6 +268,16 @@ const {
 } = mapActions('organization')
 
 const table = ref(null)
+const scrollbarRef = ref()
+const tableBodyRef = ref()
+const tableHeaderRef = ref()
+const isScrollbarVisible = ref(false)
+const isTableHovered = ref(false)
+const isCursorDown = ref(false)
+
+const tableWidth = computed(() => {
+  return list.value.table?.bodyWidth
+})
 const defaultSort = computed(() => {
   return activeView.value.sorter
 })
@@ -236,10 +285,55 @@ const isLoading = computed(
   () => list.value.loading || props.isPageLoading
 )
 
+document.onmouseup = () => {
+  // As soon as mouse is released, set scrollbar visibility
+  // according to wether the mouse is hovering the table or not
+  isScrollbarVisible.value = isTableHovered.value
+  isCursorDown.value = false
+}
+
 watch(table, (newValue) => {
   if (newValue) {
     doMountTable(table.value)
   }
+
+  // Add scroll events to table, it's not possible to access it from 'el-table'
+  // as the overflowed element is within it
+  const tableBodyEl = document.querySelector(
+    '#organizations-table .el-scrollbar__wrap'
+  )
+  const tableHeaderEl = document.querySelector(
+    '#organizations-table .el-table__header-wrapper'
+  )
+
+  if (tableBodyEl) {
+    tableBodyRef.value = tableBodyEl
+    tableBodyRef.value.addEventListener(
+      'scroll',
+      onTableBodyScroll
+    )
+  }
+
+  if (tableHeaderEl) {
+    tableHeaderEl.style.overflow = 'auto'
+    tableHeaderRef.value = tableHeaderEl
+    tableHeaderRef.value.addEventListener(
+      'scroll',
+      onTableHeaderScroll
+    )
+  }
+})
+
+// Remove listeners on unmount
+onUnmounted(() => {
+  tableBodyRef.value.removeEventListener(
+    'scroll',
+    onTableBodyScroll
+  )
+  tableHeaderRef.value.removeEventListener(
+    'scroll',
+    onTableHeaderScroll
+  )
 })
 
 const onCtaClick = () => {
@@ -274,4 +368,52 @@ const hasIdentities = (row) => {
     ) || !!row.emails?.length
   )
 }
+
+// On custom scrollbar scroll, set the table scroll with the same value
+const onCustomScrollbarScroll = ({ scrollLeft }) => {
+  table.value.setScrollLeft(scrollLeft)
+}
+
+// On table body scroll, set the custom scrollbar scroll with the same value
+const onTableBodyScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableBodyRef.value.scrollLeft
+  )
+}
+
+// On table header scroll, set the custom scrollbar scroll with the same value
+const onTableHeaderScroll = () => {
+  scrollbarRef.value.setScrollLeft(
+    tableHeaderRef.value.scrollLeft
+  )
+  table.value.setScrollLeft(tableHeaderRef.value.scrollLeft)
+}
+
+const onScrollMousedown = () => {
+  isCursorDown.value = true
+}
+
+const onTableMouseover = () => {
+  isTableHovered.value = true
+  isScrollbarVisible.value = true
+}
+
+const onTableMouseLeft = () => {
+  isTableHovered.value = false
+  isScrollbarVisible.value = isCursorDown.value
+}
 </script>
+
+<style lang="scss">
+// Hide table header scrollbar
+#organizations-table .el-table__header-wrapper {
+  // IE, Edge and Firefox
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  // Chrome, Safari and Opera
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+</style>
