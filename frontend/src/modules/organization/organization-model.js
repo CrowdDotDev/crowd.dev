@@ -18,6 +18,10 @@ i18nInit()
 const fields = {
   id: new IdField('id', label('id')),
   name: new StringField('name', label('name')),
+  description: new StringField(
+    'description',
+    label('description')
+  ),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')
