@@ -23,9 +23,8 @@
         </div>
       </div>
 
-      <!-- TODO: Uncomment when store is ready -->
-      <!-- <app-organization-list-tabs></app-organization-list-tabs> -->
-      <!-- <app-organization-list-filter></app-organization-list-filter> -->
+      <app-organization-list-tabs></app-organization-list-tabs>
+      <app-organization-list-filter></app-organization-list-filter>
       <app-organization-list-table
         :has-organizations="hasOrganizations"
         :is-page-loading="isPageLoading"
@@ -36,8 +35,8 @@
 
 <script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-// import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs'
-// import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter'
+import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs'
+import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter'
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table'
 import { OrganizationPermissions } from '../organization-permissions'
 import { computed, ref, onMounted } from 'vue'

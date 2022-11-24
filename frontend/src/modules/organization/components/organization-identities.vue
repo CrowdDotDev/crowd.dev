@@ -14,7 +14,7 @@
             ? `https://github.com/${organization['github']?.handle}`
             : null
         "
-        :as-link="!!organization['github'].handle"
+        :as-link="!!organization['github']?.handle"
       />
 
       <!-- LinkedIn -->
@@ -30,7 +30,7 @@
             ? `https://www.linkedin.com/${organization['linkedin']?.handle}`
             : null
         "
-        :as-link="!!organization['linkedin'].handle"
+        :as-link="!!organization['linkedin']?.handle"
       />
 
       <!-- Twitter -->
@@ -46,7 +46,7 @@
             ? `https://twitter.com/${organization['twitter']?.handle}`
             : null
         "
-        :as-link="!!organization['twitter'].handle"
+        :as-link="!!organization['twitter']?.handle"
       />
 
       <!-- Crunchbase -->
@@ -64,28 +64,29 @@
             ? `https://www.crunchbase.com/${organization['crunchbase']?.handle}`
             : null
         "
-        :as-link="!!organization['crunchbase'].handle"
+        :as-link="!!organization['crunchbase']?.handle"
       />
     </div>
 
     <el-divider
+      v-if="!!organization.emails?.length"
       direction="vertical"
-      class="border-gray-200"
+      class="border-gray-200 m-0 h-8"
     />
 
     <app-platform
-      v-if="!!organization.emails.length"
+      v-if="!!organization.emails?.length"
       platform="email"
       track-event-name="Click Organization Contact"
       track-event-channel="Email"
       :has-tooltip="true"
       tooltip-label="Send e-mail"
       :href="
-        organization.emails.length
+        organization.emails?.length
           ? `mailto:${organization.emails[0]}`
           : null
       "
-      :as-link="!!organization.emails.length"
+      :as-link="!!organization.emails?.length"
     />
   </div>
 </template>

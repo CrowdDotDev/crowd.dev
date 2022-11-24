@@ -1,4 +1,6 @@
-<!-- Fix sorters -->
+<!-- TODO: Fix sorters -->
+<!-- TODO: Add scroll to top of table -->
+<!-- TODO: Add 2 missing filters -->
 <template>
   <div class="pt-3">
     <div
@@ -39,7 +41,7 @@
         </div>
 
         <!-- Organizations list -->
-        <div class="app-list-table-panel">
+        <div class="app-list-table panel">
           <app-organization-list-toolbar></app-organization-list-toolbar>
 
           <div class="-mx-6 -mt-6">
@@ -79,11 +81,16 @@
               <!-- Website -->
               <el-table-column label="Website" width="220">
                 <template #default="scope">
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm">
                     <a
+                      v-if="scope.row.url"
+                      class="text-gray-500 hover:!text-brand-500"
                       :href="scope.row.url || null"
                       target="_blank"
                       >{{ scope.row.url }}</a
+                    >
+                    <span v-else class="text-gray-500"
+                      >-</span
                     >
                   </div>
                 </template>
@@ -131,13 +138,19 @@
                 prop="lastActive"
                 sortable
                 ><template #default="scope"
-                  ><div class="text-gray-900 text-sm">
+                  ><div
+                    v-if="scope.row.lastActive"
+                    class="text-gray-900 text-sm"
+                  >
                     {{
                       formatDateToTimeAgo(
                         scope.row.lastActive
                       )
                     }}
-                  </div></template
+                  </div>
+                  <span v-else class="text-gray-900"
+                    >-</span
+                  ></template
                 ></el-table-column
               >
 
@@ -147,9 +160,21 @@
                 width="220"
                 ><template #default="scope">
                   <app-organization-identities
+                    v-if="hasIdentities(scope.row)"
                     :organization="scope.row"
-                  ></app-organization-identities> </template
-              ></el-table-column>
+                  ></app-organization-identities>
+                  <span v-else class="text-gray-900"
+                    >-</span
+                  ></template
+                ></el-table-column
+              >
+
+              <!-- Actions -->
+              <el-table-column width="80" fixed="right">
+                <template #default>
+                  <div class="table-actions"></div>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </div>
@@ -165,7 +190,7 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineProps, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   mapState,
@@ -191,21 +216,28 @@ const props = defineProps({
   }
 })
 
-const {
-  count,
-  list: { loading }
-} = mapState('organization')
+const { count, list } = mapState('organization')
 const { activeView, rows, pagination, selectedRows } =
   mapGetters('organization')
-const { doChangePaginationPageSize, doChangeSort } =
-  mapActions('organization')
+const {
+  doChangePaginationPageSize,
+  doChangeSort,
+  doMountTable
+} = mapActions('organization')
 
+const table = ref(null)
 const defaultSort = computed(() => {
   return activeView.value.sorter
 })
 const isLoading = computed(
-  () => loading.value || props.isPageLoading
+  () => list.value.loading || props.isPageLoading
 )
+
+watch(table, (newValue) => {
+  if (newValue) {
+    doMountTable(table.value)
+  }
+})
 
 const onCtaClick = () => {
   router.push({
@@ -215,7 +247,7 @@ const onCtaClick = () => {
 
 const onRowClick = (row) => {
   router.push({
-    name: 'memberView',
+    name: 'organizationView',
     params: { id: row.id }
   })
 }
@@ -226,5 +258,17 @@ const rowClass = ({ row }) => {
     undefined
 
   return isSelected ? 'is-selected' : ''
+}
+
+const hasIdentities = (row) => {
+  return (
+    row.identities?.some(
+      (i) =>
+        i === 'github' ||
+        i === 'linkedin' ||
+        i === 'twitter' ||
+        i === 'crunchbase'
+    ) || !!row.emails?.length
+  )
 }
 </script>

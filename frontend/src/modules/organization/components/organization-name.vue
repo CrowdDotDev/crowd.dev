@@ -1,17 +1,18 @@
 <template>
   <div class="flex items-center gap-3">
-    <div v-if="organization.logo">
+    <div>
       <div
-        class="w-8 h-8 border border-gray-200 rounded flex items-center justify-center"
+        class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded flex items-center justify-center"
         :class="{
           'bg-white': organization.logo,
-          'bg-gray-200': !organization.logo
+          'bg-gray-50': !organization.logo
         }"
       >
         <img
           v-if="organization.logo"
           :src="organization.logo"
           alt="Logo"
+          class="max-h-5"
         />
         <i
           v-else
@@ -19,18 +20,21 @@
         ></i>
       </div>
     </div>
-    <div>
+    <div class="overflow-hidden">
       <el-tooltip
         :content="organization.name"
         effect="dark"
         placement="top"
-        :disabled="!isTextTruncated(scope.row.id)"
+        :disabled="!showTooltip"
       >
-        <span
-          :id="`organizationName-${scope.row.id}`"
-          class="font-semibold text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis"
-          >{{ organization.name }}</span
+        <div
+          ref="nameRef"
+          class="font-semibold text-sm text-gray-900 overflow-hidden whitespace-nowrap text-ellipsis"
+          @mouseover="handleOnMouseOver"
+          @mouseleave="handleOnMouseLeave"
         >
+          {{ organization.name }}
+        </div>
       </el-tooltip>
       <el-tooltip
         v-if="isNew"
@@ -55,7 +59,7 @@ export default {
 </script>
 
 <script setup>
-import { computed, defineProps } from 'vue'
+import { computed, defineProps, ref } from 'vue'
 import moment from 'moment/moment'
 
 const props = defineProps({
@@ -64,6 +68,9 @@ const props = defineProps({
     default: () => null
   }
 })
+
+const nameRef = ref()
+const showTooltip = ref(false)
 
 const isNew = computed(() => {
   return (
@@ -81,15 +88,16 @@ const newTooltipContent = computed(
     ).format('MMM DD, YYYY')}`
 )
 
-const isTextTruncated = (id) => {
-  const element = document.querySelector(
-    `#organizationName-${id}`
-  )
-
-  if (!element) {
-    return false
+const handleOnMouseOver = () => {
+  if (!nameRef.value) {
+    showTooltip.value = false
   }
 
-  return element.scrollWidth > element.clientWidth
+  showTooltip.value =
+    nameRef.value.scrollWidth > nameRef.value.clientWidth
+}
+
+const handleOnMouseLeave = () => {
+  showTooltip.value = false
 }
 </script>

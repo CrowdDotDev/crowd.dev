@@ -10,6 +10,10 @@ const OrganizationCreatePage = () =>
   import(
     '@/modules/organization/pages/organization-form-page.vue'
   )
+const OrganizationViewPage = () =>
+  import(
+    '@/modules/organization/pages/organization-view-page.vue'
+  )
 
 export default [
   {
@@ -46,6 +50,25 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.organizationCreate
+        }
+      },
+      {
+        name: 'organizationEdit',
+        path: '/organizations/:id/edit',
+        component: OrganizationCreatePage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.organizationEdit
+        },
+        props: true
+      },
+      {
+        name: 'organizationView',
+        path: '/organizations/:id',
+        component: OrganizationViewPage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.organizationRead
         }
       }
     ]

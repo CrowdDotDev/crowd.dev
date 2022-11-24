@@ -224,7 +224,26 @@ const en = {
     organization: {
       name: 'organization',
       label: 'Organizations',
-      menu: 'Organizations'
+      menu: 'Organizations',
+      create: {
+        success: 'Organization successfully saved',
+        error:
+          'There was an error creating the organization'
+      },
+      update: {
+        success: 'Organization successfully saved',
+        error:
+          'There was an error updating the organization'
+      },
+      destroy: {
+        success: 'Organization successfully deleted'
+      },
+      destroyAll: {
+        success: 'Organization(s) successfully deleted'
+      },
+      edit: {
+        title: 'Edit Organization'
+      }
     },
 
     activity: {
