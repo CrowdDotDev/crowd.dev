@@ -2,49 +2,73 @@
   <app-drawer
     v-model="isVisible"
     custom-class="integration-hackerNews-drawer"
-    title="DEV"
+    title="Hacker News"
     pre-title="Integration"
     :pre-title-img-src="logoUrl"
-    pre-title-img-alt="DEV logo"
+    pre-title-img-alt="Hacker News logo"
     @close="cancel"
   >
     <template #content>
+      <div class="flex flex-col gap-2 items-start mb-2">
+        <span class="text-sm font-medium"
+          >Track posts mentioning your company or
+          community</span
+        >
+        <span
+          class="text-2xs font-light mb-2 text-gray-600"
+        >
+          Monitor your company or community being mentioned
+          in the top 500 of Hacker News. <br />
+          Enter your company and/or community names.
+        </span>
+        <app-keywords-input
+          v-model="keywords"
+          placeholder="e.g. crowd.dev, crowddev, CrowdDotDev"
+        />
+      </div>
       <el-form class="form integration-hackerNews-form">
         <div class="flex flex-col gap-2 items-start">
           <span class="text-sm font-medium"
-            >Track keyword articles</span
+            >Track your URL being posted</span
           >
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
-            Monitor all articles from keyword accounts
+            Monitor when a post with your URL is posted in
+            the top 500 of Hacker News. <br />
+            You can monitor several URLs, such as your
+            homepage, GitHub...
           </span>
           <el-form-item
-            v-for="org in keywords"
-            :key="org.id"
+            v-for="url in urls"
+            :key="url.id"
             class="mb-4 w-full"
             :class="{
-              'is-error': org.touched && !org.valid,
-              'is-success': org.touched && org.valid
+              'is-error': url.touched && !url.valid,
+              'is-success': url.touched && url.valid
             }"
           >
             <div
               class="flex flex-row items-center w-full gap-4"
             >
               <el-input
-                id="devKeyword"
-                v-model="org.keyword"
+                id="devUrl"
+                v-model="url.url"
                 class="text-green-500"
                 spellcheck="false"
-                placeholder="Enter keyword slug"
-                @blur="handleKeywordValidation(org.id)"
+                placeholder="Enter a URL"
+                @blur="handleUrlValidation(url.id)"
               >
-                <template #prepend>hackernews/</template>
+                <template #prepend>
+                  <span class="font-light text-gray-800"
+                    >https://</span
+                  ></template
+                >
               </el-input>
               <el-button
-                v-if="!isLastKeyword"
+                v-if="!isLastUrl"
                 class="btn btn--md btn--transparent w-10 h-10"
-                @click="removeKeyword(org.id)"
+                @click="removeUrl(url.id)"
               >
                 <i
                   class="ri-delete-bin-line text-lg text-black"
@@ -52,15 +76,15 @@
               </el-button>
             </div>
             <span
-              v-if="org.touched && !org.valid"
+              v-if="url.touched && !url.valid"
               class="el-form-item__error"
-              >Keyword slug is not valid</span
+              >Url slug is not valid</span
             >
           </el-form-item>
           <el-button
             class="btn btn-link btn-link--primary"
-            @click="addNewKeyword"
-            >+ Add keyword link</el-button
+            @click="addNewUrl"
+            >+ Add a URL</el-button
           >
         </div>
       </el-form>
@@ -111,13 +135,14 @@ export default {
       logoUrl:
         CrowdIntegrations.getConfig('hackernews').image,
       users: [],
+      urls: [],
       keywords: [],
       loading: false
     }
   },
   computed: {
     maxId() {
-      return this.keywords.length
+      return this.urls.length
     },
     isVisible: {
       get() {
@@ -128,42 +153,47 @@ export default {
       }
     },
     isValid() {
+      const relevantUrls = this.urls.filter((u) => !!u.url)
+
       const relevantKeywords = this.keywords.filter(
-        (k) => !!k.keyword
+        (k) => !!k
       )
-      for (const org of relevantKeywords) {
-        if (!org.valid) return false
+
+      for (const url of relevantUrls) {
+        if (!url.valid) return false
       }
 
-      return relevantKeywords.length > 0
+      return (
+        relevantUrls.length > 0 ||
+        relevantKeywords.length > 0
+      )
     },
     connectDisabled() {
       if (!this.isValid) {
         return true
       }
 
-      const validOrgs = this.keywords.filter(
-        (k) => !!k.keyword
-      )
+      const validUrls = this.urls.filter((u) => !!u.url)
 
-      const empty = validOrgs.length === 0
+      const validKeywords = this.keywords.filter((k) => !!k)
 
+      const empty = validUrls.length === 0 && validKeywords.length === 0
       if (this.integration.settings && !empty) {
         return (
-          validOrgs.length ===
-            this.integration.settings.keywords.length &&
-          validOrgs.every((o) =>
-            this.integration.settings.keywords.includes(
-              o.keyword
-            )
-          )
+          validUrls.length ===
+            this.integration.settings.urls.length &&
+          validUrls.every((o) =>
+            this.integration.settings.urls.includes(o.url)
+          ) &&
+          validKeywords.length ===
+            this.integration.settings.keywords.length
         )
       }
-
+      console.log(empty)
       return empty
     },
-    isLastKeyword() {
-      return this.keywords.length === 1
+    isLastUrl() {
+      return this.urls.length === 1
     }
   },
   watch: {
@@ -190,26 +220,25 @@ export default {
     },
 
     syncData() {
-      this.keywords = []
+      this.urls = []
 
       if (this.integration && this.integration.settings) {
-        this.integration.settings.keywords.forEach((k) =>
-          this.addNewKeyword(k)
+        this.integration.settings.urls.forEach((k) =>
+          this.addNewUrl(k)
         )
       }
 
-      if (this.keywords.length === 0) {
-        this.addNewKeyword()
+      if (this.urls.length === 0) {
+        this.addNewUrl()
       }
     },
 
-    addNewKeyword(keyword) {
-      this.keywords.push({
+    addNewUrl(url) {
+      this.urls.push({
         id: this.maxId + 1,
-        keyword:
-          typeof keyword === 'string' ||
-          keyword instanceof String
-            ? keyword
+        url:
+          typeof url === 'string' || url instanceof String
+            ? url
             : '',
         touched: false,
         valid: false,
@@ -217,15 +246,31 @@ export default {
       })
     },
 
-    handleKeywordValidation(id) {
-      const keyword = this.keywords.find((o) => o.id === id)
-      keyword.valid = !!keyword.keyword
+    handleUrlValidation(id) {
+      const url = this.urls.find((o) => o.id === id)
+      url.validating = true
+      url.url = url.url.replace('https://', '')
+      url.url = url.url.replace('http://', '')
+
+      const urlPattern = new RegExp(
+        '^(https?:\\/\\/)?' + // validate protocol
+          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // validate domain name
+          '((\\d{1,3}\\.){3}\\d{1,3}))' + // validate OR ip (v4) address
+          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // validate port and path
+          '(\\?[;&a-z\\d%_.~+=-]*)?' + // validate query string
+          '(\\#[-a-z\\d_]*)?$',
+        'i'
+      ) // validate fragment locator
+
+      // Check the URL is a valid URL
+      const isValid = !!urlPattern.test(url.url)
+      url.valid = isValid && !!url.url
+      url.validating = false
+      url.touched = true
     },
 
-    removeKeyword(id) {
-      this.keywords = this.keywords.filter(
-        (k) => k.id !== id
-      )
+    removeUrl(id) {
+      this.urls = this.urls.filter((u) => u.id !== id)
     },
 
     cancel() {
@@ -236,12 +281,15 @@ export default {
     async save() {
       this.loading = true
 
+      const relevantUrls = this.urls.filter((u) => !!u.url)
+
       const relevantKeywords = this.keywords.filter(
-        (k) => !!k.keyword
+        (k) => !!k
       )
 
       await this.doHackerNewsConnect({
-        keywords: relevantKeywords.map((k) => k.keyword)
+        urls: relevantUrls.map((u) => u.url),
+        keywords: relevantKeywords
       })
 
       this.isVisible = false

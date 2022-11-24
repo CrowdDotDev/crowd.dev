@@ -352,6 +352,7 @@ export default class IntegrationService {
       platform: PlatformType.HACKERNEWS,
       settings: {
         keywords: integrationData.keywords,
+        urls: integrationData.urls,
         updateMemberAttributes: true,
       },
       status: 'in-progress',

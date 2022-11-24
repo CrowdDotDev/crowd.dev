@@ -1,20 +1,41 @@
 <template>
-  <app-i18n
-    v-if="!channelOnly"
-    :code="computedMessage"
-    :args="computedArgs"
-    :fallback="'entities.activity.fallback'"
-    :class="{ truncate: short }"
-  ></app-i18n>
-  <span v-if="!channelOnly">&nbsp;on a&nbsp;</span>
-  &nbsp;<a
+<div v-if="!short && !channelOnly">
+  <a
     v-if="!short"
     :href="activity.url"
     class="text-brand-500 truncate max-w-2xs"
     target="_blank"
   >
-    {{ activity.channel }}
+    <app-i18n
+      v-if="!channelOnly"
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
   </a>
+  <span v-if="!channelOnly && isComment"
+    >&nbsp;on a
+    <a :href="activity.attributes.parentUrl"> post</a></span
+  >
+  <span v-if="!channelOnly">&nbsp;mentioning&nbsp;</span>
+  {{ activity.channel }}
+  </div>
+  <div v-else-if="short" class="truncate">
+   <app-i18n
+      v-if="!channelOnly"
+      :code="computedMessage"
+      :args="computedArgs"
+      :fallback="'entities.activity.fallback'"
+    ></app-i18n>
+     <span v-if="isComment"
+    >&nbsp;on a post
+    </span
+  >
+  <span v-else
+    >&nbsp;mentioning {{ activity.channel }}</span
+  >
+    
+  </div>
 </template>
 
 <script>
@@ -40,6 +61,9 @@ export default {
     }
   },
   computed: {
+    isComment() {
+      return this.activity.type === 'comment'
+    },
     computedMessage() {
       return `entities.activity.${this.activity.platform}.${this.activity.type}`
     },

@@ -113,7 +113,7 @@ export class IntegrationService {
     return response.data
   }
 
-  static async hackerNewsConnect(keywords) {
+  static async hackerNewsConnect(keywords, urls) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get()
 
@@ -121,7 +121,8 @@ export class IntegrationService {
     const response = await authAxios.post(
       `/tenant/${tenantId}/hackernews-connect`,
       {
-        keywords
+        keywords,
+        urls
       }
     )
 

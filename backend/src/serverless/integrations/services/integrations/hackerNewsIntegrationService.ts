@@ -72,13 +72,22 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     if (post.kids !== undefined) {
       newStreams = post.kids.map((a: number) => ({
         value: a.toString(),
-        metadata: stream.metadata,
+        metadata: {
+          ...stream.metadata,
+          ...(!post.parent && { parentId: post.id.toString() }) || {},
+        },
       }))
     }
 
-    const parsedPost = this.parsePost(context.integration.tenantId, stream.metadata.channel, post)
+    let activities: AddActivitiesSingle[]
+    if (!post.text && !post.url) {
+      activities = []
+    }
+    else {
+      const parsedPost = this.parsePost(context.integration.tenantId, stream.metadata.channel, post, stream.metadata.parentId)
+      activities = [parsedPost]
+    }
 
-    const activities: AddActivitiesSingle[] = [parsedPost]
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
@@ -98,10 +107,13 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  parsePost(tenantId, channel, post: HackerNewsResponse): AddActivitiesSingle {
+  parsePost(tenantId, channel, post: HackerNewsResponse, parentId): AddActivitiesSingle {
     const type = post.parent ? 'comment' : 'post'
     const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
-    const body = post.text !== undefined && post.text !== '' ? sanitizeHtml(post.text) : `<a href="${post.url}" target="_blank">${post.url}</a>`
+    const body =
+      post.text !== undefined && post.text !== ''
+        ? sanitizeHtml(post.text)
+        : `<a href="${post.url}" target="_blank">${post.url}</a>`
     const activity = {
       tenant: tenantId,
       sourceId: post.id.toString(),
@@ -119,7 +131,9 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         commentsCount: post.descendants,
         destinationUrl: post.url,
         score: post.score,
-        ...(post.parent && { parentUrl: `https://news.ycombinator.com/item?id=${post.parent.toString()}` }),
+        ...(post.parent && {
+          parentUrl: `https://news.ycombinator.com/item?id=${parentId}`,
+        }),
         type: post.type,
       },
     }

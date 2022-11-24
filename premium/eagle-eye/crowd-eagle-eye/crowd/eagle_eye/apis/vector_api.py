@@ -4,8 +4,7 @@ import datetime
 import time
 from crowd.eagle_eye.apis import EmbedAPI
 import itertools
-import os
-from crowd.eagle_eye.config import KUBE_MODE, VECTOR_API_KEY, VECTOR_INDEX
+from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT
 from crowd.eagle_eye.infrastructure.logging import get_logger
 
 logger = get_logger(__name__)
@@ -16,7 +15,7 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, index_name=None, do_init=False):
+    def __init__(self, do_init=False):
         """
         Initialize the VectorAPI.
 
@@ -24,14 +23,18 @@ class VectorAPI:
             index_name (str, optional): Name of the DB index. Defaults to "crowddev".
         """
         self.collection_name = "crowddev"
-        # TODO - make this configurable
-        self.client = QdrantClient(host="qdrant", port=6333)
 
-        if index_name is None:
-            if KUBE_MODE:
-                index_name = VECTOR_INDEX
-            else:
-                index_name = os.environ.get('VECTOR_INDEX')
+        if not QDRANT_HOST:
+            host = "localhost"
+        else:
+            host = QDRANT_HOST
+
+        if not QDRANT_PORT:
+            port = 6333
+        else:
+            port = QDRANT_PORT
+
+        self.client = QdrantClient(host=host, port=port)
 
         if do_init:
             self.index = self.client.recreate_collection(

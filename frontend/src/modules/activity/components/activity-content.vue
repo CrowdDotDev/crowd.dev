@@ -168,6 +168,6 @@ export default {
 }
 
 .title {
-    @apply text-sm font-medium;
-  }
+  @apply text-sm font-medium;
+}
 </style>

@@ -9,7 +9,7 @@ import stackoverflow from './stackoverflow'
 import reddit from './reddit'
 import linkedin from './linkedin'
 import zapier from './zapier'
-import make from './make'
+// import make from './make'
 
 class IntegrationsConfig {
   get integrations() {
@@ -24,8 +24,8 @@ class IntegrationsConfig {
       stackoverflow,
       reddit,
       linkedin,
-      zapier,
-      make
+      zapier
+      // make
     }
   }
 

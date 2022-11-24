@@ -113,6 +113,9 @@ const getIconClass = (platform) => {
   } else if (platform === 'slack') {
     return 'btn--slack cursor-auto hover:cursor-auto bg-white border border-gray-200'
   }
+  else if (platform === 'hackernews') {
+    return 'btn--hackernews cursor-auto hover:cursor-auto bg-white border border-gray-200'
+  }
 }
 </script>
 

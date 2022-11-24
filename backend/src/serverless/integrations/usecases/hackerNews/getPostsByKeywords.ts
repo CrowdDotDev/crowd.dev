@@ -14,9 +14,12 @@ async function getChannels(
   await timeout(2000)
 
   try {
-
     const eagleEyeService = new EagleEyeContentService(options)
-    return await eagleEyeService.keywordMatch({ keywords: input.keywords, nDays: input.nDays, platform: 'hacker_news' })
+    return await eagleEyeService.keywordMatch({
+      keywords: input.keywords,
+      nDays: input.nDays,
+      platform: 'hacker_news',
+    })
   } catch (err) {
     logger.error({ err, input }, 'Error while getting posts by keyword in EagleEye')
     throw err

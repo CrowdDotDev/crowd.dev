@@ -336,8 +336,8 @@ const en = {
         comment: 'comment'
       },
       hackernews: {
-        post: 'post',
-        comment: 'comment'
+        post: 'posted',
+        comment: 'commented '
       },
       fallback: 'created an activity'
     },
