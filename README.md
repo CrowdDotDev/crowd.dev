@@ -101,7 +101,6 @@ Our goal is to build the most powerful platform for building developer communiti
 
 - [ ] More integrations (LinkedIn, Reddit, Stack Overflow, etc.)
 - [ ] Standalone organization module to find out more about the companies behind your members
-- [ ] Tasks module to receive recommendations for actions and collaborate with colleagues
 - [ ] Open marketplace for community building apps
 
 You can find more features on our [public roadmap](https://crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.
