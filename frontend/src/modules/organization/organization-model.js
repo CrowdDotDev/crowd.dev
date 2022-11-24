@@ -6,6 +6,8 @@ import StringField from '@/shared/fields/string-field'
 import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field'
 import OrganizationEmployeesField from '@/modules/organization/organization-employees-field'
 import SearchField from '@/shared/fields/search-field'
+import ActivityDateField from '@/shared/fields/activity-date-field'
+import OrganizationPlatformField from './organization-platform-field'
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
@@ -36,6 +38,19 @@ const fields = {
       filterable: true
     }
   ),
+  activeSince: new ActivityDateField(
+    'lastActive',
+    'Active since',
+    {
+      filterable: true
+    }
+  ),
+  activeOn: new OrganizationPlatformField(
+    'activeOn',
+    'Active on',
+    { filterable: true }
+  ),
+
   // This field is just for filtering/searching
   // TODO: Confirm what else can be searchable
   search: new SearchField('search', label('search'), {

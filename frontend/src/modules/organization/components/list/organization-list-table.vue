@@ -171,8 +171,12 @@
 
               <!-- Actions -->
               <el-table-column width="80" fixed="right">
-                <template #default>
-                  <div class="table-actions"></div>
+                <template #default="scope">
+                  <div class="table-actions">
+                    <app-organization-dropdown
+                      :organization="scope.row"
+                    ></app-organization-dropdown>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -202,6 +206,7 @@ import { formatNumberToCompact } from '@/utils/number'
 import AppOrganizationIdentities from '../organization-identities'
 import AppOrganizationListToolbar from './organization-list-toolbar'
 import AppOrganizationName from '../organization-name'
+import AppOrganizationDropdown from '../organization-dropdown'
 
 const router = useRouter()
 
