@@ -7,7 +7,7 @@ import Errors from '@/shared/error/errors'
 export default {
   ...sharedActions('organization', OrganizationService),
 
-  async doExport({ commit, state, getters }) {
+  async doExport({ commit, getters }) {
     try {
       if (
         !organizationListExporterFields ||
@@ -20,10 +20,8 @@ export default {
 
       commit('EXPORT_STARTED')
 
-      const filter = state.filter
-
       const response = await OrganizationService.list(
-        filter,
+        getters.activeView.filter,
         getters.orderBy,
         null,
         null

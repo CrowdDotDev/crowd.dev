@@ -107,6 +107,7 @@ export default () => {
       loading: false,
       table: false
     },
+    exportLoading: false,
     count: 0
   }
 }
