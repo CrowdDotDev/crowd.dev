@@ -121,9 +121,7 @@
                       :member="scope.row"
                       class="ml-2"
                     />
-                     <app-member-badge
-                        :member="scope.row"
-                      />
+                    <app-member-badge :member="scope.row" />
                   </div>
                 </template>
               </el-table-column>
