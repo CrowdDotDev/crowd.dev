@@ -1,6 +1,3 @@
-<!-- TODO: Fix sorters -->
-<!-- TODO: Add scroll to top of table -->
-<!-- TODO: Add 2 missing filters -->
 <template>
   <div class="pt-3">
     <div
@@ -87,6 +84,7 @@
                       class="text-gray-500 hover:!text-brand-500"
                       :href="scope.row.url || null"
                       target="_blank"
+                      @click.stop
                       >{{ scope.row.url }}</a
                     >
                     <span v-else class="text-gray-500"

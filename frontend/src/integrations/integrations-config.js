@@ -64,7 +64,7 @@ class IntegrationsConfig {
   mappedEnabledConfigs(store) {
     return this.enabledConfigs
       .map((i) => this._mapper(i, store))
-      .filter((i) => i.hideAsIntegration)
+      .filter((i) => !i.hideAsIntegration)
   }
 }
 

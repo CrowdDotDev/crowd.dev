@@ -2,7 +2,7 @@
   <div class="flex items-center gap-3">
     <div>
       <div
-        class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded flex items-center justify-center"
+        class="min-h-8 min-w-8 w-8 h-8 border border-gray-200 rounded flex items-center justify-center overflow-hidden"
         :class="{
           'bg-white': organization.logo,
           'bg-gray-50': !organization.logo
@@ -12,11 +12,11 @@
           v-if="organization.logo"
           :src="organization.logo"
           alt="Logo"
-          class="max-h-5"
+          class="max-h-8"
         />
         <i
           v-else
-          class="ri-community-line text-lg text-gray-300"
+          class="ri-community-line text-2xl text-gray-300"
         ></i>
       </div>
     </div>

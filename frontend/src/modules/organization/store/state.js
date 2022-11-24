@@ -46,11 +46,11 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'firstActivity',
+          prop: 'lastActive',
           order: 'descending'
         },
         sorter: {
-          prop: 'firstActivity',
+          prop: 'lastActive',
           order: 'descending'
         },
         active: false
@@ -93,11 +93,11 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'memberCount',
+          prop: 'employees',
           order: 'descending'
         },
         sorter: {
-          prop: 'memberCount',
+          prop: 'employees',
           order: 'descending'
         }
       }

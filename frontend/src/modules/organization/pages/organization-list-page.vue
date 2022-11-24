@@ -42,13 +42,11 @@ import { OrganizationPermissions } from '../organization-permissions'
 import { computed, ref, onMounted } from 'vue'
 import {
   mapGetters,
-  mapState,
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { OrganizationService } from '../organization-service'
 
 const { currentUser, currentTenant } = mapGetters('auth')
-const { filter } = mapState('organization')
 const { doFetch } = mapActions('organization')
 
 const hasPermissionToCreate = computed(
@@ -65,7 +63,6 @@ onMounted(async () => {
   isPageLoading.value = true
 
   await doFetch({
-    filter,
     keepPagination: true
   })
 
