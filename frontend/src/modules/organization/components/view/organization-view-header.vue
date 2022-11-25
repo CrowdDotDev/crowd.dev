@@ -1,5 +1,5 @@
 <template>
-  <div class="member-view-header panel relative">
+  <div class="organization-view-header panel relative">
     <div class="flex items-start justify-between">
       <div class="flex items-start">
         <app-avatar
@@ -164,9 +164,3 @@ const formattedInformation = (value, type) => {
   return value
 }
 </script>
-
-<style lang="scss">
-.member-view-header.panel {
-  @apply pb-24;
-}
-</style>

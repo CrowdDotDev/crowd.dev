@@ -24,7 +24,9 @@
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane label="Members" name="members">
-              Members
+              <app-organization-view-members
+                :organization-id="organization.id"
+              />
             </el-tab-pane>
             <el-tab-pane
               label="Activities"
@@ -32,7 +34,7 @@
             >
               <app-activity-timeline
                 :entity-id="organization.id"
-                :entity-type="organization"
+                entity-type="organization"
               />
             </el-tab-pane>
           </el-tabs>
@@ -56,6 +58,7 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header'
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside'
+import AppOrganizationViewMembers from '@/modules/organization/components/view/organization-view-members'
 
 const store = useStore()
 const props = defineProps({

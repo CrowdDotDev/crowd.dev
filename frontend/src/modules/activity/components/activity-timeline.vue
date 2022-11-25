@@ -6,7 +6,7 @@
         placeholder="Search activities"
         :prefix-icon="SearchIcon"
         clearable
-        class="member-view-activities-search"
+        class="activity-timeline-search"
       >
         <template #append>
           <el-select
