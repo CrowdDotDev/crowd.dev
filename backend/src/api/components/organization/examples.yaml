@@ -40,7 +40,6 @@ components:
         memberCount: 2
         activityCount: 4
 
-
     Organization:
       value:
         id: 31bff99a-2eac-49f5-b015-cba95aa6e530

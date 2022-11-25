@@ -277,9 +277,6 @@ class OrganizationRepository {
             model: options.database.activity,
             as: 'activities',
             attributes: [],
-            // through: {
-            //   attributes: [],
-            // },
           },
         ],
       },

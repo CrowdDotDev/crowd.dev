@@ -23,6 +23,14 @@ components:
           enum:
             - createdAt_ASC
             - createdAt_DESC
+            - memberCount_ASC
+            - memberCount_DESC
+            - activityCount_ASC
+            - activityCount_DESC
+            - joinedAt_ASC
+            - joinedAt_DESC
+            - lastActive_ASC
+            - lastActive_DESC
 
         limit:
           description: >-
