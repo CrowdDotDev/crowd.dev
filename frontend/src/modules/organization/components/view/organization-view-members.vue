@@ -17,7 +17,13 @@
         class="flex items-center"
       >
         <div class="w-1/2">
-          <app-avatar :entity="member" />
+          <div class="flex items-center gap-2">
+            <app-avatar :entity="member" size="sm" />
+            <app-member-display-name
+              :member="member"
+              custom-class="font-medium text-sm text-gray-900"
+            />
+          </div>
         </div>
         <div class="w-1/4">
           <app-member-engagement-level :member="member" />
@@ -67,6 +73,7 @@ import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import AppMemberEngagementLevel from '@/modules/member/components/member-engagement-level'
 import AppMemberChannels from '@/modules/member/components/member-channels'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 const SearchIcon = h(
   'i', // type

@@ -31,6 +31,13 @@
           :key="activity.id"
         >
           <div>
+            <app-member-display-name
+              v-if="entityType === 'organization'"
+              :member="activity.member"
+              custom-class="block text-gray-900 font-medium"
+              with-link
+              class="bl"
+            />
             <div class="flex items-center">
               <app-activity-message :activity="activity" />
               <span class="whitespace-nowrap text-gray-500"
@@ -111,6 +118,7 @@ import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import { formatDateToTimeAgo } from '@/utils/date'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
 
 const SearchIcon = h(
   'i', // type
@@ -153,44 +161,50 @@ let filter = {}
 
 const fetchActivities = async () => {
   const filterToApply = {
-    [`${props.entityType}Id`]: props.entityId,
     platform: platform.value ?? undefined
   }
 
-  if (query.value && query.value !== '') {
-    filterToApply.or = [
-      {
-        body: {
-          textContains: query.value
-        }
-      },
-      {
-        channel: {
-          textContains: query.value
-        }
-      },
-      {
-        url: {
-          textContains: query.value
-        }
-      },
-      {
-        body: {
-          textContains: query.value
-        }
-      },
-      {
-        title: {
-          textContains: query.value
-        }
-      },
-      {
-        type: {
-          textContains: query.value
-        }
-      }
-    ]
+  if (props.entityType === 'member') {
+    filterToApply.memberId = props.entityId
+  } else {
+    filterToApply[`${props.entityType}s`] = [props.entityId]
   }
+
+  if (props.entityId)
+    if (query.value && query.value !== '') {
+      filterToApply.or = [
+        {
+          body: {
+            textContains: query.value
+          }
+        },
+        {
+          channel: {
+            textContains: query.value
+          }
+        },
+        {
+          url: {
+            textContains: query.value
+          }
+        },
+        {
+          body: {
+            textContains: query.value
+          }
+        },
+        {
+          title: {
+            textContains: query.value
+          }
+        },
+        {
+          type: {
+            textContains: query.value
+          }
+        }
+      ]
+    }
 
   if (!_.isEqual(filter, filterToApply)) {
     activities.length = 0

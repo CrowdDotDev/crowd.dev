@@ -1,10 +1,14 @@
 <template>
   <div v-if="orientation === 'vertical'">
     <div v-if="props.member.organizations?.length > 0">
-      <div
+      <router-link
         v-for="organization of props.member.organizations"
         :key="organization.id"
         class="flex items-start"
+        :to="{
+          name: 'organizationView',
+          params: { id: organization.id }
+        }"
       >
         <div v-if="organization.logo">
           <div class="w-5 h-5 mr-1">
@@ -27,7 +31,7 @@
             }}
           </div>
         </div>
-      </div>
+      </router-link>
     </div>
     <div
       v-else-if="props.member.attributes.jobTitle?.default"

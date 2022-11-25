@@ -74,7 +74,7 @@
           {{
             formattedInformation(
               organization.joinedAt,
-              'date'
+              'relative'
             )
           }}
         </p>
@@ -100,7 +100,7 @@
           {{
             formattedInformation(
               organization.lastActive,
-              'date'
+              'relative'
             )
           }}
         </p>
