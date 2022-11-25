@@ -30,6 +30,17 @@
             :rules="rules"
             :model="formModel"
           >
+            <app-organization-form-details
+              v-model="formModel"
+              :fields-value="fields"
+            />
+            <el-divider
+              class="!mb-6 !mt-8 !border-gray-200"
+            />
+            <app-organization-form-identities
+              v-model="formModel"
+              :record="record"
+            />
           </el-form>
         </el-main>
         <el-footer
@@ -89,6 +100,8 @@ export default {
 </script>
 <script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details'
+import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities'
 import { OrganizationModel } from '@/modules/organization/organization-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import {
@@ -129,8 +142,8 @@ const { fields } = OrganizationModel
 const formSchema = new FormSchema([
   fields.name,
   fields.description,
-  fields.joinedAt,
-  fields.tags
+  fields.url,
+  fields.joinedAt
 ])
 
 const router = useRouter()
@@ -259,12 +272,12 @@ async function onReset() {
 }
 
 async function onCancel() {
-  router.push({ name: 'member' })
+  router.push({ name: 'organization' })
 }
 </script>
 
 <style lang="scss">
-.member-form-page {
+.organization-form-page {
   .el-button [class*='el-icon'] + span {
     @apply ml-1;
   }
@@ -274,23 +287,9 @@ async function onCancel() {
   }
 
   // Personal Details form
-  .personal-details-form {
+  .organization-details-form {
     & .el-form-item {
       @apply mb-6;
-    }
-
-    & .app-tags-input {
-      @apply w-full;
-    }
-
-    & .app-tags-input {
-      & .el-input__wrapper {
-        @apply gap-2 px-3;
-
-        & .el-tag {
-          @apply m-0 h-6 bg-gray-100 border-gray-200;
-        }
-      }
     }
   }
 

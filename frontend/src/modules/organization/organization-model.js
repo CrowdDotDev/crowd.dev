@@ -10,7 +10,7 @@ import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
 
 function label(name) {
-  return i18n(`entities.member.fields.${name}`)
+  return i18n(`entities.organization.fields.${name}`)
 }
 
 i18nInit()
@@ -22,6 +22,7 @@ const fields = {
     'description',
     label('description')
   ),
+  url: new StringField('url', label('url')),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')

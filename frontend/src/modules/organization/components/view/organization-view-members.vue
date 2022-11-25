@@ -17,13 +17,19 @@
         class="flex items-center"
       >
         <div class="w-1/2">
-          <div class="flex items-center gap-2">
+          <router-link
+            class="flex items-center gap-2"
+            :to="{
+              name: 'memberView',
+              params: { id: member.id }
+            }"
+          >
             <app-avatar :entity="member" size="sm" />
             <app-member-display-name
               :member="member"
               custom-class="font-medium text-sm text-gray-900"
             />
-          </div>
+          </router-link>
         </div>
         <div class="w-1/4">
           <app-member-engagement-level :member="member" />
