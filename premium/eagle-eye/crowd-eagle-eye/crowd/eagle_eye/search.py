@@ -77,7 +77,7 @@ def search_main(queries, ndays, exclude, exact_keywords):
     vector = VectorAPI()
     out = []
     for query in queries:
-        results = vector.search('query', ndays, exclude, exact_keywords)
+        results = vector.search(query, ndays, exclude, exact_keywords)
         for returned_point in results:
             out.append(transform(query, returned_point.id, returned_point.score, returned_point.payload))
     out = remove_duplicates(out)

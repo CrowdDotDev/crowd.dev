@@ -98,7 +98,7 @@ export default {
         copy = `${this.record.postAttributes.score} points ・ ${this.record.postAttributes.commentsCount} comments`
       } else if (
         this.record.platform === 'devto' &&
-        this.record.postAttributes.tags.length > 0
+        this.record.postAttributes.tags?.length > 0
       ) {
         copy = this.record.postAttributes.tags
           .map((t) => `#${t}`)

@@ -14,8 +14,8 @@
     ></app-i18n>
   </a>
   <span v-if="!channelOnly && isComment"
-    >&nbsp;on a
-    <a :href="activity.attributes.parentUrl"> post</a></span
+    >&nbsp;on
+    <a :href="activity.attributes.parentUrl" class="truncate"> {{computedParentTitle}}</a></span
   >
   <span v-if="!channelOnly">&nbsp;mentioning&nbsp;</span>
   {{ activity.channel }}
@@ -69,6 +69,14 @@ export default {
     },
     computedArgs() {
       return computedArgs(this.activity)
+    },
+    computedParentTitle () {
+      if (this.activity.attributes.parentTitle) {
+        return this.activity.attributes.parentTitle.length >= 30
+          ? this.activity.attributes.parentTitle.substring(0, 30) + '...'
+          : this.activity.attributes.parentTitle
+      }
+      return ''
     }
   }
 }

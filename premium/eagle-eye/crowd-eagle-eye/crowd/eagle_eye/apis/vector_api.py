@@ -83,6 +83,12 @@ class VectorAPI:
 
         return "OK"
 
+    def count(self):
+        return self.client.count(
+            collection_name=self.collection_name,
+            exact=True,
+        )
+
     @ staticmethod
     def _get_timestamp(ndays, start=int(time.time())):
         """

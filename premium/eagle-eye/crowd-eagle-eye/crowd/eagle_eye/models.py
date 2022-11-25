@@ -84,8 +84,8 @@ class Vector:
             combined (str, optional): Title + Text. Defaults to ''.
             embed (str, optional): Embedded vector. Defaults to ''.
         """
-        # Pay
-        self.payload = Payload(id, **payload) if type(payload) == 'dict' else payload
+        # Payload can be a dict or a Payload object
+        self.payload = Payload(id, **payload) if type(payload) == dict else payload
         self.sourceId = self.payload.vectorId
         self.id = Vector.make_id(id, payload.platform)
         self.combined = combined

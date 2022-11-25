@@ -15,7 +15,5 @@ COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/extensions /opt/
 COPY --from=builder /var/task /var/task
 COPY --from=builder /var/lang/lib/python3.8/site-packages /var/lang/lib/python3.8/site-packages
 
-RUN python3 -c "from sentence_transformers import SentenceTransformer; model = SentenceTransformer('multi-qa-mpnet-base-dot-v1'); model.save('models')"
-
 # You can overwrite command in `serverless.yml` template
 CMD ["datadog_lambda.handler.handler"]
