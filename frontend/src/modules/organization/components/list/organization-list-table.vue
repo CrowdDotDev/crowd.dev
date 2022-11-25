@@ -166,16 +166,16 @@
               <el-table-column
                 label="Active since"
                 width="200"
-                prop="lastActive"
+                prop="joinedAt"
                 sortable
                 ><template #default="scope"
                   ><div
-                    v-if="scope.row.lastActive"
+                    v-if="scope.row.joinedAt"
                     class="text-gray-900 text-sm"
                   >
                     {{
                       formatDateToTimeAgo(
-                        scope.row.lastActive
+                        scope.row.joinedAt
                       )
                     }}
                   </div>
@@ -212,7 +212,10 @@
               </el-table-column>
             </el-table>
 
-            <div v-if="!!count" class="mt-8 px-6">
+            <div
+              v-if="showBottomPagination"
+              class="mt-8 px-6"
+            >
               <app-pagination
                 :total="count"
                 :page-size="Number(pagination.pageSize)"
@@ -294,6 +297,14 @@ const isScrollbarVisible = ref(false)
 const isTableHovered = ref(false)
 const isCursorDown = ref(false)
 
+const showBottomPagination = computed(() => {
+  return (
+    !!count.value &&
+    Math.ceil(
+      count.value / Number(pagination.value.pageSize)
+    ) > 1
+  )
+})
 const tableWidth = computed(() => {
   return list.value.table?.bodyWidth
 })
@@ -345,11 +356,11 @@ watch(table, (newValue) => {
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value.removeEventListener(
+  tableBodyRef.value?.removeEventListener(
     'scroll',
     onTableBodyScroll
   )
-  tableHeaderRef.value.removeEventListener(
+  tableHeaderRef.value?.removeEventListener(
     'scroll',
     onTableHeaderScroll
   )

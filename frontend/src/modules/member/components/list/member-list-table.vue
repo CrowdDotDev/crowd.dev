@@ -384,11 +384,11 @@ onMounted(async () => {
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value.removeEventListener(
+  tableBodyRef.value?.removeEventListener(
     'scroll',
     onTableBodyScroll
   )
-  tableHeaderRef.value.removeEventListener(
+  tableHeaderRef.value?.removeEventListener(
     'scroll',
     onTableHeaderScroll
   )

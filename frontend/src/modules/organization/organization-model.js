@@ -42,8 +42,8 @@ const fields = {
       filterable: true
     }
   ),
-  activeSince: new ActivityDateField(
-    'lastActive',
+  joinedAt: new ActivityDateField(
+    'joinedAt',
     'Active since',
     {
       filterable: true
