@@ -154,7 +154,7 @@
                 ><template #default="scope">
                   <div class="text-gray-900 text-sm">
                     {{
-                      formatNumberToCompact(
+                      formatNumberToRange(
                         scope.row.employees
                       )
                     }}
@@ -211,6 +211,21 @@
                 </template>
               </el-table-column>
             </el-table>
+
+            <div v-if="!!count" class="mt-8 px-6">
+              <app-pagination
+                :total="count"
+                :page-size="Number(pagination.pageSize)"
+                :current-page="pagination.currentPage || 1"
+                module="organization"
+                @change-current-page="
+                  doChangePaginationCurrentPage
+                "
+                @change-page-size="
+                  doChangePaginationPageSize
+                "
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -239,7 +254,10 @@ import {
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { formatDateToTimeAgo } from '@/utils/date'
-import { formatNumberToCompact } from '@/utils/number'
+import {
+  formatNumberToCompact,
+  formatNumberToRange
+} from '@/utils/number'
 import AppOrganizationIdentities from '../organization-identities'
 import AppOrganizationListToolbar from './organization-list-toolbar'
 import AppOrganizationName from '../organization-name'
@@ -262,6 +280,7 @@ const { count, list } = mapState('organization')
 const { activeView, rows, pagination, selectedRows } =
   mapGetters('organization')
 const {
+  doChangePaginationCurrentPage,
   doChangePaginationPageSize,
   doChangeSort,
   doMountTable

@@ -26,11 +26,11 @@ export default () => {
         },
         initialSorter: {
           prop: 'name',
-          order: 'descending'
+          order: 'ascending'
         },
         sorter: {
           prop: 'name',
-          order: 'descending'
+          order: 'ascending'
         },
         active: true
       },

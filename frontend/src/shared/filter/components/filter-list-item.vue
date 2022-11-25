@@ -22,7 +22,7 @@
             </span>
             <span
               v-if="hasValue"
-              class="ml-1 max-w-xs truncate"
+              class="ml-1 max-w-xs truncate font-normal"
               >{{ valueToString }}</span
             >
           </el-button>
