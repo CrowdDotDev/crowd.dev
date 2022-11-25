@@ -50,6 +50,8 @@ import { useStore } from 'vuex'
 import { defineProps, computed, onMounted, ref } from 'vue'
 
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
+import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header'
+import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside'
 
 const store = useStore()
 const props = defineProps({
