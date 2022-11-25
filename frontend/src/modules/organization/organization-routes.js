@@ -1,18 +1,19 @@
-import Layout from '@/modules/layout/components/layout.vue'
+import Layout from '@/modules/layout/components/layout'
 import Permissions from '@/security/permissions'
 import { store } from '@/store'
 
 const OrganizationListPage = () =>
   import(
-    '@/modules/organization/pages/organization-list-page.vue'
-  )
-const OrganizationCreatePage = () =>
-  import(
-    '@/modules/organization/pages/organization-form-page.vue'
+    '@/modules/organization/pages/organization-list-page'
   )
 const OrganizationViewPage = () =>
   import(
-    '@/modules/organization/pages/organization-view-page.vue'
+    '@/modules/organization/pages/organization-view-page'
+  )
+
+const OrganizationFormPage = () =>
+  import(
+    '@/modules/organization/pages/organization-form-page'
   )
 
 export default [
@@ -46,7 +47,7 @@ export default [
       {
         name: 'organizationCreate',
         path: '/organizations/new',
-        component: OrganizationCreatePage,
+        component: OrganizationFormPage,
         meta: {
           auth: true,
           permission: Permissions.values.organizationCreate
@@ -55,7 +56,7 @@ export default [
       {
         name: 'organizationEdit',
         path: '/organizations/:id/edit',
-        component: OrganizationCreatePage,
+        component: OrganizationFormPage,
         meta: {
           auth: true,
           permission: Permissions.values.organizationEdit
@@ -69,7 +70,8 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.organizationRead
-        }
+        },
+        props: true
       }
     ]
   }
