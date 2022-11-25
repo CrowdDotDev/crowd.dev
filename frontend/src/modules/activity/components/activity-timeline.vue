@@ -1,5 +1,5 @@
 <template>
-  <div class="member-view-activities">
+  <div class="activity-timeline">
     <div class="my-6">
       <el-input
         v-model="query"
@@ -120,7 +120,11 @@ const SearchIcon = h(
 
 const store = useStore()
 const props = defineProps({
-  memberId: {
+  entityId: {
+    type: String,
+    default: null
+  },
+  entityType: {
     type: String,
     default: null
   }
@@ -149,7 +153,7 @@ let filter = {}
 
 const fetchActivities = async () => {
   const filterToApply = {
-    memberId: props.memberId,
+    [`${props.entityType}Id`]: props.entityId,
     platform: platform.value ?? undefined
   }
 
@@ -252,7 +256,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss">
-.member-view-activities {
+.activity-timeline {
   .el-input-group__append {
     @apply bg-white;
 

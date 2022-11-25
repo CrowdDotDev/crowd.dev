@@ -30,7 +30,10 @@
               label="Activities"
               name="activities"
             >
-              Activities
+              <app-activity-timeline
+                :entity-id="organization.id"
+                :entity-type="organization"
+              />
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -50,6 +53,7 @@ import { useStore } from 'vuex'
 import { defineProps, computed, onMounted, ref } from 'vue'
 
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
+import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
 import AppOrganizationViewHeader from '@/modules/organization/components/view/organization-view-header'
 import AppOrganizationViewAside from '@/modules/organization/components/view/organization-view-aside'
 
