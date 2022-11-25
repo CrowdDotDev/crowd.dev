@@ -9,14 +9,14 @@ let store
  * Creates/Sets the Vuex store
  */
 const createStore = (LogRocket) => {
-  const logrocketPlugin = createPlugin(LogRocket)
+  const plugins =
+    config.env === 'production'
+      ? [createPlugin(LogRocket)]
+      : []
   if (!store) {
     store = createVuexStore({
       modules: buildStores(),
-      plugins:
-        config.env === 'production'
-          ? [logrocketPlugin]
-          : undefined
+      plugins
     })
   }
   return store
