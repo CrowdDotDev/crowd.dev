@@ -46,11 +46,11 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'lastActive',
+          prop: 'joinedAt',
           order: 'descending'
         },
         sorter: {
-          prop: 'lastActive',
+          prop: 'joinedAt',
           order: 'descending'
         },
         active: false
