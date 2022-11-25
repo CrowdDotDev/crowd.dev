@@ -26,7 +26,7 @@ class Permissions {
       },
       planRead: {
         id: 'planRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       userEdit: {
@@ -51,7 +51,7 @@ class Permissions {
       },
       userRead: {
         id: 'userRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       userAutocomplete: {
@@ -61,7 +61,7 @@ class Permissions {
       },
       auditLogRead: {
         id: 'auditLogRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       settingsRead: {
@@ -78,7 +78,7 @@ class Permissions {
       },
       memberAttributesRead: {
         id: 'memberAttributesRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
         allowedStorage: [],
       },
@@ -424,7 +424,7 @@ class Permissions {
       },
       eagleEyeContentRead: {
         id: 'eagleEyeContentRead',
-        allowedRoles: [roles.admin],
+        allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.free, plans.beta, plans.premium, plans.enterprise],
       },
       eagleEyeContentSearch: {
