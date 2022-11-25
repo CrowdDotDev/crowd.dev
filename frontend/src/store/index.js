@@ -1,14 +1,22 @@
 import { createStore as createVuexStore } from 'vuex'
+import createPlugin from 'logrocket-vuex'
+import config from '@/config'
+
 import modules from '@/modules'
 let store
 
 /**
  * Creates/Sets the Vuex store
  */
-const createStore = () => {
+const createStore = (LogRocket) => {
+  const logrocketPlugin = createPlugin(LogRocket)
   if (!store) {
     store = createVuexStore({
-      modules: buildStores()
+      modules: buildStores(),
+      plugins:
+        config.env === 'production'
+          ? [logrocketPlugin]
+          : undefined
     })
   }
   return store
