@@ -38,6 +38,8 @@ components:
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         memberCount: 2
+        activityCount: 4
+
 
     Organization:
       value:
@@ -84,6 +86,7 @@ components:
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         memberCount: 2
+        activityCount: 4
 
     Organization2:
       value:
@@ -130,6 +133,7 @@ components:
         createdById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         updatedById: debc3c7f-4c5d-4bec-9130-17bb0aea8b75
         memberCount: 0
+        activityCount: 0
 
     OrganizationList:
       value:
