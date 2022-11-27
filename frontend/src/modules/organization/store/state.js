@@ -26,11 +26,11 @@ export default () => {
         },
         initialSorter: {
           prop: 'name',
-          order: 'descending'
+          order: 'ascending'
         },
         sorter: {
           prop: 'name',
-          order: 'descending'
+          order: 'ascending'
         },
         active: true
       },
@@ -46,11 +46,11 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'firstActivity',
+          prop: 'joinedAt',
           order: 'descending'
         },
         sorter: {
-          prop: 'firstActivity',
+          prop: 'joinedAt',
           order: 'descending'
         },
         active: false
@@ -93,11 +93,11 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'memberCount',
+          prop: 'employees',
           order: 'descending'
         },
         sorter: {
-          prop: 'memberCount',
+          prop: 'employees',
           order: 'descending'
         }
       }

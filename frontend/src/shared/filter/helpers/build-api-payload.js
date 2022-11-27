@@ -69,6 +69,14 @@ function _buildAttributeBlock(attribute) {
         }
       })
     }
+  } else if (attribute.name === 'activeOn') {
+    rule = {
+      contains: attribute.value.reduce((acc, option) => {
+        acc.push(option.value)
+
+        return acc
+      }, [])
+    }
   } else if (attribute.operator === 'notContains') {
     return {
       not: {

@@ -8,7 +8,7 @@ import { ActivityField } from '../activity/activity-field'
 import BooleanField from '@/shared/fields/boolean-field'
 import DateTimeRangeField from '@/shared/fields/date-time-range-field'
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
-import ActivityDateField from '@/modules/activity/activity-date-field'
+import ActivityDateField from '@/shared/fields/activity-date-field'
 import SearchField from '@/shared/fields/search-field'
 
 function label(name) {

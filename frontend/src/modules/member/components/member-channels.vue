@@ -1,19 +1,11 @@
 <template>
-  <div class="flex items-center gap-2">
-    <app-platform
-      v-if="member.email"
-      platform="email"
-      track-event-name="Email"
-      :has-tooltip="true"
-      tooltip-label="Send e-mail"
-      :href="`mailto:${member.email}`"
-      :as-link="true"
-    />
+  <div class="flex items-center gap-3">
     <div class="flex gap-2 items-center">
       <app-platform
         v-if="!!member.username?.twitter"
         platform="twitter"
-        track-event-name="Twitter"
+        track-event-name="Click Member Contact"
+        track-event-channel="Twitter"
         :has-tooltip="true"
         tooltip-label="Twitter profile"
         :href="member.attributes?.url?.twitter || null"
@@ -22,7 +14,8 @@
       <app-platform
         v-if="!!member.username?.github"
         platform="github"
-        track-event-name="GitHub"
+        track-event-name="Click Member Contact"
+        track-event-channel="GitHub"
         :has-tooltip="true"
         tooltip-label="GitHub profile"
         :href="member.attributes?.url?.github || null"
@@ -31,7 +24,8 @@
       <app-platform
         v-if="!!member.username?.devto"
         platform="devto"
-        track-event-name="Dev.to"
+        track-event-name="Click Member Contact"
+        track-event-channel="Dev.to"
         :has-tooltip="true"
         tooltip-label="DEV profile"
         :href="member.attributes?.url?.devto || null"
@@ -40,18 +34,36 @@
       <app-platform
         v-if="!!member.username?.discord"
         platform="discord"
-        track-event-name="Discord"
+        track-event-name="Click Member Contact"
+        track-event-channel="Discord"
         :has-tooltip="true"
         tooltip-label="Discord profile"
       />
       <app-platform
         v-if="!!member.username?.slack"
         platform="slack"
-        track-event-name="Slack"
+        track-event-name="Click Member Contact"
+        track-event-channel="Slack"
         :has-tooltip="true"
         tooltip-label="Slack profile"
       />
     </div>
+
+    <el-divider
+      direction="vertical"
+      class="border-gray-200 m-0 h-8"
+    />
+
+    <app-platform
+      v-if="member.email"
+      platform="email"
+      track-event-name="Click Member Contact"
+      track-event-channel="Email"
+      :has-tooltip="true"
+      tooltip-label="Send e-mail"
+      :href="`mailto:${member.email}`"
+      :as-link="true"
+    />
   </div>
 </template>
 

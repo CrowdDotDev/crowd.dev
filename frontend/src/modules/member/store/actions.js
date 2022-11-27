@@ -40,10 +40,13 @@ export default {
       ).transformAndExportAsExcelFile(response.rows)
 
       commit('EXPORT_SUCCESS')
+
+      Message.success('Members exported successfully')
     } catch (error) {
       Errors.handle(error)
 
       commit('EXPORT_ERROR')
+      Message.error('There was an error exporting members')
     }
   },
 

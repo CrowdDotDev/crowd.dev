@@ -54,6 +54,7 @@
 
       <div class="px-3 pt-3 flex flex-col gap-2 grow">
         <!-- Menu items -->
+        <!-- Home -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -76,6 +77,7 @@
           </router-link>
         </el-tooltip>
 
+        <!-- Tasks -->
         <el-tooltip
           :disabled="!isCollapsed"
           effect="dark"
@@ -110,6 +112,7 @@
           </router-link>
         </el-tooltip>
 
+        <!-- Members -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -138,6 +141,33 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <!-- Organizations -->
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('entities.organization.menu')"
+        >
+          <router-link
+            id="menu-organizations"
+            :to="{ path: '/organizations' }"
+            class="el-menu-item"
+            :class="classFor('/organizations')"
+          >
+            <i class="ri-community-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n
+                code="entities.organization.menu"
+              ></app-i18n>
+            </span>
+          </router-link>
+        </el-tooltip>
+
+        <!-- Activities -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -165,6 +195,8 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <!-- Reports -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -196,6 +228,8 @@
           v-if="hasPremiumModules"
           class="border-gray-200"
         />
+
+        <!-- Eagle eye -->
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
@@ -224,6 +258,8 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <!-- Community Help Center -->
         <el-tooltip
           v-if="hasPremiumModules"
           :disabled="!isCollapsed"
@@ -250,6 +286,8 @@
         </el-tooltip>
 
         <div class="grow"></div>
+
+        <!-- Integrations -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
@@ -271,6 +309,8 @@
             </span>
           </router-link>
         </el-tooltip>
+
+        <!-- Settings -->
         <el-tooltip
           :disabled="!isCollapsed"
           :hide-after="50"
