@@ -9,8 +9,8 @@
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
         <a
-          href="https://8vcqnrnp5it.typeform.com/to/EvtXce0q"
-          >Contact us</a
+          href="https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22type%3A+integration+%F0%9F%94%8C%22"
+          >Open an issue</a
         >
       </div>
     </div>
