@@ -46,6 +46,7 @@ export interface HackerNewsResponse extends HackerNewsPost {
 
 export interface HackerNewsIntegrationSettings {
   keywords: string[]
+  urls: string[]
 }
 
 export interface EagleEyeInput {

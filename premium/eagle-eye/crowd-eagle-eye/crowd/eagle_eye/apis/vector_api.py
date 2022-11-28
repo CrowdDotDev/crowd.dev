@@ -37,7 +37,7 @@ class VectorAPI:
         self.client = QdrantClient(host=host, port=port)
 
         if do_init:
-            self.client = self.client.recreate_collection(
+            self.client.recreate_collection(
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
             )
@@ -156,7 +156,7 @@ class VectorAPI:
         should = []
         if exact_keywords:
             for exact_keyword in exact_keywords:
-                for key in ['title', 'text']:
+                for key in ['title', 'text', 'url']:
                     should.append(
                         models.FieldCondition(
                             key=key,
@@ -178,7 +178,6 @@ class VectorAPI:
                     match=models.MatchText(text=platform),
                 )
             )
-
         return models.Filter(
             must=must,
             should=should,

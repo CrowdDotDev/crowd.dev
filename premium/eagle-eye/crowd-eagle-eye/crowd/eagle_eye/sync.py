@@ -34,7 +34,11 @@ for filter in filters:
 
     for i, match in enumerate(query_response['matches']):
         if i and i % 100 == 0:
+            vectorAPI.upsert(vectors)
+            vectors = []
             print('Processing match', i)
+            print('Number of vectors in Qdrant:', vectorAPI.count())
+
         text = match['metadata']['text']
         if match['metadata']['platform'] == 'hacker_news':
             if len(match['metadata']['text']) > 200:
@@ -55,6 +59,3 @@ for filter in filters:
         combined = f'{match["metadata"]["title"]} {text}'
         vector = Vector(match['id'], payload, combined, embedAPI.embed_one(combined))
         vectors.append(vector)
-
-    vectorAPI.upsert(vectors)
-    print('Number of vectors in Qdrant:', vectorAPI.count())

@@ -39,14 +39,16 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
   async preprocess(context: IStepContext): Promise<void> {
     const settings = context.integration.settings as HackerNewsIntegrationSettings
 
+    const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
+
     const posts = await getPostsByKeywords(
-      { keywords: settings.keywords, nDays: context.onboarding ? 1000000 : 3 },
+      { keywords, nDays: context.onboarding ? 1000000 : 3 },
       context.serviceContext,
       this.logger(context),
     )
 
     context.pipelineData = {
-      keywords: settings.keywords,
+      keywords,
       posts,
     }
   }

@@ -9,7 +9,9 @@ import stackoverflow from './stackoverflow'
 import reddit from './reddit'
 import linkedin from './linkedin'
 import zapier from './zapier'
-// import make from './make'
+import make from './make'
+
+import config from '@/config'
 
 class IntegrationsConfig {
   get integrations() {
@@ -19,13 +21,13 @@ class IntegrationsConfig {
       slack,
       twitter,
       devto,
-      hackernews,
+      ...(config.hasPremiumModules && { hackernews }),
       discourse,
       stackoverflow,
       reddit,
       linkedin,
-      zapier
-      // make
+      zapier,
+      ...(!config.hasPremiumModules && { make }),
     }
   }
 
