@@ -31,4 +31,4 @@ runs:
     - name: Build and push docker image
       shell: bash
       working-directory: ./scripts
-      run: ./cli build-and-push frontend ${{ steps.version-generator.outputs.IMAGE_VERSION }}
+      run: ./cli build-and-push ${{ inputs.image }} ${{ steps.version-generator.outputs.IMAGE_VERSION }}

@@ -19,6 +19,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
     defaults:
       run:
         shell: bash
@@ -33,10 +35,13 @@ jobs:
           image: frontend
 
       - name: Set docker image output
+        id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
   build-and-push-dev:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.IMAGE }}
     defaults:
       run:
         shell: bash
@@ -51,6 +56,7 @@ jobs:
           image: frontend-dev
 
       - name: Set docker image output
+        id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
   deploy:
@@ -67,7 +73,7 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: frontend
-          image: ${{ needs.build-and-push.outputs.IMAGE }}
+          image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
   deploy-dev:
@@ -84,5 +90,5 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: frontend-dev
-          image: ${{ needs.build-and-push-dev.outputs.IMAGE }}
+          image: ${{ needs.build-and-push-dev.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
