@@ -103,8 +103,10 @@
         </a>
         <el-divider
           v-if="
-            organization.emails.length > 0 ||
-            organization.phoneNumbers.length > 0
+            (organization.emails &&
+              organization.emails.length > 0) ||
+            (organization.phoneNumbers &&
+              organization.phoneNumbers.length > 0)
           "
         ></el-divider>
         <a
@@ -181,8 +183,10 @@ const noIdentities = computed(() => {
     !props.organization.linkedin?.url &&
     !props.organization.twitter?.url &&
     !props.organization.crunchbase?.url &&
-    props.organization.emails.length === 0 &&
-    props.organization.phoneNumbers.length === 0
+    (!props.organization.emails ||
+      props.organization.emails.length === 0) &&
+    (!props.organization.phoneNumbers ||
+      props.organization.phoneNumbers.length === 0)
   )
 })
 </script>
