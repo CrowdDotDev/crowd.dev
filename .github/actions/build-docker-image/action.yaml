@@ -9,7 +9,7 @@ inputs:
 outputs:
   image:
     description: Image that was built
-    value: crowddotdev/${{ inputs.image }}.${{ steps.version-generator.outputs.IMAGE_VERSION }}
+    value: crowddotdev/${{ inputs.image }}:${{ steps.version-generator.outputs.IMAGE_VERSION }}
 
 runs:
   using: composite
@@ -31,4 +31,4 @@ runs:
     - name: Build and push docker image
       shell: bash
       working-directory: ./scripts
-      run: ./cli build-and-push frontend ${{ steps.image-version.outputs.image-version }}
+      run: ./cli build-and-push frontend ${{ steps.version-generator.outputs.IMAGE_VERSION }}
