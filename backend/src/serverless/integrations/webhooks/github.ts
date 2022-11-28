@@ -175,17 +175,18 @@ export default class GitHubWebhook {
       integration.token,
     )
     if (member) {
-      const timestampObject = moment().utc()
+      const starredAt =
+        type === GithubActivityType.STAR ? moment(this.payload.starred_at).utc() : moment().utc()
       return {
         member,
         type,
-        timestamp: timestampObject.toDate(),
+        timestamp: starredAt.toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: IntegrationServiceBase.generateSourceIdHash(
           this.payload.sender.login,
           type,
-          timestampObject.unix().toString(),
+          starredAt.unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
