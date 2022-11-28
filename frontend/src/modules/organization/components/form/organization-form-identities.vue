@@ -39,7 +39,7 @@
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
           <app-platform platform="email" />
-          <div class="font-medium text-sm">
+          <div class="font-medium text-sm ml-3">
             Email address
           </div>
         </div>
@@ -52,7 +52,7 @@
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
           <app-platform platform="phone" />
-          <div class="font-medium text-sm">
+          <div class="font-medium text-sm ml-3">
             Phone number
           </div>
         </div>

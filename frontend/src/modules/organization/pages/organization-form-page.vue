@@ -290,8 +290,14 @@ function getInitialModel(record) {
             ? record.crunchbase.handle
             : '',
         revenueRange: record ? record.revenueRange : {},
-        emails: record ? record.emails : [''],
-        phoneNumbers: record ? record.phoneNumbers : ['']
+        emails:
+          record && record.emails?.length > 0
+            ? record.emails
+            : [''],
+        phoneNumbers:
+          record && record.phoneNumbers?.length > 0
+            ? record.phoneNumbers
+            : ['']
       })
     )
   )
