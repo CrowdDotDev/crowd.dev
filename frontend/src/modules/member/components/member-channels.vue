@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center gap-3">
-    <div class="flex gap-2 items-center">
+    <div
+      v-if="hasSocialIdentities"
+      class="flex gap-2 items-center"
+    >
       <app-platform
         v-if="!!member.username?.twitter"
         platform="twitter"
@@ -50,7 +53,7 @@
     </div>
 
     <el-divider
-      v-if="member.email"
+      v-if="showDivider"
       direction="vertical"
       class="border-gray-200 m-0 h-8"
     />
@@ -70,12 +73,29 @@
 
 <script>
 export default {
-  name: 'AppMemberChannels',
-  props: {
-    member: {
-      type: Object,
-      default: () => {}
-    }
-  }
+  name: 'AppMemberChannels'
 }
+</script>
+
+<script setup>
+import { defineProps, computed } from 'vue'
+
+const props = defineProps({
+  member: {
+    type: Object,
+    default: () => {}
+  }
+})
+
+const hasSocialIdentities = computed(
+  () =>
+    !!props.member.username?.twitter ||
+    !!props.member.username?.github ||
+    !!props.member.username?.devto ||
+    !!props.member.username?.discord ||
+    !!props.member.username?.slack
+)
+const showDivider = computed(
+  () => props.member.email && hasSocialIdentities.value
+)
 </script>

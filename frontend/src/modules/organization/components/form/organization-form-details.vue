@@ -2,8 +2,17 @@
   <div class="grid gap-x-12 grid-cols-3">
     <h6>Organization details</h6>
     <div class="col-span-2 organization-details-form">
-      <el-form-item :label="fields.name.label">
+      <el-form-item
+        :label="fields.name.label"
+        :prop="fields.name.name"
+        required
+      >
         <el-input v-model="model[fields.name.name]" />
+        <template #error>
+          <div class="el-form-item__error">
+            Name is required
+          </div>
+        </template>
       </el-form-item>
       <el-form-item :label="fields.description.label">
         <el-input
@@ -21,7 +30,7 @@
         <el-input v-model="model[fields.location.name]" />
       </el-form-item>
       <el-form-item
-        :label="fields.employees.label"
+        label="Number of employees"
         class="w-1/2"
       >
         <el-input
@@ -35,7 +44,7 @@
       >
         <el-select
           v-model="model[fields.revenueRange.name]"
-          value-key="min"
+          value-key="max"
         >
           <el-option
             v-for="option in revenueOptions"
@@ -56,8 +65,6 @@
           class="custom-date-picker"
           popper-class="date-picker-popper"
           type="date"
-          value-format="YYYY-MM-DD"
-          format="YYYY-MM-DD"
           placeholder="YYYY-MM-DD"
         />
       </el-form-item>

@@ -26,7 +26,7 @@
             {{ platform.label }}
           </div>
         </div>
-        <div class="flex items-center">
+        <div class="flex items-center grow justify-end">
           <div class="text-gray-400 text-right mr-3">
             {{ platform.prefix }}
           </div>
@@ -133,7 +133,7 @@ const platforms = [
 <style lang="scss">
 .organization-identities-form {
   .platform {
-    @apply flex items-center justify-between w-full mb-3 text-sm;
+    @apply flex items-center justify-between w-full mb-3 text-sm flex-wrap gap-2;
     &-logo {
       @apply h-8 w-8 rounded flex items-center justify-center text-base;
       &--github {

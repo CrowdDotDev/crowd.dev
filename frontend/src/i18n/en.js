@@ -250,7 +250,7 @@ const en = {
         website: 'Website',
         location: 'Location',
         employees: 'Number of employees',
-        revenueRange: 'Revenue',
+        revenueRange: 'Annual revenue',
         activeSince: 'Active since',
         github: 'GitHub',
         twitter: 'Twitter',

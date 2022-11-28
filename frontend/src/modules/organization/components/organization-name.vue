@@ -16,7 +16,7 @@
         />
         <i
           v-else
-          class="ri-community-line text-2xl text-gray-300"
+          class="ri-community-line text-lg text-gray-300 h-5"
         ></i>
       </div>
     </div>

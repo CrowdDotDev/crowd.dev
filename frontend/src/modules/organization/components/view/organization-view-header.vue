@@ -177,7 +177,10 @@ const formattedInformation = (value, type) => {
     (type === 'date' &&
       moment(value).isBefore(
         moment().subtract(40, 'years')
-      ))
+      )) ||
+    // If range is not set for revenue
+    (type === 'revenueRange' && !value.min) ||
+    !value.max
   ) {
     return '-'
   }

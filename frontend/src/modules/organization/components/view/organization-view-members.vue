@@ -14,9 +14,9 @@
       <div
         v-for="member in members"
         :key="member.id"
-        class="flex items-center"
+        class="flex flex-wrap items-center justify-between py-5 border-b border-gray-200 last:border-none gap-2"
       >
-        <div class="w-1/2">
+        <div class="basis-2/6">
           <router-link
             class="flex items-center gap-2"
             :to="{
@@ -31,10 +31,12 @@
             />
           </router-link>
         </div>
-        <div class="w-1/4">
-          <app-member-engagement-level :member="member" />
-        </div>
-        <div class="w-1/4 flex justify-end">
+        <div
+          class="flex items-center justify-between gap-6 basis-3/6"
+        >
+          <div>
+            <app-member-engagement-level :member="member" />
+          </div>
           <app-member-channels
             :member="member"
           ></app-member-channels>

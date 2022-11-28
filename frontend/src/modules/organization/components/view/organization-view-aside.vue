@@ -27,7 +27,8 @@
           </div>
           <i
             v-if="
-              organization.github?.url || organization.url
+              organization.github?.url &&
+              organization.activeOn.includes('github')
             "
             class="ri-external-link-line text-gray-300"
           ></i>
@@ -51,7 +52,10 @@
             >
           </div>
           <i
-            v-if="organization.twitter?.url"
+            v-if="
+              organization.twitter?.url &&
+              organization.activeOn.includes('twitter')
+            "
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -74,7 +78,10 @@
             >
           </div>
           <i
-            v-if="organization.linkedin?.url"
+            v-if="
+              organization.linkedin?.url &&
+              organization.activeOn.includes('linkedin')
+            "
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -97,7 +104,10 @@
             >
           </div>
           <i
-            v-if="organization.crunchbase?.url"
+            v-if="
+              organization.crunchbase?.url &&
+              organization.activeOn.includes('crunchbase')
+            "
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -108,6 +118,7 @@
             (organization.phoneNumbers &&
               organization.phoneNumbers.length > 0)
           "
+          class="border-t-gray-200"
         ></el-divider>
         <a
           v-for="email of organization.emails"
