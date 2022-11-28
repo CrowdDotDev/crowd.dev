@@ -13,7 +13,6 @@ inputs:
   cluster:
     description: To which cloud cluster to deploy
     required: true
-    default: ${{ env.CROWD_CLUSTER }}
 
 runs:
   using: composite
