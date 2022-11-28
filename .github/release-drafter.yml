@@ -4,12 +4,15 @@ categories:
   - title: '🚀 Features'
     labels:
       - 'type:feature 🚀'
-  - title: '✨ Enhancements'
+      - 'Feature'
+  - title: '✨ Improvements'
     labels:
       - 'type:enhancement ✨'
+      - 'Improvement'
   - title: '🐞 Bug Fixes'
     labels:
       - 'type:bug 🐞'
+      - 'Bug'
   - title: '📜 Documentation'
     labels:
       - 'type:documentation 📜'
