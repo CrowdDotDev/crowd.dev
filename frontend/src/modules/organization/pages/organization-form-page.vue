@@ -32,7 +32,7 @@
           >
             <app-organization-form-details
               v-model="formModel"
-              :fields-value="fields"
+              :fields="fields"
             />
             <el-divider
               class="!mb-6 !mt-8 !border-gray-200"
@@ -109,6 +109,7 @@ import {
   h,
   onMounted,
   onUnmounted,
+  defineProps,
   reactive,
   ref,
   watch
@@ -121,7 +122,6 @@ import {
 import isEqual from 'lodash/isEqual'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
-import getAttributesModel from '@/shared/attributes/get-attributes-model.js'
 
 const LoaderIcon = h(
   'i',
@@ -138,12 +138,28 @@ const ArrowPrevIcon = h(
   []
 )
 
+const props = defineProps({
+  id: {
+    type: String,
+    default: null
+  }
+})
+
 const { fields } = OrganizationModel
 const formSchema = new FormSchema([
   fields.name,
   fields.description,
-  fields.url,
-  fields.joinedAt
+  fields.website,
+  fields.location,
+  fields.employees,
+  fields.revenueRange,
+  fields.github,
+  fields.twitter,
+  fields.linkedin,
+  fields.crunchbase,
+  fields.joinedAt,
+  fields.emails,
+  fields.phoneNumbers
 ])
 
 const router = useRouter()
@@ -250,29 +266,67 @@ watch(
 )
 
 function getInitialModel(record) {
-  const attributes = getAttributesModel(record)
-
   return JSON.parse(
     JSON.stringify(
       formSchema.initialValues({
         name: record ? record.name : '',
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
-        ...attributes,
-        tags: record ? record.tags : []
+        employees: record ? record.employees : null,
+        github: record ? record.github : {},
+        twitter: record ? record.twitter : {},
+        linkedin: record ? record.linkedin : {},
+        crunchbase: record ? record.crunchbase : {},
+        revenueRange: record ? record.revenueRange : {},
+        emails: record ? record.emails : [''],
+        phoneNumbers: record ? record.phoneNumbers : ['']
       })
     )
   )
 }
 
-async function onReset() {
+function onReset() {
   formModel.value = isEditPage.value
     ? getInitialModel(record.value)
     : getInitialModel()
 }
 
-async function onCancel() {
+function onCancel() {
   router.push({ name: 'organization' })
+}
+async function onSubmit() {
+  isFormSubmitting.value = true
+  const data = Object.assign(
+    {},
+    {
+      ...formModel.value,
+      emails: formModel.value.emails.reduce((acc, item) => {
+        if (item !== '') {
+          acc.push(item)
+        }
+        return acc
+      }, []),
+      phoneNumbers: formModel.value.phoneNumbers.reduce(
+        (acc, item) => {
+          if (item !== '') {
+            acc.push(item)
+          }
+          return acc
+        },
+        []
+      )
+    }
+  )
+  const action = isEditPage.value
+    ? 'organization/doUpdate'
+    : 'organization/doCreate'
+  const payload = isEditPage.value
+    ? { id: props.id, values: data }
+    : data
+
+  await store.dispatch(action, payload)
+  isFormSubmitting.value = false
+  wasFormSubmittedSuccessfuly.value = true
 }
 </script>
 

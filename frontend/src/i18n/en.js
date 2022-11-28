@@ -243,6 +243,19 @@ const en = {
       },
       edit: {
         title: 'Edit Organization'
+      },
+      fields: {
+        name: 'Name',
+        description: 'Description',
+        website: 'Website',
+        location: 'Location',
+        employees: 'Number of employees',
+        revenueRange: 'Revenue',
+        activeSince: 'Active since',
+        github: 'GitHub',
+        twitter: 'Twitter',
+        linkedin: 'LinkedIn',
+        crunchbase: 'Crunchbase'
       }
     },
 

@@ -2,47 +2,77 @@
   <div class="grid gap-x-12 grid-cols-3">
     <h6>Organization details</h6>
     <div class="col-span-2 organization-details-form">
-      <el-form-item :label="fieldsValue.name.label">
-        <el-input v-model="model[fieldsValue.name.name]" />
+      <el-form-item :label="fields.name.label">
+        <el-input v-model="model[fields.name.name]" />
       </el-form-item>
-      <el-form-item :label="fieldsValue.description.label">
+      <el-form-item :label="fields.description.label">
         <el-input
-          v-model="model[fieldsValue.description.name]"
+          v-model="model[fields.description.name]"
           type="textarea"
         />
       </el-form-item>
-      <el-form-item :label="fieldsValue.url.label">
-        <el-input v-model="model[fieldsValue.url.name]" />
+      <el-form-item :label="fields.website.label">
+        <el-input v-model="model[fields.website.name]" />
       </el-form-item>
-      <el-form-item :label="fieldsValue.employees.label">
-        <el-select
-          v-model="model[fieldsValue.employees.name]"
-        >
-          <el-option label="1-10" value="1-10" />
-          <el-option label="11-50" value="11-50" />
-          <el-option label="51-200" value="51-200" />
-          <el-option label="51-200" value="51-200" />
-          <el-option label="201-500" value="201-500" />
-          <el-option label="501-1000" value="501-1000" />
-          <el-option label="1001-5000" value="1001-5000" />
+      <el-form-item
+        :label="fields.location.label"
+        class="w-1/2"
+      >
+        <el-input v-model="model[fields.location.name]" />
+      </el-form-item>
+      <el-form-item
+        :label="fields.employees.label"
+        class="w-1/2"
+      >
+        <el-input
+          v-model="model[fields.employees.name]"
+          type="number"
+        />
+      </el-form-item>
+      <el-form-item
+        :label="fields.revenueRange.label"
+        class="w-1/2"
+      >
+        <el-select v-model="model" value-key="min">
           <el-option
-            label="5001-10000"
-            value="5001-10000"
+            v-for="option in revenueOptions"
+            :key="option.id"
+            :value="option.value"
+            :label="option.label"
           />
-          <el-option label="10000+" value="10000+" />
         </el-select>
       </el-form-item>
-      <!--<el-form-item :label="fieldsValue.location.label">
-        <el-input
-          v-model="model[fieldsValue.location.name]"
+      <el-form-item
+        :label="fields.joinedAt.label"
+        class="w-1/2"
+      >
+        <el-date-picker
+          v-model="model[fields.joinedAt.name]"
+          :prefix-icon="CalendarIcon"
+          :clearable="false"
+          class="custom-date-picker"
+          popper-class="date-picker-popper"
+          type="date"
+          value-format="YYYY-MM-DD"
+          format="YYYY-MM-DD"
+          placeholder="YYYY-MM-DD"
         />
-      </el-form-item>-->
+      </el-form-item>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineEmits, defineProps, computed } from 'vue'
+import { defineEmits, defineProps, computed, h } from 'vue'
+
+const CalendarIcon = h(
+  'i', // type
+  {
+    class:
+      'ri-calendar-line text-base leading-none text-gray-400'
+  }, // props
+  []
+)
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -50,7 +80,7 @@ const props = defineProps({
     type: Object,
     default: () => {}
   },
-  fieldsValue: {
+  fields: {
     type: Object,
     default: () => {}
   }
@@ -64,4 +94,69 @@ const model = computed({
     emit('update:modelValue', newModel)
   }
 })
+
+const revenueOptions = [
+  {
+    label: '$0-1M',
+    value: {
+      min: 0,
+      max: 1
+    }
+  },
+  {
+    label: '$1M-$10M',
+    value: {
+      min: 1,
+      max: 10
+    }
+  },
+  {
+    label: '$11M-$50M',
+    value: {
+      min: 11,
+      max: 50
+    }
+  },
+  {
+    label: '$51M-$100M',
+    value: {
+      min: 51,
+      max: 100
+    }
+  },
+  {
+    label: '$101M-$250M',
+    value: {
+      min: 101,
+      max: 250
+    }
+  },
+  {
+    label: '$251M-$500M',
+    value: {
+      min: 251,
+      max: 500
+    }
+  },
+  {
+    label: '$501M-$1B',
+    value: {
+      min: 501,
+      max: 1000
+    }
+  },
+  {
+    label: '$1B-$10B',
+    value: {
+      min: 1001,
+      max: 10000
+    }
+  },
+  {
+    label: '$10B+',
+    value: {
+      min: 10001
+    }
+  }
+]
 </script>

@@ -8,6 +8,8 @@ import OrganizationEmployeesField from '@/modules/organization/organization-empl
 import SearchField from '@/shared/fields/search-field'
 import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
+import JsonField from '@/shared/fields/json-field'
+import StringArrayField from '@/shared/fields/string-array-field'
 
 function label(name) {
   return i18n(`entities.organization.fields.${name}`)
@@ -23,6 +25,8 @@ const fields = {
     label('description')
   ),
   url: new StringField('url', label('url')),
+  website: new StringField('website', label('website')),
+  location: new StringField('location', label('location')),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')
@@ -43,6 +47,10 @@ const fields = {
       filterable: true
     }
   ),
+  revenueRange: new JsonField(
+    'revenueRange',
+    label('revenueRange')
+  ),
   joinedAt: new ActivityDateField(
     'joinedAt',
     'Active since',
@@ -54,6 +62,18 @@ const fields = {
     'activeOn',
     'Active on',
     { filterable: true }
+  ),
+  github: new JsonField('github', label('github')),
+  twitter: new JsonField('twitter', label('twitter')),
+  linkedin: new JsonField('linkedin', label('linkedin')),
+  crunchbase: new JsonField(
+    'crunchbase',
+    label('crunchbase')
+  ),
+  emails: new StringArrayField('emails', 'E-mail address'),
+  phoneNumbers: new StringArrayField(
+    'phoneNumbers',
+    'Phone number'
   ),
 
   // This field is just for filtering/searching
