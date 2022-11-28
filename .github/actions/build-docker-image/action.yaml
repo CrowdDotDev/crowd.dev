@@ -14,9 +14,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Check out repository code
-      uses: actions/checkout@v2
-
     - name: Get short commit sha hash
       uses: benjlevesque/short-sha@v2.1
       id: short-sha

@@ -16,6 +16,9 @@ jobs:
         shell: bash
 
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
@@ -31,6 +34,9 @@ jobs:
         shell: bash
 
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
@@ -47,6 +53,9 @@ jobs:
         shell: bash
 
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
       - uses: ./.github/actions/deploy-service
         with:
           service: frontend
@@ -61,6 +70,9 @@ jobs:
         shell: bash
 
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
       - uses: ./.github/actions/deploy-service
         with:
           service: frontend-dev
