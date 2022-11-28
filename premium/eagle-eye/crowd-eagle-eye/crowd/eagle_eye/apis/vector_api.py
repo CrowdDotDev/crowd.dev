@@ -37,7 +37,7 @@ class VectorAPI:
         self.client = QdrantClient(host=host, port=port)
 
         if do_init:
-            self.index = self.client.recreate_collection(
+            self.client = self.client.recreate_collection(
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
             )

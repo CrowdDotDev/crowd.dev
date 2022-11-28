@@ -29,7 +29,7 @@ for filter in filters:
 
     vectors = []
 
-    vectorAPI = VectorAPI()
+    vectorAPI = VectorAPI(do_init=True)
     embedAPI = EmbedAPI()
 
     for i, match in enumerate(query_response['matches']):
