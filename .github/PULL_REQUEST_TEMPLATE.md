@@ -6,7 +6,7 @@
 
 ## Checklist ✅
 
-- [ ] Label appropriately with `type:feature 🚀`, `type:enhancement ✨`, `type:bug 🐞`, or `type:documentation 📜`.
+- [ ] Label appropriately with `Feature`, `Enhancement`, or `Bug`.
 - [ ] Tests are passing.
 - [ ] New backend functionality has been unit-tested.
 - [ ] Environment variables have been updated:
