@@ -34,9 +34,11 @@ jobs:
 
       - name: Build and push docker image
         working-directory: ./scripts
-        env:
-          SHORT_SHA: ${{ steps.short-sha.outputs.sha }}
         run: ./cli build-and-push frontend ${{ env.IMAGE_VERSION }}
+
+      - name: Build and push dev docker image
+        working-directory: ./scripts
+        run: ./cli build-and-push frontend-dev ${{ env.IMAGE_VERSION }}
 
       - name: Set docker image version
         run: echo "IMAGE_VERSION=${{ env.IMAGE_VERSION }}" >> $GITHUB_OUTPUT
@@ -48,6 +50,12 @@ jobs:
     steps:
       - name: Initialize staging kubernetes kubectl context
         run: aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.STAGING_CLUSTER_NAME }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Deploy image
         run: kubectl set image deployments/frontend-dpl frontend=crowddotdev/frontend:${{ needs.build-and-push.outputs.IMAGE_VERSION }}
+
+      - name: Deploy dev image
+        run: kubectl set image deployments/frontend-dev-dpl frontend-dev=crowddotdev/frontend-dev:${{ needs.build-and-push.outputs.IMAGE_VERSION }}
