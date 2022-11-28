@@ -1,11 +1,11 @@
-name: Staging Deploy Frontend service
+name: Staging Deploy Premium Python Backend services
 
 on:
   push:
     branches:
       - 'staging/**'
     paths:
-      - 'frontend/**'
+      - 'premium/eagle-eye/**'
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -31,34 +31,13 @@ jobs:
       - uses: ./.github/actions/build-docker-image
         id: image-builder
         with:
-          image: frontend
+          image: premium-python-backend
 
       - name: Set docker image output
         id: image
         run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-  build-and-push-dev:
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.image.outputs.IMAGE }}
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - uses: ./.github/actions/build-docker-image
-        id: image-builder
-        with:
-          image: frontend-dev
-
-      - name: Set docker image output
-        id: image
-        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
-
-  deploy:
+  deploy-premium-python-worker:
     needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
@@ -71,12 +50,12 @@ jobs:
 
       - uses: ./.github/actions/deploy-service
         with:
-          service: frontend
+          service: premium-python-worker
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 
-  deploy-dev:
-    needs: build-and-push-dev
+  deploy-premium-api:
+    needs: build-and-push
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -88,6 +67,6 @@ jobs:
 
       - uses: ./.github/actions/deploy-service
         with:
-          service: frontend-dev
-          image: ${{ needs.build-and-push-dev.outputs.image }}
+          service: premium-api
+          image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
