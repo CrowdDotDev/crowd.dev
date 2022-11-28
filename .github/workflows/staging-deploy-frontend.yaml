@@ -30,7 +30,7 @@ jobs:
           length: 6
 
       - name: Calculate docker image version
-        run: echo "IMAGE_VERSION=${{ github.ref_name }}.${SHORT_SHA}.${{ github.run_attempt }}" >> $GITHUB_ENV
+        run: echo "IMAGE_VERSION=${{ steps.short-sha.outputs.sha }}.${{ github.run_attempt }}" >> $GITHUB_ENV
 
       - name: Build and push docker image
         working-directory: ./scripts
