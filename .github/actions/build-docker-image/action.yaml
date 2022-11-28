@@ -21,12 +21,14 @@ runs:
         length: 6
 
     - run: echo "IMAGE_VERSION=${{ steps.short-sha.outputs.sha }}.${{ github.run_attempt }}" >> $GITHUB_OUTPUT
-      id: version-generator
       shell: bash
+      id: version-generator
 
     - name: Login to docker repository
+      shell: bash
       run: echo ${{ env.DOCKERHUB_PASSWORD }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
 
     - name: Build and push docker image
+      shell: bash
       working-directory: ./scripts
       run: ./cli build-and-push frontend ${{ steps.image-version.outputs.image-version }}
