@@ -16,7 +16,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/build-docker-image
+      - uses: ./.github/actions/build-docker-image.yaml
         id: image-builder
         with:
           image: frontend
@@ -31,7 +31,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/build-docker-image
+      - uses: ./.github/actions/build-docker-image.yaml
         id: image-builder
         with:
           image: frontend-dev
@@ -47,7 +47,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/deploy-docker-image
+      - uses: ./.github/actions/deploy-docker-image.yaml
         with:
           service: frontend
           image: ${{ needs.build-and-push.outputs.IMAGE }}
@@ -61,7 +61,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/deploy-docker-image
+      - uses: ./.github/actions/deploy-docker-image.yaml
         with:
           service: frontend-dev
           image: ${{ needs.build-and-push-dev.outputs.IMAGE }}
