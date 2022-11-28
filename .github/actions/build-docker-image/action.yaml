@@ -25,7 +25,7 @@ runs:
       shell: bash
 
     - name: Login to docker repository
-      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      run: echo ${{ env.DOCKERHUB_PASSWORD }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
 
     - name: Build and push docker image
       working-directory: ./scripts
