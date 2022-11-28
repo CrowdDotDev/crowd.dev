@@ -1,0 +1,29 @@
+name: Crowd service deployer
+description: Deploys to crowd.dev kubernetes cloud environments
+
+inputs:
+  service:
+    description: Which cloud service to deploy
+    required: true
+
+  image:
+    description: Which docker image to deploy (full docker registry name with tag)
+    required: true
+
+  cluster:
+    description: To which cloud cluster to deploy
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Initialize staging kubernetes kubectl context
+      shell: bash
+      run: aws eks --region ${{ env.AWS_REGION }} update-kubeconfig --name ${{ inputs.cluster }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Deploy image
+      shell: bash
+      run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}

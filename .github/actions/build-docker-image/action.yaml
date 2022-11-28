@@ -1,0 +1,34 @@
+name: Crowd docker image builder
+description: Builds and pushes crowd docker images
+
+inputs:
+  image:
+    description: Which docker image to build
+    required: true
+
+outputs:
+  image:
+    description: Image that was built
+    value: crowddotdev/${{ inputs.image }}:${{ steps.version-generator.outputs.IMAGE_VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get short commit sha hash
+      uses: benjlevesque/short-sha@v2.1
+      id: short-sha
+      with:
+        length: 6
+
+    - run: echo "IMAGE_VERSION=${{ steps.short-sha.outputs.sha }}.${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+      shell: bash
+      id: version-generator
+
+    - name: Login to docker repository
+      shell: bash
+      run: echo ${{ env.DOCKERHUB_PASSWORD }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
+
+    - name: Build and push docker image
+      shell: bash
+      working-directory: ./scripts
+      run: ./cli build-and-push ${{ inputs.image }} ${{ steps.version-generator.outputs.IMAGE_VERSION }}
