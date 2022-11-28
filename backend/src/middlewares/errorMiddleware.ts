@@ -3,7 +3,6 @@ import express from 'express'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export async function errorMiddleware(error, req, res, next) {
-  console.log('error middleware', error)
   await req.responseHandler.error(req, res, error)
 }
 
