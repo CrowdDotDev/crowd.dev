@@ -1,0 +1,28 @@
+name: Docker image version generator
+description: Generates a docker image version tag to use when building and pushing images
+
+inputs:
+  service:
+    description: Which cloud service to deploy
+    required: true
+
+  image:
+    description: Which docker image to deploy (full docker registry name with tag)
+    required: true
+
+  cluster:
+    description: To which cloud cluster to deploy
+    required: true
+    default: ${{ secrets.STAGING_CLUSTER_NAME }}
+
+runs:
+  using: composite
+  steps:
+    - name: Initialize staging kubernetes kubectl context
+      run: aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ inputs.cluster }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Deploy image
+      run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}

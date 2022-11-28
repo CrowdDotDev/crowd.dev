@@ -14,48 +14,55 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./frontend
 
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - name: Login to docker repository
-        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-
-      - name: Get short commit sha hash
-        uses: benjlevesque/short-sha@v2.1
-        id: short-sha
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
         with:
-          length: 6
+          image: frontend
 
-      - name: Calculate docker image version
-        run: echo "IMAGE_VERSION=${{ steps.short-sha.outputs.sha }}.${{ github.run_attempt }}" >> $GITHUB_ENV
+      - name: Set docker image output
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
-      - name: Build and push docker image
-        working-directory: ./scripts
-        run: ./cli build-and-push frontend ${{ env.IMAGE_VERSION }}
+  build-and-push-dev:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
-      - name: Build and push dev docker image
-        working-directory: ./scripts
-        run: ./cli build-and-push frontend-dev ${{ env.IMAGE_VERSION }}
+    steps:
+      - uses: ./.github/actions/build-docker-image
+        id: image-builder
+        with:
+          image: frontend-dev
 
-      - name: Set docker image version
-        run: echo "IMAGE_VERSION=${{ env.IMAGE_VERSION }}" >> $GITHUB_OUTPUT
+      - name: Set docker image output
+        run: echo "IMAGE=${{ steps.image-builder.outputs.image }}" >> $GITHUB_OUTPUT
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
     steps:
-      - name: Initialize staging kubernetes kubectl context
-        run: aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.STAGING_CLUSTER_NAME }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - uses: ./.github/actions/deploy-docker-image
+        with:
+          service: frontend
+          image: ${{ needs.build-and-push.outputs.IMAGE }}
+          cluster: ${{ secrets.STAGING_CLUSTER_NAME }}
 
-      - name: Deploy image
-        run: kubectl set image deployments/frontend-dpl frontend=crowddotdev/frontend:${{ needs.build-and-push.outputs.IMAGE_VERSION }}
+  deploy-dev:
+    needs: build-and-push-dev
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
-      - name: Deploy dev image
-        run: kubectl set image deployments/frontend-dev-dpl frontend-dev=crowddotdev/frontend-dev:${{ needs.build-and-push.outputs.IMAGE_VERSION }}
+    steps:
+      - uses: ./.github/actions/deploy-docker-image
+        with:
+          service: frontend-dev
+          image: ${{ needs.build-and-push-dev.outputs.IMAGE }}
+          cluster: ${{ secrets.STAGING_CLUSTER_NAME }}

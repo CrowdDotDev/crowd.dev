@@ -1,0 +1,35 @@
+name: Docker image version generator
+description: Generates a docker image version tag to use when building and pushing images
+
+inputs:
+  image:
+    description: Which docker image to build
+    required: true
+
+outputs:
+  image:
+    description: Image that was built
+    value: crowddotdev/${{ inputs.image }}.${{ steps.version-generator.outputs.IMAGE_VERSION }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check out repository code
+      uses: actions/checkout@v2
+
+    - name: Get short commit sha hash
+      uses: benjlevesque/short-sha@v2.1
+      id: short-sha
+      with:
+        length: 6
+
+    - run: echo "IMAGE_VERSION=${{ steps.short-sha.outputs.sha }}.${{ github.run_attempt }}" >> $GITHUB_OUTPUT
+      id: version-generator
+      shell: bash
+
+    - name: Login to docker repository
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+    - name: Build and push docker image
+      working-directory: ./scripts
+      run: ./cli build-and-push frontend ${{ steps.image-version.outputs.image-version }}
