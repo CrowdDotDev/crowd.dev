@@ -10,8 +10,39 @@
           size="xl"
           class="mr-4"
         />
-        <div class="flex items-center">
+        <div>
           <h5>{{ organization.name }}</h5>
+          <div
+            class="text-sm text-gray-600 flex items-center"
+          >
+            <div
+              v-if="organization.website"
+              class="flex items-center"
+            >
+              <i class="ri-link mr-1"></i>
+              <a
+                :href="organization.website"
+                target="_blank"
+                class="text-gray-600"
+                >{{ organization.website }}</a
+              >
+            </div>
+            <span
+              v-if="
+                organization.website &&
+                organization.location
+              "
+              class="mx-2"
+              >·</span
+            >
+            <div
+              v-if="organization.location"
+              class="flex items-center"
+            >
+              <i class="ri-map-pin-2-line mr-1"></i>
+              <span>{{ organization.location }}</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="flex items-center">
@@ -87,7 +118,7 @@
           {{
             formattedInformation(
               organization.revenueRange,
-              'number'
+              'revenueRange'
             )
           }}
         </p>
@@ -125,7 +156,8 @@ import {
 } from '@/utils/date'
 import {
   formatNumber,
-  formatNumberToCompact
+  formatNumberToCompact,
+  formatRevenueRange
 } from '@/utils/number'
 
 defineProps({
@@ -159,6 +191,8 @@ const formattedInformation = (value, type) => {
     return formatDateToTimeAgo(value)
   } else if (type === 'compact') {
     return formatNumberToCompact(value)
+  } else if (type === 'revenueRange') {
+    return formatRevenueRange(value)
   }
 
   return value

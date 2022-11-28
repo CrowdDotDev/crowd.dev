@@ -33,7 +33,10 @@
         :label="fields.revenueRange.label"
         class="w-1/2"
       >
-        <el-select v-model="model" value-key="min">
+        <el-select
+          v-model="model[fields.revenueRange.name]"
+          value-key="min"
+        >
           <el-option
             v-for="option in revenueOptions"
             :key="option.id"

@@ -51,3 +51,11 @@ export const formatNumberToRange = (number) => {
     return '10001+'
   }
 }
+
+export const formatRevenueRange = (range) => {
+  const min =
+    range.min > 1000 ? `$${range.min}B` : `$${range.min}B`
+  const max =
+    range.max > 1000 ? `$${range.max}B` : `$${range.max}B`
+  return `${min}-${max}`
+}
