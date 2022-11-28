@@ -115,6 +115,7 @@
 <script>
 import { mapActions } from 'vuex'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import isUrl from './helpers/isUrl'
 
 export default {
   name: 'AppHackerNewsConnectDrawer',
@@ -177,7 +178,8 @@ export default {
 
       const validKeywords = this.keywords.filter((k) => !!k)
 
-      const empty = validUrls.length === 0 && validKeywords.length === 0
+      const empty =
+        validUrls.length === 0 && validKeywords.length === 0
       if (this.integration.settings && !empty) {
         return (
           validUrls.length ===
@@ -252,18 +254,8 @@ export default {
       url.url = url.url.replace('https://', '')
       url.url = url.url.replace('http://', '')
 
-      const urlPattern = new RegExp(
-        '^(https?:\\/\\/)?' + // validate protocol
-          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // validate domain name
-          '((\\d{1,3}\\.){3}\\d{1,3}))' + // validate OR ip (v4) address
-          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // validate port and path
-          '(\\?[;&a-z\\d%_.~+=-]*)?' + // validate query string
-          '(\\#[-a-z\\d_]*)?$',
-        'i'
-      ) // validate fragment locator
+      const isValid = isUrl(url.url)
 
-      // Check the URL is a valid URL
-      const isValid = !!urlPattern.test(url.url)
       url.valid = isValid && !!url.url
       url.validating = false
       url.touched = true

@@ -76,7 +76,11 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         value: a.toString(),
         metadata: {
           ...stream.metadata,
-          ...(!post.parent && { parentId: post.id.toString(), parentTitle: post.title || post.text }) || {},
+          ...((!post.parent && {
+            parentId: post.id.toString(),
+            parentTitle: post.title || post.text,
+          }) ||
+            {}),
         },
       }))
     }
@@ -84,12 +88,16 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     let activities: AddActivitiesSingle[]
     if (!post.text && !post.url) {
       activities = []
-    }
-    else {
-      const parsedPost = this.parsePost(context.integration.tenantId, stream.metadata.channel, post, stream.metadata.parentId, stream.metadata.parentTitle)
+    } else {
+      const parsedPost = this.parsePost(
+        context.integration.tenantId,
+        stream.metadata.channel,
+        post,
+        stream.metadata.parentId,
+        stream.metadata.parentTitle,
+      )
       activities = [parsedPost]
     }
-
 
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
@@ -109,7 +117,13 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  parsePost(tenantId, channel, post: HackerNewsResponse, parentId, parentTitle): AddActivitiesSingle {
+  parsePost(
+    tenantId,
+    channel,
+    post: HackerNewsResponse,
+    parentId,
+    parentTitle,
+  ): AddActivitiesSingle {
     const type = post.parent ? 'comment' : 'post'
     const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
     const body =

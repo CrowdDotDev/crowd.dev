@@ -59,7 +59,7 @@
         tooltip-label="Hacker News profile"
         :href="member.attributes?.url?.hackernews || null"
         :as-link="true"
-        />
+      />
     </div>
   </div>
 </template>

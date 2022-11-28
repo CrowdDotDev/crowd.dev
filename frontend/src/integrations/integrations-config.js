@@ -27,7 +27,7 @@ class IntegrationsConfig {
       reddit,
       linkedin,
       zapier,
-      ...(!config.hasPremiumModules && { make }),
+      ...(!config.hasPremiumModules && { make })
     }
   }
 
