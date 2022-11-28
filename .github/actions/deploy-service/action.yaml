@@ -1,5 +1,5 @@
-name: Docker image version generator
-description: Generates a docker image version tag to use when building and pushing images
+name: Crowd service deployer
+description: Deploys to crowd.dev kubernetes cloud environments
 
 inputs:
   service:
