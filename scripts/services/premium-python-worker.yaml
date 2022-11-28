@@ -10,7 +10,7 @@ services:
     build:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
-    command: ['python', '-u', 'worker.py']
+    command: ['./start-premium-python-worker.sh']
     env_file:
       - ../../backend/.env.dist.local
       - ../../backend/.env.dist.composed
@@ -26,7 +26,7 @@ services:
     build:
       context: ../premium/eagle-eye
       dockerfile: Dockerfile.kube
-    command: ['python', '-u', 'worker.py']
+    command: ['./start-premium-python-worker.sh']
     user: '${USER_ID}:${GROUP_ID}'
     env_file:
       - ../../backend/.env.dist.local
