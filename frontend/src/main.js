@@ -15,6 +15,7 @@ import VueGridLayout from 'vue-grid-layout'
 import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Vue3Sanitize from 'vue-3-sanitize'
+import LogRocket from 'logrocket'
 
 import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
@@ -25,9 +26,13 @@ i18nInit()
  * (We should probably revisit/refactor this later to be less confusing)
  */
 ;(async function () {
+  if (config.env === 'production') {
+    LogRocket.init('nm6fil/crowddev')
+  }
+
   const app = createApp(App)
   const router = await createRouter()
-  const store = await createStore()
+  const store = await createStore(LogRocket)
 
   AuthToken.applyFromLocationUrlIfExists()
   await TenantService.fetchAndApply()
