@@ -2,7 +2,6 @@
   <div class="grid gap-x-12 grid-cols-3">
     <h6>Identities</h6>
     <div class="col-span-2 organization-identities-form">
-      <!-- TODO: We need to refactor this later to use app-platform components instead -->
       <div
         v-for="platform of platforms"
         :key="platform.name"
@@ -39,11 +38,7 @@
       </div>
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
-          <div
-            class="platform-logo platform-logo--email mr-3"
-          >
-            <i class="ri-mail-line"></i>
-          </div>
+          <app-platform platform="email" />
           <div class="font-medium text-sm">
             Email address
           </div>
@@ -56,11 +51,7 @@
       </div>
       <div class="flex items-start justify-between mt-16">
         <div class="flex items-center">
-          <div
-            class="platform-logo platform-logo--email mr-3"
-          >
-            <i class="ri-phone-fill"></i>
-          </div>
+          <app-platform platform="phone" />
           <div class="font-medium text-sm">
             Phone number
           </div>

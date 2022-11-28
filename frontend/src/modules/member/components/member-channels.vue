@@ -50,6 +50,7 @@
     </div>
 
     <el-divider
+      v-if="member.email"
       direction="vertical"
       class="border-gray-200 m-0 h-8"
     />

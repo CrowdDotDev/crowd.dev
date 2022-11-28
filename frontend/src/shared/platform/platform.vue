@@ -30,6 +30,10 @@
         v-if="platform === 'email'"
         class="ri-mail-line"
       ></i>
+      <i
+        v-else-if="platform === 'phone'"
+        class="ri-phone-fill"
+      ></i>
       <img
         v-else
         :src="imageProperties.image"
@@ -43,7 +47,16 @@
       :class="getIconClass(platform)"
       @click.stop
     >
+      <i
+        v-if="platform === 'email'"
+        class="ri-mail-line"
+      ></i>
+      <i
+        v-else-if="platform === 'phone'"
+        class="ri-phone-fill"
+      ></i>
       <img
+        v-else
         :src="imageProperties.image"
         :alt="imageProperties.name"
         class="member-channels-icon"
@@ -104,7 +117,7 @@ const trackClick = () => {
 }
 
 const getIconClass = (platform) => {
-  if (platform === 'email') {
+  if (platform === 'email' || platform === 'phone') {
     return 'leading-none cursor-pointer bg-white text-gray-600 hover:!text-gray-600 border border-gray-200'
   } else if (platform === 'twitter') {
     return 'btn--twitter'

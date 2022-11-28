@@ -273,10 +273,22 @@ function getInitialModel(record) {
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
         employees: record ? record.employees : null,
-        github: record ? record.github : {},
-        twitter: record ? record.twitter : {},
-        linkedin: record ? record.linkedin : {},
-        crunchbase: record ? record.crunchbase : {},
+        github:
+          record && record.github
+            ? record.github.handle
+            : '',
+        twitter:
+          record && record.twitter
+            ? record.twitter.handle
+            : '',
+        linkedin:
+          record && record.linkedin
+            ? record.linkedin.handle
+            : '',
+        crunchbase:
+          record && record.crunchbase
+            ? record.crunchbase.handle
+            : '',
         revenueRange: record ? record.revenueRange : {},
         emails: record ? record.emails : [''],
         phoneNumbers: record ? record.phoneNumbers : ['']
@@ -314,6 +326,22 @@ async function onSubmit() {
           return acc
         },
         []
+      ),
+      github: platformPayload(
+        'github',
+        formModel.value.github
+      ),
+      linkedin: platformPayload(
+        'linkedin',
+        formModel.value.linkedin
+      ),
+      twitter: platformPayload(
+        'twitter',
+        formModel.value.twitter
+      ),
+      crunchbase: platformPayload(
+        'crunchbase',
+        formModel.value.crunchbase
       )
     }
   )
@@ -327,6 +355,16 @@ async function onSubmit() {
   await store.dispatch(action, payload)
   isFormSubmitting.value = false
   wasFormSubmittedSuccessfuly.value = true
+}
+function platformPayload(platform, value) {
+  if (value && value !== '') {
+    return {
+      handle: value,
+      url: `https://${platform}.com/${value}`
+    }
+  } else {
+    return undefined
+  }
 }
 </script>
 
