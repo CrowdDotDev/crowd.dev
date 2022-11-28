@@ -1,0 +1,53 @@
+name: Staging Deploy Frontend
+
+on:
+  push:
+    branches:
+      - 'staging/**'
+      - feature/ci-cd-staging-C-196
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./frontend
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Login to docker repository
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Get short commit sha hash
+        uses: benjlevesque/short-sha@v2.1
+        id: short-sha
+        with:
+          length: 6
+
+      - name: Calculate docker image version
+        run: echo "IMAGE_VERSION=${{ github.ref_name }}.${SHORT_SHA}.${{ github.run_attempt }}" >> $GITHUB_ENV
+
+      - name: Build and push docker image
+        working-directory: ./scripts
+        env:
+          SHORT_SHA: ${{ steps.short-sha.outputs.sha }}
+        run: ./cli build-and-push frontend ${{ env.IMAGE_VERSION }}
+
+      - name: Set docker image version
+        run: echo "IMAGE_VERSION=${{ env.IMAGE_VERSION }}" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Initialize staging kubernetes kubectl context
+        run: aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.STAGING_CLUSTER_NAME }}
+
+      - name: Deploy image
+        run: kubectl set image deployments/frontend-dpl frontend=crowddotdev/frontend:${{ needs.build-and-push.outputs.IMAGE_VERSION }}

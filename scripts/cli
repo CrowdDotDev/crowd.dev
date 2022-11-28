@@ -88,7 +88,7 @@ function create_migration() {
 }
 
 function build_and_publish() {
-    VERSION="$3"
+    VERSION="$2"
 
     if [[ -z "${VERSION}" ]]; then
         COMMIT_HASH=`git rev-parse --short HEAD`
