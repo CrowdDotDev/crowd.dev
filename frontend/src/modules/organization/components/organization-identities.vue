@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center gap-3">
-    <div class="flex items-center gap-2">
+    <div
+      v-if="hasSocialIdentities"
+      class="flex items-center gap-2"
+    >
       <!-- Github -->
       <app-platform
         v-if="organization.identities.includes('github')"
@@ -69,7 +72,7 @@
     </div>
 
     <el-divider
-      v-if="!!organization.emails?.length"
+      v-if="showDivider"
       direction="vertical"
       class="border-gray-200 m-0 h-8"
     />
@@ -98,12 +101,27 @@ export default {
 </script>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, computed } from 'vue'
 
-defineProps({
+const props = defineProps({
   organization: {
     type: Object,
     required: true
   }
 })
+
+const hasSocialIdentities = computed(() =>
+  props.organization.identities.some(
+    (i) =>
+      i === 'github' ||
+      i === 'linkedin' ||
+      i === 'twitter' ||
+      i === 'crunchbase'
+  )
+)
+const showDivider = computed(
+  () =>
+    !!props.organization.emails?.length &&
+    hasSocialIdentities.value
+)
 </script>

@@ -13,7 +13,11 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
-      url: {
+      website: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      location: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
@@ -43,6 +47,10 @@ export default (sequelize) => {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
         default: [],
+      },
+      github: {
+        type: DataTypes.JSONB,
+        default: {},
       },
       twitter: {
         type: DataTypes.JSONB,

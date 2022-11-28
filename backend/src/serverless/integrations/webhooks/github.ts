@@ -379,6 +379,7 @@ export default class GitHubWebhook {
               location: fromAPI.location ?? null,
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
+              github: { handle: fromAPI.resourcePath },
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
             },
           ]

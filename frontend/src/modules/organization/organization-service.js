@@ -4,16 +4,11 @@ import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
 
 export class OrganizationService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${id}`,
-      body
+      data
     )
 
     return response.data

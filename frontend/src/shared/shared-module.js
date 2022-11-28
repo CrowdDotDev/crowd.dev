@@ -11,6 +11,7 @@ import ViewItemCustom from '@/shared/view/view-item-custom.vue'
 import ListItemImage from '@/shared/list/list-item-image.vue'
 import ListItemFile from '@/shared/list/list-item-file.vue'
 import NumberRangeInput from '@/shared/form/number-range-input.vue'
+import StringArrayInput from '@/shared/form/string-array-input.vue'
 import AutocompleteOneInput from '@/shared/form/autocomplete-one-input.vue'
 import AutocompleteManyInput from '@/shared/form/autocomplete-many-input.vue'
 import KeywordsInput from '@/shared/form/keywords-input.vue'
@@ -64,6 +65,7 @@ export default {
     'app-number-range-input': NumberRangeInput,
     'app-autocomplete-one-input': AutocompleteOneInput,
     'app-autocomplete-many-input': AutocompleteManyInput,
+    'app-string-array-input': StringArrayInput,
     'app-view-item-relation-to-one': ViewItemRelationToOne,
     'app-view-item-relation-to-many':
       ViewItemRelationToMany,
