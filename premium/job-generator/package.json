@@ -2,7 +2,6 @@
   "name": "premium-job-generator",
   "description": "Premium job generator",
   "private": true,
-  "version": "0.0.1",
   "scripts": {
     "start": "ts-node --transpile-only ./src/job-generator.ts",
     "start:dev": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/job-generator.ts\""

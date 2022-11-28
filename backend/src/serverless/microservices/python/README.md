@@ -28,5 +28,3 @@ In order to start developing, the environment needs to be prepared and some hook
 - Setup the pre-push testing hook on Unix `make` or on Unix/Windows `cp hooks/pre-push .git/hooks`
 - TODO setup ENV variables
 - verify that everything works with running `pytest`
-
-test
