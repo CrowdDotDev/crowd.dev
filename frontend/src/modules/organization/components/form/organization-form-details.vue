@@ -54,35 +54,12 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item
-        :label="fields.joinedAt.label"
-        class="w-1/2"
-      >
-        <el-date-picker
-          v-model="model[fields.joinedAt.name]"
-          :prefix-icon="CalendarIcon"
-          :clearable="false"
-          class="custom-date-picker"
-          popper-class="date-picker-popper"
-          type="date"
-          placeholder="YYYY-MM-DD"
-        />
-      </el-form-item>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineEmits, defineProps, computed, h } from 'vue'
-
-const CalendarIcon = h(
-  'i', // type
-  {
-    class:
-      'ri-calendar-line text-base leading-none text-gray-400'
-  }, // props
-  []
-)
+import { defineEmits, defineProps, computed } from 'vue'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({

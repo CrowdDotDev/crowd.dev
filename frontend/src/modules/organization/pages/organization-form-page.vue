@@ -157,7 +157,6 @@ const formSchema = new FormSchema([
   fields.twitter,
   fields.linkedin,
   fields.crunchbase,
-  fields.joinedAt,
   fields.emails,
   fields.phoneNumbers
 ])

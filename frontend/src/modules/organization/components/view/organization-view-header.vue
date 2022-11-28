@@ -179,8 +179,11 @@ const formattedInformation = (value, type) => {
         moment().subtract(40, 'years')
       )) ||
     // If range is not set for revenue
-    (type === 'revenueRange' && !value.min) ||
-    !value.max
+    (type === 'revenueRange' &&
+      (value.min === undefined ||
+        value.max === undefined ||
+        value.min === null ||
+        value.max === null))
   ) {
     return '-'
   }
