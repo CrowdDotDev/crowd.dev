@@ -175,7 +175,7 @@ export default class GitHubWebhook {
       integration.token,
     )
     if (member) {
-      const starredAt = moment(this.payload.starred_at).utc()
+      const starredAt = type === GithubActivityType.STAR ? moment(this.payload.starred_at).utc() : moment().utc()
       return {
         member,
         type,
