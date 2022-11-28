@@ -1,5 +1,6 @@
 {
   "name": "app-backend",
+  "version": "0.0.1",
   "description": "Backend",
   "scripts": {
     "start:api": "ts-node --transpile-only ./src/bin/api.ts",

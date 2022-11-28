@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'staging/**'
+      - 'feature/ci-cd-staging-C-196'
     paths:
       - 'frontend/**'
 
