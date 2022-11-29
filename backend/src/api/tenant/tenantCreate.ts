@@ -16,6 +16,8 @@ export default async (req, res) => {
     {
       id: payload.id,
       name: payload.name,
+      integrationsRequired: payload.integrationsRequired.map((i) => i.toLowerCase()),
+      communitySize: payload.communitySize,
     },
     { ...req },
   )
