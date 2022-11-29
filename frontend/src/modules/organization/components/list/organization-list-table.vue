@@ -113,12 +113,20 @@
                 <template #default="scope">
                   <div class="text-sm">
                     <a
-                      v-if="scope.row.url"
+                      v-if="
+                        scope.row.website || scope.row.url
+                      "
                       class="text-gray-500 hover:!text-brand-500"
-                      :href="scope.row.url || null"
+                      :href="
+                        scope.row.website ||
+                        scope.row.url ||
+                        null
+                      "
                       target="_blank"
                       @click.stop
-                      >{{ scope.row.url }}</a
+                      >{{
+                        scope.row.website || scope.row.url
+                      }}</a
                     >
                     <span v-else class="text-gray-500"
                       >-</span
