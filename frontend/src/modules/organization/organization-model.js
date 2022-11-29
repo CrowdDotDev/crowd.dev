@@ -6,9 +6,11 @@ import StringField from '@/shared/fields/string-field'
 import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field'
 import OrganizationEmployeesField from '@/modules/organization/organization-employees-field'
 import SearchField from '@/shared/fields/search-field'
+import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
 import JsonField from '@/shared/fields/json-field'
 import StringArrayField from '@/shared/fields/string-array-field'
+import IntegerField from '@/shared/fields/integer-field'
 
 function label(name) {
   return i18n(`entities.organization.fields.${name}`)
@@ -48,9 +50,23 @@ const fields = {
       filterable: true
     }
   ),
+  activityCount: new IntegerField(
+    'activityCount',
+    '# of activities',
+    {
+      filterable: true
+    }
+  ),
   revenueRange: new JsonField(
     'revenueRange',
     label('revenueRange')
+  ),
+  joinedAt: new ActivityDateField(
+    'joinedAt',
+    'Active since',
+    {
+      filterable: true
+    }
   ),
   activeOn: new OrganizationPlatformField(
     'activeOn',

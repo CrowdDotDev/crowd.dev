@@ -50,8 +50,9 @@
                 v-loading="true"
                 class="w-4 h-4 mr-2"
               ></div>
-              Finishing your workspace setup, data might
-              take a few minutes until is completely loaded.
+              Finishing your workspace setup. The data might
+              take a few minutes until it is completely
+              loaded.
             </div>
           </banner>
         </div>

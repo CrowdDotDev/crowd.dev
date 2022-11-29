@@ -24,7 +24,7 @@ export default async (req, res) => {
   const payload = await new OrganizationService(req).query(req.body)
 
   if (req.query.filter && Object.keys(req.query.filter).length > 0) {
-    track('Organizations Advanced Fitler', { ...payload }, { ...req })
+    track('Organizations Advanced Filter', { ...payload }, { ...req })
   }
 
   await req.responseHandler.success(req, res, payload)
