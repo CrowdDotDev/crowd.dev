@@ -25,6 +25,7 @@ class OrganizationCacheRepository {
           'employees',
           'revenueRange',
           'importHash',
+          'enriched',
         ]),
       },
       {
@@ -68,6 +69,7 @@ class OrganizationCacheRepository {
           'employees',
           'revenueRange',
           'importHash',
+          'enriched',
         ]),
       },
       {

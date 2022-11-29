@@ -674,7 +674,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'Crowd.dev',
+        name: 'crowd.dev',
         url: 'crowd.dev',
         description:
           'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
