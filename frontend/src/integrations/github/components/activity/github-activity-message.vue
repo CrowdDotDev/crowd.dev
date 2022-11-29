@@ -18,7 +18,7 @@
   >
   <a
     v-if="!short && activity.channel"
-    :href="activity.url"
+    :href="activity.channel"
     target="_blank"
     class="ml-1 text-brand-500"
   >

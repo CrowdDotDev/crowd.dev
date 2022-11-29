@@ -51,7 +51,11 @@
               class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
               :show-more="true"
-            />
+              ><div v-if="activity.url" class="pt-6">
+                <app-activity-link
+                  :activity="activity"
+                /></div
+            ></app-activity-content>
           </div>
           <template #dot>
             <span
@@ -111,6 +115,7 @@ import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import { formatDateToTimeAgo } from '@/utils/date'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppActivityLink from '@/modules/activity/components/activity-link'
 
 const SearchIcon = h(
   'i', // type
