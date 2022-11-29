@@ -1,6 +1,7 @@
 from crowd.eagle_eye.apis.vector_api import VectorAPI
 from crowd.eagle_eye.apis.embed_api import EmbedAPI
 from crowd.eagle_eye.models import Vector, Payload
+import json
 import pinecone
 import os
 
@@ -44,10 +45,10 @@ for filter in filters:
             if len(match['metadata']['text']) > 200:
                 text = match['metadata']['url']
 
-        sourceId = match['metadata']['sourceId']
-
+        sourceId_with_platform = match['metadata']['sourceId']
+        sourceId = sourceId_with_platform[sourceId_with_platform.find(':') + 1:]
         payload = Payload(
-            id=Vector.make_id(match['metadata']['platform'], sourceId[sourceId.find(':') + 1:]),
+            id=sourceId,
             platform=match['metadata']['platform'],
             title=match['metadata']['title'],
             username=match['metadata']['username'],
@@ -55,9 +56,9 @@ for filter in filters:
             destination_url=match['metadata']['destination_url'],
             url=match['metadata']['url'],
             text=text,
-            postAttributes=match['metadata'].get('postAttributes', ),
-            userAttributes=match['metadata'].get('userAttributes', {})
+            postAttributes=json.loads(match['metadata'].get('postAttributes', {})),
+            userAttributes=json.loads(match['metadata'].get('userAttributes', {}))
         )
         combined = f'{match["metadata"]["title"]} {text}'
-        vector = Vector(match['id'], payload, combined, embedAPI.embed_one(combined))
+        vector = Vector(sourceId, payload, combined, embedAPI.embed_one(combined))
         vectors.append(vector)

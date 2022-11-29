@@ -4,6 +4,7 @@ import { Logger } from '../../../../utils/logging'
 
 async function getPost(input: string, logger: Logger): Promise<HackerNewsResponse> {
   try {
+    logger.info({ message: 'Fetching post from Hacker News', input })
     const postUrl = `https://hacker-news.firebaseio.com/v0/item/${input}.json`
     const postConfig = {
       method: 'get',
@@ -26,7 +27,7 @@ async function getPost(input: string, logger: Logger): Promise<HackerNewsRespons
       user: userResponse,
     }
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting messages from Discord')
+    logger.error({ err, input }, 'Error while getting post')
     throw err
   }
 }

@@ -7,8 +7,7 @@ const log = createServiceChildLogger('Eagle-eye Refresh Job')
 
 const job: CrowdJob = {
   name: 'Eagle-eye Refresh Job',
-  // TODO: Change this to a 1 hour
-  cronTime: cronGenerator.every(1).minutes(),
+  cronTime: cronGenerator.every(1).hour(),
   onTrigger: async () => {
     // HackerNews should stay first so the integration will work quickly
     try {
