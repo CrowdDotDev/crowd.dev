@@ -412,8 +412,6 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     context.integration.refreshToken = profileWithNewTokens.refreshToken
     context.integration.token = profileWithNewTokens.accessToken
 
-    console.log('New tokens', context.integration.token, context.integration.refreshToken)
-
     context.pipelineData = {
       ...context.pipelineData,
       profileId: context.integration.integrationIdentifier,
