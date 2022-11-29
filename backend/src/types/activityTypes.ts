@@ -11,3 +11,8 @@ export enum GithubActivityType {
   ISSUE_COMMENT = 'issue-comment',
   DISCUSSION_COMMENT = 'discussion-comment',
 }
+
+export enum HackerNewsActivityType {
+  POST = 'post',
+  COMMENT = 'comment',
+}

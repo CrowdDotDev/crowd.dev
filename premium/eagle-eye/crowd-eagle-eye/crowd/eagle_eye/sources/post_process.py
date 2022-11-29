@@ -19,7 +19,6 @@ def filter_existing(data, ids):
     Returns:
         _type_: _description_
     """
-    # TODO-test
     filtered = [point for point in data if point.id not in ids]
     logger.info(f"Filtered {len(data) - len(filtered)} points")
     return filtered

@@ -81,12 +81,6 @@ def search_main(queries, ndays, exclude, exact_keywords):
         for returned_point in results:
             out.append(transform(query, returned_point.id, returned_point.score, returned_point.payload))
     out = remove_duplicates(out)
-    # TODO: Remove
-    from pprint import pprint
-    out = sorted(out, key=lambda x: x['similarityScore'], reverse=True)
-    p = [{'score': point['similarityScore'], 'title': point['title'],
-          'url': point['url'], 'id': point['vectorId']} for point in out]
-    pprint(p)
     return json.dumps(out)
 
 
@@ -111,17 +105,5 @@ def keyword_match_main(ndays, exclude, exact_keywords, platform):
             if keyword in transformed['title'] or keyword in transformed['text']:
                 transformed['keywords'].append(keyword)
         out.append(transformed)
-
-     # TODO: Remove
-    from pprint import pprint
-    out = sorted(out, key=lambda x: x['similarityScore'], reverse=True)
-    p = [{'score': point['similarityScore'], 'title': point['title'],
-          'url': point['url'], 'id': point['vectorId'], 'body': point['text']} for point in out]
-    pprint(p)
     out = remove_duplicates(out)
     return json.dumps(out)
-
-
-if __name__ == '__main__':
-    # search_main(['data-centric nlp'], 7, [79441250, 25615038], exact_keywords=[])
-    keyword_match_main(7, [], exact_keywords=['Alphabet'], platform='hacker_news')

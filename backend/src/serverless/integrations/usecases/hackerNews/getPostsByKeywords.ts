@@ -6,7 +6,7 @@ import { timeout } from '../../../../utils/timing'
 import { IS_DEV_ENV } from '../../../../config'
 import EagleEyeContentService from '../../../../services/eagleEyeContentService'
 
-async function getChannels(
+async function getPostsByKeyword(
   input: EagleEyeInput,
   options: IServiceOptions,
   logger: Logger,
@@ -26,4 +26,4 @@ async function getChannels(
   }
 }
 
-export default getChannels
+export default getPostsByKeyword

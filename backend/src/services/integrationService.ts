@@ -343,7 +343,7 @@ export default class IntegrationService {
   }
 
   /**
-   * Adds/updates Dev.to integration
+   * Adds/updates Hacker News integration
    * @param integrationData  to create the integration object
    * @returns integration object
    */

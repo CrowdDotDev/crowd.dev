@@ -112,9 +112,8 @@ export default class EagleEyeContentService extends LoggingBase {
         this.log.error(error, 'error while calling eagle eye server!')
         throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
       }
-    } else {
-      return [] as EagleEyeSearchOutput
-    }
+    } 
+    return [] as EagleEyeSearchOutput
   }
 
   async keywordMatch(args) {

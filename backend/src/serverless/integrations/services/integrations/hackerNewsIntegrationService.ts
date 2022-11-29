@@ -2,6 +2,7 @@ import sanitizeHtml from 'sanitize-html'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { HackerNewsMemberAttributes } from '../../../../database/attributes/member/hackerNews'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
+import { HackerNewsActivityType } from '../../../../types/activityTypes'
 import {
   IIntegrationStream,
   IProcessStreamResults,
@@ -124,7 +125,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     parentId,
     parentTitle,
   ): AddActivitiesSingle {
-    const type = post.parent ? 'comment' : 'post'
+    const type = post.parent ? HackerNewsActivityType.COMMENT : HackerNewsActivityType.POST
     const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
     const body =
       post.text !== undefined && post.text !== ''
@@ -135,7 +136,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
       sourceId: post.id.toString(),
       ...(post.parent && { sourceParentId: post.parent.toString() }),
       type,
-      platform: 'hackernews',
+      platform: PlatformType.HACKERNEWS,
       timestamp: new Date(post.time * 1000),
       body,
       title: post.title,
@@ -157,7 +158,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
 
     const member = {
       username: post.user.id,
-      platform: 'hackernews',
+      platform: PlatformType.HACKERNEWS,
       displayName: post.user.id,
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
@@ -166,7 +167,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
         [MemberAttributeName.KARMA]: {
           [PlatformType.HACKERNEWS]: post.user.karma,
         },
-        [MemberAttributeName.LOCATION]: {
+        [MemberAttributeName.BIO]: {
           [PlatformType.HACKERNEWS]: post.user.about,
         },
       },
