@@ -21,14 +21,10 @@ async function getMembers(
 
     const response = await axios(config)
     const member = response.data.user
-    const limit = 100
-    const timeUntilReset = 0
     const nextPage = response.data.response_metadata?.next_cursor || ''
     return {
       records: member,
       nextPage,
-      limit,
-      timeUntilReset,
     }
   } catch (err) {
     if (err && err.response && err.response.status === 429 && err.response.headers['Retry-After']) {
