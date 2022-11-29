@@ -44,8 +44,10 @@ for filter in filters:
             if len(match['metadata']['text']) > 200:
                 text = match['metadata']['url']
 
+        sourceId = match['metadata']['sourceId']
+
         payload = Payload(
-            id=match['id'],
+            id=Vector.make_id(match['metadata']['platform'], sourceId[sourceId.find(':') + 1:]),
             platform=match['metadata']['platform'],
             title=match['metadata']['title'],
             username=match['metadata']['username'],

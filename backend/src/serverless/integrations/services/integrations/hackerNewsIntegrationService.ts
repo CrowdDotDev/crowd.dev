@@ -40,7 +40,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const settings = context.integration.settings as HackerNewsIntegrationSettings
 
     const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
-
+    this.logger(context).info(`Fetching posts for keywords: ${keywords}`)
     const posts = await getPostsByKeywords(
       { keywords, nDays: context.onboarding ? 1000000 : 3 },
       context.serviceContext,
