@@ -27,3 +27,7 @@ runs:
     - name: Deploy image
       shell: bash
       run: kubectl set image deployments/${{ inputs.service }}-dpl ${{ inputs.service }}=${{ inputs.image }}
+
+    - uses: ./.github/actions/slack-notify
+      with:
+        message: 'Service *${{ inputs.service }}* was just deployed using `${{ inputs.image }}`'
