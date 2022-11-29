@@ -35,6 +35,10 @@ export const formatNumber = (number) => {
 }
 
 export const formatNumberToRange = (number) => {
+  if (!number) {
+    return '-'
+  }
+
   if (number >= 1 && number <= 10) {
     return '1-10'
   } else if (number >= 11 && number <= 50) {
