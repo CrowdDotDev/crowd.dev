@@ -1,4 +1,5 @@
 import Permissions from '../../security/permissions'
+import track from '../../segment/track'
 import OrganizationService from '../../services/organizationService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
@@ -22,6 +23,8 @@ export default async (req, res) => {
 
   const enrichP = req.body?.shouldEnrich || false
   const payload = await new OrganizationService(req).findOrCreate(req.body, enrichP)
+
+  track('Organization Manually Created', { ...payload }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

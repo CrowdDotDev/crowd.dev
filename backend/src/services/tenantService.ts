@@ -176,9 +176,7 @@ export default class TenantService {
 
       if (data.integrationsRequired) {
         // Convert all to lowercase
-        data.integrationsRequired = data.integrationsRequired.map((item) =>
-          item.toLowerCase(),
-        )
+        data.integrationsRequired = data.integrationsRequired.map((item) => item.toLowerCase())
       }
 
       const record = await TenantRepository.create(data, {
