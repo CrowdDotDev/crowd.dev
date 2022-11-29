@@ -10,6 +10,12 @@
   >
     <template #content>
       <div class="flex flex-col gap-2 items-start mb-2">
+       <span
+          class="text-xs font-light mb-2 text-gray-900"
+        >
+          Monitor mentions of your company or community on the top 500 of Hacker News. <br/>Historical data is available after the 1st of December 2022. For more information, check out our <a href="https://docs.crowd.dev/docs/hacker-news-integration" target="__blank"> docs </a>.
+          
+        </span>
         <span class="text-sm font-medium"
           >Track posts mentioning your company or
           community</span
@@ -20,6 +26,7 @@
           Monitor your company or community being mentioned
           in the top 500 of Hacker News. <br />
           Enter your company and/or community names.
+          
         </span>
         <app-keywords-input
           v-model="keywords"

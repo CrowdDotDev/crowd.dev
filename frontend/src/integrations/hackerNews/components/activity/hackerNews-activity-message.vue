@@ -37,7 +37,7 @@
     ></app-i18n>
     <span v-if="isComment">on a post </span>
     <span v-else
-      >&nbsp;mentioning {{ computedChannel }}
+      >&nbsp;mentioning {{ computedChannelShort }}
     </span>
   </div>
 </template>
@@ -79,6 +79,14 @@ export default {
       if (this.activity.channel.length > 60) {
         return (
           this.activity.channel.substring(0, 60) + '...'
+        )
+      }
+      return this.activity.channel
+    },
+    computedChannelShort() {
+      if (this.activity.channel.length > 8) {
+        return (
+          this.activity.channel.substring(0, 8) + '...'
         )
       }
       return this.activity.channel
