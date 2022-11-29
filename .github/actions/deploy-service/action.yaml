@@ -30,4 +30,4 @@ runs:
 
     - uses: ./.github/actions/slack-notify
       with:
-        message: 'Service *${{ inputs.service }}* was just deployed using `${{ inputs.image }}`'
+        message: 'Service *${{ inputs.service }}* was just deployed using docker image `${{ inputs.image }}`'
