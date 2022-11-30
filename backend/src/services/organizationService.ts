@@ -5,7 +5,7 @@ import OrganizationRepository from '../database/repositories/organizationReposit
 import MemberRepository from '../database/repositories/memberRepository'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
-import { enrichOrganization, organizationUrlFromName } from './helpers/enrichment'
+import { enrichOrganization } from './helpers/enrichment'
 import { LoggingBase } from './loggingBase'
 
 export default class OrganizationService extends LoggingBase {
@@ -27,120 +27,82 @@ export default class OrganizationService extends LoggingBase {
   async findOrCreate(data, enrichP = true) {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
+    if (!data.name) {
+      throw new Error400(this.options.language, 'errors.OrganizationNameRequired.message')
+    }
+
     try {
       const shouldDoEnrich = await this.shouldEnrich(enrichP)
 
-      const existingByName = data.name
-        ? await OrganizationRepository.findByName(data.name, {
-            ...this.options,
-            transaction,
-          })
-        : null
-      if (existingByName) {
-        await SequelizeRepository.commitTransaction(transaction)
-        return await this.update(existingByName.id, data)
-      }
-
-      const existingByUrl = data.url
-        ? await OrganizationRepository.findByUrl(data.url, {
-            ...this.options,
-            transaction,
-          })
-        : null
-      if (existingByUrl) {
-        await SequelizeRepository.commitTransaction(transaction)
-        return await this.update(existingByUrl.id, data)
-      }
-
-      // check cache existing by name or url
-      let cacheExisting
-
-      if (data.url) {
-        cacheExisting = await organizationCacheRepository.findByUrl(data.url, {
-          ...this.options,
-          transaction,
-        })
-      } else if (data.name) {
-        cacheExisting = await organizationCacheRepository.findByName(data.name, {
-          ...this.options,
-          transaction,
-        })
-      }
+      // check cache existing by name
+      let cache = await organizationCacheRepository.findByName(data.name, {
+        ...this.options,
+        transaction,
+      })
 
       // if cache exists, merge current data with cache data
-      // if it doesn't exist, and data has both name and url values (That might come from github api)
-      // create cache from the data
-      if (cacheExisting) {
+      // if it doesn't exist, create it from incoming data
+      if (cache) {
         data = {
-          ...cacheExisting,
+          ...cache,
           ...data,
         }
-        cacheExisting = await organizationCacheRepository.update(cacheExisting.id, data, {
+        cache = await organizationCacheRepository.update(cache.id, data, {
           ...this.options,
           transaction,
         })
-      } else if (data.name && data.url) {
+      } else {
         // save it to cache
-        cacheExisting = await organizationCacheRepository.create(data, {
+        cache = await organizationCacheRepository.create(data, {
           ...this.options,
           transaction,
         })
       }
 
-      if (shouldDoEnrich) {
-        if (!data.name && !data.url) {
-          throw new Error400(this.options.language, 'errors.OrganizationNameOrUrlRequired.message')
-        }
-        if (data.name && !data.url) {
-          try {
-            data.url = await organizationUrlFromName(data.name)
-          } catch (error) {
-            this.log.error(error, `Could not get URL for ${data.name}!`)
-          }
-        }
-        if (data.url) {
-          try {
-            const enrichedData = await enrichOrganization(data.url)
-            data = {
-              ...data,
-              ...enrichedData,
-            }
+      // clearbit enrich
+      if (shouldDoEnrich && !cache.enriched) {
+        try {
+          const enrichedData = await enrichOrganization(data.name)
 
-            // enrichOrganization might have updated the url of the organization
-            // that's why we need to check it again by url
-            cacheExisting = await organizationCacheRepository.findByUrl(data.url, {
-              ...this.options,
-              transaction,
-            })
-
-            if (cacheExisting) {
-              await organizationCacheRepository.update(cacheExisting.id, data, {
-                ...this.options,
-                transaction,
-              })
-            } else {
-              cacheExisting = await organizationCacheRepository.create(data, {
-                ...this.options,
-                transaction,
-              })
-            }
-          } catch (error) {
-            this.log.error(error, `Could not enrich ${data.url}!`)
+          // overwrite cache with enriched data, but keep the name because it's serving as a unique identifier
+          data = {
+            ...cache,
+            ...enrichedData,
+            name: cache.name,
+            enriched: true,
           }
+
+          cache = await organizationCacheRepository.update(cache.id, data, {
+            ...this.options,
+            transaction,
+          })
+        } catch (error) {
+          this.log.error(error, `Could not enrich ${data.name}!`)
         }
       }
 
       if (data.members) {
-        data.members = await MemberRepository.filterIdsInTenant(data.members, {
+        cache.members = await MemberRepository.filterIdsInTenant(data.members, {
           ...this.options,
           transaction,
         })
       }
 
-      const record = await OrganizationRepository.create(data, {
+      let record
+
+      const existingByName = await OrganizationRepository.findByName(data.name, {
         ...this.options,
         transaction,
       })
+
+      if (existingByName) {
+        record = await this.update(existingByName.id, cache)
+      } else {
+        record = await OrganizationRepository.create(cache, {
+          ...this.options,
+          transaction,
+        })
+      }
 
       await SequelizeRepository.commitTransaction(transaction)
 
