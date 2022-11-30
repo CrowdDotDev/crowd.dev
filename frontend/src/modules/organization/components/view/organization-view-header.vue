@@ -84,7 +84,8 @@
           }}
         </p>
       </div>
-      <div>
+      <!-- TODO: Uncomment when we support enrichment -->
+      <!-- <div>
         <p class="text-gray-400 font-medium text-2xs">
           # of employees
         </p>
@@ -96,7 +97,7 @@
             )
           }}
         </p>
-      </div>
+      </div> -->
       <div>
         <p class="text-gray-400 font-medium text-2xs">
           Joined date

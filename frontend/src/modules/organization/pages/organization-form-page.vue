@@ -151,7 +151,8 @@ const formSchema = new FormSchema([
   fields.description,
   fields.website,
   fields.location,
-  fields.employees,
+  // TODO: Uncomment when we support enrichment
+  // fields.employees,
   fields.revenueRange,
   fields.github,
   fields.twitter,
@@ -271,7 +272,8 @@ function getInitialModel(record) {
         name: record ? record.name : '',
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
-        employees: record ? record.employees : null,
+        // TODO: Uncomment when we support enrichment
+        // employees: record ? record.employees : null,
         location: record ? record.location : null,
         website: record ? record.website : null,
         github:

@@ -1,8 +1,5 @@
 import { INITIAL_PAGE_SIZE } from './constants'
-import {
-  INITIAL_VIEW_NEW_AND_ACTIVE_FILTER,
-  INITIAL_VIEW_ENTERPRISE_SIZE_FILTER
-} from './constants'
+import { INITIAL_VIEW_NEW_AND_ACTIVE_FILTER } from './constants'
 
 export default () => {
   return {
@@ -78,29 +75,30 @@ export default () => {
           prop: 'memberCount',
           order: 'descending'
         }
-      },
-      'enterprise-size': {
-        id: 'enterprise-size',
-        label: 'Enterprise size',
-        initialFilter: INITIAL_VIEW_ENTERPRISE_SIZE_FILTER,
-        filter: JSON.parse(
-          JSON.stringify(
-            INITIAL_VIEW_ENTERPRISE_SIZE_FILTER
-          )
-        ),
-        pagination: {
-          currentPage: 1,
-          pageSize: INITIAL_PAGE_SIZE
-        },
-        initialSorter: {
-          prop: 'employees',
-          order: 'descending'
-        },
-        sorter: {
-          prop: 'employees',
-          order: 'descending'
-        }
       }
+      // TODO: Uncomment when we support enrichment
+      //   'enterprise-size': {
+      //     id: 'enterprise-size',
+      //     label: 'Enterprise size',
+      //     initialFilter: INITIAL_VIEW_ENTERPRISE_SIZE_FILTER,
+      //     filter: JSON.parse(
+      //       JSON.stringify(
+      //         INITIAL_VIEW_ENTERPRISE_SIZE_FILTER
+      //       )
+      //     ),
+      //     pagination: {
+      //       currentPage: 1,
+      //       pageSize: INITIAL_PAGE_SIZE
+      //     },
+      //     initialSorter: {
+      //       prop: 'employees',
+      //       order: 'descending'
+      //     },
+      //     sorter: {
+      //       prop: 'employees',
+      //       order: 'descending'
+      //     }
+      //   }
     },
     list: {
       ids: [],

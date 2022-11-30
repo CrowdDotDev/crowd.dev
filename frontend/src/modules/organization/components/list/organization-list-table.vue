@@ -146,7 +146,7 @@
               </el-table-column>
 
               <!-- Number of employees 
-              Uncomment when we support enrichment
+              TODO: Uncomment when we support enrichment
               <el-table-column
                 label="# Employees"
                 width="150"

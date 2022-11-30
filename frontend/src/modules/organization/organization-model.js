@@ -4,7 +4,6 @@ import { GenericModel } from '@/shared/model/generic-model'
 import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
 import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field'
-import OrganizationEmployeesField from '@/modules/organization/organization-employees-field'
 import SearchField from '@/shared/fields/search-field'
 import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
@@ -43,13 +42,14 @@ const fields = {
     '# of members',
     { filterable: true }
   ),
-  employees: new OrganizationEmployeesField(
-    'employees',
-    '# of employees',
-    {
-      filterable: true
-    }
-  ),
+  // TODO: Uncomment when we support enrichment
+  // employees: new OrganizationEmployeesField(
+  //   'employees',
+  //   '# of employees',
+  //   {
+  //     filterable: true
+  //   }
+  // ),
   activityCount: new IntegerField(
     'activityCount',
     '# of activities',

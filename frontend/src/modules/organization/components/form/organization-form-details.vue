@@ -29,7 +29,8 @@
       >
         <el-input v-model="model[fields.location.name]" />
       </el-form-item>
-      <el-form-item
+      <!-- TODO: Uncomment when we support enrichment -->
+      <!-- <el-form-item
         label="Number of employees"
         class="w-1/2"
       >
@@ -37,7 +38,7 @@
           v-model="model[fields.employees.name]"
           type="number"
         />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item
         :label="fields.revenueRange.label"
         class="w-1/2"
