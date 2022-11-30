@@ -25,12 +25,12 @@ export default () => {
           pageSize: INITIAL_PAGE_SIZE
         },
         initialSorter: {
-          prop: 'name',
-          order: 'ascending'
+          prop: 'joinedAt',
+          order: 'descending'
         },
         sorter: {
-          prop: 'name',
-          order: 'ascending'
+          prop: 'joinedAt',
+          order: 'descending'
         },
         active: true
       },

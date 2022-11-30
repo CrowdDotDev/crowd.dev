@@ -99,7 +99,7 @@
       </div>
       <div>
         <p class="text-gray-400 font-medium text-2xs">
-          Active since
+          Joined date
         </p>
         <p class="mt-1 text-gray-900 text-xs">
           {{

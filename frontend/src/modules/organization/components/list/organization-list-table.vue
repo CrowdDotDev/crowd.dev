@@ -162,9 +162,9 @@
                 ></el-table-column
               >
 
-              <!-- Active since -->
+              <!-- Joined Date -->
               <el-table-column
-                label="Active since"
+                label="Joined Date"
                 width="200"
                 prop="joinedAt"
                 sortable
