@@ -145,7 +145,8 @@
                 </template>
               </el-table-column>
 
-              <!-- Number of employees -->
+              <!-- Number of employees 
+              Uncomment when we support enrichment
               <el-table-column
                 label="# Employees"
                 width="150"
@@ -161,6 +162,7 @@
                   </div></template
                 ></el-table-column
               >
+              -->
 
               <!-- Number of activities -->
               <el-table-column
