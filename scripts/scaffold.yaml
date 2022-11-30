@@ -78,6 +78,8 @@ services:
     image: qdrant/qdrant:latest
     ports:
       - 6333:6333
+    networks:
+      - crowd-bridge
       
   redis:
     build:
