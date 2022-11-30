@@ -41,6 +41,18 @@ class VectorAPI:
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
             )
+            for field_name in ['title', 'text', 'url']:
+                self.client.create_payload_index(
+                    collection_name=self.collection_name,
+                    field_name=field_name,
+                    field_schema=models.TextIndexParams(
+                        type="text",
+                        tokenizer=models.TokenizerType.WORD,
+                        min_token_len=2,
+                        max_token_len=15,
+                        lowercase=True,
+                    )
+                )
 
     @staticmethod
     def _chunks(iterable, batch_size=80):
@@ -160,7 +172,7 @@ class VectorAPI:
                     should.append(
                         models.FieldCondition(
                             key=key,
-                            match=models.MatchText(text=exact_keyword),
+                            match=models.MatchText(text=exact_keyword.lower()),
                         )
                     )
         must = [
