@@ -3,7 +3,7 @@ import discord from './discord'
 import slack from './slack'
 import twitter from './twitter'
 import devto from './devto'
-// import hackernews from './hackernews'
+import hackernews from './hackernews'
 import discourse from './discourse'
 import stackoverflow from './stackoverflow'
 import reddit from './reddit'
@@ -22,7 +22,7 @@ class IntegrationsConfig {
       slack,
       twitter,
       devto,
-      ...(config.hasPremiumModules && { make }),
+      ...(config.hasPremiumModules && { hackernews }),
       discourse,
       stackoverflow,
       reddit,
