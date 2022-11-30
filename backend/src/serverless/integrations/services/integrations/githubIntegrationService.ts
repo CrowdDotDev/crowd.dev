@@ -596,6 +596,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
+              website: fromAPI.websiteUrl ?? null
             },
           ]
         } else {
