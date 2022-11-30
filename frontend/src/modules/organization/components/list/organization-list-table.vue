@@ -162,6 +162,23 @@
                 ></el-table-column
               >
 
+              <!-- Number of activities -->
+              <el-table-column
+                label="# Activities"
+                width="150"
+                prop="activityCount"
+                sortable
+                ><template #default="scope">
+                  <div class="text-gray-900 text-sm">
+                    {{
+                      formatNumberToCompact(
+                        scope.row.activityCount
+                      )
+                    }}
+                  </div></template
+                ></el-table-column
+              >
+
               <!-- Active since -->
               <el-table-column
                 label="Active since"
@@ -389,13 +406,11 @@ const rowClass = ({ row }) => {
 
 const hasIdentities = (row) => {
   return (
-    row.identities?.some(
-      (i) =>
-        i === 'github' ||
-        i === 'linkedin' ||
-        i === 'twitter' ||
-        i === 'crunchbase'
-    ) || !!row.emails?.length
+    !!row.github ||
+    !!row.linkedin ||
+    !!row.twitter ||
+    !!row.crunchbase ||
+    !!row.emails?.length
   )
 }
 
