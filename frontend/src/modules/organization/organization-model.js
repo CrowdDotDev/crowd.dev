@@ -7,6 +7,7 @@ import OrganizationMemberCountField from '@/modules/organization/organization-me
 import SearchField from '@/shared/fields/search-field'
 import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
+import OrganizationEmployeesField from './organization-employees-field'
 import JsonField from '@/shared/fields/json-field'
 import StringArrayField from '@/shared/fields/string-array-field'
 import IntegerField from '@/shared/fields/integer-field'
@@ -42,14 +43,10 @@ const fields = {
     '# of members',
     { filterable: true }
   ),
-  // TODO: Uncomment when we support enrichment
-  // employees: new OrganizationEmployeesField(
-  //   'employees',
-  //   '# of employees',
-  //   {
-  //     filterable: true
-  //   }
-  // ),
+  employees: new OrganizationEmployeesField(
+    'employees',
+    '# of employees'
+  ),
   activityCount: new IntegerField(
     'activityCount',
     '# of activities',
