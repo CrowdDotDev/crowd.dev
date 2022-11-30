@@ -56,7 +56,7 @@ export default class OrganizationEmployeesField extends IntegerRangeField {
       custom: this.custom,
       props: {
         options: this.dropdownOptions(),
-        multiple: true
+        multiple: false
       },
       defaultValue: null,
       value: null,
