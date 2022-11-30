@@ -94,12 +94,7 @@
           ></i>
         </a>
         <el-divider
-          v-if="
-            (organization.emails &&
-              organization.emails.length > 0) ||
-            (organization.phoneNumbers &&
-              organization.phoneNumbers.length > 0)
-          "
+          v-if="showDivider"
           class="border-t-gray-200"
         ></el-divider>
         <a
@@ -170,6 +165,17 @@ const props = defineProps({
     default: () => {}
   }
 })
+
+const showDivider = computed(
+  () =>
+    (!!props.organization.emails?.length ||
+      !!props.organization.phoneNumbers?.length) &&
+    (!!props.organization.github ||
+      !!props.organization.linkedin ||
+      !!props.organization.twitter ||
+      !!props.organization.crunchbase)
+)
+
 const noIdentities = computed(() => {
   return (
     !props.organization.github?.url &&

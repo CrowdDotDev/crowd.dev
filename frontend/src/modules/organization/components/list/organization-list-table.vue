@@ -207,7 +207,7 @@
               <!-- Identities -->
               <el-table-column
                 label="Identities"
-                width="220"
+                width="270"
                 ><template #default="scope">
                   <app-organization-identities
                     v-if="hasIdentities(scope.row)"
@@ -276,10 +276,7 @@ import {
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { formatDateToTimeAgo } from '@/utils/date'
-import {
-  formatNumberToCompact,
-  // formatNumberToRange
-} from '@/utils/number'
+import { formatNumberToCompact } from '@/utils/number'
 import AppOrganizationIdentities from '../organization-identities'
 import AppOrganizationListToolbar from './organization-list-toolbar'
 import AppOrganizationName from '../organization-name'
@@ -412,7 +409,8 @@ const hasIdentities = (row) => {
     !!row.linkedin ||
     !!row.twitter ||
     !!row.crunchbase ||
-    !!row.emails?.length
+    !!row.emails?.length ||
+    !!row.phoneNumbers?.length
   )
 }
 
