@@ -207,7 +207,7 @@
               <!-- Identities -->
               <el-table-column
                 label="Identities"
-                width="220"
+                width="270"
                 ><template #default="scope">
                   <app-organization-identities
                     v-if="hasIdentities(scope.row)"
@@ -412,7 +412,8 @@ const hasIdentities = (row) => {
     !!row.linkedin ||
     !!row.twitter ||
     !!row.crunchbase ||
-    !!row.emails?.length
+    !!row.emails?.length ||
+    !!row.phoneNumbers?.length
   )
 }
 
