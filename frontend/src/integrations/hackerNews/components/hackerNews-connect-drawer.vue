@@ -13,7 +13,7 @@
        <span
           class="text-xs font-light mb-2 text-gray-900"
         >
-          Monitor mentions of your community/organization on the top 500 of Hacker News. <br/>Historical data is available after the 1st of December 2022. <a href="https://docs.crowd.dev/docs/hacker-news-integration" target="__blank"> Read more </a>.
+          Monitor mentions of your community/organization on Hacker News. <br/>Historical data is available after the 1st of December 2022. <a href="https://docs.crowd.dev/docs/hacker-news-integration" target="__blank"> Read more </a>.
           
         </span>
         <span class="text-sm font-medium"
