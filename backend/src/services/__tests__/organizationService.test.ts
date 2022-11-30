@@ -72,50 +72,6 @@ describe('OrganizationService tests', () => {
       expect(added.url).toEqual(null)
     })
 
-    it('Should enrich and add an organization by URL', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
-      const service = new OrganizationService(mockIServiceOptions)
-
-      const toAdd = {
-        url: 'crowd.dev',
-      }
-
-      const added = await service.findOrCreate(toAdd)
-      expect(added.url).toEqual('crowd.dev')
-      expect(added.name).toEqual(expectedEnriched.name)
-      expect(added.description).toEqual(expectedEnriched.description)
-      expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
-      expect(added.emails).toEqual(expectedEnriched.emails)
-      expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
-      expect(added.logo).toEqual(expectedEnriched.logo)
-      expect(added.tags).toStrictEqual(expectedEnriched.tags)
-      expect(added.twitter).toStrictEqual(expectedEnriched.twitter)
-      expect(added.linkedin).toStrictEqual(expectedEnriched.linkedin)
-      expect(added.crunchbase).toStrictEqual(expectedEnriched.crunchbase)
-      expect(added.employees).toEqual(expectedEnriched.employees)
-      expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
-
-      // Check cache table was created
-      const foundCache = await organizationCacheRepository.findByUrl(
-        'crowd.dev',
-        mockIServiceOptions,
-      )
-
-      expect(foundCache.url).toEqual('crowd.dev')
-      expect(foundCache.name).toEqual(expectedEnriched.name)
-      expect(foundCache.description).toEqual(expectedEnriched.description)
-      expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
-      expect(foundCache.emails).toEqual(expectedEnriched.emails)
-      expect(foundCache.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
-      expect(foundCache.logo).toEqual(expectedEnriched.logo)
-      expect(foundCache.tags).toStrictEqual(expectedEnriched.tags)
-      expect(foundCache.twitter).toStrictEqual(expectedEnriched.twitter)
-      expect(foundCache.linkedin).toStrictEqual(expectedEnriched.linkedin)
-      expect(foundCache.crunchbase).toStrictEqual(expectedEnriched.crunchbase)
-      expect(foundCache.employees).toEqual(expectedEnriched.employees)
-      expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
-    })
-
     it('Should enrich and add an organization by name', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const service = new OrganizationService(mockIServiceOptions)
@@ -126,7 +82,7 @@ describe('OrganizationService tests', () => {
 
       const added = await service.findOrCreate(toAdd)
       expect(added.url).toEqual('crowd.dev')
-      expect(added.name).toEqual(expectedEnriched.name)
+      expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
       expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
@@ -140,13 +96,13 @@ describe('OrganizationService tests', () => {
       expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
       // Check cache table was created
-      const foundCache = await organizationCacheRepository.findByUrl(
+      const foundCache = await organizationCacheRepository.findByName(
         'crowd.dev',
         mockIServiceOptions,
       )
 
       expect(foundCache.url).toEqual('crowd.dev')
-      expect(foundCache.name).toEqual(expectedEnriched.name)
+      expect(foundCache.name).toEqual(toAdd.name)
       expect(foundCache.description).toEqual(expectedEnriched.description)
       expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
@@ -160,7 +116,7 @@ describe('OrganizationService tests', () => {
       expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
     })
 
-    it('Should not re-enrich when the record is already in the cache table. By URL', async () => {
+    it('Should not re-enrich when the record is already in the cache table. By Name', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const mockIServiceOptions2 = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
 
@@ -168,12 +124,12 @@ describe('OrganizationService tests', () => {
       const service2 = new OrganizationService(mockIServiceOptions2)
 
       const toAdd = {
-        url: 'https://crowd.dev',
+        name: 'crowd.dev',
       }
 
       const added = await service.findOrCreate(toAdd)
       expect(added.url).toEqual('crowd.dev')
-      expect(added.name).toEqual(expectedEnriched.name)
+      expect(added.name).toEqual(toAdd.name)
       expect(added.description).toEqual(expectedEnriched.description)
       expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added.emails).toEqual(expectedEnriched.emails)
@@ -187,13 +143,12 @@ describe('OrganizationService tests', () => {
       expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
       // Check cache table was created
-      const foundCache = await organizationCacheRepository.findByUrl(
+      const foundCache = await organizationCacheRepository.findByName(
         'crowd.dev',
         mockIServiceOptions,
       )
 
-      expect(foundCache.url).toEqual('crowd.dev')
-      expect(foundCache.name).toEqual(expectedEnriched.name)
+      expect(foundCache.name).toEqual('crowd.dev')
       expect(foundCache.description).toEqual(expectedEnriched.description)
       expect(foundCache.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(foundCache.emails).toEqual(expectedEnriched.emails)
@@ -207,8 +162,7 @@ describe('OrganizationService tests', () => {
       expect(foundCache.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
 
       const added2 = await service2.findOrCreate(toAdd)
-      expect(added2.url).toEqual('crowd.dev')
-      expect(added2.name).toEqual(expectedEnriched.name)
+      expect(added2.name).toEqual('crowd.dev')
       expect(added2.description).toEqual(expectedEnriched.description)
       expect(added2.parentUrl).toEqual(expectedEnriched.parentUrl)
       expect(added2.emails).toEqual(expectedEnriched.emails)
@@ -223,21 +177,21 @@ describe('OrganizationService tests', () => {
       // Check they are indeed in different tenants
       expect(added2.tenantId).not.toBe(added.tenantId)
 
-      const foundCache2 = await organizationCacheRepository.findByUrl(
+      const foundCache2 = await organizationCacheRepository.findByName(
         'crowd.dev',
         mockIServiceOptions,
       )
       expect(foundCache2.id).toEqual(foundCache.id)
     })
 
-    it('Should throw an error when name and URL are not sent', async () => {
+    it('Should throw an error when name is not sent', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {}
 
       await expect(service.findOrCreate(toAdd)).rejects.toThrowError(
-        'Organization Name or Url is required',
+        'Organization Name is required',
       )
     })
 
@@ -258,35 +212,5 @@ describe('OrganizationService tests', () => {
       const foundAll = await service.findAndCountAll({ filter: {} })
       expect(foundAll.count).toBe(1)
     })
-
-    // it('Should not re-create when existing: enrich and name', async () => {
-    //   const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
-    //   const service = new OrganizationService(mockIServiceOptions)
-    //
-    //   const toAdd = {
-    //     name: 'crowd.dev',
-    //   }
-    //
-    //   await service.findOrCreate(toAdd)
-    //
-    //
-    //   const added = await service.findOrCreate(SequelizeTestUtils.objectWithoutKey(toAdd, 'url'))
-    //   expect(added.url).toEqual('crowd.dev')
-    //   expect(added.name).toEqual(expectedEnriched.name)
-    //   expect(added.description).toEqual(expectedEnriched.description)
-    //   expect(added.parentUrl).toEqual(expectedEnriched.parentUrl)
-    //   expect(added.emails).toEqual(expectedEnriched.emails)
-    //   expect(added.phoneNumbers).toEqual(expectedEnriched.phoneNumbers)
-    //   expect(added.logo).toEqual(expectedEnriched.logo)
-    //   expect(added.tags).toStrictEqual(expectedEnriched.tags)
-    //   expect(added.twitter).toStrictEqual(expectedEnriched.twitter)
-    //   expect(added.linkedin).toStrictEqual(expectedEnriched.linkedin)
-    //   expect(added.crunchbase).toStrictEqual(expectedEnriched.crunchbase)
-    //   expect(added.employees).toEqual(expectedEnriched.employees)
-    //   expect(added.revenueRange).toStrictEqual(expectedEnriched.revenueRange)
-    //
-    //   const foundAll = await service.findAndCountAll({ filter: {} })
-    //   expect(foundAll.count).toBe(1)
-    // })
   })
 })

@@ -599,6 +599,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
                 ? { handle: fromAPI.url.replace('https://github.com/', '') }
                 : null,
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
+              website: fromAPI.websiteUrl ?? null,
             },
           ]
         } else {

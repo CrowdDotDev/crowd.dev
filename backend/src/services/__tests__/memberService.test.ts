@@ -683,7 +683,7 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'Crowd.dev',
+        name: 'crowd.dev',
         url: 'crowd.dev',
         github: null,
         location: null,
