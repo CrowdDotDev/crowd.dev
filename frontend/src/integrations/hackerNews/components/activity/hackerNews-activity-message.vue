@@ -10,6 +10,7 @@
       >on
       <a
         :href="activity.attributes.parentUrl"
+        target="_blank"
         class="truncate"
       >
         {{ computedParentTitle }}</a
