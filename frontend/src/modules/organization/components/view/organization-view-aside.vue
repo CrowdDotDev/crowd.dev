@@ -6,17 +6,14 @@
       </div>
       <div class="-mx-6 mt-6">
         <a
-          v-if="
-            organization.github?.url || organization.url
-          "
+          v-if="getIdentityLink('github')"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
-            organization.github?.url &&
-            organization.activeOn.includes('github')
+            getIdentityLink('github')
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="organization.github?.url"
+          :href="getIdentityLink('github')"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
@@ -26,23 +23,19 @@
             >
           </div>
           <i
-            v-if="
-              organization.github?.url &&
-              organization.activeOn.includes('github')
-            "
+            v-if="getIdentityLink('github')"
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
         <a
-          v-if="organization.twitter?.url"
+          v-if="getIdentityLink('twitter')"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
-            organization.twitter?.url &&
-            organization.activeOn.includes('twitter')
+            getIdentityLink('twitter')
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="organization.twitter.url"
+          :href="getIdentityLink('twitter')"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
@@ -52,23 +45,19 @@
             >
           </div>
           <i
-            v-if="
-              organization.twitter?.url &&
-              organization.activeOn.includes('twitter')
-            "
+            v-if="getIdentityLink('twitter')"
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
         <a
-          v-if="organization.linkedin?.url"
+          v-if="getIdentityLink('linkedin')"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
-            organization.linkedin?.url &&
-            organization.activeOn.includes('linkedin')
+            getIdentityLink('linkedin')
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="organization.linkedin.url"
+          :href="getIdentityLink('linkedin')"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
@@ -78,23 +67,19 @@
             >
           </div>
           <i
-            v-if="
-              organization.linkedin?.url &&
-              organization.activeOn.includes('linkedin')
-            "
+            v-if="getIdentityLink('linkedin')"
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
         <a
-          v-if="organization.crunchbase?.url"
+          v-if="getIdentityLink('crunchbase')"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
-            organization.crunchbase?.url &&
-            organization.activeOn.includes('crunchbase')
+            getIdentityLink('crunchbase')
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="organization.crunchbase.url"
+          :href="getIdentityLink('crunchbase')"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
@@ -104,10 +89,7 @@
             >
           </div>
           <i
-            v-if="
-              organization.crunchbase?.url &&
-              organization.activeOn.includes('crunchbase')
-            "
+            v-if="getIdentityLink('crunchbase')"
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -200,4 +182,28 @@ const noIdentities = computed(() => {
       props.organization.phoneNumbers.length === 0)
   )
 })
+
+const getIdentityLink = (platform) => {
+  if (props.organization[platform]?.url) {
+    return props.organization[platform]?.url
+  } else if (props.organization[platform]?.handle) {
+    let url
+
+    if (platform === 'linkedin') {
+      url = 'https://www.linkedin.com/'
+    } else if (platform === 'github') {
+      url = 'https://github.com/'
+    } else if (platform === 'twitter') {
+      url = 'https://twitter.com/'
+    } else if (platform === 'crunchbase') {
+      url = 'https://www.crunchbase.com/'
+    } else {
+      return null
+    }
+
+    return `${url}${props.organization[platform].handle}`
+  } else {
+    return null
+  }
+}
 </script>

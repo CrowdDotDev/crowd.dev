@@ -41,12 +41,12 @@
         v-else
         :src="imageProperties.image"
         :alt="imageProperties.name"
-        class="member-channels-icon"
+        class="channels-icon"
     /></a>
 
     <span
       v-else
-      class="btn p-2 text-base hover:cursor-auto"
+      class="btn min-h-8 h-8 w-8 text-base hover:cursor-auto"
       :class="getIconClass(platform)"
       @click.stop
     >
@@ -62,7 +62,7 @@
         v-else
         :src="imageProperties.image"
         :alt="imageProperties.name"
-        class="member-channels-icon"
+        class="channels-icon"
       />
     </span>
   </el-tooltip>
@@ -143,7 +143,7 @@ const getIconClass = (platform) => {
 </script>
 
 <style lang="scss">
-.member-channels-icon {
+.channels-icon {
   max-height: 1rem;
 }
 

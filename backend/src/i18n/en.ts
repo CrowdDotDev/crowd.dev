@@ -109,8 +109,8 @@ const en = {
     wrongEagleEyeSearch: {
       message: 'Wrong search parameters',
     },
-    OrganizationNameOrUrlRequired: {
-      message: 'Organization Name or Url is required',
+    OrganizationNameRequired: {
+      message: 'Organization Name is required',
     },
     projectNotFound: {
       message: 'Project not found',

@@ -25,6 +25,10 @@ export default (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      url: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       parentUrl: {
         type: DataTypes.TEXT,
         allowNull: true,

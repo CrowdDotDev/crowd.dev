@@ -272,6 +272,8 @@ function getInitialModel(record) {
         description: record ? record.description : '',
         joinedAt: record ? record.joinedAt : '',
         employees: record ? record.employees : null,
+        location: record ? record.location : null,
+        website: record ? record.website : null,
         github:
           record && record.github
             ? record.github.handle
