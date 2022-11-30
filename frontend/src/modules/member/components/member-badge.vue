@@ -55,7 +55,7 @@ const computedBadgeClass = function (badge) {
     'badge inline-flex uppercase !text-3xs !px-1 !py-0 leading-normal font-semibold'
 
   if (badge === 'new') {
-    classes += ' badge--black'
+    classes += ' badge--brand'
     if (isTeam.value) {
       classes += ' mr-1'
     }

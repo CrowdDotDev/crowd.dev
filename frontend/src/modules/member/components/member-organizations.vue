@@ -1,10 +1,14 @@
 <template>
   <div v-if="orientation === 'vertical'">
     <div v-if="props.member.organizations?.length > 0">
-      <div
+      <router-link
         v-for="organization of props.member.organizations"
         :key="organization.id"
         class="flex items-start"
+        :to="{
+          name: 'organizationView',
+          params: { id: organization.id }
+        }"
       >
         <div v-if="organization.logo">
           <div class="w-5 h-5 mr-1">
@@ -27,7 +31,7 @@
             }}
           </div>
         </div>
-      </div>
+      </router-link>
     </div>
     <div
       v-else-if="props.member.attributes.jobTitle?.default"
@@ -58,9 +62,13 @@
         >{{ member.attributes.jobTitle.default }}
         {{ member.organizations.length ? 'at' : '' }}</span
       >
-      <p
+      <router-link
         v-if="member.organizations.length"
         class="text-gray-900 text-sm text-ellipsis truncate flex flex-wrap items-center"
+        :to="{
+          name: 'organizationView',
+          params: { id: member.organizations[0].id }
+        }"
       >
         <img
           v-if="member.organizations[0].logo"
@@ -69,7 +77,7 @@
           class="w-5 h-5 mr-1"
         />
         {{ member.organizations[0].name || '-' }}
-      </p>
+      </router-link>
     </div>
     <div v-else class="text-gray-900">-</div>
   </div>

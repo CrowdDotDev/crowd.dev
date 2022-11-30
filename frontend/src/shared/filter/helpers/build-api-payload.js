@@ -48,6 +48,17 @@ function _buildAttributeBlock(attribute) {
       },
       { or: [] }
     )
+  } else if (attribute.name === 'averageSentiment') {
+    return attribute.value.reduce(
+      (obj, a) => {
+        obj.or.push({
+          averageSentiment: a.range
+        })
+
+        return obj
+      },
+      { or: [] }
+    )
   } else if (attribute.name === 'type') {
     return {
       and: [
@@ -68,6 +79,14 @@ function _buildAttributeBlock(attribute) {
           }
         }
       })
+    }
+  } else if (attribute.name === 'activeOn') {
+    rule = {
+      contains: attribute.value.reduce((acc, option) => {
+        acc.push(option.value)
+
+        return acc
+      }, [])
     }
   } else if (attribute.operator === 'notContains') {
     return {

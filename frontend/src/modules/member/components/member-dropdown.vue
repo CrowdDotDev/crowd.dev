@@ -129,10 +129,6 @@ export default {
     member: {
       type: Object,
       default: () => {}
-    },
-    showViewMember: {
-      type: Boolean,
-      default: true
     }
   },
   data() {

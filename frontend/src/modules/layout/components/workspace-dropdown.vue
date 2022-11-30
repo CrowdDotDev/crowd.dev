@@ -37,7 +37,9 @@
                   v-if="!isCollapsed"
                   class="text-sm account-btn-info"
                 >
-                  <div class="text-gray-900">
+                  <div
+                    class="text-gray-900 whitespace-nowrap"
+                  >
                     {{ currentTenant.name }}
                   </div>
                   <div class="text-gray-500 text-2xs">

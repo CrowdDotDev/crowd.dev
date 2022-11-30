@@ -25,8 +25,9 @@
               label="Activities"
               name="activities"
             >
-              <app-member-view-activities
-                :member-id="member.id"
+              <app-activity-timeline
+                :entity-id="member.id"
+                entity-type="member"
               />
             </el-tab-pane>
             <el-tab-pane
@@ -68,9 +69,9 @@ import {
 } from 'vue'
 
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
+import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
-import AppMemberViewActivities from '@/modules/member/components/view/member-view-activities'
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
 import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'

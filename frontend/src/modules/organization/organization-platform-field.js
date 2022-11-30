@@ -1,6 +1,6 @@
-import GenericField from '@/shared/fields/string-field'
+import StringField from '@/shared/fields/string-field'
 
-export default class SentimentField extends GenericField {
+export default class OrganizationPlatformField extends StringField {
   constructor(name, label, config = {}) {
     super(name, label)
 
@@ -15,25 +15,20 @@ export default class SentimentField extends GenericField {
   dropdownOptions() {
     return [
       {
-        value: 'positive',
-        label: 'Positive',
-        range: {
-          gte: 67
-        }
+        value: 'github',
+        label: 'GitHub'
       },
       {
-        value: 'neutral',
-        label: 'Neutral',
-        range: {
-          between: [33, 67]
-        }
+        value: 'linkedin',
+        label: 'LinkedIn'
       },
       {
-        value: 'negative',
-        label: 'Negative',
-        range: {
-          lte: 33
-        }
+        value: 'twitter',
+        label: 'Twitter'
+      },
+      {
+        value: 'crunchbase',
+        label: 'Crunchbase'
       }
     ]
   }
