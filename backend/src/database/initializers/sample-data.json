@@ -23,7 +23,7 @@
       "organizations": [
         {
           "name": "Pied Piper",
-          "url": "https://piedpiper.io",
+          "website": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
           "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
@@ -68,7 +68,7 @@
       "organizations": [
         {
           "name": "Pied Piper",
-          "url": "https://piedpiper.io",
+          "website": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
           "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
@@ -113,7 +113,7 @@
       "organizations": [
         {
           "name": "Erlich's Startup Incubator",
-          "url": "https://erlichincubator.in",
+          "website": "https://erlichincubator.in",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/erlich-small.jpg",
           "description": "Startup incubator right in Erlich Bachman's house",
           "emails": ["bachman@erlichincubator.in", "jianyang@erlichincubator.in"],
@@ -158,7 +158,7 @@
       "organizations": [
         {
           "name": "Hooli",
-          "url": "https://hooli.xyz",
+          "website": "https://hooli.xyz",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/hooli-logo.png",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
           "emails": ["gavin@hooli.xyz", "bighead@hooli.xyz"],
@@ -203,7 +203,7 @@
       "organizations": [
         {
           "name": "Pied Piper",
-          "url": "https://piedpiper.io",
+          "website": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
           "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
@@ -248,7 +248,7 @@
       "organizations": [
         {
           "name": "Raviga Capital",
-          "url": "https://raviga.vc",
+          "website": "https://raviga.vc",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/raviga-capital-logo.jpg",
           "description": "Raviga Capital is a bay area VC firm founded by Peter Gregory",
           "emails": ["peter@raviga.vc"],
@@ -293,7 +293,7 @@
       "organizations": [
         {
           "name": "Raviga Capital",
-          "url": "https://raviga.vc",
+          "website": "https://raviga.vc",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/raviga-capital-logo.jpg",
           "description": "Raviga Capital is a bay area VC firm founded by Peter Gregory",
           "emails": ["peter@raviga.vc"],
@@ -312,7 +312,7 @@
         },
         {
           "name": "BreamHall Venture Capital",
-          "url": "https://breamhall.com",
+          "website": "https://breamhall.com",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/bream-hall-logo.png",
           "description": "VC firm founded by Laurie Bream and Monical Hall",
           "emails": ["laurie@breamhall.com", "monica@breamhall.com"],
@@ -357,7 +357,7 @@
       "organizations": [
         {
           "name": "Pied Piper",
-          "url": "https://piedpiper.io",
+          "website": "https://piedpiper.io",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/pied-piper-logo.jpg",
           "description": "Pied Piper is a data compression platform founded by Richard Hendricks",
           "emails": ["richard@piedpiper.io", "gilfoyle@piedpiper.io", "erlich@piedpier.io"],
@@ -402,7 +402,7 @@
       "organizations": [
         {
           "name": "Hooli",
-          "url": "https://hooli.xyz",
+          "website": "https://hooli.xyz",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/hooli-logo.png",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
           "emails": ["gavin@hooli.xyz", "bighead@hooli.xyz"],
@@ -447,7 +447,7 @@
       "organizations": [
         {
           "name": "See Food",
-          "url": "https://seefood.ml",
+          "website": "https://seefood.ml",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/see-food-logo.jpeg",
           "description": "Shazam for food",
           "emails": ["jianyang@seefood.ml"],
@@ -492,7 +492,7 @@
       "organizations": [
         {
           "name": "Raviga Capital",
-          "url": "https://raviga.vc",
+          "website": "https://raviga.vc",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/raviga-capital-logo.jpg",
           "description": "Raviga Capital is a bay area VC firm founded by Peter Gregory",
           "emails": ["peter@raviga.vc"],
@@ -511,7 +511,7 @@
         },
         {
           "name": "BreamHall Venture Capital",
-          "url": "https://breamhall.com",
+          "website": "https://breamhall.com",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/bream-hall-logo.png",
           "description": "VC firm founded by Laurie Bream and Monical Hall",
           "emails": ["laurie@breamhall.com", "monica@breamhall.com"],
@@ -581,7 +581,7 @@
       "organizations": [
         {
           "name": "Hooli",
-          "url": "https://hooli.xyz",
+          "website": "https://hooli.xyz",
           "logo": "https://s3.eu-central-1.amazonaws.com/crowd.dev-sample-data/hooli-logo.png",
           "description": "Hooli is an international corporation founded by Gavin Belson and Peter Gregory",
           "emails": ["gavin@hooli.xyz", "bighead@hooli.xyz"],
