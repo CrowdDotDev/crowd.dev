@@ -63,7 +63,7 @@ const fields = {
   ),
   joinedAt: new ActivityDateField(
     'joinedAt',
-    'Active since',
+    'Joined date',
     {
       filterable: true
     }
