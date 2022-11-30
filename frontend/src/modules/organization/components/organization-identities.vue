@@ -6,68 +6,70 @@
     >
       <!-- Github -->
       <app-platform
-        v-if="organization.identities.includes('github')"
+        v-if="!!organization.github"
         platform="github"
         track-event-name="Click Organization Contact"
         track-event-channel="GitHub"
         :has-tooltip="true"
         tooltip-label="GitHub profile"
-        :href="
-          organization['github']?.handle
-            ? `https://github.com/${organization['github']?.handle}`
-            : null
+        :href="getIdentityLink('github')"
+        :as-link="
+          !!(
+            organization['github']?.url ||
+            organization['github']?.handle
+          )
         "
-        :as-link="!!organization['github']?.handle"
       />
 
       <!-- LinkedIn -->
       <app-platform
-        v-if="organization.identities.includes('linkedin')"
+        v-if="!!organization.linkedin"
         platform="linkedin"
         track-event-name="Click Organization Contact"
         track-event-channel="LinkedIn"
         :has-tooltip="true"
         tooltip-label="LinkedIn profile"
-        :href="
-          organization['linkedin']?.handle
-            ? `https://www.linkedin.com/${organization['linkedin']?.handle}`
-            : null
+        :href="getIdentityLink('linkedin')"
+        :as-link="
+          !!(
+            organization['linkedin']?.url ||
+            organization['linkedin']?.handle
+          )
         "
-        :as-link="!!organization['linkedin']?.handle"
       />
 
       <!-- Twitter -->
       <app-platform
-        v-if="organization.identities.includes('twitter')"
+        v-if="!!organization.twitter"
         platform="twitter"
         track-event-name="Click Organization Contact"
         track-event-channel="Twitter"
         :has-tooltip="true"
         tooltip-label="Twitter profile"
-        :href="
-          organization['twitter']?.handle
-            ? `https://twitter.com/${organization['twitter']?.handle}`
-            : null
+        :href="getIdentityLink('twitter')"
+        :as-link="
+          !!(
+            organization['twitter']?.url ||
+            organization['twitter']?.handle
+          )
         "
-        :as-link="!!organization['twitter']?.handle"
       />
 
       <!-- Crunchbase -->
       <app-platform
-        v-if="
-          organization.identities.includes('crunchbase')
-        "
-        platform="crunchbas"
+        v-if="!!organization.crunchbase"
+        platform="crunchbase"
         track-event-name="Click Organization Contact"
         track-event-channel="Crunchbase"
         :has-tooltip="true"
         tooltip-label="Crunchbase profile"
-        :href="
-          organization['crunchbase']?.handle
-            ? `https://www.crunchbase.com/${organization['crunchbase']?.handle}`
-            : null
+        :href="getIdentityLink('crunchbase')"
+        :as-link="
+          !!(
+            organization['crunchbase']?.url ||
+            organization['crunchbase']?.handle
+          )
         "
-        :as-link="!!organization['crunchbase']?.handle"
       />
     </div>
 
@@ -110,18 +112,40 @@ const props = defineProps({
   }
 })
 
-const hasSocialIdentities = computed(() =>
-  props.organization.identities.some(
-    (i) =>
-      i === 'github' ||
-      i === 'linkedin' ||
-      i === 'twitter' ||
-      i === 'crunchbase'
-  )
+const hasSocialIdentities = computed(
+  () =>
+    !!props.organization.github ||
+    !!props.organization.linkedin ||
+    !!props.organization.twitter ||
+    !!props.organization.crunchbase
 )
 const showDivider = computed(
   () =>
     !!props.organization.emails?.length &&
     hasSocialIdentities.value
 )
+
+const getIdentityLink = (platform) => {
+  if (props.organization[platform]?.url) {
+    return props.organization[platform]?.url
+  } else if (props.organization[platform]?.handle) {
+    let url
+
+    if (platform === 'linkedin') {
+      url = 'https://www.linkedin.com/'
+    } else if (platform === 'github') {
+      url = 'https://github.com/'
+    } else if (platform === 'twitter') {
+      url = 'https://twitter.com/'
+    } else if (platform === 'crunchbase') {
+      url = 'https://www.crunchbase.com/'
+    } else {
+      return null
+    }
+
+    return `${url}${props.organization[platform].handle}`
+  } else {
+    return null
+  }
+}
 </script>

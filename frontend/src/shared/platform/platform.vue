@@ -17,7 +17,10 @@
       v-if="asLink"
       :href="href"
       target="_blank"
-      class="btn min-h-8 min-w-8 h-8 w-8 text-base"
+      class="btn min-h-8 h-8 w-8 text-base"
+      :style="{
+        minWidth: '32px'
+      }"
       :class="`
         ${
           href
