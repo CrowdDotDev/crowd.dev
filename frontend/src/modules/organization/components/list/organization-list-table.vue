@@ -276,10 +276,7 @@ import {
   mapActions
 } from '@/shared/vuex/vuex.helpers'
 import { formatDateToTimeAgo } from '@/utils/date'
-import {
-  formatNumberToCompact,
-  formatNumberToRange
-} from '@/utils/number'
+import { formatNumberToCompact } from '@/utils/number'
 import AppOrganizationIdentities from '../organization-identities'
 import AppOrganizationListToolbar from './organization-list-toolbar'
 import AppOrganizationName from '../organization-name'
