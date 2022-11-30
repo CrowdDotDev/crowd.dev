@@ -21,7 +21,7 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
     },
     joinedAt: {
       name: 'joinedAt',
-      label: 'Active since',
+      label: 'Joined date',
       custom: false,
       props: {
         options: new ActivityDateField().dropdownOptions(),

@@ -83,7 +83,7 @@ const isNew = computed(() => {
 
 const newTooltipContent = computed(
   () =>
-    `Active since ${moment(
+    `Joined date: ${moment(
       props.organization.joinedAt
     ).format('MMM DD, YYYY')}`
 )
