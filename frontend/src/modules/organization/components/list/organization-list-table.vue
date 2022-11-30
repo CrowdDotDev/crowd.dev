@@ -113,7 +113,7 @@
                 <template #default="scope">
                   <div class="text-sm">
                     <a
-                      v-if="scope.row.websiteurl"
+                      v-if="scope.row.website"
                       class="text-gray-500 hover:!text-brand-500"
                       :href="scope.row.website || null"
                       target="_blank"
