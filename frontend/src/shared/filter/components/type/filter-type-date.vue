@@ -85,6 +85,16 @@ const operator = computed({
     return props.operator
   },
   set(v) {
+    // Reset values when operator changes
+    // Needed because type of value changes each time operator changes
+    if (v === 'between' && !Array.isArray(props.value)) {
+      model.value = []
+    } else if (
+      v !== 'between' &&
+      Array.isArray(props.value)
+    ) {
+      model.value = null
+    }
     emit('update:operator', v)
   }
 })
