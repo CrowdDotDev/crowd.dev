@@ -1,60 +1,81 @@
 <template>
   <div class="organization-view-members">
-    <div class="my-6">
-      <el-input
-        v-model="query"
-        placeholder="Search members"
-        :prefix-icon="SearchIcon"
-        clearable
-        class="organization-view-members-search"
+    <div
+      v-if="members.length === 0"
+      class="flex items-center justify-center pt-20 pb-17"
+    >
+      <i
+        class="ri-contacts-line flex items-center text-3xl h-12 text-gray-300"
+      ></i>
+      <p
+        class="text-sm leading-5 text-center italic text-gray-400 pl-6"
       >
-      </el-input>
+        Members can take up to two minutes to appear in the
+        list
+      </p>
     </div>
-    <div>
-      <div
-        v-for="member in members"
-        :key="member.id"
-        class="flex flex-wrap items-center justify-between py-5 border-b border-gray-200 last:border-none gap-2"
-      >
-        <div class="basis-2/6">
-          <router-link
-            class="flex items-center gap-2"
-            :to="{
-              name: 'memberView',
-              params: { id: member.id }
-            }"
+    <div v-else>
+      <div class="my-6">
+        <el-input
+          v-model="query"
+          placeholder="Search members"
+          :prefix-icon="SearchIcon"
+          clearable
+          class="organization-view-members-search"
+        >
+        </el-input>
+      </div>
+      <div>
+        <div
+          v-for="member in members"
+          :key="member.id"
+          class="flex flex-wrap items-center justify-between py-5 border-b border-gray-200 last:border-none gap-2"
+        >
+          <div class="basis-2/6">
+            <router-link
+              class="flex items-center gap-2"
+              :to="{
+                name: 'memberView',
+                params: { id: member.id }
+              }"
+            >
+              <app-avatar :entity="member" size="sm" />
+              <app-member-display-name
+                :member="member"
+                custom-class="font-medium text-sm text-gray-900"
+              />
+            </router-link>
+          </div>
+          <div
+            class="flex items-center justify-between gap-6 basis-3/6"
           >
-            <app-avatar :entity="member" size="sm" />
-            <app-member-display-name
+            <div>
+              <app-member-engagement-level
+                :member="member"
+              />
+            </div>
+            <app-member-channels
               :member="member"
-              custom-class="font-medium text-sm text-gray-900"
-            />
-          </router-link>
+            ></app-member-channels>
+          </div>
         </div>
         <div
-          class="flex items-center justify-between gap-6 basis-3/6"
+          v-if="loading"
+          v-loading="loading"
+          class="app-page-spinner"
+        ></div>
+        <div
+          v-if="!noMore"
+          class="flex justify-center pt-4"
         >
-          <div>
-            <app-member-engagement-level :member="member" />
-          </div>
-          <app-member-channels
-            :member="member"
-          ></app-member-channels>
+          <el-button
+            class="btn btn-brand btn-brand--transparent"
+            :disabled="loading"
+            @click="fetchMembers"
+            ><i class="ri-arrow-down-line mr-2"></i>Load
+            more</el-button
+          >
         </div>
-      </div>
-      <div
-        v-if="loading"
-        v-loading="loading"
-        class="app-page-spinner"
-      ></div>
-      <div v-if="!noMore" class="flex justify-center pt-4">
-        <el-button
-          class="btn btn-brand btn-brand--transparent"
-          :disabled="loading"
-          @click="fetchMembers"
-          ><i class="ri-arrow-down-line mr-2"></i>Load
-          more</el-button
-        >
       </div>
     </div>
   </div>
