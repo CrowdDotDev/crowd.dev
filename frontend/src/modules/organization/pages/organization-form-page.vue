@@ -334,22 +334,27 @@ async function onSubmit() {
         },
         []
       ),
-      github: platformPayload(
-        'github',
-        formModel.value.github
-      ),
-      linkedin: platformPayload(
-        'linkedin',
-        formModel.value.linkedin
-      ),
-      twitter: platformPayload(
-        'twitter',
-        formModel.value.twitter
-      ),
-      crunchbase: platformPayload(
-        'crunchbase',
-        formModel.value.crunchbase
-      )
+      github: formModel.value.github
+        ? platformPayload('github', formModel.value.github)
+        : null,
+      linkedin: formModel.value.linkedin
+        ? platformPayload(
+            'linkedin',
+            formModel.value.linkedin
+          )
+        : null,
+      twitter: formModel.value.twitter
+        ? platformPayload(
+            'twitter',
+            formModel.value.twitter
+          )
+        : null,
+      crunchbase: formModel.value.crunchbase
+        ? platformPayload(
+            'crunchbase',
+            formModel.value.crunchbase
+          )
+        : null
     }
   )
   const action = isEditPage.value
