@@ -165,6 +165,17 @@ const shouldShowReset = computed(() => {
   )
 })
 const shouldDisableApplyButton = computed(() => {
+  // Disable apply button for range inputs
+  if (model.operator === 'between') {
+    if (props.filter.type === 'number') {
+      return (
+        isNaN(model.value?.[0]) || isNaN(model.value?.[1])
+      )
+    } else {
+      return !model.value?.[0] || !model.value?.[1]
+    }
+  }
+
   return Array.isArray(model.value)
     ? model.value.length === 0
     : model.value === '' || model.value === null
