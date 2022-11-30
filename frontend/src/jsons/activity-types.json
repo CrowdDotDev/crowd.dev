@@ -29,5 +29,6 @@
     "left_channel"
   ],
   "twitter": ["mention", "follow", "hashtag"],
-  "devto": ["comment"]
+  "devto": ["comment"],
+  "hackernews": ["comment", "post"]
 }

@@ -343,6 +343,35 @@ export default class IntegrationService {
   }
 
   /**
+   * Adds/updates Hacker News integration
+   * @param integrationData  to create the integration object
+   * @returns integration object
+   */
+  async hackerNewsConnectOrUpdate(integrationData) {
+    const integration = await this.createOrUpdate({
+      platform: PlatformType.HACKERNEWS,
+      settings: {
+        keywords: integrationData.keywords,
+        urls: integrationData.urls,
+        updateMemberAttributes: true,
+      },
+      status: 'in-progress',
+    })
+
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.HACKER_NEWS,
+        integration.tenantId,
+        true,
+        integration.id,
+      ),
+    )
+
+    return integration
+  }
+
+  /**
    * Adds/updates slack integration
    * @param integrationData to create the integration object
    * @returns integration object

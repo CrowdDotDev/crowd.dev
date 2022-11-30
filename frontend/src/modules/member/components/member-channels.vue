@@ -50,6 +50,15 @@
         :has-tooltip="true"
         tooltip-label="Slack profile"
       />
+      <app-platform
+        v-if="!!member.username?.hackernews"
+        platform="hackernews"
+        track-event-name="Hacker News"
+        :has-tooltip="true"
+        tooltip-label="Hacker News profile"
+        :href="member.attributes?.url?.hackernews || null"
+        :as-link="true"
+      />
     </div>
 
     <el-divider

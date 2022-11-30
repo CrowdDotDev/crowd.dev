@@ -4,11 +4,12 @@ RUN apt install -y --no-install-recommends gcc
 
 WORKDIR /var/task
 
+COPY ./requirements.txt ./
+COPY ./crowd-eagle-eye/setup.py ./crowd-eagle-eye/
+
+RUN python -m venv --copies ./venv && . ./venv/bin/activate && ./venv/bin/pip install -r requirements.txt
+
 COPY . .
 
-RUN python -m venv --copies ./venv && . ./venv/bin/activate && \
-  python --version && which python && \
-  pip --version && which pip && \
-  ls ./venv/bin
-
-RUN  pip install -r requirements.txt
+USER root
+RUN mkdir /.cache && chmod -R 777 /.cache

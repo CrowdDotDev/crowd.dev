@@ -1,10 +1,10 @@
-import pinecone
+from qdrant_client import QdrantClient
+from qdrant_client.http import models
 import datetime
 import time
-from crowd.eagle_eye.apis import CohereAPI
+from crowd.eagle_eye.apis import EmbedAPI
 import itertools
-import os
-from crowd.eagle_eye.config import KUBE_MODE, VECTOR_API_KEY, VECTOR_INDEX
+from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT
 from crowd.eagle_eye.infrastructure.logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,25 +15,44 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, index_name=None):
+    def __init__(self, do_init=False):
         """
         Initialize the VectorAPI.
 
         Args:
             index_name (str, optional): Name of the DB index. Defaults to "crowddev".
         """
-        if KUBE_MODE:
-            pinecone.init(api_key=VECTOR_API_KEY, environment="us-east-1-aws")
+        self.collection_name = "crowddev"
+
+        if not QDRANT_HOST:
+            host = "localhost"
         else:
-            pinecone.init(api_key=os.environ.get('VECTOR_API_KEY'), environment="us-east-1-aws")
+            host = QDRANT_HOST
 
-        if index_name is None:
-            if KUBE_MODE:
-                index_name = VECTOR_INDEX
-            else:
-                index_name = os.environ.get('VECTOR_INDEX')
+        if not QDRANT_PORT:
+            port = 6333
+        else:
+            port = QDRANT_PORT
 
-        self.index = pinecone.Index(index_name)
+        self.client = QdrantClient(host=host, port=port)
+
+        if do_init:
+            self.client.recreate_collection(
+                collection_name=self.collection_name,
+                vectors_config=models.VectorParams(size=768, distance=models.Distance.COSINE),
+            )
+            for field_name in ['title', 'text', 'url']:
+                self.client.create_payload_index(
+                    collection_name=self.collection_name,
+                    field_name=field_name,
+                    field_schema=models.TextIndexParams(
+                        type="text",
+                        tokenizer=models.TokenizerType.WORD,
+                        min_token_len=2,
+                        max_token_len=15,
+                        lowercase=True,
+                    )
+                )
 
     @staticmethod
     def _chunks(iterable, batch_size=80):
@@ -45,10 +64,10 @@ class VectorAPI:
             batch_size (int, optional): The size of each chunk. Defaults to 80.
         """
         it = iter(iterable)
-        chunk = tuple(itertools.islice(it, batch_size))
+        chunk = list(itertools.islice(it, batch_size))
         while chunk:
             yield chunk
-            chunk = tuple(itertools.islice(it, batch_size))
+            chunk = list(itertools.islice(it, batch_size))
 
     def upsert(self, points):
         """
@@ -60,16 +79,27 @@ class VectorAPI:
         if (len(points) == 0):
             return
 
-        # Pinecone needs the points converted into tuples
         vectors = [
-            (point.id, point.embed, point.payload_as_dict())
-            for point in points
+            models.PointStruct(
+                id=point.id,
+                payload=point.payload_as_dict(),
+                vector=point.embed,
+            ) for point in points
         ]
 
-        for ids_vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
-            self.index.upsert(vectors=ids_vectors_chunk)
+        for vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=vectors_chunk
+            )
 
         return "OK"
+
+    def count(self):
+        return self.client.count(
+            collection_name=self.collection_name,
+            exact=True,
+        )
 
     @ staticmethod
     def _get_timestamp(ndays, start=int(time.time())):
@@ -83,7 +113,6 @@ class VectorAPI:
         Returns:
             int: timestamp
         """
-        # TODO-test
         now = datetime.datetime.fromtimestamp(start)
         return int((now - datetime.timedelta(days=ndays)).timestamp())
 
@@ -97,9 +126,12 @@ class VectorAPI:
         Returns:
             [str]: list of existing ids.
         """
-        existing = list(self.index.fetch(ids=ids)['vectors'].keys())
-        logger.info('Found %d existing IDs', len(existing))
-        return existing
+        existing = self.client.retrieve(
+            collection_name=self.collection_name,
+            ids=ids,
+        )
+
+        return [point.id for point in existing]
 
     def delete(self, ids):
         """
@@ -113,9 +145,60 @@ class VectorAPI:
         """
         if type(ids) == str:
             ids = [ids]
-        return self.index.delete(ids=ids)
+        self.client.delete(
+            collection_name=self.collection_name,
+            points_selector=models.PointIdsList(
+                points=ids
+            ),
+        )
 
-    def search(self, query, ndays, exclude, cohere=None):
+    def make_filters(self, ndays, exclude, exact_keywords, platform=None):
+        """
+        Make filters for search or scrolling
+
+        Args:
+            ndays (int): number of days ago to search
+            exclude ([int]): List of IDs to exclude
+            exact_keywords ([str]): List of keywords to match exactly. It will match any.
+
+        Returns:
+            models.Filter: Qdrant filter
+        """
+        start = self._get_timestamp(ndays)
+        should = []
+        if exact_keywords:
+            for exact_keyword in exact_keywords:
+                for key in ['title', 'text', 'url']:
+                    should.append(
+                        models.FieldCondition(
+                            key=key,
+                            match=models.MatchText(text=exact_keyword.lower()),
+                        )
+                    )
+        must = [
+            models.FieldCondition(
+                key="timestamp",
+                range=models.Range(
+                    gte=start,
+                ),
+            )
+        ]
+        if platform:
+            must.append(
+                models.FieldCondition(
+                    key="platform",
+                    match=models.MatchText(text=platform),
+                )
+            )
+        return models.Filter(
+            must=must,
+            should=should,
+            must_not=[
+                models.HasIdCondition(has_id=exclude),
+            ]
+        )
+
+    def search(self, query, ndays, exclude, exact_keywords=False, embed_api=None):
         """
         Perform a search on the vector database.
         We can set number of days ago, and exclude certain ids.
@@ -124,24 +207,30 @@ class VectorAPI:
             query (str): query to perform, for example a keyword
             ndays (int): maximum number of days ago to search
             exclude ([str]): list of ids to exclude from the search
-            cohere (CohereAPI, optional): Already initialised CohereAPI. Defaults to None.
+            embed_api (EmbedAPI, optional): Already initialised EmbedAPI. Defaults to None.
 
         Returns:
             [dict]: list of results
         """
-        if cohere is None:
-            cohere = CohereAPI()
-        start = self._get_timestamp(ndays)
-
+        if embed_api is None:
+            embed_api = EmbedAPI()
         # Embed the query into a vector
-        vector = cohere.embed_one(query)
+        vector = embed_api.embed_one(query)
 
-        return self.index.query(
-            vector=vector,
-            top_k=20,
-            filter={
-                "timestamp": {"$gte": start},
-                "vectorId": {"$nin": exclude}
-            },
-            includeMetadata=True
+        return self.client.search(
+            collection_name=self.collection_name,
+            query_vector=vector,
+            limit=20,
+            score_threshold=0.1,
+            query_filter=self.make_filters(ndays, exclude, exact_keywords),
+            with_payload=True,
+        )
+
+    def keyword_match(self, ndays, exclude, exact_keywords, platform=None):
+        ndays = min(ndays, 10000)
+        return self.client.scroll(
+            collection_name=self.collection_name,
+            scroll_filter=self.make_filters(ndays, exclude, exact_keywords, platform),
+            limit=100,
+            with_payload=True,
         )

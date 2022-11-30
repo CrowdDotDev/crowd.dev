@@ -45,13 +45,18 @@ def hacker_news():
     """
     # Get top 500 posts from Hacker News. Returns a list of IDs
     logger.info("Fetching top IDs from Hacker News...")
-    top_500 = json.loads(requests.get('https://hacker-news.firebaseio.com/v0/topstories.json').content)
+    top = json.loads(requests.get('https://hacker-news.firebaseio.com/v0/topstories.json').content)
+
+    best = json.loads(requests.get('https://hacker-news.firebaseio.com/v0/beststories.json').content)
+
+    posts = top + best
+
     logger.info("Done")
     logger.info("Fetching data from Hacker News...")
     # For each post, get the data
     data = [
         json.loads(requests.get(f'https://hacker-news.firebaseio.com/v0/item/{story_id}.json').content)
-        for story_id in top_500
+        for story_id in posts
     ]
     logger.info("Done")
 

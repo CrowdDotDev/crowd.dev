@@ -71,6 +71,19 @@ export default class ActivityTypeField extends JSONField {
       {
         label: {
           type: 'platform',
+          key: 'hackernews',
+          value: 'Hacker News'
+        },
+        nestedOptions: activityTypesJson.hackernews.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.hackernews[activity]
+          })
+        )
+      },
+      {
+        label: {
+          type: 'platform',
           key: 'devto',
           value: 'DEV'
         },

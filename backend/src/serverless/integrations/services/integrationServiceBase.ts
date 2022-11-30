@@ -55,6 +55,7 @@ export abstract class IntegrationServiceBase {
 
   async triggerIntegrationCheck(integrations: any[]): Promise<void> {
     for (const integration of integrations) {
+      console.log('Triggering integration check for', integration.id)
       await sendNodeWorkerMessage(
         integration.tenantId,
         new NodeWorkerIntegrationProcessMessage(

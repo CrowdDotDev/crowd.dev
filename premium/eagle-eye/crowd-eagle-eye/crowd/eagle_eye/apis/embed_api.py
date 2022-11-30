@@ -1,15 +1,14 @@
-import cohere
-import os
-from crowd.eagle_eye.config import KUBE_MODE, COHERE_API_KEY
+from sentence_transformers import SentenceTransformer
 
-class CohereAPI:
+
+class EmbedAPI:
     """
-    API for cohere.Client. Used to embed vectors.
+    API for embedding vectors.
     """
 
-    def __init__(self, model='medium', truncate='LEFT'):
+    def __init__(self, truncate='LEFT'):
         """
-        Cohere constructor.
+        Embed constructor.
 
         Args:
             model (str, optional): Which model to use. Defaults to 'medium'.
@@ -17,11 +16,7 @@ class CohereAPI:
                                       give preference to left or right hand side. 
                                       Defaults to 'LEFT'.
         """
-        if KUBE_MODE:
-            self.co = cohere.Client(COHERE_API_KEY)
-        else:
-            self.co = cohere.Client(os.environ.get("COHERE_API_KEY"))
-        self.model = model
+        self.model = SentenceTransformer('multi-qa-mpnet-base-dot-v1')
         self.truncate = truncate
 
     def embed_points(self, points):
@@ -50,11 +45,11 @@ class CohereAPI:
         Returns:
             [[[float]]]: list of vectors
         """
-        return self.co.embed(
-            texts=list(texts),
-            model=self.model,
-            truncate=self.truncate
-        ).embeddings
+        vectors = []
+        for text in texts:
+            vectors.append(self.model.encode(text).tolist())
+
+        return vectors
 
     def embed_one(self, text):
         """
@@ -66,4 +61,4 @@ class CohereAPI:
         Returns:
             [[float]]: embed vector
         """
-        return self.embed_texts([text, ])
+        return self.embed_texts([text, ])[0]

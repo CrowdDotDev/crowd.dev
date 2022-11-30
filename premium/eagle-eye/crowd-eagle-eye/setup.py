@@ -13,7 +13,7 @@ def read(rel_path):
 setup(
     name="crowd-eagle-eye",
     packages=find_namespace_packages(include=["crowd.*"]),
-    install_requires=["requests", "bs4", "pinecone-client", "cohere",
-                      "reppy", "python-dotenv", "python-dateutil", "python-dotenv"],
+    install_requires=["requests", "bs4", "qdrant-client", "cohere",
+                      "reppy", "python-dotenv", "python-dateutil", "python-dotenv", "sentence-transformers"],
 
 )

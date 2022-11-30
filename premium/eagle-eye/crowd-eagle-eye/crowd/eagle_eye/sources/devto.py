@@ -7,6 +7,7 @@ from dateutil import parser
 
 logger = get_logger(__name__)
 
+
 def pre_process(data):
     """
     Process dev.to data.
@@ -121,17 +122,23 @@ def devto(sleep=True):
             if sleep:
                 time.sleep(1)
 
-            post['user'] = json.loads(requests.get(
-                f'https://dev.to/api/users/{post["user"]["user_id"]}').content)
-            if 'organization' in post:
-                if sleep:
-                    time.sleep(1)
-                logger.info('Organisation request')
+            user_content = requests.get(
+                f'https://dev.to/api/users/{post["user"]["user_id"]}').content
+            try:
+                user = json.loads(user_content)
+            except:
+                user = False
+            if user:
+                post['user'] = user
+                if 'organization' in post:
 
-                post['organization'] = json.loads(requests.get(
-                    f'https://dev.to/api/organizations/{post["organization"]["username"]}').content)
+                    if sleep:
+                        time.sleep(1)
 
-            enriched.append(post)
+                    post['organization'] = json.loads(requests.get(
+                        f'https://dev.to/api/organizations/{post["organization"]["username"]}').content)
+
+                enriched.append(post)
 
         # Add the enriched posts to the list of posts
         posts += enriched

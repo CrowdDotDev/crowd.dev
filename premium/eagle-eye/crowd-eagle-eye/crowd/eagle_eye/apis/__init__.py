@@ -1,4 +1,4 @@
-from crowd.eagle_eye.apis.cohere_api import CohereAPI  # noqa
+from crowd.eagle_eye.apis.embed_api import EmbedAPI  # noqa
 from crowd.eagle_eye.apis.vector_api import VectorAPI  # noqa
 from crowd.eagle_eye.config import KUBE_MODE
 

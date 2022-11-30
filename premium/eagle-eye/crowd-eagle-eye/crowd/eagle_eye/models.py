@@ -84,9 +84,10 @@ class Vector:
             combined (str, optional): Title + Text. Defaults to ''.
             embed (str, optional): Embedded vector. Defaults to ''.
         """
-        # Pay
-        self.payload = Payload(id, **payload) if type(payload) == 'dict' else payload
-        self.id = self.sourceId = self.payload.vectorId
+        # Payload can be a dict or a Payload object
+        self.payload = Payload(id, **payload) if type(payload) == dict else payload
+        self.sourceId = self.payload.vectorId
+        self.id = Vector.make_id(id, payload.platform)
         self.combined = combined
         self.embed = embed
 
@@ -102,7 +103,7 @@ class Vector:
         Returns:
             str: hashed ID
         """
-        return str(int(hashlib.sha256(f'{platform}-{id}'.encode('utf-8')).hexdigest(), 16) % 10**8)
+        return int(hashlib.sha256(f'{platform}-{id}'.encode('utf-8')).hexdigest(), 16) % 10**8
 
     def payload_as_dict(self):
         """

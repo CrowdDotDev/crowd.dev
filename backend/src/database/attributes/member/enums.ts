@@ -13,6 +13,7 @@ export enum MemberAttributeName {
   JOB_TITLE = 'jobTitle',
   IS_TEAM_MEMBER = 'isTeamMember',
   TIMEZONE = 'timezone',
+  KARMA = 'karma',
 }
 
 export const MemberAttributes = {
@@ -67,5 +68,9 @@ export const MemberAttributes = {
   [MemberAttributeName.IS_TEAM_MEMBER]: {
     name: MemberAttributeName.IS_TEAM_MEMBER,
     label: 'is Team Member',
+  },
+  [MemberAttributeName.KARMA]: {
+    name: MemberAttributeName.KARMA,
+    label: 'Karma',
   },
 }

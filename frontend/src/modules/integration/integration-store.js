@@ -330,6 +330,39 @@ export default {
         Errors.handle(error)
         commit('CREATE_ERROR')
       }
+    },
+
+    async doHackerNewsConnect(
+      { commit },
+      { keywords, urls }
+    ) {
+      // Function to connect to Dev.to. We just need to store the
+      // users and organizations we want to track
+
+      try {
+        commit('CREATE_STARTED')
+
+        const integration =
+          await IntegrationService.hackerNewsConnect(
+            keywords,
+            urls
+          )
+
+        commit('CREATE_SUCCESS', integration)
+
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'Hacker News integration created successfully'
+          }
+        )
+
+        router.push('/integrations')
+      } catch (error) {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+      }
     }
   }
 }

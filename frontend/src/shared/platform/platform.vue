@@ -139,6 +139,9 @@ const getIconClass = (platform) => {
   } else if (platform === 'crunchbase') {
     return 'btn--crunchbase'
   }
+  else if (platform === 'hackernews') {
+    return 'btn--hackernews cursor-auto bg-white'
+  }
 }
 </script>
 

@@ -7,22 +7,22 @@ const log = createServiceChildLogger('Eagle-eye Refresh Job')
 
 const job: CrowdJob = {
   name: 'Eagle-eye Refresh Job',
-  cronTime: cronGenerator.every(2).hours(),
+  cronTime: cronGenerator.every(1).hours(),
   onTrigger: async () => {
-    try {
-      await sendPremiumPythonWorkerMessage({
-        platform: 'devto',
-      })
-    } catch (err) {
-      log.error(err, 'Error while emitting DEV Eagle-eye refresh message!')
-    }
-
+    // HackerNews should stay first so the integration will work quickly
     try {
       await sendPremiumPythonWorkerMessage({
         platform: 'hacker_news',
       })
     } catch (err) {
       log.error(err, 'Error while emitting Hacker News Eagle-eye refresh message!')
+    }
+    try {
+      await sendPremiumPythonWorkerMessage({
+        platform: 'devto',
+      })
+    } catch (err) {
+      log.error(err, 'Error while emitting DEV Eagle-eye refresh message!')
     }
   },
 }

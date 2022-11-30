@@ -342,12 +342,25 @@ function create_s3_buckets() {
     # done
 }
 
+function create_qdrant_collection() {
+    say "Creating Qdrant collection!"
+    curl -X PUT 'http://localhost:6333/collections/crowddev' \
+    -H 'Content-Type: application/json' \
+    --data-raw '{
+        "vectors": {
+            "size": 768,
+            "distance": "Cosine"
+        }
+    }'
+}
+
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
     wait_for_db
     migrate_local
     create_s3_buckets
+    create_qdrant_collection
 }
 
 function down_scaffold() {

@@ -183,7 +183,7 @@ export default {
     @apply bg-transparent border-none pl-0 ml-2 h-full text-gray-900;
     font-size: inherit;
     outline: none;
-    width: 200px;
+    width: 400px;
     min-height: 24px;
   }
   .el-tag--small .el-tag__close {
