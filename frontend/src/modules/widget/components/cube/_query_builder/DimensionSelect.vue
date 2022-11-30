@@ -113,7 +113,7 @@ export default {
       get() {
         return this.translatedOptions(this.dimensions).map(
           (i) => i.label
-        )
+        )?.[0]
       },
       set(value) {
         return this.setDimensions([value])

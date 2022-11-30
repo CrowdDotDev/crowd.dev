@@ -1,5 +1,5 @@
 <template>
-  <div class="widget panel">
+  <div class="widget">
     <div
       v-show="loading"
       v-loading="loading"
@@ -132,7 +132,7 @@ export default {
 
 <style lang="scss">
 .widget {
-  @apply relative p-4 mt-0 mb-4;
+  @apply relative mt-0;
 
   .el-dropdown {
     @apply absolute right-0 top-0 mt-4 mr-4;

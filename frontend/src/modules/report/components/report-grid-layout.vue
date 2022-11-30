@@ -62,12 +62,13 @@
           :is-resizable="editable"
           :is-mirrored="false"
           :vertical-compact="true"
-          :margin="[16, 16]"
+          :margin="[16, 22]"
           :use-css-transforms="true"
         >
           <grid-item
             v-for="item in layout"
             :key="item.i"
+            class="pb-8"
             :x="item.x"
             :y="item.y"
             :w="item.w"
@@ -91,6 +92,7 @@
             "
           >
             <app-widget-cube-renderer
+              class="panel"
               :editable="editable"
               :widget="widgets[item.i]"
               :chart-options="widgets[item.i]"
@@ -208,7 +210,10 @@ export default {
         x: (length * 6) % 12,
         y: length + 12, // puts it at the bottom
         w: 6,
-        h: widgetModel.settings.layout.h
+        h:
+          widgetModel.settings.chartType === 'number'
+            ? 6
+            : 21
       }
       return await WidgetService.create({
         title: duplicate
@@ -320,6 +325,19 @@ export default {
 <style lang="scss">
 .report-grid-layout {
   @apply min-h-40 relative;
+}
+.vue-grid-item > div {
+  overflow-y: auto;
+  height: 100%;
+
+  .widget-cube {
+    height: fit-content;
+  }
+
+  .widget-table {
+    overflow-y: auto;
+    height: calc(100% - 44px);
+  }
 }
 .vue-grid-item:not(.vue-grid-placeholder) {
   touch-action: none;
