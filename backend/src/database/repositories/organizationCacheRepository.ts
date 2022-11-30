@@ -26,6 +26,9 @@ class OrganizationCacheRepository {
           'revenueRange',
           'importHash',
           'enriched',
+          'website',
+          'github',
+          'location',
         ]),
       },
       {
@@ -70,6 +73,9 @@ class OrganizationCacheRepository {
           'revenueRange',
           'importHash',
           'enriched',
+          'website',
+          'github',
+          'location',
         ]),
       },
       {
