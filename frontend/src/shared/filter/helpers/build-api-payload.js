@@ -48,8 +48,7 @@ function _buildAttributeBlock(attribute) {
       },
       { or: [] }
     )
-  }
-  else if (attribute.name === 'averageSentiment') {
+  } else if (attribute.name === 'averageSentiment') {
     return attribute.value.reduce(
       (obj, a) => {
         obj.or.push({
