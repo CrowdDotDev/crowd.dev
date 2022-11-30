@@ -381,7 +381,7 @@ export default class GitHubWebhook {
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
-              website: fromAPI.websiteUrl ?? null
+              website: fromAPI.websiteUrl ?? null,
             },
           ]
         } else {
