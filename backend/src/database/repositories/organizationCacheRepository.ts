@@ -25,6 +25,10 @@ class OrganizationCacheRepository {
           'employees',
           'revenueRange',
           'importHash',
+          'enriched',
+          'website',
+          'github',
+          'location',
         ]),
       },
       {
@@ -68,6 +72,10 @@ class OrganizationCacheRepository {
           'employees',
           'revenueRange',
           'importHash',
+          'enriched',
+          'website',
+          'github',
+          'location',
         ]),
       },
       {

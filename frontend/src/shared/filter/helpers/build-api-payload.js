@@ -48,6 +48,17 @@ function _buildAttributeBlock(attribute) {
       },
       { or: [] }
     )
+  } else if (attribute.name === 'averageSentiment') {
+    return attribute.value.reduce(
+      (obj, a) => {
+        obj.or.push({
+          averageSentiment: a.range
+        })
+
+        return obj
+      },
+      { or: [] }
+    )
   } else if (attribute.name === 'type') {
     return {
       and: [
@@ -68,6 +79,14 @@ function _buildAttributeBlock(attribute) {
           }
         }
       })
+    }
+  } else if (attribute.name === 'activeOn') {
+    rule = {
+      contains: attribute.value.reduce((acc, option) => {
+        acc.push(option.value)
+
+        return acc
+      }, [])
     }
   } else if (attribute.operator === 'notContains') {
     return {
@@ -91,9 +110,22 @@ function _buildAttributeBlock(attribute) {
       }, [])
     }
   } else if (attribute.operator === 'between') {
-    // TODO: Chech if this exceptions is needed
+    const bottomLimit = attribute.value[0]
+    const topLimit = attribute.value[1]
+
     rule = {
-      between: attribute.value
+      // Range from ... to
+      ...(!!(topLimit && bottomLimit) && {
+        between: attribute.value
+      }),
+      // Range from ...
+      ...(!!(bottomLimit && !topLimit) && {
+        gte: bottomLimit
+      }),
+      // Range ... to
+      ...(!!(!bottomLimit && topLimit) && {
+        lte: topLimit
+      })
     }
   } else if (attribute.operator === null) {
     rule = Array.isArray(attribute.value)

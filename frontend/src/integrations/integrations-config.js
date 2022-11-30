@@ -9,6 +9,7 @@ import stackoverflow from './stackoverflow'
 import reddit from './reddit'
 import linkedin from './linkedin'
 import zapier from './zapier'
+import crunchbase from './crunchbase'
 import make from './make'
 
 import config from '@/config'
@@ -27,6 +28,7 @@ class IntegrationsConfig {
       reddit,
       linkedin,
       zapier,
+      crunchbase,
       ...(!config.hasPremiumModules && { make })
     }
   }
@@ -58,13 +60,15 @@ class IntegrationsConfig {
   }
 
   mappedConfigs(store) {
-    return this.configs.map((i) => this._mapper(i, store))
+    return this.configs
+      .map((i) => this._mapper(i, store))
+      .filter((i) => !i.hideAsIntegration)
   }
 
   mappedEnabledConfigs(store) {
-    return this.enabledConfigs.map((i) =>
-      this._mapper(i, store)
-    )
+    return this.enabledConfigs
+      .map((i) => this._mapper(i, store))
+      .filter((i) => !i.hideAsIntegration)
   }
 }
 

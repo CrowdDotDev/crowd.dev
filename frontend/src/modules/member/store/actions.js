@@ -12,7 +12,7 @@ import sharedActions from '@/shared/store/actions'
 export default {
   ...sharedActions('member', MemberService),
 
-  async doExport({ commit, state, getters }) {
+  async doExport({ commit, getters }) {
     try {
       if (
         !memberListExporterFields ||
@@ -25,10 +25,10 @@ export default {
 
       commit('EXPORT_STARTED')
 
-      const filter = state.filter
+      const activeView = getters.activeView
 
       const response = await MemberService.list(
-        filter,
+        activeView.filter,
         getters.orderBy,
         null,
         null
@@ -40,17 +40,19 @@ export default {
       ).transformAndExportAsExcelFile(response.rows)
 
       commit('EXPORT_SUCCESS')
+
+      Message.success('Members exported successfully')
     } catch (error) {
       Errors.handle(error)
 
       commit('EXPORT_ERROR')
+      Message.error('There was an error exporting members')
     }
   },
 
-  async doMarkAsTeamMember({ dispatch, state, getters }) {
+  async doMarkAsTeamMember({ dispatch, getters }) {
     try {
       const selectedRows = getters.selectedRows
-      const filter = state.filter
 
       for (const row of selectedRows) {
         await MemberService.update(row.id, {
@@ -65,7 +67,6 @@ export default {
       }
 
       dispatch('doFetch', {
-        filter,
         keepPagination: true
       })
 

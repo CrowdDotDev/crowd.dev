@@ -97,6 +97,16 @@
               No new organizations during this period
             </p>
           </div>
+          <div class="pt-1 flex justify-center">
+            <router-link
+              :to="{
+                name: 'organization',
+                query: { activeTab: 'new-and-active' }
+              }"
+              class="text-xs leading-5 font-medium text-red"
+              >View more</router-link
+            >
+          </div>
         </div>
       </div>
     </section>
@@ -158,6 +168,16 @@
             >
               No active organizations during this period
             </p>
+          </div>
+          <div class="pt-1 flex justify-center">
+            <router-link
+              :to="{
+                name: 'organization',
+                query: { activeTab: 'new-and-active' }
+              }"
+              class="text-xs leading-5 font-medium text-red"
+              >View more</router-link
+            >
           </div>
         </div>
       </div>

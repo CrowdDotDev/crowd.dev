@@ -1,6 +1,7 @@
 import passport from 'passport'
 import Permissions from '../../../security/permissions'
 import PermissionChecker from '../../../services/user/permissionChecker'
+import { PlatformType } from '../../../types/integrationEnums'
 
 export default async (req, res, next) => {
   // Checking we have permision to edit the project
@@ -11,6 +12,8 @@ export default async (req, res, next) => {
     redirectUrl: req.query.redirectUrl,
     hashtags: req.query.hashtags,
     crowdToken: req.query.crowdToken,
+    platform: PlatformType.TWITTER,
+    userId: req.currentUser.id,
   }
 
   const authenticator = passport.authenticate('twitter', {

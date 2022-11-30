@@ -175,17 +175,18 @@ export default class GitHubWebhook {
       integration.token,
     )
     if (member) {
-      const timestampObject = moment().utc()
+      const starredAt =
+        type === GithubActivityType.STAR ? moment(this.payload.starred_at).utc() : moment().utc()
       return {
         member,
         type,
-        timestamp: timestampObject.toDate(),
+        timestamp: starredAt.toDate(),
         platform: PlatformType.GITHUB,
         tenant: GitHubWebhook.getTenantId(integration),
         sourceId: IntegrationServiceBase.generateSourceIdHash(
           this.payload.sender.login,
           type,
-          timestampObject.unix().toString(),
+          starredAt.unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
@@ -379,7 +380,11 @@ export default class GitHubWebhook {
               location: fromAPI.location ?? null,
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
+              github: fromAPI.url
+                ? { handle: fromAPI.url.replace('https://github.com/', '') }
+                : null,
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
+              website: fromAPI.websiteUrl ?? null,
             },
           ]
         } else {

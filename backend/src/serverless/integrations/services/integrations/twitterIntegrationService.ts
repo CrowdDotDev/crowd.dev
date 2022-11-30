@@ -61,6 +61,8 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
+    const log = this.logger(context)
+
     const { fn, arg } = TwitterIntegrationService.getUsecase(
       stream.value,
       context.pipelineData.profileId,
@@ -84,6 +86,19 @@ export class TwitterIntegrationService extends IntegrationServiceBase {
       ? { value: stream.value, metadata: { page: nextPage } }
       : undefined
     const sleep = limit <= 1 ? timeUntilReset : undefined
+
+    if (records === undefined) {
+      log.error(
+        {
+          stream: stream.value,
+          page: stream.metadata.page,
+          profileId: context.pipelineData.profileId,
+        },
+        'No records returned!',
+      )
+
+      throw new Error(`No records returned for stream ${stream.value}!`)
+    }
 
     if (records.length === 0) {
       return {

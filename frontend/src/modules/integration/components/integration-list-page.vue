@@ -9,8 +9,8 @@
       <div class="text-xs text-gray-900">
         <span class="text-base">🧐</span> Missing something?
         <a
-          href="https://8vcqnrnp5it.typeform.com/to/EvtXce0q"
-          >Contact us</a
+          href="https://github.com/CrowdDotDev/crowd.dev/issues?q=is%3Aopen+is%3Aissue+label%3A%22Integration+%F0%9F%94%8C%22+"
+          >Open an issue</a
         >
       </div>
     </div>
@@ -29,6 +29,7 @@
             <a
               href="https://docs.crowd.dev/docs/github-integration#set-up-with-missing-permissions"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>
@@ -44,6 +45,7 @@
             <a
               href="https://docs.crowd.dev/docs/slack-integration#how-to-install"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>
@@ -60,6 +62,7 @@
             <a
               href="https://docs.crowd.dev/docs/discord-integration#how-to-install"
               class="font-semibold absolute right-0 inset-y-0 flex items-center pr-4"
+              target="_blank"
               >Read more</a
             >
           </template>

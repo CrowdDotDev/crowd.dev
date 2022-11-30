@@ -1,5 +1,4 @@
 import lodash from 'lodash'
-import moment from 'moment'
 import Sequelize from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -30,6 +29,9 @@ class OrganizationRepository {
           'phoneNumbers',
           'logo',
           'tags',
+          'website',
+          'location',
+          'github',
           'twitter',
           'linkedin',
           'crunchbase',
@@ -86,6 +88,9 @@ class OrganizationRepository {
           'phoneNumbers',
           'logo',
           'tags',
+          'website',
+          'location',
+          'github',
           'twitter',
           'linkedin',
           'crunchbase',
@@ -278,9 +283,6 @@ class OrganizationRepository {
             model: options.database.activity,
             as: 'activities',
             attributes: [],
-            // through: {
-            //   attributes: [],
-            // },
           },
         ],
       },
@@ -293,10 +295,14 @@ class OrganizationRepository {
     const identities = Sequelize.literal(
       `array( select distinct jsonb_object_keys(jsonb_array_elements(jsonb_agg( case when "members".username is not null then "members".username else '{}' end))))`,
     )
+
     const lastActive = Sequelize.literal(`MAX("members->activities".timestamp)`)
+
     const joinedAt = Sequelize.literal(`MIN("members->activities".timestamp)`)
 
     const memberCount = Sequelize.literal(`COUNT(DISTINCT "members".id)::integer`)
+
+    const activityCount = Sequelize.literal(`COUNT("members->activities".id)::integer`)
 
     // If the advanced filter is empty, we construct it from the query parameter filter
     if (!advancedFilter) {
@@ -466,6 +472,13 @@ class OrganizationRepository {
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('joinedAt', orderBy),
     )
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
+    )
+
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('memberCount', orderBy),
+    )
 
     const parser = new QueryParser(
       {
@@ -489,6 +502,9 @@ class OrganizationRepository {
               'phoneNumbers',
               'logo',
               'tags',
+              'website',
+              'location',
+              'github',
               'twitter',
               'linkedin',
               'crunchbase',
@@ -509,6 +525,7 @@ class OrganizationRepository {
           lastActive,
           joinedAt,
           memberCount,
+          activityCount,
         },
         manyToMany: {
           members: {
@@ -558,6 +575,9 @@ class OrganizationRepository {
             'phoneNumbers',
             'logo',
             'tags',
+            'website',
+            'location',
+            'github',
             'twitter',
             'linkedin',
             'crunchbase',
@@ -578,6 +598,7 @@ class OrganizationRepository {
         [lastActive, 'lastActive'],
         [joinedAt, 'joinedAt'],
         [memberCount, 'memberCount'],
+        [activityCount, 'activityCount'],
       ],
       order,
       limit: parsed.limit,
@@ -685,13 +706,15 @@ class OrganizationRepository {
       ),
     ]
 
-    const activities = members
+    const activityTimestamps = members
       .reduce((acc, m) => acc.concat(...m.get({ plain: true }).activities), [])
       .map((i) => i.timestamp)
 
-    output.lastActive = activities.length > 0 ? moment(Math.max(activities)).toDate() : null
+    output.lastActive =
+      activityTimestamps.length > 0 ? new Date(Math.max(...activityTimestamps)) : null
 
-    output.joinedAt = activities.length > 0 ? moment(Math.min(activities)).toDate() : null
+    output.joinedAt =
+      activityTimestamps.length > 0 ? new Date(Math.min(...activityTimestamps)) : null
 
     output.identities = [
       ...new Set(
@@ -700,6 +723,8 @@ class OrganizationRepository {
     ]
 
     output.memberCount = members.length
+
+    output.activityCount = activityTimestamps.length
 
     return output
   }

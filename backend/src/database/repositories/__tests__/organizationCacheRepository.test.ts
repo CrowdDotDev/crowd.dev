@@ -13,6 +13,11 @@ const toCreate = {
   logo: 'https://logo.clearbit.com/crowd.dev',
   tags: ['community', 'growth', 'developer-first'],
   parentUrl: null,
+  website: 'https://crowd.dev',
+  location: 'Berlin',
+  github: {
+    handle: 'CrowdDotDev',
+  },
   twitter: {
     handle: 'CrowdDotDev',
     id: '1362101830923259908',

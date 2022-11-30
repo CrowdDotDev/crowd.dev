@@ -22,18 +22,23 @@ export default class ApiResponseHandler extends LoggingBase {
     }
   }
 
-  async error(_req, res, error) {
+  async error(req, res, error) {
     if (error && [400, 401, 403, 404].includes(error.code)) {
+      req.log.error(
+        error,
+        { code: error.code, url: req.url, method: req.method, query: req.query, body: req.body },
+        'Client error while processing REST API request!',
+      )
       res.status(error.code).send(error.message)
     } else {
       if (!error.code) {
         error.code = 500
-        this.log.error(
-          error,
-          { url: _req.url, method: _req.method, query: _req.query, body: _req.body },
-          'Unknown error while processing REST API request!',
-        )
       }
+      req.log.error(
+        error,
+        { code: error.code, url: req.url, method: req.method, query: req.query, body: req.body },
+        'Error while processing REST API request!',
+      )
       io.notifyError(error)
       res.status(error.code).send(error.message)
     }

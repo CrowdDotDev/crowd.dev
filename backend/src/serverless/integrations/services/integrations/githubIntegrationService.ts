@@ -229,6 +229,10 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         throw new Error(`Unknown event '${event}'!`)
     }
 
+    const nextPageStream = result.hasPreviousPage
+      ? { value: stream.value, metadata: { repo: stream.metadata.repo, page: result.startCursor } }
+      : undefined
+
     const activities = await GithubIntegrationService.parseActivities(result.data, stream, context)
 
     return {
@@ -239,6 +243,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         },
       ],
       newStreams,
+      nextPageStream,
     }
   }
 
@@ -590,7 +595,11 @@ export class GithubIntegrationService extends IntegrationServiceBase {
               location: fromAPI.location ?? null,
               logo: fromAPI.avatarUrl ?? null,
               url: fromAPI.url ?? null,
+              github: fromAPI.url
+                ? { handle: fromAPI.url.replace('https://github.com/', '') }
+                : null,
               twitter: fromAPI.twitterUsername ? { handle: fromAPI.twitterUsername } : null,
+              website: fromAPI.websiteUrl ?? null,
             },
           ]
         } else {

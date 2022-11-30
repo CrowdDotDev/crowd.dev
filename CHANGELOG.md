@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.10.1 - 2022-11-30
+
+### Changes
+
+This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
+
+### :rocket: Features
+
+#### Organizations
+
+You can now track how organizations are adopting your community. With the organizations' list, you can have an overview of all organizations. You can also have several views and perform filtering. For each organization, there is an organization page with all its background information, a list of all the members that belong to the organization, and their activities.
+<img width="700" alt="Organizations" src="https://user-images.githubusercontent.com/37874460/204589538-65a46d85-ec91-488a-9b32-45f48fe53a94.png">
+
+#### Tasks
+
+With the new tasks feature you can create tasks related to your community members. Do you want to ask newcomers for feedback? Or influential members for some recognition? Or an unhappy member how can you make their life easier? You can orchestrate all this with your team using tasks. We support all standard to-do features, like assigning them to colleagues and setting due dates. You can read more in our [tasks docs](https://docs.crowd.dev/docs/tasks).
+<img width="700" alt="Tasks" src="https://user-images.githubusercontent.com/37874460/204589346-6172b211-76fc-427c-9be2-9f5859756088.png">
+
+#### Notes
+
+The notes module allows you to add notes to your community members. You can annotate your chats with the member and leave comments for your colleagues. Oh, and we support markdown!
+
+### Bug fixes and improvements
+
+The feedback has been tremendous after our open-source launch! We have spent this month working on many bug fixes and improvements to make the app better every single day.
+
 ## v0.9.0 - 2022-10-31
 
 ### Changes
@@ -12,7 +38,6 @@ We completely overhauled our design and user experience (you may not even recogn
 <img width="1103" alt="Screenshot 2022-10-28 at 15 51 31" src="https://user-images.githubusercontent.com/37874460/198659098-cf43074c-1607-41a5-adf7-47635e247639.png">
 :bust_in_silhouette: Richer member profiles
 Member profiles now show you everything you need to know about an individual in one place, with even richer information on their activity history, tags, engagement level, and much more.
-
 :man-man-boy-boy: Information on represented organizations
 We now show you the total organizations that have been identified in your community, we also update you on any new organizations that are popping up in your community, as well as show you all the active organizations (organizations where members have been active in a given time period). Expect standalone pages for organizations very soon.
 
@@ -64,7 +89,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - - When a new member is detected
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -77,7 +104,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ### ✨ Enhancements
 - Upgrade Vue from v2 to v3 @mariobalca (#15)
 ### 🐞 Bug Fixes
-
 - Fix report create/edit issues introduced on (#15) @mariobalca (#58 and #59)
 - Fix bug that caused automations coming from GitHub not firing @themarolt (#55)
 - Engagement score fix: added a check for tenants that have 0 members with activities less than a year ago. Therefore the engagement score KMeans bug is now fixed @CallmeMehdi (#46)
@@ -103,7 +129,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -120,7 +148,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Fixed EagleEye content filters: when filtering by more than one keyword, we are now using an *or* operation instead of an *and*. @joanreyero #9
 - Fixed an error in engagement score when there are no members in the workspace. @CallmeMehdi (#7)
 - Weekly summary email is now sent to all the workspace users, not just one. @epipav (#10)
-
 ## v0.5.0 - 2022-08-25
 
 ### Changes

@@ -78,7 +78,6 @@ export default {
     ...mapGetters({
       currentUser: 'auth/currentUser',
       currentTenant: 'auth/currentTenant',
-      hasRows: 'member/hasRows',
       selectedRows: 'member/selectedRows'
     }),
     isReadOnly() {
@@ -95,12 +94,7 @@ export default {
     ...mapActions({
       doExport: 'member/doExport',
       doMarkAsTeamMember: 'member/doMarkAsTeamMember',
-      doRemoveAllSelected: 'member/doRemoveAllSelected',
-      doDisableAllSelected: 'member/doDisableAllSelected',
-      doEnableAllSelected: 'member/doEnableAllSelected',
-      doDestroyAll: 'member/doDestroyAll',
-      doBulkUpdateMembersTags:
-        'member/doBulkUpdateMembersTags'
+      doDestroyAll: 'member/doDestroyAll'
     }),
 
     async handleCommand(command) {

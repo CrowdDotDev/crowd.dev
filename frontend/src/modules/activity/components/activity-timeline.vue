@@ -1,12 +1,12 @@
 <template>
-  <div class="member-view-activities">
+  <div class="activity-timeline">
     <div class="my-6">
       <el-input
         v-model="query"
         placeholder="Search activities"
         :prefix-icon="SearchIcon"
         clearable
-        class="member-view-activities-search"
+        class="activity-timeline-search"
       >
         <template #append>
           <el-select
@@ -31,6 +31,13 @@
           :key="activity.id"
         >
           <div>
+            <app-member-display-name
+              v-if="entityType === 'organization'"
+              :member="activity.member"
+              custom-class="block text-gray-900 font-medium"
+              with-link
+              class="bl"
+            />
             <div class="flex items-center">
               <app-activity-message :activity="activity" />
               <span class="whitespace-nowrap text-gray-500"
@@ -51,7 +58,11 @@
               class="text-sm bg-gray-50 rounded-lg p-4"
               :activity="activity"
               :show-more="true"
-            />
+              ><div v-if="activity.url" class="pt-6">
+                <app-activity-link
+                  :activity="activity"
+                /></div
+            ></app-activity-content>
           </div>
           <template #dot>
             <span
@@ -111,6 +122,8 @@ import debounce from 'lodash/debounce'
 import authAxios from '@/shared/axios/auth-axios'
 import { formatDateToTimeAgo } from '@/utils/date'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import AppActivityLink from '@/modules/activity/components/activity-link'
 
 const SearchIcon = h(
   'i', // type
@@ -120,7 +133,11 @@ const SearchIcon = h(
 
 const store = useStore()
 const props = defineProps({
-  memberId: {
+  entityId: {
+    type: String,
+    default: null
+  },
+  entityType: {
     type: String,
     default: null
   }
@@ -149,44 +166,50 @@ let filter = {}
 
 const fetchActivities = async () => {
   const filterToApply = {
-    memberId: props.memberId,
     platform: platform.value ?? undefined
   }
 
-  if (query.value && query.value !== '') {
-    filterToApply.or = [
-      {
-        body: {
-          textContains: query.value
-        }
-      },
-      {
-        channel: {
-          textContains: query.value
-        }
-      },
-      {
-        url: {
-          textContains: query.value
-        }
-      },
-      {
-        body: {
-          textContains: query.value
-        }
-      },
-      {
-        title: {
-          textContains: query.value
-        }
-      },
-      {
-        type: {
-          textContains: query.value
-        }
-      }
-    ]
+  if (props.entityType === 'member') {
+    filterToApply.memberId = props.entityId
+  } else {
+    filterToApply[`${props.entityType}s`] = [props.entityId]
   }
+
+  if (props.entityId)
+    if (query.value && query.value !== '') {
+      filterToApply.or = [
+        {
+          body: {
+            textContains: query.value
+          }
+        },
+        {
+          channel: {
+            textContains: query.value
+          }
+        },
+        {
+          url: {
+            textContains: query.value
+          }
+        },
+        {
+          body: {
+            textContains: query.value
+          }
+        },
+        {
+          title: {
+            textContains: query.value
+          }
+        },
+        {
+          type: {
+            textContains: query.value
+          }
+        }
+      ]
+    }
 
   if (!_.isEqual(filter, filterToApply)) {
     activities.length = 0
@@ -252,7 +275,7 @@ onMounted(async () => {
 </script>
 
 <style lang="scss">
-.member-view-activities {
+.activity-timeline {
   .el-input-group__append {
     @apply bg-white;
 

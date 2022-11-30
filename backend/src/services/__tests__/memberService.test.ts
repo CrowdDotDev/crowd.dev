@@ -513,6 +513,9 @@ describe('MemberService tests', () => {
         id: organization.id,
         name: 'crowd.dev',
         url: null,
+        github: null,
+        location: null,
+        website: null,
         description: null,
         parentUrl: null,
         emails: null,
@@ -566,6 +569,9 @@ describe('MemberService tests', () => {
         id: organization.id,
         name: 'crowd.dev',
         url: 'https://crowd.dev',
+        github: null,
+        location: null,
+        website: null,
         description: 'Here',
         parentUrl: null,
         emails: null,
@@ -623,6 +629,9 @@ describe('MemberService tests', () => {
         id: organization.id,
         name: 'crowd.dev',
         url: null,
+        github: null,
+        location: null,
+        website: null,
         description: null,
         parentUrl: null,
         emails: null,
@@ -674,8 +683,11 @@ describe('MemberService tests', () => {
 
       expect(o1).toStrictEqual({
         id: organization.id,
-        name: 'Crowd.dev',
+        name: 'crowd.dev',
         url: 'crowd.dev',
+        github: null,
+        location: null,
+        website: null,
         description:
           'Understand, grow, and engage your developer community with zero hassle. With crowd.dev, you can build developer communities that drive your business forward.',
         parentUrl: null,
@@ -1662,9 +1674,9 @@ describe('MemberService tests', () => {
       t3 = SequelizeTestUtils.objectWithoutKey(t3, 'members')
 
       // remove organizations->member relations as well (we should be only checking 1-deep relations)
-      o1 = SequelizeTestUtils.objectWithoutKey(o1, ['memberCount', 'joinedAt'])
-      o2 = SequelizeTestUtils.objectWithoutKey(o2, ['memberCount', 'joinedAt'])
-      o3 = SequelizeTestUtils.objectWithoutKey(o3, ['memberCount', 'joinedAt'])
+      o1 = SequelizeTestUtils.objectWithoutKey(o1, ['memberCount', 'joinedAt', 'activityCount'])
+      o2 = SequelizeTestUtils.objectWithoutKey(o2, ['memberCount', 'joinedAt', 'activityCount'])
+      o3 = SequelizeTestUtils.objectWithoutKey(o3, ['memberCount', 'joinedAt', 'activityCount'])
 
       // remove tasks->member and tasks->activity tasks->assignees relations as well (we should be only checking 1-deep relations)
       task1 = SequelizeTestUtils.objectWithoutKey(task1, ['members', 'activities', 'assignees'])

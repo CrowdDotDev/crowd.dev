@@ -712,8 +712,7 @@ describe('Github webhooks tests', () => {
     it('It should parse a star event coming from the GitHub API', async () => {
       const { tenantId, gh } = await init(TestEvents.star.event, TestEvents.star.created, true)
       const star = await gh.star(GithubActivityType.STAR)
-      const starTimestamp = star.timestamp
-      delete star.timestamp
+
       const expected = {
         member: {
           username: {
@@ -723,10 +722,11 @@ describe('Github webhooks tests', () => {
         type: GithubActivityType.STAR,
         platform: PlatformType.GITHUB,
         tenant: tenantId,
+        timestamp: moment(TestEvents.star.created.starred_at).toDate(),
         sourceId: IntegrationServiceBase.generateSourceIdHash(
           'joanreyero',
           GithubActivityType.STAR,
-          moment(starTimestamp).unix().toString(),
+          moment(TestEvents.star.created.starred_at).unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: null,
@@ -736,7 +736,6 @@ describe('Github webhooks tests', () => {
       }
       expect(star).toStrictEqual(expected)
       // Check timestamp
-      expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
 
       const fromMain = await gh.getActivityWithMember()
       expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
@@ -746,7 +745,6 @@ describe('Github webhooks tests', () => {
         PlatformType.GITHUB,
       )
 
-      delete fromMain.timestamp
       expect(fromMain).toStrictEqual(expected)
 
       const fromDb = await gh.main()

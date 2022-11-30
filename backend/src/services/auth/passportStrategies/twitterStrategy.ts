@@ -1,10 +1,10 @@
+import TwitterStrategy from '@superfaceai/passport-twitter-oauth2'
 import { API_CONFIG, TWITTER_CONFIG } from '../../../config'
-import StaticPKCEStore from './staticPKCEStore'
+import RedisPKCEStore from './redisPKCEStore'
+import { RedisCache, RedisClient } from '../../../utils/redis'
 
-const TwitterStrategy = require('@superfaceai/passport-twitter-oauth2')
-
-export function getTwitterStrategy() {
-  const staticPKCEStore = new StaticPKCEStore()
+export function getTwitterStrategy(redis: RedisClient): TwitterStrategy {
+  const redisPKCEStore = new RedisPKCEStore(new RedisCache('twitterPKCE', redis))
   return new TwitterStrategy(
     {
       clientID: TWITTER_CONFIG.clientId,
@@ -12,7 +12,7 @@ export function getTwitterStrategy() {
       callbackURL: `${API_CONFIG.url}/twitter/callback`,
       clientType: 'private',
       passReqToCallback: true,
-      store: staticPKCEStore,
+      store: redisPKCEStore,
     },
     (req, accessToken, refreshToken, profile, done) => {
       if (!done) {

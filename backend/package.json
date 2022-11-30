@@ -4,13 +4,13 @@
   "scripts": {
     "start:api": "ts-node --transpile-only ./src/bin/api.ts",
     "start:api:dev": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/api.ts\"",
-    "start:api:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=api nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/api.ts\"",
+    "start:api:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=api nodemon --signal SIGKILL --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/api.ts\"",
     "start:job-generator": "ts-node --transpile-only ./src/bin/job-generator.ts",
     "start:job-generator:dev": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/job-generator.ts\"",
-    "start:job-generator:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=job-generator nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/job-generator.ts\"",
+    "start:job-generator:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=job-generator nodemon --signal SIGKILL --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/job-generator.ts\"",
     "start:nodejs-worker": "ts-node --transpile-only ./src/bin/nodejs-worker.ts",
     "start:nodejs-worker:dev": "nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"ts-node --transpile-only ./src/bin/nodejs-worker.ts\"",
-    "start:nodejs-worker:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=nodejs-worker nodemon --watch \"src/**/*.ts\" -e ts,json --exec \"node --inspect=0.0.0.0:9229 -r ts-node/register ./src/bin/nodejs-worker.ts --transpile-only\"",
+    "start:nodejs-worker:dev:local": "set -a && . ./.env.dist.local && . ./.env.override.local && set +a && SERVICE=nodejs-worker nodemon --signal SIGKILL --watch \"src/**/*.ts\" -e ts,json --exec \"node --inspect=0.0.0.0:9229 -r ts-node/register ./src/bin/nodejs-worker.ts --transpile-only\"",
     "build": "tsc && npm run build:documentation && cp package*json dist/ && cp .sequelizerc dist/.sequelizerc ",
     "test": "../scripts/cli scaffold up-test && jest --clearCache && set -a && . ./.env.dist.local && . ./.env.test && set +a && NODE_ENV=test SERVICE=test jest --runInBand --verbose --forceExit",
     "build:documentation": "copyfiles --flat ./src/documentation/openapi.json ./dist/documentation/",
@@ -25,7 +25,8 @@
     "stripe:login": "stripe login",
     "stripe:start": "stripe listen --forward-to localhost:8080/api/plan/stripe/webhook",
     "lint": "npx eslint .",
-    "format": "npx prettier --write ."
+    "format": "npx prettier --write .",
+    "script:process-integration": "SERVICE=script ts-node ./src/bin/scripts/process-integration.ts"
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
@@ -48,6 +49,8 @@
     "bunyan-middleware": "^1.0.2",
     "clearbit": "^1.3.5",
     "cli-highlight": "2.1.6",
+    "command-line-args": "^5.2.1",
+    "command-line-usage": "^6.1.3",
     "config": "^3.3.8",
     "cors": "2.8.5",
     "cron": "^2.1.0",
@@ -77,6 +80,7 @@
     "passport-slack": "0.0.7",
     "pg": "^8.7.3",
     "pm2": "^5.2.0",
+    "redis": "^4.5.0",
     "sanitize-html": "^2.7.1",
     "sequelize": "6.21.2",
     "sequelize-cli-typescript": "^3.2.0-c",

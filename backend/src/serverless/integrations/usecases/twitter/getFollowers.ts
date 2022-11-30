@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import moment from 'moment'
 import { TwitterGetFollowersInput, TwitterGetFollowersOutput } from '../../types/twitterTypes'
 import { Logger } from '../../../../utils/logging'
@@ -13,17 +13,30 @@ const getFollowers = async (
   logger: Logger,
 ): Promise<TwitterGetFollowersOutput> => {
   try {
-    const config = {
+    const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url: `https://api.twitter.com/2/users/${input.profileId}/followers?user.fields=name,description,location,public_metrics,url,verified,profile_image_url&pagination_token=D903MLRBG6U1EZZZ`,
+      url: `https://api.twitter.com/2/users/${input.profileId}/followers`,
+      params: {
+        'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
+      },
       headers: {
         Authorization: `Bearer ${input.token}`,
       },
     }
+
+    if (input.perPage) {
+      config.params.max_results = input.perPage
+    }
+
+    if (input.page) {
+      config.params.pagination_token = input.page
+    }
+
     const response = await axios(config)
     const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
     const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
     const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+
     return {
       records: response.data.data,
       nextPage: response.data.meta.next_token || '',

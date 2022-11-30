@@ -38,7 +38,7 @@
     "graphql": "^15.6.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
-    "logrocket": "^2.1.2",
+    "logrocket": "^3.0.1",
     "logrocket-vuex": "^0.0.3",
     "md5": "2.3.0",
     "moment": "^2.29.4",

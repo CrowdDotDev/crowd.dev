@@ -310,21 +310,14 @@
     color: #1d9bf0;
   }
 
-  &--linkedin,
-  &--linkedin:hover {
-    @apply cursor-pointer;
-    background-color: rgba(2, 116, 179, 0.1);
-    color: #0274b3;
-  }
-
   &--discord,
   &--discord:hover {
     background-color: rgba(88, 101, 242, 0.15);
   }
 
-  &--slack,
-  &--slack:hover {
-    @apply bg-white;
+  &--crunchbase,
+  &--crunchbase:hover {
+    background: rgba(20, 106, 255, 0.15);
   }
 
   &--hackernews,

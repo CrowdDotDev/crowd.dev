@@ -376,14 +376,14 @@ describe('QueryParser tests', () => {
                   Sequelize.literal(`"task"."id"`),
                   Op.in,
                   Sequelize.literal(
-                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "memberTasks" ON "memberTasks"."taskId" = "tasks".id WHERE  "memberTasks"."memberId"  = '${mid1}')`,
+                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "memberTasks" ON "memberTasks"."taskId" = "tasks"."id" WHERE  "memberTasks"."memberId"  = '${mid1}')`,
                   ),
                 ),
                 Sequelize.where(
                   Sequelize.literal(`"task"."id"`),
                   Op.in,
                   Sequelize.literal(
-                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
+                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks"."id" WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
                   ),
                 ),
               ],
@@ -522,7 +522,7 @@ describe('QueryParser tests', () => {
                   Sequelize.literal(`"task"."id"`),
                   Op.in,
                   Sequelize.literal(
-                    `(SELECT "tasks".id FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks".id WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
+                    `(SELECT "tasks"."id" FROM "tasks" INNER JOIN "activityTasks" ON "activityTasks"."taskId" = "tasks"."id" WHERE  "activityTasks"."activityId"  = '${aid1}' OR "activityTasks"."activityId"  = '${aid2}')`,
                   ),
                 ),
               ],

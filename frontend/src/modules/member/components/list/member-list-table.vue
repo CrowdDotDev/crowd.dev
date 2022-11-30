@@ -52,7 +52,7 @@
           <transition name="el-fade-in">
             <div
               v-show="isScrollbarVisible"
-              class="absolute z-10 top-0 left-0 w-full"
+              class="absolute z-20 top-0 left-0 w-full"
               @mouseover="onTableMouseover"
               @mouseleave="onTableMouseLeft"
             >
@@ -121,6 +121,7 @@
                       :member="scope.row"
                       class="ml-2"
                     />
+                    <app-member-badge :member="scope.row" />
                   </div>
                 </template>
               </el-table-column>
@@ -198,7 +199,7 @@
 
               <el-table-column
                 label="Identities"
-                width="220"
+                width="240"
               >
                 <template #default="scope">
                   <app-member-channels
@@ -269,6 +270,7 @@ import {
   watch
 } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
+import AppMemberBadge from '../member-badge'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
 import AppMemberDropdown from '../member-dropdown'
 import AppMemberChannels from '../member-channels'
@@ -382,11 +384,11 @@ onMounted(async () => {
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value.removeEventListener(
+  tableBodyRef.value?.removeEventListener(
     'scroll',
     onTableBodyScroll
   )
-  tableHeaderRef.value.removeEventListener(
+  tableHeaderRef.value?.removeEventListener(
     'scroll',
     onTableHeaderScroll
   )

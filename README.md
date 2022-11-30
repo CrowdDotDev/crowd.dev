@@ -100,8 +100,7 @@ For more information on development, you can <a href="https://docs.crowd.dev/doc
 Our goal is to build the most powerful platform for building developer communities out there. In the upcoming months we'll focus on the following features:
 
 - [ ] More integrations (LinkedIn, Reddit, Stack Overflow, etc.)
-- [ ] Standadlone organization module to find out more about the companies behind your members
-- [ ] Tasks module to receive recommendations for actions and collaborate with colleagues
+- [ ] Standalone organization module to find out more about the companies behind your members
 - [ ] Open marketplace for community building apps
 
 You can find more features on our [public roadmap](https://crowd.dev/roadmap). Feel free to also [open an issue](https://crowd.dev/open-an-issue) for anything you're missing.

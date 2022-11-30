@@ -52,6 +52,10 @@ export default (sequelize) => {
         type: DataTypes.JSONB,
         default: {},
       },
+      github: {
+        type: DataTypes.JSONB,
+        default: {},
+      },
       crunchbase: {
         type: DataTypes.JSONB,
         default: {},
@@ -70,6 +74,14 @@ export default (sequelize) => {
         validate: {
           len: [0, 255],
         },
+      },
+      location: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      website: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {
