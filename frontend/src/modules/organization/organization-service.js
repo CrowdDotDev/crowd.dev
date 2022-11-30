@@ -1,18 +1,14 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import buildApiFilter from '@/shared/filter/helpers/build-api-payload'
 
 export class OrganizationService {
   static async update(id, data) {
-    const body = {
-      id,
-      data
-    }
-
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.put(
       `/tenant/${tenantId}/organization/${id}`,
-      body
+      data
     )
 
     return response.data
@@ -56,9 +52,15 @@ export class OrganizationService {
     return response.data
   }
 
-  static async list(filter, orderBy, limit, offset) {
-    const params = {
-      filter,
+  static async list(
+    filter,
+    orderBy,
+    limit,
+    offset,
+    buildFilter = true
+  ) {
+    const body = {
+      filter: buildFilter ? buildApiFilter(filter) : filter,
       orderBy,
       limit,
       offset
@@ -66,11 +68,9 @@ export class OrganizationService {
 
     const tenantId = AuthCurrentTenant.get()
 
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/organization`,
-      {
-        params
-      }
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/organization/query`,
+      body
     )
 
     return response.data

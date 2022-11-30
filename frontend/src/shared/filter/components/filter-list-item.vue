@@ -22,7 +22,7 @@
             </span>
             <span
               v-if="hasValue"
-              class="ml-1 max-w-xs truncate"
+              class="ml-1 max-w-xs truncate font-normal"
               >{{ valueToString }}</span
             >
           </el-button>
@@ -130,7 +130,9 @@ const valueToString = computed(() => {
       }
     } else if (props.filter.type === 'select') {
       const label = props.filter.props.options.find(
-        (o) => o.value === props.filter.value
+        (o) =>
+          JSON.stringify(o.value) ===
+          JSON.stringify(props.filter.value)
       )?.label
 
       return `${operatorLabel} ${label}`

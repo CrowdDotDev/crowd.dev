@@ -224,7 +224,39 @@ const en = {
     organization: {
       name: 'organization',
       label: 'Organizations',
-      menu: 'Organizations'
+      menu: 'Organizations',
+      create: {
+        success: 'Organization successfully saved',
+        error:
+          'There was an error creating the organization'
+      },
+      update: {
+        success: 'Organization successfully saved',
+        error:
+          'There was an error updating the organization'
+      },
+      destroy: {
+        success: 'Organization successfully deleted'
+      },
+      destroyAll: {
+        success: 'Organization(s) successfully deleted'
+      },
+      edit: {
+        title: 'Edit Organization'
+      },
+      fields: {
+        name: 'Name',
+        description: 'Description',
+        website: 'Website',
+        location: 'Location',
+        employees: 'Number of employees',
+        revenueRange: 'Annual revenue',
+        activeSince: 'Active since',
+        github: 'GitHub',
+        twitter: 'Twitter',
+        linkedin: 'LinkedIn',
+        crunchbase: 'Crunchbase'
+      }
     },
 
     activity: {

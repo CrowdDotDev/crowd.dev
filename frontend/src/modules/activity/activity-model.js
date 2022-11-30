@@ -10,7 +10,7 @@ import JsonField from '@/shared/fields/json-field'
 import SearchField from '@/shared/fields/search-field'
 import SentimentField from '@/shared/fields/sentiment-field'
 import ActivityPlatformField from './activity-platform-field'
-import ActivityDateField from './activity-date-field'
+import ActivityDateField from '@/shared/fields/activity-date-field'
 import ActivityTypeField from './activity-type-field'
 
 function label(name) {

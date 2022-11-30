@@ -48,7 +48,9 @@ const computedOptions = computed(() => {
   return props.options.map((o) => {
     return {
       ...o,
-      selected: model.value === o.value
+      selected:
+        JSON.stringify(model.value) ===
+        JSON.stringify(o.value)
     }
   })
 })

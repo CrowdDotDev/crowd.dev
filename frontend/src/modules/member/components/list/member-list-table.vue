@@ -199,7 +199,7 @@
 
               <el-table-column
                 label="Identities"
-                width="220"
+                width="240"
               >
                 <template #default="scope">
                   <app-member-channels
@@ -384,11 +384,11 @@ onMounted(async () => {
 
 // Remove listeners on unmount
 onUnmounted(() => {
-  tableBodyRef.value.removeEventListener(
+  tableBodyRef.value?.removeEventListener(
     'scroll',
     onTableBodyScroll
   )
-  tableHeaderRef.value.removeEventListener(
+  tableHeaderRef.value?.removeEventListener(
     'scroll',
     onTableHeaderScroll
   )
