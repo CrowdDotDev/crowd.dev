@@ -163,6 +163,12 @@ const shouldShowReset = computed(() => {
   )
 })
 const shouldDisableApplyButton = computed(() => {
+  if (model.operator === 'between') {
+    return (
+      isNaN(model.value?.[0]) || isNaN(model.value?.[1])
+    )
+  }
+
   return Array.isArray(model.value)
     ? model.value.length === 0
     : model.value === '' || model.value === null
