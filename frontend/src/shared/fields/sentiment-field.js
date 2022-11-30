@@ -25,8 +25,7 @@ export default class SentimentField extends GenericField {
         value: 'neutral',
         label: 'Neutral',
         range: {
-          gt: 33,
-          lt: 67
+          between: [33, 67]
         }
       },
       {
