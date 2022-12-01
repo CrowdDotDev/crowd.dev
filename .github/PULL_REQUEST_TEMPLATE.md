@@ -1,11 +1,10 @@
 # Changes proposed ✍️
-
 - ...
+  
 - ### Screenshots (front-end changes only)
       - ...
 
 ## Checklist ✅
-
 - [ ] Label appropriately with `Feature`, `Enhancement`, or `Bug`.
 - [ ] Tests are passing.
 - [ ] New backend functionality has been unit-tested.

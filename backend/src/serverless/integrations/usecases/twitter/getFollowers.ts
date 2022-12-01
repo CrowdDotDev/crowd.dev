@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import moment from 'moment'
-import { TwitterGetFollowersInput, TwitterGetFollowersOutput } from '../../types/twitterTypes'
 import { Logger } from '../../../../utils/logging'
+import { TwitterGetFollowersInput, TwitterGetFollowersOutput } from '../../types/twitterTypes'
+import { handleTwitterError } from './errorHandler'
 
 /**
  * Get all followers of an account
@@ -44,8 +45,8 @@ const getFollowers = async (
       timeUntilReset,
     }
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting messages from Twitter')
-    throw err
+    const newErr = handleTwitterError(err, input, logger)
+    throw newErr
   }
 }
 

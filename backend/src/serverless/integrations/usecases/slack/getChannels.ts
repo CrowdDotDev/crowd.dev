@@ -1,16 +1,19 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
+import { handleSlackError } from './errorHandler'
 import { SlackChannels, SlackGetChannelsInput } from '../../types/slackTypes'
 import { Logger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
-import { RateLimitError } from '../../../../types/integration/rateLimitError'
 
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackChannels> {
   await timeout(2000)
 
   try {
-    const config = {
+    const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url: 'https://slack.com/api/conversations.list?limit=100',
+      url: 'https://slack.com/api/conversations.list',
+      params: {
+        limit: 100,
+      },
       headers: {
         Authorization: `Bearer ${input.token}`,
       },
@@ -26,14 +29,8 @@ async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promis
         id: c.id,
       }))
   } catch (err) {
-    if (err && err.response && err.response.status === 429 && err.response.headers['Retry-After']) {
-      logger.warn('Slack API rate limit exceeded')
-      const rateLimitResetSeconds = parseInt(err.response.headers['Retry-After'], 10)
-      throw new RateLimitError(rateLimitResetSeconds, '/conversations.list')
-    } else {
-      logger.error({ err, input }, 'Error while getting channels from Slack')
-      throw err
-    }
+    const newErr = handleSlackError(err, input, logger)
+    throw newErr
   }
 }
 

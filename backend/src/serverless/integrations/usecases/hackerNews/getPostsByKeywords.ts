@@ -1,9 +1,7 @@
-import axios from 'axios'
 import { IServiceOptions } from '../../../../services/IServiceOptions'
 import { EagleEyeResponses, EagleEyeInput } from '../../types/hackerNewsTypes'
 import { Logger } from '../../../../utils/logging'
 import { timeout } from '../../../../utils/timing'
-import { IS_DEV_ENV } from '../../../../config'
 import EagleEyeContentService from '../../../../services/eagleEyeContentService'
 
 async function getPostsByKeyword(
