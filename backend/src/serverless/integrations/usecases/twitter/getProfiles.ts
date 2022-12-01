@@ -1,10 +1,11 @@
+import axios, { AxiosRequestConfig } from 'axios'
 import moment from 'moment'
-import axios from 'axios'
+import { Logger } from '../../../../utils/logging'
 import {
   TwitterGetFollowersOutput,
   TwitterGetProfilesByUsernameInput,
 } from '../../types/twitterTypes'
-import { Logger } from '../../../../utils/logging'
+import { handleTwitterError } from './errorHandler'
 
 /**
  * Get profiles by username
@@ -16,13 +17,18 @@ const getProfiles = async (
   logger: Logger,
 ): Promise<TwitterGetFollowersOutput> => {
   try {
-    const config = {
+    const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url: `https://api.twitter.com/2/users/by?usernames=${input.usernames}&user.fields=name,description,location,public_metrics,url,verified,profile_image_url`,
+      url: 'https://api.twitter.com/2/users/by',
+      params: {
+        usernames: input.usernames,
+        'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
+      },
       headers: {
         Authorization: `Bearer ${input.token}`,
       },
     }
+
     const response = await axios(config)
     const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
     const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
@@ -34,8 +40,8 @@ const getProfiles = async (
       timeUntilReset,
     }
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting profiles from Twitter')
-    throw err
+    const newErr = handleTwitterError(err, input, logger)
+    throw newErr
   }
 }
 

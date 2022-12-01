@@ -1,11 +1,12 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import moment from 'moment'
+import { Logger } from '../../../../utils/logging'
 import {
   TwitterGetPostsByHashtagInput,
   TwitterGetPostsOutput,
   TwitterParsedPosts,
 } from '../../types/twitterTypes'
-import { Logger } from '../../../../utils/logging'
+import { handleTwitterError } from './errorHandler'
 
 /**
  * Get paginated posts by hashtag
@@ -17,17 +18,26 @@ const getPostsByHashtag = async (
   logger: Logger,
 ): Promise<TwitterGetPostsOutput> => {
   try {
-    let url = `https://api.twitter.com/2/tweets/search/recent?max_results=${input.perPage}&tweet.fields=id,text,created_at,entities,referenced_tweets,attachments&expansions=attachments.media_keys,author_id&media.fields=duration_ms,height,media_key,preview_image_url,type,url,width,alt_text&user.fields=name,description,location,public_metrics,url,verified,profile_image_url&query=%23${input.hashtag}`
-    if (input.page !== undefined && input.page !== '') {
-      url += `&next_token=${input.page}`
-    }
-    const config = {
+    const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url,
+      url: 'https://api.twitter.com/2/tweets/search/recent',
+      params: {
+        max_results: input.perPage,
+        'tweet.fields': 'id,text,created_at,entities,referenced_tweets,attachments',
+        expansions: 'attachments.media_keys,author_id',
+        'media.fields': 'duration_ms,height,media_key,preview_image_url,type,url,width,alt_text',
+        'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
+        query: `#${input.hashtag}`,
+      },
       headers: {
         Authorization: `Bearer ${input.token}`,
       },
     }
+
+    if (input.page !== undefined && input.page !== '') {
+      config.params.next_token = input.page
+    }
+
     const response = await axios(config)
 
     const posts = response.data.data
@@ -58,8 +68,8 @@ const getPostsByHashtag = async (
       timeUntilReset,
     }
   } catch (err) {
-    logger.error({ err, input }, 'Error while getting messages from Twitter')
-    throw err
+    const newErr = handleTwitterError(err, input, logger)
+    throw newErr
   }
 }
 

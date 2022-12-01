@@ -5,10 +5,13 @@ export class BaseError extends Error {
 
   public stack?: string
 
-  constructor(message: string) {
+  public originalError?: any
+
+  constructor(message: string, originalError?: any) {
     super(message)
     this.name = this.constructor.name
     this.message = message
+    this.originalError = originalError
     Error.captureStackTrace(this, this.constructor)
   }
 }
