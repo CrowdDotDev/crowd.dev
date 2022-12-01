@@ -16,7 +16,7 @@ const getOrganization = async (name: string, token: string): Promise<any> => {
       },
     })
 
-    const sanitizedName = name.replaceAll('\\', '').replaceAll('\\"', '')
+    const sanitizedName = name.replaceAll('\\', '').replaceAll('"', '')
 
     const organizationsQuery = `{
       search(query: "type:org ${sanitizedName}", type: USER, first: 10) {
