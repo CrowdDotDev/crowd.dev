@@ -174,7 +174,7 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     }
     return {
       ...activity,
-      member: member,
+      member,
     }
   }
 }
