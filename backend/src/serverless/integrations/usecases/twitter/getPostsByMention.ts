@@ -17,26 +17,26 @@ const getPostsByMention = async (
   input: TwitterGetPostsByMentionInput,
   logger: Logger,
 ): Promise<TwitterGetPostsOutput> => {
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: `https://api.twitter.com/2/users/${input.profileId}/mentions`,
+    params: {
+      max_results: input.perPage,
+      'tweet.fields': 'id,text,created_at,attachments,referenced_tweets,entities',
+      'media.fields': 'duration_ms,height,media_key,preview_image_url,type,url,width,alt_text',
+      'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
+      expansions: 'attachments.media_keys,author_id',
+    },
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
+
+  if (input.page !== undefined && input.page !== '') {
+    config.params.next_token = input.page
+  }
+
   try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: `https://api.twitter.com/2/users/${input.profileId}/mentions`,
-      params: {
-        max_results: input.perPage,
-        'tweet.fields': 'id,text,created_at,attachments,referenced_tweets,entities',
-        'media.fields': 'duration_ms,height,media_key,preview_image_url,type,url,width,alt_text',
-        'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
-        expansions: 'attachments.media_keys,author_id',
-      },
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
-
-    if (input.page !== undefined && input.page !== '') {
-      config.params.next_token = input.page
-    }
-
     const response = await axios(config)
 
     const posts = response.data.data
@@ -62,12 +62,12 @@ const getPostsByMention = async (
     const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
     return {
       records: postsOut,
-      nextPage: response.data.meta.next_token || '',
+      nextPage: response.data?.meta?.next_token || '',
       limit,
       timeUntilReset,
     }
   } catch (err) {
-    const newErr = handleTwitterError(err, input, logger)
+    const newErr = handleTwitterError(err, config, input, logger)
     throw newErr
   }
 }

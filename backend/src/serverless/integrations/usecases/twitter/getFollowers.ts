@@ -13,26 +13,26 @@ const getFollowers = async (
   input: TwitterGetFollowersInput,
   logger: Logger,
 ): Promise<TwitterGetFollowersOutput> => {
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: `https://api.twitter.com/2/users/${input.profileId}/followers`,
+    params: {
+      'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
+    },
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
+
+  if (input.perPage) {
+    config.params.max_results = input.perPage
+  }
+
+  if (input.page) {
+    config.params.pagination_token = input.page
+  }
+
   try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: `https://api.twitter.com/2/users/${input.profileId}/followers`,
-      params: {
-        'user.fields': 'name,description,location,public_metrics,url,verified,profile_image_url',
-      },
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
-
-    if (input.perPage) {
-      config.params.max_results = input.perPage
-    }
-
-    if (input.page) {
-      config.params.pagination_token = input.page
-    }
-
     const response = await axios(config)
     const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
     const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
@@ -40,12 +40,12 @@ const getFollowers = async (
 
     return {
       records: response.data.data,
-      nextPage: response.data.meta.next_token || '',
+      nextPage: response.data?.meta?.next_token || '',
       limit,
       timeUntilReset,
     }
   } catch (err) {
-    const newErr = handleTwitterError(err, input, logger)
+    const newErr = handleTwitterError(err, config, input, logger)
     throw newErr
   }
 }

@@ -7,18 +7,18 @@ import { timeout } from '../../../../utils/timing'
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackChannels> {
   await timeout(2000)
 
-  try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: 'https://slack.com/api/conversations.list',
-      params: {
-        limit: 100,
-      },
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: 'https://slack.com/api/conversations.list',
+    params: {
+      limit: 100,
+    },
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
 
+  try {
     const response = await axios(config)
     const result: SlackChannels = response.data.channels
 
@@ -29,7 +29,7 @@ async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promis
         id: c.id,
       }))
   } catch (err) {
-    const newErr = handleSlackError(err, input, logger)
+    const newErr = handleSlackError(err, config, input, logger)
     throw newErr
   }
 }

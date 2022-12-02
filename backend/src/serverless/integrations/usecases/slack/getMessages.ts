@@ -10,26 +10,26 @@ async function getMessages(
 ): Promise<SlackParsedResponse> {
   await timeout(2000)
 
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: `https://slack.com/api/conversations.history`,
+    params: {
+      channel: input.channelId,
+    },
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
+
+  if (input.page !== undefined && input.page !== '') {
+    config.params.cursor = input.page
+  }
+
+  if (input.perPage !== undefined && input.perPage > 0) {
+    config.params.limit = input.perPage
+  }
+
   try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: `https://slack.com/api/conversations.history`,
-      params: {
-        channel: input.channelId,
-      },
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
-
-    if (input.page !== undefined && input.page !== '') {
-      config.params.cursor = input.page
-    }
-
-    if (input.perPage !== undefined && input.perPage > 0) {
-      config.params.limit = input.perPage
-    }
-
     const response = await axios(config)
     const records: SlackMessages = response.data.messages
 
@@ -39,7 +39,7 @@ async function getMessages(
       nextPage,
     }
   } catch (err) {
-    const newErr = handleSlackError(err, input, logger)
+    const newErr = handleSlackError(err, config, input, logger)
     throw newErr
   }
 }
