@@ -23,14 +23,22 @@
         :key="filter.id"
         class="flex -mx-2 mb-2 items-center"
       >
-        <div class="input-group mx-2">
+        <div class="flex items-center mx-2">
           <div class="grow">
             <el-select
               v-model="filter.select"
+              class="first-filter"
               clearable
               filterable
               placeholder="Measure/dimension"
-              @change="handleFilterChange"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'first-option',
+                    value,
+                    index
+                  )
+              "
             >
               <el-option
                 v-for="item in computedFilters"
@@ -45,9 +53,17 @@
           <div class="grow">
             <el-select
               v-model="filter.operator"
+              class="second-filter"
               clearable
               placeholder="Condition"
-              @change="handleFilterChange"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'second-option',
+                    value,
+                    index
+                  )
+              "
             >
               <el-option
                 v-for="actionItem in actionItems"
@@ -61,11 +77,73 @@
           </div>
 
           <div class="grow">
-            <el-input
+            <el-select
+              v-if="filter.select === 'Activities.platform'"
               v-model="filter.value"
+              class="third-filter"
+              placeholder="Value"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'third-option',
+                    value,
+                    index
+                  )
+              "
+            >
+              <el-option
+                v-for="integration of Object.keys(
+                  activeIntegrationsList
+                )"
+                :key="platformDetails(integration).name"
+                :label="platformDetails(integration).name"
+                :value="integration"
+                @mouseleave="onSelectMouseLeave"
+              />
+            </el-select>
+            <el-select
+              v-else-if="
+                filter.select === 'Activities.type'
+              "
+              v-model="filter.value"
+              class="third-filter"
+              placeholder="Value"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'third-option',
+                    value,
+                    index
+                  )
+              "
+            >
+              <el-option-group
+                v-for="group in computedActivityTypes"
+                :key="group.label.key"
+                :label="group.label.value"
+              >
+                <el-option
+                  v-for="item in group.nestedOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-option-group>
+            </el-select>
+            <el-input
+              v-else
+              v-model="filter.value"
+              class="third-filter"
               type="text"
               placeholder="Value"
-              @change="handleFilterChange"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'third-option',
+                    value,
+                    index
+                  )
+              "
             ></el-input>
           </div>
         </div>
@@ -99,6 +177,11 @@
 <script>
 import { v4 as uuid } from 'uuid'
 import { onSelectMouseLeave } from '@/utils/select'
+import { mapGetters, mapActions } from 'vuex'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { ActivityModel } from '@/modules/activity/activity-model'
+
+const { fields } = ActivityModel
 
 export default {
   name: 'FilterComponent',
@@ -219,9 +302,25 @@ export default {
                   dimension
                 ].includes(d.name)
           })
+    },
+    computedActivityTypes() {
+      return fields.type
+        .dropdownOptions()
+        .filter((i) =>
+          Object.keys(this.activeIntegrationsList).includes(
+            i.label.key
+          )
+        )
+    },
+    ...mapGetters({
+      activeIntegrationsList: 'integration/activeList'
+    }),
+    fields() {
+      return fields
     }
   },
-  created() {
+  async created() {
+    await this.doFetchIntegrations()
     this.localFilters = this.initFilters() || []
   },
   methods: {
@@ -237,8 +336,8 @@ export default {
       this.localFilters.splice(index, 1)
       this.syncFilters()
     },
-    handleFilterChange() {
-      this.syncFilters()
+    handleFilterChange(option, value, index) {
+      this.syncFilters(option, value, index)
     },
     initFilters() {
       if (!this.filters.length) {
@@ -250,7 +349,7 @@ export default {
           const filter = f
 
           filter.value = f.values[0]
-          filter.select = f.member
+          filter.select = f.member.name
 
           delete filter.member
           delete filter.values
@@ -259,7 +358,11 @@ export default {
         }
       )
     },
-    syncFilters() {
+    syncFilters(option, value, index) {
+      const hasChangedFirstOption =
+        option === 'first-option' &&
+        this.filters?.[index]?.select !== value
+
       const newFilters = this.localFilters
         .filter((filter) => {
           return [
@@ -276,28 +379,37 @@ export default {
           }
         })
 
+      if (hasChangedFirstOption) {
+        this.localFilters[index].value = undefined
+      }
+
       this.setFilters(newFilters)
     },
 
-    onSelectMouseLeave
+    onSelectMouseLeave,
+    ...mapActions({
+      doFetchIntegrations: 'integration/doFetch'
+    }),
+
+    platformDetails(platform) {
+      return CrowdIntegrations.getConfig(platform)
+    }
   }
 }
 </script>
 
 <style lang="scss">
 .widget-filter-container {
-  .input-group {
-    @apply rounded border border-gray-200 flex items-center;
+  .first-filter .el-input__wrapper {
+    @apply rounded-r-none;
   }
-  .el-input,
-  .el-input:hover,
-  .el-input.is-focus {
-    .el-input__wrapper,
-    &:hover,
-    &:focus,
-    &.is-focus {
-      @apply border-l-0 border-r-0 rounded-none shadow-none outline-none ring-0;
-    }
+
+  .second-filter .el-input__wrapper {
+    @apply rounded-none;
+  }
+
+  .third-filter .el-input__wrapper {
+    @apply rounded-l-none;
   }
 }
 </style>

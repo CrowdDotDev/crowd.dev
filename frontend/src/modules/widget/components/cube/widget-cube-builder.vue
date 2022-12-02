@@ -110,7 +110,8 @@
               <div
                 v-if="
                   model.settings.chartType === 'area' ||
-                  model.settings.chartType === 'bar'
+                  model.settings.chartType === 'bar' ||
+                  model.settings.chartType === 'table'
                 "
                 class="w-full mb-6"
               >
