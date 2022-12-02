@@ -26,17 +26,7 @@ const connect = () => {
 }
 
 const connectUrl = computed(() => {
-  let currentUrl
-  if (
-    window.location.protocol === 'http:' &&
-    window.location.host.includes('localhost')
-  ) {
-    currentUrl = 'https://localhost/settings'
-  } else {
-    currentUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`
-  }
-
-  const redirectUrl = currentUrl
+  const redirectUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?success=true`
 
   return `${config.backendUrl}/slack/${
     store.getters['auth/currentTenant'].id

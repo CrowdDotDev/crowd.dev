@@ -86,9 +86,7 @@ export default {
     },
     computedChannelShort() {
       if (this.activity.channel.length > 8) {
-        return (
-          this.activity.channel.substring(0, 8) + '...'
-        )
+        return this.activity.channel.substring(0, 8) + '...'
       }
       return this.activity.channel
     },
