@@ -73,7 +73,7 @@
             :w="item.w"
             :h="item.h"
             :i="item.i"
-            @move="
+            @drop="
               (i, newX, newY) =>
                 handleWidgetMove(
                   widgets[item.i],
