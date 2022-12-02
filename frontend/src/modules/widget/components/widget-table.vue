@@ -19,7 +19,7 @@
           <el-table-column
             v-for="column in columns"
             :key="column"
-            :label="column"
+            :label="parsedColumn(column)"
           >
             <template #default="scope">
               {{ scope.row[column] }}
@@ -69,6 +69,20 @@ export default {
       return this.data.length !== 0
         ? Object.keys(this.data[0])
         : []
+    }
+  },
+  methods: {
+    parsedColumn(column) {
+      if (
+        column === 'widget.cubejs.Activities.date.week' ||
+        column === 'widget.cubejs.Activities.date.day' ||
+        column === 'widget.cubejs.Activities.date.month' ||
+        column === 'widget.cubejs.Activities.date.year'
+      ) {
+        return '[Activities] Date'
+      }
+
+      return column
     }
   }
 }

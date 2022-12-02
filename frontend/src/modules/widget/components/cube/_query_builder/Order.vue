@@ -21,19 +21,15 @@
             :model-value="element.order"
             size="small"
             class="radio-button-group"
-            @input="
+            @change="
               (value) =>
                 $emit('orderChange', element.id, value)
             "
           >
-            <el-radio-button
-              label="ascending"
-              :name="element.id"
+            <el-radio-button label="asc" :name="element.id"
               >Asc</el-radio-button
             >
-            <el-radio-button
-              label="descending"
-              :name="element.id"
+            <el-radio-button label="desc" :name="element.id"
               >Desc</el-radio-button
             >
             <el-radio-button label="none" :name="element.id"
@@ -88,7 +84,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .order-element {
   @apply flex justify-between items-center w-full;
 }
