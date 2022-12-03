@@ -1,11 +1,6 @@
 <template>
   <div class="widget">
     <div
-      v-show="loading"
-      v-loading="loading"
-      class="app-page-spinner"
-    ></div>
-    <div
       v-if="!number"
       class="flex items-center leading-normal justify-between"
     >
@@ -33,7 +28,12 @@
       </router-link>
     </div>
     <div class="pt-4">
-      <slot></slot>
+      <div
+        v-if="loading"
+        v-loading="loading"
+        class="app-page-spinner !relative top-2"
+      ></div>
+      <slot v-else></slot>
     </div>
     <el-dropdown
       v-if="config.settings"
