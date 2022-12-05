@@ -146,6 +146,22 @@ export class IntegrationService {
     return response.data
   }
 
+  static async redditOnboard(subreddits) {
+    // Ask backend to connect to GitHub through Oauth.
+    // Install_id is the GitHub app installation id.
+    const body = {
+      subreddits
+    }
+    // Getting the tenant_id
+    const tenantId = AuthCurrentTenant.get()
+    // Calling the authenticate function in the backend.
+    const response = await authAxios.put(
+      `/reddit-onboard/${tenantId}`,
+      body
+    )
+    return response.data
+  }
+
   static async discordConnect(guild_id) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get()
