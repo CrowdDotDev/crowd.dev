@@ -3,6 +3,7 @@ export type Repo = {
   name: string
   createdAt: string
   owner: string
+  available?: boolean
 }
 
 export type Repos = Array<Repo>

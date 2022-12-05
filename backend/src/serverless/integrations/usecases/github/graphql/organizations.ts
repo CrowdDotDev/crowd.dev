@@ -1,5 +1,8 @@
 import { graphql } from '@octokit/graphql'
 import BaseQuery from './baseQuery'
+import { createServiceChildLogger } from '../../../../../utils/logging'
+
+const logger = createServiceChildLogger('github.getOrganization')
 
 /**
  * Get information from a organization using the GitHub GraphQL API.
@@ -37,12 +40,13 @@ const getOrganization = async (name: string, token: string): Promise<any> => {
     organization =
       (organization as any).search.nodes.length > 0 ? (organization as any).search.nodes[0] : null
   } catch (err) {
+    logger.error(err, { name }, 'Error getting organization!')
     // It may be that the organization was not found, if for example it is a bot
     // In that case we want to return null instead of throwing an error
     if (err.errors && err.errors[0].type === 'NOT_FOUND') {
       organization = null
     } else {
-      throw err
+      throw BaseQuery.processGraphQLError(err)
     }
   }
   return organization
