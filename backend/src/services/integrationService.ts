@@ -323,6 +323,34 @@ export default class IntegrationService {
   }
 
   /**
+   * Creates the Reddit integration and starts the onboarding
+   * @param subreddits Subreddits to track
+   * @returns integration object
+   */
+  async redditOnboard(subreddits) {
+    const integration = await this.createOrUpdate({
+      platform: PlatformType.REDDIT,
+      // token: discordToken,
+      settings: { subreddits },
+      status: 'in-progress',
+    })
+
+    // await sendNodeWorkerMessage(
+    //   integration.tenantId,
+    //   new NodeWorkerIntegrationProcessMessage(
+    //     IntegrationType.DISCORD,
+    //     integration.tenantId,
+    //     true,
+    //     integration.id,
+    //   ),
+    // )
+
+    console.log('DONE')
+
+    return integration
+  }
+
+  /**
    * Adds/updates Dev.to integration
    * @param integrationData  to create the integration object
    * @returns integration object
