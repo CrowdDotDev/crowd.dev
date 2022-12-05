@@ -550,7 +550,8 @@ const en = {
       },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
-        date: '[Sentiment] Date'
+        date: '[Sentiment] Date',
+        platform: '[Sentiment] Platform'
       }
     }
   },

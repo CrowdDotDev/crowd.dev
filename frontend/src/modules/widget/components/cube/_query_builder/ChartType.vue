@@ -74,7 +74,9 @@ export default {
   computed: {
     model: {
       get() {
-        return this.chartType
+        return this.modelValue === 'line'
+          ? 'area'
+          : this.modelValue
       },
       set(value) {
         this.updateChartType(value)

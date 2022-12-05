@@ -1,5 +1,8 @@
 <template>
-  <div class="widget-filter-container">
+  <div
+    v-if="!!computedFilters.length"
+    class="widget-filter-container"
+  >
     <div class="flex items-center justify-between">
       <div class="font-semibold text-sm">Filters</div>
     </div>
@@ -130,6 +133,28 @@
                 />
               </el-option-group>
             </el-select>
+            <el-select
+              v-else-if="filter.select === 'Members.score'"
+              v-model="filter.value"
+              class="third-filter"
+              placeholder="Value"
+              @change="
+                (value) =>
+                  handleFilterChange(
+                    'third-option',
+                    value,
+                    index
+                  )
+              "
+            >
+              <el-option
+                v-for="engagementLevel of computedEngagementLevelTypes"
+                :key="engagementLevel.label"
+                :label="engagementLevel.label"
+                :value="engagementLevel.label"
+                @mouseleave="onSelectMouseLeave"
+              />
+            </el-select>
             <el-input
               v-else
               v-model="filter.value"
@@ -180,8 +205,10 @@ import { onSelectMouseLeave } from '@/utils/select'
 import { mapGetters, mapActions } from 'vuex'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { ActivityModel } from '@/modules/activity/activity-model'
+import { MemberModel } from '@/modules/member/member-model'
 
-const { fields } = ActivityModel
+const { fields: activityFields } = ActivityModel
+const { fields: memberFields } = MemberModel
 
 export default {
   name: 'FilterComponent',
@@ -296,7 +323,7 @@ export default {
         : this.availableDimensions.filter((d) => {
             return this.measureDimensionFilters[
               measure.name
-            ][dimension] === undefined
+            ]?.[dimension] === undefined
               ? false
               : this.measureDimensionFilters[measure.name][
                   dimension
@@ -304,7 +331,7 @@ export default {
           })
     },
     computedActivityTypes() {
-      return fields.type
+      return activityFields.type
         .dropdownOptions()
         .filter((i) =>
           Object.keys(this.activeIntegrationsList).includes(
@@ -312,12 +339,12 @@ export default {
           )
         )
     },
+    computedEngagementLevelTypes() {
+      return memberFields.engagementLevel.dropdownOptions()
+    },
     ...mapGetters({
       activeIntegrationsList: 'integration/activeList'
-    }),
-    fields() {
-      return fields
-    }
+    })
   },
   async created() {
     await this.doFetchIntegrations()
@@ -372,10 +399,19 @@ export default {
           ].every((value) => value !== '' && value != null)
         })
         .map((filter) => {
+          let values = [filter.value]
+
+          // Members engagement level needs to be parsed differently
+          if (filter.select === 'Members.score') {
+            values = this.computedEngagementLevelTypes
+              .filter((t) => t.label === filter.value)?.[0]
+              .value.map((v) => `${v}`)
+          }
+
           return {
             member: filter.select,
             operator: filter.operator,
-            values: [filter.value]
+            values
           }
         })
 
