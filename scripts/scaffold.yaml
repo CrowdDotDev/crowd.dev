@@ -92,6 +92,24 @@ services:
     networks:
       - crowd-bridge
 
+  pizzly-server:
+    image: nangohq/pizzly-server:latest
+    container_name: pizzly-server
+    restart: always
+    environment:
+        - SERVER_HOST=http://localhost
+        - SERVER_PORT=3004
+    environment:
+      - PIZZLY_DB_HOST=db
+      - PIZZLY_DB_PORT=5432
+      - PIZZLY_DB_NAME=crowd-web
+      - PIZZLY_DB_USER=postgres
+      - PIZZLY_DB_PASSWORD=example
+    ports:
+        - '3004:3004'
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true
