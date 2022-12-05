@@ -16,3 +16,8 @@ export enum HackerNewsActivityType {
   POST = 'post',
   COMMENT = 'comment',
 }
+
+export enum RedditActivityType {
+  POST = 'post',
+  COMMENT = 'comment',
+}

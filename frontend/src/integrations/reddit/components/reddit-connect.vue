@@ -20,7 +20,7 @@ export default {
 <script setup>
 import { defineProps, computed, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
-// import Pizzly from '@nangohq/pizzly-frontend'
+import Pizzly from '@nangohq/pizzly-frontend'
 import { useRouter, useRoute } from 'vue-router'
 import Message from '@/shared/message/message'
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer'
@@ -62,6 +62,8 @@ const connectUrl = computed(() => {
 })
 
 async function connect() {
+  const pizzly = new Pizzly('http://localhost:3004')
+  console.log(pizzly)
   await store.dispatch('integration/doRedditOnboard', {
     subreddits: ['programming']
   })
