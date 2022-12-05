@@ -60,7 +60,6 @@
               <div class="w-full mb-6">
                 <ChartType
                   v-model="model.settings.chartType"
-                  :chart-type="chartType"
                   :update-chart-type="updateChartType"
                 ></ChartType>
               </div>
@@ -68,7 +67,11 @@
                 <MeasureSelect
                   :translated-options="translatedOptions"
                   :measures="measures"
-                  :available-measures="availableMeasures"
+                  :available-measures="
+                    availableMeasures.filter(
+                      (m) => m.name !== 'Identities.count'
+                    )
+                  "
                   :set-measures="setMeasures"
                 />
               </div>
@@ -103,14 +106,25 @@
                 />
               </div>
 
-              <div class="w-full mb-6">
+              <div
+                v-if="
+                  model.settings.chartType === 'area' ||
+                  model.settings.chartType === 'line' ||
+                  model.settings.chartType === 'bar' ||
+                  model.settings.chartType === 'table'
+                "
+                class="w-full mb-6"
+              >
                 <GranularitySelect
                   :time-dimensions="timeDimensions"
                   :set-time-dimensions="setTimeDimensions"
                 />
               </div>
 
-              <div class="additional-settings">
+              <div
+                v-if="model.settings.chartType === 'table'"
+                class="additional-settings"
+              >
                 <button
                   type="button"
                   class="inline-flex items-center leading-none mt-2 text-xs text-gray-600 font cursor-pointer hover:text-gray-900"
@@ -307,6 +321,7 @@ export default {
 
     const initialCharType =
       this.widget.settings?.chartType || 'line'
+
     return {
       mapWidget,
       chartOptions,
@@ -349,30 +364,16 @@ export default {
       getCubeToken: 'widget/getCubeToken'
     }),
     handleSubmit() {
-      const widgetEl = document.querySelector(
-        '.widget-cube-builder .widget-cube'
-      )
       const objToSubmit = {
         id: this.widget.id ? this.widget.id : undefined,
         title: this.model.title,
         type: this.widget.type,
         reportId: this.widget.reportId,
-        settings: JSON.parse(
-          JSON.stringify(this.model.settings)
-        )
+        settings: {
+          ...this.widget.settings,
+          ...JSON.parse(JSON.stringify(this.model.settings))
+        }
       }
-
-      if (!objToSubmit.settings.layout) {
-        objToSubmit.settings.layout = {}
-      }
-
-      // Compute widget's height based on position of the grid
-      const widgetHeight =
-        widgetEl.offsetHeight < 100
-          ? widgetEl.offsetHeight / 18
-          : (widgetEl.offsetHeight - 40) / 20
-      objToSubmit.settings.layout.h =
-        Math.ceil(widgetHeight)
       this.$emit('submit', objToSubmit)
       this.visible = false
     },

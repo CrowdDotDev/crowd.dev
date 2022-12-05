@@ -1,10 +1,5 @@
 <template>
-  <div class="widget panel">
-    <div
-      v-show="loading"
-      v-loading="loading"
-      class="app-page-spinner"
-    ></div>
+  <div class="widget">
     <div
       v-if="!number"
       class="flex items-center leading-normal justify-between"
@@ -33,7 +28,12 @@
       </router-link>
     </div>
     <div class="pt-4">
-      <slot></slot>
+      <div
+        v-if="loading"
+        v-loading="loading"
+        class="app-page-spinner !relative top-2"
+      ></div>
+      <slot v-else></slot>
     </div>
     <el-dropdown
       v-if="config.settings"
@@ -132,7 +132,7 @@ export default {
 
 <style lang="scss">
 .widget {
-  @apply relative p-4 mt-0 mb-4;
+  @apply relative mt-0;
 
   .el-dropdown {
     @apply absolute right-0 top-0 mt-4 mr-4;

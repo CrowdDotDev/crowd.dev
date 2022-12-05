@@ -7,19 +7,19 @@ import { handleSlackError } from './errorHandler'
 async function getChannels(input: SlackGetChannelsInput, logger: Logger): Promise<SlackTeam> {
   await timeout(2000)
 
-  try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: 'https://slack.com/api/team.info',
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: 'https://slack.com/api/team.info',
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
 
+  try {
     const response = await axios(config)
     return response.data.team
   } catch (err) {
-    const newErr = handleSlackError(err, input, logger)
+    const newErr = handleSlackError(err, config, input, logger)
     throw newErr
   }
 }

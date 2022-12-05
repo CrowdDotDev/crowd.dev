@@ -13,7 +13,7 @@
         v-model="value"
         clearable
         filterable
-        :disabled="measures.length === 0"
+        :disabled="computedDimensions.length <= 1"
         class="w-full"
         @mouseleave="onSelectMouseLeave"
       >
@@ -94,7 +94,8 @@ export default {
           'Members.joinedAt',
           'Members.organization',
           'Tags.name'
-        ]
+        ],
+        'Sentiment.averageSentiment': ['Sentiment.platform']
       }
     }
   },
@@ -111,9 +112,27 @@ export default {
     },
     value: {
       get() {
+        const measure = this.measures[0]
+
+        // Select first option by default if measure changes
+        if (measure) {
+          const hasOption = this.measureDimensions[
+            measure.name
+          ]?.includes(this.dimensions?.[0]?.name)
+
+          if (
+            !hasOption &&
+            this.measureDimensions[measure.name]?.[0]
+          ) {
+            this.setDimensions([
+              this.measureDimensions[measure.name][0]
+            ])
+          }
+        }
+
         return this.translatedOptions(this.dimensions).map(
-          (i) => i.label
-        )
+          (i) => i.name
+        )?.[0]
       },
       set(value) {
         return this.setDimensions([value])

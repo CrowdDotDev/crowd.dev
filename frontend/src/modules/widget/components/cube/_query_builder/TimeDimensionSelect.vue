@@ -11,6 +11,7 @@
       "
       clearable
       filterable
+      :disabled="computedTimeDimensions.length <= 1"
       class="w-full"
       @change="handleTimeChange"
     >

@@ -10,24 +10,24 @@ async function getMembers(
 ): Promise<SlackGetMembersOutput> {
   await timeout(2000)
 
+  const config: AxiosRequestConfig<any> = {
+    method: 'get',
+    url: 'https://slack.com/api/users.list',
+    params: {},
+    headers: {
+      Authorization: `Bearer ${input.token}`,
+    },
+  }
+
+  if (input.page !== undefined && input.page !== '') {
+    config.params.cursor = input.page
+  }
+
+  if (input.perPage !== undefined && input.perPage > 0) {
+    config.params.limit = input.perPage
+  }
+
   try {
-    const config: AxiosRequestConfig<any> = {
-      method: 'get',
-      url: 'https://slack.com/api/users.list',
-      params: {},
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-      },
-    }
-
-    if (input.page !== undefined && input.page !== '') {
-      config.params.cursor = input.page
-    }
-
-    if (input.perPage !== undefined && input.perPage > 0) {
-      config.params.limit = input.perPage
-    }
-
     const response = await axios(config)
     const records: SlackMembers = response.data.members
     const nextPage = response.data.response_metadata?.next_cursor || ''
@@ -36,7 +36,7 @@ async function getMembers(
       nextPage,
     }
   } catch (err) {
-    const newErr = handleSlackError(err, input, logger)
+    const newErr = handleSlackError(err, config, input, logger)
     throw newErr
   }
 }

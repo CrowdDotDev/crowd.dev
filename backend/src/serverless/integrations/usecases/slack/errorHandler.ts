@@ -1,23 +1,21 @@
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosRequestConfig } from 'axios'
 import { RateLimitError } from '../../../../types/integration/rateLimitError'
 import { Logger } from '../../../../utils/logging'
 
-export const handleSlackError = (err: AxiosError, input: any, logger: Logger): any => {
-  let url = ''
-  if (err.config) {
-    const queryParams: string[] = []
-    if (err.config.params) {
-      for (const [key, value] of Object.entries(err.config.params)) {
-        queryParams.push(`${key}=${encodeURIComponent(value as any)}`)
-      }
+export const handleSlackError = (
+  err: AxiosError,
+  config: AxiosRequestConfig<any>,
+  input: any,
+  logger: Logger,
+): any => {
+  const queryParams: string[] = []
+  if (config.params) {
+    for (const [key, value] of Object.entries(config.params)) {
+      queryParams.push(`${key}=${encodeURIComponent(value as any)}`)
     }
-
-    url = `${err.config.url}?${queryParams.join('&')}`
-  } else if (err.request) {
-    url = `${err.request.host}${err.request.path}`
-  } else {
-    url = 'unknown-url'
   }
+
+  const url = `${config.url}?${queryParams.join('&')}`
 
   // https://api.slack.com/docs/rate-limits
   if (err && err.response && err.response.status === 429) {

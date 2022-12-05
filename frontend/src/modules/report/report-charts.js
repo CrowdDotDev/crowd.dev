@@ -95,15 +95,16 @@ export function chartOptions(widget, resultSet) {
   ) {
     const platforms = (
       resultSet ? resultSet.tablePivot() : []
-    ).map((p) => p['Activities.platform'])
+    )
+      .map((p) => p['Activities.platform'])
+      .filter((item, i, ar) => ar.indexOf(item) === i)
+
     let mappedColors = platforms.map((p) => {
-      if (p in platformColors) {
-        return platformColors[p]
-      }
-      return null
+      return platformColors[p]
     })
     const defaultColors =
       chartTypeOptions.colors || defaultChartOptions.colors
+
     let restColors = defaultColors.filter(
       (c) => !mappedColors.includes(c)
     )
@@ -115,6 +116,7 @@ export function chartOptions(widget, resultSet) {
       }
       return c
     })
+
     chartTypeOptions = {
       ...chartTypeOptions,
       colors: [...mappedColors, ...restColors]
