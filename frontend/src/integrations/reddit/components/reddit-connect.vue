@@ -18,10 +18,8 @@ export default {
 }
 </script>
 <script setup>
-import { useStore } from 'vuex'
 import { defineProps, computed, ref, onMounted } from 'vue'
-import config from '@/config'
-import { AuthToken } from '@/modules/auth/auth-token'
+// import Pizzly from '@nangohq/pizzly-frontend'
 import { useRouter, useRoute } from 'vue-router'
 import Message from '@/shared/message/message'
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer'
@@ -35,7 +33,6 @@ const props = defineProps({
     default: () => {}
   }
 })
-const store = useStore()
 const drawerVisible = ref(false)
 
 onMounted(() => {
@@ -59,22 +56,24 @@ const hashtags = computed(
 // This will allow to be reused by the reddit drawer component
 // and override the current configured hashtag
 const connectUrl = computed(() => {
-  // TODO: Call Pizzly
+  return ''
 })
 
 const connect = () => {
-  // Add the already configured hashtags to the connectUrl
-  const encodedHashtags =
-    hashtags.value.length > 0
-      ? `&hashtags[]=${
-          hashtags.value[hashtags.value.length - 1]
-        }`
-      : ''
-
-  window.open(
-    `${connectUrl.value}${encodedHashtags}`,
-    '_self'
-  )
+  // const pizzly = new Pizzly('http://localhost:3004')
+  // // Add the already configured hashtags to the connectUrl
+  // pizzly
+  //   .auth('reddit', 'tenantId-reddit')
+  //   .then((result) => {
+  //     console.log(
+  //       `OAuth flow succeeded for provider "${result.providerConfigKey}" and connection-id "${result.connectionId}"!`
+  //     )
+  //   })
+  //   .catch((error) => {
+  //     console.error(
+  //       `There was an error in the OAuth flow for integration "${error.providerConfigKey}" and connection-id "${error.connectionId}": ${error.error.type} - ${error.error.message}`
+  //     )
+  //   })
 }
 
 const settings = () => {
