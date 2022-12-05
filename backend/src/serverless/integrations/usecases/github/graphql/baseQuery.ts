@@ -1,6 +1,8 @@
 import { graphql } from '@octokit/graphql'
 import { GraphQlQueryResponseData } from '@octokit/graphql/dist-types/types'
+import moment from 'moment'
 import { GraphQlQueryResponse } from '../../../types/messageTypes'
+import { RateLimitError } from '../../../../../types/integration/rateLimitError'
 
 class BaseQuery {
   static BASE_URL = 'https://api.github.com/graphql'
@@ -87,8 +89,12 @@ class BaseQuery {
       beforeCursor: BaseQuery.getPagination(beforeCursor),
     })
 
-    const result = await this.graphQL(paginatedQuery)
-    return this.getEventData(result)
+    try {
+      const result = await this.graphQL(paginatedQuery)
+      return this.getEventData(result)
+    } catch (err) {
+      throw BaseQuery.processGraphQLError(err)
+    }
   }
 
   /**
@@ -115,6 +121,23 @@ class BaseQuery {
       return `before: "${beforeCursor}"`
     }
     return ''
+  }
+
+  static processGraphQLError(err: any): any {
+    if (err.errors && err.errors[0].type === 'RATE_LIMITED') {
+      if (err.headers && err.headers['x-ratelimit-reset']) {
+        const query =
+          err.request && err.request.query ? err.request.query : 'Unknown GraphQL query!'
+
+        const epochReset = parseInt(err.headers['x-ratelimit-reset'], 10)
+        const resetDate = moment.unix(epochReset)
+        const diffInSeconds = resetDate.diff(moment(), 'seconds')
+
+        return new RateLimitError(diffInSeconds + 5, query, err)
+      }
+    }
+
+    return err
   }
 }
 
