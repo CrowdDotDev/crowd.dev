@@ -19,11 +19,13 @@ export default {
 </script>
 <script setup>
 import { defineProps, computed, ref, onMounted } from 'vue'
+import { useStore } from 'vuex'
 // import Pizzly from '@nangohq/pizzly-frontend'
 import { useRouter, useRoute } from 'vue-router'
 import Message from '@/shared/message/message'
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer'
 
+const store = useStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -59,7 +61,10 @@ const connectUrl = computed(() => {
   return ''
 })
 
-const connect = () => {
+async function connect() {
+  await store.dispatch('integration/doRedditOnboard', {
+    subreddits: ['programming']
+  })
   // const pizzly = new Pizzly('http://localhost:3004')
   // // Add the already configured hashtags to the connectUrl
   // pizzly
