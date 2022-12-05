@@ -17,14 +17,15 @@
           :key="platform"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
-            member.attributes.url &&
-            member.attributes.url[platform] !== undefined
+            member.attributes.url?.[platform] !==
+              undefined || platform === 'hackernews'
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
           :href="
-            member.attributes.url &&
-            member.attributes.url[platform]
+            platform === 'hackernews'
+              ? `https://news.ycombinator.com/user?id=${member.username.hackernews}`
+              : member.attributes.url?.[platform]
           "
           target="_blank"
         >
@@ -36,8 +37,9 @@
           </div>
           <i
             v-if="
-              member.attributes.url &&
-              member.attributes.url[platform]
+              platform === 'hackernews'
+                ? true
+                : member.attributes.url?.[platform]
             "
             class="ri-external-link-line text-gray-300"
           ></i>
