@@ -60,11 +60,6 @@
               <div class="w-full mb-6">
                 <ChartType
                   v-model="model.settings.chartType"
-                  :chart-type="
-                    chartType === 'line'
-                      ? 'area'
-                      : chartType
-                  "
                   :update-chart-type="updateChartType"
                 ></ChartType>
               </div>
@@ -72,7 +67,11 @@
                 <MeasureSelect
                   :translated-options="translatedOptions"
                   :measures="measures"
-                  :available-measures="availableMeasures"
+                  :available-measures="
+                    availableMeasures.filter(
+                      (m) => m.name !== 'Identities.count'
+                    )
+                  "
                   :set-measures="setMeasures"
                 />
               </div>
@@ -110,6 +109,7 @@
               <div
                 v-if="
                   model.settings.chartType === 'area' ||
+                  model.settings.chartType === 'line' ||
                   model.settings.chartType === 'bar' ||
                   model.settings.chartType === 'table'
                 "
@@ -321,6 +321,7 @@ export default {
 
     const initialCharType =
       this.widget.settings?.chartType || 'line'
+
     return {
       mapWidget,
       chartOptions,
