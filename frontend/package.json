@@ -20,7 +20,7 @@
   "dependencies": {
     "@cubejs-client/core": "^0.31.0",
     "@cubejs-client/vue3": "^0.31.0",
-    "@nangohq/pizzly-frontend": "^0.3.3",
+    "@nangohq/pizzly-frontend": "^0.3.6",
     "@octokit/core": "^3.5.1",
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "@tiptap/extension-placeholder": "^2.0.0-beta.199",
