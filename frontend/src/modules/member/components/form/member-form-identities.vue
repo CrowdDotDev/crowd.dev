@@ -197,6 +197,14 @@ const identitiesForm = reactive({
     urlPrefix: 'twitter.com/',
     imgContainerClass:
       'h-8 w-8 rounded flex items-center justify-center text-base btn--twitter'
+  },
+  hackernews: {
+    enabled:
+      props.modelValue.username?.hackernews !== undefined ||
+      false,
+    urlPrefix: 'news.ycombinator.com/user?id=',
+    imgContainerClass:
+      'h-8 w-8 rounded flex items-center justify-center text-base btn--hackernews'
   }
 })
 
