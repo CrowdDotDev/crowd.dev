@@ -70,7 +70,8 @@ export const vueSanitizeOptions = {
     'th',
     'thead',
     'tr',
-    '<br>'
+    '<br>',
+    'input'
   ],
   disallowedTagsMode: 'discard',
   allowedAttributes: {
@@ -84,7 +85,8 @@ export const vueSanitizeOptions = {
       'width',
       'height',
       'loading'
-    ]
+    ],
+    input: ['checked', 'disabled', 'type']
   },
   selfClosing: [
     'img',

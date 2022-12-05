@@ -40,6 +40,7 @@
     "lodash": "^4.17.21",
     "logrocket": "^3.0.1",
     "logrocket-vuex": "^0.0.3",
+    "marked": "^4.2.3",
     "md5": "2.3.0",
     "moment": "^2.29.4",
     "nprogress": "0.2.0",
