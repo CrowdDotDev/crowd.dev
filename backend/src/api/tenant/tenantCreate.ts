@@ -21,7 +21,7 @@ export default async (req, res) => {
     },
     { ...req },
   )
-  identifyTenant({...req, currentTenant: payload})
+  identifyTenant({ ...req, currentTenant: payload })
 
   telemetryTrack('Tenant created', {}, { ...req })
 

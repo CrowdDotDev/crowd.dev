@@ -6,9 +6,12 @@ import PermissionChecker from '../../services/user/permissionChecker'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.conversationEdit)
 
-  if(req.body.customUrl && !await isFeatureEnabled('community-help-center-pro', req.currentTenant.id, req.posthog)){
+  if (
+    req.body.customUrl &&
+    !(await isFeatureEnabled('community-help-center-pro', req.currentTenant.id, req.posthog))
+  ) {
     await req.responseHandler.success(req, res, {
-      message: `Your plan (${req.currentTenant.plan}) doesn't include custom urls.`
+      message: `Your plan (${req.currentTenant.plan}) doesn't include custom urls.`,
     })
   }
 

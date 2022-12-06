@@ -22,9 +22,9 @@ import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
 
-  if (!await isFeatureEnabled('automations', req.currentTenant.id, req.posthog)) {
+  if (!(await isFeatureEnabled('automations', req.currentTenant.id, req.posthog))) {
     await req.responseHandler.success(req, res, {
-      message: 'You have exceeded # of automations you can have in your plan'
+      message: 'You have exceeded # of automations you can have in your plan',
     })
     return
   }

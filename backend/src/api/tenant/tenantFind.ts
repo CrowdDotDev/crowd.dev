@@ -13,7 +13,7 @@ export default async (req, res) => {
 
   if (payload) {
     if (req.currentUser) {
-      identifyTenant({...req, currentTenant: payload})
+      identifyTenant({ ...req, currentTenant: payload })
     }
 
     await req.responseHandler.success(req, res, payload)
