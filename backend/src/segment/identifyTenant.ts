@@ -13,14 +13,16 @@ export default function identifyTenant(user, tenant) {
           name: tenant.name,
         },
       })
-    } else {
-      analytics.group({
-        userId: user.id,
-        groupId: tenant.id,
-        traits: {
-          createdAt: tenant.createdAt,
-        },
-      })
+    } else if (API_CONFIG.edition === 'community') {
+      if (!user.email.includes('crowd.dev')) {
+        analytics.group({
+          userId: user.id,
+          groupId: tenant.id,
+          traits: {
+            createdAt: tenant.createdAt,
+          },
+        })
+      }
     }
   }
 }
