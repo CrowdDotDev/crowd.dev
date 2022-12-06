@@ -9,9 +9,11 @@
 
 <script>
 import { mapGetters, mapActions, mapState } from 'vuex'
+import { differenceWith, isEqual } from 'lodash'
 
 export default {
   name: 'AppEagleEyeSearch',
+  emits: ['update:is-button-disabled'],
   computed: {
     ...mapState({
       filter: (state) => state.eagleEye.filter
@@ -38,6 +40,19 @@ export default {
           value: value
         })
       }
+    }
+  },
+  watch: {
+    computedModel: {
+      handler(newValue, oldValue) {
+        if (
+          newValue.length > 0 &&
+          differenceWith(newValue, oldValue, isEqual)
+        ) {
+          this.$emit('update:is-button-disabled', false)
+        }
+      },
+      immediate: true
     }
   },
   async created() {
