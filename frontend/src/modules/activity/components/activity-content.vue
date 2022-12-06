@@ -26,8 +26,8 @@
       <div v-else-if="activity.body">
         <blockquote
           v-if="activity.thread && displayThread"
-          class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
-          v-html="$sanitize(activity.thread.body)"
+          class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4 parsed-body"
+          v-html="$sanitize($marked(activity.thread.body))"
         />
         <span
           v-if="
@@ -39,11 +39,11 @@
         <span
           v-else-if="displayBody"
           ref="body"
-          class="block whitespace-pre-wrap custom-break-all activity-body"
+          class="block whitespace-pre-wrap custom-break-all activity-body parsed-body"
           :class="
             showMore && !more ? `text-limit-${limit}` : ''
           "
-          v-html="$sanitize(activity.body)"
+          v-html="$sanitize($marked(activity.body))"
         />
       </div>
     </div>

@@ -19,6 +19,7 @@ import LogRocket from 'logrocket'
 
 import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
+import marked from '@/plugins/marked'
 
 i18nInit()
 /**
@@ -40,6 +41,7 @@ i18nInit()
   app.use(ElementPlus, { locale: getElementUILanguage() })
   app.use(VueGridLayout)
   app.use(Vue3Sanitize, vueSanitizeOptions)
+  app.use(marked)
   app.config.productionTip =
     process.env.NODE_ENV === 'production'
 

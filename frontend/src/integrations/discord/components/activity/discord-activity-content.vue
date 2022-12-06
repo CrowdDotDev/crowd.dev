@@ -2,15 +2,15 @@
   <div>
     <blockquote
       v-if="activity.parent && displayThread"
-      class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4"
-      v-html="$sanitize(activity.parent.body)"
+      class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4 parsed-body"
+      v-html="$sanitize($marked(activity.parent.body))"
     />
     <span
       v-if="displayBody"
       ref="body"
-      class="block whitespace-pre-wrap custom-break-all"
+      class="block whitespace-pre-wrap custom-break-all parsed-body"
       :class="bodyClass"
-      v-html="$sanitize(activity.body)"
+      v-html="$sanitize($marked(activity.body))"
     />
   </div>
 </template>
