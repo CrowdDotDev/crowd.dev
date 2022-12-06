@@ -76,7 +76,6 @@ describe('Microservice protected fields tests', () => {
           expect(response.statusCode).toBe(200)
         })
     })
-
   })
 
   describe('Microservice update protected fields', () => {
