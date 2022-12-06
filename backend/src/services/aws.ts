@@ -1,5 +1,6 @@
 import AWS, { SQS } from 'aws-sdk'
 import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
+import { Blob } from 'buffer'
 
 let sqsInstance
 let s3Instance
@@ -100,6 +101,7 @@ if (KUBE_MODE) {
       : undefined
 }
 
+const ALLOWED_MAX_BYTE_LENGTH = 4500
 /**
  * Get sentiment for a text using AWS Comprehend
  * @param text Text to detect sentiment on
@@ -108,9 +110,19 @@ if (KUBE_MODE) {
 export async function detectSentiment(text) {
   // Only if we have proper credentials
   if (comprehendInstance) {
+    // Check text byte size
+    let blob = new Blob([text])
+    if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
+      blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
+      text = await blob.text()
+    }
+
+    // convert to utf-8
+    text = Buffer.from(text).toString('utf-8')
+
     const params = {
       LanguageCode: 'en',
-      Text: text.slice(0, 300),
+      Text: text,
     }
     const fromAWS = await comprehendInstance.detectSentiment(params).promise()
     const positive = 100 * fromAWS.SentimentScore.Positive

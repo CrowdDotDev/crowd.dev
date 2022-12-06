@@ -84,7 +84,7 @@ export default class ActivityService extends LoggingBase {
         })
       } else {
         if (!data.sentiment) {
-          const sentiment = await ActivityService.getSentiment(data)
+          const sentiment = await this.getSentiment(data)
           data.sentiment = sentiment
         }
 
@@ -161,7 +161,7 @@ export default class ActivityService extends LoggingBase {
    * @param data Activity data. Includes body and title.
    * @returns The sentiment of the combination of body and title. Between -1 and 1.
    */
-  static async getSentiment(data) {
+  async getSentiment(data) {
     if (IS_TEST_ENV) {
       return {
         positive: 0.42,
@@ -194,22 +194,18 @@ export default class ActivityService extends LoggingBase {
       }
     }
 
-    data.body = data.body ?? ''
-    data.title = data.title ?? ''
+    try {
+      data.body = data.body ?? ''
+      data.title = data.title ?? ''
 
-    const ALLOWED_MAX_BYTE_LENGTH = 4500
+      // Concatenate title and body
+      const text = `${data.title} ${data.body}`.trim()
 
-    // Concatenate title and body
-    let text = `${data.title} ${data.body}`.trim()
-
-    // Check text byte size
-    let blob = new Blob([text])
-    if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
-      blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
-      text = await blob.text()
+      return text === '' ? {} : await detectSentiment(text)
+    } catch (err) {
+      this.log.error(err, 'Error getting sentiment of activity')
+      throw err
     }
-
-    return text === '' ? {} : detectSentiment(text)
   }
 
   /**
