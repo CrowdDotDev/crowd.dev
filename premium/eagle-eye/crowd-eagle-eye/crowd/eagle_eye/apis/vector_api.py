@@ -236,7 +236,13 @@ class VectorAPI:
                 with_payload=True,
             )
         except Exception as e:
-            logger.error("Error in search: %s", e)
+            logger.error("Error in search: %s", {
+                'error': e,
+                'query': query,
+                'ndays': ndays,
+                'exclude': exclude,
+                'exact_keywords': exact_keywords,
+            })
             raise e
 
     def keyword_match(self, ndays, exclude, exact_keywords, platform=None):
@@ -249,5 +255,10 @@ class VectorAPI:
                 with_payload=True,
             )
         except Exception as e:
-            logger.error("Error in keyword_match: %s", e)
+            logger.error("Error in keyword_match: %s", {
+                'error': e,
+                'ndays': ndays,
+                'exclude': exclude,
+                'exact_keywords': exact_keywords,
+            })
             raise e
