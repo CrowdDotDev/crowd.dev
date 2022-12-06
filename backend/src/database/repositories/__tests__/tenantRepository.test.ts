@@ -34,7 +34,7 @@ describe('TenantRepository tests', () => {
       await options.database.tenant.create({
         name: tenantName,
         url: 'a-tenant-name',
-        plan: Plans.values.free,
+        plan: Plans.values.essential,
       })
 
       // now generate function should return 'a-tenant-name-1' because it already exists

@@ -18,7 +18,7 @@ describe('Microservice protected fields tests', () => {
 
   describe('Microservice create protected fields', () => {
     it('Should return 200 with free variant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
       const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
@@ -38,7 +38,7 @@ describe('Microservice protected fields tests', () => {
     })
 
     it('Should return 403 with a premium microservice in a free tenant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
       const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
@@ -58,7 +58,7 @@ describe('Microservice protected fields tests', () => {
     })
 
     it('Should return 200 with a premium microservice in a premium tenant', async () => {
-      const plan = Plans.values.premium
+      const plan = Plans.values.growth
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
       const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
@@ -77,30 +77,11 @@ describe('Microservice protected fields tests', () => {
         })
     })
 
-    it('Should return 200 with a premium microservice in a beta tenant', async () => {
-      const plan = Plans.values.beta
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
-      const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
-      const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
-      const data = {
-        type: 'check_merge',
-        variant: 'premium',
-      }
-      return request(app)
-        .post(`/tenant/${tenantId}/microservice`)
-        .set({
-          Authorization: `Bearer ${token}`,
-        })
-        .send({ ...data })
-        .then((response) => {
-          expect(response.statusCode).toBe(200)
-        })
-    })
   })
 
   describe('Microservice update protected fields', () => {
     it('Should return 200 without protected variables', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const microServiceId = (
         await new MicroserviceService(mockIServiceOptions).create({
@@ -126,7 +107,7 @@ describe('Microservice protected fields tests', () => {
     })
 
     it('Should return 200 when updating with default variant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const microServiceId = (
         await new MicroserviceService(mockIServiceOptions).create({
@@ -153,7 +134,7 @@ describe('Microservice protected fields tests', () => {
     })
 
     it('Should return 403 when updating with to premium variant in free tenant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const microServiceId = (
         await new MicroserviceService(mockIServiceOptions).create({
@@ -179,7 +160,7 @@ describe('Microservice protected fields tests', () => {
     })
 
     it('Should return 200 when updating with premium variant in premium tenant', async () => {
-      const plan = Plans.values.premium
+      const plan = Plans.values.growth
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const microServiceId = (
         await new MicroserviceService(mockIServiceOptions).create({
@@ -205,34 +186,8 @@ describe('Microservice protected fields tests', () => {
         })
     })
 
-    it('Should return 200 when updating with premium variant in beta tenant', async () => {
-      const plan = Plans.values.beta
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
-      const microServiceId = (
-        await new MicroserviceService(mockIServiceOptions).create({
-          type: 'check_merge',
-          running: false,
-          variant: 'default',
-        })
-      ).id
-      const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
-      const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
-      const data = {
-        running: true,
-        variant: 'premium',
-      }
-      return request(app)
-        .put(`/tenant/${tenantId}/microservice/${microServiceId}`)
-        .set({
-          Authorization: `Bearer ${token}`,
-        })
-        .send({ ...data })
-        .then((response) => {
-          expect(response.statusCode).toBe(200)
-        })
-    })
     it('Should return 200 when updating from premium to default in premium tenant', async () => {
-      const plan = Plans.values.premium
+      const plan = Plans.values.growth
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const microServiceId = (
         await new MicroserviceService(mockIServiceOptions).create({
