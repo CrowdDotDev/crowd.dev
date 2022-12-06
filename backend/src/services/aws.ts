@@ -1,6 +1,6 @@
 import AWS, { SQS } from 'aws-sdk'
-import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
 import { Blob } from 'buffer'
+import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
 
 let sqsInstance
 let s3Instance
