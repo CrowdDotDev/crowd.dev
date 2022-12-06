@@ -2,6 +2,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
+import identifyTenant from '../../segment/identifyTenant'
 
 /**
  * DELETE /tenant/{tenantId}/automation/{automationId}
@@ -20,6 +21,7 @@ export default async (req, res) => {
   await new AutomationService(req).destroy(req.params.automationId)
 
   track('Automation Destroyed', { id: req.params.automationId }, { ...req })
+  identifyTenant(req)
 
   await req.responseHandler.success(req, res, true, 204)
 }

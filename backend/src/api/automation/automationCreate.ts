@@ -2,6 +2,8 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
+import identifyTenant from '../../segment/identifyTenant'
+import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -19,9 +21,19 @@ import track from '../../segment/track'
  */
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
+
+  if (!await isFeatureEnabled('automations', req.currentTenant.id, req.posthog)) {
+    await req.responseHandler.success(req, res, {
+      message: 'You have exceeded # of automations you can have in your plan'
+    })
+    return
+  }
+
   const payload = await new AutomationService(req).create(req.body.data)
 
   track('Automation Created', { ...payload }, { ...req })
+
+  identifyTenant(req)
 
   await req.responseHandler.success(req, res, payload)
 }
