@@ -76,6 +76,7 @@ class VectorAPI:
         Args:
             points ([Point]): points to upsert.
         """
+
         if (len(points) == 0):
             return
 
@@ -88,10 +89,14 @@ class VectorAPI:
         ]
 
         for vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
-            self.client.upsert(
-                collection_name=self.collection_name,
-                points=vectors_chunk
-            )
+            try:
+                self.client.upsert(
+                    collection_name=self.collection_name,
+                    points=vectors_chunk
+                )
+            except Exception as e:
+                logger.error("Error in upsert: %s", {'error': e, 'points': vectors_chunk})
+                raise e
 
         return "OK"
 
@@ -126,12 +131,16 @@ class VectorAPI:
         Returns:
             [str]: list of existing ids.
         """
-        existing = self.client.retrieve(
-            collection_name=self.collection_name,
-            ids=ids,
-        )
+        try:
+            existing = self.client.retrieve(
+                collection_name=self.collection_name,
+                ids=ids,
+            )
 
-        return [point.id for point in existing]
+            return [point.id for point in existing]
+        except Exception as e:
+            logger.error("Error in find_existing_ids: %s", e)
+            raise e
 
     def delete(self, ids):
         """
@@ -212,25 +221,44 @@ class VectorAPI:
         Returns:
             [dict]: list of results
         """
-        if embed_api is None:
-            embed_api = EmbedAPI()
-        # Embed the query into a vector
-        vector = embed_api.embed_one(query)
+        try:
+            if embed_api is None:
+                embed_api = EmbedAPI()
+            # Embed the query into a vector
+            vector = embed_api.embed_one(query)
 
-        return self.client.search(
-            collection_name=self.collection_name,
-            query_vector=vector,
-            limit=20,
-            score_threshold=0.1,
-            query_filter=self.make_filters(ndays, exclude, exact_keywords),
-            with_payload=True,
-        )
+            return self.client.search(
+                collection_name=self.collection_name,
+                query_vector=vector,
+                limit=20,
+                score_threshold=0.1,
+                query_filter=self.make_filters(ndays, exclude, exact_keywords),
+                with_payload=True,
+            )
+        except Exception as e:
+            logger.error("Error in search: %s", {
+                'error': e,
+                'query': query,
+                'ndays': ndays,
+                'exclude': exclude,
+                'exact_keywords': exact_keywords,
+            })
+            raise e
 
     def keyword_match(self, ndays, exclude, exact_keywords, platform=None):
-        ndays = min(ndays, 10000)
-        return self.client.scroll(
-            collection_name=self.collection_name,
-            scroll_filter=self.make_filters(ndays, exclude, exact_keywords, platform),
-            limit=100,
-            with_payload=True,
-        )
+        try:
+            ndays = min(ndays, 10000)
+            return self.client.scroll(
+                collection_name=self.collection_name,
+                scroll_filter=self.make_filters(ndays, exclude, exact_keywords, platform),
+                limit=100,
+                with_payload=True,
+            )
+        except Exception as e:
+            logger.error("Error in keyword_match: %s", {
+                'error': e,
+                'ndays': ndays,
+                'exclude': exclude,
+                'exact_keywords': exact_keywords,
+            })
+            raise e
