@@ -26,7 +26,11 @@ const app = express()
 setImmediate(async () => {
   const redis = await createRedisClient(true)
 
-  const posthog = new PostHog(POSTHOG_CONFIG.apiKey)
+  let posthog = null
+
+  if (POSTHOG_CONFIG.apiKey){
+    posthog = new PostHog(POSTHOG_CONFIG.apiKey)
+  }
 
   // Enables CORS
   app.use(cors({ origin: true }))
