@@ -28,7 +28,7 @@ setImmediate(async () => {
 
   let posthog = null
 
-  if (POSTHOG_CONFIG.apiKey){
+  if (POSTHOG_CONFIG.apiKey) {
     posthog = new PostHog(POSTHOG_CONFIG.apiKey)
   }
 
