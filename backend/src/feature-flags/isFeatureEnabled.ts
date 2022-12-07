@@ -1,8 +1,9 @@
 import { PostHog } from 'posthog-node'
 import { API_CONFIG } from '../config'
+import { FeatureFlag } from '../types/featureFlag'
 
 export default async (
-  featureFlag: string,
+  featureFlag: FeatureFlag,
   tenantId: string,
   posthog: PostHog,
 ): Promise<boolean> => {

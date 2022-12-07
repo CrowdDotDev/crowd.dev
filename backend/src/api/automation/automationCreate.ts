@@ -5,6 +5,7 @@ import track from '../../segment/track'
 import identifyTenant from '../../segment/identifyTenant'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Error403 from '../../errors/Error403'
+import { FeatureFlag } from '../../types/featureFlag'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -23,7 +24,7 @@ import Error403 from '../../errors/Error403'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
 
-  if (!(await isFeatureEnabled('automations', req.currentTenant.id, req.posthog))) {
+  if (!(await isFeatureEnabled(FeatureFlag.AUTOMATIONS, req.currentTenant.id, req.posthog))) {
     await req.responseHandler.error(
       req,
       res,
