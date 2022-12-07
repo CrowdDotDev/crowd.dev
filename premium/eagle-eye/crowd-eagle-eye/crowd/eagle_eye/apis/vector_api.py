@@ -4,7 +4,7 @@ import datetime
 import time
 from crowd.eagle_eye.apis import EmbedAPI
 import itertools
-from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT
+from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT, QDRANT_API_KEY, IS_DEV_ENV
 from crowd.eagle_eye.infrastructure.logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,7 +15,7 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, do_init=False):
+    def __init__(self, do_init=False, cloud=True):
         """
         Initialize the VectorAPI.
 
@@ -24,17 +24,24 @@ class VectorAPI:
         """
         self.collection_name = "crowddev"
 
-        if not QDRANT_HOST:
-            host = "localhost"
-        else:
-            host = QDRANT_HOST
+        if cloud:
 
-        if not QDRANT_PORT:
-            port = 6333
-        else:
-            port = QDRANT_PORT
+            if IS_DEV_ENV:
+                self.client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
-        self.client = QdrantClient(host=host, port=port)
+            else:
+                self.client = QdrantClient(
+                    host=QDRANT_HOST,
+                    port=QDRANT_PORT,
+                    prefer_grpc=True,
+                    api_key=QDRANT_API_KEY,
+                )
+
+        else:
+            if IS_DEV_ENV:
+                self.client = QdrantClient(host='localhost', port=6333)
+            else:
+                self.client = QdrantClient(host='crowd-qdrant', port=6333)
 
         if do_init:
             self.client.recreate_collection(
@@ -69,24 +76,28 @@ class VectorAPI:
             yield chunk
             chunk = list(itertools.islice(it, batch_size))
 
-    def upsert(self, points):
+    def upsert(self, points, processed=False):
         """
         Upsert a list of points into the vector database.
 
         Args:
             points ([Point]): points to upsert.
+            processed (Bool): whether the points have already been turned into Qdrant vectors
         """
 
         if (len(points) == 0):
             return
 
-        vectors = [
-            models.PointStruct(
-                id=point.id,
-                payload=point.payload_as_dict(),
-                vector=point.embed,
-            ) for point in points
-        ]
+        if not processed:
+            vectors = [
+                models.PointStruct(
+                    id=point.id,
+                    payload=point.payload_as_dict(),
+                    vector=point.embed,
+                ) for point in points
+            ]
+        else:
+            vectors = points
 
         for vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
             try:
@@ -101,6 +112,9 @@ class VectorAPI:
         return "OK"
 
     def count(self):
+        """
+        Count the number of vectors in a collection.
+        """
         return self.client.count(
             collection_name=self.collection_name,
             exact=True,
@@ -262,3 +276,21 @@ class VectorAPI:
                 'exact_keywords': exact_keywords,
             })
             raise e
+
+    def scroll(self, page):
+        """
+        Iterate through points with pagination.
+
+        Args:
+            next_page (int): the page to fetch
+
+        Returns:
+            tuple(list, int): (vectors, next page)
+        """
+        return self.client.scroll(
+            collection_name=self.collection_name,
+            offset=page,
+            limit=100,
+            with_payload=True,
+            with_vectors=True,
+        )
