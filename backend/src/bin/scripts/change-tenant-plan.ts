@@ -27,7 +27,7 @@ const options = [
     description: `Plan that will be applied to the tenant. Accepted values are 'Growth' and 'Essential'.`,
   },
   {
-    name: 'trial',
+    name: 'trialEndsAt',
     alias: 'x',
     description:
       'YYYY-MM-dd format trial end date. If this value is ommited, isTrial will be set to false.',
@@ -62,37 +62,41 @@ const parameters = commandLineArgs(options)
 if (parameters.help || !parameters.tenant || !parameters.plan) {
   console.log(usage)
 } else if (parameters.plan !== 'Growth' && parameters.plan !== 'Essential') {
-  console.log(parameters.plan)
+  console.log(usage)
+  console.log(`Invalid plan ${parameters.plan}`)
 } else {
   setImmediate(async () => {
-    const tenantId = parameters.tenant
     const plan = parameters.plan
-    const isTrial = parameters.trial !== null
-    const trialEndsAt = parameters.trial
+    const isTrial = parameters.trialEndsAt !== null
+    const trialEndsAt = parameters.trialEndsAt
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
-    const tenant = await options.database.tenant.findByPk(tenantId)
+    const tenantIds = parameters.tenant.split(',')
 
-    if (!tenant) {
-      log.error({ tenantId }, 'Tenant not found!')
-      process.exit(1)
-    } else {
-      log.info({ tenantId, isTrial }, `Tenant found - updating tenant plan to ${plan}!`)
-      const updated = await tenant.update({
-        plan,
-        isTrialPlan: isTrial,
-        trialEndsAt,
-      })
+    for (const tenantId of tenantIds) {
+      const tenant = await options.database.tenant.findByPk(tenantId)
 
-      setPosthogTenantProperties(
-        updated,
-        new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
-        options.database,
-      )
+      if (!tenant) {
+        log.error({ tenantId }, 'Tenant not found!')
+        process.exit(1)
+      } else {
+        log.info({ tenantId, isTrial }, `Tenant found - updating tenant plan to ${plan}!`)
+        const updated = await tenant.update({
+          plan,
+          isTrialPlan: isTrial,
+          trialEndsAt,
+        })
 
-      // give time to posthog to process queue messages
-      await timeout(2000)
+        setPosthogTenantProperties(
+          updated,
+          new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
+          options.database,
+        )
+      }
     }
+
+    // give time to posthog to process queue messages
+    await timeout(2000)
     process.exit(0)
   })
 }

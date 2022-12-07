@@ -4,6 +4,7 @@ import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
 import identifyTenant from '../../segment/identifyTenant'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
+import Error403 from '../../errors/Error403'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -23,9 +24,11 @@ export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
 
   if (!(await isFeatureEnabled('automations', req.currentTenant.id, req.posthog))) {
-    await req.responseHandler.success(req, res, {
-      message: 'You have exceeded # of automations you can have in your plan',
-    })
+    await req.responseHandler.error(
+      req,
+      res,
+      new Error403(req.language, 'entities.automation.errors.planLimitExceeded'),
+    )
     return
   }
 

@@ -1,3 +1,4 @@
+import Error403 from '../../errors/Error403'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import ConversationService from '../../services/conversationService'
@@ -10,9 +11,16 @@ export default async (req, res) => {
     req.body.customUrl &&
     !(await isFeatureEnabled('community-help-center-pro', req.currentTenant.id, req.posthog))
   ) {
-    await req.responseHandler.success(req, res, {
-      message: `Your plan (${req.currentTenant.plan}) doesn't include custom urls.`,
-    })
+    await req.responseHandler.error(
+      req,
+      res,
+      new Error403(
+        req.language,
+        'communityHelpCenter.errors.planNotSupportingCustomUrls',
+        req.currentTenant.plan,
+      ),
+    )
+    return
   }
 
   const payload = await new ConversationService(req).updateSettings(req.body)
