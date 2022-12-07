@@ -1,13 +1,13 @@
 import { PostHog } from 'posthog-node'
 import { API_CONFIG } from '../config'
-import { FeatureFlag } from '../types/featureFlag'
+import { FeatureFlag, Edition } from '../types/common'
 
 export default async (
   featureFlag: FeatureFlag,
   tenantId: string,
   posthog: PostHog,
 ): Promise<boolean> => {
-  if (API_CONFIG.edition === 'community') {
+  if (API_CONFIG.edition === Edition.COMMUNITY) {
     return true
   }
 

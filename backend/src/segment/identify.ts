@@ -1,11 +1,12 @@
 import { SEGMENT_CONFIG, API_CONFIG } from '../config'
+import { Edition } from '../types/common'
 
 export default function identify(user) {
   const Analytics = require('analytics-node')
 
   if (SEGMENT_CONFIG.writeKey) {
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)
-    if (API_CONFIG.edition === 'crowd-hosted') {
+    if (API_CONFIG.edition === Edition.CROWD_HOSTED) {
       analytics.identify({
         userId: user.id,
         traits: {
@@ -22,7 +23,7 @@ export default function identify(user) {
           created_an_account__date: user.createdAt,
         },
       })
-    } else if (API_CONFIG.edition === 'community') {
+    } else if (API_CONFIG.edition === Edition.COMMUNITY) {
       if (!user.email.includes('crowd.dev')) {
         analytics.identify({
           userId: user.id,

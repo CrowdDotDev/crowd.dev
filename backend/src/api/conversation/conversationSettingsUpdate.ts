@@ -3,7 +3,7 @@ import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Permissions from '../../security/permissions'
 import ConversationService from '../../services/conversationService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { FeatureFlag } from '../../types/featureFlag'
+import { FeatureFlag } from '../../types/common'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.conversationEdit)

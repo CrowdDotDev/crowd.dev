@@ -5,7 +5,7 @@ import track from '../../segment/track'
 import identifyTenant from '../../segment/identifyTenant'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Error403 from '../../errors/Error403'
-import { FeatureFlag } from '../../types/featureFlag'
+import { FeatureFlag } from '../../types/common'
 
 /**
  * POST /tenant/{tenantId}/automation
