@@ -137,6 +137,7 @@
             <app-autocomplete-many-input
               id="assignees"
               v-model="model[fields.assignees.name]"
+              :disabled-on-no-options="true"
               :fetch-fn="fields.assignees.fetchFn"
               :mapper-fn="fields.assignees.mapperFn"
               placeholder="Select assignee(s)"
