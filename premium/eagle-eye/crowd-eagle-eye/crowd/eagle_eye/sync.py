@@ -7,7 +7,7 @@ import dotenv
 found = dotenv.find_dotenv(".env.sync")
 dotenv.load_dotenv(found)
 
-vector_out = VectorAPI(do_init=False)
+vector_out = VectorAPI(do_init=False, cloud=False)
 print("Vector out initialised. It has {} vectors".format(vector_out.count()))
 vector_in = VectorAPI(do_init=True, cloud=True)
 print("Vector in initialised")

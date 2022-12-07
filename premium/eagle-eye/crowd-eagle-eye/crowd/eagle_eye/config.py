@@ -21,6 +21,7 @@ elif LOG_LEVEL == "WARN":
 
 QDRANT_HOST = os.environ.get("CROWD_QDRANT_HOST")
 QDRANT_PORT = os.environ.get("CROWD_QDRANT_PORT")
+QDRANT_API_KEY = os.environ.get("CROWD_QDRANT_API_KEY")
 
 SQS_HOST = os.environ.get("CROWD_SQS_HOST")
 SQS_PORT = os.environ.get("CROWD_SQS_PORT")

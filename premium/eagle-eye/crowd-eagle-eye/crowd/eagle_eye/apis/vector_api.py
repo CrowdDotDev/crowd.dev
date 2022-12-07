@@ -4,7 +4,7 @@ import datetime
 import time
 from crowd.eagle_eye.apis import EmbedAPI
 import itertools
-from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT
+from crowd.eagle_eye.config import QDRANT_HOST, QDRANT_PORT, QDRANT_API_KEY, IS_DEV_ENV
 from crowd.eagle_eye.infrastructure.logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,7 +15,7 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, do_init=False, cloud=False):
+    def __init__(self, do_init=False, cloud=True):
         """
         Initialize the VectorAPI.
 
@@ -25,28 +25,23 @@ class VectorAPI:
         self.collection_name = "crowddev"
 
         if cloud:
-            import os
-            api_key = os.environ.get("QDRANT_CLOUD_API_KEY")
-            print("Using cloud API key: {}".format(api_key))
-            self.client = QdrantClient(
-                host="5ea3ec24-7858-4645-ac07-a2872f2195d2.us-east.aws.cloud.qdrant.io",
-                port=6333,
-                prefer_grpc=True,
-                api_key=api_key,
-            )
+
+            if IS_DEV_ENV:
+                self.client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+
+            else:
+                self.client = QdrantClient(
+                    host=QDRANT_HOST,
+                    port=QDRANT_PORT,
+                    prefer_grpc=True,
+                    api_key=QDRANT_API_KEY,
+                )
 
         else:
-            if not QDRANT_HOST:
-                host = "localhost"
+            if IS_DEV_ENV:
+                self.client = QdrantClient(host='localhost', port=6333)
             else:
-                host = QDRANT_HOST
-
-            if not QDRANT_PORT:
-                port = 6333
-            else:
-                port = QDRANT_PORT
-
-            self.client = QdrantClient(host=host, port=port)
+                self.client = QdrantClient(host='crowd-qdrant', port=6333)
 
         if do_init:
             self.client.recreate_collection(
