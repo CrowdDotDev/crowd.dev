@@ -22,14 +22,27 @@ const fetchUser = (query, limit) => {
 }
 
 const fetchMembers = (query, limit) => {
-  const filter = query
-    ? {
-        or: [
-          { displayName: { textContains: query } },
-          { email: { textContains: query } }
-        ]
-      }
-    : {}
+  let filter = {}
+
+  if (Array.isArray(query)) {
+    filter = {
+      or: [
+        {
+          displayName: {
+            in: query.map((v) => v.displayName)
+          }
+        },
+        { email: { textContains: query } }
+      ]
+    }
+  } else if (query) {
+    filter = {
+      or: [
+        { displayName: { textContains: query } },
+        { email: { textContains: query } }
+      ]
+    }
+  }
 
   return MemberService.list(
     filter,

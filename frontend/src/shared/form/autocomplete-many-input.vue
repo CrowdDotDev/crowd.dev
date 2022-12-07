@@ -3,7 +3,9 @@
     ref="input"
     :disabled="
       disabled ||
-      (disabledOnNoOptions && !localOptions.length)
+      (disabledOnNoOptions &&
+        !localOptions.length &&
+        !modelValue.length)
     "
     :loading="loading"
     :remote-method="handleSearch"
@@ -170,7 +172,23 @@ export default {
       this.loading = true
 
       try {
-        this.localOptions = await this.fetchFn()
+        const response = await this.fetchFn()
+
+        this.localOptions = response
+
+        const notIncluded = this.modelValue.filter(
+          (m) =>
+            response.findIndex((r) => r.id === m.id) === -1
+        )
+
+        if (notIncluded.length) {
+          const notIncludedResponse = await this.fetchFn(
+            notIncluded
+          )
+
+          this.localOptions.unshift(...notIncludedResponse)
+        }
+
         this.loading = false
       } catch (error) {
         console.error(error)
@@ -187,10 +205,30 @@ export default {
       this.loading = true
 
       try {
-        this.localOptions = await this.fetchFn(
+        const response = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
+
+        this.localOptions = response
+
+        if (!value) {
+          const notIncluded = this.modelValue.filter(
+            (m) =>
+              response.findIndex((r) => r.id === m.id) ===
+              -1
+          )
+
+          if (notIncluded.length) {
+            const notIncludedResponse = await this.fetchFn(
+              notIncluded
+            )
+
+            this.localOptions.unshift(
+              ...notIncludedResponse
+            )
+          }
+        }
 
         this.loading = false
       } catch (error) {
