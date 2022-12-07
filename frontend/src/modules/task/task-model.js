@@ -8,28 +8,31 @@ import { UserService } from '@/premium/user/user-service'
 import { MemberService } from '@/modules/member/member-service'
 
 const fetchUser = (query, limit) => {
-  return UserService.fetchUsers(
-    { fullName: query },
-    '',
-    limit,
-    0
-  ).then(({ rows }) => {
-    return rows.map((r) => ({
-      ...r,
-      id: r.id,
-      label: r.fullName
-    }))
-  })
+  const filter = query ? { fullName: query } : {}
+
+  return UserService.fetchUsers(filter, '', limit, 0).then(
+    ({ rows }) => {
+      return rows.map((r) => ({
+        ...r,
+        id: r.id,
+        label: r.fullName
+      }))
+    }
+  )
 }
 
 const fetchMembers = (query, limit) => {
+  const filter = query
+    ? {
+        or: [
+          { displayName: { textContains: query } },
+          { email: { textContains: query } }
+        ]
+      }
+    : {}
+
   return MemberService.list(
-    {
-      or: [
-        { displayName: { textContains: query } },
-        { email: { textContains: query } }
-      ]
-    },
+    filter,
     '',
     limit,
     0,

@@ -1,7 +1,10 @@
 <template>
   <el-select
     ref="input"
-    :disabled="disabled"
+    :disabled="
+      disabled ||
+      (disabledOnNoOptions && !localOptions.length)
+    "
     :loading="loading"
     :remote-method="handleSearch"
     :model-value="modelValue"
@@ -70,6 +73,10 @@ export default {
       default: () => {}
     },
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    disabledOnNoOptions: {
       type: Boolean,
       default: false
     },
