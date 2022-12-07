@@ -1,64 +1,34 @@
+from pprint import pprint as pp
 from crowd.eagle_eye.apis.vector_api import VectorAPI
-from crowd.eagle_eye.apis.embed_api import EmbedAPI
-from crowd.eagle_eye.models import Vector, Payload
-import json
-import pinecone
-import os
+from qdrant_client.http import models
+
 
 import dotenv
 found = dotenv.find_dotenv(".env.sync")
 dotenv.load_dotenv(found)
 
+vector_out = VectorAPI(do_init=False)
+print("Vector out initialised. It has {} vectors".format(vector_out.count()))
+vector_in = VectorAPI(do_init=True, cloud=True)
+print("Vector in initialised")
 
-pinecone.init(api_key=os.environ.get("PINECONE_API_KEY"), environment="us-east-1-aws")
-index = pinecone.Index("crowddev-prod")
-filters = [
-    {"platform": {"$in": ["hacker_news"]}, "timestamp": {"$gt": 1666681782}},
-    {"platform": {"$in": ["devto"]}, "timestamp": {"$gt": 1666681782}}
-]
 
-for filter in filters:
-    query_response = index.query(
-        top_k=10000,
-        include_values=False,
-        include_metadata=True,
-        vector=[0.0] * 2048,
-        filter=filter
-    )
+number = vector_out.count()
+offset = None
 
-    print('Number of results from Pinecone:', len(query_response['matches']))
+while True:
+    vectors = vector_out.scroll(offset)
 
-    vectors = []
+    vectors_to_add = [
+        models.PointStruct(
+            id=vector.id,
+            payload=vector.payload,
+            vector=vector.vector,
+        ) for vector in vectors[0]
+    ]
+    vector_in.upsert(vectors_to_add, processed=True)
 
-    vectorAPI = VectorAPI(do_init=True)
-    embedAPI = EmbedAPI()
-
-    for i, match in enumerate(query_response['matches']):
-        if i and i % 100 == 0:
-            vectorAPI.upsert(vectors)
-            vectors = []
-            print('Processing match', i)
-            print('Number of vectors in Qdrant:', vectorAPI.count())
-
-        text = match['metadata']['text']
-        if match['metadata']['platform'] == 'hacker_news':
-            if len(match['metadata']['text']) > 200:
-                text = match['metadata']['url']
-
-        sourceId_with_platform = match['metadata']['sourceId']
-        sourceId = sourceId_with_platform[sourceId_with_platform.find(':') + 1:]
-        payload = Payload(
-            id=sourceId,
-            platform=match['metadata']['platform'],
-            title=match['metadata']['title'],
-            username=match['metadata']['username'],
-            timestamp=match['metadata']['timestamp'],
-            destination_url=match['metadata']['destination_url'],
-            url=match['metadata']['url'],
-            text=text,
-            postAttributes=json.loads(match['metadata'].get('postAttributes', {})),
-            userAttributes=json.loads(match['metadata'].get('userAttributes', {}))
-        )
-        combined = f'{match["metadata"]["title"]} {text}'
-        vector = Vector(sourceId, payload, combined, embedAPI.embed_one(combined))
-        vectors.append(vector)
+    offset = vectors[-1]
+    if not offset:
+        break
+    print(f"Synced {vector_in.count()} of {number} vectors")

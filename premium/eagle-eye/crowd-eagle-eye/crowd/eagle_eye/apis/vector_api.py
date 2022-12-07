@@ -15,7 +15,7 @@ class VectorAPI:
     Class to interact with the vector database.
     """
 
-    def __init__(self, do_init=False):
+    def __init__(self, do_init=False, cloud=False):
         """
         Initialize the VectorAPI.
 
@@ -24,17 +24,29 @@ class VectorAPI:
         """
         self.collection_name = "crowddev"
 
-        if not QDRANT_HOST:
-            host = "localhost"
-        else:
-            host = QDRANT_HOST
+        if cloud:
+            import os
+            api_key = os.environ.get("QDRANT_CLOUD_API_KEY")
+            print("Using cloud API key: {}".format(api_key))
+            self.client = QdrantClient(
+                host="5ea3ec24-7858-4645-ac07-a2872f2195d2.us-east.aws.cloud.qdrant.io",
+                port=6333,
+                prefer_grpc=True,
+                api_key=api_key,
+            )
 
-        if not QDRANT_PORT:
-            port = 6333
         else:
-            port = QDRANT_PORT
+            if not QDRANT_HOST:
+                host = "localhost"
+            else:
+                host = QDRANT_HOST
 
-        self.client = QdrantClient(host=host, port=port)
+            if not QDRANT_PORT:
+                port = 6333
+            else:
+                port = QDRANT_PORT
+
+            self.client = QdrantClient(host=host, port=port)
 
         if do_init:
             self.client.recreate_collection(
@@ -69,7 +81,7 @@ class VectorAPI:
             yield chunk
             chunk = list(itertools.islice(it, batch_size))
 
-    def upsert(self, points):
+    def upsert(self, points, processed=False):
         """
         Upsert a list of points into the vector database.
 
@@ -80,13 +92,16 @@ class VectorAPI:
         if (len(points) == 0):
             return
 
-        vectors = [
-            models.PointStruct(
-                id=point.id,
-                payload=point.payload_as_dict(),
-                vector=point.embed,
-            ) for point in points
-        ]
+        if not processed:
+            vectors = [
+                models.PointStruct(
+                    id=point.id,
+                    payload=point.payload_as_dict(),
+                    vector=point.embed,
+                ) for point in points
+            ]
+        else:
+            vectors = points
 
         for vectors_chunk in VectorAPI._chunks(vectors, batch_size=100):
             try:
@@ -262,3 +277,12 @@ class VectorAPI:
                 'exact_keywords': exact_keywords,
             })
             raise e
+
+    def scroll(self, next_page):
+        return self.client.scroll(
+            collection_name=self.collection_name,
+            offset=next_page,
+            limit=100,
+            with_payload=True,
+            with_vectors=True,
+        )
