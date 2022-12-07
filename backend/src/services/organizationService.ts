@@ -4,6 +4,7 @@ import { IServiceOptions } from './IServiceOptions'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
+import telemetryTrack from '../segment/telemetryTrack'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import { enrichOrganization } from './helpers/enrichment'
 import { LoggingBase } from './loggingBase'
@@ -102,6 +103,14 @@ export default class OrganizationService extends LoggingBase {
           ...this.options,
           transaction,
         })
+        telemetryTrack(
+          'Organization created',
+          {
+            id: record.id,
+            createdAt: record.createdAt,
+          },
+          this.options,
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)

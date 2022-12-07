@@ -14,6 +14,7 @@ import { IntegrationType, PlatformType } from '../types/integrationEnums'
 import { getInstalledRepositories } from '../serverless/integrations/usecases/github/rest/getInstalledRepositories'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
+import telemetryTrack from '../segment/telemetryTrack'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -52,6 +53,15 @@ export default class IntegrationService {
               status: data.status,
             },
             { ...this.options },
+          )
+          telemetryTrack(
+            'Integration created',
+            {
+              id: record.id,
+              createdAt: record.createdAt,
+              platform: record.platform,
+            },
+            this.options,
           )
         }
         return record

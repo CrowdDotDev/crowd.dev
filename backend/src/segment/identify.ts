@@ -22,16 +22,18 @@ export default function identify(user) {
           created_an_account__date: user.createdAt,
         },
       })
-    } else {
-      analytics.identify({
-        userId: user.id,
-        traits: {
-          createdAt: user.createdAt,
-          tenants: user.tenants.map((tenantUser) => ({
-            id: tenantUser.tenant.id,
-          })),
-        },
-      })
+    } else if (API_CONFIG.edition === 'community') {
+      if (!user.email.includes('crowd.dev')) {
+        analytics.identify({
+          userId: user.id,
+          traits: {
+            createdAt: user.createdAt,
+            tenants: user.tenants.map((tenantUser) => ({
+              id: tenantUser.tenant.id,
+            })),
+          },
+        })
+      }
     }
   }
 }
