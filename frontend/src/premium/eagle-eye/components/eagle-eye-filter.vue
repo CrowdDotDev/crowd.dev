@@ -43,7 +43,7 @@ const isButtonDisabled = ref(true)
 const { doPopulate, doFetch } = mapActions('eagleEye')
 
 const handleSearch = async function () {
-  await doPopulate({ keepPagination: false })
+  await doPopulate({})
   await doFetch({})
 }
 </script>

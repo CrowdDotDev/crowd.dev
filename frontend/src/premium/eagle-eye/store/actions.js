@@ -44,7 +44,7 @@ export default {
 
   async doPopulate(
     { commit, getters },
-    { keepPagination }
+    { keepPagination = false }
   ) {
     try {
       commit('POPULATE_STARTED', {
