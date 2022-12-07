@@ -15,12 +15,12 @@ export default async function identifyTenant(req) {
         },
       })
     } else if (API_CONFIG.edition === 'community') {
-      if (!user.email.includes('crowd.dev')) {
+      if (!req.currentUser.email.includes('crowd.dev')) {
         analytics.group({
-          userId: user.id,
-          groupId: tenant.id,
+          userId: req.currentUser.id,
+          groupId: req.currentTenant.id,
           traits: {
-            createdAt: tenant.createdAt,
+            createdAt: req.currentTenant.createdAt,
           },
         })
       }
