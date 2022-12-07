@@ -82,6 +82,7 @@ class VectorAPI:
 
         Args:
             points ([Point]): points to upsert.
+            processed (Bool): whether the points have already been turned into Qdrant vectors
         """
 
         if (len(points) == 0):
@@ -111,6 +112,9 @@ class VectorAPI:
         return "OK"
 
     def count(self):
+        """
+        Count the number of vectors in a collection.
+        """
         return self.client.count(
             collection_name=self.collection_name,
             exact=True,
@@ -273,10 +277,19 @@ class VectorAPI:
             })
             raise e
 
-    def scroll(self, next_page):
+    def scroll(self, page):
+        """
+        Iterate through points with pagination.
+
+        Args:
+            next_page (int): the page to fetch
+
+        Returns:
+            tuple(list, int): (vectors, next page)
+        """
         return self.client.scroll(
             collection_name=self.collection_name,
-            offset=next_page,
+            offset=page,
             limit=100,
             with_payload=True,
             with_vectors=True,
