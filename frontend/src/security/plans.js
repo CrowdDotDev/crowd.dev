@@ -6,7 +6,7 @@ class Plans {
     return {
       essential: 'Essential',
       growth: 'Growth',
-      enterprise: 'enterprise'
+      enterprise: 'Enterprise'
     }
   }
 }
