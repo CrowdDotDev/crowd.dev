@@ -163,3 +163,8 @@ export interface CubeJSConfiguration {
   jwtSecret: string
   jwtExpiry: string
 }
+
+export interface PizzlyConfiguration {
+  url: string
+  token: string
+}

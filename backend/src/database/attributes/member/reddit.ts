@@ -17,18 +17,4 @@ export const RedditMemberAttributes: Attribute[] = [
     canDelete: false,
     show: true,
   },
-  {
-    name: MemberAttributes[MemberAttributeName.BIO].name,
-    label: MemberAttributes[MemberAttributeName.BIO].label,
-    type: AttributeType.STRING,
-    canDelete: false,
-    show: true,
-  },
-  {
-    name: MemberAttributes[MemberAttributeName.KARMA].name,
-    label: MemberAttributes[MemberAttributeName.KARMA].label,
-    type: AttributeType.NUMBER,
-    canDelete: false,
-    show: true,
-  },
 ]

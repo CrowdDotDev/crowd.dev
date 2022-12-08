@@ -320,20 +320,19 @@ export default class IntegrationService {
   async redditOnboard(subreddits) {
     const integration = await this.createOrUpdate({
       platform: PlatformType.REDDIT,
-      // token: discordToken,
-      settings: { subreddits },
+      settings: { subreddits, updateMemberAttributes: true },
       status: 'in-progress',
     })
 
-    // await sendNodeWorkerMessage(
-    //   integration.tenantId,
-    //   new NodeWorkerIntegrationProcessMessage(
-    //     IntegrationType.DISCORD,
-    //     integration.tenantId,
-    //     true,
-    //     integration.id,
-    //   ),
-    // )
+    await sendNodeWorkerMessage(
+      integration.tenantId,
+      new NodeWorkerIntegrationProcessMessage(
+        IntegrationType.REDDIT,
+        integration.tenantId,
+        true,
+        integration.id,
+      ),
+    )
 
     console.log('DONE')
 
