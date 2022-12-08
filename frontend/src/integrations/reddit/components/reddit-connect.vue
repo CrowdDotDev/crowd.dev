@@ -2,8 +2,8 @@
   <app-reddit-connect-drawer
     v-if="hasSettings && drawerVisible"
     v-model="drawerVisible"
-    :hashtags="hashtags"
-    :connect-url="connectUrl"
+    :subreddits="subreddits"
+    :connect-url="''"
   />
   <slot
     :connect="connect"
@@ -22,6 +22,7 @@ import { defineProps, computed, ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import Pizzly from '@nangohq/pizzly-frontend'
 import { useRouter, useRoute } from 'vue-router'
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import Message from '@/shared/message/message'
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer'
 
@@ -46,41 +47,19 @@ onMounted(() => {
   }
 })
 
-// Only render reddit drawer and settings button, if integration has settings
-const hasSettings = computed(
-  () => !!props.integration.settings
-)
-const hashtags = computed(
-  () => props.integration.settings?.hashtags || []
-)
-
-// Create an url for the connection without the hashtags
-// This will allow to be reused by the reddit drawer component
-// and override the current configured hashtag
-const connectUrl = computed(() => {
-  return ''
-})
+const tenantId = computed(() => AuthCurrentTenant.get())
+const subreddits = computed(() => props.integration.subreddits)
 
 async function connect() {
   const pizzly = new Pizzly('http://localhost:3004')
-  console.log(pizzly)
+  const result = await pizzly.auth('reddit', `${tenantId.value}-reddit`)
+  console.log(
+        `OAuth flow succeeded for provider "${result.providerConfigKey}" and connection-id "${result.connectionId}"!`
+      )
+
   await store.dispatch('integration/doRedditOnboard', {
     subreddits: ['programming']
   })
-  // const pizzly = new Pizzly('http://localhost:3004')
-  // // Add the already configured hashtags to the connectUrl
-  // pizzly
-  //   .auth('reddit', 'tenantId-reddit')
-  //   .then((result) => {
-  //     console.log(
-  //       `OAuth flow succeeded for provider "${result.providerConfigKey}" and connection-id "${result.connectionId}"!`
-  //     )
-  //   })
-  //   .catch((error) => {
-  //     console.error(
-  //       `There was an error in the OAuth flow for integration "${error.providerConfigKey}" and connection-id "${error.connectionId}": ${error.error.type} - ${error.error.message}`
-  //     )
-  //   })
 }
 
 const settings = () => {

@@ -7,20 +7,22 @@ import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
+  IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
-import getPost from '../../usecases/reddit/getPost'
+import getPosts from '../../usecases/reddit/getPosts'
 import { RedditGrid } from '../../grid/redditGrid'
 import {
-  EagleEyeResponse,
-  RedditResponse,
+  RedditCommentsResponse,
+  RedditPostsResponse,
+  RedditPost,
   RedditIntegrationSettings,
 } from '../../types/redditTypes'
 import { AddActivitiesSingle } from '../../types/messageTypes'
-import getPostsByKeywords from '../../usecases/reddit/getPostsByKeywords'
 
 import { IntegrationServiceBase } from '../integrationServiceBase'
+import { Logger } from '../../../../utils/logging'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -28,7 +30,7 @@ import { IntegrationServiceBase } from '../integrationServiceBase'
 
 export class RedditIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.HACKER_NEWS, 2 * 60)
+    super(IntegrationType.REDDIT, 2 * 60)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
@@ -39,70 +41,53 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
   async preprocess(context: IStepContext): Promise<void> {
     const settings = context.integration.settings as RedditIntegrationSettings
-
-    const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
-    this.logger(context).info(`Fetching posts for keywords: ${keywords}`)
-    const posts = await getPostsByKeywords(
-      { keywords, nDays: context.onboarding ? 1000000 : 3 },
-      context.serviceContext,
-      this.logger(context),
-    )
-
     context.pipelineData = {
-      keywords,
-      posts,
+      subreddits: settings.subreddits,
+      pizzlyId: `${context.integration.tenantId}-${PlatformType.REDDIT}`,
     }
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    return context.pipelineData.posts.map((a: EagleEyeResponse) => ({
-      value: a.sourceId.slice(a.sourceId.lastIndexOf(':') + 1),
+    return context.pipelineData.subreddits.map((subreddit: string) => ({
+      value: `subreddit:${subreddit}`,
       metadata: {
-        channel: a.keywords[0],
+        channel: subreddit,
       },
     }))
   }
 
-  async processStream(
+  async subRedditStream(
     stream: IIntegrationStream,
     context: IStepContext,
+    logger: Logger,
   ): Promise<IProcessStreamResults> {
-    const logger = this.logger(context)
-    let newStreams: IIntegrationStream[]
+    const subreddit = stream.value.split(':')[1]
+    const pizzlyId = context.pipelineData.pizzlyId
+    const after = stream.metadata.after
+    const response: RedditPostsResponse = await getPosts({ subreddit, pizzlyId, after }, logger)
 
-    const post: RedditResponse = await getPost(stream.value, logger)
+    const posts = response.data.children
 
-    if (post.kids !== undefined) {
-      newStreams = post.kids.map((a: number) => ({
-        value: a.toString(),
-        metadata: {
-          ...stream.metadata,
-          ...((!post.parent && {
-            parentId: post.id.toString(),
-            parentTitle: post.title || post.text,
-          }) ||
-            {}),
-        },
-      }))
+    if ((posts.length as any) === 0) {
+      return {
+        operations: [],
+        lastRecord: undefined,
+        lastRecordTimestamp: undefined,
+        sleep: 1,
+        newStreams: [],
+      }
     }
+    const nextPage = posts[posts.length - 1].data.name
 
-    let activities: AddActivitiesSingle[]
-    if (!post.text && !post.url) {
-      activities = []
-    } else {
-      const parsedPost = this.parsePost(
-        context.integration.tenantId,
-        stream.metadata.channel,
-        post,
-        stream.metadata.parentId,
-        stream.metadata.parentTitle,
-      )
-      activities = [parsedPost]
-    }
-
+    const activities = posts.map((post) =>
+      this.parsePost(context.integration.tenantId, subreddit, post.data),
+    )
     const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
 
-    let sleep: number | undefined
+    const nextPageStream: IIntegrationStream =
+      posts.length > 0
+        ? { value: stream.value, metadata: { ...(stream.metadata || {}), after: nextPage } }
+        : undefined
 
     return {
       operations: [
@@ -111,64 +96,68 @@ export class RedditIntegrationService extends IntegrationServiceBase {
           records: activities,
         },
       ],
+      nextPageStream,
       lastRecord,
       lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
-      sleep,
-      newStreams,
+      sleep: 1,
+      newStreams: [],
     }
   }
 
-  parsePost(
-    tenantId,
-    channel,
-    post: RedditResponse,
-    parentId,
-    parentTitle,
-  ): AddActivitiesSingle {
-    const type = post.parent ? RedditActivityType.COMMENT : RedditActivityType.POST
-    const url = `https://news.ycombinator.com/item?id=${post.parent ? post.parent : post.id}`
-    const body =
-      post.text !== undefined && post.text !== ''
-        ? sanitizeHtml(post.text)
-        : `<a href="${post.url}" target="_blank">${post.url}</a>`
+  async processStream(
+    stream: IIntegrationStream,
+    context: IStepContext,
+  ): Promise<IProcessStreamResults> {
+    const logger: Logger = this.logger(context)
+    let newStreams: IIntegrationStream[]
+
+    switch (stream.value.split(':')[0]) {
+      case 'subreddit':
+        return this.subRedditStream(stream, context, logger)
+      case 'post':
+        // return this.processPost(stream, context, logger)
+        newStreams = []
+      default:
+        newStreams = []
+    }
+  }
+
+  parsePost(tenantId, channel, post: RedditPost): AddActivitiesSingle {
+    const body = post.selftext_html
+      ? sanitizeHtml(post.selftext_html)
+      : `<a href="${post.url}" target="__blank">${post.url}</a>`
     const activity = {
       tenant: tenantId,
       sourceId: post.id.toString(),
-      ...(post.parent && { sourceParentId: post.parent.toString() }),
-      type,
+      type: RedditActivityType.POST,
       platform: PlatformType.REDDIT,
-      timestamp: new Date(post.time * 1000),
+      timestamp: new Date(post.created * 1000),
       body,
       title: post.title,
-      url,
+      url: `https://www.reddit.com${post.permalink}`,
       channel,
-      score: RedditGrid[type].score,
-      isKeyAction: RedditGrid[type].isKeyAction,
+      score: RedditGrid[RedditActivityType.POST].score,
+      isKeyAction: RedditGrid[RedditActivityType.POST].isKeyAction,
       attributes: {
-        commentsCount: post.descendants,
-        destinationUrl: post.url,
-        score: post.score,
-        ...(post.parent && {
-          parentUrl: `https://news.ycombinator.com/item?id=${parentId}`,
-          parentTitle,
-        }),
-        type: post.type,
+        url: post.url,
+        name: post.name,
+        downs: post.downs,
+        ups: post.ups,
+        upvoteRatio: post.upvote_ratio,
+        thubmnail: post.thumbnail,
       },
     }
 
     const member = {
-      username: post.user.id,
+      username: post.author,
       platform: PlatformType.REDDIT,
-      displayName: post.user.id,
+      displayName: post.author,
       attributes: {
         [MemberAttributeName.SOURCE_ID]: {
-          [PlatformType.REDDIT]: post.user.id,
+          [PlatformType.REDDIT]: post.author_fullname,
         },
-        [MemberAttributeName.KARMA]: {
-          [PlatformType.REDDIT]: post.user.karma,
-        },
-        [MemberAttributeName.BIO]: {
-          [PlatformType.REDDIT]: post.user.about,
+        [MemberAttributeName.URL]: {
+          [PlatformType.REDDIT]: `https://www.reddit.com/user/${post.author}`,
         },
       },
     }
@@ -177,4 +166,43 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       member,
     }
   }
+  // async isProcessingFinished(
+  //   context: IStepContext,
+  //   currentStream: IIntegrationStream,
+  //   lastOperations: IStreamResultOperation[],
+  //   lastRecord?: any,
+  //   lastRecordTimestamp?: number,
+  // ): Promise<boolean> {
+  //   switch (currentStream.value) {
+  //     case 'members':
+  //       if (lastRecord === undefined) return true
+
+  //       return lastRecord.sourceId in context.pipelineData.members
+  //     case 'threads':
+  //       if ((currentStream.metadata as Thread).new) {
+  //         return false
+  //       }
+
+  //       if (lastRecordTimestamp === undefined) return true
+
+  //       return IntegrationServiceBase.isRetrospectOver(
+  //         lastRecordTimestamp,
+  //         context.startTimestamp,
+  //         SlackIntegrationService.maxRetrospect,
+  //       )
+
+  //     default:
+  //       if (context.pipelineData.channelsInfo[currentStream.value].new) {
+  //         return false
+  //       }
+
+  //       if (lastRecordTimestamp === undefined) return true
+
+  //       return IntegrationServiceBase.isRetrospectOver(
+  //         lastRecordTimestamp,
+  //         context.startTimestamp,
+  //         SlackIntegrationService.maxRetrospect,
+  //       )
+  //   }
+  // }
 }

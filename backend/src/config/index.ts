@@ -22,6 +22,7 @@ import {
   DevtoConfiguration,
   RedisConfiguration,
   PosthogConfiguration,
+  PizzlyConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -214,4 +215,11 @@ export const CUBEJS_CONFIG: CubeJSConfiguration = KUBE_MODE
       url: process.env.CUBE_JS_URL,
       jwtSecret: process.env.CUBE_JS_JWT_SECRET,
       jwtExpiry: process.env.CUBE_JS_JWT_EXPIRY,
+    }
+
+export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
+  ? config.get<PizzlyConfiguration>('pizzly')
+  : {
+      url: process.env.PIZZLY_URL,
+      token: process.env.PIZZLY_TOKEN,
     }
