@@ -94,7 +94,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  hashtags: {
+  subreddits: {
     type: Array,
     default: () => []
   },
@@ -106,9 +106,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const parsedHashtags = computed(() =>
-  props.hashtags.length
-    ? props.hashtags[props.hashtags.length - 1]
+const parsedSubreddits = computed(() =>
+  props.subreddits.length
+    ? props.subreddits[props.subreddits.length - 1]
     : ''
 )
 const hashtagField = new StringField(
@@ -118,7 +118,7 @@ const hashtagField = new StringField(
 const formSchema = ref(new FormSchema([hashtagField]))
 const model = ref(
   formSchema.value.initialValues({
-    hashtag: parsedHashtags.value
+    hashtag: parsedSubreddits.value
   })
 )
 
@@ -128,7 +128,7 @@ const hasFormChanged = computed(
   () =>
     !isEqual(
       formSchema.value.initialValues({
-        hashtag: parsedHashtags.value
+        hashtag: parsedSubreddits.value
       }),
       model.value
     )
@@ -144,16 +144,16 @@ const isVisible = computed({
 })
 
 const computedConnectUrl = computed(() => {
-  const encodedHashtags = model.value.hashtag
-    ? `&hashtags[]=${model.value.hashtag}`
+  const encodedSubreddits = model.value.hashtag
+    ? `&subreddits[]=${model.value.hashtag}`
     : ''
 
-  return `${props.connectUrl}${encodedHashtags}`
+  return `${props.connectUrl}${encodedSubreddits}`
 })
 
 const doReset = () => {
   model.value = formSchema.value.initialValues({
-    hashtag: parsedHashtags.value
+    hashtag: parsedSubreddits.value
   })
 }
 </script>

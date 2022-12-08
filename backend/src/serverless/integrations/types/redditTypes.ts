@@ -1,55 +1,66 @@
-export interface EagleEyeResponse {
-  vectorId: number
-  sourceId: string
-  title: string
-  url: string
-  createdAt: string
-  text: string
-  username: string
-  platform: string
-  timestamp: string
-  userAttributes: any
-  postAttributes: {
-    commentsCount: number
-    score: number
-  }
-  keywords: string[]
-}
-
-export type EagleEyeResponses = EagleEyeResponse[]
-
-export interface RedditPost {
-  by: string
-  descendants: number
-  id: number
-  kids?: number[]
-  parent?: number
-  score: number
-  time: number
-  title: string
-  text: string
-  type: string
-  url: string
-}
-
-export interface RedditUser {
-  about: string
-  created: number
+interface RedditBase {
   id: string
-  karma: number
-  submitted: number[]
+  name: string
+  title: string
+  subreddit: string
+  url: string
+  downs: number
+  ups: number
+  upvote_ratio: number
+  score: number
+  thumbnail: string
+  permalink: string
+  created: number
+  author: string
+  author_fullname: string
 }
 
-export interface RedditResponse extends RedditPost {
-  user: RedditUser
+export interface RedditPost extends RedditBase {
+  selftext_html: string
+}
+
+export interface RedditPostsResponse {
+  data: {
+    children: [
+      {
+        data: RedditPost
+      },
+    ]
+  }
+}
+
+export interface RedditMoreChildren {
+  data: {
+    count: number
+    children: string[]
+  }
+}
+
+export interface RedditComment extends RedditBase {
+  body_html: string
+  replies?: {
+    data: {
+      children: RedditComment[] | RedditMoreChildren[]
+    }
+  }
+}
+
+export interface RedditCommentsResponse {
+  data: {
+    children: [
+      {
+        data: RedditComment
+      },
+    ]
+  }
 }
 
 export interface RedditIntegrationSettings {
-  keywords: string[]
-  urls: string[]
+  subreddits: string[]
 }
 
-export interface EagleEyeInput {
-  keywords: string[]
-  nDays: number
+export interface RedditGetPostsInput {
+  subreddit: string
+  pizzlyId: string
+  after?: string
 }
