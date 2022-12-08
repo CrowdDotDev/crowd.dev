@@ -322,12 +322,13 @@ export default (moduleName, moduleService = null) => {
       attribute
     ) {
       const activeView = getters.activeView
-      let shouldFetch = attributesAreDifferent(
-        state.views[activeView.id].filter.attributes[
-          attribute.name
-        ],
-        attribute
-      )
+      let shouldFetch =
+        attributesAreDifferent(
+          state.views[activeView.id].filter.attributes[
+            attribute.name
+          ],
+          attribute
+        ) && attribute.name !== 'keywords'
 
       commit('FILTER_ATTRIBUTE_CHANGED', {
         activeView,
