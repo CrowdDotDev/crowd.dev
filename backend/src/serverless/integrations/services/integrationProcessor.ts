@@ -386,7 +386,7 @@ export class IntegrationProcessor extends LoggingBase {
 
         if (streams.length > 0 || failedStreams.length > 0) {
           logger.warn(
-            `${failedStreams.length} streams have not been successfully processed or are remaining - retrying them with delay! We have ${streams.length} streams left to process in total!`,
+            `${failedStreams.length} streams have not been successfully processed - retrying them with delay! We also have ${streams.length} remaining streams left to process!`,
           )
 
           const existingRetryStreams = req.retryStreams || []
