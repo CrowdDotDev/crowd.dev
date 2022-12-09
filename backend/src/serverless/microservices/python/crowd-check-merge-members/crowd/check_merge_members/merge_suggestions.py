@@ -9,11 +9,12 @@ from Levenshtein import distance as levenshtein_distance
 
 logger = get_logger(__name__)
 
+
 class MergeSuggestions:
 
     # Static variable threshold
     threshold = 0.85
-    levenshtein_threshold = 0.5
+    levenshtein_threshold = 0.3
     same_platform_threshold = 0.90
 
     def __init__(self, tenant_id, sqs_sender, repository=False, test=False):
@@ -165,6 +166,13 @@ class MergeSuggestions:
                 average_distance = 0
                 number_of_keys = 0
                 average_distance_levenshtein = 0
+
+                member.username['displayNameMember1'] = member.displayName
+                members[i].username['displayNameMember2'] = members[i].displayName
+                if member.email:
+                    member.username['email'] = member.email
+                if members[i].email:
+                    members[i].username['email'] = members[i].email
 
                 # Go through all platform usernames
                 member_platforms = set(member.username)
