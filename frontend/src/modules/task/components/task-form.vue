@@ -96,7 +96,6 @@
             <app-autocomplete-many-input
               id="relatedMembers"
               v-model="model[fields.relatedMembers.name]"
-              :disabled-on-no-options="true"
               :fetch-fn="fields.relatedMembers.fetchFn"
               :mapper-fn="fields.relatedMembers.mapperFn"
               placeholder="Select option(s)"
@@ -137,7 +136,6 @@
             <app-autocomplete-many-input
               id="assignees"
               v-model="model[fields.assignees.name]"
-              :disabled-on-no-options="true"
               :fetch-fn="fields.assignees.fetchFn"
               :mapper-fn="fields.assignees.mapperFn"
               placeholder="Select assignee(s)"

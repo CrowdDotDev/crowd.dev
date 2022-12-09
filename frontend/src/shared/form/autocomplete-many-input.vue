@@ -13,6 +13,8 @@
     :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
+    :suffix-icon="initialLoading ? 'app-loader' : null"
+    :remote-show-suffix="initialLoading"
     value-key="id"
     :class="inputClass"
     @change="onChange"
@@ -47,7 +49,6 @@ const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
   name: 'AppAutocompleteManyInput',
-
   props: {
     modelValue: {
       type: Array,
