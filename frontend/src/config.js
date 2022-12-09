@@ -31,7 +31,8 @@ const defaultConfig = {
   edition: process.env.VUE_APP_EDITION,
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
   env: process.env.VUE_APP_ENV,
-  hotjarKey: process.env.VUE_APP_HOTJAR_KEY
+  hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
+  pizzlyUrl: process.env.VUE_APP_PIZZLY_URL
 }
 
 const composedConfig = {
@@ -54,7 +55,8 @@ const composedConfig = {
   edition: 'CROWD_VUE_APP_EDITION',
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
   env: 'CROWD_VUE_APP_ENV',
-  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY'
+  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
+  pizzlyUrl: 'CROWD_VUE_APP_PIZZLY_URL'
 }
 
 const config = defaultConfig.backendUrl
