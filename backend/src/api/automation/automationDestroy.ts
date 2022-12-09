@@ -3,6 +3,7 @@ import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
 import identifyTenant from '../../segment/identifyTenant'
+import { timeout } from '../../utils/timing'
 
 /**
  * DELETE /tenant/{tenantId}/automation/{automationId}
@@ -22,6 +23,10 @@ export default async (req, res) => {
 
   track('Automation Destroyed', { id: req.params.automationId }, { ...req })
   identifyTenant(req)
+
+  // wait a small window for posthog
+  // to process the queue message before returing back
+  await timeout(100)
 
   await req.responseHandler.success(req, res, true, 204)
 }

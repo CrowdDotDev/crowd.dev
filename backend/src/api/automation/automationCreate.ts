@@ -6,6 +6,7 @@ import identifyTenant from '../../segment/identifyTenant'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Error403 from '../../errors/Error403'
 import { FeatureFlag } from '../../types/common'
+import { timeout } from '../../utils/timing'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -38,6 +39,10 @@ export default async (req, res) => {
   track('Automation Created', { ...payload }, { ...req })
 
   identifyTenant(req)
+
+  // wait a small window for posthog
+  // to process the queue message before returing back
+  await timeout(100)
 
   await req.responseHandler.success(req, res, payload)
 }
