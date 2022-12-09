@@ -57,7 +57,7 @@ async function connect() {
   const pizzly = new Pizzly(config.pizzlyUrl)
   await pizzly.auth('reddit', `${tenantId.value}-reddit`)
   await store.dispatch('integration/doRedditOnboard', {
-    subreddits: ['programming']
+    subreddits: ['python']
   })
 }
 

@@ -12,12 +12,14 @@ import {
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
 import getPosts from '../../usecases/reddit/getPosts'
+import getComments from '../../usecases/reddit/getComments'
 import { RedditGrid } from '../../grid/redditGrid'
 import {
   RedditCommentsResponse,
   RedditPostsResponse,
   RedditPost,
   RedditIntegrationSettings,
+  RedditComment,
 } from '../../types/redditTypes'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 
@@ -48,12 +50,21 @@ export class RedditIntegrationService extends IntegrationServiceBase {
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    return context.pipelineData.subreddits.map((subreddit: string) => ({
+    const out = context.pipelineData.subreddits.map((subreddit: string) => ({
       value: `subreddit:${subreddit}`,
       metadata: {
         channel: subreddit,
       },
     }))
+    out.push({
+      value: 'comments:zeyn4v',
+      metadata: {
+        subreddit: 'football',
+        greatParentTitle: 'The next World Cup will jump to 48 teams. Is bigger better?',
+        greatParentUrl: '/r/football/comments/zeyn4v/the_next_world_cup_will_jump_to_48_teams_is/',
+      },
+    })
+    return out
   }
 
   async subRedditStream(
@@ -104,6 +115,81 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     }
   }
 
+  commentsHelper(
+    comment: RedditComment,
+    stream: IIntegrationStream,
+    context: IStepContext,
+    logger: Logger,
+  ): { activities: AddActivitiesSingle[]; newStreams: IIntegrationStream[] } {
+    const out = { activities: [], newStreams: [] }
+    out.activities.push(this.parseComment(comment.subreddit, comment))
+
+    if (!comment.replies) {
+      return out
+    } else if (comment.replies.kind === 'more') {
+      console.log('\n\n\n\nFOUND A MORE STREAM\n\n\n\n')
+      return out
+    } else {
+      const repliesWrapped = comment.replies.data.children as any
+      for (const replyWrapped of repliesWrapped) {
+        const reply: RedditComment = replyWrapped.data
+        const { activities, newStreams } = this.commentsHelper(reply, stream, context, logger)
+        out.activities.concat(activities)
+        out.newStreams.concat(newStreams)
+      }
+      return out
+    }
+  }
+
+  async commentsStream(
+    stream: IIntegrationStream,
+    context: IStepContext,
+    logger: Logger,
+  ): Promise<IProcessStreamResults> {
+    const subreddit = stream.metadata.subreddit
+    const postId = stream.value.split(':')[1]
+    const pizzlyId = context.pipelineData.pizzlyId
+
+    const response: RedditCommentsResponse = await getComments(
+      { subreddit, pizzlyId, postId },
+      logger,
+    )
+
+    const comments = response[1].data.children
+
+    const activities = []
+    const newStreams = []
+
+    for (const comment of comments) {
+      const commentOut = this.commentsHelper(comment.data, stream, context, logger)
+      activities.concat(commentOut.activities)
+      newStreams.concat(commentOut.newStreams)
+    }
+
+    if ((comments.length as any) === 0) {
+      return {
+        operations: [],
+        lastRecord: undefined,
+        lastRecordTimestamp: undefined,
+        sleep: 1,
+        newStreams: [],
+      }
+    }
+    const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: activities,
+        },
+      ],
+      lastRecord,
+      lastRecordTimestamp: lastRecord ? lastRecord.timestamp.getTime() : undefined,
+      sleep: 1,
+      newStreams,
+    }
+  }
+
   async processStream(
     stream: IIntegrationStream,
     context: IStepContext,
@@ -114,9 +200,9 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     switch (stream.value.split(':')[0]) {
       case 'subreddit':
         return this.subRedditStream(stream, context, logger)
-      case 'post':
+      case 'comments':
         // return this.processPost(stream, context, logger)
-        newStreams = []
+        return this.commentsStream(stream, context, logger)
       default:
         newStreams = []
     }
