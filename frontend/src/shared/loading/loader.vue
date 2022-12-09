@@ -2,9 +2,9 @@
   <div>
     <svg
       role="status"
-      class="animate-spin w-4 h-4 flex items-center justify-center bg-white fill-white"
+      class="animate-spin w-4 h-4 flex items-center justify-center bg-transparent"
       viewBox="0 0 100 101"
-      fill="none"
+      fill="#f5f7fa"
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
