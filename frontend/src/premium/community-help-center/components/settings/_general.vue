@@ -1,7 +1,7 @@
 <template>
   <div class="general">
     <el-form-item
-      label="Community Name"
+      label="Community name"
       prop="tenantName"
       :required="true"
       class="w-full"
@@ -15,7 +15,7 @@
       </div>
     </el-form-item>
     <el-form-item
-      label="Community Slug"
+      label="Community slug"
       prop="tenantSlug"
       :required="true"
       class="w-full"
@@ -32,17 +32,35 @@
     </el-form-item>
     <el-form-item prop="customUrl" class="w-full">
       <template #label>
-        <div class="flex items-center">
-          <span class="font-medium">Custom URL</span>
-          <span class="font-medium ml-2 text-purple-500"
+        <div
+          class="flex items-center grow -mr-3"
+          :class="{
+            'justify-between': !hasPremiumPlan
+          }"
+        >
+          <span class="font-medium">Custom domain</span>
+          <span
+            v-if="hasPremiumPlan"
+            class="font-medium ml-2 text-purple-500"
             >Premium only</span
           >
+          <router-link
+            v-else
+            :to="{
+              name: 'communityHelpCenterPaywall'
+            }"
+            class="flex gap-1.5 text-xs text-brand-500 font-normal"
+          >
+            <i class="ri-lock-line" />
+            <span>Unlock feature</span>
+          </router-link>
         </div>
       </template>
-      <div v-if="hasPermissionToCustomize">
+      <div v-if="hasPermissionToCustomize" class="w-full">
         <el-input
           v-model="computedCustomUrl"
           placeholder="https://help.crowd.dev"
+          :disabled="!hasPremiumPlan"
         />
         <div class="app-form-hint">
           Custom domain/url for the help center —
@@ -63,9 +81,20 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  onMounted,
+  ref
+} from 'vue'
 import { useStore } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
 
 const store = useStore()
 
@@ -93,6 +122,8 @@ const emit = defineEmits([
   'update:tenantSlug',
   'update:customUrl'
 ])
+
+const hasPremiumPlan = ref(false)
 
 const computedTenantName = computed({
   get() {
@@ -130,5 +161,14 @@ const hasPermissionToCustomize = computed(() => {
     store.getters['auth/currentTenant'],
     store.getters['auth/currentUser']
   ).customize
+})
+
+onMounted(async () => {
+  const isFlagEnabled = await isFeatureEnabled(
+    featureFlags.communityCenterPro
+  )
+
+  hasPremiumPlan.value =
+    config.hasPremiumModules && isFlagEnabled
 })
 </script>

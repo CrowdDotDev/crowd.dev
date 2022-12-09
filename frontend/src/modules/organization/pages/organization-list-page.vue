@@ -68,7 +68,7 @@ onMounted(async () => {
 
   const organizationsList = await doGetOrganizationsCount()
 
-  hasOrganizations.value = !!organizationsList.length
+  hasOrganizations.value = !!organizationsList?.length
   isPageLoading.value = false
 })
 

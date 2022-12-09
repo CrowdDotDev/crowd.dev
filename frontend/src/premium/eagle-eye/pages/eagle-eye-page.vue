@@ -47,9 +47,9 @@ export default {
 
 <script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppEagleEyeTabs from './eagle-eye-tabs'
-import AppEagleEyeList from './eagle-eye-list'
-import AppEagleEyeFilter from './eagle-eye-filter'
+import AppEagleEyeTabs from '../components/eagle-eye-tabs'
+import AppEagleEyeList from '../components/eagle-eye-list'
+import AppEagleEyeFilter from '../components/eagle-eye-filter'
 
 import { useStore } from 'vuex'
 import { computed } from 'vue'

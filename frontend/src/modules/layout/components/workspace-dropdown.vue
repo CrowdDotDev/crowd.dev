@@ -43,7 +43,14 @@
                     {{ currentTenant.name }}
                   </div>
                   <div class="text-gray-500 text-2xs">
-                    {{ planLabelOf(currentTenant.plan) }}
+                    {{ getPlan(currentTenant.plan) }}
+                    <span
+                      v-if="getTrialDate(currentTenant)"
+                      class="badge badge--xs badge--light-yellow ml-1"
+                      >{{
+                        getTrialDate(currentTenant)
+                      }}</span
+                    >
                   </div>
                 </div>
               </div>
@@ -82,9 +89,14 @@
               {{ tenant.name }}
             </div>
             <div
-              class="text-gray-400 pl-3 text-2xs plan whitespace-nowrap"
+              class="text-gray-400 pl-3 text-2xs whitespace-nowrap flex flex-col items-end"
             >
-              {{ planLabelOf(tenant.plan) }}
+              <span>{{ getPlan(tenant.plan) }}</span
+              ><span
+                v-if="getTrialDate(tenant)"
+                class="!text-yellow-600 !text-3xs"
+                >{{ getTrialDate(tenant) }}</span
+              >
             </div>
           </div>
         </div>
@@ -117,8 +129,9 @@ export default {
 <script setup>
 import { useStore } from 'vuex'
 import { computed, onMounted, ref, watch } from 'vue'
-import { i18n } from '@/i18n'
 import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer'
+import config from '@/config'
+import { getTrialDate } from '@/utils/date'
 
 const store = useStore()
 
@@ -142,6 +155,14 @@ const isCollapsed = computed(
 onMounted(async () => {
   await store.dispatch('tenant/doFetch', {})
 })
+
+const getPlan = (plan) => {
+  if (config.isCommunityVersion) {
+    return 'Community'
+  }
+
+  return plan
+}
 
 const clickOutsideListener = (event) => {
   const component = document.querySelector(
@@ -193,10 +214,6 @@ async function doSwitchTenant(tenant) {
   isDropdownOpen.value = false
   await store.dispatch('auth/doSelectTenant', tenant)
 }
-
-function planLabelOf(plan) {
-  return i18n(`plan.${plan}.label`)
-}
 </script>
 
 <style lang="scss">
@@ -209,10 +226,6 @@ function planLabelOf(plan) {
 
 .popover-item.selected {
   background-color: rgba(253, 237, 234, 0.5);
-
-  & .plan {
-    @apply text-brand-400;
-  }
 }
 
 .custom-workspace-menu-tooltip {
