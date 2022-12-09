@@ -254,6 +254,7 @@ import { mapActions } from '@/shared/vuex/vuex.helpers'
 import AppDrawer from '@/shared/drawer/drawer'
 import AppAvatar from '@/shared/avatar/avatar'
 import AppEditor from '@/shared/form/editor'
+
 const { fields } = TaskModel
 const formSchema = new FormSchema([
   fields.title,
@@ -342,8 +343,16 @@ const fillForm = () => {
     model.value = {
       name: props.task.name,
       body: props.task.body,
-      members: props.task.members || [],
-      assignees: props.task.assignees || [],
+      members:
+        props.task.members.map((m) => ({
+          ...m,
+          label: m.displayName
+        })) || [],
+      assignees:
+        props.task.assignees.map((a) => ({
+          ...a,
+          label: a.fullName
+        })) || [],
       dueDate: props.task.dueDate
     }
   } else {
