@@ -1,15 +1,10 @@
 <template>
   <el-select
     ref="input"
-    :disabled="
-      disabled ||
-      (disabledOnNoOptions &&
-        !localOptions.length &&
-        !modelValue.length)
-    "
-    :loading="loading"
+    :disabled="disabled || initialLoading"
+    :loading="loading || initialLoading"
     :remote-method="handleSearch"
-    :model-value="modelValue"
+    :model-value="initialLoading ? null : modelValue"
     :clearable="true"
     :default-first-option="true"
     :filterable="true"
@@ -78,10 +73,6 @@ export default {
       type: Boolean,
       default: false
     },
-    disabledOnNoOptions: {
-      type: Boolean,
-      default: false
-    },
     createIfNotFound: {
       type: Boolean,
       default: false
@@ -106,6 +97,7 @@ export default {
   emits: ['remove-tag', 'update:modelValue'],
   data() {
     return {
+      initialLoading: false,
       loading: false,
       localOptions: this.options ? this.options : [],
       currentQuery: ''
@@ -168,31 +160,35 @@ export default {
       )
     },
 
+    async fetchNotIncludedTags(response) {
+      const notIncluded = this.modelValue.filter(
+        (m) =>
+          response.findIndex((r) => r.id === m.id) === -1
+      )
+
+      if (notIncluded.length) {
+        const notIncludedResponse = await this.fetchFn(
+          notIncluded
+        )
+
+        this.localOptions.unshift(...notIncludedResponse)
+      }
+    },
+
     async fetchAllResults() {
-      this.loading = true
+      this.initialLoading = true
 
       try {
         const response = await this.fetchFn()
 
         this.localOptions = response
 
-        const notIncluded = this.modelValue.filter(
-          (m) =>
-            response.findIndex((r) => r.id === m.id) === -1
-        )
+        await this.fetchNotIncludedTags(response)
 
-        if (notIncluded.length) {
-          const notIncludedResponse = await this.fetchFn(
-            notIncluded
-          )
-
-          this.localOptions.unshift(...notIncludedResponse)
-        }
-
-        this.loading = false
+        this.initialLoading = false
       } catch (error) {
         console.error(error)
-        this.loading = false
+        this.initialLoading = false
       }
     },
 
@@ -213,21 +209,7 @@ export default {
         this.localOptions = response
 
         if (!value) {
-          const notIncluded = this.modelValue.filter(
-            (m) =>
-              response.findIndex((r) => r.id === m.id) ===
-              -1
-          )
-
-          if (notIncluded.length) {
-            const notIncludedResponse = await this.fetchFn(
-              notIncluded
-            )
-
-            this.localOptions.unshift(
-              ...notIncludedResponse
-            )
-          }
+          await this.fetchNotIncludedTags(response)
         }
 
         this.loading = false
