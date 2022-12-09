@@ -25,6 +25,7 @@ import { useRouter, useRoute } from 'vue-router'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import Message from '@/shared/message/message'
 import AppRedditConnectDrawer from '@/integrations/reddit/components/reddit-connect-drawer'
+import config from '@/config'
 
 const store = useStore()
 const route = useRoute()
@@ -48,15 +49,13 @@ onMounted(() => {
 })
 
 const tenantId = computed(() => AuthCurrentTenant.get())
-const subreddits = computed(() => props.integration.subreddits)
+const subreddits = computed(
+  () => props.integration.subreddits
+)
 
 async function connect() {
-  const pizzly = new Pizzly('http://localhost:3004')
-  const result = await pizzly.auth('reddit', `${tenantId.value}-reddit`)
-  console.log(
-        `OAuth flow succeeded for provider "${result.providerConfigKey}" and connection-id "${result.connectionId}"!`
-      )
-
+  const pizzly = new Pizzly(config.pizzlyUrl)
+  await pizzly.auth('reddit', `${tenantId.value}-reddit`)
   await store.dispatch('integration/doRedditOnboard', {
     subreddits: ['programming']
   })
