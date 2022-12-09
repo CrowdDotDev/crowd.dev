@@ -6,7 +6,8 @@ import identifyTenant from '../../segment/identifyTenant'
 import isFeatureEnabled from '../../feature-flags/isFeatureEnabled'
 import Error403 from '../../errors/Error403'
 import { FeatureFlag } from '../../types/common'
-import { timeout } from '../../utils/timing'
+import ensureFlagUpdated from '../../feature-flags/ensureFlagUpdated'
+import AutomationRepository from '../../database/repositories/automationRepository'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -25,24 +26,17 @@ import { timeout } from '../../utils/timing'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
 
-  if (!(await isFeatureEnabled(FeatureFlag.AUTOMATIONS, req.currentTenant.id, req.posthog))) {
-    await req.responseHandler.error(
-      req,
-      res,
-      new Error403(req.language, 'entities.automation.errors.planLimitExceeded'),
-    )
-    return
-  }
-
   const payload = await new AutomationService(req).create(req.body.data)
 
   track('Automation Created', { ...payload }, { ...req })
 
   identifyTenant(req)
 
-  // wait a small window for posthog
-  // to process the queue message before returing back
-  await timeout(100)
+  const automationCount = await AutomationRepository.countAll(req.database, req.currentTenant.id)
+  await ensureFlagUpdated(FeatureFlag.AUTOMATIONS, req.currentTenant.id, req.posthog, {
+    plan: req.currentTenant.plan,
+    automationCount,
+  })
 
   await req.responseHandler.success(req, res, payload)
 }
