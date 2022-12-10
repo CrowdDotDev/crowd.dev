@@ -28,8 +28,8 @@ import { GithubIntegrationService } from './integrations/githubIntegrationServic
 import { LoggingBase } from '../../../services/loggingBase'
 import { API_CONFIG } from '../../../config'
 import EmailSender from '../../../services/emailSender'
-import UserRepository from "../../../database/repositories/userRepository"
-import {i18n} from "../../../i18n"
+import UserRepository from '../../../database/repositories/userRepository'
+import { i18n } from '../../../i18n'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -463,7 +463,7 @@ export class IntegrationProcessor extends LoggingBase {
         for (const user of tenantUsers) {
           await new EmailSender(EmailSender.TEMPLATES.INTEGRATION_DONE, {
             integrationName: i18n('en', `entities.integration.name.${integration.platform}`),
-            link: API_CONFIG.frontendUrl
+            link: API_CONFIG.frontendUrl,
           }).sendTo(user.email)
         }
       }

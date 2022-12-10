@@ -166,9 +166,9 @@ const en = {
         reddit: 'Reddit',
         discord: 'Discord',
         slack: 'Slack',
-        hackernews: 'Hacker News'
-      }
-    }
+        hackernews: 'Hacker News',
+      },
+    },
   },
 }
 
