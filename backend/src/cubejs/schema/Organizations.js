@@ -6,13 +6,13 @@ cube(`Organizations`, {
       measures: [Organizations.count],
       dimensions: [Organizations.tenantId],
       timeDimension: Activities.date,
-      granularity: `second`,
+      granularity: `day`,
     },
     newOrganizations: {
       measures: [Organizations.count],
       dimensions: [Organizations.tenantId],
       timeDimension: Organizations.joinedAt,
-      granularity: `second`,
+      granularity: `day`,
     },
   },
   joins: {
