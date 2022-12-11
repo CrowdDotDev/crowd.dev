@@ -19,7 +19,7 @@ cube(`Members`, {
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `1 minute`,
+        every: `10 minute`,
       },
     },
 
@@ -29,7 +29,7 @@ cube(`Members`, {
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `1 minute`,
+        every: `10 minute`,
       },
     },
 
@@ -39,7 +39,7 @@ cube(`Members`, {
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
-        every: `1 minute`,
+        every: `10 minute`,
       },
     },
   },
