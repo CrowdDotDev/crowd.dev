@@ -440,8 +440,8 @@ export default class MemberService extends LoggingBase {
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
       email: (oldEmail, newEmail) => {
-        if (newEmail && newEmail.strip().length > 0) {
-          return newEmail.strip()
+        if (newEmail && newEmail.trim().length > 0) {
+          return newEmail.trim()
         }
 
         return oldEmail
