@@ -50,20 +50,31 @@ export class RedditIntegrationService extends IntegrationServiceBase {
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    const out = context.pipelineData.subreddits.map((subreddit: string) => ({
-      value: `subreddit:${subreddit}`,
-      metadata: {
-        channel: subreddit,
-      },
-    }))
+    // const out = context.pipelineData.subreddits.map((subreddit: string) => ({
+    //   value: `subreddit:${subreddit}`,
+    //   metadata: {
+    //     channel: subreddit,
+    //   },
+    // }))
+    const out = []
     out.push({
       value: 'comments:zeyn4v',
       metadata: {
-        subreddit: 'football',
+        channel: 'football',
         greatParentTitle: 'The next World Cup will jump to 48 teams. Is bigger better?',
         greatParentUrl: '/r/football/comments/zeyn4v/the_next_world_cup_will_jump_to_48_teams_is/',
+        greatParentId: 'zeyn4v',
       },
     })
+    // out.push({
+    //   value: 'comments:zgee47',
+    //   metadata: {
+    //     channel: 'football',
+    //     greatParentTitle: 'Title here!',
+    //     greatParentUrl: 'URL here!',
+    //     greatParentId: 'zgee47',
+    //   },
+    // })
     return out
   }
 
@@ -116,26 +127,32 @@ export class RedditIntegrationService extends IntegrationServiceBase {
   }
 
   commentsHelper(
+    kind: string,
     comment: RedditComment,
+    sourceParentId: string,
     stream: IIntegrationStream,
     context: IStepContext,
     logger: Logger,
   ): { activities: AddActivitiesSingle[]; newStreams: IIntegrationStream[] } {
+
     const out = { activities: [], newStreams: [] }
-    out.activities.push(this.parseComment(comment.subreddit, comment))
+
+    if (kind === 'more') {
+      console.log('\n\n\n\nFOUND A MORE STREAM\n\n\n\n')
+      return out
+    }
+
+    out.activities.push(this.parseComment(context.integration.tenantId, stream.metadata.channel, comment, sourceParentId, stream))
 
     if (!comment.replies) {
-      return out
-    } else if (comment.replies.kind === 'more') {
-      console.log('\n\n\n\nFOUND A MORE STREAM\n\n\n\n')
       return out
     } else {
       const repliesWrapped = comment.replies.data.children as any
       for (const replyWrapped of repliesWrapped) {
         const reply: RedditComment = replyWrapped.data
-        const { activities, newStreams } = this.commentsHelper(reply, stream, context, logger)
-        out.activities.concat(activities)
-        out.newStreams.concat(newStreams)
+        const { activities, newStreams } = this.commentsHelper(replyWrapped.kind, reply, comment.id, stream, context, logger)
+        out.activities = out.activities.concat(activities)
+        out.newStreams = out.newStreams.concat(newStreams)
       }
       return out
     }
@@ -146,7 +163,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     logger: Logger,
   ): Promise<IProcessStreamResults> {
-    const subreddit = stream.metadata.subreddit
+    const subreddit = stream.metadata.channel
     const postId = stream.value.split(':')[1]
     const pizzlyId = context.pipelineData.pizzlyId
 
@@ -157,13 +174,13 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     const comments = response[1].data.children
 
-    const activities = []
-    const newStreams = []
+    let activities = []
+    let newStreams = []
 
     for (const comment of comments) {
-      const commentOut = this.commentsHelper(comment.data, stream, context, logger)
-      activities.concat(commentOut.activities)
-      newStreams.concat(commentOut.newStreams)
+      const commentOut = this.commentsHelper(comment.kind, comment.data, postId, stream, context, logger)
+      activities = activities.concat(commentOut.activities)
+      newStreams = newStreams.concat(commentOut.newStreams)
     }
 
     if ((comments.length as any) === 0) {
@@ -244,6 +261,51 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         },
         [MemberAttributeName.URL]: {
           [PlatformType.REDDIT]: `https://www.reddit.com/user/${post.author}`,
+        },
+      },
+    }
+    return {
+      ...activity,
+      member,
+    }
+  }
+
+  parseComment(tenantId, channel, comment: RedditComment, sourceParentId: string, stream: IIntegrationStream): AddActivitiesSingle {
+    const activity = {
+      tenant: tenantId,
+      sourceId: comment.id.toString(),
+      type: RedditActivityType.COMMENT,
+      platform: PlatformType.REDDIT,
+      timestamp: new Date(comment.created * 1000),
+      sourceParentId,
+      body: sanitizeHtml(comment.body_html),
+      title: comment.title,
+      url: `https://www.reddit.com${comment.permalink}`,
+      channel,
+      score: RedditGrid[RedditActivityType.COMMENT].score,
+      isKeyAction: RedditGrid[RedditActivityType.COMMENT].isKeyAction,
+      attributes: {
+        url: comment.url,
+        name: comment.name,
+        greatParentUrl: stream.metadata.greatParentUrl,
+        greatParentTitle: stream.metadata.greatParentTitle,
+        greatParentId: stream.metadata.greatParentId,
+        downs: comment.downs,
+        ups: comment.ups,
+        upvoteRatio: comment.upvote_ratio,
+        thubmnail: comment.thumbnail,
+      },
+    }
+    const member = {
+      username: comment.author,
+      platform: PlatformType.REDDIT,
+      displayName: comment.author,
+      attributes: {
+        [MemberAttributeName.SOURCE_ID]: {
+          [PlatformType.REDDIT]: comment.author_fullname,
+        },
+        [MemberAttributeName.URL]: {
+          [PlatformType.REDDIT]: `https://www.reddit.com/user/${comment.author}`,
         },
       },
     }
