@@ -11,6 +11,9 @@ async function getPosts(
   try {
     logger.info({ message: 'Fetching posts from a sub-reddit', input })
 
+    // Wait for 1.5seconds, remove this later
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
     const access_token = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {

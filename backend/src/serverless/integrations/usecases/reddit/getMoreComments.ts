@@ -1,12 +1,15 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { RedditGetPostsInput, RedditPostsResponse } from '../../types/redditTypes'
+import { RedditMoreCommentsInput, RedditMoreCommentsResponse } from '../../types/redditTypes'
 import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../pizzly/getToken'
 
-async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<RedditPostsResponse> {
+async function getMoreComments(
+  input: RedditMoreCommentsInput,
+  logger: Logger,
+): Promise<RedditMoreCommentsResponse> {
   try {
-    logger.info({ message: 'Fetching posts from a sub-reddit', input })
+    logger.info({ message: 'Fetching more comments from a sub-reddit', input })
 
     // Wait for 1.5seconds, remove this later
     await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -15,20 +18,18 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',
-      url: `http://oauth.reddit.com/r/${input.subreddit}/new.json`,
+      url: `http://oauth.reddit.com/api/morechildren?api_type=json`,
       params: {
-        limit: 100,
+        depth: 99,
+        link_id: input.linkId,
+        children: input.children,
       },
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     }
 
-    if (input.after) {
-      config.params.after = input.after
-    }
-
-    const response: RedditPostsResponse = (await axios(config)).data
+    const response: RedditMoreCommentsResponse = (await axios(config)).data
     return response
   } catch (err) {
     logger.error({ err, input }, 'Error while getting posts in subreddit')
@@ -36,4 +37,4 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
   }
 }
 
-export default getPosts
+export default getMoreComments

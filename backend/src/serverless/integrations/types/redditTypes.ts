@@ -30,10 +30,7 @@ export interface RedditPostsResponse {
 }
 
 export interface RedditMoreChildren {
-  data: {
-    count: number
-    children: string[]
-  }
+  children: string[]
 }
 
 export interface RedditComment extends RedditBase {
@@ -41,11 +38,10 @@ export interface RedditComment extends RedditBase {
   replies?: {
     kind: string
     data: {
-      children:
-        | RedditMoreChildren[]
-        | [
-            {
-              data: RedditComment
+      children:[
+        {
+              kind: string
+              data: RedditComment | RedditMoreChildren
             },
           ]
     }
@@ -76,4 +72,23 @@ export interface RedditGetCommentsInput {
   subreddit: string
   pizzlyId: string
   postId: string
+}
+
+export interface RedditMoreCommentsInput {
+  pizzlyId: string
+  linkId: string
+  children: string[]
+}
+
+export interface RedditMoreCommentsResponse {
+  json: {
+    data: {
+      things: [
+        {
+          data: RedditComment
+          kind: string
+        },
+      ]
+    }
+  }
 }
