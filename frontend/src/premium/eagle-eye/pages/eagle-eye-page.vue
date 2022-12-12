@@ -2,11 +2,11 @@
   <app-page-wrapper>
     <div class="eagle-eye">
       <div class="eagle-eye-header">
-        <div class="flex items-start">
+        <div class="flex items-center">
           <h4>Eagle Eye</h4>
           <span
-            class="text-sm font-medium text-brand-500 ml-2"
-            >Free trial</span
+            class="badge badge--sm badge--light-yellow ml-4"
+            >Growth (trial)</span
           >
         </div>
         <div class="text-xs text-gray-500">

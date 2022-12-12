@@ -56,7 +56,10 @@
           </router-link>
         </div>
       </template>
-      <div v-if="hasPermissionToCustomize" class="w-full">
+      <div
+        v-if="hasPermissionToCustomize || hasPremiumPlan"
+        class="w-full"
+      >
         <el-input
           v-model="computedCustomUrl"
           placeholder="https://help.crowd.dev"
@@ -71,10 +74,6 @@
             >see docs</a
           >
         </div>
-      </div>
-      <div v-else class="text-gray-500 text-2xs">
-        To customize the URL of your Community Help Center,
-        you need to switch to a paid plan
       </div>
     </el-form-item>
   </div>
