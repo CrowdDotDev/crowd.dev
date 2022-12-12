@@ -56,14 +56,13 @@
           </router-link>
         </div>
       </template>
-      <div
-        v-if="hasPermissionToCustomize || hasPremiumPlan"
-        class="w-full"
-      >
+      <div class="w-full">
         <el-input
           v-model="computedCustomUrl"
           placeholder="https://help.crowd.dev"
-          :disabled="!hasPremiumPlan"
+          :disabled="
+            !hasPremiumPlan || !hasPermissionToCustomize
+          "
         />
         <div class="app-form-hint">
           Custom domain/url for the help center —
