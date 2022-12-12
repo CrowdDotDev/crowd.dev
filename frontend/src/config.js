@@ -31,7 +31,9 @@ const defaultConfig = {
   edition: process.env.VUE_APP_EDITION,
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
   env: process.env.VUE_APP_ENV,
-  hotjarKey: process.env.VUE_APP_HOTJAR_KEY
+  hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
+  typeformId: process.env.VUE_APP_TYPEFORM_ID,
+  typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE
 }
 
 const composedConfig = {
@@ -54,7 +56,9 @@ const composedConfig = {
   edition: 'CROWD_VUE_APP_EDITION',
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
   env: 'CROWD_VUE_APP_ENV',
-  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY'
+  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
+  typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
+  typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE'
 }
 
 const config = defaultConfig.backendUrl
