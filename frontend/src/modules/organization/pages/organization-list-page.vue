@@ -6,6 +6,7 @@
           <div class="flex items-center">
             <h4>Organizations</h4>
             <span
+              v-if="currentTenant.isTrialPlan"
               class="badge badge--sm badge--light-yellow ml-4"
               >Growth (trial)</span
             >

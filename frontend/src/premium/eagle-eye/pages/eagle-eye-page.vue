@@ -5,6 +5,7 @@
         <div class="flex items-center">
           <h4>Eagle Eye</h4>
           <span
+            v-if="currentTenant.isTrialPlan"
             class="badge badge--sm badge--light-yellow ml-4"
             >Growth (trial)</span
           >
@@ -62,6 +63,10 @@ const loading = computed(
 const activeView = computed(
   () => store.getters['eagleEye/activeView'].id
 )
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant']
+)
+
 const shouldRenderInboxEmptyState = computed(() => {
   return (
     localStorage.getItem('eagleEye_keywords') === null &&
