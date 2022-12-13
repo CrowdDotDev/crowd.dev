@@ -46,7 +46,7 @@
 <script>
 import AppI18n from '@/shared/i18n/i18n'
 import { computedArgs } from '@/modules/activity/activity.helpers'
-import isUrl from '../helpers/isUrl'
+import isUrl from '@/utils/isUrl'
 export default {
   name: 'AppHackerNewsActivityMessage',
   components: { AppI18n },

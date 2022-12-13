@@ -15,20 +15,35 @@
         class="form integration-reddit-form"
         @submit.prevent
       >
-        <el-form-item :label="hashtagField.label">
-          <el-input
-            v-model="model.hashtag"
-            clearable
-            class="hashtag-input"
-          >
-            <template #prefix><span>#</span></template>
-          </el-input>
-
-          <div class="app-form-hint leading-tight mt-2">
-            Tip: Choose a hashtag that's specific to your
-            company/community for better data
+        <el-form-item
+          v-for="(subreddit, index) of model"
+          :key="index"
+        >
+          <div class="flex w-full gap-2">
+            <el-input v-model="subreddit.value">
+              <template #suffix>
+                <div
+                  v-if="subreddit.validating"
+                  v-loading="subreddit.validating"
+                  class="flex items-center justify-center w-6 h-6"
+                ></div>
+              </template>
+            </el-input>
+            <el-button
+              class="btn btn--md btn--transparent w-10 h-10"
+              @click="deleteItem(index)"
+            >
+              <i
+                class="ri-delete-bin-line text-lg text-black"
+              ></i>
+            </el-button>
           </div>
         </el-form-item>
+        <el-button
+          class="btn btn-link btn-link--primary"
+          @click="addItem"
+          >+ Add subreddit</el-button
+        >
       </el-form>
     </template>
 
@@ -53,28 +68,25 @@
           >
             <app-i18n code="common.cancel"></app-i18n>
           </el-button>
-          <a
+          <el-button
             class="btn btn--md btn--primary"
             :class="{
               disabled: !hasFormChanged
             }"
-            :href="
-              hasFormChanged
-                ? computedConnectUrl
-                : undefined
-            "
+            @click="hasFormChanged ? connect() : undefined"
           >
-            Update
-          </a>
+            {{
+              integration.settings?.subreddits.length > 0
+                ? 'Update'
+                : 'Connect'
+            }}
+          </el-button>
         </div>
       </div>
     </template>
   </app-drawer>
 </template>
 <script>
-import { FormSchema } from '@/shared/form/form-schema'
-import StringField from '@/shared/fields/string-field'
-
 export default {
   name: 'AppRedditConnectDrawer'
 }
@@ -86,40 +98,34 @@ import {
   computed,
   ref
 } from 'vue'
-import isEqual from 'lodash/isEqual'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import { useStore } from 'vuex'
+import Pizzly from '@nangohq/pizzly-frontend'
+import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import config from '@/config'
+import isEqual from 'lodash/isEqual'
+
+const store = useStore()
+
+const tenantId = computed(() => AuthCurrentTenant.get())
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false
   },
-  subreddits: {
-    type: Array,
-    default: () => []
-  },
-  connectUrl: {
-    type: String,
-    default: null
+  integration: {
+    type: Object,
+    default: () => {}
   }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
-const parsedSubreddits = computed(() =>
-  props.subreddits.length
-    ? props.subreddits[props.subreddits.length - 1]
-    : ''
-)
-const hashtagField = new StringField(
-  'hashtag',
-  'Track hashtag'
-)
-const formSchema = ref(new FormSchema([hashtagField]))
 const model = ref(
-  formSchema.value.initialValues({
-    hashtag: parsedSubreddits.value
-  })
+  props.integration.settings?.subreddits || [
+    { value: '', loading: false }
+  ]
 )
 
 const logoUrl = CrowdIntegrations.getConfig('reddit').image
@@ -127,9 +133,9 @@ const logoUrl = CrowdIntegrations.getConfig('reddit').image
 const hasFormChanged = computed(
   () =>
     !isEqual(
-      formSchema.value.initialValues({
-        hashtag: parsedSubreddits.value
-      }),
+      props.integration.settings?.subreddits || [
+        { value: '', loading: false }
+      ],
       model.value
     )
 )
@@ -143,17 +149,27 @@ const isVisible = computed({
   }
 })
 
-const computedConnectUrl = computed(() => {
-  const encodedSubreddits = model.value.hashtag
-    ? `&subreddits[]=${model.value.hashtag}`
-    : ''
-
-  return `${props.connectUrl}${encodedSubreddits}`
-})
+const addItem = () => {
+  model.value.push({
+    value: '',
+    validating: false
+  })
+}
+const deleteItem = (index) => {
+  model.value.splice(index, 1)
+}
 
 const doReset = () => {
-  model.value = formSchema.value.initialValues({
-    hashtag: parsedSubreddits.value
+  model.value = props.integration.settings?.subreddits || [
+    { value: '', loading: false }
+  ]
+}
+
+const connect = async () => {
+  const pizzly = new Pizzly(config.pizzlyUrl)
+  await pizzly.auth('reddit', `${tenantId.value}-reddit`)
+  await store.dispatch('integration/doRedditOnboard', {
+    subreddits: model.value.map((i) => i.value)
   })
 }
 </script>
