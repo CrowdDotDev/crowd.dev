@@ -86,7 +86,7 @@ export default class UserEditor {
 
     const { currentTenant } = this.options
 
-    if (currentTenant.plan === Plans.values.free) {
+    if (currentTenant.plan === Plans.values.essential) {
       return false
     }
 

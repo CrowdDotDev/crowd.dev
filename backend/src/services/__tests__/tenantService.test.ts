@@ -7,6 +7,7 @@ import { PlatformType } from '../../types/integrationEnums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
 import { MemberAttributeName } from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
+import Plans from '../../security/plans'
 
 const db = null
 
@@ -149,7 +150,9 @@ describe('TenantService tests', () => {
         id: tenantCreatedPlain.id,
         name: 'testName',
         url: 'testUrl',
-        plan: 'free',
+        plan: Plans.values.growth,
+        isTrialPlan: true,
+        trialEndsAt: new Date('2023-01-15T00:00:00.000Z'),
         planStatus: 'active',
         planStripeCustomerId: null,
         planUserId: null,

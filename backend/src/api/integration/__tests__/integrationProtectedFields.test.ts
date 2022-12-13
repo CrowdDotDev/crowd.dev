@@ -19,7 +19,7 @@ describe('Integration protected fields tests', () => {
 
   describe('Integration create protected fields', () => {
     it('Should create an integratio without protected variables', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
       const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
@@ -37,7 +37,7 @@ describe('Integration protected fields tests', () => {
         })
     })
     it('Should throw an error when limitCount is passed for a free plan', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const tenantId = mockIServiceOptions.currentTenant.get({ plain: true }).id
       const token = SequelizeTestUtils.getUserToken(mockIServiceOptions)
@@ -59,7 +59,7 @@ describe('Integration protected fields tests', () => {
 
   describe('Integration update protected fields', () => {
     it('Should update an integratiom without protected variables', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const integrationId = (
         await new IntegrationService(mockIServiceOptions).create({
@@ -83,7 +83,7 @@ describe('Integration protected fields tests', () => {
         })
     })
     it('Should throw an error when limitCount is passed', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const integrationId = (
         await new IntegrationService(mockIServiceOptions).create({

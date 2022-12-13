@@ -51,7 +51,7 @@ describe('IntegrationService tests', () => {
 
   describe('Microservice protected fields', () => {
     it('Should throw an error when premium is passed for a free tenant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const permissionChecker = new PermissionChecker(mockIServiceOptions)
       const data = {
@@ -64,7 +64,7 @@ describe('IntegrationService tests', () => {
     })
 
     it('Should pass when premium is passed for a premium tenant', async () => {
-      const plan = Plans.values.premium
+      const plan = Plans.values.growth
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const permissionChecker = new PermissionChecker(mockIServiceOptions)
       const data = {
@@ -73,16 +73,7 @@ describe('IntegrationService tests', () => {
       }
       expect(permissionChecker.validateMicroservicesProtectedFields(data)).toBeUndefined()
     })
-    it('Should pass when premium is passed for a beta tenant', async () => {
-      const plan = Plans.values.beta
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
-      const permissionChecker = new PermissionChecker(mockIServiceOptions)
-      const data = {
-        name: 'check_merge',
-        variant: 'premium',
-      }
-      expect(permissionChecker.validateMicroservicesProtectedFields(data)).toBeUndefined()
-    })
+
     it('Should always pass when free variant is passed', async () => {
       for (const plan of Object.values(Plans.values)) {
         const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
@@ -95,7 +86,7 @@ describe('IntegrationService tests', () => {
       }
     })
     it('Should throw an error for a wrong variant', async () => {
-      const plan = Plans.values.free
+      const plan = Plans.values.essential
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, plan)
       const permissionChecker = new PermissionChecker(mockIServiceOptions)
       const data = {

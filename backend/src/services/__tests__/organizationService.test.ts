@@ -1,5 +1,6 @@
 import organizationCacheRepository from '../../database/repositories/organizationCacheRepository'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
+import Plans from '../../security/plans'
 import OrganizationService from '../organizationService'
 
 const db = null
@@ -49,7 +50,10 @@ describe('OrganizationService tests', () => {
 
   describe('Create method', () => {
     it('Should add without enriching when enrichP is false', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
@@ -60,7 +64,7 @@ describe('OrganizationService tests', () => {
       expect(added.url).toEqual(null)
     })
 
-    it('Should add without enriching when tenant is not premium', async () => {
+    it('Should add without enriching when tenant is not growth', async () => {
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
       const service = new OrganizationService(mockIServiceOptions)
 
@@ -73,7 +77,10 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should enrich and add an organization by name', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {
@@ -117,8 +124,14 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should not re-enrich when the record is already in the cache table. By Name', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
-      const mockIServiceOptions2 = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
+      const mockIServiceOptions2 = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
 
       const service = new OrganizationService(mockIServiceOptions)
       const service2 = new OrganizationService(mockIServiceOptions2)
@@ -185,7 +198,10 @@ describe('OrganizationService tests', () => {
     })
 
     it('Should throw an error when name is not sent', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
       const service = new OrganizationService(mockIServiceOptions)
 
       const toAdd = {}
