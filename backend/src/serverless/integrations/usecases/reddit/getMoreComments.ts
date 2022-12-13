@@ -4,6 +4,13 @@ import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../pizzly/getToken'
 
+/**
+ * Expand a list of comment IDs into a comment tree.
+ * This is needed because sometimes the API cuts the comment tree, and it returns a list of comment IDs to expand.
+ * @param input It needs the Pizzly ID, the postId where the comments belong, and the IDs of the comments to expand.
+ * @param logger A logger instance for structured logging
+ * @returns Redit API's response to expand a list of comment IDs
+ */
 async function getMoreComments(
   input: RedditMoreCommentsInput,
   logger: Logger,
@@ -11,9 +18,10 @@ async function getMoreComments(
   try {
     logger.info({ message: 'Fetching more comments from a sub-reddit', input })
 
-    // Wait for 1.5seconds, remove this later
+    // Wait for 1.5s for rate limits.
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
+    // Gett an access token from Pizzly
     const access_token = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
@@ -21,7 +29,7 @@ async function getMoreComments(
       url: `http://oauth.reddit.com/api/morechildren?api_type=json`,
       params: {
         depth: 99,
-        link_id: input.linkId,
+        link_id: input.postId,
         children: input.children,
       },
       headers: {

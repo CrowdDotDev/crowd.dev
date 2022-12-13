@@ -125,6 +125,6 @@
   },
   "pizzly": {
     "url": "CROWD_PIZZLY_URL",
-    "token": "CROWD_PIZZLY_TOKEN"
+    "secretKey": "CROWD_PIZZLY_SECRET_KEY"
   }
 }

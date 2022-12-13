@@ -54,7 +54,7 @@ const subreddits = computed(
 )
 
 async function connect() {
-  const pizzly = new Pizzly(config.pizzlyUrl)
+  const pizzly = new Pizzly(config.pizzlyUrl, config.pizzlyPublishableKey)
   await pizzly.auth('reddit', `${tenantId.value}-reddit`)
   await store.dispatch('integration/doRedditOnboard', {
     subreddits: ['python']

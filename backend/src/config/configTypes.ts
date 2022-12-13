@@ -166,5 +166,5 @@ export interface CubeJSConfiguration {
 
 export interface PizzlyConfiguration {
   url: string
-  token: string
+  secretKey: string
 }

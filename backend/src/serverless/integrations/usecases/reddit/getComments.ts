@@ -4,16 +4,23 @@ import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../pizzly/getToken'
 
-async function getPosts(
+/**
+ * Get the comment tree of a post.
+ * @param input The input to get comments. It needs a Pizzly ID, the subreddit where the post was posted, and the post's ID
+ * @param logger A logger instance for structured logging
+ * @returns The Reddit API response of getting comments from a post
+ */
+async function getComments(
   input: RedditGetCommentsInput,
   logger: Logger,
 ): Promise<RedditCommentsResponse> {
   try {
     logger.info({ message: 'Fetching posts from a sub-reddit', input })
 
-    // Wait for 1.5seconds, remove this later
+    // Wait for 1.5s for rate limits.
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
+    // Gett an access token from Pizzly
     const access_token = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
@@ -35,4 +42,4 @@ async function getPosts(
   }
 }
 
-export default getPosts
+export default getComments

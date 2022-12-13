@@ -214,5 +214,5 @@ export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
   ? config.get<PizzlyConfiguration>('pizzly')
   : {
       url: process.env.PIZZLY_URL,
-      token: process.env.PIZZLY_TOKEN,
+      secretKey: process.env.PIZZLY_SECRET_KEY,
     }

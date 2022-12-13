@@ -354,21 +354,6 @@ function create_qdrant_collection() {
     }'
 }
 
-function create_pizzly_integrations() {
-    say "\nCreating Pizzly integrations!"
-
-    # Reddit
-    export $(cat $CLI_HOME/../backend/.env.override.local | grep REDDIT | xargs)
-    # We need the client ID, secret and scopes to be set to create the integration
-    if [[ -z "$CROWD_REDDIT_CLIENT_ID" || -z "$CROWD_REDDIT_CLIENT_SECRET" || -z "$CROWD_REDDIT_SCOPES" ]]; then
-        say "Not all Reddit variables are set. Skipping Pizzly integration creation."
-        say "The variables needed are: \n- CROWD_REDDIT_CLIENT_ID, \n- CROWD_REDDIT_CLIENT_SECRET, and \n- CROWD_REDDIT_SCOPES."
-    else
-        say "Creating Reddit Integration with client ID: $CROWD_REDDIT_CLIENT_ID"    
-        npx pizzly config:create reddit reddit $CROWD_REDDIT_CLIENT_ID $CROWD_REDDIT_CLIENT_SECRET "read"
-    fi
-}
-
 function up_scaffold() {
     scaffold_set_up_network "$PROJECT_NAME-bridge" $DOCKER_NETWORK_SUBNET $DOCKER_NETWORK_GATEWAY
     $_DC --compatibility -p $PROJECT_NAME -f $CLI_HOME/scaffold.yaml up -d --build
@@ -376,7 +361,7 @@ function up_scaffold() {
     migrate_local
     create_s3_buckets
     create_qdrant_collection
-    create_pizzly_integrations
+    bash pizzly-integrations.sh
 }
 
 function down_scaffold() {

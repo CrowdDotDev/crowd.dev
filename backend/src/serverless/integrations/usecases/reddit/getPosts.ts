@@ -4,13 +4,20 @@ import { Logger } from '../../../../utils/logging'
 import { PlatformType } from '../../../../types/integrationEnums'
 import getToken from '../pizzly/getToken'
 
+/**
+ * Get paginated posts from a subreddit
+ * @param input RedditGetPostsInput. Made of a Pizzly ID to get the auth token, and a subreddit.
+ * @param logger Logger instance for structured logging
+ * @returns A reddit API response containing the posts in a subreddit.
+ */
 async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<RedditPostsResponse> {
   try {
     logger.info({ message: 'Fetching posts from a sub-reddit', input })
 
-    // Wait for 1.5seconds, remove this later
+    // Wait for 1.5s for rate limits.
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
+    // Gett an access token from Pizzly
     const access_token = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
@@ -24,6 +31,7 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
       },
     }
 
+    // If a pagination token was sent, add it to the request
     if (input.after) {
       config.params.after = input.after
     }

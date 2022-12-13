@@ -15,49 +15,6 @@ interface RedditBase {
   author_fullname: string
 }
 
-export interface RedditPost extends RedditBase {
-  selftext_html: string
-}
-
-export interface RedditPostsResponse {
-  data: {
-    children: [
-      {
-        data: RedditPost
-      },
-    ]
-  }
-}
-
-export interface RedditMoreChildren {
-  children: string[]
-}
-
-export interface RedditComment extends RedditBase {
-  body_html: string
-  replies?: {
-    kind: string
-    data: {
-      children:[
-        {
-              kind: string
-              data: RedditComment | RedditMoreChildren
-            },
-          ]
-    }
-  }
-}
-
-export interface RedditCommentsResponse {
-  data: {
-    children: [
-      {
-        data: RedditComment
-      },
-    ]
-  }
-}
-
 export interface RedditIntegrationSettings {
   subreddits: string[]
 }
@@ -76,8 +33,51 @@ export interface RedditGetCommentsInput {
 
 export interface RedditMoreCommentsInput {
   pizzlyId: string
-  linkId: string
+  postId: string
   children: string[]
+}
+
+export interface  RedditComment extends RedditBase {
+  body_html: string
+  replies?: {
+    kind: string
+    data: {
+      children:[
+        {
+              kind: string
+              data: RedditComment | RedditMoreChildren
+            },
+          ]
+    }
+  }
+}
+
+export interface RedditMoreChildren {
+  children: string[]
+}
+
+export interface RedditPost extends RedditBase {
+  selftext_html: string
+}
+
+export interface RedditPostsResponse {
+  data: {
+    children: [
+      {
+        data: RedditPost
+      },
+    ]
+  }
+}
+
+export interface RedditCommentsResponse {
+  data: {
+    children: [
+      {
+        data: RedditComment
+      },
+    ]
+  }
 }
 
 export interface RedditMoreCommentsResponse {
