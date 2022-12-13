@@ -1,5 +1,3 @@
-import config from '@/config'
-
 import shared from '@/shared/shared-module'
 import auth from '@/modules/auth/auth-module'
 import layout from '@/modules/layout/layout-module'
@@ -36,14 +34,11 @@ const modules = {
   widget,
   report,
   automation,
-  organization,
-  task
-}
-
-if (config.hasPremiumModules) {
-  modules.user = user
-  modules.eagleEye = eagleEye
-  modules.communityHelpCenter = communityHelpCenter
+  task,
+  user,
+  eagleEye,
+  communityHelpCenter,
+  organization
 }
 
 export default modules

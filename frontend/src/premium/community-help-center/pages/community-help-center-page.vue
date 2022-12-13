@@ -2,7 +2,14 @@
   <app-page-wrapper>
     <div class="mb-10">
       <div class="flex items-center justify-between">
-        <h4>Community Help Center</h4>
+        <div class="flex items-center gap-6">
+          <h4>Community Help Center</h4>
+          <span
+            v-if="!hasPremiumPlan"
+            class="badge badge--sm"
+            >Free</span
+          >
+        </div>
         <div class="flex items-center">
           <app-community-help-center-settings
             class="mr-2"
@@ -61,6 +68,10 @@ import AppCommunityHelpCenterFilter from '@/premium/community-help-center/compon
 import AppCommunityHelpCenterSettings from '@/premium/community-help-center/components/community-help-center-settings'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 import config from '@/config'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
 
 export default {
   name: 'AppConversationListPage',
@@ -76,7 +87,8 @@ export default {
 
   data() {
     return {
-      drawerConversationId: null
+      drawerConversationId: null,
+      hasPremiumPlan: false
     }
   },
 
@@ -90,6 +102,15 @@ export default {
     computedCrowdOpenLink() {
       return `${config.conversationPublicUrl}/${this.currentTenant.url}`
     }
+  },
+
+  async created() {
+    const isFlagEnabled = await isFeatureEnabled(
+      featureFlags.communityCenterPro
+    )
+
+    this.hasPremiumPlan =
+      config.hasPremiumModules && isFlagEnabled
   },
 
   async mounted() {

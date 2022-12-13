@@ -31,7 +31,8 @@ const defaultConfig = {
   edition: process.env.VUE_APP_EDITION,
   communityPremium: process.env.VUE_APP_COMMUNITY_PREMIUM,
   env: process.env.VUE_APP_ENV,
-  hotjarKey: process.env.VUE_APP_HOTJAR_KEY
+  hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
+  posthogKey: process.env.VUE_APP_POSTHOG_API_KEY
 }
 
 const composedConfig = {
@@ -54,14 +55,17 @@ const composedConfig = {
   edition: 'CROWD_VUE_APP_EDITION',
   communityPremium: 'CROWD_VUE_APP_COMMUNITY_PREMIUM',
   env: 'CROWD_VUE_APP_ENV',
-  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY'
+  hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
+  posthogKey: 'CROWD_VUE_APP_POSTHOG_API_KEY'
 }
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
+config.isCommunityVersion = config.edition === 'community'
 config.hasPremiumModules =
-  config.edition === 'crowd-hosted' ||
+  !config.isCommunityVersion ||
   config.communityPremium === 'true'
+
 export default config
