@@ -1,7 +1,5 @@
 <template>
-  <app-page-wrapper
-    :container-class="'md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-10'"
-  >
+  <app-page-wrapper size="narrow">
     <div class="profile-form-page">
       <h4 class="mb-6">
         <app-i18n code="auth.profile.title"></app-i18n>
@@ -207,7 +205,6 @@ export default {
 import { UserModel } from '@/premium/user/user-model'
 import { useStore } from 'vuex'
 import { FormSchema } from '@/shared/form/form-schema'
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import { ref, computed, onBeforeMount } from 'vue'
 import { i18n } from '@/i18n'
 import isEqual from 'lodash/isEqual'

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="gap-x-4 px-6 grid md:grid-cols-6 lg:container lg:grid-cols-12 lg:px-8 text-gray-600"
-  >
+  <app-page-wrapper size="narrow">
     <router-link
       class="text-gray-600 btn-link--md btn-link--secondary p-0 inline-flex items-center my-4"
       :to="{ path: '/members' }"
@@ -201,7 +199,7 @@
         >
       </div>
     </div>
-  </div>
+  </app-page-wrapper>
 </template>
 
 <script>

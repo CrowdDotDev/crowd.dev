@@ -61,7 +61,6 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppCommunityHelpCenterTable from '@/premium/community-help-center/components/community-help-center-table'
 import AppCommunityHelpCenterTabs from '@/premium/community-help-center/components/community-help-center-tabs'
 import AppCommunityHelpCenterFilter from '@/premium/community-help-center/components/community-help-center-filter'
@@ -77,7 +76,6 @@ export default {
   name: 'AppConversationListPage',
 
   components: {
-    AppPageWrapper,
     AppCommunityHelpCenterTable,
     AppCommunityHelpCenterTabs,
     AppCommunityHelpCenterFilter,

@@ -10,8 +10,10 @@
           >Computing</span
         >
       </div>
-      <div v-else-if="member.attributes.isTeamMember?.crowd">
-      <span
+      <div
+        v-else-if="member.attributes.isTeamMember?.crowd"
+      >
+        <span
           class="block mr-2 text-xs font-semibold text-gray-500"
           >-</span
         >
