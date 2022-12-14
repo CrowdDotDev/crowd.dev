@@ -30,6 +30,10 @@ export default (app) => {
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),
   )
+  app.get(
+    '/tenant/:tenantId/reddit-validate',
+    safeWrap(require('./helpers/redditValidator').default),
+  )
   app.post(
     '/tenant/:tenantId/devto-connect',
     safeWrap(require('./helpers/devtoCreateOrUpdate').default),
