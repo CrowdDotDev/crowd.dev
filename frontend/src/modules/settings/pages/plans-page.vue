@@ -16,13 +16,14 @@
           :class="{
             active: plan.key === activePlan,
             sale: plan.sale,
-            'mt-6': !isCommunityVersion && !plan.sale
+            'custom-margin':
+              !isCommunityVersion && !plan.sale
           }"
         >
           <div>
             <div class="flex flex-col gap-4 mb-8">
               <div
-                class="flex justify-between items-center"
+                class="flex flex-wrap justify-between items-center gap-2"
               >
                 <!-- Title -->
                 <h5 class="text-gray-900">
@@ -251,7 +252,7 @@ const getTrialDate = () => {
 
 <style lang="scss">
 .sale-banner {
-  @apply text-2xs font-medium text-purple-900 bg-purple-50 rounded-t-lg h-6 flex items-center justify-center;
+  @apply text-2xs font-medium text-purple-900 bg-purple-50 rounded-t-lg min-h-6 flex items-center justify-center px-4 py-0.5;
 }
 
 .pricing-plan {
@@ -263,6 +264,18 @@ const getTrialDate = () => {
 
   &.sale {
     @apply rounded-t-none;
+  }
+}
+
+@media (max-width: 1062px) {
+  .pricing-plan.custom-margin {
+    @apply mt-10;
+  }
+}
+
+@media (min-width: 1063px) {
+  .pricing-plan.custom-margin {
+    @apply mt-6;
   }
 }
 </style>
