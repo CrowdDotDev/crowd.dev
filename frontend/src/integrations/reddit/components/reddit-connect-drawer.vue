@@ -15,12 +15,19 @@
         class="form integration-reddit-form"
         @submit.prevent
       >
+        <span class="block text-sm font-semibold mb-2"
+          >Subreddits</span
+        >
         <el-form-item
           v-for="(subreddit, index) of model"
           :key="index"
         >
           <div class="flex w-full gap-2">
-            <el-input v-model="subreddit.value">
+            <el-input
+              v-model="subreddit.value"
+              @blur="handleSubredditValidation(index)"
+            >
+              <template #prepend>reddit.com/r/</template>
               <template #suffix>
                 <div
                   v-if="subreddit.validating"
@@ -30,6 +37,7 @@
               </template>
             </el-input>
             <el-button
+              v-if="model.length > 1"
               class="btn btn--md btn--transparent w-10 h-10"
               @click="deleteItem(index)"
             >
@@ -38,6 +46,11 @@
               ></i>
             </el-button>
           </div>
+          <span
+            v-if="subreddit.touched && !subreddit.valid"
+            class="el-form-item__error pt-1"
+            >Subreddit does not exist</span
+          >
         </el-form-item>
         <el-button
           class="btn btn-link btn-link--primary"
@@ -71,7 +84,7 @@
           <el-button
             class="btn btn--md btn--primary"
             :class="{
-              disabled: !hasFormChanged
+              disabled: !hasFormChanged || connectDisabled
             }"
             @click="hasFormChanged ? connect() : undefined"
           >
@@ -104,6 +117,7 @@ import Pizzly from '@nangohq/pizzly-frontend'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import config from '@/config'
 import isEqual from 'lodash/isEqual'
+import { IntegrationService } from '@/modules/integration/integration-service'
 
 const store = useStore()
 
@@ -121,24 +135,39 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+const subreddits =
+  props.integration.settings?.subreddits.map((i) => {
+    return {
+      value: i,
+      validating: false,
+      touched: true,
+      valid: true
+    }
+  }) || [{ value: '', loading: false }]
 
-const model = ref(
-  props.integration.settings?.subreddits || [
-    { value: '', loading: false }
-  ]
-)
+const model = ref(JSON.parse(JSON.stringify(subreddits)))
+
 
 const logoUrl = CrowdIntegrations.getConfig('reddit').image
 
 const hasFormChanged = computed(
   () =>
     !isEqual(
-      props.integration.settings?.subreddits || [
-        { value: '', loading: false }
-      ],
-      model.value
+      subreddits.map((i) => i.value),
+      model.value.map((i) => i.value)
     )
 )
+const connectDisabled = computed(() => {
+  return (
+    model.value.filter((s) => {
+      return (
+        s.valid === false ||
+        s.value === '' ||
+        s.touched !== true
+      )
+    }).length > 0
+  )
+})
 
 const isVisible = computed({
   get() {
@@ -160,9 +189,25 @@ const deleteItem = (index) => {
 }
 
 const doReset = () => {
-  model.value = props.integration.settings?.subreddits || [
-    { value: '', loading: false }
-  ]
+  model.value = JSON.parse(JSON.stringify(subreddits))
+}
+
+const handleSubredditValidation = async (index) => {
+  try {
+    model.value[index].validating = true
+    const response =
+      await IntegrationService.redditValidate(
+        model.value[index].value
+      )
+    console.log(response)
+    model.value[index].valid = true
+  } catch (e) {
+    console.log(e)
+    model.value[index].valid = false
+  } finally {
+    model.value[index].validating = false
+    model.value[index].touched = true
+  }
 }
 
 const connect = async () => {

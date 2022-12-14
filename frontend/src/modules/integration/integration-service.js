@@ -201,4 +201,19 @@ export class IntegrationService {
 
     return response.data
   }
+  
+  static async redditValidate(subreddit) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/reddit-validate`,
+      {
+        params: {
+          subreddit
+        }
+      }
+    )
+
+    return response.data
+  }
 }

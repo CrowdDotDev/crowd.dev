@@ -19,7 +19,7 @@
     <span v-else
       >in subreddit
       <a :href="computedSubredditUrl" target="_blank">
-        r/{activity.channel}
+        r/{{activity.channel}}
       </a></span
     >
   </span>
