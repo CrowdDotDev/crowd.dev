@@ -4,9 +4,9 @@
 class Plans {
   static get values() {
     return {
-      free: 'free',
-      premium: 'premium',
-      enterprise: 'enterprise'
+      essential: 'Essential',
+      growth: 'Growth',
+      enterprise: 'Enterprise'
     }
   }
 }

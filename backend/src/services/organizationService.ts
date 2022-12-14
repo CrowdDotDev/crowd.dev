@@ -8,6 +8,7 @@ import telemetryTrack from '../segment/telemetryTrack'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import { enrichOrganization } from './helpers/enrichment'
 import { LoggingBase } from './loggingBase'
+import Plans from '../security/plans'
 
 export default class OrganizationService extends LoggingBase {
   options: IServiceOptions
@@ -18,7 +19,7 @@ export default class OrganizationService extends LoggingBase {
   }
 
   async shouldEnrich(enrichP) {
-    const isPremium = this.options.currentTenant.plan === 'premium'
+    const isPremium = this.options.currentTenant.plan === Plans.values.growth
     if (!isPremium) {
       return false
     }

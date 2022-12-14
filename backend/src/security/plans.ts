@@ -3,35 +3,24 @@ import { PLANS_CONFIG } from '../config'
 class Plans {
   static get values() {
     return {
-      free: 'free',
-      beta: 'beta',
-      premium: 'premium',
-      enterprise: 'enterprise',
+      essential: 'Essential',
+      growth: 'Growth',
     }
   }
 
   static selectPlanByStripePriceId(stripePriceId) {
     const premiumStripePriceId = PLANS_CONFIG.stripePricePremium
-    const enterpriseStripePriceId = PLANS_CONFIG.stripePriceEnterprise
 
     if (premiumStripePriceId === stripePriceId) {
-      return Plans.values.premium
+      return Plans.values.growth
     }
 
-    if (enterpriseStripePriceId === stripePriceId) {
-      return Plans.values.enterprise
-    }
-
-    return Plans.values.free
+    return Plans.values.essential
   }
 
   static selectStripePriceIdByPlan(plan) {
-    if (plan === Plans.values.premium) {
+    if (plan === Plans.values.growth) {
       return PLANS_CONFIG.stripePricePremium
-    }
-
-    if (plan === Plans.values.enterprise) {
-      return PLANS_CONFIG.stripePriceEnterprise
     }
 
     return null
@@ -72,7 +61,7 @@ class Plans {
    * because future charges might occur
    */
   static allowTenantDestroy(plan, planStatus) {
-    if (plan === Plans.values.free || plan === Plans.values.beta) {
+    if (plan === Plans.values.essential || plan === Plans.values.growth) {
       return true
     }
 

@@ -33,7 +33,8 @@ const defaultConfig = {
   env: process.env.VUE_APP_ENV,
   hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
   typeformId: process.env.VUE_APP_TYPEFORM_ID,
-  typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE
+  typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE,
+  posthogKey: process.env.VUE_APP_POSTHOG_API_KEY
 }
 
 const composedConfig = {
@@ -58,14 +59,17 @@ const composedConfig = {
   env: 'CROWD_VUE_APP_ENV',
   hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
   typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
-  typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE'
+  typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
+  posthogKey: 'CROWD_VUE_APP_POSTHOG_API_KEY'
 }
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
+config.isCommunityVersion = config.edition === 'community'
 config.hasPremiumModules =
-  config.edition === 'crowd-hosted' ||
+  !config.isCommunityVersion ||
   config.communityPremium === 'true'
+
 export default config

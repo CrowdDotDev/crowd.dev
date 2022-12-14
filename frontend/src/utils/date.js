@@ -1,4 +1,5 @@
 import moment from 'moment'
+import config from '@/config'
 
 /**
  * Time ago utility
@@ -38,4 +39,17 @@ export const formatDate = ({
   }
 
   return date.format('YYYY-MM-DD')
+}
+
+export const getTrialDate = (tenant) => {
+  if (config.isCommunityVersion || !tenant.isTrialPlan) {
+    return null
+  }
+
+  const daysLeft = moment(tenant.trialEndsAt).diff(
+    moment(),
+    'days'
+  )
+
+  return `Trial (${daysLeft < 0 ? 0 : daysLeft} days left)`
 }

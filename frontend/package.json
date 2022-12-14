@@ -45,6 +45,7 @@
     "moment": "^2.29.4",
     "nprogress": "0.2.0",
     "pluralize": "^8.0.0",
+    "posthog-js": "^1.36.1",
     "qs": "6.9.4",
     "regenerator-runtime": "^0.13.9",
     "remixicon": "^2.5.0",

@@ -20,6 +20,7 @@ import { AttributeType } from '../../database/attributes/types'
 import { SlackMemberAttributes } from '../../database/attributes/member/slack'
 import SettingsRepository from '../../database/repositories/settingsRepository'
 import OrganizationService from '../organizationService'
+import Plans from '../../security/plans'
 
 const db = null
 
@@ -652,7 +653,10 @@ describe('MemberService tests', () => {
     })
 
     it('Should create non existent member - organization with enrichment', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db, 'premium')
+      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
+        db,
+        Plans.values.growth,
+      )
 
       const member1 = {
         username: 'anil',

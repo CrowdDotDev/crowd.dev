@@ -105,11 +105,11 @@ export class PermissionChecker {
 
   get currentTenantPlan() {
     if (!this.currentTenant) {
-      return plans.free
+      return plans.essential
     }
 
     if (!this.currentTenant.plan) {
-      return plans.free
+      return plans.essential
     }
 
     return this.currentTenant.plan
