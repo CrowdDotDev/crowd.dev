@@ -30,6 +30,7 @@ class Member(Base):
     id = Column(String, primary_key=True)
     displayName = Column(String, nullable=False)
     username = Column(JSONB, nullable=False)
+    displayName = Column(String, nullable=True)
     attributes = Column(JSONB, default={})
     email = Column(String)
     score = Column(Integer, default=-1)

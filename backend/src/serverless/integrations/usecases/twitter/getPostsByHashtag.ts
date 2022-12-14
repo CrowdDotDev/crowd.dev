@@ -39,6 +39,18 @@ const getPostsByHashtag = async (
 
   try {
     const response = await axios(config)
+    const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
+    const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
+    const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
+
+    if (response.data?.meta?.result_count === 0) {
+      return {
+        records: [],
+        limit,
+        timeUntilReset,
+        nextPage: '',
+      }
+    }
 
     const posts = response.data.data
     const media = response.data.includes.media
@@ -58,9 +70,6 @@ const getPostsByHashtag = async (
       postsOut.push(post)
     }
 
-    const limit = parseInt(response.headers['x-rate-limit-remaining'], 10)
-    const resetTs = parseInt(response.headers['x-rate-limit-reset'], 10) * 1000
-    const timeUntilReset = moment(resetTs).diff(moment(), 'seconds')
     return {
       records: postsOut,
       nextPage: response.data?.meta?.next_token || '',

@@ -1,10 +1,10 @@
 <template>
   <el-select
     ref="input"
-    :disabled="disabled"
-    :loading="loading"
+    :disabled="disabled || initialLoading"
+    :loading="loading || initialLoading"
     :remote-method="handleSearch"
-    :model-value="modelValue"
+    :model-value="initialLoading ? null : modelValue"
     :clearable="true"
     :default-first-option="true"
     :filterable="true"
@@ -13,6 +13,8 @@
     :remote="true"
     :reserve-keyword="false"
     :allow-create="allowCreate"
+    :suffix-icon="initialLoading ? 'app-loader' : null"
+    :remote-show-suffix="initialLoading"
     value-key="id"
     :class="inputClass"
     @change="onChange"
@@ -47,7 +49,6 @@ const AUTOCOMPLETE_SERVER_FETCH_SIZE = 100
 
 export default {
   name: 'AppAutocompleteManyInput',
-
   props: {
     modelValue: {
       type: Array,
@@ -97,6 +98,7 @@ export default {
   emits: ['remove-tag', 'update:modelValue'],
   data() {
     return {
+      initialLoading: false,
       loading: false,
       localOptions: this.options ? this.options : [],
       currentQuery: ''
@@ -159,15 +161,35 @@ export default {
       )
     },
 
+    async fetchNotIncludedTags(response) {
+      const notIncluded = this.modelValue.filter(
+        (m) =>
+          response.findIndex((r) => r.id === m.id) === -1
+      )
+
+      if (notIncluded.length) {
+        const notIncludedResponse = await this.fetchFn(
+          notIncluded
+        )
+
+        this.localOptions.unshift(...notIncludedResponse)
+      }
+    },
+
     async fetchAllResults() {
-      this.loading = true
+      this.initialLoading = true
 
       try {
-        this.localOptions = await this.fetchFn()
-        this.loading = false
+        const response = await this.fetchFn()
+
+        this.localOptions = response
+
+        await this.fetchNotIncludedTags(response)
+
+        this.initialLoading = false
       } catch (error) {
         console.error(error)
-        this.loading = false
+        this.initialLoading = false
       }
     },
 
@@ -180,10 +202,16 @@ export default {
       this.loading = true
 
       try {
-        this.localOptions = await this.fetchFn(
+        const response = await this.fetchFn(
           value,
           AUTOCOMPLETE_SERVER_FETCH_SIZE
         )
+
+        this.localOptions = response
+
+        if (!value) {
+          await this.fetchNotIncludedTags(response)
+        }
 
         this.loading = false
       } catch (error) {

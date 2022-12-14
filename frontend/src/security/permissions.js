@@ -17,8 +17,8 @@ class Permissions {
         id: 'tenantEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -26,8 +26,8 @@ class Permissions {
         id: 'tenantDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -35,8 +35,8 @@ class Permissions {
         id: 'planEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -44,8 +44,8 @@ class Permissions {
         id: 'planRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -53,8 +53,8 @@ class Permissions {
         id: 'userEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -62,8 +62,8 @@ class Permissions {
         id: 'userDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -71,8 +71,8 @@ class Permissions {
         id: 'userCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -80,8 +80,8 @@ class Permissions {
         id: 'userImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -89,8 +89,8 @@ class Permissions {
         id: 'userRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -98,8 +98,8 @@ class Permissions {
         id: 'userAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -107,8 +107,8 @@ class Permissions {
         id: 'auditLogRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -116,8 +116,8 @@ class Permissions {
         id: 'settingsRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: [
@@ -129,8 +129,8 @@ class Permissions {
         id: 'settingsEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: [
@@ -142,8 +142,8 @@ class Permissions {
         id: 'integrationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -151,8 +151,8 @@ class Permissions {
         id: 'integrationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -161,8 +161,8 @@ class Permissions {
         id: 'integrationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -171,8 +171,8 @@ class Permissions {
         id: 'integrationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -181,8 +181,8 @@ class Permissions {
         id: 'integrationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -190,8 +190,8 @@ class Permissions {
         id: 'integrationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -200,8 +200,8 @@ class Permissions {
         id: 'reportImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -209,8 +209,8 @@ class Permissions {
         id: 'reportCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -219,8 +219,8 @@ class Permissions {
         id: 'reportEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -229,8 +229,8 @@ class Permissions {
         id: 'reportDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -239,8 +239,8 @@ class Permissions {
         id: 'reportRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -248,8 +248,8 @@ class Permissions {
         id: 'reportAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -258,8 +258,8 @@ class Permissions {
         id: 'memberImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -267,8 +267,8 @@ class Permissions {
         id: 'memberCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -277,8 +277,8 @@ class Permissions {
         id: 'memberEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -287,8 +287,8 @@ class Permissions {
         id: 'memberDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -297,8 +297,8 @@ class Permissions {
         id: 'memberRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -306,8 +306,8 @@ class Permissions {
         id: 'memberAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -316,8 +316,8 @@ class Permissions {
         id: 'organizationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -325,8 +325,8 @@ class Permissions {
         id: 'organizationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -335,8 +335,8 @@ class Permissions {
         id: 'organizationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -345,8 +345,8 @@ class Permissions {
         id: 'organizationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -355,8 +355,8 @@ class Permissions {
         id: 'organizationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -364,8 +364,8 @@ class Permissions {
         id: 'organizationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -374,8 +374,8 @@ class Permissions {
         id: 'activityImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -383,8 +383,8 @@ class Permissions {
         id: 'activityCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -393,8 +393,8 @@ class Permissions {
         id: 'activityEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -403,8 +403,8 @@ class Permissions {
         id: 'activityDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -413,8 +413,8 @@ class Permissions {
         id: 'activityRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -422,8 +422,8 @@ class Permissions {
         id: 'activityAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -432,8 +432,8 @@ class Permissions {
         id: 'taskImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -441,8 +441,8 @@ class Permissions {
         id: 'taskCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -451,8 +451,8 @@ class Permissions {
         id: 'taskEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -461,8 +461,8 @@ class Permissions {
         id: 'taskDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -471,8 +471,8 @@ class Permissions {
         id: 'taskRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -480,8 +480,8 @@ class Permissions {
         id: 'taskAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -490,8 +490,8 @@ class Permissions {
         id: 'conversationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -499,8 +499,8 @@ class Permissions {
         id: 'conversationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -509,8 +509,8 @@ class Permissions {
         id: 'conversationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -519,8 +519,8 @@ class Permissions {
         id: 'conversationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -529,22 +529,22 @@ class Permissions {
         id: 'conversationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
       conversationCustomize: {
         id: 'conversationCustomize',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.premium, plans.enterprise]
+        allowedPlans: [plans.growth, plans.enterprise]
       },
       conversationAutocomplete: {
         id: 'conversationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -552,8 +552,8 @@ class Permissions {
         id: 'eagleEyeRead',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -561,8 +561,8 @@ class Permissions {
         id: 'automationImport',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
@@ -570,8 +570,8 @@ class Permissions {
         id: 'automationCreate',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -580,8 +580,8 @@ class Permissions {
         id: 'automationEdit',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -590,8 +590,8 @@ class Permissions {
         id: 'automationDestroy',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ],
         allowedStorage: []
@@ -600,22 +600,22 @@ class Permissions {
         id: 'automationRead',
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       },
       automationCustomize: {
         id: 'automationCustomize',
         allowedRoles: [roles.admin],
-        allowedPlans: [plans.premium, plans.enterprise]
+        allowedPlans: [plans.growth, plans.enterprise]
       },
       automationAutocomplete: {
         id: 'automationAutocomplete',
         allowedRoles: [roles.admin],
         allowedPlans: [
-          plans.free,
-          plans.premium,
+          plans.essential,
+          plans.growth,
           plans.enterprise
         ]
       }

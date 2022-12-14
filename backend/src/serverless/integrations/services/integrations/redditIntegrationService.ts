@@ -111,7 +111,6 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     const subreddit = stream.value.split(':')[1]
     const pizzlyId = context.pipelineData.pizzlyId
     const after = stream.metadata.after
-
     const response: RedditPostsResponse = await getPosts({ subreddit, pizzlyId, after }, logger)
 
     const posts = response.data.children

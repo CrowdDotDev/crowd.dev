@@ -92,6 +92,12 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
       writeKey: process.env.SEGMENT_WRITE_KEY,
     }
 
+export const POSTHOG_CONFIG: PosthogConfiguration = KUBE_MODE
+  ? config.get<PosthogConfiguration>('posthog')
+  : {
+      apiKey: process.env.POSTHOG_API_KEY,
+    }
+
 export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
   ? config.get<ComprehendConfiguration>('comprehend')
   : {

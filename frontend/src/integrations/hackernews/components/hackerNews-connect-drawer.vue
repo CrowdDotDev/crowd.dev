@@ -123,7 +123,7 @@
 <script>
 import { mapActions } from 'vuex'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
-import isUrl from './helpers/isUrl'
+import isUrl from '@/utils/isUrl'
 
 export default {
   name: 'AppHackerNewsConnectDrawer',

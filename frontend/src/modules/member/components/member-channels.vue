@@ -1,5 +1,8 @@
 <template>
-  <div class="flex items-center gap-3">
+  <div
+    v-if="hasSocialIdentities || member.email"
+    class="flex items-center gap-3"
+  >
     <div
       v-if="hasSocialIdentities"
       class="flex gap-2 items-center"
@@ -56,7 +59,7 @@
         track-event-name="Hacker News"
         :has-tooltip="true"
         tooltip-label="Hacker News profile"
-        :href="member.attributes?.url?.hackernews || null"
+        :href="`https://news.ycombinator.com/user?id=${member.username.hackernews}`"
         :as-link="true"
       />
     </div>
@@ -78,6 +81,7 @@
       :as-link="true"
     />
   </div>
+  <div v-else>-</div>
 </template>
 
 <script>
@@ -102,7 +106,8 @@ const hasSocialIdentities = computed(
     !!props.member.username?.github ||
     !!props.member.username?.devto ||
     !!props.member.username?.discord ||
-    !!props.member.username?.slack
+    !!props.member.username?.slack ||
+    !!props.member.username?.hackernews
 )
 const showDivider = computed(
   () => props.member.email && hasSocialIdentities.value

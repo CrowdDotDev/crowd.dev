@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.11.0 - 2022-12-05
+
+### Changes
+
+### 🚀 Features
+
+#### Hacker News integration
+
+The Hacker News integration will detect any post that mentions your community in the *Top* or *Best* of Hacker News. It works for any post published after the 1st of December 2022. The post will become a community activity, and so will any comment on those posts.
+
+- Eagle Eye optimization and Hacker News integration @joanreyero (#267)
+
+<img width="1195" alt="Screenshot 2022-12-05 at 18 28 56" src="https://user-images.githubusercontent.com/37874460/205703080-12358262-f798-49d3-9940-1757e6e2dfe4.png">
+### ✨ Improvements
+
+- Better accuracy in Eagle Eye for Hacker News suggestions @joanreyero (#267)
+
+### 🐞 Bug Fixes
+
+- Fix the pagination parameter when getting members from Twitter @joanreyero (#312)
+- Removed the `# activities >= 1000` filter from the Organizations' *New and Active* view @joanreyero (#308)
+- Sanitize the name attribute when enriching an organization with GitHub @epipav (#296)
+- Fix several UX issues in the reports module @joanagmaia (#301 and #303)
+- Fix rate limit handling in the Twitter integration @themarolt (#292 and #293)
+- When moving a widget in a report, save its new position when it is dropped instead of moved to avoid a *too many requests error* @joanreyero (#295)
+- Disable range filters in the frontend if one value is empty @joanagmaia (#290)
+
 ## v0.10.1 - 2022-11-30
 
 ### Changes
@@ -40,7 +67,6 @@ We completely overhauled our design and user experience (you may not even recogn
 Member profiles now show you everything you need to know about an individual in one place, with even richer information on their activity history, tags, engagement level, and much more.
 :man-man-boy-boy: Information on represented organizations
 We now show you the total organizations that have been identified in your community, we also update you on any new organizations that are popping up in your community, as well as show you all the active organizations (organizations where members have been active in a given time period). Expect standalone pages for organizations very soon.
-
 :dart:  Powerful filters, sorts, and views
 Our new powerful filters, sorts and views instantly help you to segment, research, and understand your community more effectively. We have included default views, for example, “slipping away” to identify valuable members that may need some extra attention or “influential” to find individuals with high reach.
 
@@ -90,7 +116,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -115,7 +143,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Conversations title is now being set to first activity title when it exists. Otherwise it uses first activity body. Before it was always getting body. @joanreyero (#44)
 - Twitter follow activities were generating different `sourceIds` when `onboarding:true/false`. This was causing duplicate activities on some edge cases. Now twitter follow activities generate the same `sourceIds` with fixed timestamps, independent of `onboarding:true/false` @epipav (#38)
 - The dynamic endpoints were not passed to consecutive lambda runs when 15 minute time limit was reached. Endpoints are now passed to new lambdas successfully @epipav  (#50)
-
 ## v0.6.0 - 2022-08-31
 
 ### Changes
@@ -130,7 +157,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -149,7 +178,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Fixed an error in engagement score when there are no members in the workspace. @CallmeMehdi (#7)
 - Weekly summary email is now sent to all the workspace users, not just one. @epipav (#10)
 ## v0.5.0 - 2022-08-25
-
 ### Changes
 
 - Bumped up version to match pre-OSS version.

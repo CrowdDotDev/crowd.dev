@@ -12,8 +12,6 @@ import zapier from './zapier'
 import crunchbase from './crunchbase'
 import make from './make'
 
-import config from '@/config'
-
 class IntegrationsConfig {
   get integrations() {
     return {
@@ -22,14 +20,14 @@ class IntegrationsConfig {
       slack,
       twitter,
       devto,
-      ...(config.hasPremiumModules && { hackernews }),
+      hackernews,
       discourse,
       stackoverflow,
       reddit,
       linkedin,
       zapier,
       crunchbase,
-      ...(!config.hasPremiumModules && { make })
+      make
     }
   }
 

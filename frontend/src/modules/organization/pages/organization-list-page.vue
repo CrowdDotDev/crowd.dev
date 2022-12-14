@@ -3,7 +3,14 @@
     <div class="member-list-page">
       <div class="mb-10">
         <div class="flex items-center justify-between">
-          <h4>Organizations</h4>
+          <div class="flex items-center">
+            <h4>Organizations</h4>
+            <span
+              v-if="currentTenant.isTrialPlan"
+              class="badge badge--sm badge--light-yellow ml-4"
+              >Growth (trial)</span
+            >
+          </div>
           <div class="flex items-center">
             <router-link
               v-if="hasPermissionToCreate"
@@ -68,7 +75,7 @@ onMounted(async () => {
 
   const organizationsList = await doGetOrganizationsCount()
 
-  hasOrganizations.value = !!organizationsList.length
+  hasOrganizations.value = !!organizationsList?.length
   isPageLoading.value = false
 })
 

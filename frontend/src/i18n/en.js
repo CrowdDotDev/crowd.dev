@@ -371,6 +371,10 @@ const en = {
         post: 'posted',
         comment: 'commented '
       },
+      reddit: {
+        post: 'posted',
+        comment: 'commented'
+      },
       fallback: 'created an activity'
     },
 
@@ -550,7 +554,8 @@ const en = {
       },
       Sentiment: {
         averageSentiment: '[Sentiment] Average',
-        date: '[Sentiment] Date'
+        date: '[Sentiment] Date',
+        platform: '[Sentiment] Platform'
       }
     }
   },

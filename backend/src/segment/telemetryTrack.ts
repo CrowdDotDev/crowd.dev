@@ -1,24 +1,27 @@
 import { createServiceChildLogger } from '../utils/logging'
 import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../config'
 import getTenatUser from './trackHelper'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
+import { Edition } from '../types/common'
 
 const log = createServiceChildLogger('telemetryTrack')
 
-export default function identify(
+export default function track(
   event,
   properties,
   options: any,
   userId: any = false,
   timestamp: any = false,
 ) {
-  if (event === 'Conversation created') {
-    log.trace('Conversation created')
-  }
+  const email = SequelizeRepository.getCurrentUser({
+    ...options,
+  }).email
   if (
     !IS_TEST_ENV &&
     SEGMENT_CONFIG.writeKey &&
-    // This is only for events in the hosted version. Self-hosted has less telemetry.
-    API_CONFIG.edition !== 'crowd-hosted'
+    // This is only for events in the self-hosted version. Hosted has more telemetry.
+    API_CONFIG.edition === Edition.COMMUNITY &&
+    !email.includes('crowd.dev')
   ) {
     const Analytics = require('analytics-node')
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)

@@ -37,6 +37,10 @@ export default class ActivityPlatformField extends StringField {
       {
         value: 'hackernews',
         label: 'Hacker News'
+      },
+      {
+        value: 'reddit',
+        label: 'Reddit'
       }
     ]
   }

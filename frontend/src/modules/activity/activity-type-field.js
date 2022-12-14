@@ -93,6 +93,19 @@ export default class ActivityTypeField extends JSONField {
             label: en.entities.activity.devto[activity]
           })
         )
+      },
+      {
+        label: {
+          type: 'platform',
+          key: 'reddit',
+          value: 'Reddit'
+        },
+        nestedOptions: activityTypesJson.reddit.map(
+          (activity) => ({
+            value: activity,
+            label: en.entities.activity.reddit[activity]
+          })
+        )
       }
     ]
   }

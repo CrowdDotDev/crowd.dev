@@ -103,14 +103,14 @@ export default {
           .startOf('day')
           .subtract(this.period - 1, 'd')
           .subtract(1, 'ms')
+          .startOf('day')
+          .subtract(this.period - 1, 'd')
           .toISOString(),
         moment()
           .utc()
           .startOf('day')
           .subtract(this.period - 1, 'd')
           .subtract(1, 'ms')
-          .startOf('day')
-          .subtract(this.period - 1, 'd')
           .toISOString()
       ]
     }

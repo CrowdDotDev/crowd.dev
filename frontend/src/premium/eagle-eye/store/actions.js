@@ -5,24 +5,10 @@ import Errors from '@/shared/error/errors'
 export default {
   ...sharedActions('eagleEye'),
   async doFetch(
-    { commit, getters, dispatch },
+    { commit, getters },
     { keepPagination = false }
   ) {
     try {
-      if (
-        getters.activeView.filter.attributes.keywords &&
-        getters.activeView.filter.attributes.keywords
-          .value &&
-        getters.activeView.filter.attributes.keywords.value
-          .length > 0
-      ) {
-        await dispatch('doPopulate', {
-          keywords:
-            getters.activeView.filter.attributes.keywords
-              .value,
-          keepPagination
-        })
-      }
       commit('FETCH_STARTED', {
         keepPagination
       })
@@ -57,13 +43,15 @@ export default {
   },
 
   async doPopulate(
-    { commit },
-    { keywords, keepPagination }
+    { commit, getters },
+    { keepPagination = false }
   ) {
     try {
       commit('POPULATE_STARTED', {
         keepPagination
       })
+      const keywords =
+        getters.activeView.filter.attributes.keywords.value
 
       await EagleEyeService.populate(keywords)
 

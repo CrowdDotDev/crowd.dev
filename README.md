@@ -38,7 +38,7 @@ crowd.dev is here to change this. Self-hosted or hosted by us, with developers i
 
 ## ✨ Features
 ### Core Features
-- Integrate with platforms like GitHub, Discord, Slack, Twitter or DEV to track community activities
+- Integrate with platforms like GitHub, Discord, Slack, Twitter, DEV or HackerNews to track community activities
 - Get background information about your community members & the companies they belong to and manage them with tags and automated segmentation
 - Analyze your community, create custom metrics, organize them in reports and share them publicly with your community, your investors, or your team
 - Use webhooks to automate routine tasks

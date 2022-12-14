@@ -1,3 +1,6 @@
+import { AddActivitiesSingle } from './messageTypes'
+import { IIntegrationStream } from '../../../types/integration/stepResult'
+
 export interface DiscordGetChannelsInput {
   guildId: string
   token: string
@@ -53,9 +56,17 @@ export interface DiscordMessage {
     guild_id: string
     channel_id: string
   }
+  thread: {
+    id: string
+  }
 }
 
 export type DiscordMessages = DiscordMessage[]
+
+export interface DiscordStreamProcessResult {
+  activities: AddActivitiesSingle[]
+  newStreams: IIntegrationStream[]
+}
 
 export interface DiscordMember {
   user: DiscordAuthor

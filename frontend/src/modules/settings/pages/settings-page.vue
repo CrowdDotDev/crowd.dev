@@ -36,7 +36,6 @@ import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page'
 import UserListPage from '@/premium/user/pages/user-list-page'
 import AutomationListPage from '@/modules/automation/pages/automation-list-page'
-import config from '@/config'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import { mapGetters } from 'vuex'
 
@@ -62,13 +61,10 @@ export default {
       currentTenant: 'auth/currentTenant'
     }),
     hasUsersModule() {
-      return (
-        config.hasPremiumModules &&
-        new UserPermissions(
-          this.currentTenant,
-          this.currentUser
-        ).read
-      )
+      return new UserPermissions(
+        this.currentTenant,
+        this.currentUser
+      ).read
     },
     computedActiveTab: {
       get() {

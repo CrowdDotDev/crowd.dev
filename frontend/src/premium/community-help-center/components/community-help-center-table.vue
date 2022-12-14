@@ -146,6 +146,12 @@
                       "
                       platform="twitter"
                     />
+                    <app-platform
+                      v-else-if="
+                        scope.row.platform === 'hackernews'
+                      "
+                      platform="hackernews"
+                    />
                     <span class="ml-2">{{
                       scope.row.channel
                     }}</span>

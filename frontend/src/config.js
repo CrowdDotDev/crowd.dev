@@ -33,7 +33,9 @@ const defaultConfig = {
   env: process.env.VUE_APP_ENV,
   hotjarKey: process.env.VUE_APP_HOTJAR_KEY,
   pizzlyUrl: process.env.VUE_APP_PIZZLY_URL,
-  pizzlyPublishableKey: process.env.VUE_APP_PIZZLY_PUBLISHABLE_KEY
+  pizzlyPublishableKey: process.env.VUE_APP_PIZZLY_PUBLISHABLE_KEY,
+  posthogKey: process.env.VUE_APP_POSTHOG_API_KEY,
+  pizzlyUrl: process.env.VUE_APP_PIZZLY_URL
 }
 
 const composedConfig = {
@@ -58,14 +60,18 @@ const composedConfig = {
   env: 'CROWD_VUE_APP_ENV',
   hotjarKey: 'CROWD_VUE_APP_HOTJAR_KEY',
   pizzlyUrl: 'CROWD_VUE_APP_PIZZLY_URL',
-  pizzlyPublishableKey: 'CROWD_VUE_APP_PIZZLY_PUBLISHABLE_KEY'
+  pizzlyPublishableKey: 'CROWD_VUE_APP_PIZZLY_PUBLISHABLE_KEY',
+  posthogKey: 'CROWD_VUE_APP_POSTHOG_API_KEY',
+  pizzlyUrl: 'CROWD_VUE_APP_PIZZLY_URL'
 }
 
 const config = defaultConfig.backendUrl
   ? defaultConfig
   : composedConfig
 
+config.isCommunityVersion = config.edition === 'community'
 config.hasPremiumModules =
-  config.edition === 'crowd-hosted' ||
+  !config.isCommunityVersion ||
   config.communityPremium === 'true'
+
 export default config

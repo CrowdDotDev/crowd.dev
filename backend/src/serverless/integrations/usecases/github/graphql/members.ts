@@ -28,7 +28,7 @@ const getMember = async (username: string, token: string): Promise<any> => {
     if (err.errors && err.errors[0].type === 'NOT_FOUND') {
       user = null
     } else {
-      throw err
+      throw BaseQuery.processGraphQLError(err)
     }
   }
   return user

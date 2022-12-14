@@ -266,14 +266,19 @@ export class IntegrationProcessor extends LoggingBase {
         logger.info({ streamCount: streams.length }, 'Detected streams to process!')
 
         // process streams
+        let processedCount = 0
+        let notifyCount = 0
         while (streams.length > 0) {
           const stream = streams.pop()
+
+          processedCount++
+          notifyCount++
 
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
             logger.trace(
-              { stream: stream.value, remainingStreams: streams.length },
-              `Processing stream.`,
+              { stream: stream.value },
+              `Processing stream! Still have ${streams.length} streams left to process!`,
             )
             let processStreamResult
             try {
@@ -293,21 +298,18 @@ export class IntegrationProcessor extends LoggingBase {
             }
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
-              logger.info(
-                {
-                  newStreamCount: processStreamResult.newStreams.length,
-                  newTotalStreamCount: processStreamResult.newStreams.length + streams.length,
-                },
-                'Detected new streams to process!',
-              )
               streams.push(...processStreamResult.newStreams)
+
+              logger.info(
+                `Detected ${processStreamResult.newStreams.length} new streams to process! Now we have ${streams.length} streams to process.`,
+              )
             }
 
             for (const operation of processStreamResult.operations) {
               if (operation.records.length > 0) {
                 logger.trace(
-                  { operationType: operation.type, recordCount: operation.records.length },
-                  'Processing bulk operation from stream result!',
+                  { operationType: operation.type },
+                  `Processing bulk operation with ${operation.records.length} records!`,
                 )
                 stepContext.limitCount += operation.records.length
                 await bulkOperations(integration.tenantId, operation.type, operation.records)
@@ -326,17 +328,17 @@ export class IntegrationProcessor extends LoggingBase {
               ) {
                 logger.warn('Integration processing finished because of service implementation!')
               } else {
+                logger.trace(
+                  { currentStream: stream },
+                  `Detected next page stream! Now we have ${streams.length} left to process!`,
+                )
                 streams.push(processStreamResult.nextPageStream)
               }
             }
 
             if (processStreamResult.sleep !== undefined && processStreamResult.sleep > 0) {
               logger.warn(
-                {
-                  remainingStreamCount: streams.length,
-                  delayInSeconds: processStreamResult.sleep,
-                },
-                'Stream processing resulted in a requested delay!',
+                `Stream processing resulted in a requested delay of ${processStreamResult.sleep}! Will delay ${streams.length} streams!`,
               )
 
               delay = processStreamResult.sleep
@@ -368,6 +370,13 @@ export class IntegrationProcessor extends LoggingBase {
                 break
               }
             }
+
+            if (notifyCount === 50 || streams.length === 0) {
+              logger.info(
+                `Processed ${processedCount} streams! Still have ${streams.length} to process.`,
+              )
+              notifyCount = 0
+            }
           } catch (err) {
             logger.error(err, { stream }, 'Error processing a stream!')
             failedStreams.push(stream)
@@ -379,8 +388,7 @@ export class IntegrationProcessor extends LoggingBase {
 
         if (streams.length > 0 || failedStreams.length > 0) {
           logger.warn(
-            { failedStreamCount: failedStreams.length, remainingStreamCount: streams.length },
-            'Some streams have not been successfully processed or are remaining - retrying them with delay!',
+            `${failedStreams.length} streams have not been successfully processed - retrying them with delay! We also have ${streams.length} remaining streams left to process!`,
           )
 
           const existingRetryStreams = req.retryStreams || []
@@ -402,7 +410,7 @@ export class IntegrationProcessor extends LoggingBase {
 
             if (retryCount > MAX_STREAM_RETRIES) {
               logger.warn(
-                { failedStream, retryCount },
+                { failedStream },
                 'Failed stream will not be retried because it reached retry limit!',
               )
               streamRetryLimitReached = true

@@ -2,6 +2,10 @@ import PermissionChecker from '../../services/user/permissionChecker'
 import Permissions from '../../security/permissions'
 import AutomationService from '../../services/automationService'
 import track from '../../segment/track'
+import identifyTenant from '../../segment/identifyTenant'
+import { FeatureFlag } from '../../types/common'
+import ensureFlagUpdated from '../../feature-flags/ensureFlagUpdated'
+import AutomationRepository from '../../database/repositories/automationRepository'
 
 /**
  * POST /tenant/{tenantId}/automation
@@ -19,9 +23,18 @@ import track from '../../segment/track'
  */
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.automationCreate)
+
   const payload = await new AutomationService(req).create(req.body.data)
 
   track('Automation Created', { ...payload }, { ...req })
+
+  identifyTenant(req)
+
+  const automationCount = await AutomationRepository.countAll(req.database, req.currentTenant.id)
+  await ensureFlagUpdated(FeatureFlag.AUTOMATIONS, req.currentTenant.id, req.posthog, {
+    plan: req.currentTenant.plan,
+    automationCount,
+  })
 
   await req.responseHandler.success(req, res, payload)
 }

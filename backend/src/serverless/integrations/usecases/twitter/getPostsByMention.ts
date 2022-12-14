@@ -33,7 +33,7 @@ const getPostsByMention = async (
   }
 
   if (input.page !== undefined && input.page !== '') {
-    config.params.next_token = input.page
+    config.params.pagination_token = input.page
   }
 
   try {

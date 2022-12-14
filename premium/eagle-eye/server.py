@@ -12,13 +12,17 @@ logger = get_logger(__name__)
 
 @app.route("/search", methods=['POST'])
 def search():
-    body = request.get_json()
-    logger.info(f"Eagle Eye: received request for search: {body}")
-    queries = body.get('queries', [])
-    ndays = body.get('nDays', 10)
-    exclude = body.get('filters', [])
-    exact_keywords = body.get('exactKeywords', False)
-    return search_main(queries, ndays, exclude, exact_keywords)
+    try:
+        body = request.get_json()
+        logger.info(f"Eagle Eye: received request for search: {body}")
+        queries = body.get('queries', [])
+        ndays = body.get('nDays', 10)
+        exclude = body.get('filters', [])
+        exact_keywords = body.get('exactKeywords', False)
+        return search_main(queries, ndays, exclude, exact_keywords)
+    except Exception as e:
+        logger.error(f"Eagle Eye: error in search: {e}")
+        return {"error": str(e)}
 
 
 @app.route("/keyword-match", methods=['POST'])
@@ -34,4 +38,4 @@ def keyword_match():
         return out
     except Exception as e:
         logger.error(f"Error in keyword_match: {e}")
-        raise e
+        return {"error": str(e)}

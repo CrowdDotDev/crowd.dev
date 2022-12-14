@@ -107,14 +107,10 @@ export default {
   computed: {
     ...mapGetters({
       rows: 'automation/rows',
-      count: 'automation/count',
       loading: 'automation/loading',
-      pagination: 'automation/pagination',
       selectedRows: 'automation/selectedRows',
-      isMobile: 'layout/isMobile',
       currentUser: 'auth/currentUser',
-      currentTenant: 'auth/currentTenant',
-      paginationLayout: 'layout/paginationLayout'
+      currentTenant: 'auth/currentTenant'
     }),
 
     hasPermissionToEdit() {
@@ -140,22 +136,9 @@ export default {
   },
   methods: {
     ...mapActions({
-      doChangeSort: 'conversation/doChangeSort',
-      doChangePaginationCurrentPage:
-        'conversation/doChangePaginationCurrentPage',
-      doChangePaginationPageSize:
-        'conversation/doChangePaginationPageSize',
-      doMountTable: 'conversation/doMountTable',
-      doDestroy: 'member/doDestroy'
+      doChangeSort: 'automation/doChangeSort',
+      doMountTable: 'automation/doMountTable'
     }),
-
-    doRefresh() {
-      this.doChangePaginationCurrentPage()
-    },
-
-    presenter(row, fieldName) {
-      return AutomationModel.presenter(row, fieldName)
-    },
 
     translate(key) {
       return i18n(key)

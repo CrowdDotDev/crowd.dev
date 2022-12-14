@@ -1,0 +1,28 @@
+code {
+  white-space: pre-wrap;
+}
+
+.parsed-body {
+  ul,
+  ol {
+    padding: 0 2rem;
+  }
+
+  p {
+    min-height: 20px;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &:not(:has(input[type='checkbox'])) {
+      list-style: initial;
+    }
+  }
+
+  ol {
+    list-style: number;
+  }
+}
