@@ -15,7 +15,7 @@ async function getComments(
   logger: Logger,
 ): Promise<RedditCommentsResponse> {
   try {
-    logger.info({ message: 'Fetching posts from a sub-reddit', input })
+    logger.info({ message: 'Fetching comments from a post in a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
     await new Promise((resolve) => setTimeout(resolve, 1500))
