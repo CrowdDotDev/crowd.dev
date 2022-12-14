@@ -25,10 +25,13 @@ version-resolver:
   minor:
     labels:
       - 'type:feature 🚀'
+      - 'Feature'
   patch:
     labels:
       - 'type:bug 🐞'
+      - 'Bug'
       - 'type:enhancement ✨'
+      - 'Improvement'
       - 'type:documentation 📜'
   default: patch
 template: |
