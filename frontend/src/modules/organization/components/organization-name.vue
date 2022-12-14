@@ -43,7 +43,7 @@
       >
         <div
           v-if="isNew"
-          class="badge badge--brand inline-flex uppercase !text-3xs !px-1 !py-0 leading-normal font-semibold mt-1"
+          class="badge badge--light-brand inline-flex uppercase !text-3xs !px-1 !py-0 leading-normal font-semibold mt-1"
         >
           New
         </div>

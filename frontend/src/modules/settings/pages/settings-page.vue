@@ -26,16 +26,20 @@
             v-if="activeTab === 'api-keys'"
           />
         </el-tab-pane>
+        <el-tab-pane label="Plans & pricing" name="plans">
+          <app-plans-page v-if="activeTab === 'plans'" />
+        </el-tab-pane>
       </el-tabs>
     </div>
   </app-page-wrapper>
 </template>
 
 <script>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppApiKeysPage from '@/modules/settings/pages/api-keys-page'
-import UserListPage from '@/premium/user/pages/user-list-page'
-import AutomationListPage from '@/modules/automation/pages/automation-list-page'
+import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue'
+import AppPlansPage from '@/modules/settings/pages/plans-page.vue'
+import UserListPage from '@/premium/user/pages/user-list-page.vue'
+import AutomationListPage from '@/modules/automation/pages/automation-list-page.vue'
 import { UserPermissions } from '@/premium/user/user-permissions'
 import { mapGetters } from 'vuex'
 
@@ -45,6 +49,7 @@ export default {
   components: {
     AppPageWrapper,
     AppApiKeysPage,
+    AppPlansPage,
     'app-user-list-page': UserListPage,
     'app-automation-list-page': AutomationListPage
   },

@@ -1,12 +1,12 @@
 .badge {
-  @apply bg-gray-200 text-gray-900 px-2.5 text-xs py-1 rounded-md;
+  @apply bg-gray-200 text-gray-900 px-2.5 text-xs py-1 rounded-md  font-medium h-fit;
 
   &--sm {
     @apply px-1.5 py-0.5;
   }
 
   &--xs {
-    @apply text-3xs py-0.5 px-1;
+    @apply text-3xs leading-5 py-0.5 px-1;
   }
 
   &--green {
@@ -17,8 +17,12 @@
     @apply bg-purple-100 text-purple-900;
   }
 
-  &--brand {
+  &--light-brand {
     @apply bg-brand-50 text-brand-600;
+  }
+
+  &--brand {
+    @apply bg-brand-500 text-white;
   }
 
   &--black {
@@ -34,7 +38,7 @@
   }
 
   &--yellow {
-    @apply bg-yellow-100 text-yellow-900;
+    @apply bg-yellow-500 text-white;
   }
 
   &--light-yellow {
