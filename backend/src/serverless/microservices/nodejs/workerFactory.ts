@@ -12,6 +12,7 @@ import { AutomationTrigger, AutomationType } from '../../../types/automationType
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
+import { csvExportWorker } from './csv-export/csvExportWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -21,11 +22,13 @@ import webhookWorker from './automation/workers/webhookWorker'
  */
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
-  const { service, tenant } = event as any
+  const { service, tenant, entity, criteria, user } = event as any
 
   switch (service.toLowerCase()) {
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
+    case 'csv-export':
+      return csvExportWorker(entity, user, tenant, criteria)
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage
 

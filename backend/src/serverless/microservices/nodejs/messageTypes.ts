@@ -47,3 +47,7 @@ export type BaseOutput = { status: number; msg?: string }
 export interface AnalyticsEmailsOutput extends BaseOutput {
   emailSent: boolean
 }
+
+export enum ExportableEntity {
+  MEMBERS = 'members',
+}

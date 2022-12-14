@@ -200,6 +200,7 @@ export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
       templatePasswordReset: process.env.SENDGRID_TEMPLATE_PASSWORD_RESET,
       templateWeeklyAnalytics: process.env.SENDGRID_TEMPLATE_WEEKLY_ANALYTICS,
       templateIntegrationDone: process.env.SENDGRID_TEMPLATE_INTEGRATION_DONE,
+      templateCsvExport: process.env.SENDGRID_TEMPLATE_CSV_EXPORT,
     }
 
 export const NETLIFY_CONFIG: NetlifyConfiguration = KUBE_MODE

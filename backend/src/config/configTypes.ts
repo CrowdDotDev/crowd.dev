@@ -155,6 +155,7 @@ export interface SendgridConfiguration {
   templatePasswordReset: string
   templateWeeklyAnalytics: string
   templateIntegrationDone: string
+  templateCsvExport: string
   weeklyAnalyticsUnsubscribeGroupId: string
 }
 

@@ -31,6 +31,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-comprehend": "^3.159.0",
+    "@aws-sdk/hash-node": "^3.226.0",
+    "@aws-sdk/protocol-http": "^3.226.0",
+    "@aws-sdk/s3-request-presigner": "^3.229.0",
+    "@aws-sdk/url-parser": "^3.226.0",
     "@cubejs-client/core": "^0.30.4",
     "@google-cloud/storage": "5.3.0",
     "@octokit/auth-app": "^3.6.1",
@@ -65,6 +69,7 @@
     "formidable-serverless": "1.1.1",
     "helmet": "4.1.1",
     "html-to-text": "^8.2.1",
+    "json2csv": "^5.0.7",
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.21",
     "meilisearch": "^0.26.0",
