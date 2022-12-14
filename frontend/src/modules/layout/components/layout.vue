@@ -62,8 +62,8 @@
                 }}
                 getting set up.</span
               >
-              This might take a few minutes, we'll send you
-              an email once it's done.
+              Sit back and relax. We will send you an email
+              when it’s done.
             </div>
           </banner>
           <banner
