@@ -8,7 +8,7 @@ async function getToken(connectionId: string, providerConfigKey: string, logger:
     const secretKey = PIZZLY_CONFIG.secretKey
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + Buffer.from(secretKey + ':').toString('base64')
+      Authorization: 'Basic ' + Buffer.from(secretKey + ':').toString('base64'),
     }
 
     const params = {

@@ -11,8 +11,14 @@ export default async (req, res) => {
 
   if (req.query.subreddit) {
     try {
-      const result = await axios.get(`https://www.reddit.com/r/${req.query.subreddit}/new.json?limit=1`)
-      if (result.status === 200 && result.data.data.children && result.data.data.children.length > 0) {
+      const result = await axios.get(
+        `https://www.reddit.com/r/${req.query.subreddit}/new.json?limit=1`,
+      )
+      if (
+        result.status === 200 &&
+        result.data.data.children &&
+        result.data.data.children.length > 0
+      ) {
         return req.responseHandler.success(req, res, result.data.data.children)
       }
     } catch (e) {

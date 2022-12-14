@@ -201,7 +201,7 @@ export class IntegrationService {
 
     return response.data
   }
-  
+
   static async redditValidate(subreddit) {
     const tenantId = AuthCurrentTenant.get()
 

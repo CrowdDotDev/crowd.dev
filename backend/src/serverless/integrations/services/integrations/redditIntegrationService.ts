@@ -138,7 +138,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       posts.length > 0
         ? { value: stream.value, metadata: { ...(stream.metadata || {}), after: nextPage } }
         : undefined
-    
+
     // For each post, we need to create a stream to get its comments
     const newStreams = posts.map((post) => ({
       value: `comments:${post.data.id}`,
@@ -194,7 +194,14 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     for (const comment of comments) {
       // For each comment, we are using the recursive comment parser to get a list of activities and new streams (list of commentIds to expand)
-      const commentOut = this.recursiveCommentParser(comment.kind, comment.data, postId, stream, context, logger)
+      const commentOut = this.recursiveCommentParser(
+        comment.kind,
+        comment.data,
+        postId,
+        stream,
+        context,
+        logger,
+      )
       activities = activities.concat(commentOut.activities)
       newStreams = newStreams.concat(commentOut.newStreams)
     }
@@ -252,7 +259,14 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     for (const comment of comments) {
       // For each expanded comment in the response, we are using the recursive comment parser to get a list of activities and new streams (list of more comment IDs to expand)
-      const commentOut = this.recursiveCommentParser(comment.kind, comment.data, sourceParentId, stream, context, logger)
+      const commentOut = this.recursiveCommentParser(
+        comment.kind,
+        comment.data,
+        sourceParentId,
+        stream,
+        context,
+        logger,
+      )
       activities = activities.concat(commentOut.activities)
       newStreams = newStreams.concat(commentOut.newStreams)
     }
@@ -281,18 +295,18 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     }
   }
 
-/**
- * Recursively parse a comment. 
- * - If the comment is of type 'more', we need to create a new stream with all the IDs to expand
- * - Otherwise, add the comment to the activities output, and recurse its replies doing the same procedure
- * @param kind type of data, it will mark whether we have a comment, or a list of IDs to expand later
- * @param comment the comment to parse
- * @param sourceParentId the ID of the parent comment
- * @param stream full stream information
- * @param context full context information
- * @param logger a logger instance for structured logging
- * @returns a list of the comment and all the nested replies parsed as crowd.dev activities, and a list of new streams, which are comment IDs left to expand.
- */
+  /**
+   * Recursively parse a comment.
+   * - If the comment is of type 'more', we need to create a new stream with all the IDs to expand
+   * - Otherwise, add the comment to the activities output, and recurse its replies doing the same procedure
+   * @param kind type of data, it will mark whether we have a comment, or a list of IDs to expand later
+   * @param comment the comment to parse
+   * @param sourceParentId the ID of the parent comment
+   * @param stream full stream information
+   * @param context full context information
+   * @param logger a logger instance for structured logging
+   * @returns a list of the comment and all the nested replies parsed as crowd.dev activities, and a list of new streams, which are comment IDs left to expand.
+   */
   recursiveCommentParser(
     kind: string,
     comment: RedditComment | RedditMoreChildren,
@@ -301,7 +315,6 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
     logger: Logger,
   ): { activities: AddActivitiesSingle[]; newStreams: IIntegrationStream[] } {
-
     const out = { activities: [], newStreams: [] }
 
     // If the kind is 'more', instead of a comment we have a list of comment IDs to expand. We need to create streams for those and return them.
@@ -311,7 +324,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       // Split list into chunks of 99
       function* chunks<T>(arr: T[], n: number): Generator<T[], void> {
         for (let i = 0; i < arr.length; i += n) {
-          yield arr.slice(i, i + n);
+          yield arr.slice(i, i + n)
         }
       }
 
@@ -323,7 +336,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
             ...stream.metadata,
             sourceParentId,
             children: chunk,
-          }
+          },
         })
       }
 
@@ -334,7 +347,15 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     comment = comment as RedditComment
 
     // Parse the comment into an activity and append to the output
-    out.activities.push(this.parseComment(context.integration.tenantId, stream.metadata.channel, comment, sourceParentId, stream))
+    out.activities.push(
+      this.parseComment(
+        context.integration.tenantId,
+        stream.metadata.channel,
+        comment,
+        sourceParentId,
+        stream,
+      ),
+    )
 
     if (!comment.replies) {
       return out
@@ -344,7 +365,14 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       // For each reply, we need to recurse to get it parsed either as an activity or a new stream
       for (const replyWrapped of repliesWrapped) {
         const reply: RedditComment = replyWrapped.data
-        const { activities, newStreams } = this.recursiveCommentParser(replyWrapped.kind, reply, comment.id, stream, context, logger)
+        const { activities, newStreams } = this.recursiveCommentParser(
+          replyWrapped.kind,
+          reply,
+          comment.id,
+          stream,
+          context,
+          logger,
+        )
 
         // Concatenate the outputs
         out.activities = out.activities.concat(activities)
@@ -400,7 +428,13 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * @param sourceParentId the ID in Reddit of the parent comment or post
    * @returns a comment parsed as a crowd.dev activity
    */
-  parseComment(tenantId, channel, comment: RedditComment, sourceParentId: string, stream: IIntegrationStream): AddActivitiesSingle {
+  parseComment(
+    tenantId,
+    channel,
+    comment: RedditComment,
+    sourceParentId: string,
+    stream: IIntegrationStream,
+  ): AddActivitiesSingle {
     const activity = {
       tenant: tenantId,
       sourceId: comment.id.toString(),

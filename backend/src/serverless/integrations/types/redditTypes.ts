@@ -37,17 +37,17 @@ export interface RedditMoreCommentsInput {
   children: string[]
 }
 
-export interface  RedditComment extends RedditBase {
+export interface RedditComment extends RedditBase {
   body_html: string
   replies?: {
     kind: string
     data: {
-      children:[
+      children: [
         {
-              kind: string
-              data: RedditComment | RedditMoreChildren
-            },
-          ]
+          kind: string
+          data: RedditComment | RedditMoreChildren
+        },
+      ]
     }
   }
 }
