@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html'
+import he from 'he'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { RedditMemberAttributes } from '../../../../database/attributes/member/reddit'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -362,7 +363,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    */
   parsePost(tenantId, channel, post: RedditPost): AddActivitiesSingle {
     const body = post.selftext_html
-      ? sanitizeHtml(post.selftext_html)
+      ? sanitizeHtml(he.decode(post.selftext_html))
       : `<a href="${post.url}" target="__blank">${post.url}</a>`
     const activity = {
       tenant: tenantId,
@@ -407,7 +408,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       platform: PlatformType.REDDIT,
       timestamp: new Date(comment.created * 1000),
       sourceParentId,
-      body: sanitizeHtml(comment.body_html),
+      body: sanitizeHtml(he.decode(comment.body_html)),
       title: comment.title,
       url: `https://www.reddit.com${comment.permalink}`,
       channel,

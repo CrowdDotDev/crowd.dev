@@ -24,6 +24,7 @@ function create_pizzly_integration() {
         printf "The variables needed are: \n- CROWD_${KEY}_CLIENT_ID \n- CROWD_${KEY}_CLIENT_SECRET \n- CROWD_${KEY}_SCOPES"
         return
     else
+        export PIZZLY_SECRET_KEY=$CROWD_PIZZLY_SECRET_KEY
         printf "\nCreating $1 Integration with client ID: $clientId"    
         npx pizzly config:create $1 $1 $clientId $clientSecret "$scopes"
     fi
