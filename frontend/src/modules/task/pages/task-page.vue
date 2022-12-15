@@ -1,5 +1,5 @@
 <template>
-  <div class="px-6 lg:container lg:px-10">
+  <app-page-wrapper size="narrow">
     <!-- header -->
     <div class="flex justify-center">
       <div
@@ -48,7 +48,7 @@
         <app-task-suggested ref="suggestedTasks" />
       </div>
     </div>
-  </div>
+  </app-page-wrapper>
   <app-task-form
     v-model="openForm"
     :task="selectedTask"

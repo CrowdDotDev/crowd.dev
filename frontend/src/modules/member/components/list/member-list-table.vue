@@ -219,7 +219,7 @@
                 </template>
               </el-table-column>
 
-              <el-table-column width="80" fixed="right">
+              <el-table-column fixed="right">
                 <template #default="scope">
                   <div class="table-actions">
                     <app-member-dropdown

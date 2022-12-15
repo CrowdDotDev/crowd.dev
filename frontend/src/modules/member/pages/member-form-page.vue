@@ -103,7 +103,6 @@
 </template>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppMemberFormDetails from '@/modules/member/components/form/member-form-details.vue'
 import AppMemberFormIdentities from '@/modules/member/components/form/member-form-identities.vue'
 import AppMemberFormAttributes from '@/modules/member/components/form/member-form-attributes.vue'

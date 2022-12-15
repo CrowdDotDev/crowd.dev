@@ -94,13 +94,12 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppIntegrationList from './integration-list'
 
 export default {
   name: 'AppIntegrationListPage',
 
-  components: { AppPageWrapper, AppIntegrationList },
+  components: { AppIntegrationList },
 
   computed: {
     ...mapGetters({

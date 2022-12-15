@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="narrow">
     <div class="eagle-eye">
       <div class="eagle-eye-header">
         <div class="flex items-center">
@@ -47,7 +47,6 @@ export default {
 </script>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppEagleEyeTabs from '../components/eagle-eye-tabs'
 import AppEagleEyeList from '../components/eagle-eye-list'
 import AppEagleEyeFilter from '../components/eagle-eye-filter'

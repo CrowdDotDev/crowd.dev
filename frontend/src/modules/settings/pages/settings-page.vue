@@ -35,7 +35,6 @@
 </template>
 
 <script>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppApiKeysPage from '@/modules/settings/pages/api-keys-page.vue'
 import AppPlansPage from '@/modules/settings/pages/plans-page.vue'
 import UserListPage from '@/premium/user/pages/user-list-page.vue'
@@ -47,7 +46,6 @@ export default {
   name: 'AppSettingsPage',
 
   components: {
-    AppPageWrapper,
     AppApiKeysPage,
     AppPlansPage,
     'app-user-list-page': UserListPage,
