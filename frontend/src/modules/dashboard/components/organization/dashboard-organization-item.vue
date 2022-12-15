@@ -12,12 +12,9 @@
     </div>
   </article>
   <article v-else class="flex">
-    <router-link
-      class="flex items-center group"
-      :to="{
-        name: 'organizationView',
-        params: { id: organization.id }
-      }"
+    <div
+      class="flex items-center group hover:cursor-pointer"
+      @click="onOrganizationClick"
     >
       <app-avatar :entity="entity" size="xxs" />
       <div class="flex-grow pl-3">
@@ -32,16 +29,27 @@
           }}
         </p>
       </div>
-    </router-link>
+    </div>
   </article>
+  <app-paywall-modal
+    v-model="isUpgradeModalOpen"
+    module="organizations"
+  />
 </template>
 
 <script>
-import AppAvatar from '@/shared/avatar/avatar'
-import AppLoading from '@/shared/loading/loading-placeholder'
+import AppAvatar from '@/shared/avatar/avatar.vue'
+import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
+import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
+
 export default {
   name: 'AppDashboardOrganizationItem',
-  components: { AppLoading, AppAvatar },
+  components: { AppLoading, AppAvatar, AppPaywallModal },
   props: {
     organization: {
       type: Object,
@@ -54,11 +62,32 @@ export default {
       default: false
     }
   },
+  data() {
+    return {
+      isUpgradeModalOpen: false
+    }
+  },
   computed: {
     entity() {
       return {
         avatar: this.organization.logo,
         displayName: this.organization.name.replace('@', '')
+      }
+    }
+  },
+  methods: {
+    async onOrganizationClick() {
+      const isFlagEnabled = await isFeatureEnabled(
+        featureFlags.organizations
+      )
+
+      if (config.hasPremiumModules && isFlagEnabled) {
+        this.$router.push({
+          name: 'organizationView',
+          params: { id: this.organization.id }
+        })
+      } else {
+        this.isUpgradeModalOpen = true
       }
     }
   }

@@ -8,7 +8,9 @@ const CommunityHelpCenterPage = () =>
   )
 
 const CommunityHelpCenterPaywallPage = () =>
-  import('@/modules/layout/components/paywall-page.vue')
+  import(
+    '@/modules/layout/pages/temporary-paywall-page.vue'
+  )
 
 export default [
   {
