@@ -109,7 +109,8 @@ import {
   defineEmits,
   defineProps,
   computed,
-  ref
+  ref,
+  watch
 } from 'vue'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { useStore } from 'vuex'
@@ -193,6 +194,14 @@ const doReset = () => {
 
 const handleSubredditValidation = async (index) => {
   try {
+    let subreddit = model.value[index].value
+
+    subreddit = subreddit.replace('https://', '')
+    subreddit = subreddit.replace('http://', '')
+    subreddit = subreddit.replace('reddit.com', '')
+    subreddit = subreddit.replace('/r/', '')
+
+    model.value[index].value = subreddit
     model.value[index].validating = true
     const response =
       await IntegrationService.redditValidate(
@@ -214,11 +223,24 @@ const connect = async () => {
     config.pizzlyUrl,
     config.pizzlyPublishableKey
   )
-  await pizzly.auth('reddit', `${tenantId.value}-reddit`)
-  await store.dispatch('integration/doRedditOnboard', {
-    subreddits: model.value.map((i) => i.value)
-  })
+  try {
+    await pizzly.auth('reddit', `${tenantId.value}-reddit`)
+    await store.dispatch('integration/doRedditOnboard', {
+      subreddits: model.value.map((i) => i.value)
+    })
+    emit('update:modelValue', false)
+  } catch (e) {
+    console.log(e)
+  }
 }
+
+watch(isVisible, (newValue, oldValue) => {
+  if (newValue) {
+    window.analytics.track('Reddit Connect Drawer Opened')
+  } else if (newValue === false && oldValue) {
+    window.analytics.track('Reddit Connect Drawer Closed')
+  }
+})
 </script>
 
 <style lang="scss">

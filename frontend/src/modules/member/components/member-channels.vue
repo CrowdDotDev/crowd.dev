@@ -62,6 +62,15 @@
         :href="`https://news.ycombinator.com/user?id=${member.username.hackernews}`"
         :as-link="true"
       />
+      <app-platform
+        v-if="!!member.username?.reddit"
+        platform="reddit"
+        track-event-name="Reddit"
+        :has-tooltip="true"
+        tooltip-label="Reddit profile"
+        :href="`https://reddit.com/u/${member.username.reddit}`"
+        :as-link="true"
+      />
     </div>
 
     <el-divider
