@@ -2,6 +2,7 @@
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
+  CsvExportMessage,
   NewActivityAutomationMessage,
   NewMemberAutomationMessage,
   NodeMicroserviceMessage,
@@ -22,13 +23,19 @@ import { csvExportWorker } from './csv-export/csvExportWorker'
  */
 
 async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
-  const { service, tenant, entity, criteria, user } = event as any
+  const { service, tenant } = event as any
 
   switch (service.toLowerCase()) {
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
     case 'csv-export':
-      return csvExportWorker(entity, user, tenant, criteria)
+      const csvExportMessage = event as CsvExportMessage
+      return csvExportWorker(
+        csvExportMessage.entity,
+        csvExportMessage.user,
+        tenant,
+        csvExportMessage.criteria,
+      )
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage
 

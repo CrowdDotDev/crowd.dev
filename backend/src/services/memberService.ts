@@ -15,8 +15,12 @@ import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
 import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
-import { sendNewMemberNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import {
+  sendExportCSVNodeSQSMessage,
+  sendNewMemberNodeSQSMessage,
+} from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
+import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -647,6 +651,16 @@ export default class MemberService extends LoggingBase {
       { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
       this.options,
     )
+  }
+
+  async export(data) {
+    const result = await sendExportCSVNodeSQSMessage(
+      this.options.currentTenant.id,
+      this.options.currentUser.id,
+      ExportableEntity.MEMBERS,
+      data,
+    )
+    return result
   }
 
   async findMembersWithMergeSuggestions(args) {

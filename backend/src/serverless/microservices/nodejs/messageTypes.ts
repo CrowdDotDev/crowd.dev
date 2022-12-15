@@ -9,6 +9,12 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
   trigger: AutomationTrigger
 }
 
+export type CsvExportMessage = BaseNodeMicroserviceMessage & {
+  entity: ExportableEntity
+  user: string
+  criteria: any
+}
+
 export type ActivityAutomationData = {
   activityId?: string
   activity?: any

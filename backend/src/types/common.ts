@@ -15,6 +15,7 @@ export enum FeatureFlag {
   COMMUNITY_HELP_CENTER_PRO = 'community-help-center-pro',
   EAGLE_EYE = 'eagle-eye',
   ORGANIZATIONS = 'organizations',
+  CSV_EXPORT = 'csv-export',
 }
 
 export enum Edition {

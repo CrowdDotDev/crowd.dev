@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { parseAsync } from 'json2csv'
 import { HttpRequest } from '@aws-sdk/protocol-http'
 import { S3RequestPresigner } from '@aws-sdk/s3-request-presigner'
@@ -74,7 +75,7 @@ async function csvExportWorker(
 
   const csv = await parseAsync(data.rows, opts)
 
-  const key = `csv-exports/${Date.now()}_${entity}_${tenantId}.csv`
+  const key = `csv-exports/${moment().format('YYYY-MM-DD')}_${entity}_${tenantId}.csv`
 
   log.info({ tenantId, entity }, `Uploading csv to s3..`)
   const privateObjectUrl = await uploadToS3(csv, key)

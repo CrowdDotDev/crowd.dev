@@ -28,5 +28,5 @@ export default async function identifyTenant(req) {
     }
   }
 
-  setPosthogTenantProperties(req.currentTenant, req.posthog, req.database)
+  setPosthogTenantProperties(req.currentTenant, req.posthog, req.database, req.redis)
 }
