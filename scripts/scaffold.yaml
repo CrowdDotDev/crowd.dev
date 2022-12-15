@@ -93,18 +93,18 @@ services:
       - crowd-bridge
 
   pizzly:
-    image: nangohq/pizzly-server:0.3.7
+    image: nangohq/pizzly-server:0.4.0
     restart: always
     environment:
-      - PIZZLY_DB_HOST=db
-      - PIZZLY_DB_PORT=5432
-      - PIZZLY_DB_NAME=crowd-web
-      - PIZZLY_DB_USER=postgres
-      - PIZZLY_DB_PASSWORD=example
+      - NANGO_DB_HOST=db
+      - NANGO_DB_PORT=5432
+      - NANGO_DB_NAME=crowd-web
+      - NANGO_DB_USER=postgres
+      - NANGO_DB_PASSWORD=example
       - PIZZLY_SECRET_KEY=424242
       - PIZZLY_PUBLISHABLE_KEY=424242
     ports:
-        - '3004:3004'
+        - '3003:3003'
     networks:
       - crowd-bridge
 
