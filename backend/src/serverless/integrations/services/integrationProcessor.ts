@@ -260,6 +260,8 @@ export class IntegrationProcessor extends LoggingBase {
       let delay: number = 5
       let stopProcessing = false
 
+      let exit = false
+
       if (streams.length > 0) {
         logger.info({ streamCount: streams.length }, 'Detected streams to process!')
 
@@ -267,6 +269,18 @@ export class IntegrationProcessor extends LoggingBase {
         let processedCount = 0
         let notifyCount = 0
         while (streams.length > 0) {
+          if ((req as any).exiting) {
+            if (!req.onboarding) {
+              logger.warn('Stopped processing integration (not onboarding)!')
+              exit = true
+              break
+            } else {
+              logger.warn('Stopped processing integration (onboarding)!')
+              delay = 3 * 60
+              break
+            }
+          }
+
           const stream = streams.pop()
 
           processedCount++
@@ -384,9 +398,10 @@ export class IntegrationProcessor extends LoggingBase {
         // postprocess integration settings
         await intService.postprocess(stepContext, failedStreams, streams)
 
-        if (streams.length > 0 || failedStreams.length > 0) {
+        if (!exit && (streams.length > 0 || failedStreams.length > 0)) {
           logger.warn(
-            `${failedStreams.length} streams have not been successfully processed - retrying them with delay! We also have ${streams.length} remaining streams left to process!`,
+            { failed: failedStreams.length, remaining: streams.length },
+            'Integration processing finished - some streams were not processed!',
           )
 
           const existingRetryStreams = req.retryStreams || []
