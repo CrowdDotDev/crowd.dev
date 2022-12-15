@@ -45,6 +45,7 @@ import EmptyState from '@/shared/empty-state/empty-state'
 import Platform from '@/shared/platform/platform'
 import Drawer from '@/shared/drawer/drawer'
 import AppLoader from '@/shared/loading/loader'
+import AppPageWrapper from '@/shared/layout/page-wrapper'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -99,6 +100,7 @@ export default {
     'app-empty-state': EmptyState,
     'app-platform': Platform,
     'app-drawer': Drawer,
-    'app-loader': AppLoader
+    'app-loader': AppLoader,
+    'app-page-wrapper': AppPageWrapper
   }
 }

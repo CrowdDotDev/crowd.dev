@@ -68,7 +68,6 @@ import {
   defineExpose
 } from 'vue'
 
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'

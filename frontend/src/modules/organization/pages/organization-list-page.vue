@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
         <div class="flex items-center justify-between">
@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue'
 import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue'
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue'

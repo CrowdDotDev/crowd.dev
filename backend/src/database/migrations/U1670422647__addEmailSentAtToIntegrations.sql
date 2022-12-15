@@ -1,0 +1,1 @@
+ALTER TABLE public.integrations DROP COLUMN "emailSentAt";

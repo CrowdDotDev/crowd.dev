@@ -23,8 +23,7 @@ export const plans = {
     {
       key: crowdHostedPlans.growth,
       title: 'Growth',
-      description:
-        'Unlock community-led growth for your organization',
+      description: 'Grow your community',
       price: '$150/month',
       featuresNote: 'Everything in Essential, plus:',
       features: [
@@ -33,12 +32,13 @@ export const plans = {
         '10 active workflows & CSV exports per month',
         'Slack connect support'
       ],
-      sale: '🐦 Early bird offer: 25% off (billed annually)'
+      sale: '🐦 Early bird offer'
     },
     {
       key: crowdHostedPlans.enterprise,
       title: 'Custom',
-      description: 'Tailored to your exact requirements',
+      description:
+        'Unlock community-led growth for your company',
       price: 'from $850/month',
       featuresNote: 'Everything in Growth, plus:',
       features: [

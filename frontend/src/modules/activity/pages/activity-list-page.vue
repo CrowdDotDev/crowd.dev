@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="narrow">
     <div class="activity-list-page">
       <h4>
         <app-i18n
@@ -34,7 +34,6 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppActivityList from '@/modules/activity/components/activity-list'
 import AppConversationList from '@/modules/conversation/components/conversation-list'
 import AppActivityListTabs from '@/modules/activity/components/activity-list-tabs'
@@ -49,7 +48,6 @@ export default {
     AppActivityList,
     AppConversationList,
     AppActivityListTabs,
-    AppPageWrapper,
     AppActivityListFilter
   },
 

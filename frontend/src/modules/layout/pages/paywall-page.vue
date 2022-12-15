@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import { defineProps, computed } from 'vue'
 
 const props = defineProps({
