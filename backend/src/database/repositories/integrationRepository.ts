@@ -31,6 +31,7 @@ class IntegrationRepository {
           'settings',
           'integrationIdentifier',
           'importHash',
+          'emailSentAt',
         ]),
 
         tenantId: tenant.id,
@@ -78,6 +79,7 @@ class IntegrationRepository {
           'settings',
           'integrationIdentifier',
           'importHash',
+          'emailSentAt',
         ]),
 
         updatedById: currentUser.id,

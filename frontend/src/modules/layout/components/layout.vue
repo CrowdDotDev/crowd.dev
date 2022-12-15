@@ -23,7 +23,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowIntegrationsAlert"
+            v-if="shouldShowIntegrationsErrorAlert"
             variant="alert"
           >
             <div
@@ -39,6 +39,33 @@
               </router-link>
             </div>
           </banner>
+
+          <banner
+            v-if="shouldShowIntegrationsInProgressAlert"
+            variant="info"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              <div
+                v-loading="true"
+                class="w-4 h-4 mr-2"
+              ></div>
+              <span class="font-semibold mr-1"
+                >{{
+                  integrationsInProgressToString
+                }}
+                integration{{
+                  integrationsInProgress.length > 1
+                    ? 's are'
+                    : ' is'
+                }}
+                getting set up.</span
+              >
+              Sit back and relax. We will send you an email
+              when it’s done.
+            </div>
+          </banner>
           <banner
             v-if="shouldShowTenantCreatingAlert"
             variant="info"
@@ -50,9 +77,11 @@
                 v-loading="true"
                 class="w-4 h-4 mr-2"
               ></div>
-              Finishing your workspace setup. The data might
-              take a few minutes until it is completely
-              loaded.
+              <span class="font-semibold"
+                >Finishing your workspace setup.</span
+              >
+              The data might take a few minutes until it is
+              completely loaded.
             </div>
           </banner>
           <banner
@@ -133,7 +162,26 @@ export default {
       integrationsInProgress: 'integration/inProgress',
       integrationsWithErrors: 'integration/withErrors'
     }),
-    shouldShowIntegrationsAlert() {
+    integrationsInProgressToString() {
+      const arr = this.integrationsInProgress.map(
+        (i) => i.name
+      )
+      if (arr.length === 1) {
+        return arr[0]
+      } else if (arr.length === 2) {
+        return `${arr[0]} and ${arr[1]}`
+      } else {
+        return (
+          arr.slice(0, arr.length - 1).join(', ') +
+          ', and ' +
+          arr.slice(-1)
+        )
+      }
+    },
+    shouldShowIntegrationsInProgressAlert() {
+      return this.integrationsInProgress.length > 0
+    },
+    shouldShowIntegrationsErrorAlert() {
       return (
         this.integrationsWithErrors.length > 0 &&
         this.$route.name !== 'integration'
@@ -154,14 +202,15 @@ export default {
         moment().diff(
           moment(this.currentTenant.createdAt),
           'minutes'
-        ) <= 10
+        ) <= 2
       )
     },
     computedBannerWrapperClass() {
       return {
         'pt-16':
           this.shouldShowSampleDataAlert ||
-          this.shouldShowIntegrationsAlert ||
+          this.shouldShowIntegrationsErrorAlert ||
+          this.shouldShowIntegrationsInProgressAlert ||
           this.shouldShowTenantCreatingAlert ||
           this.shouldShowPMFSurveyAlert
       }
