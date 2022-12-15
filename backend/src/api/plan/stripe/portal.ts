@@ -20,7 +20,7 @@ export default async (req, res) => {
   }
 
   if (
-    currentTenant.plan !== Plans.values.free &&
+    currentTenant.plan !== Plans.values.essential &&
     currentTenant.planStatus !== 'cancel_at_period_end' &&
     currentTenant.planUserId !== currentUser.id
   ) {

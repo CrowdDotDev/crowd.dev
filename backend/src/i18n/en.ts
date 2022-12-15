@@ -169,6 +169,17 @@ const en = {
         hackernews: 'Hacker News',
       },
     },
+    automation: {
+      errors: {
+        planLimitExceeded: 'You have exceeded # of automations you can have in your plan.',
+      },
+    },
+  },
+
+  communityHelpCenter: {
+    errors: {
+      planNotSupportingCustomUrls: "Your plan {0} doesn't include custom urls.",
+    },
   },
 }
 

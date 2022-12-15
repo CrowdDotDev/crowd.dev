@@ -79,6 +79,10 @@ export interface SegmentConfiguration {
   writeKey: string
 }
 
+export interface PosthogConfiguration {
+  apiKey: string
+}
+
 export interface ApiConfiguration {
   port: number
   url: string

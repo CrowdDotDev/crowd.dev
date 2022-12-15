@@ -183,7 +183,7 @@ describe('ConversationService tests', () => {
     it('Should create a document representation of a conversation in the search engine', async () => {
       let mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.free,
+        Plans.values.essential,
         'a tenant name',
         '#tenantUrl',
       )
@@ -623,7 +623,7 @@ describe('ConversationService tests', () => {
     it('Should remove a conversation document from the search engine', async () => {
       let mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.free,
+        Plans.values.essential,
         'a tenant name',
         '#tenantUrl',
       )
@@ -737,7 +737,7 @@ describe('ConversationService tests', () => {
     it('Should publish/unpublish a conversation to search engine when published=true/false is sent', async () => {
       let mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.free,
+        Plans.values.essential,
         'a tenant name',
         '#tenantUrl',
       )
@@ -847,7 +847,7 @@ describe('ConversationService tests', () => {
     it('Should update settings in various entities and push these settings to search engine', async () => {
       let mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(
         db,
-        Plans.values.free,
+        Plans.values.essential,
         'a tenant name',
         '#tenantUrl',
       )

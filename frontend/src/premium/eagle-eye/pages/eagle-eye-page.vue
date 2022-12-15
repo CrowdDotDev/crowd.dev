@@ -2,11 +2,12 @@
   <app-page-wrapper>
     <div class="eagle-eye">
       <div class="eagle-eye-header">
-        <div class="flex items-start">
+        <div class="flex items-center">
           <h4>Eagle Eye</h4>
           <span
-            class="text-sm font-medium text-brand-500 ml-2"
-            >Free trial</span
+            v-if="currentTenant.isTrialPlan"
+            class="badge badge--sm badge--light-yellow ml-4"
+            >Growth (trial)</span
           >
         </div>
         <div class="text-xs text-gray-500">
@@ -47,9 +48,9 @@ export default {
 
 <script setup>
 import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppEagleEyeTabs from './eagle-eye-tabs'
-import AppEagleEyeList from './eagle-eye-list'
-import AppEagleEyeFilter from './eagle-eye-filter'
+import AppEagleEyeTabs from '../components/eagle-eye-tabs'
+import AppEagleEyeList from '../components/eagle-eye-list'
+import AppEagleEyeFilter from '../components/eagle-eye-filter'
 
 import { useStore } from 'vuex'
 import { computed } from 'vue'
@@ -62,6 +63,10 @@ const loading = computed(
 const activeView = computed(
   () => store.getters['eagleEye/activeView'].id
 )
+const currentTenant = computed(
+  () => store.getters['auth/currentTenant']
+)
+
 const shouldRenderInboxEmptyState = computed(() => {
   return (
     localStorage.getItem('eagleEye_keywords') === null &&

@@ -57,7 +57,6 @@ export default abstract class Indexable {
    * @param {Document} document document to be created
    */
   async createOrReplace(document: Document): Promise<void> {
-    await this.ensureIndexAttributes()
     await this.index.addDocuments([document])
   }
 

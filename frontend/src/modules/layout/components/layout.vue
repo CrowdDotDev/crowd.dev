@@ -84,6 +84,38 @@
               completely loaded.
             </div>
           </banner>
+          <banner
+            v-if="shouldShowPMFSurveyAlert"
+            variant="info"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              <div class="flex-1"></div>
+              <div class="">
+                Could you help us by answering a quick
+                survey? 😄
+                <button
+                  :data-tf-popup="typeformData.id"
+                  :data-tf-iframe-props="`title=${typeformData.title}`"
+                  data-tf-medium="snippet"
+                  class="btn btn--sm btn--primary ml-4"
+                  @click="hideTypeform()"
+                >
+                  Take survey
+                </button>
+              </div>
+              <div class="flex-1">
+                <div class="w-20 ml-auto">
+                  <button @click="hideTypeform()">
+                    <i
+                      class="ri-close-line text-gray-700"
+                    ></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </banner>
         </div>
         <router-view></router-view>
       </el-main>
@@ -98,6 +130,7 @@ import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import moment from 'moment'
+import config from '@/config'
 
 export default {
   name: 'AppLayout',
@@ -109,7 +142,14 @@ export default {
   data() {
     return {
       fetchIntegrationTimer: null,
-      loading: false
+      loading: false,
+      hideTypeformBanner: localStorage.getItem(
+        `hideTypeformBanner-${config.typeformId}`
+      ),
+      typeformData: {
+        id: config.typeformId,
+        title: config.typeformTitle
+      }
     }
   },
 
@@ -150,6 +190,13 @@ export default {
     shouldShowSampleDataAlert() {
       return this.currentTenant.hasSampleData
     },
+    shouldShowPMFSurveyAlert() {
+      return (
+        config.typeformId &&
+        config.typeformTitle &&
+        !this.hideTypeformBanner
+      )
+    },
     shouldShowTenantCreatingAlert() {
       return (
         moment().diff(
@@ -164,7 +211,8 @@ export default {
           this.shouldShowSampleDataAlert ||
           this.shouldShowIntegrationsErrorAlert ||
           this.shouldShowIntegrationsInProgressAlert ||
-          this.shouldShowTenantCreatingAlert
+          this.shouldShowTenantCreatingAlert ||
+          this.shouldShowPMFSurveyAlert
       }
     },
     elMainStyle() {
@@ -190,6 +238,12 @@ export default {
 
   async mounted() {
     identify(this.currentUser)
+    let recaptchaScript = document.createElement('script')
+    recaptchaScript.setAttribute(
+      'src',
+      '//embed.typeform.com/next/embed.js'
+    )
+    document.head.appendChild(recaptchaScript)
   },
 
   unmounted() {
@@ -200,6 +254,14 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu'
     }),
+
+    hideTypeform() {
+      this.hideTypeformBanner = true
+      localStorage.setItem(
+        `hideTypeformBanner-${config.typeformId}`,
+        true
+      )
+    },
 
     async handleDeleteSampleDataClick() {
       await ConfirmDialog({

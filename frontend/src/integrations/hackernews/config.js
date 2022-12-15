@@ -8,7 +8,7 @@ export default {
   backgroundColor: '#E5E7EB',
   borderColor: '#E5E7EB',
   description:
-    'Connect Hacker News get posts that mention your community and their comments.',
+    'Connect Hacker News to get posts as well as their comments mentioning your community.',
   image: '/images/hackernews.svg',
   connectComponent: HackerNewsConnect,
   activityMessage: HackerNewsActivityMessage,

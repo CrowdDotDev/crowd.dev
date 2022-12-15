@@ -66,6 +66,9 @@
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
+  "posthog": {
+    "apiKey": "CROWD_POSTHOG_API_KEY"
+  },
   "comprehend": {
     "aws": {
       "accountId": "CROWD_COMPREHEND_AWS_ACCOUNT_ID",

@@ -30,7 +30,10 @@
             }"
           >
             <h5 :id="titleId" :class="titleClass">
-              {{ title }}
+              <span v-if="typeof title === 'string'">
+                {{ title }}
+              </span>
+              <component :is="title" v-else />
             </h5>
             <div
               v-if="showLoadingIcon"
@@ -78,7 +81,7 @@ const props = defineProps({
     default: () => null
   },
   title: {
-    type: String,
+    type: [String, Node],
     required: true
   },
   size: {

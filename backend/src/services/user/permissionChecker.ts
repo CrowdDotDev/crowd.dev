@@ -161,7 +161,7 @@ export default class PermissionChecker {
    */
   get currentTenantPlan() {
     if (!this.currentTenant || !this.currentTenant.plan) {
-      return plans.free
+      return plans.essential
     }
 
     return this.currentTenant.plan

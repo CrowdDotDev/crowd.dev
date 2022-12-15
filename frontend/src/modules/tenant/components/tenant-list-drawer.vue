@@ -7,7 +7,7 @@
     <template #content>
       <div class="flex gap-4 border-b h-8 items-center">
         <div
-          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-70"
+          class="uppercase text-gray-400 text-2xs font-semibold tracking-wide w-60"
         >
           Name
         </div>
@@ -22,21 +22,22 @@
         :key="tenant.id"
         class="flex gap-4 items-center h-16"
       >
-        <div class="w-70 font-medium text-sm">
+        <div class="w-60 font-medium text-sm">
           {{ tenant.name }}
         </div>
         <div
-          class="flex items-center justify-between flex-grow"
+          class="flex items-center justify-between flex-grow gap-4"
         >
-          <span
-            class="badge text-xs"
-            :class="
-              tenant.plan === 'premium'
-                ? 'badge--purple'
-                : ''
-            "
-            >{{ planLabelOf(tenant.plan) }}</span
-          >
+          <div class="flex flex-col items-start gap-1">
+            <span class="text-sm">{{
+              getPlan(tenant.plan)
+            }}</span>
+            <span
+              v-if="getTrialDate(tenant)"
+              class="text-2xs text-yellow-600"
+              >{{ getTrialDate(tenant) }}</span
+            >
+          </div>
           <button
             class="el-dropdown-link btn rounder-md hover:bg-gray-200 w-8 py-1 flex items-center justify-center"
             type="button"
@@ -88,8 +89,9 @@ import {
   ref,
   reactive
 } from 'vue'
-import { i18n } from '@/i18n'
 import AppTenantForm from '@/modules/tenant/components/tenant-form'
+import config from '@/config'
+import { getTrialDate } from '@/utils/date'
 
 const store = useStore()
 
@@ -128,7 +130,11 @@ const handleSuccess = () => {
   emit('update:modelValue', false)
 }
 
-const planLabelOf = (plan) => {
-  return i18n(`plan.${plan}.label`)
+const getPlan = (plan) => {
+  if (config.isCommunityVersion) {
+    return 'Community'
+  }
+
+  return plan
 }
 </script>

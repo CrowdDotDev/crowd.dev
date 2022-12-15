@@ -4,9 +4,11 @@ import { IServiceOptions } from './IServiceOptions'
 import OrganizationRepository from '../database/repositories/organizationRepository'
 import MemberRepository from '../database/repositories/memberRepository'
 import { CLEARBIT_CONFIG, IS_TEST_ENV } from '../config'
+import telemetryTrack from '../segment/telemetryTrack'
 import organizationCacheRepository from '../database/repositories/organizationCacheRepository'
 import { enrichOrganization } from './helpers/enrichment'
 import { LoggingBase } from './loggingBase'
+import Plans from '../security/plans'
 
 export default class OrganizationService extends LoggingBase {
   options: IServiceOptions
@@ -17,7 +19,7 @@ export default class OrganizationService extends LoggingBase {
   }
 
   async shouldEnrich(enrichP) {
-    const isPremium = this.options.currentTenant.plan === 'premium'
+    const isPremium = this.options.currentTenant.plan === Plans.values.growth
     if (!isPremium) {
       return false
     }
@@ -102,6 +104,14 @@ export default class OrganizationService extends LoggingBase {
           ...this.options,
           transaction,
         })
+        telemetryTrack(
+          'Organization created',
+          {
+            id: record.id,
+            createdAt: record.createdAt,
+          },
+          this.options,
+        )
       }
 
       await SequelizeRepository.commitTransaction(transaction)

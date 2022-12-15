@@ -65,7 +65,7 @@ export default class UserDestroyer {
   async _isRemovingPlanUser() {
     const { currentTenant } = this.options
 
-    if (currentTenant.plan === Plans.values.free) {
+    if (currentTenant.plan === Plans.values.essential) {
       return false
     }
 
