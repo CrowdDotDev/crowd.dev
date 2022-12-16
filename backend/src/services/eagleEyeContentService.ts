@@ -4,7 +4,7 @@ import { API_CONFIG } from '../config'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
-import Error400 from '../errors/Error403'
+import Error400 from '../errors/Error400'
 import track from '../segment/track'
 import { LoggingBase } from './loggingBase'
 
