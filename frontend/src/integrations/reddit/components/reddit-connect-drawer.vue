@@ -11,16 +11,6 @@
   >
     <template #content>
       <div class="flex flex-col gap-2 items-start mb-2">
-        <span class="text-xs font-light mb-2 text-gray-900">
-          Monitor posts, and their comments, posted in your
-          community's subreddits.<br />
-          <a
-            href="https://docs.crowd.dev/docs/reddit-integration"
-            target="__blank"
-          >
-            Read more</a
-          >.
-        </span>
       </div>
       <el-form
         label-position="top"
@@ -29,13 +19,12 @@
       >
         <div class="flex flex-col gap-2 items-start">
           <span class="block text-sm font-semibold mb-2"
-            >Subreddits</span
+            >Track subreddits</span
           >
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
-            Select all your community's subreddits. You can
-            also copy and paste the URL. <br />
+            Monitor posts, and their comments, from your community's subreddits. <br />
           </span>
           <el-form-item
             v-for="(subreddit, index) of model"
