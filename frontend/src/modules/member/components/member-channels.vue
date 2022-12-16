@@ -116,7 +116,8 @@ const hasSocialIdentities = computed(
     !!props.member.username?.devto ||
     !!props.member.username?.discord ||
     !!props.member.username?.slack ||
-    !!props.member.username?.hackernews
+    !!props.member.username?.hackernews ||
+    !!props.member.username?.reddit
 )
 const showDivider = computed(
   () => props.member.email && hasSocialIdentities.value
