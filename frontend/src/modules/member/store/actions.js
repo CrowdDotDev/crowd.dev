@@ -15,13 +15,9 @@ export default {
     let filter
     if (selected) {
       filter = {
-        and: [
-          {
-            memberIds: [
-              getters.selectedRows.map((i) => i.id)
-            ]
-          }
-        ]
+        id: {
+          in: [getters.selectedRows.map((i) => i.id)]
+        }
       }
     } else {
       filter = getters.activeView.filter
@@ -30,12 +26,10 @@ export default {
     try {
       commit('EXPORT_STARTED', filter)
 
-      const activeView = getters.activeView
-
       await MemberService.export(
-        activeView.filter,
+        filter,
         getters.orderBy,
-        null,
+        0,
         null,
         !selected // build API payload if selected === false
       )
@@ -46,7 +40,12 @@ export default {
         message:
           'The CSV file was sent to your e-mail in order for you to download it',
         icon: 'ri-file-download-line',
-        confirmButtonText: 'Continue'
+        confirmButtonText: 'Continue',
+        label: selected
+          ? `${getters.selectedRows.length} member${
+              getters.selectedRows.length === 1 ? '' : 's'
+            }`
+          : getters.activeView.label
       })
     } catch (error) {
       Errors.handle(error)

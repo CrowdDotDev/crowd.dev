@@ -5,6 +5,7 @@ export default async ({
   type = 'info',
   title = 'Title',
   message = 'Message',
+  label = undefined,
   customClass = 'information-dialog',
   confirmButtonText = 'Upgrade plan',
   confirmButtonClass = 'btn btn--md btn--primary w-full',
@@ -26,9 +27,7 @@ export default async ({
 
   const content = h(
     'div', // type
-    {
-      class: 'flex flex-col'
-    }, // props
+    {}, // props
     [
       h(
         'div',
@@ -77,9 +76,14 @@ export default async ({
       ),
       h('h6', {
         innerHTML: title,
-        class: 'text-black mb-3'
+        class: 'text-black mb-2'
       }),
-
+      label
+        ? h('div', {
+            class: 'badge badge--sm mb-4 inline-flex',
+            innerHTML: label
+          })
+        : undefined,
       h('p', {
         innerHTML: message,
         class: 'text-gray-500 text-sm'
