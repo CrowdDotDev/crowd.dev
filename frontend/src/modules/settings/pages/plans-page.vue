@@ -1,5 +1,14 @@
 <template>
   <div class="panel mt-6">
+    <div class="flex grow justify-end mb-4">
+      <el-button
+        class="btn btn--bordered flex items-center gap-2"
+        @click="onManageBillingClick"
+        ><i class="ri-external-link-line" /><span
+          >Manage billing & payments</span
+        ></el-button
+      >
+    </div>
     <div class="flex gap-4">
       <div
         v-for="plan in plansList"
@@ -244,6 +253,13 @@ const handleOnCtaClick = (plan) => {
     isPlanModalOpen.value = true
     planModalTitle.value = getCtaContent(plan)
   }
+}
+
+const onManageBillingClick = () => {
+  window.open(
+    'https://billing.stripe.com/p/login/fZedUl4oO70D98sdQQ',
+    '_blank'
+  )
 }
 
 const getTrialDate = () => {

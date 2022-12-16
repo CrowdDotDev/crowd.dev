@@ -1,18 +1,9 @@
 <template>
   <app-page-wrapper>
     <div class="settings">
-      <div class="flex grow justify-between items-center">
-        <h4>
-          <app-i18n code="settings.title"></app-i18n>
-        </h4>
-        <a
-          v-if="activeTab === 'plans'"
-          class="btn btn--md btn-link btn-link--primary"
-          target="_blank"
-          href="https://billing.stripe.com/p/login/fZedUl4oO70D98sdQQ"
-          >Access customer portal</a
-        >
-      </div>
+      <h4>
+        <app-i18n code="settings.title"></app-i18n>
+      </h4>
       <el-tabs v-model="computedActiveTab" class="mt-10">
         <el-tab-pane
           v-if="hasUsersModule"
