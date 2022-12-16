@@ -107,3 +107,9 @@ def keyword_match_main(ndays, exclude, exact_keywords, platform):
         out.append(transformed)
     out = remove_duplicates(out)
     return json.dumps(out)
+
+
+if __name__ == '__main__':
+    exclude = ['79306587', '99076798', '38567829', '64452224', '52123344', '2807708']
+    # exclude = []
+    print(search_main(['Natural language processing'], 10, exclude, []))
