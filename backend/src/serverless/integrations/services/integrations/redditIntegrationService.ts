@@ -322,7 +322,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       comment = comment as RedditMoreChildren
 
       // Split list into chunks of 99
-    // eslint-disable-next-line no-inner-declarations
+      // eslint-disable-next-line no-inner-declarations
       function* chunks<T>(arr: T[], n: number): Generator<T[], void> {
         for (let i = 0; i < arr.length; i += n) {
           yield arr.slice(i, i + n)
@@ -360,7 +360,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     if (!comment.replies) {
       return out
-    } 
+    }
     const repliesWrapped = comment.replies.data.children as any
 
     // For each reply, we need to recurse to get it parsed either as an activity or a new stream
