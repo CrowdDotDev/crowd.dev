@@ -6,8 +6,7 @@ import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
-import PlanLimitDialog from '@/shared/dialog/plan-limit-dialog'
-import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import InformationDialog from '@/shared/dialog/information-dialog'
 
 export default {
   ...sharedActions('member', MemberService),
@@ -42,16 +41,12 @@ export default {
       )
       commit('EXPORT_SUCCESS')
 
-      await ConfirmDialog({
-        type: 'success',
-        title: 'Export is being processed',
+      await InformationDialog({
+        title: 'Export CSV',
         message:
-          "The requested export will be sent to your e-mail inbox once it's done.",
-        showCancelButton: false,
-        showClose: false,
-        customClass: 'confirm-dialog',
-        icon: 'ri-check-line',
-        confirmButtonText: 'Sounds good!'
+          'The CSV file was sent to your e-mail in order for you to download it',
+        icon: 'ri-file-download-line',
+        confirmButtonText: 'Continue'
       })
     } catch (error) {
       Errors.handle(error)
@@ -59,10 +54,15 @@ export default {
       commit('EXPORT_ERROR')
 
       if (error.response.status === 403) {
-        await PlanLimitDialog(
-          'Export request failed',
-          error.response.data
-        )
+        await InformationDialog({
+          type: 'danger',
+          title:
+            'You have reached the limit of 2 CSV exports per month on your current plan',
+          message:
+            'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
+          confirmButtonText: 'Upgrade plan'
+        })
+        router.push('settings?activeTab=plans')
       } else {
         Message.error(
           'There was an error exporting members'
