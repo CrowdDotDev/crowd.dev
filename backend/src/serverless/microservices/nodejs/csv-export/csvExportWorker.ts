@@ -65,7 +65,7 @@ async function csvExportWorker(
   }
 
   if (!data || !data.rows) {
-    const message = `Unable to retrieve data to export as CSV, exiting..` 
+    const message = `Unable to retrieve data to export as CSV, exiting..`
     log.error(message)
     return {
       status: 400,
