@@ -7,6 +7,7 @@ import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
 import PlanLimitDialog from '@/shared/dialog/plan-limit-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 export default {
   ...sharedActions('member', MemberService),
@@ -41,9 +42,17 @@ export default {
       )
       commit('EXPORT_SUCCESS')
 
-      Message.success(
-        "The requested export will be sent to your e-mail inbox once it's done."
-      )
+      await ConfirmDialog({
+        type: 'success',
+        title: 'Export is being processed',
+        message:
+          "The requested export will be sent to your e-mail inbox once it's done.",
+        showCancelButton: false,
+        showClose: false,
+        customClass: 'confirm-dialog',
+        icon: 'ri-check-line',
+        confirmButtonText: 'Sounds good!'
+      })
     } catch (error) {
       Errors.handle(error)
 

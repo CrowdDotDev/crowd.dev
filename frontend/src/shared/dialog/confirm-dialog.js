@@ -23,6 +23,9 @@ export default ({
   } else if (type === 'info') {
     iconColorClass = 'text-gray-500'
     iconBgColorClass = 'bg-gray-100'
+  } else if (type === 'success') {
+    iconColorClass = 'text-green-500'
+    iconBgColorClass = 'bg-green-100'
   }
 
   const MessageWithWarnignIcon = h(
