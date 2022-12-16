@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
         <div class="flex items-center justify-between">
@@ -41,7 +41,6 @@
 </template>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs'
 import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter'
 import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table'

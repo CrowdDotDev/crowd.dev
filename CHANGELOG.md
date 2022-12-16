@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.12.0 - 2022-12-13
+
+### Changes
+
+- Fix identities for hackernews integration @joanagmaia (#313)
+
+### 🚀 Features
+
+#### Pricing and feature flagging
+
+We are getting ready to make pricing possible so we can continue building crowd.dev for you. This week we introduced our infrastructure for pricing. You can check the full pricing details on our [website](https://crowd.dev/pricing). All tenants have been set to a free trial of the growth plan, which lasts until the 15th of January. After that, you will need to get a subscription to access the growth features.
+
+With this, we have introduced feature flagging, so we can also roll out features gradually, with more testing and performance.
+
+- Integrate posthog in frontend @joanagmaia (#335)
+- Tenant plans and feature flagging @epipav (#318)
+
+### ✨ Improvements
+
+- Upped thresholds for merge suggestions and included `email` and `displayName` in the computation @joanreyero (#336)
+- Add a search button to EagleEye to avoid making too many requests. Before, we searched every time there was a keyword change, causing performance issues. @mariobalca (#321)
+- Render markdown in activities that have a markdown-based body @joanagmaia (#310)
+- Decreased the pre-aggregation frequency in Cube.js to 10 minutes @epipav (#342)
+
+### 🐞 Bug Fixes
+
+- Remove the *index attributes* call when creating a document in Meilisearch @epipav (#346)
+- Better logging for the Python Eagle Eye API for debugging purposes @joanreyero (#316)
+- Fix type when trimming members' emails @epipav (#347)
+- Preserve the old member email when doing an `upsert` if we receive an empty string from an integration @themarolt (#345)
+- Fix the *related member* input showing blank when updating or creating a task @joanagmaia (#337)
+- Twitter integration: stop processing hashtags if there are no posts with such hashtag @themarolt (#327)
+- Detect which channel a Discord thread started from @themarolt (#322)
+- Fix the increment in number-type metrics in the dashboard @joanagmaia (#326)
+- Move Qdrant to the cloud version for better performance @joanreyero (#320)
+- Exclude our internal tenants from telemetry, and add telemetry events for organizations and integrations @joanreyero (#317)
+- Make sure that we call AWS Comprehend API with a `utf-8` string. @themarolt (#315)
+- Properly handle GitHub's rate limit @themarolt (#311)
+
 ## v0.11.0 - 2022-12-05
 
 ### Changes
@@ -16,7 +55,6 @@ The Hacker News integration will detect any post that mentions your community in
 
 <img width="1195" alt="Screenshot 2022-12-05 at 18 28 56" src="https://user-images.githubusercontent.com/37874460/205703080-12358262-f798-49d3-9940-1757e6e2dfe4.png">
 ### ✨ Improvements
-
 - Better accuracy in Eagle Eye for Hacker News suggestions @joanreyero (#267)
 
 ### 🐞 Bug Fixes
@@ -69,7 +107,6 @@ Member profiles now show you everything you need to know about an individual in 
 We now show you the total organizations that have been identified in your community, we also update you on any new organizations that are popping up in your community, as well as show you all the active organizations (organizations where members have been active in a given time period). Expect standalone pages for organizations very soon.
 :dart:  Powerful filters, sorts, and views
 Our new powerful filters, sorts and views instantly help you to segment, research, and understand your community more effectively. We have included default views, for example, “slipping away” to identify valuable members that may need some extra attention or “influential” to find individuals with high reach.
-
 :thermometer: Sentiment analysis
 We’ve built a model to conduct sentiment analysis for all activities in your community to show you how members are feeling, so you can take informed actions.
 
@@ -117,7 +154,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -144,7 +183,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Twitter follow activities were generating different `sourceIds` when `onboarding:true/false`. This was causing duplicate activities on some edge cases. Now twitter follow activities generate the same `sourceIds` with fixed timestamps, independent of `onboarding:true/false` @epipav (#38)
 - The dynamic endpoints were not passed to consecutive lambda runs when 15 minute time limit was reached. Endpoints are now passed to new lambdas successfully @epipav  (#50)
 ## v0.6.0 - 2022-08-31
-
 ### Changes
 
 ### 🚀 Features
@@ -158,7 +196,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -179,7 +219,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Weekly summary email is now sent to all the workspace users, not just one. @epipav (#10)
 ## v0.5.0 - 2022-08-25
 ### Changes
-
 - Bumped up version to match pre-OSS version.
 
 ### ✨ Enhancements

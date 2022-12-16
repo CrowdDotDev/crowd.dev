@@ -1,5 +1,5 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
         <div class="flex items-center justify-between">
@@ -71,7 +71,7 @@ import { MemberService } from '../member-service'
 import MemberListFilter from '@/modules/member/components/list/member-list-filter.vue'
 import MemberListTable from '@/modules/member/components/list/member-list-table.vue'
 import MemberListTabs from '@/modules/member/components/list/member-list-tabs.vue'
-import PageWrapper from '@/modules/layout/components/page-wrapper.vue'
+import PageWrapper from '@/shared/layout/page-wrapper.vue'
 import { mapGetters, mapActions } from 'vuex'
 import { MemberPermissions } from '../member-permissions'
 

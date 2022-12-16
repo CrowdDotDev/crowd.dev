@@ -27,7 +27,6 @@
 
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
 import ReportListTable from '@/modules/report/components/report-list-table.vue'
 import AppReportCreateDialog from '@/modules/report/components/report-create-dialog'
 import { ReportPermissions } from '@/modules/report/report-permissions'
@@ -36,7 +35,6 @@ export default {
   name: 'AppReportListPage',
 
   components: {
-    AppPageWrapper,
     AppReportCreateDialog,
     'app-report-list-table': ReportListTable
   },

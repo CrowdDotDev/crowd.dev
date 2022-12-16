@@ -41,6 +41,9 @@ export default (sequelize) => {
           len: [0, 255],
         },
       },
+      emailSentAt: {
+        type: DataTypes.DATE,
+      },
     },
     {
       indexes: [
