@@ -32,7 +32,7 @@
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import { ActivityPermissions } from '@/modules/activity/activity-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppActivityDropdown',

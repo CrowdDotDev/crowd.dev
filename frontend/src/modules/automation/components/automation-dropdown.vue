@@ -50,7 +50,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { AutomationPermissions } from '@/modules/automation/automation-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppAutomationDropdown',

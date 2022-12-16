@@ -92,7 +92,7 @@ import {
   mapGetters,
   mapMutations
 } from '@/shared/vuex/vuex.helpers'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { TaskPermissions } from '@/modules/task/task-permissions'
 import AppDrawer from '@/shared/drawer/drawer'
 const props = defineProps({

@@ -69,6 +69,30 @@ export class MemberService {
     return response.data
   }
 
+  static async export(
+    filter,
+    orderBy,
+    limit,
+    offset,
+    buildFilter = true
+  ) {
+    const body = {
+      filter: buildFilter ? buildApiFilter(filter) : filter,
+      orderBy,
+      limit,
+      offset
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/member/export`,
+      body
+    )
+
+    return response.data
+  }
+
   static async find(id) {
     const tenantId = AuthCurrentTenant.get()
 

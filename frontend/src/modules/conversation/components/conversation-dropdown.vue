@@ -61,7 +61,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import Message from '@/shared/message/message'
 import config from '@/config'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppConversationDropdown',

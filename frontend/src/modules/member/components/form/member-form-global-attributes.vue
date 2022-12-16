@@ -119,7 +119,7 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import parseCustomAttributes from '@/shared/fields/parse-custom-attributes.js'

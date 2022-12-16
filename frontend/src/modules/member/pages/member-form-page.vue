@@ -124,7 +124,7 @@ import {
   onBeforeRouteLeave
 } from 'vue-router'
 import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 import getCustomAttributes from '@/shared/fields/get-custom-attributes.js'
 import getAttributesModel from '@/shared/attributes/get-attributes-model.js'

@@ -119,7 +119,7 @@ import {
   useRouter
 } from 'vue-router'
 import isEqual from 'lodash/isEqual'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { useStore } from 'vuex'
 
 const LoaderIcon = h(

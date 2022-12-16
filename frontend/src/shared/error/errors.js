@@ -53,6 +53,11 @@ export default class Errors {
     }
 
     if (selectErrorCode(error) === 403) {
+      if (error.config.url.includes('member/export')) {
+        // we'll be handling these differently
+        return
+      }
+
       if (
         error.response.data.includes('Missing scopes in ')
       ) {

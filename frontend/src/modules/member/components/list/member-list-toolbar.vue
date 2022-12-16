@@ -56,7 +56,7 @@
 import { mapGetters, mapActions, mapState } from 'vuex'
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
 import { MemberPermissions } from '@/modules/member/member-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppMemberListToolbar',
@@ -131,7 +131,7 @@ export default {
 
     async handleDoExport() {
       try {
-        await this.doExport()
+        await this.doExport(true)
       } catch (error) {
         console.log(error)
       }

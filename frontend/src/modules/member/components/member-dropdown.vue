@@ -115,7 +115,7 @@ import { mapActions, mapGetters } from 'vuex'
 import { MemberService } from '@/modules/member/member-service'
 import Message from '@/shared/message/message'
 import { MemberPermissions } from '@/modules/member/member-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue'
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue'
 
