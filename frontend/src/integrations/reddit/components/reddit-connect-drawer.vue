@@ -10,53 +10,73 @@
     @close="isVisible = false"
   >
     <template #content>
+      <div class="flex flex-col gap-2 items-start mb-2">
+        <span class="text-xs font-light mb-2 text-gray-900">
+          Monitor posts, and their comments, posted in your
+          community's subreddits.<br />
+          <a
+            href="https://docs.crowd.dev/docs/reddit-integration"
+            target="__blank"
+          >
+            Read more</a
+          >.
+        </span>
+      </div>
       <el-form
         label-position="top"
         class="form integration-reddit-form"
         @submit.prevent
       >
-        <span class="block text-sm font-semibold mb-2"
-          >Subreddits</span
-        >
-        <el-form-item
-          v-for="(subreddit, index) of model"
-          :key="index"
-        >
-          <div class="flex w-full gap-2">
-            <el-input
-              v-model="subreddit.value"
-              @blur="handleSubredditValidation(index)"
-            >
-              <template #prepend>reddit.com/r/</template>
-              <template #suffix>
-                <div
-                  v-if="subreddit.validating"
-                  v-loading="subreddit.validating"
-                  class="flex items-center justify-center w-6 h-6"
-                ></div>
-              </template>
-            </el-input>
-            <el-button
-              v-if="model.length > 1"
-              class="btn btn--md btn--transparent w-10 h-10"
-              @click="deleteItem(index)"
-            >
-              <i
-                class="ri-delete-bin-line text-lg text-black"
-              ></i>
-            </el-button>
-          </div>
-          <span
-            v-if="subreddit.touched && !subreddit.valid"
-            class="el-form-item__error pt-1"
-            >Subreddit does not exist</span
+        <div class="flex flex-col gap-2 items-start">
+          <span class="block text-sm font-semibold mb-2"
+            >Subreddits</span
           >
-        </el-form-item>
-        <el-button
-          class="btn btn-link btn-link--primary"
-          @click="addItem"
-          >+ Add subreddit</el-button
-        >
+          <span
+            class="text-2xs font-light mb-2 text-gray-600"
+          >
+            Select all your community's subreddits. You can
+            also copy and paste the URL. <br />
+          </span>
+          <el-form-item
+            v-for="(subreddit, index) of model"
+            :key="index"
+          >
+            <div class="flex w-full gap-2">
+              <el-input
+                v-model="subreddit.value"
+                @blur="handleSubredditValidation(index)"
+              >
+                <template #prepend>reddit.com/r/</template>
+                <template #suffix>
+                  <div
+                    v-if="subreddit.validating"
+                    v-loading="subreddit.validating"
+                    class="flex items-center justify-center w-6 h-6"
+                  ></div>
+                </template>
+              </el-input>
+              <el-button
+                v-if="model.length > 1"
+                class="btn btn--md btn--transparent w-10 h-10"
+                @click="deleteItem(index)"
+              >
+                <i
+                  class="ri-delete-bin-line text-lg text-black"
+                ></i>
+              </el-button>
+            </div>
+            <span
+              v-if="subreddit.touched && !subreddit.valid"
+              class="el-form-item__error pt-1"
+              >Subreddit does not exist</span
+            >
+          </el-form-item>
+          <el-button
+            class="btn btn-link btn-link--primary"
+            @click="addItem"
+            >+ Add subreddit</el-button
+          >
+        </div>
       </el-form>
     </template>
 

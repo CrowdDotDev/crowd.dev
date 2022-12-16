@@ -20,6 +20,7 @@ export default async (req, res) => {
         result.data.data.children &&
         result.data.data.children.length > 0
       ) {
+        console.log('here')
         track(req, 'Reddit: subreddit input', {
           subreddit: req.query.subreddit,
           valid: true,
