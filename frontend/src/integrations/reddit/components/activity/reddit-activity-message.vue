@@ -4,8 +4,8 @@
       :code="computedMessage"
       :fallback="'entities.activity.fallback'"
     ></app-i18n>
-    <span v-if="isComment">
-      on a post
+    <span v-if="isComment && !short">
+      on
       <a :href="activity.url" target="_blank">{{
         computedParentTitle
           ? computedParentTitle
@@ -16,6 +16,7 @@
         >/r/{{ activity.channel }}</a
       >
     </span>
+    <span v-if="isComment && short"> on a post </span>
     <span v-else class="ml-1"
       >in subreddit
       <a :href="computedSubredditUrl" target="_blank">
@@ -35,6 +36,11 @@ export default {
     activity: {
       type: Object,
       required: true
+    },
+    short: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   computed: {
