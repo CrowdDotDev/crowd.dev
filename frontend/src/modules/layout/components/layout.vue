@@ -23,7 +23,7 @@
             </div>
           </banner>
           <banner
-            v-if="shouldShowIntegrationsAlert"
+            v-if="shouldShowIntegrationsErrorAlert"
             variant="alert"
           >
             <div
@@ -39,6 +39,33 @@
               </router-link>
             </div>
           </banner>
+
+          <banner
+            v-if="shouldShowIntegrationsInProgressAlert"
+            variant="info"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              <div
+                v-loading="true"
+                class="w-4 h-4 mr-2"
+              ></div>
+              <span class="font-semibold mr-1"
+                >{{
+                  integrationsInProgressToString
+                }}
+                integration{{
+                  integrationsInProgress.length > 1
+                    ? 's are'
+                    : ' is'
+                }}
+                getting set up.</span
+              >
+              Sit back and relax. We will send you an email
+              when it’s done.
+            </div>
+          </banner>
           <banner
             v-if="shouldShowTenantCreatingAlert"
             variant="info"
@@ -50,9 +77,43 @@
                 v-loading="true"
                 class="w-4 h-4 mr-2"
               ></div>
-              Finishing your workspace setup. The data might
-              take a few minutes until it is completely
-              loaded.
+              <span class="font-semibold"
+                >Finishing your workspace setup.</span
+              >
+              The data might take a few minutes until it is
+              completely loaded.
+            </div>
+          </banner>
+          <banner
+            v-if="shouldShowPMFSurveyAlert"
+            variant="info"
+          >
+            <div
+              class="flex items-center justify-center grow text-sm"
+            >
+              <div class="flex-1"></div>
+              <div class="">
+                Could you help us by answering a quick
+                survey? 😄
+                <button
+                  :data-tf-popup="typeformData.id"
+                  :data-tf-iframe-props="`title=${typeformData.title}`"
+                  data-tf-medium="snippet"
+                  class="btn btn--sm btn--primary ml-4"
+                  @click="hideTypeform()"
+                >
+                  Take survey
+                </button>
+              </div>
+              <div class="flex-1">
+                <div class="w-20 ml-auto">
+                  <button @click="hideTypeform()">
+                    <i
+                      class="ri-close-line text-gray-700"
+                    ></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </banner>
         </div>
@@ -69,6 +130,7 @@ import Banner from '@/shared/banner/banner.vue'
 import identify from '@/shared/segment/identify'
 import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
 import moment from 'moment'
+import config from '@/config'
 
 export default {
   name: 'AppLayout',
@@ -80,7 +142,14 @@ export default {
   data() {
     return {
       fetchIntegrationTimer: null,
-      loading: false
+      loading: false,
+      hideTypeformBanner: localStorage.getItem(
+        `hideTypeformBanner-${config.typeformId}`
+      ),
+      typeformData: {
+        id: config.typeformId,
+        title: config.typeformTitle
+      }
     }
   },
 
@@ -93,7 +162,26 @@ export default {
       integrationsInProgress: 'integration/inProgress',
       integrationsWithErrors: 'integration/withErrors'
     }),
-    shouldShowIntegrationsAlert() {
+    integrationsInProgressToString() {
+      const arr = this.integrationsInProgress.map(
+        (i) => i.name
+      )
+      if (arr.length === 1) {
+        return arr[0]
+      } else if (arr.length === 2) {
+        return `${arr[0]} and ${arr[1]}`
+      } else {
+        return (
+          arr.slice(0, arr.length - 1).join(', ') +
+          ', and ' +
+          arr.slice(-1)
+        )
+      }
+    },
+    shouldShowIntegrationsInProgressAlert() {
+      return this.integrationsInProgress.length > 0
+    },
+    shouldShowIntegrationsErrorAlert() {
       return (
         this.integrationsWithErrors.length > 0 &&
         this.$route.name !== 'integration'
@@ -102,20 +190,29 @@ export default {
     shouldShowSampleDataAlert() {
       return this.currentTenant.hasSampleData
     },
+    shouldShowPMFSurveyAlert() {
+      return (
+        config.typeformId &&
+        config.typeformTitle &&
+        !this.hideTypeformBanner
+      )
+    },
     shouldShowTenantCreatingAlert() {
       return (
         moment().diff(
           moment(this.currentTenant.createdAt),
           'minutes'
-        ) <= 10
+        ) <= 2
       )
     },
     computedBannerWrapperClass() {
       return {
         'pt-16':
           this.shouldShowSampleDataAlert ||
-          this.shouldShowIntegrationsAlert ||
-          this.shouldShowTenantCreatingAlert
+          this.shouldShowIntegrationsErrorAlert ||
+          this.shouldShowIntegrationsInProgressAlert ||
+          this.shouldShowTenantCreatingAlert ||
+          this.shouldShowPMFSurveyAlert
       }
     },
     elMainStyle() {
@@ -141,6 +238,12 @@ export default {
 
   async mounted() {
     identify(this.currentUser)
+    let recaptchaScript = document.createElement('script')
+    recaptchaScript.setAttribute(
+      'src',
+      '//embed.typeform.com/next/embed.js'
+    )
+    document.head.appendChild(recaptchaScript)
   },
 
   unmounted() {
@@ -151,6 +254,14 @@ export default {
     ...mapActions({
       collapseMenu: 'layout/collapseMenu'
     }),
+
+    hideTypeform() {
+      this.hideTypeformBanner = true
+      localStorage.setItem(
+        `hideTypeformBanner-${config.typeformId}`,
+        true
+      )
+    },
 
     async handleDeleteSampleDataClick() {
       await ConfirmDialog({

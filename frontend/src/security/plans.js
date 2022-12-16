@@ -9,6 +9,13 @@ class Plans {
       enterprise: 'Enterprise'
     }
   }
+
+  static get communityValues() {
+    return {
+      community: 'Community',
+      custom: 'Custom'
+    }
+  }
 }
 
 export default Plans
