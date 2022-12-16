@@ -21,6 +21,7 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
+  PosthogConfiguration,
   PizzlyConfiguration,
 } from './configTypes'
 
