@@ -15,10 +15,11 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
     logger.info({ message: 'Fetching posts from a sub-reddit', input })
 
     // Wait for 1.5s for rate limits.
+    // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     // Gett an access token from Pizzly
-    const access_token = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
+    const accessToken = await getToken(input.pizzlyId, PlatformType.REDDIT, logger)
 
     const config: AxiosRequestConfig<any> = {
       method: 'get',
@@ -27,7 +28,7 @@ async function getPosts(input: RedditGetPostsInput, logger: Logger): Promise<Red
         limit: 100,
       },
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     }
 

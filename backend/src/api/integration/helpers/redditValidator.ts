@@ -26,7 +26,13 @@ export default async (req, res) => {
         })
         return req.responseHandler.success(req, res, result.data.data.children)
       }
-    } catch (e) {}
+    } catch (e) {
+      track(req, 'Reddit: subreddit input', {
+        subreddit: req.query.subreddit,
+        valid: false,
+      })
+      return req.responseHandler.error(req, res, new Error400(req.language))
+    }
   }
   track(req, 'Reddit: subreddit input', {
     subreddit: req.query.subreddit,
