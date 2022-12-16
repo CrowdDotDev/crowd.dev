@@ -2,7 +2,9 @@ import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 
 const SettingsPaywallPage = () =>
-  import('@/modules/layout/components/paywall-page.vue')
+  import(
+    '@/modules/layout/pages/temporary-paywall-page.vue'
+  )
 
 const SettingsPage = () =>
   import('@/modules/settings/pages/settings-page.vue')
