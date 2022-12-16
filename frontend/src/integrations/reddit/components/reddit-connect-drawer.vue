@@ -10,8 +10,9 @@
     @close="isVisible = false"
   >
     <template #content>
-      <div class="flex flex-col gap-2 items-start mb-2">
-      </div>
+      <div
+        class="flex flex-col gap-2 items-start mb-2"
+      ></div>
       <el-form
         label-position="top"
         class="form integration-reddit-form"
@@ -24,7 +25,8 @@
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
-            Monitor posts, and their comments, from your community's subreddits. <br />
+            Monitor posts, and their comments, from your
+            community's subreddits. <br />
           </span>
           <el-form-item
             v-for="(subreddit, index) of model"
@@ -246,9 +248,13 @@ const connect = async () => {
 
 watch(isVisible, (newValue, oldValue) => {
   if (newValue) {
-    window.analytics.track('Reddit Connect Drawer Opened')
+    window.analytics.track('Reddit: connect drawer', {
+      action: 'open'
+    })
   } else if (newValue === false && oldValue) {
-    window.analytics.track('Reddit Connect Drawer Closed')
+    window.analytics.track('Reddit: connect drawer', {
+      action: 'close'
+    })
   }
 })
 </script>

@@ -22,34 +22,34 @@ export default async (req, res) => {
       ) {
         console.log('here')
         track(
-        'Reddit: subreddit input',
-         {
+          'Reddit: subreddit input',
+          {
             subreddit: req.query.subreddit,
             valid: true,
           },
-            { ...req },
-          )
+          { ...req },
+        )
         return req.responseHandler.success(req, res, result.data.data.children)
       }
     } catch (e) {
       track(
         'Reddit: subreddit input',
-         {
-            subreddit: req.query.subreddit,
-            valid: false,
-          },
-            { ...req },
-          )
+        {
+          subreddit: req.query.subreddit,
+          valid: false,
+        },
+        { ...req },
+      )
       return req.responseHandler.error(req, res, new Error400(req.language))
     }
   }
   track(
-  'Reddit: subreddit input',
+    'Reddit: subreddit input',
     {
       subreddit: req.query.subreddit,
       valid: false,
     },
-      { ...req },
-    )
+    { ...req },
+  )
   return req.responseHandler.error(req, res, new Error400(req.language))
 }
