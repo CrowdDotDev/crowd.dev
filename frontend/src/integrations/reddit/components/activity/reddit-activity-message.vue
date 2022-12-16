@@ -5,7 +5,7 @@
       :fallback="'entities.activity.fallback'"
     ></app-i18n>
     <span v-if="isComment">
-      on
+      on a post
       <a :href="activity.url" target="_blank">{{
         computedParentTitle
           ? computedParentTitle
@@ -16,7 +16,7 @@
         >/r/{{ activity.channel }}</a
       >
     </span>
-    <span v-else
+    <span v-else class="ml-1"
       >in subreddit
       <a :href="computedSubredditUrl" target="_blank">
         r/{{ activity.channel }}
