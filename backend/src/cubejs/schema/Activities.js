@@ -75,6 +75,11 @@ cube(`Activities`, {
       type: `string`,
     },
 
+    channel: {
+      sql: `channel`,
+      type: `string`,
+    },
+
     tenantId: {
       sql: `${CUBE}."tenantId"`,
       type: `string`,
