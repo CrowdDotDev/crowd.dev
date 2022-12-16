@@ -18,7 +18,9 @@ const EagleEyePage = () =>
   import('@/premium/eagle-eye/pages/eagle-eye-page.vue')
 
 const EagleEyePaywall = () =>
-  import('@/modules/layout/components/paywall-page.vue')
+  import(
+    '@/modules/layout/pages/temporary-paywall-page.vue'
+  )
 
 export default [
   {

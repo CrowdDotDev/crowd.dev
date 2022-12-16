@@ -1,4 +1,4 @@
-import Layout from '@/modules/layout/components/layout'
+import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 import { store } from '@/store'
 import config from '@/config'
@@ -14,8 +14,16 @@ const isOrganizationsFeatureEnabled = async () => {
   )
 }
 
+const OrganizationsMainPage = async () => {
+  if (!(await isOrganizationsFeatureEnabled())) {
+    return OrganizationPaywallPage()
+  }
+
+  return OrganizationListPage()
+}
+
 const OrganizationPaywallPage = () =>
-  import('@/modules/layout/components/paywall-page.vue')
+  import('@/modules/layout/pages/paywall-page')
 
 const OrganizationListPage = () =>
   import(
@@ -41,16 +49,15 @@ export default [
       {
         name: 'organization',
         path: '/organizations',
-        component: OrganizationListPage,
+        component: OrganizationsMainPage,
         meta: {
           auth: true,
           permission: Permissions.values.organizationRead
         },
-        beforeEnter: async (to, _from, next) => {
-          if (!(await isOrganizationsFeatureEnabled())) {
-            next({ name: 'organizationPaywall' })
-          }
-
+        props: {
+          module: 'organizations'
+        },
+        beforeEnter: async (to) => {
           if (
             to.query.activeTab !== undefined &&
             to.query.activeTab !==
@@ -61,8 +68,6 @@ export default [
               to.query.activeTab
             )
           }
-
-          next()
         }
       },
       {
@@ -75,7 +80,7 @@ export default [
         },
         beforeEnter: async (_to, _from, next) => {
           if (!(await isOrganizationsFeatureEnabled())) {
-            next({ name: 'organizationPaywall' })
+            next({ name: 'organization' })
           }
 
           next()
@@ -92,7 +97,7 @@ export default [
         props: true,
         beforeEnter: async (_to, _from, next) => {
           if (!(await isOrganizationsFeatureEnabled())) {
-            next({ name: 'organizationPaywall' })
+            next({ name: 'organization' })
           }
 
           next()
@@ -109,16 +114,11 @@ export default [
         props: true,
         beforeEnter: async (_to, _from, next) => {
           if (!(await isOrganizationsFeatureEnabled())) {
-            next({ name: 'organizationPaywall' })
+            next({ name: 'organization' })
           }
 
           next()
         }
-      },
-      {
-        name: 'organizationPaywall',
-        path: '/organizations/403',
-        component: OrganizationPaywallPage
       }
     ]
   }
