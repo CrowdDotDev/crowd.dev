@@ -61,15 +61,15 @@ async function csvExportWorker(
       break
     }
     default:
-      console.log('unrecognized exportable entity')
-      break
+      throw new Error(`Unrecognized exportable entity ${entity}`)
   }
 
   if (!data || !data.rows) {
-    log.error(`Unable to retrieve data to export as CSV, exiting..`)
+    const message = `Unable to retrieve data to export as CSV, exiting..` 
+    log.error(message)
     return {
       status: 400,
-      msg: `Unable to retrieve data to export as CSV, exiting..`,
+      msg: message,
     }
   }
 
