@@ -200,6 +200,7 @@ const handleSubredditValidation = async (index) => {
     subreddit = subreddit.replace('http://', '')
     subreddit = subreddit.replace('reddit.com', '')
     subreddit = subreddit.replace('/r/', '')
+    subreddit = subreddit.replace('r/', '')
 
     model.value[index].value = subreddit
     model.value[index].validating = true
