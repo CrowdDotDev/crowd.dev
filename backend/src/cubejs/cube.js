@@ -33,6 +33,18 @@ module.exports = {
     }
 
     query.filters.push({
+      member: `Members.isTeamMember`,
+      operator: 'equals',
+      values: [false],
+    })
+
+    query.filters.push({
+      member: `Members.isBot`,
+      operator: 'equals',
+      values: [false],
+    })
+
+    query.filters.push({
       member: `${measureCube[0]}.tenantId`,
       operator: 'equals',
       values: [securityContext.tenantId],

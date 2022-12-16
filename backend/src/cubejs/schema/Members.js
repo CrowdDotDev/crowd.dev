@@ -113,6 +113,16 @@ cube(`Members`, {
       shown: false,
     },
 
+    isTeamMember: {
+      sql: `COALESCE((${CUBE}.attributes->'isTeamMember'->'default')::boolean, false)`,
+      type: `boolean`,
+    },
+
+    isBot: {
+      sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
+      type: `boolean`,
+    },
+
     id: {
       sql: `id`,
       type: `string`,
