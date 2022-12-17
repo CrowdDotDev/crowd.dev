@@ -8,7 +8,6 @@ import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
-  IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import Operations from '../../../dbOperations/operations'
