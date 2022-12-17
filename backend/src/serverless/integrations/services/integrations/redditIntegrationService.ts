@@ -492,36 +492,4 @@ export class RedditIntegrationService extends IntegrationServiceBase {
       },
     }
   }
-
-  /**
-   * Detect whether processing should stop.
-   * When we are parsing subreddits, and we are not in onboarding mode, we only want to go two hours back.
-   * Otherwise, we parse the whole thing.
-   * This function will never be called in onboarding mode
-   * @param context the full pipeline context
-   * @param currentStream the current stream
-   * @param lastOperations n/a
-   * @param lastRecord n/a
-   * @param lastRecordTimestamp the timestamp of the last record we fetched
-   * @returns whether processing should stop
-   */
-  async isProcessingFinished(
-    context: IStepContext,
-    currentStream: IIntegrationStream,
-    lastOperations: IStreamResultOperation[],
-    lastRecord?: any,
-    lastRecordTimestamp?: number,
-  ): Promise<boolean> {
-    switch (currentStream.value.split(':')[0]) {
-      case 'subreddit':
-        return IntegrationServiceBase.isRetrospectOver(
-          lastRecordTimestamp,
-          context.startTimestamp,
-          RedditIntegrationService.maxRetrospect,
-        )
-
-      default:
-        return false
-    }
-  }
 }
