@@ -320,7 +320,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     // If the kind is 'more', instead of a comment we have a list of comment IDs to expand. We need to create streams for those and return them.
     if (kind === 'more') {
       comment = comment as RedditMoreChildren
-
+      logger.info({stream, childrenLength: comment.children.length}, 'Found more children to parse')
       // Split list into chunks of 99
       // eslint-disable-next-line no-inner-declarations
       function* chunks<T>(arr: T[], n: number): Generator<T[], void> {
