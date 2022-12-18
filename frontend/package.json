@@ -26,6 +26,7 @@
     "@tiptap/extension-placeholder": "^2.0.0-beta.199",
     "@tiptap/starter-kit": "^2.0.0-beta.199",
     "@tiptap/vue-3": "^2.0.0-beta.199",
+    "@vueuse/core": "^9.7.0",
     "apollo-boost": "^0.4.9",
     "axios": "^0.22.0",
     "chart.js": "^3.7.0",

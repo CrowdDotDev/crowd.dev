@@ -62,7 +62,6 @@
               >Subreddit does not exist</span
             >
           </el-form-item>
-          
         </div>
       </el-form>
     </template>
@@ -119,6 +118,7 @@ import {
   ref,
   watch
 } from 'vue'
+import { useThrottleFn } from '@vueuse/core'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { useStore } from 'vuex'
 import Pizzly from '@nangohq/pizzly-frontend'
@@ -220,6 +220,12 @@ const handleSubredditValidation = async (index) => {
   }
 }
 
+const callOnboard = useThrottleFn(async () => {
+  await store.dispatch('integration/doRedditOnboard', {
+    subreddits: model.value.map((i) => i.value)
+  })
+}, 2000)
+
 const connect = async () => {
   const pizzly = new Pizzly(
     config.pizzlyUrl,
@@ -227,9 +233,7 @@ const connect = async () => {
   )
   try {
     await pizzly.auth('reddit', `${tenantId.value}-reddit`)
-    await store.dispatch('integration/doRedditOnboard', {
-      subreddits: model.value.map((i) => i.value)
-    })
+    await callOnboard()
     emit('update:modelValue', false)
   } catch (e) {
     console.log(e)
