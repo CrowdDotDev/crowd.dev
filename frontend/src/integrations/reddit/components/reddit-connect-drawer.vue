@@ -20,13 +20,13 @@
       >
         <div class="flex flex-col gap-2 items-start">
           <span class="block text-sm font-semibold mb-2"
-            >Track subreddits</span
+            >Track subreddit</span
           >
           <span
             class="text-2xs font-light mb-2 text-gray-600"
           >
             Monitor posts, and their comments, from your
-            community's subreddits. <br />
+            community's subreddit. <br />
           </span>
           <el-form-item
             v-for="(subreddit, index) of model"
@@ -62,11 +62,7 @@
               >Subreddit does not exist</span
             >
           </el-form-item>
-          <el-button
-            class="btn btn-link btn-link--primary"
-            @click="addItem"
-            >+ Add subreddit</el-button
-          >
+          
         </div>
       </el-form>
     </template>
@@ -189,12 +185,6 @@ const isVisible = computed({
   }
 })
 
-const addItem = () => {
-  model.value.push({
-    value: '',
-    validating: false
-  })
-}
 const deleteItem = (index) => {
   model.value.splice(index, 1)
 }
