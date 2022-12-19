@@ -98,13 +98,10 @@
             </p>
           </div>
           <div class="pt-1 flex justify-center">
-            <router-link
-              :to="{
-                name: 'organization',
-                query: { activeTab: 'new-and-active' }
-              }"
-              class="text-xs leading-5 font-medium text-red"
-              >View more</router-link
+            <el-button
+              class="btn-link btn-link--primary text-xs leading-5 font-medium"
+              @click="onViewMoreClick"
+              >View more</el-button
             >
           </div>
         </div>
@@ -170,26 +167,27 @@
             </p>
           </div>
           <div class="pt-1 flex justify-center">
-            <router-link
-              :to="{
-                name: 'organization',
-                query: { activeTab: 'new-and-active' }
-              }"
-              class="text-xs leading-5 font-medium text-red"
-              >View more</router-link
+            <el-button
+              class="btn-link btn-link--primary text-xs leading-5 font-medium"
+              @click="onViewMoreClick"
+              >View more</el-button
             >
           </div>
         </div>
       </div>
     </section>
   </div>
+  <app-paywall-modal
+    v-model="isUpgradeModalOpen"
+    module="organizations"
+  />
 </template>
 
 <script>
-import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab'
+import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab.vue'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
-import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer'
+import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue'
 import {
   newOrganizationChart,
   activeOrganizationChart,
@@ -198,9 +196,15 @@ import {
   newOrganizationCount,
   activeOrganizationCount
 } from '@/modules/dashboard/dashboard.cube'
-import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item'
-import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
+import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue'
+import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
 import { formatNumberToCompact } from '@/utils/number'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
+import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
 export default {
   name: 'AppDashboardOrganizations',
@@ -208,7 +212,8 @@ export default {
     AppDashboardCount,
     AppDashboardOrganizationItem,
     AppWidgetCubeRenderer,
-    AppDashboardTab
+    AppDashboardTab,
+    AppPaywallModal
   },
   data() {
     return {
@@ -218,7 +223,8 @@ export default {
       newOrganizationCount,
       activeOrganizationCount,
       chartOptions,
-      hideLabels
+      hideLabels,
+      isUpgradeModalOpen: false
     }
   },
   computed: {
@@ -256,7 +262,21 @@ export default {
       }
       return d.format('ddd, MMM D')
     },
-    formatNumberToCompact
+    formatNumberToCompact,
+    async onViewMoreClick() {
+      const isFlagEnabled = await isFeatureEnabled(
+        featureFlags.organizations
+      )
+
+      if (config.hasPremiumModules && isFlagEnabled) {
+        this.$router.push({
+          name: 'organization',
+          query: { activeTab: 'new-and-active' }
+        })
+      } else {
+        this.isUpgradeModalOpen = true
+      }
+    }
   }
 }
 </script>

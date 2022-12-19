@@ -41,9 +41,10 @@
 </template>
 
 <script setup>
-import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs'
-import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter'
-import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table'
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
+import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue'
+import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue'
+import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue'
 import { OrganizationPermissions } from '../organization-permissions'
 import { computed, ref, onMounted } from 'vue'
 import {

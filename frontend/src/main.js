@@ -34,7 +34,8 @@ i18nInit()
 
   // Initialize posthog for crowd hosted version
   if (!config.isCommunityVersion) {
-    posthog.init(config.posthogKey, {
+    posthog.init(config.posthog.apiKey, {
+      api_host: config.posthog.host,
       autocapture: false,
       capture_pageview: false,
       persistence: 'cookie'

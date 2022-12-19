@@ -1,4 +1,4 @@
-import ErrorPage from '@/modules/layout/components/error-page.vue'
+import ErrorPage from '@/modules/layout/pages/error-page.vue'
 
 export default [
   {
