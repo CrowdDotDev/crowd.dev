@@ -1,5 +1,14 @@
 <template>
   <div class="panel mt-6">
+    <div class="flex grow justify-end mb-4">
+      <el-button
+        class="btn btn--bordered flex items-center gap-2"
+        @click="onManageBillingClick"
+        ><i class="ri-external-link-line" /><span
+          >Manage billing & payments</span
+        ></el-button
+      >
+    </div>
     <div class="flex gap-4">
       <div
         v-for="plan in plansList"
@@ -218,6 +227,13 @@ const getCtaContent = (plan) => {
 }
 
 const handleOnCtaClick = (plan) => {
+  // Send an event with plan request
+  window.analytics.track('Change Plan Request', {
+    tenantId: currentTenant.value.id,
+    tenantName: currentTenant.value.name,
+    requestedPlan: plan
+  })
+
   // Custom plans
   if (
     plan === crowdHostedPlans.enterprise ||
@@ -227,17 +243,23 @@ const handleOnCtaClick = (plan) => {
       'https://cal.com/team/CrowdDotDev/custom-plan',
       '_blank'
     )
+    // Growth plan
+  } else if (plan === crowdHostedPlans.growth) {
+    window.open(
+      'https://buy.stripe.com/4gw9E8c163K6fzW9AB',
+      '_blank'
+    )
   } else {
     isPlanModalOpen.value = true
     planModalTitle.value = getCtaContent(plan)
-
-    // Send an event with plan request
-    window.analytics.track('Change Plan Request', {
-      tenantId: currentTenant.value.id,
-      tenantName: currentTenant.value.name,
-      requestedPlan: plan
-    })
   }
+}
+
+const onManageBillingClick = () => {
+  window.open(
+    'https://billing.stripe.com/p/login/fZedUl4oO70D98sdQQ',
+    '_blank'
+  )
 }
 
 const getTrialDate = () => {
