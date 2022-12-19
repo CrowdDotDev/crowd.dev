@@ -42,7 +42,9 @@
                   >
                     {{ currentTenant.name }}
                   </div>
-                  <div class="text-gray-500 text-2xs">
+                  <div
+                    class="text-gray-500 text-2xs whitespace-nowrap"
+                  >
                     {{ getPlan(currentTenant.plan) }}
                     <span
                       v-if="getTrialDate(currentTenant)"

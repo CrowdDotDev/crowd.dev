@@ -13,7 +13,7 @@
           <img
             key="logo"
             class="h-5 w-auto"
-            src="/images/logo-all-black.png"
+            src="/images/logo/crowd.svg"
             alt="crowd.dev logo"
           />
         </router-link>
@@ -34,7 +34,7 @@
         <img
           key="icon"
           class="h-5 w-auto dynamic-logo"
-          src="/images/icon-all-black.png"
+          src="/icons/logo/crowd.svg"
           alt="crowd.dev icon"
         />
 

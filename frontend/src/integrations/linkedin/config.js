@@ -5,5 +5,5 @@ export default {
   borderColor: '#FFFFFF',
   description:
     "We're currently working on this integration.",
-  image: '/images/linkedin_logo.png'
+  image: '/images/integrations/linkedin.png'
 }

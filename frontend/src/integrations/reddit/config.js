@@ -5,5 +5,5 @@ export default {
   borderColor: '#FFFFFF',
   description:
     "We're currently working on this integration.",
-  image: '/images/reddit.svg'
+  image: '/images/integrations/reddit.svg'
 }

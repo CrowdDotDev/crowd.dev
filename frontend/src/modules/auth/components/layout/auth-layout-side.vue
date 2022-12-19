@@ -4,7 +4,7 @@
       <div class="pb-4 md:pb-2">
         <img
           class="h-6 w-auto"
-          src="/images/crowd-logo.svg"
+          src="/images/logo/crowd.svg"
           alt="crowd.dev logo"
         />
       </div>

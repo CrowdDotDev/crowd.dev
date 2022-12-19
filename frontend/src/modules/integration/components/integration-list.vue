@@ -61,7 +61,7 @@ const customIntegration = ref({
   name: 'Build your own',
   description:
     'Use our integration framework to build your own connector.',
-  image: '/images/custom-integration.svg'
+  image: '/images/integrations/custom.svg'
 })
 
 const loading = computed(
