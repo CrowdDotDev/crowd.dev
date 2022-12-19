@@ -639,7 +639,7 @@ export default class MemberService extends LoggingBase {
     )
   }
 
-  async query(data) {
+  async query(data, freeLimit=false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
@@ -648,23 +648,20 @@ export default class MemberService extends LoggingBase {
     const limit = data.limit
     const offset = data.offset
     return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
+      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings, freeLimit },
       this.options,
     )
   }
 
-  async queryAll(data) {
-    const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
-    const advancedFilter = data.filter
-    const orderBy = data.orderBy
-    const limit = 1
-    const offset = data.offset
-    return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings, freeLimit: true },
-      this.options,
-    )
+  async queryForCsv(data) {
+    const found = await this.query(data, true)
+    const relations = ['toMerge', 'noMerge', 'organizations']
+    for (const relation of relations) {
+      for (const member of found.rows) {
+        member[relation] = member[relation].map((i) => i.id)
+      }
+    }
+    return found
   }
 
   async export(data) {

@@ -36,16 +36,16 @@ async function csvExportWorker(
     'email',
     'score',
     'joinedAt',
+    'activeOn',
+    'identities',
+    'lastActivity',
+    'organizations',
     'activityCount',
     'lastActive',
     'reach',
     'averageSentiment',
-    'isTeamMember',
     'score',
     'attributes',
-    'location',
-    'bio',
-    'jobTitle',
   ]
 
   const opts = { fields }
@@ -58,7 +58,7 @@ async function csvExportWorker(
   switch (entity) {
     case ExportableEntity.MEMBERS: {
       const memberService = new MemberService(userContext)
-      data = await memberService.queryAll(criteria)
+      data = await memberService.queryForCsv(criteria)
       break
     }
     default:
