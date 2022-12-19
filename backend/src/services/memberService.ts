@@ -639,7 +639,7 @@ export default class MemberService extends LoggingBase {
     )
   }
 
-  async query(data, freeLimit=false) {
+  async query(data, freeLimit = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
@@ -648,7 +648,14 @@ export default class MemberService extends LoggingBase {
     const limit = data.limit
     const offset = data.offset
     return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings, freeLimit },
+      {
+        advancedFilter,
+        orderBy,
+        limit,
+        offset,
+        attributesSettings: memberAttributeSettings,
+        freeLimit,
+      },
       this.options,
     )
   }

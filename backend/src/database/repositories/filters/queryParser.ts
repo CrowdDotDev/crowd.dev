@@ -87,7 +87,7 @@ class QueryParser {
       nestedFields = {} as any,
       manyToMany = {} as ManyToManyType,
       customOperators = {} as any,
-      freeLimit = false 
+      freeLimit = false,
     },
     options: IRepositoryOptions,
   ) {
@@ -417,10 +417,9 @@ class QueryParser {
       if (typeof limit === 'string') {
         limit = parseInt(limit, 10)
       }
-      dbQuery.limit = this.freeLimit ? 1000000000 : Math.min(
-        limit > 0 ? limit : QueryParser.defaultPageSize,
-        QueryParser.maxPageSize,
-      )
+      dbQuery.limit = this.freeLimit
+        ? 1000000000
+        : Math.min(limit > 0 ? limit : QueryParser.defaultPageSize, QueryParser.maxPageSize)
     }
 
     if (offset) {

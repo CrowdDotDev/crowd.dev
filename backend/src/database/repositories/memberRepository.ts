@@ -436,7 +436,7 @@ class MemberRepository {
       offset = 0,
       orderBy = '',
       attributesSettings = [] as AttributeData[],
-      freeLimit = false
+      freeLimit = false,
     },
 
     options: IRepositoryOptions,
@@ -792,7 +792,7 @@ class MemberRepository {
             column: 'username',
           },
         },
-        freeLimit
+        freeLimit,
       },
       options,
     )
