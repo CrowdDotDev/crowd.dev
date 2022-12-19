@@ -1,3 +1,4 @@
+import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import TenantService from '../tenantService'
 import MemberService from '../memberService'
@@ -152,7 +153,9 @@ describe('TenantService tests', () => {
         url: 'testUrl',
         plan: Plans.values.growth,
         isTrialPlan: true,
-        trialEndsAt: new Date('2023-01-15T00:00:00.000Z'),
+        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-15')
+          ? moment().add(14, 'days').toISOString()
+          : new Date('2023-01-15T00:00:00.000Z'),
         planStatus: 'active',
         planStripeCustomerId: null,
         planUserId: null,
