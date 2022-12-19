@@ -7,6 +7,7 @@ import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
 import InformationDialog from '@/shared/dialog/information-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 export default {
   ...sharedActions('member', MemberService),
@@ -35,12 +36,13 @@ export default {
       )
       commit('EXPORT_SUCCESS')
 
-      await InformationDialog({
+      await ConfirmDialog({
         title: 'Export CSV',
         message:
           'The CSV file was sent to your e-mail in order for you to download it',
         icon: 'ri-file-download-line',
-        confirmButtonText: 'Continue',
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
         label: selected
           ? `${getters.selectedRows.length} member${
               getters.selectedRows.length === 1 ? '' : 's'
