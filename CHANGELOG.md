@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.13.0 - 2022-12-19
+
+### Changes
+
+### 🚀 Features
+
+#### Reddit integration
+
+The Reddit integration is finally here! It was one of the most wanted integrations, and we have delivered. You can now track the posts and comments in your community's subreddit.
+
+![Reddit (2) (1)](https://user-images.githubusercontent.com/37874460/208475828-a1e62b3c-6196-48bb-a362-4281630107a0.png)
+
+- Reddit integration @mariobalca and @joanreyero (#351)
+
+#### Plan page
+
+We are advancing in making premium plans possible. This week we introduced a *Plan* page in the workspace's settings. You can use it to upgrade your plan to Growth, our first premium plan. You can learn more about our pricing [here](https://crowd.dev/pricing).
+
+<img width="1055" alt="Screenshot 2022-12-19 at 17 53 44" src="https://user-images.githubusercontent.com/37874460/208478358-6c861f46-51bc-4db6-ba9f-23d7d5435a04.png">
+- Plan page @joanagmaia (#350)
+- Organizations paywall @joanagmaia (#357)
+
+### ✨ Improvements
+
+- Improve the user experience of connecting an integration by sending an email when the connection has succeeded. @mariobalca (#341)
+- Tweaks grid and container-sized on all pages to adapt them to different screen sizes better. @mariobalca (#355)
+- Do not show the engagement level for team members in the members' list, as it does not make sense. @joanreyero (#349)
+- Added the infrastructure so we can display a banner with in-app TypeForm surveys. @joanreyero (#348)
+
+### 🐞 Bug Fixes
+
+- Add a missing interaction to the *Trial* tag. @joanagmaia (#366)
+- Tenants created after the 18th of December only had a trial for 14 days. It should be until the 15th of January. @joanreyero (#363)
+- Fix EagleEye's API throwing a 500 when sending posts to exclude @joanreyero (#359)
+- Proxy requests to PostHog from frontend through an internal URL to avoid being blocked by the client. @epipav (#358)
+- Fix a copy in the pricing page @joanagmaia (#353)
+- Fix a copy error in the Hacker News integration's connection page. @jonathimer (#343)
+
 ## v0.12.0 - 2022-12-13
 
 ### Changes
@@ -56,7 +94,6 @@ The Hacker News integration will detect any post that mentions your community in
 <img width="1195" alt="Screenshot 2022-12-05 at 18 28 56" src="https://user-images.githubusercontent.com/37874460/205703080-12358262-f798-49d3-9940-1757e6e2dfe4.png">
 ### ✨ Improvements
 - Better accuracy in Eagle Eye for Hacker News suggestions @joanreyero (#267)
-
 ### 🐞 Bug Fixes
 
 - Fix the pagination parameter when getting members from Twitter @joanreyero (#312)
@@ -109,7 +146,6 @@ We now show you the total organizations that have been identified in your commun
 Our new powerful filters, sorts and views instantly help you to segment, research, and understand your community more effectively. We have included default views, for example, “slipping away” to identify valuable members that may need some extra attention or “influential” to find individuals with high reach.
 :thermometer: Sentiment analysis
 We’ve built a model to conduct sentiment analysis for all activities in your community to show you how members are feeling, so you can take informed actions.
-
 :love_letter: Trending conversations
 We help you keep track of all conversations going on in your community, now, we also show you the ones that are trending and pulling a lot of engagement.
 
@@ -155,7 +191,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -184,7 +222,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - The dynamic endpoints were not passed to consecutive lambda runs when 15 minute time limit was reached. Endpoints are now passed to new lambdas successfully @epipav  (#50)
 ## v0.6.0 - 2022-08-31
 ### Changes
-
 ### 🚀 Features
 
 - DEV.to integration support. @themarolt (#11)
@@ -197,7 +234,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -220,7 +259,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ## v0.5.0 - 2022-08-25
 ### Changes
 - Bumped up version to match pre-OSS version.
-
 ### ✨ Enhancements
 
 - Simplified start of development environment @joanreyero (#5)
