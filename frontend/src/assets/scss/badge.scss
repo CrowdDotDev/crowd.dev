@@ -43,5 +43,9 @@
 
   &--light-yellow {
     @apply bg-yellow-50 text-yellow-600;
+
+    &:hover {
+      @apply bg-yellow-100;
+    }
   }
 }
