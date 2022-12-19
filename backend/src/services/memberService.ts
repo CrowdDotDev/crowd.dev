@@ -439,7 +439,13 @@ export default class MemberService extends LoggingBase {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
+      email: (oldEmail, newEmail) => {
+        if (newEmail && newEmail.trim().length > 0) {
+          return newEmail.trim()
+        }
 
+        return oldEmail
+      },
       // Get rid of activities that are the same and were in both members
       activities: (oldActivities, newActivities) => {
         oldActivities = oldActivities || []

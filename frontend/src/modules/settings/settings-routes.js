@@ -1,6 +1,11 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 
+const SettingsPaywallPage = () =>
+  import(
+    '@/modules/layout/pages/temporary-paywall-page.vue'
+  )
+
 const SettingsPage = () =>
   import('@/modules/settings/pages/settings-page.vue')
 
@@ -21,6 +26,11 @@ export default [
           auth: true,
           permission: Permissions.values.settingsEdit
         }
+      },
+      {
+        name: 'settingsPaywall',
+        path: '/settings/403',
+        component: SettingsPaywallPage
       }
     ]
   }

@@ -59,7 +59,7 @@ export default class Errors {
         Message.error(error.response.data, { duration: 0 })
         return
       }
-      router.push('/403')
+      return router.push('/403')
     }
 
     if ([400, 409, 429].includes(selectErrorCode(error))) {

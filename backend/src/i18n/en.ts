@@ -156,6 +156,30 @@ const en = {
         unique: {},
       },
     },
+    integration: {
+      name: {
+        github: 'GitHub',
+        linkedin: 'LinkedIn',
+        twitter: 'Twitter',
+        devto: 'DEV',
+        stackoverflow: 'Stack Overflow',
+        reddit: 'Reddit',
+        discord: 'Discord',
+        slack: 'Slack',
+        hackernews: 'Hacker News',
+      },
+    },
+    automation: {
+      errors: {
+        planLimitExceeded: 'You have exceeded # of automations you can have in your plan.',
+      },
+    },
+  },
+
+  communityHelpCenter: {
+    errors: {
+      planNotSupportingCustomUrls: "Your plan {0} doesn't include custom urls.",
+    },
   },
 }
 

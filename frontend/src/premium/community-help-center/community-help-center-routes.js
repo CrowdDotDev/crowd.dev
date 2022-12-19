@@ -7,6 +7,11 @@ const CommunityHelpCenterPage = () =>
     '@/premium/community-help-center/pages/community-help-center-page.vue'
   )
 
+const CommunityHelpCenterPaywallPage = () =>
+  import(
+    '@/modules/layout/pages/temporary-paywall-page.vue'
+  )
+
 export default [
   {
     name: '',
@@ -34,6 +39,11 @@ export default [
             )
           }
         }
+      },
+      {
+        name: 'communityHelpCenterPaywall',
+        path: '/community-help-center/403',
+        component: CommunityHelpCenterPaywallPage
       }
     ]
   }

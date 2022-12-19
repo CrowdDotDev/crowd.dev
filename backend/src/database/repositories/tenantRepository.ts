@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import moment from 'moment'
 import Sequelize, { QueryTypes } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import AuditLogRepository from './auditLogRepository'
@@ -47,6 +48,11 @@ class TenantRepository {
           'integrationsRequired',
           'importHash',
         ]),
+        plan: 'Growth',
+        isTrialPlan: true,
+        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-01')
+          ? moment().add(14, 'days').toISOString()
+          : '2023-01-15',
         createdById: currentUser.id,
         updatedById: currentUser.id,
       },

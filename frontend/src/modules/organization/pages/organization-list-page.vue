@@ -1,9 +1,16 @@
 <template>
-  <app-page-wrapper>
+  <app-page-wrapper size="full-width">
     <div class="member-list-page">
       <div class="mb-10">
         <div class="flex items-center justify-between">
-          <h4>Organizations</h4>
+          <div class="flex items-center">
+            <h4>Organizations</h4>
+            <span
+              v-if="currentTenant.isTrialPlan"
+              class="badge badge--sm badge--light-yellow ml-4"
+              >Growth (trial)</span
+            >
+          </div>
           <div class="flex items-center">
             <router-link
               v-if="hasPermissionToCreate"
@@ -34,10 +41,10 @@
 </template>
 
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper'
-import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs'
-import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter'
-import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table'
+import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
+import AppOrganizationListTabs from '@/modules/organization/components/list/organization-list-tabs.vue'
+import AppOrganizationListFilter from '@/modules/organization/components/list/organization-list-filter.vue'
+import AppOrganizationListTable from '@/modules/organization/components/list/organization-list-table.vue'
 import { OrganizationPermissions } from '../organization-permissions'
 import { computed, ref, onMounted } from 'vue'
 import {
@@ -68,7 +75,7 @@ onMounted(async () => {
 
   const organizationsList = await doGetOrganizationsCount()
 
-  hasOrganizations.value = !!organizationsList.length
+  hasOrganizations.value = !!organizationsList?.length
   isPageLoading.value = false
 })
 

@@ -53,7 +53,7 @@ export default class SequelizeTestUtils {
     return db
   }
 
-  static async getTestIServiceOptions(db, plan = Plans.values.free, tenantName?, tenantUrl?) {
+  static async getTestIServiceOptions(db, plan = Plans.values.essential, tenantName?, tenantUrl?) {
     db = await this.getDatabase(db)
 
     const randomTenant =
@@ -134,11 +134,11 @@ export default class SequelizeTestUtils {
     } as IRepositoryOptions
   }
 
-  static getRandomTestTenant(plan = Plans.values.free) {
+  static getRandomTestTenant(plan = Plans.values.essential) {
     return this.getTenant(this.getRandomString('test-tenant'), this.getRandomString('url#'), plan)
   }
 
-  static getTenant(name, url, plan = Plans.values.free) {
+  static getTenant(name, url, plan = Plans.values.essential) {
     return {
       name,
       url,

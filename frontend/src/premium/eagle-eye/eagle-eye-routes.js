@@ -1,10 +1,25 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 import { store } from '@/store'
+import config from '@/config'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+
+const isEagleEyeFeatureEnabled = async () => {
+  return (
+    config.hasPremiumModules &&
+    (await isFeatureEnabled(featureFlags.eagleEye))
+  )
+}
 
 const EagleEyePage = () =>
+  import('@/premium/eagle-eye/pages/eagle-eye-page.vue')
+
+const EagleEyePaywall = () =>
   import(
-    '@/premium/eagle-eye/components/eagle-eye-page.vue'
+    '@/modules/layout/pages/temporary-paywall-page.vue'
   )
 
 export default [
@@ -24,7 +39,11 @@ export default [
           auth: true,
           permission: Permissions.values.eagleEyeRead
         },
-        beforeEnter: (to) => {
+        beforeEnter: async (to, _from, next) => {
+          if (!(await isEagleEyeFeatureEnabled())) {
+            next({ name: 'eagleEyePaywall' })
+          }
+
           if (
             to.query.activeTab !== undefined &&
             store.getters['eagleEye/activeView'].id !==
@@ -35,7 +54,14 @@ export default [
               to.query.activeTab
             )
           }
+
+          next()
         }
+      },
+      {
+        name: 'eagleEyePaywall',
+        path: '/eagle-eye/403',
+        component: EagleEyePaywall
       }
     ]
   }

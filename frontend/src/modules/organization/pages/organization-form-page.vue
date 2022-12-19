@@ -99,7 +99,6 @@ export default {
 }
 </script>
 <script setup>
-import AppPageWrapper from '@/modules/layout/components/page-wrapper.vue'
 import AppOrganizationFormDetails from '@/modules/organization/components/form/organization-form-details'
 import AppOrganizationFormIdentities from '@/modules/organization/components/form/organization-form-identities'
 import { OrganizationModel } from '@/modules/organization/organization-model'

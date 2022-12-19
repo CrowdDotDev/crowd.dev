@@ -16,7 +16,7 @@
         <div>
           <el-button
             class="btn btn--primary btn--sm !h-8"
-            @click="isAutomationDrawerOpen = true"
+            @click="onAddWebhookClick"
           >
             Add webhook
           </el-button>
@@ -74,6 +74,10 @@ import AppWebhookForm from '@/modules/automation/components/webhooks/webhook-for
 import AppWebhookExecutionList from '@/modules/automation/components/webhooks/webhook-execution-list'
 import { mapGetters, mapActions } from 'vuex'
 import pluralize from 'pluralize'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
 
 export default {
   name: 'AppAutomationListPage',
@@ -128,6 +132,17 @@ export default {
     onCloseExecutionsDrawer() {
       this.isExecutionsDrawerOpen = false
       this.automation = null
+    },
+    async onAddWebhookClick() {
+      const isFlagEnabled = await isFeatureEnabled(
+        featureFlags.automations
+      )
+
+      if (isFlagEnabled) {
+        this.isAutomationDrawerOpen = true
+      } else {
+        this.$router.push({ name: 'settingsPaywall' })
+      }
     },
     pluralize
   }

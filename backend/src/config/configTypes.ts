@@ -79,6 +79,10 @@ export interface SegmentConfiguration {
   writeKey: string
 }
 
+export interface PosthogConfiguration {
+  apiKey: string
+}
+
 export interface ApiConfiguration {
   port: number
   url: string
@@ -150,6 +154,7 @@ export interface SendgridConfiguration {
   templateInvitation: string
   templatePasswordReset: string
   templateWeeklyAnalytics: string
+  templateIntegrationDone: string
   weeklyAnalyticsUnsubscribeGroupId: string
 }
 

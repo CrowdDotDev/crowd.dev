@@ -44,9 +44,9 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           notEmpty: true,
-          isIn: [[plans.free, plans.beta, plans.premium, plans.enterprise]],
+          isIn: [[plans.essential, plans.growth]],
         },
-        defaultValue: plans.free,
+        defaultValue: plans.essential,
       },
       planStatus: {
         type: DataTypes.STRING(255),
@@ -73,6 +73,15 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false,
+      },
+      isTrialPlan: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      trialEndsAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
       },
     },
     {

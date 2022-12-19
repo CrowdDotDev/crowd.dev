@@ -1,0 +1,1 @@
+ALTER TABLE public.integrations ADD "emailSentAt" TIMESTAMP NULL;

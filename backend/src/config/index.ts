@@ -21,6 +21,7 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
+  PosthogConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -89,6 +90,12 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
   ? config.get<SegmentConfiguration>('segment')
   : {
       writeKey: process.env.SEGMENT_WRITE_KEY,
+    }
+
+export const POSTHOG_CONFIG: PosthogConfiguration = KUBE_MODE
+  ? config.get<PosthogConfiguration>('posthog')
+  : {
+      apiKey: process.env.POSTHOG_API_KEY,
     }
 
 export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
@@ -192,6 +199,7 @@ export const SENDGRID_CONFIG: SendgridConfiguration = KUBE_MODE
       templateInvitation: process.env.SENDGRID_TEMPLATE_INVITATION,
       templatePasswordReset: process.env.SENDGRID_TEMPLATE_PASSWORD_RESET,
       templateWeeklyAnalytics: process.env.SENDGRID_TEMPLATE_WEEKLY_ANALYTICS,
+      templateIntegrationDone: process.env.SENDGRID_TEMPLATE_INTEGRATION_DONE,
     }
 
 export const NETLIFY_CONFIG: NetlifyConfiguration = KUBE_MODE

@@ -1,6 +1,7 @@
 import { createServiceChildLogger } from '../utils/logging'
 import { SEGMENT_CONFIG, API_CONFIG, IS_TEST_ENV } from '../config'
 import getTenatUser from './trackHelper'
+import { Edition } from '../types/common'
 
 const log = createServiceChildLogger('segment')
 
@@ -15,7 +16,7 @@ export default function identify(
     !IS_TEST_ENV &&
     SEGMENT_CONFIG.writeKey &&
     // This is only for events in the hosted version. Self-hosted has less telemetry.
-    API_CONFIG.edition === 'crowd-hosted'
+    API_CONFIG.edition === Edition.CROWD_HOSTED
   ) {
     const Analytics = require('analytics-node')
     const analytics = new Analytics(SEGMENT_CONFIG.writeKey)

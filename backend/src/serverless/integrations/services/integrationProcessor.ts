@@ -26,6 +26,10 @@ import { TwitterReachIntegrationService } from './integrations/twitterReachInteg
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
 import { LoggingBase } from '../../../services/loggingBase'
+import { API_CONFIG } from '../../../config'
+import EmailSender from '../../../services/emailSender'
+import UserRepository from '../../../database/repositories/userRepository'
+import { i18n } from '../../../i18n'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -467,10 +471,22 @@ export class IntegrationProcessor extends LoggingBase {
       logger.error(err, 'Error while processing integration!')
       setError = req.onboarding
     } finally {
+      let emailSentAt
+      if (!setError && !integration.emailSentAt) {
+        const tenantUsers = await UserRepository.findAllUsersOfTenant(integration.tenantId)
+        emailSentAt = new Date()
+        for (const user of tenantUsers) {
+          await new EmailSender(EmailSender.TEMPLATES.INTEGRATION_DONE, {
+            integrationName: i18n('en', `entities.integration.name.${integration.platform}`),
+            link: API_CONFIG.frontendUrl,
+          }).sendTo(user.email)
+        }
+      }
       await IntegrationRepository.update(
         integration.id,
         {
           status: setError ? 'error' : 'done',
+          emailSentAt,
           settings: stepContext.integration.settings,
           refreshToken: stepContext.integration.refreshToken,
           token: stepContext.integration.token,

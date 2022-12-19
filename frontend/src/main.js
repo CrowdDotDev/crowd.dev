@@ -20,6 +20,7 @@ import LogRocket from 'logrocket'
 import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
 import marked from '@/plugins/marked'
+import posthog from 'posthog-js'
 
 i18nInit()
 /**
@@ -29,6 +30,16 @@ i18nInit()
 ;(async function () {
   if (config.env === 'production') {
     LogRocket.init('nm6fil/crowddev')
+  }
+
+  // Initialize posthog for crowd hosted version
+  if (!config.isCommunityVersion) {
+    posthog.init(config.posthog.apiKey, {
+      api_host: config.posthog.host,
+      autocapture: false,
+      capture_pageview: false,
+      persistence: 'cookie'
+    })
   }
 
   const app = createApp(App)

@@ -4,9 +4,16 @@
 class Plans {
   static get values() {
     return {
-      free: 'free',
-      premium: 'premium',
-      enterprise: 'enterprise'
+      essential: 'Essential',
+      growth: 'Growth',
+      enterprise: 'Enterprise'
+    }
+  }
+
+  static get communityValues() {
+    return {
+      community: 'Community',
+      custom: 'Custom'
     }
   }
 }
