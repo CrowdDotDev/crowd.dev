@@ -50,7 +50,7 @@ class TenantRepository {
         ]),
         plan: 'Growth',
         isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-01')
+        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-15')
           ? moment().add(14, 'days').toISOString()
           : '2023-01-15',
         createdById: currentUser.id,
