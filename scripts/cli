@@ -361,6 +361,7 @@ function up_scaffold() {
     migrate_local
     create_s3_buckets
     create_qdrant_collection
+    bash pizzly-integrations.sh
 }
 
 function down_scaffold() {

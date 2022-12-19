@@ -4,6 +4,7 @@ export enum PlatformType {
   DISCORD = 'discord',
   GITHUB = 'github',
   TWITTER = 'twitter',
+  REDDIT = 'reddit',
   HACKERNEWS = 'hackernews',
   CROWD = 'crowd',
 }
@@ -11,6 +12,7 @@ export enum PlatformType {
 export enum IntegrationType {
   DEVTO = 'devto',
   SLACK = 'slack',
+  REDDIT = 'reddit',
   DISCORD = 'discord',
   GITHUB = 'github',
   TWITTER = 'twitter',

@@ -30,5 +30,6 @@
   ],
   "twitter": ["mention", "follow", "hashtag"],
   "devto": ["comment"],
-  "hackernews": ["comment", "post"]
+  "hackernews": ["comment", "post"],
+  "reddit": ["comment", "post"]
 }

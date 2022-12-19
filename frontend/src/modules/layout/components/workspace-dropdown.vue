@@ -46,13 +46,21 @@
                     class="text-gray-500 text-2xs whitespace-nowrap"
                   >
                     {{ getPlan(currentTenant.plan) }}
-                    <span
-                      v-if="getTrialDate(currentTenant)"
-                      class="badge badge--xs badge--light-yellow ml-1"
-                      >{{
-                        getTrialDate(currentTenant)
-                      }}</span
+                    <router-link
+                      :to="{
+                        name: 'settings',
+                        query: { activeTab: 'plans' }
+                      }"
+                      @click.stop
                     >
+                      <span
+                        v-if="getTrialDate(currentTenant)"
+                        class="badge badge--xs badge--light-yellow ml-1 hover:cursor-pointer"
+                        >{{
+                          getTrialDate(currentTenant)
+                        }}</span
+                      >
+                    </router-link>
                   </div>
                 </div>
               </div>
@@ -131,7 +139,7 @@ export default {
 <script setup>
 import { useStore } from 'vuex'
 import { computed, onMounted, ref, watch } from 'vue'
-import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer'
+import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer.vue'
 import config from '@/config'
 import { getTrialDate } from '@/utils/date'
 

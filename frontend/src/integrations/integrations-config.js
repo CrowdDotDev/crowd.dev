@@ -4,7 +4,7 @@ import slack from './slack'
 import twitter from './twitter'
 import devto from './devto'
 import hackernews from './hackernews'
-import discourse from './discourse'
+// import discourse from './discourse'
 import stackoverflow from './stackoverflow'
 import reddit from './reddit'
 import linkedin from './linkedin'
@@ -21,9 +21,9 @@ class IntegrationsConfig {
       twitter,
       devto,
       hackernews,
-      discourse,
-      stackoverflow,
       reddit,
+      // discourse,
+      stackoverflow,
       linkedin,
       zapier,
       crunchbase,
