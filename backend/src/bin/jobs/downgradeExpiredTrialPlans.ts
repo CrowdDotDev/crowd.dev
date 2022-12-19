@@ -7,13 +7,16 @@ import Plans from '../../security/plans'
 import { CrowdJob } from '../../types/jobTypes'
 import { timeout } from '../../utils/timing'
 import { createRedisClient } from '../../utils/redis'
+import { createServiceChildLogger } from '../../utils/logging'
+
+const log = createServiceChildLogger('downgradeExpiredPlansCronJob')
 
 const job: CrowdJob = {
   name: 'Downgrade Expired Trial Plans',
   // every day
   cronTime: cronGenerator.every(1).days(),
   onTrigger: async () => {
-    console.log('in Downgrade Expired Trial Plans')
+    log.info('Downgrading expired trial plans.')
     const dbOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
     const posthog = new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 })
     const redis = await createRedisClient(true)
