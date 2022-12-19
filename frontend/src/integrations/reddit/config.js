@@ -5,8 +5,8 @@ import RedditActivityContent from '@/integrations/reddit/components/activity/red
 export default {
   enabled: true,
   name: 'Reddit',
-  backgroundColor: '#FFFFFF',
-  borderColor: '#FFFFFF',
+  backgroundColor: '#ffd8ca',
+  borderColor: '#ffd8ca',
   description:
     'Connect Reddit to sync posts and comments from selected subreddits.',
   image: '/images/reddit.svg',
