@@ -665,7 +665,7 @@ export default class MemberService extends LoggingBase {
     const relations = ['toMerge', 'noMerge', 'organizations']
     for (const relation of relations) {
       for (const member of found.rows) {
-        member[relation] = member[relation].map((i) => i.id)
+        member[relation] = member[relation]?.map((i) => i.id)
       }
     }
     return found
