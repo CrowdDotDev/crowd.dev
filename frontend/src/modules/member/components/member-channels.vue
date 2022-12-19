@@ -62,6 +62,15 @@
         :href="`https://news.ycombinator.com/user?id=${member.username.hackernews}`"
         :as-link="true"
       />
+      <app-platform
+        v-if="!!member.username?.reddit"
+        platform="reddit"
+        track-event-name="Reddit"
+        :has-tooltip="true"
+        tooltip-label="Reddit profile"
+        :href="`https://reddit.com/u/${member.username.reddit}`"
+        :as-link="true"
+      />
     </div>
 
     <el-divider
@@ -107,7 +116,8 @@ const hasSocialIdentities = computed(
     !!props.member.username?.devto ||
     !!props.member.username?.discord ||
     !!props.member.username?.slack ||
-    !!props.member.username?.hackernews
+    !!props.member.username?.hackernews ||
+    !!props.member.username?.reddit
 )
 const showDivider = computed(
   () => props.member.email && hasSocialIdentities.value

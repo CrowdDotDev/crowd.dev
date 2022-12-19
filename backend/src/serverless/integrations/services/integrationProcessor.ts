@@ -22,6 +22,7 @@ import { DiscordIntegrationService } from './integrations/discordIntegrationServ
 import { IIntegrationStream, IStepContext } from '../../../types/integration/stepResult'
 import { TwitterIntegrationService } from './integrations/twitterIntegrationService'
 import { HackerNewsIntegrationService } from './integrations/hackerNewsIntegrationService'
+import { RedditIntegrationService } from './integrations/redditIntegrationService'
 import { TwitterReachIntegrationService } from './integrations/twitterReachIntegrationService'
 import { SlackIntegrationService } from './integrations/slackIntegrationService'
 import { GithubIntegrationService } from './integrations/githubIntegrationService'
@@ -45,6 +46,7 @@ export class IntegrationProcessor extends LoggingBase {
       new DevtoIntegrationService(),
       new DiscordIntegrationService(),
       new HackerNewsIntegrationService(),
+      new RedditIntegrationService(),
       new TwitterIntegrationService(),
       new TwitterReachIntegrationService(),
       new SlackIntegrationService(),

@@ -25,9 +25,14 @@ export default (app) => {
     `/discord-authenticate/:tenantId/:guild_id`,
     safeWrap(require('./helpers/discordAuthenticate').default),
   )
+  app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
   app.get(
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),
+  )
+  app.get(
+    '/tenant/:tenantId/reddit-validate',
+    safeWrap(require('./helpers/redditValidator').default),
   )
   app.post(
     '/tenant/:tenantId/devto-connect',

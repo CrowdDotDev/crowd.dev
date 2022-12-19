@@ -371,6 +371,10 @@ const en = {
         post: 'posted',
         comment: 'commented '
       },
+      reddit: {
+        post: 'posted',
+        comment: 'commented'
+      },
       fallback: 'created an activity'
     },
 
