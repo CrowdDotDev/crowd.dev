@@ -44,19 +44,21 @@
                   </div>
                   <div class="text-gray-500 text-2xs">
                     {{ getPlan(currentTenant.plan) }}
-                    <span
-                      v-if="getTrialDate(currentTenant)"
-                      class="badge badge--xs badge--light-yellow ml-1 hover:cursor-pointer"
-                      @click.stop="
-                        router.push({
-                          name: 'settings',
-                          query: { activeTab: 'plans' }
-                        })
-                      "
-                      >{{
-                        getTrialDate(currentTenant)
-                      }}</span
+                    <router-link
+                      :to="{
+                        name: 'settings',
+                        query: { activeTab: 'plans' }
+                      }"
+                      @click.stop
                     >
+                      <span
+                        v-if="getTrialDate(currentTenant)"
+                        class="badge badge--xs badge--light-yellow ml-1 hover:cursor-pointer"
+                        >{{
+                          getTrialDate(currentTenant)
+                        }}</span
+                      >
+                    </router-link>
                   </div>
                 </div>
               </div>
@@ -138,10 +140,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import AppTenantListDrawer from '@/modules/tenant/components/tenant-list-drawer.vue'
 import config from '@/config'
 import { getTrialDate } from '@/utils/date'
-import { useRouter } from 'vue-router'
 
 const store = useStore()
-const router = useRouter()
 
 const isDropdownOpen = ref(false)
 const isTenantsDrawerOpen = ref(false)
