@@ -41,6 +41,8 @@ async function csvExportWorker(
     'reach',
     'averageSentiment',
     'isTeamMember',
+    'score',
+    'attributes',
     'location',
     'bio',
     'jobTitle',
@@ -56,8 +58,7 @@ async function csvExportWorker(
   switch (entity) {
     case ExportableEntity.MEMBERS: {
       const memberService = new MemberService(userContext)
-      data = await memberService.query(criteria)
-
+      data = await memberService.queryAll(criteria)
       break
     }
     default:

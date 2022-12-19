@@ -653,6 +653,20 @@ export default class MemberService extends LoggingBase {
     )
   }
 
+  async queryAll(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
+    const advancedFilter = data.filter
+    const orderBy = data.orderBy
+    const limit = 1
+    const offset = data.offset
+    return MemberRepository.findAndCountAll(
+      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings, freeLimit: true },
+      this.options,
+    )
+  }
+
   async export(data) {
     const result = await sendExportCSVNodeSQSMessage(
       this.options.currentTenant.id,

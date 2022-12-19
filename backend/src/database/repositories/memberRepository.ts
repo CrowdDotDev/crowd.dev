@@ -436,6 +436,7 @@ class MemberRepository {
       offset = 0,
       orderBy = '',
       attributesSettings = [] as AttributeData[],
+      freeLimit = false
     },
 
     options: IRepositoryOptions,
@@ -791,6 +792,7 @@ class MemberRepository {
             column: 'username',
           },
         },
+        freeLimit
       },
       options,
     )
@@ -844,7 +846,7 @@ class MemberRepository {
         [noMergeArray, 'noMergeIds'],
         ...dynamicAttributesProjection,
       ],
-      limit: limit ? Number(limit) : 50,
+      limit: parsed.limit || 50,
       offset: offset ? Number(offset) : 0,
       order,
       subQuery: false,
