@@ -13,11 +13,14 @@ import { processIntegration, processIntegrationCheck } from './worker/integratio
 
 /* eslint-disable no-constant-condition */
 
+const serviceLogger = getServiceLogger()
+
 let exiting = false
 
 const messagesInProgress = new Map<string, NodeWorkerMessageBase>()
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
+  serviceLogger.warn('Detected SIGTERM signal, started exiting!')
   exiting = true
 })
 
@@ -40,8 +43,6 @@ const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void
 
   return deleteMessage(params)
 }
-
-const serviceLogger = getServiceLogger()
 
 async function handleDelayedMessages() {
   const delayedHandlerLogger = createChildLogger('delayedMessages', serviceLogger, {
@@ -179,12 +180,13 @@ async function handleMessages() {
     }
   }
 
-  while (messagesInProgress.size !== 0) {
-    for (const msg of messagesInProgress.values()) {
-      ;(msg as any).exiting = true
-    }
+  // mark in flight messages as exiting
+  for (const msg of messagesInProgress.values()) {
+    ;(msg as any).exiting = true
+  }
 
-    handlerLogger.info({ remaining: messagesInProgress.size }, 'Waiting for messages to finish!')
+  while (messagesInProgress.size !== 0) {
+    handlerLogger.warn(`Waiting for ${messagesInProgress.size} messages to finish!`)
     await timeout(500)
   }
 
