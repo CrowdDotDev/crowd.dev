@@ -661,6 +661,7 @@ export default class MemberService extends LoggingBase {
   }
 
   async queryForCsv(data) {
+    data.limit = 10000000000000
     const found = await this.query(data, true)
 
     const relations = [
