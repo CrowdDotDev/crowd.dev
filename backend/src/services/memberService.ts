@@ -675,6 +675,8 @@ export default class MemberService extends LoggingBase {
         delete member[relation]
       }
     }
+
+    return found
   }
 
   async export(data) {
