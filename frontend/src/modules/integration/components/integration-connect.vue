@@ -19,7 +19,7 @@
   </component>
   <a
     v-else-if="props.integration.platform === 'custom'"
-    href="https://docs.crowd.dev/v0/reference/"
+    href="https://crowd.dev/integration-framework"
     target="_blank"
     class="btn btn-brand btn-brand--primary btn--md"
     >Read more</a
