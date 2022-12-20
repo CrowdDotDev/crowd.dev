@@ -8,7 +8,7 @@
           <div>
             <img
               class="h-6 w-auto"
-              src="/images/crowd-logo.svg"
+              src="/images/logo/crowd.svg"
               alt="crowd.dev logo"
             />
           </div>
