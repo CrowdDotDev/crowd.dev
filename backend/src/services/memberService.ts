@@ -662,10 +662,17 @@ export default class MemberService extends LoggingBase {
 
   async queryForCsv(data) {
     const found = await this.query(data, true)
-    const relationsToTrim = ['organizations']
-    for (const relation of relationsToTrim) {
+
+    const relations = [
+      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'notes', attributes: ['body'] },
+      { relation: 'tags', attributes: ['name'] },
+    ]
+    for (const relation of relations) {
       for (const member of found.rows) {
-        member[relation] = member[relation]?.map((i) => { return { id: i.id, ...(i.name && { name: i.name }) } })
+        member[relation.relation] = member[relation.relation]?.map((i) => {
+          return { id: i.id, ...lodash.pick(i, relation.attributes) }
+        })
       }
     }
 
