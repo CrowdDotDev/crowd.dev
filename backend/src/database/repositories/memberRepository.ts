@@ -436,7 +436,7 @@ class MemberRepository {
       offset = 0,
       orderBy = '',
       attributesSettings = [] as AttributeData[],
-      freeLimit = false,
+      exportMode = false,
     },
 
     options: IRepositoryOptions,
@@ -792,7 +792,7 @@ class MemberRepository {
             column: 'username',
           },
         },
-        freeLimit,
+        exportMode,
       },
       options,
     )
@@ -861,7 +861,7 @@ class MemberRepository {
       distinct: true,
     })
 
-    rows = await this._populateRelationsForRows(rows, attributesSettings)
+    rows = await this._populateRelationsForRows(rows, attributesSettings, exportMode)
 
     return {
       rows,
@@ -932,7 +932,7 @@ class MemberRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows, attributesSettings) {
+  static async _populateRelationsForRows(rows, attributesSettings, exportMode = false) {
     if (!rows) {
       return rows
     }
@@ -940,7 +940,7 @@ class MemberRepository {
     // No need for lazyloading tags for integrations or microservices
     if (
       (KUBE_MODE &&
-        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR)) ||
+        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR) && !exportMode) ||
       process.env.SERVICE === 'integrations' ||
       process.env.SERVICE === 'microservices-nodejs'
     ) {

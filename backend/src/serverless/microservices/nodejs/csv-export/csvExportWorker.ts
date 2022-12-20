@@ -42,6 +42,7 @@ async function csvExportWorker(
     'organizations',
     'activityCount',
     'lastActive',
+    'lastActivity',
     'reach',
     'averageSentiment',
     'score',

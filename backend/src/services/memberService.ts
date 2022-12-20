@@ -639,7 +639,7 @@ export default class MemberService extends LoggingBase {
     )
   }
 
-  async query(data, freeLimit = false) {
+  async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
@@ -654,7 +654,7 @@ export default class MemberService extends LoggingBase {
         limit,
         offset,
         attributesSettings: memberAttributeSettings,
-        freeLimit,
+        exportMode,
       },
       this.options,
     )
@@ -662,13 +662,19 @@ export default class MemberService extends LoggingBase {
 
   async queryForCsv(data) {
     const found = await this.query(data, true)
-    const relations = ['toMerge', 'noMerge', 'organizations']
-    for (const relation of relations) {
+    const relationsToTrim = ['organizations']
+    const relationsToIgnore = ['toMerge', 'noMerge', 'tasks']
+    for (const relation of relationsToTrim) {
       for (const member of found.rows) {
-        member[relation] = member[relation]?.map((i) => i.id)
+        member[relation] = member[relation]?.map((i) => { return { id: i.id, ...(i.name && { name: i.name }) } })
       }
     }
-    return found
+    
+    for (const relation of relationsToIgnore) {
+      for (const member of found.rows) {
+        delete member[relation]
+      }
+    }
   }
 
   async export(data) {

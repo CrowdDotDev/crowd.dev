@@ -26,7 +26,7 @@ class QueryParser {
 
   private customOperators: any
 
-  private freeLimit: boolean
+  private exportMode: boolean
 
   static maxPageSize = 200
 
@@ -87,7 +87,7 @@ class QueryParser {
       nestedFields = {} as any,
       manyToMany = {} as ManyToManyType,
       customOperators = {} as any,
-      freeLimit = false,
+      exportMode = false,
     },
     options: IRepositoryOptions,
   ) {
@@ -100,7 +100,7 @@ class QueryParser {
     }
     this.manyToMany = manyToMany
     this.customOperators = customOperators
-    this.freeLimit = freeLimit
+    this.exportMode = exportMode
   }
 
   /**
@@ -417,7 +417,7 @@ class QueryParser {
       if (typeof limit === 'string') {
         limit = parseInt(limit, 10)
       }
-      dbQuery.limit = this.freeLimit
+      dbQuery.limit = this.exportMode
         ? 1000000000
         : Math.min(limit > 0 ? limit : QueryParser.defaultPageSize, QueryParser.maxPageSize)
     }
