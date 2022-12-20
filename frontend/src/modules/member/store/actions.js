@@ -6,7 +6,6 @@ import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
-import InformationDialog from '@/shared/dialog/information-dialog'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 export default {
@@ -37,17 +36,20 @@ export default {
       commit('EXPORT_SUCCESS')
 
       await ConfirmDialog({
+        vertical: true,
+        type: 'info',
         title: 'Export CSV',
         message:
-          'The CSV file was sent to your e-mail in order for you to download it',
+          'Receive in your inbox a link to download the CSV file ',
         icon: 'ri-file-download-line',
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Cancel',
-        label: selected
+        badgeContent: selected
           ? `${getters.selectedRows.length} member${
               getters.selectedRows.length === 1 ? '' : 's'
             }`
-          : getters.activeView.label
+          : `View: ${getters.activeView.label}`,
+        highlightedInfo: `0/2 exports available in this plan used`
       })
     } catch (error) {
       Errors.handle(error)
@@ -55,13 +57,15 @@ export default {
       commit('EXPORT_ERROR')
 
       if (error.response.status === 403) {
-        await InformationDialog({
+        await ConfirmDialog({
+          vertical: true,
           type: 'danger',
           title:
             'You have reached the limit of 2 CSV exports per month on your current plan',
           message:
             'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
-          confirmButtonText: 'Upgrade plan'
+          confirmButtonText: 'Upgrade plan',
+          showCancelButton: false
         })
         router.push('settings?activeTab=plans')
       } else {

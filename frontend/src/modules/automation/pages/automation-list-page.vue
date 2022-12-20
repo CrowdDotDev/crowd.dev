@@ -78,7 +78,7 @@ import {
   isFeatureEnabled,
   featureFlags
 } from '@/utils/posthog'
-import InformationDialog from '@/shared/dialog/information-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { router } from '@/router'
 
 export default {
@@ -143,7 +143,8 @@ export default {
       if (isFlagEnabled) {
         this.isAutomationDrawerOpen = true
       } else {
-        await InformationDialog({
+        await ConfirmDialog({
+          vertical: true,
           type: 'danger',
           title:
             'You have reached the limit of 2 automations on your current plan',
