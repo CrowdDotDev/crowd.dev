@@ -283,13 +283,17 @@ class MemberRepository {
       })
     }
 
-    await record.setTasks(data.tasks || [], {
-      transaction,
-    })
+    if (data.tasks) {
+      await record.setTasks(data.tasks || [], {
+        transaction,
+      })
+    }
 
-    await record.setNotes(data.notes || [], {
-      transaction,
-    })
+    if (data.notes) {
+      await record.setNotes(data.notes || [], {
+        transaction,
+      })
+    }
 
     if (data.organizations) {
       await record.setOrganizations(data.organizations || [], {
