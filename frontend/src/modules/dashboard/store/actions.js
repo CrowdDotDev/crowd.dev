@@ -168,7 +168,7 @@ export default {
             : [])
         ]
       },
-      'lastActive_DESC',
+      'activityCount_DESC',
       5,
       0,
       false
