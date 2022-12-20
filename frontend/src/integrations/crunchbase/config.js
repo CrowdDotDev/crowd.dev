@@ -1,4 +1,4 @@
 export default {
-  image: '/images/crunchbase_logo.png',
+  image: '/images/integrations/crunchbase.png',
   hideAsIntegration: true
 }
