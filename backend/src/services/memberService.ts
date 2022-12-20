@@ -663,16 +663,9 @@ export default class MemberService extends LoggingBase {
   async queryForCsv(data) {
     const found = await this.query(data, true)
     const relationsToTrim = ['organizations']
-    const relationsToIgnore = ['toMerge', 'noMerge', 'tasks']
     for (const relation of relationsToTrim) {
       for (const member of found.rows) {
         member[relation] = member[relation]?.map((i) => { return { id: i.id, ...(i.name && { name: i.name }) } })
-      }
-    }
-    
-    for (const relation of relationsToIgnore) {
-      for (const member of found.rows) {
-        delete member[relation]
       }
     }
 

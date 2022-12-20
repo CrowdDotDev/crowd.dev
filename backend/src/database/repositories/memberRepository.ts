@@ -986,6 +986,12 @@ class MemberRepository {
         plainRecord.tags = await record.getTags({
           joinTableAttributes: [],
         })
+
+        if (exportMode) {
+          plainRecord.notes = await record.getNotes({
+            joinTableAttributes: [],
+          })
+        }
         return plainRecord
       }),
     )
