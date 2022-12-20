@@ -63,14 +63,16 @@ export const sendNodeWorkerMessage = async (
     delayed = true
   }
 
-  await sendMessage({
+  const params = {
     QueueUrl: delayed ? SQS_CONFIG.nodejsWorkerDelayableQueue : SQS_CONFIG.nodejsWorkerQueue,
     MessageGroupId: delayed ? undefined : tenantId,
     MessageDeduplicationId: delayed ? undefined : `${tenantId}-${moment().valueOf()}`,
     MessageBody: JSON.stringify(body),
     MessageAttributes: attributes,
     DelaySeconds: delay,
-  })
+  }
+
+  await sendMessage(params)
 }
 
 export const sendNewActivityNodeSQSMessage = async (
