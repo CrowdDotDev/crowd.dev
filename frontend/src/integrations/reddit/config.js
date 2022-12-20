@@ -9,7 +9,7 @@ export default {
   borderColor: '#ffd8ca',
   description:
     'Connect Reddit to sync posts and comments from selected subreddits.',
-  image: '/images/reddit.svg',
+  image: '/images/integrations/reddit.svg',
   connectComponent: RedditConnect,
   activityMessage: RedditActivityMessage,
   activityContent: RedditActivityContent

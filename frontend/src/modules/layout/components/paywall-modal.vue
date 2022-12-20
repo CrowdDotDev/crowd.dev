@@ -75,7 +75,7 @@ const modalContent = {
   organizations: {
     title: 'Organizations',
     preTitle: 'Growth feature',
-    imageSrc: '/images/organizations-paywall.png',
+    imageSrc: '/images/paywall/organizations.png',
     content:
       'Get a complete organization directory that you can search, filter, and sort instantly. Each organization also has its own profile page, which highlights key information about that organization and all the community members that belong to it'
   },

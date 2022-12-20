@@ -46,7 +46,7 @@
           <div class="flex items-end">
             <div class="mr-2">Build your own with</div>
             <img
-              src="/images/crowd-logo.svg"
+              src="/images/logo/crowd.svg"
               class="block h-4"
               alt="logo crowd.dev"
             />

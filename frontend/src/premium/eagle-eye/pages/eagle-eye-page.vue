@@ -22,7 +22,7 @@
         class="flex flex-col items-center justify-center w-full py-10"
       >
         <img
-          src="/images/eagle-eye-empty-state.svg"
+          src="/images/empty-state/eagle-eye.svg"
           alt=""
           class="w-80"
         />
@@ -68,9 +68,9 @@ const currentTenant = computed(
 
 const shouldRenderInboxEmptyState = computed(() => {
   return (
-    localStorage.getItem('eagleEye_keywords') === null &&
+    !localStorage.getItem('eagleEye_keywords') &&
     !loading.value &&
-    activeView.value.id === 'inbox'
+    activeView.value === 'inbox'
   )
 })
 </script>

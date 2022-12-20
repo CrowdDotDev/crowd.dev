@@ -28,7 +28,7 @@
       </div>
     </div>
     <img
-      :src="`/images/${code}.svg`"
+      :src="`/images/error/${code}.svg`"
       alt="404 img"
       class="block w-32 h-auto"
     />

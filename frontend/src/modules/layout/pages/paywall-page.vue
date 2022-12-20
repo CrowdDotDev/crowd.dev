@@ -97,7 +97,7 @@ const pageContent = {
       'Get a pulse of the organizations represented in your community',
     mainContent:
       'Get a complete organization directory that you can search, filter, and sort instantly. Each organization also has its own profile page, which highlights key information about that organization and all the community members that belong to it. Keeping a pulse of which organizations your members are representing is extremely important for a successful bottom-up growth strategy.',
-    imageSrc: '/images/organizations-paywall.png',
+    imageSrc: '/images/paywall/organizations.png',
     secondaryContent:
       'Organizations are companies or entities within your community. If a member that works at a certain company joins your community, that company will be added as an organization.',
     featuresList: []
