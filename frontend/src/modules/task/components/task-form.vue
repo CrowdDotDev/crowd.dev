@@ -344,12 +344,12 @@ const fillForm = () => {
       name: props.task.name,
       body: props.task.body,
       members:
-        props.task.members.map((m) => ({
+        props.task.members?.map((m) => ({
           ...m,
           label: m.displayName
         })) || [],
       assignees:
-        props.task.assignees.map((a) => ({
+        props.task.assignees?.map((a) => ({
           ...a,
           label: a.fullName
         })) || [],
