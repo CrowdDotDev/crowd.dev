@@ -197,6 +197,29 @@
                 </template>
               </el-table-column>
 
+              <!-- Joined Date -->
+              <el-table-column
+                label="Joined Date"
+                width="200"
+                prop="joinedAt"
+                sortable
+                ><template #default="scope"
+                  ><div
+                    v-if="scope.row.joinedAt"
+                    class="text-gray-900 text-sm"
+                  >
+                    {{
+                      formatDateToTimeAgo(
+                        scope.row.joinedAt
+                      )
+                    }}
+                  </div>
+                  <span v-else class="text-gray-900"
+                    >-</span
+                  ></template
+                ></el-table-column
+              >
+
               <el-table-column
                 label="Identities"
                 width="240"
@@ -270,15 +293,16 @@ import {
   watch
 } from 'vue'
 import AppMemberListToolbar from '@/modules/member/components/list/member-list-toolbar.vue'
-import AppMemberBadge from '../member-badge'
+import AppMemberBadge from '../member-badge.vue'
 import AppMemberOrganizations from '@/modules/member/components/member-organizations.vue'
-import AppMemberDropdown from '../member-dropdown'
-import AppMemberChannels from '../member-channels'
+import AppMemberDropdown from '../member-dropdown.vue'
+import AppMemberChannels from '../member-channels.vue'
 import AppMemberReach from '../member-reach.vue'
-import AppTagList from '@/modules/tag/components/tag-list'
-import AppMemberEngagementLevel from '../member-engagement-level'
-import AppMemberLastActivity from '../member-last-activity'
-import AppMemberSentiment from '../member-sentiment'
+import AppTagList from '@/modules/tag/components/tag-list.vue'
+import AppMemberEngagementLevel from '../member-engagement-level.vue'
+import AppMemberLastActivity from '../member-last-activity.vue'
+import AppMemberSentiment from '../member-sentiment.vue'
+import { formatDateToTimeAgo } from '@/utils/date'
 
 const store = useStore()
 const router = useRouter()

@@ -5,7 +5,6 @@ import DateTimeField from '@/shared/fields/date-time-field'
 import StringField from '@/shared/fields/string-field'
 import OrganizationMemberCountField from '@/modules/organization/organization-member-count-field'
 import SearchField from '@/shared/fields/search-field'
-import ActivityDateField from '@/shared/fields/activity-date-field'
 import OrganizationPlatformField from './organization-platform-field'
 import OrganizationEmployeesField from './organization-employees-field'
 import JsonField from '@/shared/fields/json-field'
@@ -58,13 +57,9 @@ const fields = {
     'revenueRange',
     label('revenueRange')
   ),
-  joinedAt: new ActivityDateField(
-    'joinedAt',
-    'Joined date',
-    {
-      filterable: true
-    }
-  ),
+  joinedAt: new DateTimeField('joinedAt', 'Joined date', {
+    filterable: true
+  }),
   activeOn: new OrganizationPlatformField(
     'activeOn',
     'Active on',

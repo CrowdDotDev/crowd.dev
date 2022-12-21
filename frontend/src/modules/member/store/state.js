@@ -1,4 +1,3 @@
-import moment from 'moment'
 import {
   INITIAL_PAGE_SIZE,
   INITIAL_VIEW_ALL_FILTER,
@@ -38,19 +37,7 @@ export default () => {
       'new-and-active': {
         id: 'new-and-active',
         label: 'New and active',
-        columns: [
-          {
-            name: 'joinedAt',
-            label: 'Joined at',
-            sortable: true,
-            formatter: (value) => {
-              return value
-                ? moment(value).format('DD-MM-YYYY')
-                : ''
-            },
-            width: 150
-          }
-        ],
+        columns: [],
         initialFilter: INITIAL_VIEW_RECENT_FILTER,
         filter: JSON.parse(
           JSON.stringify(INITIAL_VIEW_RECENT_FILTER)

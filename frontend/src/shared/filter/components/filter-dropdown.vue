@@ -107,6 +107,9 @@ const computedAttributes = computed(() =>
           .filter.attributes[a.name].show !== false
       return a
     })
+    .sort((a, b) =>
+      Intl.Collator().compare(a.label, b.label)
+    )
 )
 const computedCustomAttributes = computed(() =>
   props.customAttributes
@@ -118,6 +121,9 @@ const computedCustomAttributes = computed(() =>
       a.custom = true
       return a
     })
+    .sort((a, b) =>
+      Intl.Collator().compare(a.label, b.label)
+    )
 )
 
 function handleDropdownChange(value) {
