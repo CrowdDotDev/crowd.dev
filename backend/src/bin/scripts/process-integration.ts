@@ -41,7 +41,7 @@ const sections = [
   },
   {
     header: 'Process Integration',
-    content: 'Trigger processing of a single integration.',
+    content: 'Trigger processing of integrations.',
   },
   {
     header: 'Options',
@@ -58,9 +58,9 @@ if (parameters.help || !parameters.integration) {
   setImmediate(async () => {
     const integrationIds = parameters.integration.split(',')
     const onboarding = parameters.onboarding
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
 
     for (const integrationId of integrationIds) {
-      const options = await SequelizeRepository.getDefaultIRepositoryOptions()
       const integration = await options.database.integration.findOne({
         where: { id: integrationId },
       })

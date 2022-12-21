@@ -161,6 +161,9 @@ function scaffold() {
             create-migration) create_migration $2
                 exit;
             ;;
+            migrate-up) migrate_local
+                exit;
+            ;;
             up-test)
                 up_test_scaffold
                 exit;

@@ -351,7 +351,7 @@ describe('Github webhooks tests', () => {
       expect(fromDb).toBeDefined()
     })
 
-    it('getActivityWithMember should return null for all other actions', async () => {
+    it('getActivityWithMember should throw an error for all other actions', async () => {
       const { gh } = await init(TestEvents.issues.event, TestEvents.issues.closed, true)
 
       const actions = [
@@ -373,9 +373,14 @@ describe('Github webhooks tests', () => {
         const fromMain = await gh.getActivityWithMember()
         expect(fromMain).toBeNull()
 
-        const fromDb = await gh.main()
-        expect(fromDb.message).toBe('Event not supported')
-        expect(fromDb.status).toBe(204)
+        try {
+          await gh.main()
+          fail('Should have thrown an error')
+        } catch (err) {
+          expect(err.message).toBe(
+            `Activity not supported! Event was issues of type  string. Action was ${action}, with a payload type of object.`,
+          )
+        }
       }
     })
   })
@@ -678,7 +683,7 @@ describe('Github webhooks tests', () => {
       expect(fromDb).toBeDefined()
     })
 
-    it('getActivityWithMember should return null for all other actions', async () => {
+    it('getActivityWithMember should throw an error for all other actions', async () => {
       const { gh } = await init(TestEvents.pullRequests.event, TestEvents.pullRequests.closed, true)
 
       const actions = [
@@ -701,9 +706,14 @@ describe('Github webhooks tests', () => {
         const fromMain = await gh.getActivityWithMember()
         expect(fromMain).toBeNull()
 
-        const fromDb = await gh.main()
-        expect(fromDb.message).toBe('Event not supported')
-        expect(fromDb.status).toBe(204)
+        try {
+          await gh.main()
+          fail('Should have thrown an error')
+        } catch (err) {
+          expect(err.message).toBe(
+            `Activity not supported! Event was pull_request of type  string. Action was ${action}, with a payload type of object.`,
+          )
+        }
       }
     })
   })
@@ -1018,7 +1028,7 @@ describe('Github webhooks tests', () => {
       expect(fromDb.parentId).toBe(pull.id)
     })
 
-    it('getActivityWithMember should return null for all other actions', async () => {
+    it('getActivityWithMember should throw an error for all other actions', async () => {
       const { gh } = await init(TestEvents.comment.event, TestEvents.comment.issue, true)
 
       const actions = ['deleted']
@@ -1027,9 +1037,14 @@ describe('Github webhooks tests', () => {
         const fromMain = await gh.getActivityWithMember()
         expect(fromMain).toBeNull()
 
-        const fromDb = await gh.main()
-        expect(fromDb.message).toBe('Event not supported')
-        expect(fromDb.status).toBe(204)
+        try {
+          await gh.main()
+          fail('Should have thrown error')
+        } catch (err) {
+          expect(err.message).toBe(
+            'Activity not supported! Event was issue_comment of type  string. Action was deleted, with a payload type of object.',
+          )
+        }
       }
     })
     it('It should parse a discussion comment created event coming from the GitHub API', async () => {

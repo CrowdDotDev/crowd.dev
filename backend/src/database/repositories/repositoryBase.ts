@@ -37,19 +37,29 @@ export abstract class RepositoryBase<
     return this.options.database
   }
 
-  abstract create(data: TCreate): Promise<TData>
+  async create(data: TCreate): Promise<TData> {
+    throw new Error('Method not implemented.')
+  }
 
-  abstract update(id: TId, data: TUpdate): Promise<TData>
+  async update(id: TId, data: TUpdate): Promise<TData> {
+    throw new Error('Method not implemented.')
+  }
 
   async destroy(id: TId): Promise<void> {
     return this.destroyAll([id])
   }
 
-  abstract destroyAll(ids: TId[]): Promise<void>
+  async destroyAll(ids: TId[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
 
-  abstract findById(id: TId): Promise<TData>
+  async findById(id: TId): Promise<TData> {
+    throw new Error('Method not implemented.')
+  }
 
-  abstract findAndCountAll(criteria: TCriteria): Promise<PageData<TData>>
+  async findAndCountAll(criteria: TCriteria): Promise<PageData<TData>> {
+    throw new Error('Method not implemented.')
+  }
 
   async findAll(criteria: TCriteria): Promise<TData[]> {
     const copy = { ...criteria }

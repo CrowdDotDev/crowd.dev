@@ -510,39 +510,39 @@ export default class GitHubWebhook {
 
   /**
    * Verifies a request coming from GitHub webhooks
-   * @param req The whole request
+   * @param signature header signature
+   * @param data payload
    * @returns The SQS message sent || Verification Error
    */
-  static verify(req): void {
+  static verify(signature: string, data: any): void {
+    const secret = GITHUB_CONFIG.webhookSecret
+
+    let isVerified: boolean
     try {
-      const signature = req.headers['x-hub-signature']
-      const secret = GITHUB_CONFIG.webhookSecret
-
-      log.info('Verifying webhook...')
-      const isVerified = verifyGithubWebhook(signature, JSON.stringify(req.body), secret) // Returns true if verification succeeds; otherwise, false.
-
-      log.info('Verification', isVerified)
-      if (!isVerified) {
-        throw new Error('Webhook not verified')
-      }
+      isVerified = verifyGithubWebhook(signature, JSON.stringify(data), secret) // Returns true if verification succeeds; otherwise, false.
     } catch (err) {
       throw new Error(`Webhook not verified\n${err}`)
     }
+
+    if (!isVerified) {
+      throw new Error('Webhook not verified')
+    }
+
+    log.info('Webhook verified')
   }
 
   async main(): Promise<any> {
     const activity = await this.getActivityWithMember()
+
     if (activity) {
       const userContext = await getUserContext(activity.tenant)
       return new ActivityService(userContext).createWithMember(activity)
     }
 
-    return {
-      message: 'Event not supported',
-      info: `Event was ${this.event} of type  ${typeof this.event}. Action was ${
+    throw new Error(
+      `Activity not supported! Event was ${this.event} of type  ${typeof this.event}. Action was ${
         this.payload.action
       }, with a payload type of ${typeof this.payload}.`,
-      status: 204,
-    }
+    )
   }
 }

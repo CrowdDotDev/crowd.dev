@@ -10,6 +10,7 @@ import { createChildLogger, getServiceLogger, Logger } from '../utils/logging'
 import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
 import { timeout } from '../utils/timing'
 import { processIntegration, processIntegrationCheck } from './worker/integrations'
+import { processWebhook } from '../serverless/integrations/workers/githubWebhookWorker'
 
 /* eslint-disable no-constant-condition */
 
@@ -136,6 +137,9 @@ async function handleMessages() {
           break
         case NodeWorkerMessageType.DB_OPERATIONS:
           processFunction = processDbOperationsMessage
+          break
+        case NodeWorkerMessageType.PROCESS_WEBHOOK:
+          processFunction = processWebhook
           break
 
         default:
