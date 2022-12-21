@@ -5,15 +5,24 @@ import { NodeWorkerMessageType } from '../serverless/types/workerTypes'
 import { processNodeMicroserviceMessage } from '../serverless/microservices/nodejs/workDispatcher'
 import { processDbOperationsMessage } from '../serverless/dbOperations/workDispatcher'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
-import { NodeWorkerIntegrationCheckMessage } from '../types/mq/nodeWorkerIntegrationCheckMessage'
-import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
-import { createChildLogger, getServiceLogger } from '../utils/logging'
+import { createChildLogger, getServiceLogger, Logger } from '../utils/logging'
 import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
 import { timeout } from '../utils/timing'
 import { processIntegration, processIntegrationCheck } from './worker/integrations'
 
 /* eslint-disable no-constant-condition */
+
+const serviceLogger = getServiceLogger()
+
+let exiting = false
+
+const messagesInProgress = new Map<string, NodeWorkerMessageBase>()
+
+process.on('SIGTERM', async () => {
+  serviceLogger.warn('Detected SIGTERM signal, started exiting!')
+  exiting = true
+})
 
 const receive = (delayed?: boolean): Promise<Message | undefined> => {
   const params: ReceiveMessageRequest = {
@@ -35,8 +44,6 @@ const removeFromQueue = (receiptHandle: string, delayed?: boolean): Promise<void
   return deleteMessage(params)
 }
 
-const serviceLogger = getServiceLogger()
-
 async function handleDelayedMessages() {
   const delayedHandlerLogger = createChildLogger('delayedMessages', serviceLogger, {
     queue: SQS_CONFIG.nodejsWorkerDelayableQueue,
@@ -44,7 +51,7 @@ async function handleDelayedMessages() {
   delayedHandlerLogger.info('Listing for delayed messages!')
 
   // noinspection InfiniteLoopJS
-  while (true) {
+  while (!exiting) {
     const message = await receive(true)
 
     if (message) {
@@ -84,6 +91,8 @@ async function handleDelayedMessages() {
       delayedHandlerLogger.trace('No message received!')
     }
   }
+
+  delayedHandlerLogger.warn('Exiting!')
 }
 
 let processingMessages = 0
@@ -112,17 +121,15 @@ async function handleMessages() {
     try {
       messageLogger.debug('Received a new queue message!')
 
-      let processFunction: (msg: NodeWorkerMessageBase) => Promise<void>
+      let processFunction: (msg: NodeWorkerMessageBase, logger?: Logger) => Promise<void>
       let keep = false
 
       switch (msg.type) {
         case NodeWorkerMessageType.INTEGRATION_CHECK:
-          await removeFromQueue(message.ReceiptHandle)
-          await processIntegrationCheck(messageLogger, msg as NodeWorkerIntegrationCheckMessage)
+          processFunction = processIntegrationCheck
           break
         case NodeWorkerMessageType.INTEGRATION_PROCESS:
-          await removeFromQueue(message.ReceiptHandle)
-          await processIntegration(messageLogger, msg as NodeWorkerIntegrationProcessMessage)
+          processFunction = processIntegration
           break
         case NodeWorkerMessageType.NODE_MICROSERVICE:
           processFunction = processNodeMicroserviceMessage
@@ -140,11 +147,13 @@ async function handleMessages() {
         if (!keep) {
           // remove the message from the queue as it's about to be processed
           await removeFromQueue(message.ReceiptHandle)
-
+          messagesInProgress.set(message.MessageId, msg)
           try {
-            await processFunction(msg)
+            await processFunction(msg, messageLogger)
           } catch (err) {
             messageLogger.error(err, 'Error while processing queue message!')
+          } finally {
+            messagesInProgress.delete(message.MessageId)
           }
         } else {
           messageLogger.warn('Keeping the message in the queue!')
@@ -156,7 +165,7 @@ async function handleMessages() {
   }
 
   // noinspection InfiniteLoopJS
-  while (true) {
+  while (!exiting) {
     if (isWorkerAvailable()) {
       const message = await receive()
 
@@ -170,6 +179,18 @@ async function handleMessages() {
       await timeout(200)
     }
   }
+
+  // mark in flight messages as exiting
+  for (const msg of messagesInProgress.values()) {
+    ;(msg as any).exiting = true
+  }
+
+  while (messagesInProgress.size !== 0) {
+    handlerLogger.warn(`Waiting for ${messagesInProgress.size} messages to finish!`)
+    await timeout(500)
+  }
+
+  handlerLogger.warn('Exiting!')
 }
 
 setImmediate(async () => {

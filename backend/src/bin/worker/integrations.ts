@@ -6,8 +6,8 @@ import { NodeWorkerIntegrationCheckMessage } from '../../types/mq/nodeWorkerInte
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 
 export const processIntegrationCheck = async (
-  messageLogger: Logger,
   msg: NodeWorkerIntegrationCheckMessage,
+  messageLogger: Logger,
 ): Promise<void> => {
   const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IServiceOptions
   options.log = messageLogger
@@ -18,8 +18,8 @@ export const processIntegrationCheck = async (
 }
 
 export const processIntegration = async (
-  messageLogger: Logger,
   msg: NodeWorkerIntegrationProcessMessage,
+  messageLogger: Logger,
 ): Promise<void> => {
   const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IServiceOptions
   options.log = messageLogger
