@@ -3,6 +3,7 @@ import { QueryTypes } from 'sequelize'
 import {
   DbIncomingWebhookInsertData,
   IncomingWebhookData,
+  WebhookError,
   WebhookState,
 } from '../../types/webhooks'
 import { IRepositoryOptions } from './IRepositoryOptions'
@@ -110,6 +111,7 @@ export default class IncomingWebhookRepository extends RepositoryBase<
       `
       update "incomingWebhooks"
       set state = :state,
+          error = null,
           "processedAt" = now()
       where id = :id
     `,
@@ -128,21 +130,26 @@ export default class IncomingWebhookRepository extends RepositoryBase<
     }
   }
 
-  async markError(id: string, error: any): Promise<void> {
+  async markError(id: string, error: WebhookError): Promise<void> {
     const transaction = this.transaction
 
     const [, rowCount] = await this.seq.query(
       `
       update "incomingWebhooks"
       set state = :state,
-          error = :error
-      where id = :id
+          error = :error,
+          "processedAt" = now()
+          where id = :id
     `,
       {
         replacements: {
           id,
           state: WebhookState.ERROR,
-          error: JSON.stringify(error),
+          error: JSON.stringify({
+            message: error.message,
+            originalMessage: error.originalError.message,
+            stack: error.stack,
+          }),
         },
         type: QueryTypes.UPDATE,
         transaction,
