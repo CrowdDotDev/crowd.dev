@@ -80,10 +80,9 @@ const fields = {
     'organizations',
     label('organization')
   ),
-  joinedAt: new DateTimeField(
-    'joinedAt',
-    label('joinedAt')
-  ),
+  joinedAt: new DateTimeField('joinedAt', 'Joined date', {
+    filterable: true
+  }),
   createdAt: new DateTimeField(
     'createdAt',
     label('createdAt')

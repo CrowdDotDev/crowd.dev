@@ -86,4 +86,18 @@ export default class DateTimeField extends GenericField {
 
     return yupChain
   }
+
+  forFilter() {
+    return {
+      name: this.name,
+      label: this.label,
+      custom: this.custom,
+      props: {},
+      defaultValue: [],
+      value: [],
+      defaultOperator: 'eq',
+      operator: null,
+      type: 'date'
+    }
+  }
 }
