@@ -491,10 +491,10 @@ export default class UserRepository {
 
     const buildText = (user) => {
       if (!user.fullName) {
-        return user.email
+        return user.email.split('@')[0]
       }
 
-      return `${user.fullName} <${user.email}>`
+      return `${user.fullName}`
     }
 
     return users.map((user) => ({

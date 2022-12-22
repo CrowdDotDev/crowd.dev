@@ -146,11 +146,11 @@
                   <app-avatar
                     size="xxs"
                     :entity="{
-                      displayName: item.fullName,
+                      displayName: item.label,
                       avatar: item.avatar
                     }"
                   ></app-avatar>
-                  <p class="pl-2">{{ item.fullName }}</p>
+                  <p class="pl-2">{{ item.label }}</p>
                 </div>
               </template>
             </app-autocomplete-many-input>
