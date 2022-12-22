@@ -7,18 +7,8 @@ import Permissions from '@/security/permissions'
 import { UserService } from '@/premium/user/user-service'
 import { MemberService } from '@/modules/member/member-service'
 
-const fetchUser = (query, limit) => {
-  const filter = query ? { fullName: query } : {}
-
-  return UserService.fetchUsers(filter, '', limit, 0).then(
-    ({ rows }) => {
-      return rows.map((r) => ({
-        ...r,
-        id: r.id,
-        label: r.fullName
-      }))
-    }
-  )
+const fetchUsers = (query, limit) => {
+  return UserService.fetchUserAutocomplete(query, limit)
 }
 
 const fetchMembers = (query, limit) => {
@@ -91,21 +81,8 @@ const fields = {
     'Assignee(s)',
     '/user',
     Permissions.values.userRead,
-    fetchUser,
-    (record) => {
-      if (!record) {
-        return null
-      }
-      return {
-        id: record.id,
-        label: record.fullName || record.email,
-        displayName: record.fullName,
-        avatar: record.avatar
-      }
-    },
-    {
-      required: true
-    }
+    fetchUsers,
+    () => {}
   )
 }
 
