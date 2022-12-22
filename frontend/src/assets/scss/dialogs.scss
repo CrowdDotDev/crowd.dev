@@ -45,22 +45,3 @@
     max-width: 400px;
   }
 }
-
-.information-dialog {
-  --el-messagebox-width: 400px;
-  @apply p-6 border-none rounded-lg;
-  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.15);
-
-  & .el-message-box__header {
-    @apply hidden;
-  }
-
-  & .el-message-box__content {
-    @apply pb-8 pt-0;
-  }
-
-  & .el-message-box__content,
-  & .el-message-box__btns {
-    @apply px-0;
-  }
-}

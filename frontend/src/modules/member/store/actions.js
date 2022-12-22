@@ -6,12 +6,15 @@ import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
-import InformationDialog from '@/shared/dialog/information-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 export default {
   ...sharedActions('member', MemberService),
 
-  async doExport({ commit, getters }, selected = false) {
+  async doExport(
+    { commit, getters, rootGetters, dispatch },
+    selected = false
+  ) {
     let filter
     if (selected) {
       filter = {
@@ -26,6 +29,36 @@ export default {
     try {
       commit('EXPORT_STARTED', filter)
 
+      commit('EXPORT_SUCCESS')
+      const currentTenant =
+        rootGetters['auth/currentTenant']
+
+      const tenantCsvExportCount =
+        currentTenant.csvExportCount
+      let planCsvExportMax = 2
+      if (currentTenant.plan === 'Growth') {
+        planCsvExportMax = 10
+      } else if (currentTenant.plan === 'Custom') {
+        planCsvExportMax = 'unlimited'
+      }
+
+      await ConfirmDialog({
+        vertical: true,
+        type: 'info',
+        title: 'Export CSV',
+        message:
+          'Receive in your inbox a link to download the CSV file ',
+        icon: 'ri-file-download-line',
+        confirmButtonText: 'Send download link to e-mail',
+        cancelButtonText: 'Cancel',
+        badgeContent: selected
+          ? `${getters.selectedRows.length} member${
+              getters.selectedRows.length === 1 ? '' : 's'
+            }`
+          : `View: ${getters.activeView.label}`,
+        highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`
+      })
+
       await MemberService.export(
         filter,
         getters.orderBy,
@@ -33,38 +66,36 @@ export default {
         null,
         !selected // build API payload if selected === false
       )
-      commit('EXPORT_SUCCESS')
 
-      await InformationDialog({
-        title: 'Export CSV',
-        message:
-          'The CSV file was sent to your e-mail in order for you to download it',
-        icon: 'ri-file-download-line',
-        confirmButtonText: 'Continue',
-        label: selected
-          ? `${getters.selectedRows.length} member${
-              getters.selectedRows.length === 1 ? '' : 's'
-            }`
-          : getters.activeView.label
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
       })
-    } catch (error) {
-      Errors.handle(error)
 
+      Message.success(
+        'CSV download link will be sent to your e-mail'
+      )
+    } catch (error) {
       commit('EXPORT_ERROR')
 
-      if (error.response.status === 403) {
-        await InformationDialog({
+      console.log(error)
+      if (error.response?.status === 403) {
+        await ConfirmDialog({
+          vertical: true,
           type: 'danger',
           title:
             'You have reached the limit of 2 CSV exports per month on your current plan',
           message:
             'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
-          confirmButtonText: 'Upgrade plan'
+          confirmButtonText: 'Upgrade plan',
+          showCancelButton: false
         })
         router.push('settings?activeTab=plans')
-      } else {
+      } else if (error !== 'cancel') {
         Message.error(
-          'There was an error exporting members'
+          'An error has occured while trying to export the CSV file. Please try again',
+          {
+            title: 'CSV Export failed'
+          }
         )
       }
     }
