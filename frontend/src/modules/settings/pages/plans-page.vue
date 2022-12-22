@@ -61,7 +61,7 @@
             </div>
 
             <div
-              class="flex flex-col gap-4 text-gray-900 text-xs mb-12"
+              class="flex flex-col gap-4 text-gray-900 text-xs mb-10"
             >
               <div v-if="plan.featuresNote">
                 {{ plan.featuresNote }}
@@ -82,7 +82,13 @@
             </div>
           </div>
 
-          <div class="text-center">
+          <div
+            class="text-center flex flex-col justify-end"
+            :class="{
+              'min-h-10': !isGrowthTrialPlan,
+              'min-h-[110px]': isGrowthTrialPlan
+            }"
+          >
             <div
               v-if="
                 plan.key === crowdHostedPlans.growth &&
@@ -90,11 +96,23 @@
               "
               class="text-gray-500 text-xs italic mb-3"
             >
-              {{ getTrialDate() }}
+              <span class="font-medium">{{
+                getTrialDate()
+              }}</span
+              ><br />
+              <span
+                >If you don't take action, you will be
+                automatically downgraded to Essential.</span
+              >
             </div>
             <el-button
               v-if="
-                plan.key !== activePlan || isGrowthTrialPlan
+                (plan.key !== activePlan ||
+                  isGrowthTrialPlan) &&
+                !(
+                  plan.key === crowdHostedPlans.essential &&
+                  isGrowthTrialPlan
+                )
               "
               class="btn btn--md btn--full btn--primary"
               @click="() => handleOnCtaClick(plan.key)"
@@ -267,7 +285,9 @@ const getTrialDate = () => {
     currentTenant.value.trialEndsAt
   ).diff(moment(), 'days')
 
-  return `Trial ends in ${daysLeft < 0 ? 0 : daysLeft} days`
+  return `Growth Trial ends in ${
+    daysLeft < 0 ? 0 : daysLeft
+  } days.`
 }
 </script>
 
