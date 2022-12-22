@@ -1,0 +1,182 @@
+import { ElMessageBox } from 'element-plus'
+import { h } from 'vue'
+
+export default ({
+  vertical = false,
+  type = 'warning',
+  title = 'Unsaved changes',
+  message = 'Are you sure you want to leave this page? Unsaved changes will be lost',
+  badgeContent = undefined,
+  highlightedInfo = undefined,
+  showCancelButton = true,
+  showClose = false,
+  customClass = 'confirm-dialog',
+  cancelButtonText = 'Stay on this page',
+  cancelButtonClass = 'btn btn--md btn--bordered',
+  confirmButtonText = 'Discard',
+  confirmButtonClass = 'btn btn--md btn--primary',
+  icon = 'ri-error-warning-line'
+}) => {
+  let iconColorClass = 'text-yellow-600'
+  let iconBgColorClass = 'bg-yellow-100'
+
+  if (type === 'danger') {
+    iconColorClass = 'text-red-600'
+    iconBgColorClass = 'bg-red-100'
+  } else if (type === 'info') {
+    iconColorClass = 'text-gray-500'
+    iconBgColorClass = 'bg-gray-100'
+  } else if (type === 'success') {
+    iconColorClass = 'text-green-500'
+    iconBgColorClass = 'bg-green-100'
+  }
+
+  let content = h(
+    'div', // type
+    {
+      class: 'flex'
+    }, // props
+    [
+      h(
+        'span', // type
+        {
+          class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center absolute custom-icon`
+        }, // props
+        [
+          h(
+            'i', // type
+            {
+              class: `${icon} text-lg ${iconColorClass} leading-none`
+            }, // props
+            []
+          )
+        ]
+      ),
+      h('p', {
+        innerHTML: message,
+        class: 'text-gray-500 text-sm'
+      })
+    ]
+  )
+
+  if (vertical) {
+    content = h(
+      'div', // type
+      {}, // props
+      [
+        h(
+          'div',
+          {
+            class: 'flex justify-between items-center mb-4'
+          },
+          [
+            h(
+              'span', // type
+              {
+                class: `rounded-full ${iconBgColorClass} w-10 h-10 flex items-center justify-center custom-icon`
+              }, // props
+              [
+                h(
+                  'i', // type
+                  {
+                    class: `${icon} text-lg ${iconColorClass} leading-none`
+                  }, // props
+                  []
+                )
+              ]
+            ),
+            h(
+              'button',
+              {
+                class:
+                  'btn btn--transparent btn--xs w-8 !h-8',
+                type: 'button',
+                onClick: () => {
+                  document
+                    .querySelector(
+                      '.el-message-box__headerbtn'
+                    )
+                    .dispatchEvent(new Event('click'))
+                }
+              },
+              [
+                h(
+                  'i', // type
+                  {
+                    class: `text-lg ri-close-line leading-none text-gray-400`
+                  }, // props
+                  []
+                )
+              ]
+            )
+          ]
+        ),
+        h('h6', {
+          innerHTML: title,
+          class: 'text-black mb-3'
+        }),
+        badgeContent
+          ? h('div', {
+              class:
+                'rounded-lg border border-gray-300 px-2 mb-3 inline-flex text-xs text-gray-900 h-6 items-center',
+              innerHTML: badgeContent
+            })
+          : undefined,
+        h('p', {
+          innerHTML: message,
+          class: 'text-gray-500 text-sm'
+        }),
+        highlightedInfo
+          ? h(
+              'div',
+              {
+                class:
+                  'text-2xs text-yellow-600 flex items-center mt-4'
+              },
+              [
+                h(
+                  'i', // type
+                  {
+                    class: `text-base ri-alert-line leading-none mr-2`
+                  }, // props
+                  []
+                ),
+                h('div', {
+                  innerHTML: highlightedInfo
+                })
+              ]
+            )
+          : undefined
+      ]
+    )
+
+    customClass = 'confirm-dialog confirm-dialog--vertical'
+    confirmButtonClass = 'btn btn--md btn--primary w-full'
+    cancelButtonClass =
+      'btn btn--md btn--transparent w-full'
+
+    return ElMessageBox({
+      title: '',
+      message: content,
+      showClose: true,
+      showCancelButton,
+      customClass,
+      confirmButtonText,
+      confirmButtonClass,
+      cancelButtonText,
+      cancelButtonClass
+    })
+  }
+
+  return ElMessageBox({
+    title,
+    message: content,
+    showCancelButton,
+    showClose,
+    customClass,
+    cancelButtonText,
+    cancelButtonClass,
+    confirmButtonText,
+    confirmButtonClass
+  })
+}

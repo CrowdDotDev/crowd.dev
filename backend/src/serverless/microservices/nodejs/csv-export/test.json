@@ -1,0 +1,13 @@
+{
+  "type": "node_microservice",
+  "service": "csv-export",
+  "tenant": "9182fb91-ff30-402a-a3ab-eba45dc35508",
+  "user": "f47e240c-8229-4642-87fa-03aedb65b6d4",
+  "entity": "members",
+  "criteria": {
+    "filter": {},
+    "orderBy": "",
+    "limit": 0,
+    "offset": 0
+  }
+}

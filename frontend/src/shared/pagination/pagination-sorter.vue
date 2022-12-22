@@ -12,15 +12,28 @@
       </span>
       {{ computedLabel }}</span
     >
-    <app-inline-select-input
-      v-if="sorter"
-      v-model="model"
-      popper-class="sorter-popper-class"
-      :placement="sorterPopperPlacement"
-      prefix="Show:"
-      :options="computedOptions"
-      @change="onChange"
-    />
+    <div class="flex items-center">
+      <!-- TODO: Need to refactor this -->
+      <button
+        v-if="module === 'member'"
+        class="btn btn--transparent btn--md mr-3"
+        @click="exportMembers"
+      >
+        <i
+          class="ri-file-download-line ri-lg mr-1 flex items-center"
+        ></i
+        >Export to CSV
+      </button>
+      <app-inline-select-input
+        v-if="sorter"
+        v-model="model"
+        popper-class="sorter-popper-class"
+        :placement="sorterPopperPlacement"
+        prefix="Show:"
+        :options="computedOptions"
+        @change="onChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -31,9 +44,11 @@ export default {
 </script>
 
 <script setup>
+import { useStore } from 'vuex'
 import { computed, defineProps, defineEmits } from 'vue'
 import pluralize from 'pluralize'
 
+const store = useStore()
 const emit = defineEmits([
   'changeSorter',
   'update:modelValue'
@@ -157,5 +172,9 @@ const sorterPopperPlacement = computed(() => {
 
 const onChange = (value) => {
   emit('changeSorter', value)
+}
+
+const exportMembers = () => {
+  store.dispatch('member/doExport')
 }
 </script>

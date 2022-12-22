@@ -125,6 +125,9 @@ const en = {
         "Invalid sentiment data. The 'label' property must exist and be one of 'positive' | 'negative' | 'mixed' | 'neutral'.",
       sentiment: "Invalid sentiment data. The 'sentiment' property must exist and be a number.",
     },
+    csvExport: {
+      planLimitExceeded: 'You have exceeded # of csv exports you can have per month in your plan.',
+    },
   },
 
   email: {

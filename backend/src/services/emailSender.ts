@@ -29,6 +29,7 @@ export default class EmailSender extends LoggingBase {
       PASSWORD_RESET: SENDGRID_CONFIG.templatePasswordReset,
       WEEKLY_ANALYTICS: SENDGRID_CONFIG.templateWeeklyAnalytics,
       INTEGRATION_DONE: SENDGRID_CONFIG.templateIntegrationDone,
+      CSV_EXPORT: SENDGRID_CONFIG.templateCsvExport,
     }
   }
 

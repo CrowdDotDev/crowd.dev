@@ -1,52 +1,103 @@
 import { MemberService } from '@/modules/member/member-service'
-import memberListExporterFields from '@/modules/member/member-list-exporter-fields'
 import Errors from '@/shared/error/errors'
-import Exporter from '@/shared/exporter/exporter'
 import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { i18n } from '@/i18n'
 import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 export default {
   ...sharedActions('member', MemberService),
 
-  async doExport({ commit, getters }) {
-    try {
-      if (
-        !memberListExporterFields ||
-        !memberListExporterFields.length
-      ) {
-        throw new Error(
-          'memberListExporterFields is required'
-        )
+  async doExport(
+    { commit, getters, rootGetters, dispatch },
+    selected = false
+  ) {
+    let filter
+    if (selected) {
+      filter = {
+        id: {
+          in: [getters.selectedRows.map((i) => i.id)]
+        }
       }
+    } else {
+      filter = getters.activeView.filter
+    }
 
-      commit('EXPORT_STARTED')
-
-      const activeView = getters.activeView
-
-      const response = await MemberService.list(
-        activeView.filter,
-        getters.orderBy,
-        null,
-        null
-      )
-
-      new Exporter(
-        memberListExporterFields,
-        'member'
-      ).transformAndExportAsExcelFile(response.rows)
+    try {
+      commit('EXPORT_STARTED', filter)
 
       commit('EXPORT_SUCCESS')
+      const currentTenant =
+        rootGetters['auth/currentTenant']
 
-      Message.success('Members exported successfully')
+      const tenantCsvExportCount =
+        currentTenant.csvExportCount
+      let planCsvExportMax = 2
+      if (currentTenant.plan === 'Growth') {
+        planCsvExportMax = 10
+      } else if (currentTenant.plan === 'Custom') {
+        planCsvExportMax = 'unlimited'
+      }
+
+      await ConfirmDialog({
+        vertical: true,
+        type: 'info',
+        title: 'Export CSV',
+        message:
+          'Receive in your inbox a link to download the CSV file ',
+        icon: 'ri-file-download-line',
+        confirmButtonText: 'Send download link to e-mail',
+        cancelButtonText: 'Cancel',
+        badgeContent: selected
+          ? `${getters.selectedRows.length} member${
+              getters.selectedRows.length === 1 ? '' : 's'
+            }`
+          : `View: ${getters.activeView.label}`,
+        highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`
+      })
+
+      await MemberService.export(
+        filter,
+        getters.orderBy,
+        0,
+        null,
+        !selected // build API payload if selected === false
+      )
+
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
+      })
+
+      Message.success(
+        'CSV download link will be sent to your e-mail'
+      )
     } catch (error) {
-      Errors.handle(error)
-
       commit('EXPORT_ERROR')
-      Message.error('There was an error exporting members')
+
+      console.log(error)
+      if (error.response?.status === 403) {
+        await ConfirmDialog({
+          vertical: true,
+          type: 'danger',
+          title:
+            'You have reached the limit of 2 CSV exports per month on your current plan',
+          message:
+            'Upgrade your plan to get unlimited CSV exports per month and take full advantage of this feature',
+          confirmButtonText: 'Upgrade plan',
+          showCancelButton: false
+        })
+        router.push('settings?activeTab=plans')
+      } else if (error !== 'cancel') {
+        Message.error(
+          'An error has occured while trying to export the CSV file. Please try again',
+          {
+            title: 'CSV Export failed'
+          }
+        )
+      }
     }
   },
 

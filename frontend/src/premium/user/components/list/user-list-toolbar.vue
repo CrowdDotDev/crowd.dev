@@ -40,7 +40,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { UserPermissions } from '@/premium/user/user-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppUserListToolbar',

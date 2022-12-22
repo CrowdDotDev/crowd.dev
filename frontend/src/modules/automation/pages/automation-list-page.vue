@@ -78,6 +78,8 @@ import {
   isFeatureEnabled,
   featureFlags
 } from '@/utils/posthog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import { router } from '@/router'
 
 export default {
   name: 'AppAutomationListPage',
@@ -141,7 +143,16 @@ export default {
       if (isFlagEnabled) {
         this.isAutomationDrawerOpen = true
       } else {
-        this.$router.push({ name: 'settingsPaywall' })
+        await ConfirmDialog({
+          vertical: true,
+          type: 'danger',
+          title:
+            'You have reached the limit of 2 automations on your current plan',
+          message:
+            'Upgrade your plan to get unlimited automations and take full advantage of this feature',
+          confirmButtonText: 'Upgrade plan'
+        })
+        router.push('settings?activeTab=plans')
       }
     },
     pluralize

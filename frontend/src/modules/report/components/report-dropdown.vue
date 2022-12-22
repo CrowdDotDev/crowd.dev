@@ -74,7 +74,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Message from '@/shared/message/message'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { ReportPermissions } from '@/modules/report/report-permissions'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppReportDropdown',

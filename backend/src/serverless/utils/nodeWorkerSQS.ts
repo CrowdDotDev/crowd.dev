@@ -5,6 +5,7 @@ import { KUBE_MODE, IS_TEST_ENV, SQS_CONFIG } from '../../config'
 import { sendMessage } from '../../utils/sqs'
 import { NodeWorkerMessageType } from '../types/workerTypes'
 import { AutomationTrigger } from '../../types/automationTypes'
+import { ExportableEntity } from '../microservices/nodejs/messageTypes'
 
 // 15 minute limit for delaying is max for SQS
 const limitSeconds = 15 * 60
@@ -96,6 +97,23 @@ export const sendNewMemberNodeSQSMessage = async (tenant: string, member: any): 
     member,
     trigger: AutomationTrigger.NEW_MEMBER,
     service: 'automation',
+  }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
+}
+
+export const sendExportCSVNodeSQSMessage = async (
+  tenant: string,
+  user: string,
+  entity: ExportableEntity,
+  criteria: any,
+): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    service: 'csv-export',
+    tenant,
+    user,
+    entity,
+    criteria,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

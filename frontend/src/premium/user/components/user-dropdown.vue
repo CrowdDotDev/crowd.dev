@@ -74,7 +74,7 @@ import { mapActions } from 'vuex'
 import AppUserEditPage from '@/premium/user/pages/user-edit-page'
 import config from '@/config'
 import Message from '@/shared/message/message'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 
 export default {
   name: 'AppUserDropdown',

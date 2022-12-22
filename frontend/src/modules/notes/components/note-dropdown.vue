@@ -37,7 +37,7 @@ export default {
 </script>
 
 <script setup>
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { ref, defineEmits, defineProps } from 'vue'
 import { NoteService } from '@/modules/notes/note-service'
 import Message from '@/shared/message/message'

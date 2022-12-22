@@ -2,6 +2,7 @@
 import { weeklyAnalyticsEmailsWorker } from './analytics/workers/weeklyAnalyticsEmailsWorker'
 import {
   AutomationMessage,
+  CsvExportMessage,
   NewActivityAutomationMessage,
   NewMemberAutomationMessage,
   NodeMicroserviceMessage,
@@ -12,6 +13,7 @@ import { AutomationTrigger, AutomationType } from '../../../types/automationType
 import newActivityWorker from './automation/workers/newActivityWorker'
 import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
+import { csvExportWorker } from './csv-export/csvExportWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -26,6 +28,14 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
   switch (service.toLowerCase()) {
     case 'weekly-analytics-emails':
       return weeklyAnalyticsEmailsWorker(tenant)
+    case 'csv-export':
+      const csvExportMessage = event as CsvExportMessage
+      return csvExportWorker(
+        csvExportMessage.entity,
+        csvExportMessage.user,
+        tenant,
+        csvExportMessage.criteria,
+      )
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage
 

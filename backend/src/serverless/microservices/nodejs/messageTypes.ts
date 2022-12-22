@@ -9,6 +9,12 @@ export type AutomationMessage = BaseNodeMicroserviceMessage & {
   trigger: AutomationTrigger
 }
 
+export type CsvExportMessage = BaseNodeMicroserviceMessage & {
+  entity: ExportableEntity
+  user: string
+  criteria: any
+}
+
 export type ActivityAutomationData = {
   activityId?: string
   activity?: any
@@ -46,4 +52,8 @@ export type BaseOutput = { status: number; msg?: string }
 
 export interface AnalyticsEmailsOutput extends BaseOutput {
   emailSent: boolean
+}
+
+export enum ExportableEntity {
+  MEMBERS = 'members',
 }

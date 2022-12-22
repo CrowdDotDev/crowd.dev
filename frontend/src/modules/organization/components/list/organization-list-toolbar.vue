@@ -49,7 +49,7 @@ import {
   mapGetters,
   mapActions
 } from '@/shared/vuex/vuex.helpers'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 const { currentUser, currentTenant } = mapGetters('auth')
 const { selectedRows } = mapGetters('organization')

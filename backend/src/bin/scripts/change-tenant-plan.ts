@@ -8,6 +8,7 @@ import SequelizeRepository from '../../database/repositories/sequelizeRepository
 import setPosthogTenantProperties from '../../feature-flags/setTenantProperties'
 import { POSTHOG_CONFIG } from '../../config'
 import { timeout } from '../../utils/timing'
+import { createRedisClient } from '../../utils/redis'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -72,6 +73,7 @@ if (parameters.help || !parameters.tenant || !parameters.plan) {
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const tenantIds = parameters.tenant.split(',')
+    const redis = await createRedisClient(true)
 
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
@@ -91,6 +93,7 @@ if (parameters.help || !parameters.tenant || !parameters.plan) {
           updated,
           new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
           options.database,
+          redis,
         )
       }
     }

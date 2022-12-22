@@ -93,6 +93,7 @@
     "templatePasswordReset": "CROWD_SENDGRID_TEMPLATE_PASSWORD_RESET",
     "templateWeeklyAnalytics": "CROWD_SENDGRID_TEMPLATE_WEEKLY_ANALYTICS",
     "templateIntegrationDone": "CROWD_SENDGRID_TEMPLATE_INTEGRATION_DONE",
+    "templateCsvExport": "CROWD_SENDGRID_TEMPLATE_CSV_EXPORT",
     "weeklyAnalyticsUnsubscribeGroupId": "CROWD_SENDGRID_WEEKLY_ANALYTICS_UNSUBSCRIBE_GROUP_ID"
   },
   "plans": {

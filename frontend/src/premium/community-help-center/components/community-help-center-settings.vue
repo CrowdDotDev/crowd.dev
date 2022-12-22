@@ -102,7 +102,7 @@ import General from '@/premium/community-help-center/components/settings/_genera
 import Theming from '@/premium/community-help-center/components/settings/_theming'
 import Toggle from '@/premium/community-help-center/components/settings/_toggle'
 import Links from '@/premium/community-help-center/components/settings/_links'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 const formSchema = new FormSchema([
   new UrlField('website', 'Website'),

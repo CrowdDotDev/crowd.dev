@@ -61,7 +61,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import { OrganizationPermissions } from '../organization-permissions'
 import { useRouter } from 'vue-router'
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 
 const router = useRouter()
 

@@ -15,8 +15,12 @@ import SettingsService from './settingsService'
 import OrganizationService from './organizationService'
 import { sendPythonWorkerMessage } from '../serverless/utils/pythonWorkerSQS'
 import { PythonWorkerMessageType } from '../serverless/types/workerTypes'
-import { sendNewMemberNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
+import {
+  sendExportCSVNodeSQSMessage,
+  sendNewMemberNodeSQSMessage,
+} from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
+import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -635,7 +639,7 @@ export default class MemberService extends LoggingBase {
     )
   }
 
-  async query(data) {
+  async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
     ).rows
@@ -644,9 +648,47 @@ export default class MemberService extends LoggingBase {
     const limit = data.limit
     const offset = data.offset
     return MemberRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
+      {
+        advancedFilter,
+        orderBy,
+        limit,
+        offset,
+        attributesSettings: memberAttributeSettings,
+        exportMode,
+      },
       this.options,
     )
+  }
+
+  async queryForCsv(data) {
+    data.limit = 10000000000000
+    const found = await this.query(data, true)
+
+    const relations = [
+      { relation: 'organizations', attributes: ['name'] },
+      { relation: 'notes', attributes: ['body'] },
+      { relation: 'tags', attributes: ['name'] },
+    ]
+    for (const relation of relations) {
+      for (const member of found.rows) {
+        member[relation.relation] = member[relation.relation]?.map((i) => ({
+          id: i.id,
+          ...lodash.pick(i, relation.attributes),
+        }))
+      }
+    }
+
+    return found
+  }
+
+  async export(data) {
+    const result = await sendExportCSVNodeSQSMessage(
+      this.options.currentTenant.id,
+      this.options.currentUser.id,
+      ExportableEntity.MEMBERS,
+      data,
+    )
+    return result
   }
 
   async findMembersWithMergeSuggestions(args) {

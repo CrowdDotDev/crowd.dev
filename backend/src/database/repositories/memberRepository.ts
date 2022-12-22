@@ -440,6 +440,7 @@ class MemberRepository {
       offset = 0,
       orderBy = '',
       attributesSettings = [] as AttributeData[],
+      exportMode = false,
     },
 
     options: IRepositoryOptions,
@@ -795,6 +796,7 @@ class MemberRepository {
             column: 'username',
           },
         },
+        exportMode,
       },
       options,
     )
@@ -848,7 +850,7 @@ class MemberRepository {
         [noMergeArray, 'noMergeIds'],
         ...dynamicAttributesProjection,
       ],
-      limit: limit ? Number(limit) : 50,
+      limit: parsed.limit || 50,
       offset: offset ? Number(offset) : 0,
       order,
       subQuery: false,
@@ -863,7 +865,7 @@ class MemberRepository {
       distinct: true,
     })
 
-    rows = await this._populateRelationsForRows(rows, attributesSettings)
+    rows = await this._populateRelationsForRows(rows, attributesSettings, exportMode)
 
     return {
       rows,
@@ -934,7 +936,7 @@ class MemberRepository {
     }
   }
 
-  static async _populateRelationsForRows(rows, attributesSettings) {
+  static async _populateRelationsForRows(rows, attributesSettings, exportMode = false) {
     if (!rows) {
       return rows
     }
@@ -942,7 +944,8 @@ class MemberRepository {
     // No need for lazyloading tags for integrations or microservices
     if (
       (KUBE_MODE &&
-        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR)) ||
+        (SERVICE === ServiceType.NODEJS_WORKER || SERVICE === ServiceType.JOB_GENERATOR) &&
+        !exportMode) ||
       process.env.SERVICE === 'integrations' ||
       process.env.SERVICE === 'microservices-nodejs'
     ) {
@@ -988,6 +991,12 @@ class MemberRepository {
         plainRecord.tags = await record.getTags({
           joinTableAttributes: [],
         })
+
+        if (exportMode) {
+          plainRecord.notes = await record.getNotes({
+            joinTableAttributes: [],
+          })
+        }
         return plainRecord
       }),
     )

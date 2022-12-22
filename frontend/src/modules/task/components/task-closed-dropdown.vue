@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import ConfirmDialog from '@/shared/confirm-dialog/confirm-dialog.js'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { TaskService } from '@/modules/task/task-service'
 import { mapActions, mapGetters } from 'vuex'
 import { TaskPermissions } from '@/modules/task/task-permissions'
