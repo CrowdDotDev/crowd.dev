@@ -101,7 +101,7 @@ export default () => {
           order: 'descending'
         },
         sorter: {
-          prop: 'lastActive',
+          prop: 'score',
           order: 'descending'
         },
         active: false
