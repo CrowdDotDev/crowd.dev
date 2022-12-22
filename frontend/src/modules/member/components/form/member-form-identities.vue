@@ -42,7 +42,7 @@
             ]"
           >
             <el-input
-              v-model="model.email"
+              v-model="computedModelEmail"
               placeholder="john.doe@gmail.com"
             />
           </el-form-item>
@@ -143,16 +143,32 @@ const model = computed({
   }
 })
 
-watch(model.value.username, (username) => {
-  // Handle platform value each time username object is updated
-  const platforms = Object.keys(username || {})
-
-  if (platforms.length) {
-    model.value.platform = platforms[0]
-  } else {
-    model.value.platform = null
+const computedModelEmail = computed({
+  get() {
+    return model.value.email
+  },
+  set(newEmail) {
+    model.value.email = newEmail
+    model.value.username.email = newEmail
   }
 })
+
+watch(
+  model.value,
+  (newValue) => {
+    // Handle platform value each time username object is updated
+    const platforms = Object.keys(newValue.username || {})
+
+    if (platforms.length) {
+      model.value.platform = platforms[0]
+    } else if (newValue.email) {
+      model.value.platform = 'email'
+    } else {
+      model.value.platform = null
+    }
+  },
+  { deep: true }
+)
 
 const identitiesForm = reactive({
   email: {
