@@ -1,6 +1,5 @@
 import { formatDate } from '@/utils/date'
 import OrganizationEmployeesField from '@/modules/organization/organization-employees-field'
-import ActivityDateField from '@/shared/fields/activity-date-field'
 
 export const INITIAL_PAGE_SIZE = 20
 
@@ -11,19 +10,16 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
       name: 'joinedAt',
       label: 'Joined date',
       custom: false,
-      props: {
-        options: new ActivityDateField().dropdownOptions(),
-        multiple: false
-      },
+      props: {},
       defaultValue: formatDate({
         subtractDays: 30
       }),
       value: formatDate({
         subtractDays: 30
       }),
-      defaultOperator: 'gte',
-      operator: 'gte',
-      type: 'select',
+      defaultOperator: 'gt',
+      operator: 'gt',
+      type: 'date',
       expanded: false
     }
   }
