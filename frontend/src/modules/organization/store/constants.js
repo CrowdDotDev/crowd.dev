@@ -17,8 +17,8 @@ export const INITIAL_VIEW_NEW_AND_ACTIVE_FILTER = {
       value: formatDate({
         subtractDays: 30
       }),
-      defaultOperator: 'eq',
-      operator: 'eq',
+      defaultOperator: 'gt',
+      operator: 'gt',
       type: 'date',
       expanded: false
     }
