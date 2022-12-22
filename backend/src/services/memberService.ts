@@ -671,9 +671,10 @@ export default class MemberService extends LoggingBase {
     ]
     for (const relation of relations) {
       for (const member of found.rows) {
-        member[relation.relation] = member[relation.relation]?.map((i) => {
-          return { id: i.id, ...lodash.pick(i, relation.attributes) }
-        })
+        member[relation.relation] = member[relation.relation]?.map((i) => ({
+          id: i.id,
+          ...lodash.pick(i, relation.attributes),
+        }))
       }
     }
 
