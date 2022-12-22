@@ -491,7 +491,7 @@ export default class UserRepository {
 
     const buildText = (user) => {
       if (!user.fullName) {
-        return user.email.splice[0]
+        return user.email.splice('@')[0]
       }
 
       return `${user.fullName}`
