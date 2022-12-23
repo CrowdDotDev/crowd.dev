@@ -56,6 +56,12 @@ i18nInit()
   app.config.productionTip =
     process.env.NODE_ENV === 'production'
 
+  app.config.errorHandler = (err) => {
+    if (config.env === 'production') {
+      LogRocket.captureException(err)
+    }
+  }
+
   const exists = (el) => Boolean(el)
   Object.keys(modules)
     .map((key) => modules[key].components)

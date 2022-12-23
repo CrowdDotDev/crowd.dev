@@ -2,6 +2,8 @@ import { i18n, i18nExists } from '@/i18n'
 import { router } from '@/router'
 import Message from '@/shared/message/message'
 import { AuthService } from '@/modules/auth/auth-service'
+import config from '@/config'
+import LogRocket from 'logrocket'
 
 const DEFAULT_ERROR_MESSAGE = i18n(
   'errors.defaultErrorMessage'
@@ -44,6 +46,10 @@ export default class Errors {
     if (process.env.NODE_ENV !== 'test') {
       console.error(selectErrorMessage(error))
       console.error(error)
+    }
+
+    if (config.env === 'production') {
+      LogRocket.captureException(error)
     }
 
     if (selectErrorCode(error) === 401) {

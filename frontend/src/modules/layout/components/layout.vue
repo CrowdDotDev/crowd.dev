@@ -127,7 +127,7 @@
 import { TenantService } from '@/modules/tenant/tenant-service'
 import { mapActions, mapGetters } from 'vuex'
 import Banner from '@/shared/banner/banner.vue'
-import identify from '@/shared/segment/identify'
+import identify from '@/shared/monitoring/identify'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import moment from 'moment'
 import config from '@/config'
