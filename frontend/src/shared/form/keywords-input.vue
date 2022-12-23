@@ -31,11 +31,45 @@
         @blur="blur"
       />
     </div>
-    <span
-      class="helper-copy"
+    <div
+      class="flex items-center mt-2"
       :class="focused ? 'opacity-100' : 'opacity-0'"
-      >Press ENTER or comma (,) to separate keywords</span
     >
+      <span class="helper-copy"
+        >Press ENTER or comma (,) to separate
+        keywords.</span
+      >
+      <el-popover placement="top-start">
+        <template #reference>
+          <div
+            class="flex items-center text-gray-600 text-xs ml-2"
+          >
+            <i
+              class="ri-question-line flex items-center mr-1"
+            ></i>
+            <span>How to use different match types</span>
+          </div>
+        </template>
+        <div>
+          <div
+            class="uppercase tracking-wide font-semibold text-2xs mb-3"
+            style="color: #9ca3af"
+          >
+            Match types
+          </div>
+          <div class="text-xs font-medium">
+            Semantic match
+          </div>
+          <div class="text-2xs text-gray-500 mb-4">
+            Example: community
+          </div>
+          <div class="text-xs font-medium">Exact match</div>
+          <div class="text-2xs text-gray-500">
+            Example: [community]
+          </div>
+        </div>
+      </el-popover>
+    </div>
   </div>
 </template>
 
