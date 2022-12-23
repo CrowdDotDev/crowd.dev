@@ -44,16 +44,14 @@
             class="font-medium ml-2 text-purple-500"
             >Premium only</span
           >
-          <router-link
+          <span
             v-else
-            :to="{
-              name: 'communityHelpCenterPaywall'
-            }"
-            class="flex gap-1.5 text-xs text-brand-500 font-normal"
+            class="flex gap-1.5 text-xs text-brand-500 hover:text-brand-700 font-normal cursor-pointer"
+            @click="onUnlockClick"
           >
             <i class="ri-lock-line" />
             <span>Unlock feature</span>
-          </router-link>
+          </span>
         </div>
       </template>
       <div class="w-full">
@@ -75,6 +73,10 @@
         </div>
       </div>
     </el-form-item>
+    <app-paywall-modal
+      v-model="isUpgradeModalOpen"
+      module="communityHelpCenter"
+    />
   </div>
 </template>
 
@@ -93,6 +95,7 @@ import {
   featureFlags
 } from '@/utils/posthog'
 import config from '@/config'
+import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
 const store = useStore()
 
@@ -122,6 +125,7 @@ const emit = defineEmits([
 ])
 
 const hasPremiumPlan = ref(false)
+const isUpgradeModalOpen = ref(false)
 
 const computedTenantName = computed({
   get() {
@@ -169,4 +173,8 @@ onMounted(async () => {
   hasPremiumPlan.value =
     config.hasPremiumModules && isFlagEnabled
 })
+
+const onUnlockClick = () => {
+  isUpgradeModalOpen.value = true
+}
 </script>
