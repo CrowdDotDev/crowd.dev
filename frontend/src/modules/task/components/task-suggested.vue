@@ -48,10 +48,10 @@ export default {
 <script setup>
 import {
   ref,
-  onMounted,
   onBeforeUnmount,
   defineExpose,
-  computed
+  computed,
+  onMounted
 } from 'vue'
 import {
   mapActions,
@@ -61,16 +61,22 @@ import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
 import { useStore } from 'vuex'
 import { TaskPermissions } from '@/modules/task/task-permissions'
+import {
+  SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER,
+  SUGGESTED_TASKS_FILTER
+} from '@/modules/task/store/constants'
 
 const { currentUser, currentTenant } = mapGetters('auth')
 const { editTask } = mapActions('task')
+const { active: activeIntegrations } =
+  mapGetters('integration')
+const { doFetch: doFetchIntegrations } =
+  mapActions('integration')
 
 const store = useStore()
 
 const tasks = ref([])
 const taskCount = ref(0)
-const loading = ref(false)
-const intitialLoad = ref(false)
 
 const addTask = (task) => {
   editTask({
@@ -93,27 +99,23 @@ const taskCreatePermission = computed(
     ).create
 )
 
+onMounted(async () => {
+  await doFetchIntegrations()
+
+  fetchTasks()
+})
+
 onBeforeUnmount(() => {
   storeUnsubscribe()
 })
 
-onMounted(() => {
-  fetchTasks()
-})
-
 const fetchTasks = () => {
-  if (!intitialLoad.value) {
-    loading.value = true
-  }
+  const filter =
+    activeIntegrations.value.length > 1
+      ? SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER
+      : SUGGESTED_TASKS_FILTER
 
-  TaskService.list(
-    {
-      type: 'suggested'
-    },
-    'createdAt_DESC',
-    20,
-    0
-  )
+  TaskService.list(filter, 'createdAt_DESC', 20, 0)
     .then(({ rows, count }) => {
       tasks.value = rows
       taskCount.value = count
@@ -122,10 +124,6 @@ const fetchTasks = () => {
       tasks.value = []
       taskCount.value = 0
       Message.error('There was an error loading tasks')
-    })
-    .finally(() => {
-      loading.value = false
-      intitialLoad.value = true
     })
 }
 
