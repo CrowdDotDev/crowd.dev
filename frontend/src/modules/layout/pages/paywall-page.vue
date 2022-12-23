@@ -24,7 +24,7 @@
         </div>
         <div class="flex items-center gap-4">
           <div class="text-gray-500 italic text-2xs">
-            Available in Growth plan
+            Available in {{ computedFeaturePlan }} plan
           </div>
           <router-link
             :to="{
@@ -51,10 +51,13 @@
           </div>
         </div>
 
-        <img
-          class="h-70 block col-start-1 col-span-10 rounded-md"
-          :src="page.imageSrc"
-        />
+        <div class="bg-image">
+          <img
+            class="w-9/12 mx-auto"
+            :src="page.imageSrc"
+            :class="page.imageClass"
+          />
+        </div>
 
         <div
           v-if="page.secondaryContent"
@@ -90,6 +93,7 @@
 </template>
 
 <script setup>
+import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import { defineProps, computed } from 'vue'
 
@@ -101,6 +105,9 @@ const props = defineProps({
 })
 
 const page = computed(() => pageContent[props.module])
+const computedFeaturePlan = computed(() => {
+  return config.isCommunityVersion ? 'Custom' : 'Growth'
+})
 
 const pageContent = {
   organizations: {
@@ -111,6 +118,7 @@ const pageContent = {
     mainContent:
       'Get a complete organization directory that you can search, filter, and sort instantly. Each organization also has its own profile page, which highlights key information about that organization and all the community members that belong to it. Keeping a pulse of which organizations your members are representing is extremely important for a successful bottom-up growth strategy.',
     imageSrc: '/images/paywall/organizations.png',
+    imageClass: 'mt-8',
     secondaryContent:
       'Organizations are companies or entities within your community. If a member that works at a certain company joins your community, that company will be added as an organization.',
     featuresList: []
@@ -122,6 +130,7 @@ const pageContent = {
     mainContent:
       'Our Eagle Eye app allows you to monitor different community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically',
     imageSrc: '/images/paywall/eagle-eye.png',
+    imageClass: '',
     featuresList: [
       {
         icon: 'ri-eye-2-line',
@@ -148,3 +157,17 @@ const pageContent = {
   }
 }
 </script>
+
+<style lang="scss">
+.paywall-page {
+  .bg-image {
+    @apply col-start-1 col-span-10 rounded-md h-70 overflow-hidden;
+    background: linear-gradient(
+        279.88deg,
+        rgba(233, 79, 46, 0.05) 0%,
+        rgba(233, 79, 46, 0) 100%
+      ),
+      #f9fafb;
+  }
+}
+</style>
