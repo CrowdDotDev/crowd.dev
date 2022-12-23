@@ -51,12 +51,10 @@
           </div>
         </div>
 
-        <div class="bg-image">
-          <img
-            class="w-9/12 mx-auto mt-8"
-            :src="page.imageSrc"
-          />
-        </div>
+        <img
+          class="h-70 block col-start-1 col-span-10 rounded-md"
+          :src="page.imageSrc"
+        />
 
         <div
           v-if="page.secondaryContent"
@@ -69,7 +67,22 @@
           v-if="page.featuresList?.length"
           class="col-start-2 col-span-8"
         >
-          <!-- TODO: Eagle-eye paywall -->
+          <div
+            v-for="(feature, index) of page.featuresList"
+            :key="index"
+            class="flex items-start mb-14"
+          >
+            <i
+              class="text-brand-500 text-xl"
+              :class="feature.icon"
+            />
+            <div class="ml-4 pt-1">
+              <h6 class="mb-4">{{ feature.title }}</h6>
+              <div class="text-xs text-gray-900">
+                {{ feature.content }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -102,21 +115,36 @@ const pageContent = {
       'Organizations are companies or entities within your community. If a member that works at a certain company joins your community, that company will be added as an organization.',
     featuresList: []
   },
-  // TODO: Eagle Eye paywall
-  'eagle-eye': {}
-}
-</script>
-
-<style lang="scss">
-.paywall-page {
-  .bg-image {
-    @apply col-start-1 col-span-10 rounded-md h-96 overflow-hidden;
-    background: linear-gradient(
-        279.88deg,
-        rgba(233, 79, 46, 0.05) 0%,
-        rgba(233, 79, 46, 0) 100%
-      ),
-      #f9fafb;
+  eagleEye: {
+    icon: 'ri-search-eye-line',
+    headerTitle: 'Eagle Eye',
+    title: 'Locate & engage with the right content',
+    mainContent:
+      'Our Eagle Eye app allows you to monitor different community platforms to find relevant content to engage with, helping you to gain developers’ mindshare and grow your community organically',
+    imageSrc: '/images/paywall/eagle-eye.png',
+    featuresList: [
+      {
+        icon: 'ri-eye-2-line',
+        title:
+          'Keep an Eagle Eye view on relevant content & posts to grow',
+        content:
+          'On top of monitoring everything going on within your community, crowd.dev’s Eagle Eye application is focused on helping you engage with relevant content outside of your community to help grow it further.'
+      },
+      {
+        icon: 'ri-apps-2-line',
+        title:
+          'Identify and engage with content across platforms',
+        content:
+          'All you need to do is type in a few keywords and Eagle Eye will give you the most recent and relevant content to enage with accross platforms like HackerNews and Dev to connect you with like-minded people.'
+      },
+      {
+        icon: 'ri-character-recognition-line',
+        title:
+          'Search powered by Natural Language Processing',
+        content:
+          'The search engine behind Eagle Eye is based on a semantic model that delivers the most relevant content even when it doesn’t match your keywords.'
+      }
+    ]
   }
 }
-</style>
+</script>

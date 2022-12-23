@@ -14,13 +14,19 @@ const isEagleEyeFeatureEnabled = async () => {
   )
 }
 
+const EagleEyeMainPage = async () => {
+  if (!(await isEagleEyeFeatureEnabled())) {
+    return EagleEyePaywall()
+  }
+
+  return EagleEyePage()
+}
+
 const EagleEyePage = () =>
   import('@/premium/eagle-eye/pages/eagle-eye-page.vue')
 
 const EagleEyePaywall = () =>
-  import(
-    '@/modules/layout/pages/temporary-paywall-page.vue'
-  )
+  import('@/modules/layout/pages/paywall-page.vue')
 
 export default [
   {
@@ -33,17 +39,16 @@ export default [
       {
         name: 'eagleEye',
         path: '/eagle-eye',
-        component: EagleEyePage,
+        component: EagleEyeMainPage,
         exact: true,
         meta: {
           auth: true,
           permission: Permissions.values.eagleEyeRead
         },
+        props: {
+          module: 'eagleEye'
+        },
         beforeEnter: async (to, _from, next) => {
-          if (!(await isEagleEyeFeatureEnabled())) {
-            next({ name: 'eagleEyePaywall' })
-          }
-
           if (
             to.query.activeTab !== undefined &&
             store.getters['eagleEye/activeView'].id !==
@@ -57,11 +62,6 @@ export default [
 
           next()
         }
-      },
-      {
-        name: 'eagleEyePaywall',
-        path: '/eagle-eye/403',
-        component: EagleEyePaywall
       }
     ]
   }
