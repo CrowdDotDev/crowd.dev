@@ -15,7 +15,7 @@
           </div>
           <div class="flex flex-col">
             <div class="text-2xs text-brand-500">
-              Growth feature
+              Premium feature
             </div>
             <h5 class="text-gray-900">
               {{ page.headerTitle }}

@@ -53,7 +53,6 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue'
-import config from '@/config'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -77,14 +76,11 @@ const model = computed({
 })
 
 const modal = computed(() => modalContent[props.module])
-const computedFeaturePlan = computed(() => {
-  return config.isCommunityVersion ? 'Custom' : 'Growth'
-})
 
 const modalContent = {
   organizations: {
     title: 'Organizations',
-    preTitle: `${computedFeaturePlan.value} plan`,
+    preTitle: `Premium feature`,
     imageSrc: '/images/paywall/organizations.png',
     imageClass: 'ml-10 mt-6',
     imageWrapperClass: 'h-52',
@@ -94,12 +90,12 @@ const modalContent = {
   },
   communityHelpCenter: {
     title: 'Custom domain',
-    preTitle: `Community Help Center`,
+    preTitle: 'Premium feature',
     imageSrc: '/images/paywall/community-help-center.png',
     imageClass: 'absolute bottom-0 right-0',
     imageWrapperClass: 'h-30',
     content:
-      'In order to setup a custom domain to your help center public page its required to upgrade your plan',
+      'In order to setup a custom domain to your help center public page, a plan upgrade is required',
     knowMore: false
   }
 }
