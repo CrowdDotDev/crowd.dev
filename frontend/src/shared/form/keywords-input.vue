@@ -39,7 +39,7 @@
         >Press ENTER or comma (,) to separate
         keywords.</span
       >
-      <el-popover placement="top-start">
+      <el-popover v-if="eagleEye" placement="top-start">
         <template #reference>
           <div
             class="flex items-center text-gray-600 text-xs ml-2"
@@ -92,6 +92,10 @@ export default {
     placeholder: {
       type: String,
       default: null
+    },
+    eagleEye: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['update:modelValue'],
