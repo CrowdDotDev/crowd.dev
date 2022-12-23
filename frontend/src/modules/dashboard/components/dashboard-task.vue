@@ -143,30 +143,51 @@ export default {
 </script>
 
 <script setup>
-import AppTaskForm from '@/modules/task/components/task-form'
 import {
   onBeforeUnmount,
-  ref,
   onMounted,
+  ref,
   computed
 } from 'vue'
+import { useStore } from 'vuex'
+import AppTaskForm from '@/modules/task/components/task-form.vue'
+import AppTaskItem from '@/modules/task/components/task-item.vue'
+import { TaskPermissions } from '@/modules/task/task-permissions'
 import { TaskService } from '@/modules/task/task-service'
 import Message from '@/shared/message/message'
-import { useStore } from 'vuex'
-import AppTaskItem from '@/modules/task/components/task-item'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { TaskPermissions } from '@/modules/task/task-permissions'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
+import {
+  SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER,
+  SUGGESTED_TASKS_FILTER
+} from '@/modules/task/store/constants'
 
 const store = useStore()
 const { currentUser, currentTenant } = mapGetters('auth')
+const { activeList: activeIntegrations } =
+  mapGetters('integration')
+const { doFetch: doFetchIntegrations } =
+  mapActions('integration')
 
 const openForm = ref(false)
 const selectedTask = ref(null)
 const tasks = ref([])
 const suggestedTasks = ref([])
 const taskCount = ref(0)
-const loading = ref(false)
-const intitialLoad = ref(false)
+const loadingIntegrations = ref(false)
+const loadingTasks = ref(false)
+const loadingSuggestedTasks = ref(false)
+const storeUnsubscribe = ref(() => null)
+
+const loading = computed(() => {
+  return (
+    loadingIntegrations.value ||
+    loadingTasks.value ||
+    loadingSuggestedTasks.value
+  )
+})
 
 const addTask = () => {
   openForm.value = true
@@ -201,25 +222,6 @@ const taskCreatePermission = computed(
     ).create
 )
 
-const storeUnsubscribe = store.subscribeAction((action) => {
-  if (action.type === 'auth/doRefreshCurrentUser') {
-    fetchTasks()
-    fetchSuggestedTasks()
-  }
-  if (action.type === 'task/reloadOpenTasks') {
-    fetchTasks()
-  }
-  if (action.type === 'task/reloadSuggestedTasks') {
-    fetchSuggestedTasks()
-  }
-  if (action.type === 'task/addTask') {
-    addTask()
-  }
-  if (action.type === 'task/editTask') {
-    editTask(action.payload)
-  }
-})
-
 const addSuggested = (task) => {
   editTask({
     ...task,
@@ -227,19 +229,45 @@ const addSuggested = (task) => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  loadingIntegrations.value = true
+  await doFetchIntegrations()
+  loadingIntegrations.value = false
+
+  storeUnsubscribe.value = store.subscribeAction(
+    async (action) => {
+      if (action.type === 'auth/doRefreshCurrentUser') {
+        loadingIntegrations.value = true
+        await doFetchIntegrations()
+        loadingIntegrations.value = false
+
+        fetchTasks()
+        fetchSuggestedTasks()
+      }
+      if (action.type === 'task/reloadOpenTasks') {
+        fetchTasks()
+      }
+      if (action.type === 'task/reloadSuggestedTasks') {
+        fetchSuggestedTasks()
+      }
+      if (action.type === 'task/addTask') {
+        addTask()
+      }
+      if (action.type === 'task/editTask') {
+        editTask(action.payload)
+      }
+    }
+  )
+
   fetchSuggestedTasks()
   fetchTasks()
 })
-
 onBeforeUnmount(() => {
-  storeUnsubscribe()
+  storeUnsubscribe.value()
 })
 
 const fetchTasks = (loadMore = false) => {
-  if (!intitialLoad.value) {
-    loading.value = true
-  }
+  loadingTasks.value = true
 
   TaskService.list(
     {
@@ -264,25 +292,27 @@ const fetchTasks = (loadMore = false) => {
       Message.error('There was an error loading tasks')
     })
     .finally(() => {
-      loading.value = false
-      intitialLoad.value = true
+      loadingTasks.value = false
     })
 }
 
 const fetchSuggestedTasks = () => {
-  TaskService.list(
-    {
-      type: 'suggested'
-    },
-    'createdAt_DESC',
-    3,
-    0
-  )
+  loadingSuggestedTasks.value = true
+
+  const filter =
+    Object.keys(activeIntegrations.value).length > 1
+      ? SUGGESTED_TASKS_NO_INTEGRATIONS_FILTER
+      : SUGGESTED_TASKS_FILTER
+
+  TaskService.list(filter, 'createdAt_DESC', 3, 0)
     .then(({ rows }) => {
       suggestedTasks.value = rows
     })
     .catch(() => {
       Message.error('There was an error loading tasks')
+    })
+    .finally(() => {
+      loadingSuggestedTasks.value = false
     })
 }
 </script>
