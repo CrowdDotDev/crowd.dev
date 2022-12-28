@@ -1,3 +1,5 @@
+import { BaseError } from './baseError'
+
 export enum WebhookState {
   PENDING = 'PENDING',
   PROCESSED = 'PROCESSED',
@@ -33,4 +35,13 @@ export interface DbIncomingWebhookInsertData {
   integrationId: string
   type: WebhookType
   payload: any
+}
+
+export class WebhookError extends BaseError {
+  public webhookId: string
+
+  constructor(webhookId: string, message: string, origError?: any) {
+    super(message, origError)
+    this.webhookId = webhookId
+  }
 }

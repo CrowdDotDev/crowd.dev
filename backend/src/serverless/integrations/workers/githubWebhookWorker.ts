@@ -2,7 +2,7 @@ import { createChildLogger, createServiceChildLogger, Logger } from '../../../ut
 import { PlatformType } from '../../../types/integrationEnums'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import IncomingWebhookRepository from '../../../database/repositories/incomingWebhookRepository'
-import { WebhookState, WebhookType } from '../../../types/webhooks'
+import { WebhookError, WebhookState, WebhookType } from '../../../types/webhooks'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
@@ -86,7 +86,10 @@ export const processWebhook = async (
       logger.info('Webhook processed successfully!')
     } catch (err) {
       logger.error(err, 'Error processing webhook!')
-      await repo.markError(webhook.id, err)
+      await repo.markError(
+        webhook.id,
+        new WebhookError(webhook.id, 'Error processing webhook!', err),
+      )
     } finally {
       await SequelizeRepository.commitTransaction(options.transaction)
     }
