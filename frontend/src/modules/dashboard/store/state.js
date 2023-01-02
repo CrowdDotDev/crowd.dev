@@ -1,7 +1,9 @@
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-periods'
+
 export default () => {
   return {
     filters: {
-      period: 7,
+      period: SEVEN_DAYS_PERIOD_FILTER,
       platform: 'all'
     },
     conversations: {
