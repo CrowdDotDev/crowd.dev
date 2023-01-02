@@ -248,6 +248,9 @@ class MemberRepository {
       transaction,
     })
 
+    log.warn("Found member: ")
+    log.warn(record)
+
     if (!record) {
       throw new Error404()
     }
