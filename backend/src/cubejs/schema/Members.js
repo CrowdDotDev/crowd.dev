@@ -1,5 +1,5 @@
 cube(`Members`, {
-  sql: `SELECT M.*, 
+    sql: `SELECT M.*, 
 		  CASE 
 		 	    WHEN DATE_PART('day', MIN(a.timestamp)::timestamp - M."joinedAt"::TIMESTAMP) < 0 THEN 0
 		 	    WHEN MIN(M."joinedAt") < '1980-01-01' THEN 0
@@ -12,171 +12,171 @@ cube(`Members`, {
       LEFT JOIN activities a ON (a."memberId" = m.id AND a."isKeyAction"=TRUE)
       GROUP BY m.id`,
 
-  preAggregations: {
-    ActiveMembers: {
-      measures: [Members.count],
-      dimensions: [Members.score, Members.location, Members.tenantId, Tags.name],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
+    preAggregations: {
+        ActiveMembers: {
+            measures: [Members.count],
+            dimensions: [Members.score, Members.location, Members.tenantId, Tags.name, Members.isTeamMember, Members.isBot],
+            timeDimension: Members.joinedAt,
+            granularity: `day`,
+            refreshKey: {
+                every: `10 minute`,
+            },
+        },
+
+        MembersActivities: {
+            measures: [Members.count],
+            dimensions: [Members.tenantId, Activities.platform, Activities.type, Members.isTeamMember, Members.isBot],
+            timeDimension: Members.joinedAt,
+            granularity: `day`,
+            refreshKey: {
+                every: `10 minute`,
+            },
+        },
+
+        MembersTags: {
+            measures: [Members.count],
+            dimensions: [Members.tenantId, Tags.name, Members.isTeamMember, Members.isBot],
+            timeDimension: Members.joinedAt,
+            granularity: `day`,
+            refreshKey: {
+                every: `10 minute`,
+            },
+        },
     },
 
-    MembersActivities: {
-      measures: [Members.count],
-      dimensions: [Members.tenantId, Activities.platform, Activities.type],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
+    joins: {
+        Activities: {
+            sql: `${CUBE}.id = ${Activities}."memberId"`,
+            relationship: `hasMany`,
+        },
+
+        MemberTags: {
+            sql: `${CUBE}.id = ${MemberTags}."memberId"`,
+            relationship: `belongsTo`,
+        },
+
+        MemberOrganizations: {
+            sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
+            relationship: `belongsTo`,
+        },
+
+        MemberIdentities: {
+            sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
+            relationship: `belongsTo`,
+        },
     },
 
-    MembersTags: {
-      measures: [Members.count],
-      dimensions: [Members.tenantId, Tags.name],
-      timeDimension: Members.joinedAt,
-      granularity: `day`,
-      refreshKey: {
-        every: `10 minute`,
-      },
-    },
-  },
+    measures: {
+        count: {
+            type: `count`,
+        },
 
-  joins: {
-    Activities: {
-      sql: `${CUBE}.id = ${Activities}."memberId"`,
-      relationship: `hasMany`,
-    },
+        earliestJoinedAt: {
+            type: `min`,
+            sql: `${Members}."joinedAt"`,
+            shown: false,
+        },
 
-    MemberTags: {
-      sql: `${CUBE}.id = ${MemberTags}."memberId"`,
-      relationship: `belongsTo`,
+        averageTimeToFirstInteraction: {
+            type: 'avg',
+            sql: `time_to_first_interaction`,
+            shown: false,
+        },
     },
 
-    MemberOrganizations: {
-      sql: `${CUBE}.id = ${MemberOrganizations}."memberId"`,
-      relationship: `belongsTo`,
-    },
+    dimensions: {
+        email: {
+            sql: `email`,
+            type: `string`,
+            shown: false,
+        },
 
-    MemberIdentities: {
-      sql: `${CUBE}.id = ${MemberIdentities}."memberId"`,
-      relationship: `belongsTo`,
-    },
-  },
+        tenantId: {
+            sql: `${CUBE}."tenantId"`,
+            type: `string`,
+            shown: false,
+        },
 
-  measures: {
-    count: {
-      type: `count`,
-    },
+        location: {
+            sql: `COALESCE(${CUBE}.attributes->'location'->>'default', '')`,
+            type: `string`,
+        },
 
-    earliestJoinedAt: {
-      type: `min`,
-      sql: `${Members}."joinedAt"`,
-      shown: false,
-    },
+        bio: {
+            sql: `COALESCE(${CUBE}.attributes->'bio'->>'default', '')`,
+            type: `string`,
+        },
 
-    averageTimeToFirstInteraction: {
-      type: 'avg',
-      sql: `time_to_first_interaction`,
-      shown: false,
-    },
-  },
+        info: {
+            sql: `info`,
+            type: `string`,
+            shown: false,
+        },
 
-  dimensions: {
-    email: {
-      sql: `email`,
-      type: `string`,
-      shown: false,
-    },
+        isTeamMember: {
+            sql: `COALESCE((${CUBE}.attributes->'isTeamMember'->'default')::boolean, false)`,
+            type: `boolean`,
+        },
 
-    tenantId: {
-      sql: `${CUBE}."tenantId"`,
-      type: `string`,
-      shown: false,
-    },
+        isBot: {
+            sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
+            type: `boolean`,
+        },
 
-    location: {
-      sql: `COALESCE(${CUBE}.attributes->'location'->>'default', '')`,
-      type: `string`,
-    },
+        id: {
+            sql: `id`,
+            type: `string`,
+            primaryKey: true,
+        },
 
-    bio: {
-      sql: `COALESCE(${CUBE}.attributes->'bio'->>'default', '')`,
-      type: `string`,
-    },
+        updatedbyid: {
+            sql: `${CUBE}."updatedById"`,
+            type: `string`,
+            shown: false,
+        },
 
-    info: {
-      sql: `info`,
-      type: `string`,
-      shown: false,
-    },
+        username: {
+            sql: `${CUBE}."displayName"`,
+            type: `string`,
+            shown: false,
+        },
 
-    isTeamMember: {
-      sql: `COALESCE((${CUBE}.attributes->'isTeamMember'->'default')::boolean, false)`,
-      type: `boolean`,
-    },
+        createdbyid: {
+            sql: `${CUBE}."createdById"`,
+            type: `string`,
+            shown: false,
+        },
 
-    isBot: {
-      sql: `COALESCE((${CUBE}.attributes->'isBot'->'default')::boolean, false)`,
-      type: `boolean`,
-    },
+        createdat: {
+            sql: `${CUBE}."createdAt"`,
+            type: `time`,
+            shown: false,
+        },
 
-    id: {
-      sql: `id`,
-      type: `string`,
-      primaryKey: true,
-    },
+        updatedat: {
+            sql: `${CUBE}."updatedAt"`,
+            type: `time`,
+            shown: false,
+        },
 
-    updatedbyid: {
-      sql: `${CUBE}."updatedById"`,
-      type: `string`,
-      shown: false,
-    },
+        deletedat: {
+            sql: `${CUBE}."deletedAt"`,
+            type: `time`,
+            shown: false,
+        },
 
-    username: {
-      sql: `${CUBE}."displayName"`,
-      type: `string`,
-      shown: false,
-    },
+        joinedAt: {
+            sql: `${CUBE}."joinedAt"`,
+            type: `time`,
+        },
+        score: {
+            sql: `${CUBE}."score"`,
+            type: `number`,
+        },
 
-    createdbyid: {
-      sql: `${CUBE}."createdById"`,
-      type: `string`,
-      shown: false,
+        identities: {
+            sql: `${CUBE}."identities"`,
+            type: `string`,
+        },
     },
-
-    createdat: {
-      sql: `${CUBE}."createdAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    updatedat: {
-      sql: `${CUBE}."updatedAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    deletedat: {
-      sql: `${CUBE}."deletedAt"`,
-      type: `time`,
-      shown: false,
-    },
-
-    joinedAt: {
-      sql: `${CUBE}."joinedAt"`,
-      type: `time`,
-    },
-    score: {
-      sql: `${CUBE}."score"`,
-      type: `number`,
-    },
-
-    identities: {
-      sql: `${CUBE}."identities"`,
-      type: `string`,
-    },
-  },
 })
