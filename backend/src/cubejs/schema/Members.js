@@ -15,7 +15,14 @@ cube(`Members`, {
   preAggregations: {
     ActiveMembers: {
       measures: [Members.count],
-      dimensions: [Members.score, Members.location, Members.tenantId, Tags.name],
+      dimensions: [
+        Members.score,
+        Members.location,
+        Members.tenantId,
+        Tags.name,
+        Members.isTeamMember,
+        Members.isBot,
+      ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
@@ -25,7 +32,13 @@ cube(`Members`, {
 
     MembersActivities: {
       measures: [Members.count],
-      dimensions: [Members.tenantId, Activities.platform, Activities.type],
+      dimensions: [
+        Members.tenantId,
+        Activities.platform,
+        Activities.type,
+        Members.isTeamMember,
+        Members.isBot,
+      ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
@@ -35,7 +48,7 @@ cube(`Members`, {
 
     MembersTags: {
       measures: [Members.count],
-      dimensions: [Members.tenantId, Tags.name],
+      dimensions: [Members.tenantId, Tags.name, Members.isTeamMember, Members.isBot],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {

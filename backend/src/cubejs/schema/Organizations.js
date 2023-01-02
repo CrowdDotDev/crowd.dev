@@ -4,13 +4,13 @@ cube(`Organizations`, {
   preAggregations: {
     activeOrganizations: {
       measures: [Organizations.count],
-      dimensions: [Organizations.tenantId],
+      dimensions: [Organizations.tenantId, Members.isTeamMember, Members.isBot],
       timeDimension: Activities.date,
       granularity: `day`,
     },
     newOrganizations: {
       measures: [Organizations.count],
-      dimensions: [Organizations.tenantId],
+      dimensions: [Organizations.tenantId, Members.isTeamMember, Members.isBot],
       timeDimension: Organizations.joinedAt,
       granularity: `day`,
     },

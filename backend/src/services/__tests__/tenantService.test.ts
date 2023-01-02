@@ -146,6 +146,7 @@ describe('TenantService tests', () => {
 
       tenantCreatedPlain.createdAt = tenantCreatedPlain.createdAt.toISOString().split('T')[0]
       tenantCreatedPlain.updatedAt = tenantCreatedPlain.updatedAt.toISOString().split('T')[0]
+      tenantCreatedPlain.trialEndsAt = tenantCreatedPlain.trialEndsAt.toISOString().split('T')[0]
 
       const tenantExpected = {
         id: tenantCreatedPlain.id,
@@ -153,9 +154,7 @@ describe('TenantService tests', () => {
         url: 'testUrl',
         plan: Plans.values.growth,
         isTrialPlan: true,
-        trialEndsAt: moment().add(14, 'days').isAfter('2023-01-15')
-          ? moment().add(14, 'days').toISOString()
-          : new Date('2023-01-15T00:00:00.000Z'),
+        trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
         planStatus: 'active',
         planStripeCustomerId: null,
         planUserId: null,

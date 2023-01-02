@@ -10,6 +10,8 @@ cube(`Activities`, {
         Members.score,
         Members.location,
         Members.tenantId,
+        Members.isTeamMember,
+        Members.isBot,
         Activities.tenantId,
       ],
       timeDimension: Activities.date,
