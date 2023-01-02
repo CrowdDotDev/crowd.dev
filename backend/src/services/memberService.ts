@@ -382,6 +382,7 @@ export default class MemberService extends LoggingBase {
    * @returns Success/Error message
    */
   async merge(originalId, toMergeId) {
+    this.log.info("in merge!..")
     const original = await MemberRepository.findById(originalId, this.options)
     const toMerge = await MemberRepository.findById(toMergeId, this.options)
 
@@ -402,6 +403,8 @@ export default class MemberService extends LoggingBase {
     // Performs a merge and returns the fields that were changed so we can update
     const toUpdate = MemberService.membersMerge(original, toMerge)
     if (toUpdate.activities) {
+      this.log.info("merging activities...")
+      this.log.info(toUpdate.activities)
       toUpdate.activities = toUpdate.activities.map((a) => a.id)
     }
     // Update original member
