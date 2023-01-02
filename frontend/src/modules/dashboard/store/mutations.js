@@ -1,7 +1,11 @@
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-periods'
+
 export default {
   SET_FILTERS(state, payload) {
     state.filters.period =
-      payload.period || state.filters.period || 7
+      payload.period ||
+      state.filters.period ||
+      SEVEN_DAYS_PERIOD_FILTER
     state.filters.platform =
       payload.platform || state.filters.platform || 'all'
   },
