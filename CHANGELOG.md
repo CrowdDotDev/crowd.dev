@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.14.0 - 2023-01-02
+
+### Changes
+
+### 🚀 Features
+
+#### CSV exports
+
+You can now export your community members as CSV. You can export all members or choose any view to export, and we will send you a document in your email containing all the members that match the filter.
+
+<img width="672" alt="Screenshot 2023-01-02 at 18 47 18" src="https://user-images.githubusercontent.com/37874460/210264594-2f744e43-2b31-4be7-aa28-6f0a6c9dbad5.png">
+- Members CSV exports @epipav (#356)
+
+### ✨ Improvements
+
+- Team members and bots (as well as their activities) are now exported by default from reports. @epipav (#360)
+- Add an error handler in the frontend to report errors. @joanagmaia (#382)
+- Remove the *Connect integration* suggested task when the workspace already has an integration. @joanagmaia (#381)
+- Add paywalls for the Community Help Centre and CSV exports @mariobalca (#380)
+- Add members *joinedAt* column and filter to all views on the member's page. @joanagmaia (#374)
+- Update the call to action layout when a workspace is in the trial. @joanagmaia (#371)
+- When a Kubernetes pod is restarted while performing a job, retake the job when the pod is back up. @themarolt (#365 and #368)
+- Update the logos and images on the app. @joanagmaia (#367)
+
+### 🐞 Bug Fixes
+
+- Fixed the sorting in the *Most engaged* view on the member's page. @joanagmaia (#375)
+- Fix the missing label when assigning tasks to colleagues. @mariobalca (#379)
+- Fix creating members with email only. @mariobalca (#377)
+- Fix the *joined at* filter for organizations throwing an error. @joanagmaia (#378)
+- Fix the pre-selection of a member when creating tasks from the member's profile. @joanagmaia (#373)
+- Update the "Read more" URL for custom integrations. @dende (#372)
+- Notes and tasks were being unlinked when updating tags in a member. @joanreyero (#370)
+- Fix the sorting in the dashboard's *active members* widget. @joanagmaia (#369)
+
 ## v0.13.0 - 2022-12-19
 
 ### Changes
@@ -23,7 +58,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 <img width="1055" alt="Screenshot 2022-12-19 at 17 53 44" src="https://user-images.githubusercontent.com/37874460/208478358-6c861f46-51bc-4db6-ba9f-23d7d5435a04.png">
 - Plan page @joanagmaia (#350)
 - Organizations paywall @joanagmaia (#357)
-
 ### ✨ Improvements
 
 - Improve the user experience of connecting an integration by sending an email when the connection has succeeded. @mariobalca (#341)
@@ -95,7 +129,6 @@ The Hacker News integration will detect any post that mentions your community in
 ### ✨ Improvements
 - Better accuracy in Eagle Eye for Hacker News suggestions @joanreyero (#267)
 ### 🐞 Bug Fixes
-
 - Fix the pagination parameter when getting members from Twitter @joanreyero (#312)
 - Removed the `# activities >= 1000` filter from the Organizations' *New and Active* view @joanreyero (#308)
 - Sanitize the name attribute when enriching an organization with GitHub @epipav (#296)
@@ -148,7 +181,6 @@ Our new powerful filters, sorts and views instantly help you to segment, researc
 We’ve built a model to conduct sentiment analysis for all activities in your community to show you how members are feeling, so you can take informed actions.
 :love_letter: Trending conversations
 We help you keep track of all conversations going on in your community, now, we also show you the ones that are trending and pulling a lot of engagement.
-
 :hammer_and_wrench: Custom attributes and identities
 Use our custom attribute function to add specific to you details as well as extra identities for your members beyond their community profiles (e.g., you can add identities using their phone number or extra email).
 
@@ -192,7 +224,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -223,7 +257,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ## v0.6.0 - 2022-08-31
 ### Changes
 ### 🚀 Features
-
 - DEV.to integration support. @themarolt (#11)
 - We now detect:
 - 
@@ -235,7 +268,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - comments as activities on all articles published by a DEV.to user
+- 
 - 
 - 
 - 
@@ -260,7 +295,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ### Changes
 - Bumped up version to match pre-OSS version.
 ### ✨ Enhancements
-
 - Simplified start of development environment @joanreyero (#5)
 
 ### 🐞 Bug Fixes
