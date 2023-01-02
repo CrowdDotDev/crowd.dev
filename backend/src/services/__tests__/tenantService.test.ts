@@ -154,7 +154,7 @@ describe('TenantService tests', () => {
         url: 'testUrl',
         plan: Plans.values.growth,
         isTrialPlan: true,
-        trialEndsAt:  moment().add(14, 'days').toISOString().split('T')[0],
+        trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
         planStatus: 'active',
         planStripeCustomerId: null,
         planUserId: null,
