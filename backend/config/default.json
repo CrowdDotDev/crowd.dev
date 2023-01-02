@@ -7,7 +7,7 @@
   "s3": {},
   "db": {
     "dialect": "postgres",
-    "logging": false,
+    "logging": true,
     "transactions": false
   },
   "cubejs": {},
