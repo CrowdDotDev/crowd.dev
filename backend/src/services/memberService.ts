@@ -462,7 +462,8 @@ export default class MemberService extends LoggingBase {
           [...oldActivities, ...newActivities],
           (act1, act2) =>
             moment(act1.timestamp).utc().unix() === moment(act2.timestamp).utc().unix() &&
-            act1.platform === act2.platform,
+            act1.platform === act2.platform &&
+            act1.type === act2.type,
         )
         return uniq.length > 0 ? uniq : null
       },
