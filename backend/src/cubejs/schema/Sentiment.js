@@ -3,6 +3,7 @@ cube(`Sentiment`, {
   a."tenantId" ,
   a."platform" ,
   a."timestamp" ,
+  a."memberId" ,
   (a.sentiment->>'sentiment')::integer as sentiment,
   case
       when (a.sentiment->>'sentiment')::integer < 34 then 'negative'
@@ -23,6 +24,13 @@ where
       refreshKey: {
         every: `10 minute`,
       },
+    },
+  },
+
+  joins: {
+    Members: {
+      sql: `${CUBE}."memberId" = ${Members}."id"`,
+      relationship: `belongsTo`,
     },
   },
 

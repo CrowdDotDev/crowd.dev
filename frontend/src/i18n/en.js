@@ -519,7 +519,8 @@ const en = {
         count: '[Activities] Count',
         type: '[Activities] Type',
         platform: '[Activities] Platform',
-        date: '[Activities] Date'
+        date: '[Activities] Date',
+        channel: '[Activities] Channel'
       },
       Members: {
         count: '[Members] Count',
