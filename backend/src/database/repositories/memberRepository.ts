@@ -275,6 +275,10 @@ class MemberRepository {
       },
     )
 
+
+    log.warn("Found member2: ")
+    log.warn(record)
+
     if (data.activities) {
       log.info(`setting activities in repository layer.. `)
       log.info(data.activities)
