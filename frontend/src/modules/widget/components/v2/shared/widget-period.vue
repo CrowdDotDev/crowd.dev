@@ -26,7 +26,7 @@ import {
   SEVEN_DAYS_PERIOD_FILTER,
   DASHBOARD_PERIOD_OPTIONS,
   WIDGET_PERIOD_OPTIONS
-} from '@/modules/widget/widget-periods'
+} from '@/modules/widget/widget-constants'
 
 const emits = defineEmits(['onUpdate'])
 const props = defineProps({
