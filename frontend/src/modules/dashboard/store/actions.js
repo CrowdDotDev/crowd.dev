@@ -3,7 +3,7 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { ActivityService } from '@/modules/activity/activity-service'
 import { ConversationService } from '@/modules/conversation/conversation-service'
 import moment from 'moment'
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-periods'
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 
 export default {
   async reset({ dispatch }) {

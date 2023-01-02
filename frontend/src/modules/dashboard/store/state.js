@@ -1,4 +1,4 @@
-import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-periods'
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 
 export default () => {
   return {
