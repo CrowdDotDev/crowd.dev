@@ -12,10 +12,11 @@ import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
 import { AttributeType } from '../attributes/types'
 import TenantRepository from './tenantRepository'
+import { createServiceLogger } from '../../utils/logging'
 
 const { Op } = Sequelize
 
-const log: boolean = false
+const log = createServiceLogger()
 
 class MemberRepository {
   static async create(data, options: IRepositoryOptions, doPopulateRelations = true) {
@@ -272,6 +273,8 @@ class MemberRepository {
     )
 
     if (data.activities) {
+      log.info(`setting activities in repository layer.. `)
+      log.info(data.activities)
       await record.setActivities(data.activities || [], {
         transaction,
       })

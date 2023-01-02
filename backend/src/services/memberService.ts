@@ -404,8 +404,8 @@ export default class MemberService extends LoggingBase {
     const toUpdate = MemberService.membersMerge(original, toMerge)
     if (toUpdate.activities) {
       this.log.info("merging activities...")
-      this.log.info(toUpdate.activities)
       toUpdate.activities = toUpdate.activities.map((a) => a.id)
+      this.log.info(toUpdate.activities)
     }
     // Update original member
     await this.update(originalId, toUpdate)
