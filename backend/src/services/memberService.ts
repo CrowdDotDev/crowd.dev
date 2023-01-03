@@ -454,11 +454,7 @@ export default class MemberService extends LoggingBase {
       activities: (_oldActivities, newActivities) => {
         newActivities = newActivities || []
         // A member cannot 2 different activities with same timestamp and platform and type
-        const uniq = lodash.uniqWith(
-          newActivities,
-          (act1, act2) =>
-            act1.sourceId === act2.sourceId,
-        )
+        const uniq = lodash.uniqWith(newActivities, (act1, act2) => act1.sourceId === act2.sourceId)
 
         return uniq.length > 0 ? uniq : null
       },

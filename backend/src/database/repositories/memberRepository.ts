@@ -271,7 +271,6 @@ class MemberRepository {
       },
     )
 
-
     if (data.activities) {
       await record.setActivities(data.activities || [], {
         transaction,
