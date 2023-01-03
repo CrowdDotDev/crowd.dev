@@ -2,7 +2,7 @@
   <div>
     <el-popover
       placement="right-start"
-      :width="230"
+      :width="320"
       popper-class="workspace-popover"
       :visible="isDropdownOpen"
     >
