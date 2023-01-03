@@ -5,19 +5,22 @@
     </div>
     <div class="flex items-center gap-2 mt-2">
       <div class="growth" :class="computedGrowthClass">
-        <i
-          class="text-sm leading-none inline-flex items-center"
-          :class="computedGrowthIcon"
-        ></i>
-        <span class="ml-1"
-          >{{
-            growth < 0
-              ? formatNumber(growth) * -1
-              : formatNumber(growth)
-          }}%</span
-        >
-        <span class="ml-1"
-          >({{ formatNumber(previousValue) }})</span
+        <div v-if="growth !== 0" class="flex items-center">
+          <i
+            class="text-sm leading-none inline-flex items-center"
+            :class="computedGrowthIcon"
+          ></i>
+          <span class="ml-1">{{
+            formatPercentage(growth)
+          }}</span>
+          <span class="ml-1"
+            >({{ formatNumber(previousValue) }})</span
+          >
+        </div>
+        <span
+          v-else
+          class="text-sm leading-none inline-flex items-center px-0.5"
+          >=</span
         >
       </div>
       <div class="text-2xs text-gray-400">
@@ -28,7 +31,10 @@
 </template>
 
 <script setup>
-import { formatNumber } from '@/utils/number'
+import {
+  formatNumber,
+  formatPercentage
+} from '@/utils/number'
 import { defineProps, computed } from 'vue'
 
 const props = defineProps({
@@ -52,7 +58,7 @@ const growth =
 
 const computedGrowthClass = computed(() => {
   if (growth === 0) {
-    return 'bg-gray-50 text-gray-700'
+    return 'bg-blue-100 text-blue-700'
   } else if (growth > 0) {
     return 'bg-green-50 text-green-700'
   } else {
