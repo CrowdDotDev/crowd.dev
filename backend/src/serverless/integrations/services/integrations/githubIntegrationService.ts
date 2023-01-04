@@ -587,7 +587,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     let appToken: AppTokenResponse
     if (context.pipelineData.appToken) {
       // check expiration
-      const expiration = moment(context.pipelineData.appToken.expiration)
+      const expiration = moment(context.pipelineData.appToken.expiration).add(5, 'minutes')
       if (expiration.isAfter(moment())) {
         // need to refresh
         const authResponse = await this.githubAuthenticator({ type: 'app' })
