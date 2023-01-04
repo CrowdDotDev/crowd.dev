@@ -5,9 +5,9 @@
     @visible-change="dropdownOpen = $event"
   >
     <div
-      class="flex items-center text-base border-b border-dashed border-gray-400 pb-1"
+      class="flex items-center text-base border-b border-dashed border-gray-400"
     >
-      <span class="text-gray-500 font-semibold">{{
+      <span class="text-gray-500 font-semibold leading-6">{{
         granularity.label
       }}</span>
       <i

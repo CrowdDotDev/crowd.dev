@@ -1,7 +1,7 @@
 <template>
   <div class="flex gap-2">
     <div
-      class="font-medium text-gray-900"
+      class="font-semibold text-gray-900"
       :class="`${textSize}`"
     >
       {{ title }}
