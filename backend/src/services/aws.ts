@@ -1,5 +1,4 @@
 import AWS, { SQS } from 'aws-sdk'
-import { Blob } from 'buffer'
 import { COMPREHEND_CONFIG, IS_DEV_ENV, KUBE_MODE, S3_CONFIG, SQS_CONFIG } from '../config'
 
 let sqsInstance
@@ -101,7 +100,24 @@ if (KUBE_MODE) {
       : undefined
 }
 
-const ALLOWED_MAX_BYTE_LENGTH = 4500
+const trimUtf8ToMaxByteLength = (utf8Str: string, maxByteLength: number): string => {
+  if (Buffer.byteLength(utf8Str, 'utf8') > maxByteLength) {
+    // this will get us close but some characters could be multibyte encoded so we might need to trim a bit more
+    utf8Str = utf8Str.slice(0, maxByteLength)
+  }
+
+  // trim till we get to the requested byte length or lower (if we cut multibyte character)
+  let byteLength = Buffer.byteLength(utf8Str, 'utf8')
+  while (byteLength > maxByteLength) {
+    utf8Str = utf8Str.slice(0, -1)
+    byteLength = Buffer.byteLength(utf8Str, 'utf8')
+  }
+
+  return utf8Str
+}
+
+const ALLOWED_MAX_BYTE_LENGTH = 5000
+
 /**
  * Get sentiment for a text using AWS Comprehend
  * @param text Text to detect sentiment on
@@ -110,15 +126,13 @@ const ALLOWED_MAX_BYTE_LENGTH = 4500
 export async function detectSentiment(text) {
   // Only if we have proper credentials
   if (comprehendInstance) {
-    // Check text byte size
-    let blob = new Blob([text])
-    if (blob.size > ALLOWED_MAX_BYTE_LENGTH) {
-      blob = blob.slice(0, ALLOWED_MAX_BYTE_LENGTH)
-      text = await blob.text()
-    }
-
-    // convert to utf-8
-    text = Buffer.from(text).toString('utf-8')
+    // https://docs.aws.amazon.com/comprehend/latest/APIReference/API_DetectSentiment.html
+    // needs to be utf-8 encoded
+    text = Buffer.from(text).toString('utf8')
+    // from docs - AWS performs analysis on the first 500 characters and ignores the rest
+    text = text.slice(0, 500)
+    // trim down to max allowed byte length
+    text = trimUtf8ToMaxByteLength(text, ALLOWED_MAX_BYTE_LENGTH)
 
     const params = {
       LanguageCode: 'en',
