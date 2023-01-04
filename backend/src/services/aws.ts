@@ -109,7 +109,6 @@ const ALLOWED_MAX_BYTE_LENGTH = 200000
 export async function detectSentiment(text) {
   // Only if we have proper credentials
   if (comprehendInstance) {
-
     // make text maximum 250000 bytes
     if (Buffer.byteLength(text, 'utf8') > ALLOWED_MAX_BYTE_LENGTH) {
       text = text.slice(0, ALLOWED_MAX_BYTE_LENGTH)
