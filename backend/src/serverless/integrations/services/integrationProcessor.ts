@@ -264,7 +264,6 @@ export class IntegrationProcessor extends LoggingBase {
 
       // delay for retries/continuing with the remaining streams (in seconds)
       let delay: number = 5
-      let stopProcessing = false
 
       let exit = false
 
@@ -304,15 +303,16 @@ export class IntegrationProcessor extends LoggingBase {
             } catch (err) {
               if (err.rateLimitResetSeconds) {
                 delay = err.rateLimitResetSeconds + 5
-                stopProcessing = true
+                logger.warn(
+                  err,
+                  { stream: stream.value, delay },
+                  'Rate limit reached while processing stream! Delaying...',
+                )
+                failedStreams.push(stream)
+                break
               } else {
                 throw err
               }
-            }
-
-            if (stopProcessing) {
-              failedStreams.push(stream)
-              break
             }
 
             if (processStreamResult.newStreams && processStreamResult.newStreams.length > 0) {
