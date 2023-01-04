@@ -67,7 +67,7 @@ export const externalTooltipHandler = (context) => {
     window.pageYOffset +
     tooltip.caretY -
     tooltipEl.getBoundingClientRect().height -
-    54 +
+    40 +
     'px'
   tooltipEl.style.padding = '12px'
   tooltipEl.style.textAlign = 'left'

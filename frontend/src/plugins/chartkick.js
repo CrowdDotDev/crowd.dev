@@ -31,6 +31,32 @@ import { h } from 'vue'
  * - Creating global components like <line-chart> or <pie-chart> to enhance developer experience and code quality
  */
 
+// TODO: See if this can be added only to template charts, currently it is being added globally
+const tooltipAnnotationLine = {
+  id: 'tooltipAnnotationLine',
+  beforeDraw: (chart) => {
+    if (chart.tooltip._active?.length) {
+      const ctx = chart.ctx
+
+      ctx.save()
+
+      ctx.beginPath()
+      ctx.moveTo(
+        chart.tooltip._active[0].element.x,
+        chart.chartArea.top
+      )
+      ctx.lineTo(
+        chart.tooltip._active[0].element.x,
+        chart.chartArea.bottom
+      )
+      ctx.lineWidth = 32
+      ctx.strokeStyle = 'rgba(233,79,46, 0.05)'
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+}
+
 Chart.register(
   LineElement,
   BarElement,
@@ -49,7 +75,8 @@ Chart.register(
   Title,
   Tooltip,
   SubTitle,
-  Filler
+  Filler,
+  tooltipAnnotationLine
 )
 
 let createComponent = function (app, tagName, chartType) {
