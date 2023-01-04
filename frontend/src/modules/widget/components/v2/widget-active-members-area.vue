@@ -8,7 +8,7 @@
       <div class="bg-white px-6 py-5 rounded-lg shadow">
         <!-- Widget Header -->
         <div
-          class="flex grow justify-between items-center pb-5"
+          class="flex grow justify-between items-center pb-5 mb-8 border-b border-gray-100"
         >
           <div class="flex gap-1">
             <app-widget-granularity
@@ -40,7 +40,7 @@
           :result-set="resultSet"
           :chart-options="{
             ...chartOptions,
-            ...chartOptions(widget, resultSet)
+            ...chartOptions(widget)
           }"
         />
       </div>
