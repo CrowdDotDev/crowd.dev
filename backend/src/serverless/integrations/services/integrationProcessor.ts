@@ -304,8 +304,7 @@ export class IntegrationProcessor extends LoggingBase {
               if (err.rateLimitResetSeconds) {
                 delay = err.rateLimitResetSeconds + 5
                 logger.warn(
-                  err,
-                  { stream: stream.value, delay },
+                  { stream: stream.value, delay, message: err.message },
                   'Rate limit reached while processing stream! Delaying...',
                 )
                 failedStreams.push(stream)
