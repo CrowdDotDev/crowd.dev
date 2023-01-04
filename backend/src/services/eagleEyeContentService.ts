@@ -95,14 +95,14 @@ export default class EagleEyeContentService extends LoggingBase {
   }
 
   async search(args) {
-    const { keywords, nDays } = args
+    const { keywords, nDays, exactKeywords } = args
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
 
     if (API_CONFIG.premiumApiUrl) {
       const response = await request
         .post(`${API_CONFIG.premiumApiUrl}/search`)
-        .send({ queries: keywords, nDays, filters })
+        .send({ queries: keywords, nDays, filters, exactKeywords })
       try {
         const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
         await this.bulkUpsert(fromEagleEye)
