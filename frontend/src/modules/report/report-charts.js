@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n'
+
 const defaultChartOptions = {
   legend: false,
   curve: false,
@@ -13,6 +15,30 @@ const defaultChartOptions = {
     '#06B6D4',
     '#F97316'
   ],
+  library: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const translationSuffix =
+              context.dataset.data[context.dataIndex] > 1
+                ? 'plural'
+                : 'singular'
+
+            return (
+              context.dataset.data[context.dataIndex] +
+              ' ' +
+              i18n(
+                'widget.cubejs.tooltip.' +
+                  context.dataset.label +
+                  `.${translationSuffix}`
+              )
+            )
+          }
+        }
+      }
+    }
+  },
   loading: 'Loading...'
 }
 

@@ -509,11 +509,29 @@ const en = {
 
   widget: {
     cubejs: {
+      tooltip: {
+        Activities: {
+          singular: 'Activity',
+          plural: 'Activities'
+        },
+        Members: {
+          singular: 'Member',
+          plural: 'Members'
+        },
+        Conversations: {
+          singular: 'Conversation',
+          plural: 'Conversations'
+        },
+        Organizations: {
+          singular: 'Organization',
+          plural: 'Organizations'
+        }
+      },
       cubes: {
-        Activities: '[Activities] Count',
-        Members: '[Members] Count',
-        Conversations: '[Conversations] Count',
-        Organizations: '[Organizations] Count'
+        Activities: 'Activities',
+        Members: 'Members',
+        Conversations: 'Conversations',
+        Organizations: 'Organizations'
       },
       Activities: {
         count: '[Activities] Count',

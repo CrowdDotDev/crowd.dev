@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n'
 import moment from 'moment'
 
 export const chartOptions = {
@@ -8,6 +9,30 @@ export const chartOptions = {
   backgroundColor: 'pink',
   loading: 'Loading...',
   empty: 'Loading...',
+  library: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const translationSuffix =
+              context.dataset.data[context.dataIndex] > 1
+                ? 'plural'
+                : 'singular'
+
+            return (
+              context.dataset.data[context.dataIndex] +
+              ' ' +
+              i18n(
+                'widget.cubejs.tooltip.' +
+                  context.dataset.label +
+                  `.${translationSuffix}`
+              )
+            )
+          }
+        }
+      }
+    }
+  },
   computeDataset: (canvas) => {
     const ctx = canvas.getContext('2d')
     const gradient = ctx.createLinearGradient(0, 0, 0, 150)
