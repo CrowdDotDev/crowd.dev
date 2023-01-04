@@ -1,10 +1,9 @@
-import { i18n } from '@/i18n'
-import pluralize from 'pluralize'
+import { externalTooltipHandler } from './tooltip'
 
 const defaultChartOptions = {
   legend: false,
   curve: false,
-  points: false,
+  points: true,
   title: undefined,
   colors: [
     '#E94F2E',
@@ -19,25 +18,6 @@ const defaultChartOptions = {
   loading: 'Loading...'
 }
 
-const formatTooltipOptions = {
-  library: {
-    plugins: {
-      tooltip: {
-        callbacks: {
-          label: (context) =>
-            pluralize(
-              i18n(
-                `widget.cubejs.tooltip.${context.dataset.label}`
-              ),
-              context.dataset.data[context.dataIndex],
-              true
-            )
-        }
-      }
-    }
-  }
-}
-
 const platformColors = {
   github: '#111827',
   discord: '#8B5CF6',
@@ -48,6 +28,15 @@ const platformColors = {
 
 export function chartOptions(widget, resultSet) {
   let chartTypeOptions = {}
+  const datasetDefaultOptions = {
+    pointRadius: 5,
+    pointBorderColor: 'transparent',
+    pointBackgroundColor: 'transparent',
+    pointHoverBorderColor: '#E94F2E',
+    pointHoverBackgroundColor: '#fff',
+    pointHoverBorderWidth: '2'
+  }
+
   const seriesNames = resultSet
     ? resultSet.seriesNames()
     : []
@@ -66,13 +55,19 @@ export function chartOptions(widget, resultSet) {
           )
           gradient.addColorStop(0, 'rgba(253,237, 234,1)')
           gradient.addColorStop(1, 'rgba(253,237, 234,0)')
-          return { backgroundColor: gradient }
+          return {
+            backgroundColor: gradient,
+            ...datasetDefaultOptions
+          }
         }
       }
     } else {
       chartTypeOptions = {
         computeDataset: () => {
-          return { backgroundColor: 'transparent' }
+          return {
+            backgroundColor: 'transparent',
+            ...datasetDefaultOptions
+          }
         }
       }
     }
@@ -144,22 +139,57 @@ export function chartOptions(widget, resultSet) {
       colors: [...mappedColors, ...restColors]
     }
   }
-
-  // When there's a dimension, we don't want custom format in tooltips,
-  // instead we'll use the default format `dimension: value`
-  if (
-    widget.settings.query.dimensions &&
-    widget.settings.query.dimensions.length
-  ) {
-    return {
-      ...defaultChartOptions,
-      ...chartTypeOptions
-    }
-  }
-
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions
+    ...{
+      ...chartTypeOptions,
+      ...{
+        ...chartTypeOptions.library,
+        library: {
+          lineTension: 0.3,
+          scales: {
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              }
+            },
+            y: {
+              grid: {
+                drawBorder: false,
+                color: '#D1D5DB',
+                borderDash: [4, 6],
+                drawTicks: false
+              },
+              ticks: {
+                color: '#9CA3AF',
+                padding: 8
+              }
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            tooltip: {
+              position: 'nearest',
+              enabled: false,
+              external: externalTooltipHandler
+            },
+            legend: {
+              display: true,
+              position: 'bottom',
+              align: 'center',
+              labels: {
+                boxHeight: 0,
+                boxWidth: 16,
+                fontColor: '#6B7280'
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
