@@ -5,207 +5,85 @@ const defaultChartOptions = {
   curve: false,
   points: true,
   title: undefined,
-  colors: [
-    '#E94F2E',
-    '#111827',
-    '#3B82F6',
-    '#10B981',
-    '#F59E0B',
-    '#8B5CF6',
-    '#06B6D4',
-    '#F97316'
-  ],
-  loading: 'Loading...'
-}
-
-const platformColors = {
-  github: '#111827',
-  discord: '#8B5CF6',
-  slack: '#E94F2E',
-  twitter: '#60A5FA',
-  devto: '#5EEAD4'
-}
-
-export function chartOptions(widget, resultSet) {
-  let chartTypeOptions = {}
-  const datasetDefaultOptions = {
-    pointRadius: 5,
-    pointBorderColor: 'transparent',
-    pointBackgroundColor: 'transparent',
-    pointHoverBorderColor: '#E94F2E',
-    pointHoverBackgroundColor: '#fff',
-    pointHoverBorderWidth: '2'
+  colors: ['#E94F2E'],
+  loading: 'Loading...',
+  library: {
+    lineTension: 0.3,
+    scales: {
+      x: {
+        ticks: {
+          color: '#9CA3AF'
+        }
+      },
+      y: {
+        grid: {
+          drawBorder: false,
+          color: '#D1D5DB',
+          borderDash: [4, 6],
+          drawTicks: false
+        },
+        ticks: {
+          color: '#9CA3AF',
+          padding: 8
+        }
+      }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      tooltip: {
+        position: 'nearest',
+        enabled: false,
+        external: externalTooltipHandler
+      },
+      legend: {
+        display: true,
+        position: 'bottom',
+        align: 'center',
+        labels: {
+          boxHeight: 0,
+          boxWidth: 16,
+          fontColor: '#6B7280'
+        }
+      }
+    }
   }
+}
 
-  const seriesNames = resultSet
-    ? resultSet.seriesNames()
-    : []
+export function chartOptions(widget) {
+  let chartTypeOptions = {}
   const type = widget.settings.chartType
 
-  if (type === 'area' || type === 'line') {
-    if (seriesNames.length <= 1) {
-      chartTypeOptions = {
-        computeDataset: (canvas) => {
-          const ctx = canvas.getContext('2d')
-          const gradient = ctx.createLinearGradient(
-            0,
-            150,
-            0,
-            350
-          )
-          gradient.addColorStop(0, 'rgba(253,237, 234,1)')
-          gradient.addColorStop(1, 'rgba(253,237, 234,0)')
-          return {
-            backgroundColor: gradient,
-            ...datasetDefaultOptions
-          }
-        }
-      }
-    } else {
-      chartTypeOptions = {
-        computeDataset: () => {
-          return {
-            backgroundColor: 'transparent',
-            ...datasetDefaultOptions
-          }
-        }
-      }
-    }
-  } else if (type === 'bar') {
-    chartTypeOptions = {}
-  } else if (type === 'pie' || type === 'donut') {
+  if (type === 'area') {
     chartTypeOptions = {
-      donut: true,
-      legend: 'right',
-      library: {
-        spacing: 4,
-        borderWidth: 0,
-        cutout: '65%',
-        plugins: {
-          legend: {
-            display: true,
-            position: 'right',
-            align: 'center',
-            labels: {
-              usePointStyle: true,
-              color: '#000',
-              padding: 10
-            }
-          }
+      computeDataset: (canvas) => {
+        const ctx = canvas.getContext('2d')
+        const gradient = ctx.createLinearGradient(
+          0,
+          150,
+          0,
+          350
+        )
+        gradient.addColorStop(0, 'rgba(253,237, 234,1)')
+        gradient.addColorStop(1, 'rgba(253,237, 234,0)')
+
+        return {
+          backgroundColor: gradient,
+          pointRadius: 5,
+          pointBorderColor: 'transparent',
+          pointBackgroundColor: 'transparent',
+          pointHoverBorderColor: '#E94F2E',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderWidth: '2'
         }
       }
     }
   }
 
-  // Sort colors by platform
-  if (
-    widget.settings.query &&
-    widget.settings.query.dimensions &&
-    widget.settings.query.dimensions.length &&
-    widget.settings.query.dimensions.includes(
-      'Activities.platform'
-    ) &&
-    !(
-      ['area', 'line'].includes(type) &&
-      seriesNames.length <= 1
-    )
-  ) {
-    const platforms = (
-      resultSet ? resultSet.tablePivot() : []
-    )
-      .map((p) => p['Activities.platform'])
-      .filter((item, i, ar) => ar.indexOf(item) === i)
-
-    let mappedColors = platforms.map((p) => {
-      return platformColors[p]
-    })
-    const defaultColors =
-      chartTypeOptions.colors || defaultChartOptions.colors
-
-    let restColors = defaultColors.filter(
-      (c) => !mappedColors.includes(c)
-    )
-    mappedColors = mappedColors.map((c) => {
-      if (!c) {
-        const firstColor = restColors[0]
-        restColors.shift()
-        return firstColor
-      }
-      return c
-    })
-
-    chartTypeOptions = {
-      ...chartTypeOptions,
-      colors: [...mappedColors, ...restColors]
-    }
-  }
   return {
     ...defaultChartOptions,
-    ...{
-      ...chartTypeOptions,
-      ...{
-        ...chartTypeOptions.library,
-        library: {
-          lineTension: 0.3,
-          scales: {
-            x: {
-              ticks: {
-                color: '#9CA3AF'
-              }
-            },
-            y: {
-              grid: {
-                drawBorder: false,
-                color: '#D1D5DB',
-                borderDash: [4, 6],
-                drawTicks: false
-              },
-              ticks: {
-                color: '#9CA3AF',
-                padding: 8
-              }
-            }
-          },
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
-          plugins: {
-            tooltip: {
-              position: 'nearest',
-              enabled: false,
-              external: externalTooltipHandler
-            },
-            legend: {
-              display: true,
-              position: 'bottom',
-              align: 'center',
-              labels: {
-                boxHeight: 0,
-                boxWidth: 16,
-                fontColor: '#6B7280'
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-export function mapWidget(widget, resultSet) {
-  const seriesNames = resultSet
-    ? resultSet.seriesNames()
-    : []
-  let type = widget.settings.chartType
-  if (type === 'line' && seriesNames.length <= 1) {
-    type = 'area'
-  }
-  return {
-    ...widget,
-    settings: {
-      ...widget.settings,
-      chartType: type
-    }
+    ...chartTypeOptions
   }
 }

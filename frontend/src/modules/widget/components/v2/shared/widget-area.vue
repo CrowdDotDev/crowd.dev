@@ -49,7 +49,7 @@ const props = defineProps({
 const dataset = ref(null)
 
 const loading = computed(
-  () => !props.resultSet || !props.resultSet.loadResponse
+  () => !props.resultSet?.loadResponse
 )
 
 const data = computed(() => {
