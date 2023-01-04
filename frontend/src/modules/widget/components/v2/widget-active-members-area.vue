@@ -2,7 +2,7 @@
   <query-renderer
     v-if="cubejsApi"
     :cubejs-api="cubejsApi"
-    :query="widget.settings.query"
+    :query="query"
   >
     <template #default="{ resultSet }">
       <div class="bg-white px-6 py-5 rounded-lg shadow">
@@ -15,7 +15,8 @@
               v-if="granularity"
               :granularity="granularity"
               @on-update="
-                emits('onUpdateGranularity', granularity)
+                (updatedGranularity) =>
+                  (granularity = updatedGranularity)
               "
             />
             <app-widget-title
@@ -27,7 +28,9 @@
             v-if="period"
             :period="period"
             module="reports"
-            @on-update="emits('onUpdatePeriod', period)"
+            @on-update="
+              (updatedPeriod) => (period = updatedPeriod)
+            "
           />
         </div>
 
@@ -52,36 +55,50 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, computed, ref } from 'vue'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue'
 import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
 import {
   DAILY_GRANULARITY_FILTER,
-  THIRTY_DAYS_PERIOD_FILTER
+  SEVEN_DAYS_PERIOD_FILTER
 } from '@/modules/widget/widget-constants'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { chartOptions } from '@/modules/report/report-charts'
+import { chartOptions } from '@/modules/report/template-report-charts'
+import pluralize from 'pluralize'
 
-const emits = defineEmits([
-  'onUpdatePeriod',
-  'onUpdateGranularity'
-])
-
-defineProps({
+const props = defineProps({
   widget: {
     type: Object,
     required: true
   }
 })
 
-const { cubejsApi } = mapGetters('widget')
+const period = ref(SEVEN_DAYS_PERIOD_FILTER)
+const granularity = ref(DAILY_GRANULARITY_FILTER)
 
-// TBD: To be refactored
-const period = THIRTY_DAYS_PERIOD_FILTER
-const granularity = DAILY_GRANULARITY_FILTER
+const query = computed(() => {
+  return {
+    ...props.widget.settings.query,
+    measures: ['Members.count'],
+    timeDimensions: [
+      {
+        dateRange: `Last ${period.value.value} ${pluralize(
+          period.value.granularity,
+          period.value.value,
+          false
+        )}`,
+        dimension: 'Members.joinedAt',
+        granularity: granularity.value.value
+      }
+    ],
+    order: { ['Members.joinedAt']: 'asc' }
+  }
+})
+
+const { cubejsApi } = mapGetters('widget')
 </script>
 
 <style lang="scss" scoped>
