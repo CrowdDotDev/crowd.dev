@@ -4,7 +4,7 @@ import pluralize from 'pluralize'
 const defaultChartOptions = {
   legend: false,
   curve: false,
-  points: false,
+  points: true,
   title: undefined,
   colors: [
     '#E94F2E',
@@ -48,6 +48,15 @@ const platformColors = {
 
 export function chartOptions(widget, resultSet) {
   let chartTypeOptions = {}
+  const datasetDefaultOptions = {
+    pointRadius: 5,
+    pointBorderColor: 'transparent',
+    pointBackgroundColor: 'transparent',
+    pointHoverBorderColor: '#E94F2E',
+    pointHoverBackgroundColor: '#fff',
+    pointHoverBorderWidth: '2'
+  }
+
   const seriesNames = resultSet
     ? resultSet.seriesNames()
     : []
@@ -66,13 +75,19 @@ export function chartOptions(widget, resultSet) {
           )
           gradient.addColorStop(0, 'rgba(253,237, 234,1)')
           gradient.addColorStop(1, 'rgba(253,237, 234,0)')
-          return { backgroundColor: gradient }
+          return {
+            backgroundColor: gradient,
+            ...datasetDefaultOptions
+          }
         }
       }
     } else {
       chartTypeOptions = {
         computeDataset: () => {
-          return { backgroundColor: 'transparent' }
+          return {
+            backgroundColor: 'transparent',
+            ...datasetDefaultOptions
+          }
         }
       }
     }
@@ -159,8 +174,34 @@ export function chartOptions(widget, resultSet) {
 
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions,
-    ...formatTooltipOptions
+    ...{
+      ...chartTypeOptions,
+      ...{
+        ...chartTypeOptions.library,
+        library: {
+          lineTension: 0.3,
+          scales: {
+            x: {
+              ticks: {
+                color: '#9CA3AF'
+              }
+            },
+            y: {
+              grid: {
+                drawBorder: false,
+                color: '#D1D5DB',
+                borderDash: [4, 6],
+                drawTicks: false
+              },
+              ticks: {
+                color: '#9CA3AF',
+                padding: 8
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
