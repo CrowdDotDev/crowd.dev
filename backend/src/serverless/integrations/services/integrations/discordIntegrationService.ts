@@ -5,6 +5,8 @@ import {
   DiscordMembers,
   DiscordMention,
   DiscordStreamProcessResult,
+  ProcessedChannel,
+  ProcessedChannels,
 } from '../../types/discordTypes'
 import { DISCORD_CONFIG } from '../../../../config'
 import { DiscordMemberAttributes } from '../../../../database/attributes/member/discord'
@@ -20,7 +22,6 @@ import { IntegrationType, PlatformType } from '../../../../types/integrationEnum
 import { timeout } from '../../../../utils/timing'
 import Operations from '../../../dbOperations/operations'
 import { DiscordGrid } from '../../grid/discordGrid'
-import { Channels } from '../../types/regularTypes'
 import getChannels from '../../usecases/discord/getChannels'
 import getMembers from '../../usecases/discord/getMembers'
 import getMessages from '../../usecases/discord/getMessages'
@@ -29,6 +30,7 @@ import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import { singleOrDefault } from '../../../../utils/arrays'
+import getThreads from '../../usecases/discord/getThreads'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -83,7 +85,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   async preprocess(context: IStepContext): Promise<void> {
     const guildId = context.integration.integrationIdentifier
 
-    let channelsFromDiscordAPI: Channels = await getChannels(
+    const fromDiscordApi: ProcessedChannels = await getChannels(
       {
         guildId,
         token: this.getToken(context),
@@ -91,9 +93,14 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       this.logger(context),
     )
 
+    let channelsFromDiscordAPI: ProcessedChannel[] = fromDiscordApi.channels
+
     const channels = context.integration.settings.channels
       ? context.integration.settings.channels
       : []
+    
+    const forumChannels = context.integration.settings.forumChannels ? context.integration.settings.forumChannels : []
+
 
     // Add bool new property to new channels
     channelsFromDiscordAPI = channelsFromDiscordAPI.map((c) => {
@@ -103,9 +110,32 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       return c
     })
 
+    console.log('channelsFromDiscordAPI', channelsFromDiscordAPI)
+
+    const threads = await getThreads({
+        guildId,
+        token: this.getToken(context),
+      },
+      this.logger(context),
+    )
+
+    console.log('threads', threads)
+    
+    const forumChannelsFromDiscordAPi = []
+
+    for (const forumChannel of fromDiscordApi.forumChannels) {
+      const thread: any = lodash.find(threads, { parentId: forumChannel.id })
+      if (thread) {
+        forumChannelsFromDiscordAPi.push({ ...forumChannel, parentId: thread.id, new: forumChannels.filter((c) => c.id === forumChannel.id).length <= 0 })
+      }
+    }
+
+    console.log('forumChannelsFromDiscordAPi', forumChannelsFromDiscordAPi)
+
     context.pipelineData = {
       settingsChannels: channels,
       channels: channelsFromDiscordAPI,
+      forumChannels: forumChannelsFromDiscordAPi,
       channelsInfo: channelsFromDiscordAPI.reduce((acc, channel) => {
         acc[channel.id] = {
           name: channel.name,
@@ -260,6 +290,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       const { new: _, ...raw } = ch
       return raw
     })
+
+    context.integration.settings.forumChannels = context.pipelineData.forumChannels.map((ch) => {
+      const { new: _, ...raw } = ch
+      return raw
+    })
+
   }
 
   parseActivities(

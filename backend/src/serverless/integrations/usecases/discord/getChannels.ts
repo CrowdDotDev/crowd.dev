@@ -2,6 +2,7 @@ import axios from 'axios'
 import {
   DiscordChannel,
   DiscordChannels,
+  DiscordChannelsOut,
   DiscordGetChannelsInput,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
@@ -31,7 +32,7 @@ async function getChannels(
   input: DiscordGetChannelsInput,
   logger: Logger,
   tryChannels = true,
-): Promise<DiscordChannels> {
+): Promise<DiscordChannelsOut> {
   try {
     const config = {
       method: 'get',
@@ -43,6 +44,12 @@ async function getChannels(
 
     const response = await axios(config)
     const result: DiscordChannels = response.data
+
+    const forumChannels = result.filter((c) => c.type === 15).map((c) => ({
+      name: c.name,
+      id: c.id,
+      thread: true,
+    }))
 
     if (tryChannels) {
       const out: DiscordChannels = []
@@ -67,13 +74,21 @@ async function getChannels(
           }
         }
       }
-      return out
+      return {
+        channels: out,
+        forumChannels,
+      }
     }
 
-    return result.map((c) => ({
+    const channelsOut = result.map((c) => ({
       name: c.name,
       id: c.id,
     }))
+
+    return {
+      channels: channelsOut,
+      forumChannels,
+    }
   } catch (err) {
     logger.error({ err, input }, 'Error while getting channels from Discord')
     throw err
