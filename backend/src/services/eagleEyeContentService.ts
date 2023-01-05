@@ -107,7 +107,7 @@ export default class EagleEyeContentService extends LoggingBase {
         await this.bulkUpsert(fromEagleEye)
         return fromEagleEye
       } catch (error) {
-        this.log.error({ error: response.text }, 'error when calling eagle eye server!')
+        this.log.error({ errorInPython: response.text, error }, 'error when calling eagle eye server!')
         throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
       }
     }
