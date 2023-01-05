@@ -23,7 +23,11 @@
     </div>
 
     <app-widget-insight
-      description="We recommend speaking with these members, as they went above and beyond in the last 7 days. They are probably eager to share their experiences and enthusiasm for your community."
+      :description="`We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
+        period.granularity,
+        period.value,
+        true
+      )}. They are probably eager to share their experiences and enthusiasm for your community.`"
     />
   </div>
 </template>
@@ -43,6 +47,7 @@ import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 import { MemberService } from '@/modules/member/member-service'
 import moment from 'moment'
+import pluralize from 'pluralize'
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const activeMembers = ref([])
