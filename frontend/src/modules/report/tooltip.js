@@ -98,4 +98,5 @@ export const externalTooltipHandler = (context) => {
   tooltipEl.style.padding = '12px'
   tooltipEl.style.textAlign = 'left'
   tooltipEl.style.pointerEvents = 'none'
+  tooltipEl.style.zIndex = '20'
 }

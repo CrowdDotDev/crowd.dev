@@ -1,4 +1,4 @@
-import { externalTooltipHandler } from './tooltip'
+import { externalTooltipHandler } from '../tooltip'
 import moment from 'moment'
 
 const defaultChartOptions = {

@@ -17,57 +17,26 @@
       </div>
     </div>
 
-    <!-- TODO: Refactor this -->
-    <div class="text-gray-900 font-semibold text-base mb-6">
-      Default reports
-    </div>
-
-    <div class="grid grid-cols-3">
-      <router-link
-        :to="{
-          path: 'reports/members'
-        }"
+    <!-- Template reports -->
+    <div v-if="computedTemplates.length">
+      <div
+        class="text-gray-900 font-semibold text-base mb-6"
       >
-        <div class="bg-white p-5 rounded-lg shadow">
-          <div
-            class="flex items-center justify-between mb-8"
-          >
-            <div
-              class="bg-gray-900 rounded-md h-10 w-10 flex items-center justify-center"
-            >
-              <i
-                class="text-white text-xl ri-account-circle-line"
-              />
-            </div>
+        Template reports
+      </div>
 
-            <div class="flex items-center gap-3">
-              <div
-                class="text-green-600 text-xs flex items-center gap-1"
-              >
-                <i class="ri-global-line" /><span
-                  >Public</span
-                >
-              </div>
-              <app-report-template-dropdown
-                :report="{ public: true }"
-              ></app-report-template-dropdown>
-            </div>
-          </div>
-          <div
-            class="text-gray-900 text-base font-medium mb-3"
-          >
-            Members report
-          </div>
-          <div class="text-gray-500 text-xs">
-            Get insights into total/active/returning members
-            and a member leaderboard
-          </div>
-        </div>
-      </router-link>
+      <div class="grid grid-cols-3">
+        <app-report-template-item
+          v-for="template in computedTemplates"
+          :key="template.name"
+          :template="template"
+        />
+      </div>
+
+      <el-divider class="mb-6 mt-14 border-gray-200" />
     </div>
 
-    <el-divider class="mb-6 mt-14 border-gray-200" />
-
+    <!-- Custom Reports -->
     <div class="text-gray-900 font-semibold text-base mb-6">
       Custom reports
     </div>
@@ -85,36 +54,60 @@ import { mapActions, mapGetters, mapState } from 'vuex'
 import ReportListTable from '@/modules/report/components/report-list-table.vue'
 import AppReportCreateDialog from '@/modules/report/components/report-create-dialog.vue'
 import { ReportPermissions } from '@/modules/report/report-permissions'
-import AppReportTemplateDropdown from '@/modules/report/components/report-template-dropdown.vue'
+import AppReportTemplateItem from '@/modules/report/components/templates/report-template-item.vue'
+import { templates } from '@/modules/report/templates/template-reports'
 
 export default {
   name: 'AppReportListPage',
 
   components: {
     AppReportCreateDialog,
-    AppReportTemplateDropdown,
+    AppReportTemplateItem,
     'app-report-list-table': ReportListTable
   },
 
   data() {
     return {
-      isCreatingReport: false
+      isCreatingReport: false,
+      templates
     }
   },
 
   computed: {
     ...mapState({
-      count: (state) => state.report.count
+      count: (state) => state.report.count,
+      loading: (state) => state.report.list.loading
     }),
     ...mapGetters({
       currentTenant: 'auth/currentTenant',
-      currentUser: 'auth/currentUser'
+      currentUser: 'auth/currentUser',
+      rows: 'report/rows'
     }),
     hasPermissionToCreate() {
       return new ReportPermissions(
         this.currentTenant,
         this.currentUser
       ).create
+    },
+    computedTemplates() {
+      if (this.loading) {
+        return []
+      }
+
+      const templateRows = this.rows.filter(
+        (r) => r.isTemplate
+      )
+
+      return this.templates.map((t) => {
+        const rowTemplate = templateRows.find(
+          (r) => r.name === t.name
+        )
+        return {
+          ...t,
+          public: rowTemplate?.public || false,
+          id: rowTemplate?.id
+        }
+      })
     }
   },
 
