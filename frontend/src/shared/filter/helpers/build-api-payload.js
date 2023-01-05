@@ -90,19 +90,17 @@ function _buildAttributeBlock(attribute) {
         return k[0] === '"' && k[k.length - 1] === '"'
       })
       .map((k) => {
-        return k.replace('"', '')
+        return k.replace('"', '').replace('"', '')
       })
 
-    const query = { or: [] }
+    const query = {}
 
     if (keywords.length > 0) {
-      query.or.push({ keywords: { overlap: keywords } })
+      query.keywords = { overlap: keywords }
     }
 
     if (exactKeywords.length > 0) {
-      query.or.push({
-        exactKeywords: { overlap: exactKeywords }
-      })
+      query.exactKeywords = { overlap: exactKeywords }
     }
     return query
   } else if (attribute.name === 'activeOn') {
