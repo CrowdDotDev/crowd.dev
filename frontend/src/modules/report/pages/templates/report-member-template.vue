@@ -7,7 +7,9 @@
     ></div>
     <div v-else class="flex flex-col gap-8">
       <app-widget-active-members-area />
-      <app-widget-active-leaderboard-members />
+      <app-widget-active-leaderboard-members
+        v-if="!isPublicView"
+      />
     </div>
   </div>
 </template>
@@ -15,12 +17,30 @@
 <script setup>
 import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/widget-active-members-area.vue'
 import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/widget-active-leaderboard-members.vue'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { computed } from 'vue'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
+import { computed, onMounted, defineProps } from 'vue'
 
-const { cubejsToken } = mapGetters('widget')
+defineProps({
+  isPublicView: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const { cubejsApi, cubejsToken } = mapGetters('widget')
 
 const loadingCube = computed(
   () => cubejsToken.value === null
 )
+
+const { getCubeToken } = mapActions('widget')
+
+onMounted(async () => {
+  if (cubejsApi.value === null) {
+    await getCubeToken()
+  }
+})
 </script>

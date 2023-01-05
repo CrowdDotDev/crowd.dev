@@ -1,10 +1,10 @@
 <!-- TODO: Find report onMounted -->
 <template>
-  <div class="absolute left-[-20px] right-[-20px]">
+  <div class="absolute left-0 right-0">
     <div
-      class="w-full border-b bg-gray-50 border-gray-200 pt-4 pb-6 sticky top-[-20px] left-[-20px] z-10"
+      class="w-full border-b bg-gray-50 border-gray-200 pt-4 pb-6 sticky top-[-20px] z-10"
     >
-      <div class="max-w-5xl mx-auto px-6">
+      <div class="max-w-5xl mx-auto px-8">
         <router-link
           class="btn-link--sm btn-link--secondary inline-flex items-center mb-3.5"
           :to="{ path: '/reports' }"
