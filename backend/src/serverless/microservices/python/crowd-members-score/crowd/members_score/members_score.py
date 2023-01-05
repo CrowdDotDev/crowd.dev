@@ -1,3 +1,4 @@
+import decimal
 from crowd.backend.infrastructure.logging import get_logger
 from crowd.backend.repository import Repository
 from crowd.backend.repository.keys import DBKeys as dbk
@@ -103,7 +104,7 @@ class MembersScore:
         year = int(row[6])
 
         if month == current_month:
-            average_monthly_score = average_monthly_score * (current_day / 30)
+            average_monthly_score = average_monthly_score * decimal.Decimal(current_day / 30)
 
         sm = float(average_monthly_score) / float(1 + stddev_score_activities)
 
