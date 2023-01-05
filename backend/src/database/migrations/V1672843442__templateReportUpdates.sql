@@ -1,0 +1,2 @@
+ALTER TABLE public."widgets" ADD COLUMN "description" TEXT DEFAULT NULL;
+ALTER TABLE public."reports" ADD COLUMN "isEditable" BOOLEAN NOT NULL DEFAULT TRUE;
