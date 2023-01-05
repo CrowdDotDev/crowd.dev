@@ -1,4 +1,3 @@
-<!-- TODO: Find report onMounted -->
 <template>
   <div class="absolute left-0 right-0">
     <div
@@ -58,14 +57,15 @@ import { ref, onMounted, defineProps } from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
 
-defineProps({
+const props = defineProps({
   id: {
     type: String,
     default: null
   }
 })
 
-const id = 'a703c422-ab6a-4cc2-826b-d8447d6948d1'
+// TODO: While there's no backend replace with an existent report id
+// const id = 'a703c422-ab6a-4cc2-826b-d8447d6948d1'
 const { doFind } = mapActions('report')
 
 const report = ref()
@@ -74,7 +74,7 @@ const { cubejsApi } = mapGetters('widget')
 const { getCubeToken } = mapActions('widget')
 
 onMounted(async () => {
-  report.value = await doFind(id)
+  report.value = await doFind(props.id)
 
   if (cubejsApi.value === null) {
     await getCubeToken()
