@@ -159,7 +159,16 @@ export function chartOptions(widget, resultSet) {
 
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions
+    ...{
+      ...chartTypeOptions,
+      library: {
+        ...chartTypeOptions.library,
+        plugins: {
+          ...chartTypeOptions?.library?.plugins,
+          tooltipAnnotationLine: false
+        }
+      }
+    }
   }
 }
 
