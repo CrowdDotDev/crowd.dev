@@ -15,7 +15,13 @@ cube(`Members`, {
   preAggregations: {
     MembersCumulative: {
       measures: [Members.cumulativeCount],
-      dimensions: [Members.score, Members.location, Members.tenantId, Members.isTeamMember, members.isBot],
+      dimensions: [
+        Members.score,
+        Members.location,
+        Members.tenantId,
+        Members.isTeamMember,
+        members.isBot,
+      ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
       refreshKey: {
