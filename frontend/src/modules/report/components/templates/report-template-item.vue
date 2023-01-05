@@ -1,9 +1,5 @@
 <template>
-  <router-link
-    :to="{
-      path: `reports/template/${template.id}`
-    }"
-  >
+  <div class="hover:cursor-pointer" @click="onClick">
     <div class="bg-white p-5 rounded-lg shadow">
       <div class="flex items-center justify-between mb-8">
         <div
@@ -35,17 +31,25 @@
         {{ template.description }}
       </div>
     </div>
-  </router-link>
+  </div>
 </template>
 
 <script setup>
 import { defineProps } from 'vue'
 import AppReportTemplateDropdown from '@/modules/report/components/templates/report-template-dropdown.vue'
+import { useRouter } from 'vue-router'
 
-defineProps({
+const router = useRouter()
+const props = defineProps({
   template: {
     type: Object,
     required: true
   }
 })
+
+const onClick = () => {
+  router.push({
+    path: `reports/template/${props.template.id}`
+  })
+}
 </script>
