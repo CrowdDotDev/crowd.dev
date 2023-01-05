@@ -1,5 +1,6 @@
 import { i18n } from '@/i18n'
 import moment from 'moment'
+import pluralize from 'pluralize'
 
 export const chartOptions = {
   legend: false,
@@ -13,22 +14,14 @@ export const chartOptions = {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (context) => {
-            const translationSuffix =
-              context.dataset.data[context.dataIndex] > 1
-                ? 'plural'
-                : 'singular'
-
-            return (
-              context.dataset.data[context.dataIndex] +
-              ' ' +
+          label: (context) =>
+            pluralize(
               i18n(
-                'widget.cubejs.tooltip.' +
-                  context.dataset.label +
-                  `.${translationSuffix}`
-              )
+                `widget.cubejs.tooltip.${context.dataset.label}`
+              ),
+              context.dataset.data[context.dataIndex],
+              true
             )
-          }
         }
       }
     }

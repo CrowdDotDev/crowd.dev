@@ -1,4 +1,5 @@
 import { i18n } from '@/i18n'
+import pluralize from 'pluralize'
 
 const defaultChartOptions = {
   legend: false,
@@ -15,31 +16,26 @@ const defaultChartOptions = {
     '#06B6D4',
     '#F97316'
   ],
+  loading: 'Loading...'
+}
+
+const formatTooltipOptions = {
   library: {
     plugins: {
       tooltip: {
         callbacks: {
-          label: (context) => {
-            const translationSuffix =
-              context.dataset.data[context.dataIndex] > 1
-                ? 'plural'
-                : 'singular'
-
-            return (
-              context.dataset.data[context.dataIndex] +
-              ' ' +
+          label: (context) =>
+            pluralize(
               i18n(
-                'widget.cubejs.tooltip.' +
-                  context.dataset.label +
-                  `.${translationSuffix}`
-              )
+                `widget.cubejs.tooltip.${context.dataset.label}`
+              ),
+              context.dataset.data[context.dataIndex],
+              true
             )
-          }
         }
       }
     }
-  },
-  loading: 'Loading...'
+  }
 }
 
 const platformColors = {
@@ -148,9 +144,23 @@ export function chartOptions(widget, resultSet) {
       colors: [...mappedColors, ...restColors]
     }
   }
+
+  // When there's a dimension, we don't want custom format in tooltips,
+  // instead we'll use the default format `dimension: value`
+  if (
+    widget.settings.query.dimensions &&
+    widget.settings.query.dimensions.length
+  ) {
+    return {
+      ...defaultChartOptions,
+      ...chartTypeOptions
+    }
+  }
+
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions
+    ...chartTypeOptions,
+    ...formatTooltipOptions
   }
 }
 
