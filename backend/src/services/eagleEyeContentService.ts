@@ -108,7 +108,7 @@ export default class EagleEyeContentService extends LoggingBase {
         return fromEagleEye
       } catch (error) {
         this.log.error({ errorInPython: response.text, error }, 'error when calling eagle eye server!')
-        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+        throw new Error400('en', 'errors.eagleEyeSearchFailed.message')
       }
     }
     return [] as EagleEyeSearchOutput
@@ -125,7 +125,7 @@ export default class EagleEyeContentService extends LoggingBase {
         return JSON.parse(response.text)
       } catch (error) {
         this.log.error({ error: response.error }, 'error while calling eagle eye server!')
-        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+        throw new Error400('en', 'errors.eagleEyeSearchFailed.message')
       }
     } else {
       return [] as EagleEyeSearchOutput
