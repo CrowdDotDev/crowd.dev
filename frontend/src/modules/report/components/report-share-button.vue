@@ -2,7 +2,7 @@
   <el-dropdown trigger="click" placement="bottom-end"
     ><el-button
       type="button"
-      class="btn btn--transparent btn--md mr-4"
+      class="btn btn--transparent btn--md"
     >
       <i class="ri-share-line mr-2"></i>Share
     </el-button>
@@ -13,10 +13,10 @@
         >
           <div>
             <div class="font-medium text-gray-900 text-sm">
-              Publish report
+              Publish to web
             </div>
             <div class="text-gray-500 text-2xs">
-              Publish to web and share with everyone
+              Anyone with the link can view the report
             </div>
           </div>
           <div>
@@ -31,8 +31,10 @@
             v-if="!model"
             class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
           ></div>
-          <div class="font-medium text-gray-900 text-sm">
-            Shareable link
+          <div
+            class="font-medium text-gray-900 text-sm mb-1"
+          >
+            Shareable URL
           </div>
           <el-input
             :value="computedPublicLink"
@@ -101,11 +103,11 @@ const copyPublicLinkToClipboard = async () => {
   )
 }
 
-const handlePublicChange = async () => {
+const handlePublicChange = async (value) => {
   await doUpdate({
     id: props.id,
     values: {
-      public: model.value
+      public: value
     }
   })
 }

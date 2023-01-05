@@ -27,6 +27,7 @@
           <app-report-share-button
             :id="record.id"
             v-model="isPublic"
+            class="mr-4"
           />
           <app-report-dropdown
             :report="record"

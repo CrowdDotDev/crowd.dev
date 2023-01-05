@@ -24,11 +24,10 @@
           />
           <div class="ml-2 mt-1">
             <div class="text-gray-900 text-sm font-medium">
-              Publish report
+              Publish to web
             </div>
             <div class="text-gray-500 text-2xs">
-              If published, anyone with the link can view
-              the report
+              Anyone with the link can view the report
             </div>
           </div>
         </div>
