@@ -63,9 +63,11 @@ import {
 } from '@/modules/widget/widget-constants'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { chartOptions } from '@/modules/report/template-report-charts'
-import pluralize from 'pluralize'
-import moment from 'moment'
+import { chartOptions } from '@/modules/report/templates/template-report-charts'
+import {
+  TOTAL_ACTIVE_MEMBERS_QUERY,
+  TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY
+} from '@/modules/widget/widget-queries'
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const granularity = ref(DAILY_GRANULARITY_FILTER)
@@ -87,54 +89,14 @@ const datasets = computed(() => [
 ])
 const query = computed(() => {
   return [
-    {
-      measures: ['Members.count'],
-      timeDimensions: [
-        {
-          dateRange: `Last ${
-            period.value.value
-          } ${pluralize(
-            period.value.granularity,
-            period.value.value,
-            false
-          )}`,
-          dimension: 'Activities.date',
-          granularity: granularity.value.value
-        }
-      ]
-    },
-    {
-      measures: ['Members.count'],
-      timeDimensions: [
-        {
-          dateRange: `Last ${
-            period.value.value
-          } ${pluralize(
-            period.value.granularity,
-            period.value.value,
-            false
-          )}`,
-          dimension: 'Activities.date',
-          granularity: granularity.value.value
-        }
-      ],
-      filters: [
-        {
-          member: 'Members.joinedAt',
-          operator: 'beforeDate',
-          values: [
-            moment()
-              .utc()
-              .startOf('day')
-              .subtract(
-                period.value.value,
-                period.value.granularity
-              )
-              .format('YYYY-MM-DD')
-          ]
-        }
-      ]
-    }
+    TOTAL_ACTIVE_MEMBERS_QUERY(
+      period.value,
+      granularity.value
+    ),
+    TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY(
+      period.value,
+      granularity.value
+    )
   ]
 })
 
