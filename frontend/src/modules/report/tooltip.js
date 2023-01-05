@@ -18,28 +18,54 @@ export const externalTooltipHandler = (context) => {
     return
   }
 
-  function getBody(bodyItem) {
-    return bodyItem.lines
-  }
-
   // Set Text
   if (tooltip.body) {
     const titleLines = tooltip.title || []
-    const bodyLines = tooltip.body.map(getBody)
 
     let innerHtml = '<thead>'
 
     titleLines.forEach(function (title) {
-      innerHtml += `<tr><th style="color:#9CA3AF; font-size:13px; font-weight: 500">${moment(
+      innerHtml += `<tr><th class="text-gray-500 text-xs font-normal">${moment(
         title
       ).format('MMM DD')}</th></tr>`
     })
 
     innerHtml += '</thead><tbody>'
 
-    bodyLines.forEach(function (body) {
-      innerHtml += `<tr><td><span style="color:#111827; font-size:13px; font-weight: 500">${body}</span></td></tr>`
+    tooltip.body.forEach(function ({ lines, after }) {
+      lines.forEach(function (line) {
+        innerHtml += `<tr class="text-gray-900 text-xs font-medium"><td class="py-2"><span>${line}</span></td></tr>`
+      })
+
+      // TODO: Move this to component
+      after.forEach(function (after) {
+        if (after) {
+          innerHtml += `
+          <tr class="border-b border-gray-100 last:border-none text-gray-900 text-xs font-medium">
+            <td class="pb-2">
+              <div class="flex items-center gap-2">
+                <div class="${
+                  after.difference > 0
+                    ? 'bg-green-50'
+                    : 'bg-red-50'
+                } rounded-md ${
+            after.difference > 0
+              ? 'text-green-700'
+              : 'text-red-700'
+          } h-5 px-1 flex items-center">
+                  <i class="ri-arrow-${
+                    after.difference > 0 ? 'up' : 'down'
+                  }-line mr-1"></i><span>${
+            after.growth
+          }% (${
+            after.difference
+          })</span></div><span class="text-2xs text-gray-400">vs. ${
+            after.previousDate
+          }</span></div></td></tr>`
+        }
+      })
     })
+
     innerHtml += '</tbody>'
 
     let tableRoot = tooltipEl.querySelector('table')

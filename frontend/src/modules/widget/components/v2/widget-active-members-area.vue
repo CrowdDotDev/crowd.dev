@@ -12,7 +12,6 @@
         >
           <div class="flex gap-1">
             <app-widget-granularity
-              v-if="granularity"
               :granularity="granularity"
               @on-update="
                 (updatedGranularity) =>
@@ -20,12 +19,11 @@
               "
             />
             <app-widget-title
-              :title="widget.title"
-              :description="widget.description"
+              title="Active members"
+              description="Members who performed any kind of activity in a given time period"
             />
           </div>
           <app-widget-period
-            v-if="period"
             :period="period"
             module="reports"
             @on-update="
@@ -36,11 +34,10 @@
 
         <!-- Widget Chart -->
         <app-widget-area
-          :widget="widget"
+          :datasets="datasets"
           :result-set="resultSet"
           :chart-options="{
-            ...chartOptions,
-            ...chartOptions(widget)
+            ...chartOptions('area')
           }"
         />
       </div>
@@ -50,12 +47,12 @@
 
 <script>
 export default {
-  name: 'AppWidgetArea'
+  name: 'AppWidgetActiveMembersArea'
 }
 </script>
 
 <script setup>
-import { defineProps, computed, ref } from 'vue'
+import { computed, ref } from 'vue'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue'
@@ -68,34 +65,77 @@ import { QueryRenderer } from '@cubejs-client/vue3'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { chartOptions } from '@/modules/report/template-report-charts'
 import pluralize from 'pluralize'
-
-const props = defineProps({
-  widget: {
-    type: Object,
-    required: true
-  }
-})
+import moment from 'moment'
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const granularity = ref(DAILY_GRANULARITY_FILTER)
 
-const query = computed(() => {
-  return {
-    ...props.widget.settings.query,
-    measures: ['Members.count'],
-    timeDimensions: [
-      {
-        dateRange: `Last ${period.value.value} ${pluralize(
-          period.value.granularity,
-          period.value.value,
-          false
-        )}`,
-        dimension: 'Members.joinedAt',
-        granularity: granularity.value.value
-      }
-    ],
-    order: { ['Members.joinedAt']: 'asc' }
+const datasets = computed(() => [
+  {
+    name: 'Total members',
+    borderColor: '#E94F2E',
+    measure: 'Members.count',
+    granularity: granularity.value.value
+  },
+  {
+    name: 'Returning members',
+    borderDash: [4, 4],
+    borderColor: '#E94F2E',
+    measure: 'Members.count',
+    granularity: granularity.value.value
   }
+])
+const query = computed(() => {
+  return [
+    {
+      measures: ['Members.count'],
+      timeDimensions: [
+        {
+          dateRange: `Last ${
+            period.value.value
+          } ${pluralize(
+            period.value.granularity,
+            period.value.value,
+            false
+          )}`,
+          dimension: 'Activities.date',
+          granularity: granularity.value.value
+        }
+      ]
+    },
+    {
+      measures: ['Members.count'],
+      timeDimensions: [
+        {
+          dateRange: `Last ${
+            period.value.value
+          } ${pluralize(
+            period.value.granularity,
+            period.value.value,
+            false
+          )}`,
+          dimension: 'Activities.date',
+          granularity: granularity.value.value
+        }
+      ],
+      filters: [
+        {
+          member: 'Members.joinedAt',
+          operator: 'beforeDate',
+          values: [
+            moment()
+              .utc()
+              .startOf('day')
+              .subtract(
+                period.value.value,
+                period.value.granularity
+              )
+              .format('YYYY-MM-DD')
+          ]
+        }
+      ]
+    }
+  ]
 })
 
 const { cubejsApi } = mapGetters('widget')
