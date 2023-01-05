@@ -1,4 +1,5 @@
 import { externalTooltipHandler } from './tooltip'
+import moment from 'moment'
 
 const defaultChartOptions = {
   legend: false,
@@ -36,15 +37,55 @@ const defaultChartOptions = {
       tooltip: {
         position: 'nearest',
         enabled: false,
-        external: externalTooltipHandler
+        external: externalTooltipHandler,
+        callbacks: {
+          label: (context) => {
+            return `
+              ${
+                context.dataset.data[context.dataIndex]
+              } ${context.dataset.label.toLowerCase()}
+            `
+          },
+          afterLabel: (context) => {
+            if (context.dataIndex === 0) {
+              return null
+            }
+
+            const currentPoint =
+              context.dataset.data[context.dataIndex]
+            const previousPoint =
+              context.dataset.data[context.dataIndex - 1]
+            const difference = currentPoint - previousPoint
+
+            let percDiff
+
+            if (currentPoint === 0 && difference === 0) {
+              percDiff = 0
+            } else if (currentPoint === 0) {
+              percDiff = 100
+            } else {
+              percDiff = (difference / currentPoint) * 100
+            }
+
+            return {
+              difference,
+              growth: percDiff.toLocaleString('fullwide', {
+                maximumFractionDigits: 0
+              }),
+              previousDate: moment(context.label)
+                .subtract(1, context.dataset.granularity)
+                .format('MMM DD')
+            }
+          }
+        }
       },
       legend: {
         display: true,
         position: 'bottom',
         align: 'center',
         labels: {
-          boxHeight: 0,
           boxWidth: 16,
+          boxHeight: 1,
           fontColor: '#6B7280'
         }
       }
@@ -52,9 +93,8 @@ const defaultChartOptions = {
   }
 }
 
-export function chartOptions(widget) {
+export function chartOptions(type) {
   let chartTypeOptions = {}
-  const type = widget.settings.chartType
 
   if (type === 'area') {
     chartTypeOptions = {
@@ -66,8 +106,8 @@ export function chartOptions(widget) {
           0,
           350
         )
-        gradient.addColorStop(0, 'rgba(253,237, 234,1)')
-        gradient.addColorStop(1, 'rgba(253,237, 234,0)')
+        gradient.addColorStop(0, 'rgba(233, 79, 46, 0.05)')
+        gradient.addColorStop(1, 'rgba(233, 79, 46, 0)')
 
         return {
           backgroundColor: gradient,
