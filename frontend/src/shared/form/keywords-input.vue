@@ -61,11 +61,11 @@
             Semantic match
           </div>
           <div class="text-2xs text-gray-500 mb-4">
-            Example: community
+            Example: devtool
           </div>
           <div class="text-xs font-medium">Exact match</div>
           <div class="text-2xs text-gray-500">
-            Example: [community]
+            Example: "devtool"
           </div>
         </div>
       </el-popover>

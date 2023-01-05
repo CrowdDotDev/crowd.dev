@@ -33,11 +33,11 @@ export class EagleEyeService {
 
   static async populate(keywords) {
     const data = {
-      keywords: keywords.filter((k) => {
-        return k[0] === '[' && k[k.length - 1] === ']'
-      }),
       exactKeywords: keywords.filter((k) => {
-        return k[0] !== '[' && k[k.length - 1] !== ']'
+        return k[0] === '"' && k[k.length - 1] === '"'
+      }).map((s) => s.replaceAll('"', '')),
+      keywords: keywords.filter((k) => {
+        return k[0] !== '"' && k[k.length - 1] !== '"'
       })
     }
 
