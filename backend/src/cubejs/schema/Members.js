@@ -20,7 +20,7 @@ cube(`Members`, {
         Members.location,
         Members.tenantId,
         Members.isTeamMember,
-        members.isBot,
+        Members.isBot,
       ],
       timeDimension: Members.joinedAt,
       granularity: `day`,
