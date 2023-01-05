@@ -110,27 +110,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       return c
     })
 
-    console.log('channelsFromDiscordAPI', channelsFromDiscordAPI)
-
     const threads = await getThreads({
         guildId,
         token: this.getToken(context),
       },
       this.logger(context),
     )
-
-    console.log('threads', threads)
     
     const forumChannelsFromDiscordAPi = []
 
-    for (const forumChannel of fromDiscordApi.forumChannels) {
-      const thread: any = lodash.find(threads, { parentId: forumChannel.id })
-      if (thread) {
-        forumChannelsFromDiscordAPi.push({ ...forumChannel, parentId: thread.id, new: forumChannels.filter((c) => c.id === forumChannel.id).length <= 0 })
+    for (const thread of threads) {
+      const forumChannel: any = lodash.find(fromDiscordApi.forumChannels, { id: thread.parentId })
+      if (forumChannel) {
+        forumChannelsFromDiscordAPi.push({ ...forumChannel, threadId: thread.id, new: forumChannels.filter((c) => c.id === forumChannel.id).length <= 0, threadName: thread.name })
       }
     }
-
-    console.log('forumChannelsFromDiscordAPi', forumChannelsFromDiscordAPi)
 
     context.pipelineData = {
       settingsChannels: channels,
@@ -140,6 +134,13 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         acc[channel.id] = {
           name: channel.name,
           new: !!channel.new,
+        }
+        return acc
+      }, {}),
+      forumChannelsInfo: forumChannelsFromDiscordAPi.reduce((acc, forumChannel) => {
+        acc[forumChannel.id] = {
+          name: forumChannel.name,
+          new: !!forumChannel.new,
         }
         return acc
       }, {}),
@@ -168,6 +169,16 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         metadata: {
           id: c.id,
           page: '',
+        },
+      })),
+    ).concat(
+      context.pipelineData.forumChannels.map((c) => ({
+        value: 'forumChannel',
+        metadata: {
+          id: c.threadId,
+          page: '',
+          forumChannelId: c.id,
+          threadName: c.threadName,
         },
       })),
     )
@@ -291,11 +302,11 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       return raw
     })
 
-    context.integration.settings.forumChannels = context.pipelineData.forumChannels.map((ch) => {
+    context.integration.settings.forumChannels = lodash.uniqBy(context.pipelineData.forumChannels.map((ch) => {
       const { new: _, ...raw } = ch
+      delete raw.threadId
       return raw
-    })
-
+    }), (ch: any) => ch.id)
   }
 
   parseActivities(
@@ -366,7 +377,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     const activities: AddActivitiesSingle[] = records.reduce((acc, record) => {
       let parent = ''
 
-      const channelInfo = context.pipelineData.channelsInfo[stream.metadata.id]
+      const isForum = stream.metadata.forumChannelId !== undefined
+
+      let channelInfo = context.pipelineData.channelsInfo[stream.metadata.id]
+      if (isForum) {
+        channelInfo = context.pipelineData.forumChannelsInfo[stream.metadata.forumChannelId]
+      }
 
       // is the message starting a thread?
       if (record.thread) {
@@ -375,6 +391,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           value: 'thread',
           metadata: {
             id: record.thread.id,
+            forumChannelId: stream.metadata.forumChannelId,
           },
         })
 
@@ -395,6 +412,9 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       else if (record.message_reference && record.message_reference.message_id) {
         parent = record.message_reference.message_id
       }
+      else if (stream.value === 'forumChannel') {
+        parent = stream.metadata.id
+      }
 
       let avatarUrl: string | boolean = false
       if (record.author.avatar !== null && record.author.avatar !== undefined) {
@@ -409,15 +429,17 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           sourceId: record.id,
           sourceParentId: parent,
           timestamp: moment(record.timestamp).utc().toDate(),
+          ...(stream.value === 'forumChannel' && record.id === parent && {title: stream.metadata.threadName}),
           body: record.content
             ? DiscordIntegrationService.replaceMentions(record.content, record.mentions)
             : '',
           url: `https://discordapp.com/channels/${context.pipelineData.guildId}/${stream.metadata.id}/${record.id}`,
           channel: channelInfo.name,
           attributes: {
-            thread: record.thread !== undefined || stream.value === 'thread',
+            thread: record.thread !== undefined || stream.value === 'thread' || stream.value === 'forumChannel',
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
+            forum: isForum,
           },
           member: {
             username: record.author.username,
@@ -488,6 +510,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         return { fn: getMembers, arg: { guildId } }
       case 'channel':
       case 'thread':
+      case 'forumChannel':
         return { fn: getMessages, arg: { channelId: stream.metadata.id } }
       default:
         throw new Error(`Unknown stream ${stream.value}!`)

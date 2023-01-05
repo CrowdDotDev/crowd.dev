@@ -28,7 +28,7 @@
           activity.type
         )
           ? ''
-          : 'in channel'
+          : activity.attributes.forum ? 'in forum channel' : 'in channel'
       }}</span
     >
     <span

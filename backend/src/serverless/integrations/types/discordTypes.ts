@@ -22,7 +22,7 @@ export interface DiscordGetMembersInput {
 }
 
 export interface DiscordChannel {
-  parent_id?: string
+  parentId?: string
   id: string
   name: string
   thread?: boolean
