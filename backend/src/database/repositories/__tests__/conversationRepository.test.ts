@@ -442,7 +442,7 @@ describe('ConversationRepository tests', () => {
         'toMerge',
         'activeOn',
         'identities',
-        'activeDaysCount'
+        'activeDaysCount',
       ])
 
       const conversation1Expected = {
