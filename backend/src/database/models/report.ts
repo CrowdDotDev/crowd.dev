@@ -14,6 +14,11 @@ export default (sequelize) => {
         allowNull: false,
         defaultValue: false,
       },
+      isTemplate: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       name: {
         type: DataTypes.TEXT,
         allowNull: false,

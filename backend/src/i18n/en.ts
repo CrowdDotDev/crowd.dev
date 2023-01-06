@@ -128,6 +128,10 @@ const en = {
     csvExport: {
       planLimitExceeded: 'You have exceeded # of csv exports you can have per month in your plan.',
     },
+    reports: {
+      templateReportsCreateNotAllowed: `Template reports can't be created.`,
+      templateReportsUpdateNotAllowed: `Custom reports can't be updated to template reports.`,
+    },
   },
 
   email: {
