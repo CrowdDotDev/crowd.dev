@@ -12,6 +12,7 @@ import { sendWebhookProcessRequest } from './util'
 import { MemberAutomationData } from '../../messageTypes'
 import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
+import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
 const log = createServiceChildLogger('newMemberWorker')
 
@@ -44,7 +45,7 @@ export const shouldProcessMember = async (
   }
 
   if (process) {
-    const userContext = await getUserContext(automation.tenantId)
+    const userContext = await SequelizeRepository.getDefaultIRepositoryOptions()
     const repo = new AutomationExecutionRepository(userContext)
 
     const hasAlreadyBeenTriggered = await repo.hasAlreadyBeenTriggered(automation.id, member.id)

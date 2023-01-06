@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import {
   AutomationData,
   AutomationState,
@@ -10,7 +11,7 @@ import { shouldProcessMember } from '../newMemberWorker'
 
 function createAutomationData(settings: NewMemberSettings): AutomationData {
   return {
-    id: '123',
+    id: uuid(),
     state: AutomationState.ACTIVE,
     trigger: AutomationTrigger.NEW_MEMBER,
     settings,
@@ -24,7 +25,7 @@ function createAutomationData(settings: NewMemberSettings): AutomationData {
 }
 
 describe('New Member Automation Worker tests', () => {
-  it('Should process a worker that matches settings', () => {
+  it('Should process a worker that matches settings', async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DISCORD],
     })
@@ -36,10 +37,10 @@ describe('New Member Automation Worker tests', () => {
       },
     }
 
-    expect(shouldProcessMember(member, automation)).toBeTruthy()
+    expect(await shouldProcessMember(member, automation)).toBeTruthy()
   })
 
-  it("Shouldn't process a worker that does not match settings", () => {
+  it("Shouldn't process a worker that does not match settings", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
     })
@@ -51,6 +52,6 @@ describe('New Member Automation Worker tests', () => {
       },
     }
 
-    expect(shouldProcessMember(member, automation)).toBeFalsy()
+    expect(await shouldProcessMember(member, automation)).toBeFalsy()
   })
 })

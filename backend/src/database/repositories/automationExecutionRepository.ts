@@ -106,8 +106,6 @@ export default class AutomationExecutionRepository extends RepositoryBase<
   }
 
   public async hasAlreadyBeenTriggered(automationId: string, eventId: string): Promise<boolean> {
-    const transaction = this.transaction
-
     const seq = this.seq
 
     const query = `
