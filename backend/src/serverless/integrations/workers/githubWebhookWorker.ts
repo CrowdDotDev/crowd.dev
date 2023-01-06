@@ -85,7 +85,12 @@ export const processWebhook = async (
       await repo.markCompleted(webhook.id)
       logger.info('Webhook processed successfully!')
     } catch (err) {
-      logger.error(err, 'Error processing webhook!')
+      if (err.action) {
+        logger.warn({ action: err.action }, 'Action not supported!')
+      } else {
+        logger.error(err, 'Error processing webhook!')
+      }
+
       await repo.markError(
         webhook.id,
         new WebhookError(webhook.id, 'Error processing webhook!', err),

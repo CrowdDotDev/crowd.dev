@@ -14,6 +14,7 @@ import { MemberAttributeName } from '../../../database/attributes/member/enums'
 import getOrganization from '../usecases/github/graphql/organizations'
 import { IntegrationServiceBase } from '../services/integrationServiceBase'
 import { createServiceChildLogger } from '../../../utils/logging'
+import { NotSupportedError } from '../../../types/integration/notSupportedError'
 
 type EventOutput = Promise<AddActivitiesSingle | null>
 
@@ -539,10 +540,10 @@ export default class GitHubWebhook {
       return new ActivityService(userContext).createWithMember(activity)
     }
 
-    throw new Error(
-      `Activity not supported! Event was ${this.event} of type  ${typeof this.event}. Action was ${
-        this.payload.action
-      }, with a payload type of ${typeof this.payload}.`,
+    throw new NotSupportedError(
+      `GitHub WebHook processing of event '${this.event}' of type  ${typeof this
+        .event} with action '${this.payload.action}', with a payload type of '${typeof this
+        .payload}'.`,
     )
   }
 }
