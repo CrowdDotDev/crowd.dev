@@ -443,9 +443,7 @@ export default class IntegrationService {
    */
   async twitterCallback(integrationData) {
     const { profileId, token, refreshToken } = integrationData
-    console.log('integrationData', integrationData)
     const hashtags = !integrationData.hashtags || integrationData.hashtags === '' ? [] : integrationData.hashtags
-    console.log( hashtags)
     const integration = await this.createOrUpdate({
       platform: PlatformType.TWITTER,
       integrationIdentifier: profileId,
