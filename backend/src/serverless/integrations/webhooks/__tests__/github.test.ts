@@ -1041,7 +1041,7 @@ describe('Github webhooks tests', () => {
           await gh.main()
           fail('Should have thrown error')
         } catch (err) {
-          expect(err.message).toBe(
+          expect(err.actions).toBe(
             `GitHub WebHook processing of event 'issue_comment' of type 'string' with action '${action}', with a payload type of 'object'.`,
           )
         }
