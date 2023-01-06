@@ -332,6 +332,19 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
       const channelInfo = context.pipelineData.channelsInfo[stream.metadata.id]
 
+      if (!channelInfo) {
+        const log = this.logger(context)
+        log.error(
+          {
+            stream: stream.value,
+            streamMetadata: stream.metadata,
+            channelsInfo: context.pipelineData.channelsInfo,
+          },
+          'Channel info not found for stream!',
+        )
+        throw new Error('Channel info not found for stream!')
+      }
+
       // is the message starting a thread?
       if (record.thread) {
         parent = record.thread.id
