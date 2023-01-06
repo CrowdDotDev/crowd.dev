@@ -10,7 +10,7 @@ export default async (req, res, next) => {
   const state = {
     tenantId: req.params.tenantId,
     redirectUrl: req.query.redirectUrl,
-    hashtags: req.query.hashtags,
+    hashtags: req.query.hashtags ? req.query.hashtags : '',
     crowdToken: req.query.crowdToken,
     platform: PlatformType.TWITTER,
     userId: req.currentUser.id,
