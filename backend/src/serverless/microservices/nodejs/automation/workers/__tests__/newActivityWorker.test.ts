@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid'
 import {
   AutomationData,
   AutomationState,
@@ -10,7 +11,7 @@ import { shouldProcessActivity } from '../newActivityWorker'
 
 function createAutomationData(settings: NewActivitySettings): AutomationData {
   return {
-    id: '123',
+    id: uuid(),
     state: AutomationState.ACTIVE,
     trigger: AutomationTrigger.NEW_ACTIVITY,
     settings,
@@ -24,7 +25,7 @@ function createAutomationData(settings: NewActivitySettings): AutomationData {
 }
 
 describe('New Activity Automation Worker tests', () => {
-  it('Should process an activity that matches settings', () => {
+  it('Should process an activity that matches settings', async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -42,10 +43,10 @@ describe('New Activity Automation Worker tests', () => {
       },
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeTruthy()
+    expect(await shouldProcessActivity(activity, automation)).toBeTruthy()
   })
 
-  it('Shouldn process an activity that belongs to a team member', () => {
+  it("Shouldn't process an activity that belongs to a team member", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -68,10 +69,10 @@ describe('New Activity Automation Worker tests', () => {
       body: 'Crowd.dev all awesome!',
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeTruthy()
+    expect(await shouldProcessActivity(activity, automation)).toBeTruthy()
   })
 
-  it("Shouldn't process an activity which platform does not match", () => {
+  it("Shouldn't process an activity which platform does not match", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -87,10 +88,10 @@ describe('New Activity Automation Worker tests', () => {
       body: 'Crowd.dev is awesome!',
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeFalsy()
+    expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
   })
 
-  it("Shouldn't process an activity which type does not match", () => {
+  it("Shouldn't process an activity which type does not match", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -105,10 +106,10 @@ describe('New Activity Automation Worker tests', () => {
       body: 'Crowd.dev is awesome!',
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeFalsy()
+    expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
   })
 
-  it("Shouldn't process an activity which keyword does not match", () => {
+  it("Shouldn't process an activity which keyword does not match", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -123,10 +124,10 @@ describe('New Activity Automation Worker tests', () => {
       body: 'We are all awesome!',
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeFalsy()
+    expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
   })
 
-  it("Shouldn't process an activity that belongs to a team member", () => {
+  it("Shouldn't process an activity that belongs to a team member", async () => {
     const automation = createAutomationData({
       platforms: [PlatformType.DEVTO],
       types: ['comment'],
@@ -148,6 +149,6 @@ describe('New Activity Automation Worker tests', () => {
       body: 'Crowd.dev all awesome!',
     }
 
-    expect(shouldProcessActivity(activity, automation)).toBeFalsy()
+    expect(await shouldProcessActivity(activity, automation)).toBeFalsy()
   })
 })
