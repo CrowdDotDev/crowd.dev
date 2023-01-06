@@ -1,5 +1,4 @@
-ALTER TABLE public."widgets" ADD COLUMN "description" TEXT DEFAULT NULL;
-ALTER TABLE public."reports" ADD COLUMN "isTemplate" BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE public."reports" ADD COLUMN "isTemplate" BOOLEAN NOT NULL DEFAULT FALSE;
 
 drop materialized view "memberActivityAggregatesMVs";
 

@@ -1,4 +1,3 @@
-ALTER TABLE public.widgets DROP COLUMN "description";
 ALTER TABLE public.reports DROP COLUMN "isTemplate";
 
 drop materialized view "memberActivityAggregatesMVs";
