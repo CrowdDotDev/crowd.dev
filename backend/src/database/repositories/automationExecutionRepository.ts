@@ -3,7 +3,11 @@
 import { QueryTypes } from 'sequelize'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import { DbAutomationExecutionInsertData } from './types/automationTypes'
-import { AutomationExecution, AutomationExecutionCriteria } from '../../types/automationTypes'
+import {
+  AutomationExecution,
+  AutomationExecutionCriteria,
+  AutomationExecutionState,
+} from '../../types/automationTypes'
 import { PageData } from '../../types/common'
 import { RepositoryBase } from './repositoryBase'
 
@@ -99,6 +103,30 @@ export default class AutomationExecutionRepository extends RepositoryBase<
       offset: criteria.offset,
       limit: criteria.limit,
     }
+  }
+
+  public async hasAlreadyBeenTriggered(automationId: string, eventId: string): Promise<boolean> {
+    const transaction = this.transaction
+
+    const seq = this.seq
+
+    const query = `
+        select id
+        from "automationExecutions"
+        where "automationId" = :automationId
+          and "eventId" = :eventId
+          and state = '${AutomationExecutionState.SUCCESS}';
+    `
+
+    const results = await seq.query(query, {
+      replacements: {
+        automationId,
+        eventId,
+      },
+      type: QueryTypes.SELECT,
+    })
+
+    return results.length > 0
   }
 
   override async update(id: string, data: unknown): Promise<AutomationExecution> {

@@ -11,6 +11,7 @@ import {
 import { sendWebhookProcessRequest } from './util'
 import { prepareMemberPayload } from './newMemberWorker'
 import { createServiceChildLogger } from '../../../../../utils/logging'
+import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 
 const log = createServiceChildLogger('newActivityWorker')
 
@@ -19,7 +20,10 @@ const log = createServiceChildLogger('newActivityWorker')
  * @param activity Activity data
  * @param automation {AutomationData} Automation data
  */
-export const shouldProcessActivity = (activity: any, automation: AutomationData): boolean => {
+export const shouldProcessActivity = async (
+  activity: any,
+  automation: AutomationData,
+): Promise<boolean> => {
   const settings = automation.settings as NewActivitySettings
 
   let process = true
@@ -71,6 +75,19 @@ export const shouldProcessActivity = (activity: any, automation: AutomationData)
       `Ignoring automation ${automation.id} - Activity ${activity.id} belongs to a team member!`,
     )
     process = false
+  }
+
+  if (process) {
+    const userContext = await getUserContext(automation.tenantId)
+    const repo = new AutomationExecutionRepository(userContext)
+
+    const hasAlreadyBeenTriggered = await repo.hasAlreadyBeenTriggered(automation.id, activity.id)
+    if (hasAlreadyBeenTriggered) {
+      log.warn(
+        `Ignoring automation ${automation.id} - Activity ${activity.id} was already processed!`,
+      )
+      process = false
+    }
   }
 
   return process
@@ -126,7 +143,7 @@ export default async (tenantId: string, activityId?: string, activityData?: any)
       }
 
       for (const automation of automations) {
-        if (shouldProcessActivity(activity, automation)) {
+        if (await shouldProcessActivity(activity, automation)) {
           log.info(`Activity ${activity.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {
