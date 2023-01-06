@@ -541,8 +541,8 @@ export default class GitHubWebhook {
     }
 
     throw new NotSupportedError(
-      `GitHub WebHook processing of event '${this.event}' of type  ${typeof this
-        .event} with action '${this.payload.action}', with a payload type of '${typeof this
+      `GitHub WebHook processing of event '${this.event}' of type '${typeof this
+        .event}' with action '${this.payload.action}', with a payload type of '${typeof this
         .payload}'.`,
     )
   }
