@@ -31,7 +31,6 @@ import { h } from 'vue'
  * - Creating global components like <line-chart> or <pie-chart> to enhance developer experience and code quality
  */
 
-// TODO: See if this can be added only to template charts, currently it is being added globally
 const tooltipAnnotationLine = {
   id: 'tooltipAnnotationLine',
   beforeDraw: (chart) => {

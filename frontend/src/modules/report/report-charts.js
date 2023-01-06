@@ -161,6 +161,7 @@ export function chartOptions(widget, resultSet) {
     ...defaultChartOptions,
     ...{
       ...chartTypeOptions,
+      ...formatTooltipOptions,
       library: {
         ...chartTypeOptions.library,
         plugins: {
