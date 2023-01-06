@@ -425,7 +425,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         const activityObject = {
           tenant: context.integration.tenantId,
           platform: PlatformType.DISCORD,
-          type: 'message',
+          type: isForum && record.id === parent ? 'thread_started' : 'message',
           sourceId: record.id,
           sourceParentId: parent,
           timestamp: moment(record.timestamp).utc().toDate(),

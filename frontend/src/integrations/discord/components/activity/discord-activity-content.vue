@@ -41,7 +41,7 @@ export default {
   },
   computed: {
     isParentInForum() {
-      return this.activity.sourceParentId === this.activity.sourceId && this.activity.attributes.forum
+      return this.activity.type === 'thread_started'
     }
   }
 }

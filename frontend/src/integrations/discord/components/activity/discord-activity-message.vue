@@ -13,7 +13,8 @@
         'file_share',
         'channel_joined',
         'channel_left',
-        'reaction_added'
+        'reaction_added',
+        'thread_started'
       ].includes(activity.type) &&
       !short &&
       !channelOnly
@@ -83,7 +84,7 @@ export default {
       return computedArgs(this.activity)
     },
     isParentInForum() {
-      return this.activity.sourceParentId === this.activity.sourceId && this.activity.attributes.forum
+      return this.activity.type === 'thread_started'
     }
   }
 }
