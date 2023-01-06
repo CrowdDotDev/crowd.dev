@@ -320,7 +320,7 @@ export default {
     seriesPairs(resultSet) {
       // For bar charts
       return resultSet.series().map((seriesItem) => {
-        let { dimension, measure } = this.deconstructLabel(
+        let { dimension } = this.deconstructLabel(
           seriesItem.title
         )
 
@@ -333,14 +333,13 @@ export default {
           )
         }
 
-        measure = measure
-          ? measure
-          : i18n('widget.cubejs.' + this.query.measures[0])
-
         const seriesName =
           dimension && dimension !== 'unknown'
             ? dimension
-            : measure
+            : i18n(
+                'widget.cubejs.cubes.' +
+                  this.query.measures[0].split('.')[0]
+              )
         return {
           name: seriesName,
           data: seriesItem.series.map((item) => {

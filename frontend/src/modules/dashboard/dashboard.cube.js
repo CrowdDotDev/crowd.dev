@@ -1,4 +1,6 @@
+import { i18n } from '@/i18n'
 import moment from 'moment'
+import pluralize from 'pluralize'
 
 export const chartOptions = {
   legend: false,
@@ -8,6 +10,22 @@ export const chartOptions = {
   backgroundColor: 'pink',
   loading: 'Loading...',
   empty: 'Loading...',
+  library: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context) =>
+            pluralize(
+              i18n(
+                `widget.cubejs.tooltip.${context.dataset.label}`
+              ),
+              context.dataset.data[context.dataIndex],
+              true
+            )
+        }
+      }
+    }
+  },
   computeDataset: (canvas) => {
     const ctx = canvas.getContext('2d')
     const gradient = ctx.createLinearGradient(0, 0, 0, 150)

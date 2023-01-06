@@ -60,7 +60,10 @@
           :show-subtitle="false"
           :chart-options="{
             ...chartOptions,
-            library: hideLabels
+            library: {
+              ...chartOptions.library,
+              ...hideLabels
+            }
           }"
         ></app-widget-cube-renderer>
       </div>
@@ -148,7 +151,10 @@
           :show-subtitle="false"
           :chart-options="{
             ...chartOptions,
-            library: hideLabels
+            library: {
+              ...chartOptions.library,
+              ...hideLabels
+            }
           }"
         ></app-widget-cube-renderer>
       </div>
