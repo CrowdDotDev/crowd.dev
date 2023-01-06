@@ -49,7 +49,10 @@ const props = defineProps({
 
 const onClick = () => {
   router.push({
-    path: `reports/template/${props.template.id}`
+    name: 'reportTemplate',
+    params: {
+      id: props.template.id
+    }
   })
 }
 </script>
