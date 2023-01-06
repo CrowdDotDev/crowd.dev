@@ -77,6 +77,8 @@ def search_main(queries, ndays, exclude, exact_keywords):
     logger.info(f"Starting search for queries {queries}")
     vector = VectorAPI()
     out = []
+    if queries == []:
+        queries = ['']
     for query in queries:
         results = vector.search(query, ndays, exclude, exact_keywords)
         for returned_point in results:

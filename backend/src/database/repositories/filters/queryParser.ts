@@ -352,7 +352,8 @@ class QueryParser {
         else if (complexOp) query = QueryParser.replaceKeyWithComplexOperator(query, key, complexOp)
         // The key is not an operation, but it could be that the value is (NULL, for example)
         else if (QueryParser.operators[query[key]] !== undefined)
-          query[key] = QueryParser.operators[query[key]]
+          if (query[key] === 'NULL' || query[key] === 'null') query[key] = null
+          if (query[key] === 'NOT_NULL' || query[key] === 'not_null') query[key] = { [Op.not]: null }
       }
     })
     return query

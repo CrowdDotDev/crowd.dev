@@ -110,7 +110,7 @@ export default class EagleEyeContentService extends LoggingBase {
         // this.log.error({ errorInPython: response.text, error }, 'error when calling eagle eye server!')
         // throw new Error400('en', 'errors.eagleEyeSearchFailed.message')
       }
-    }
+    // }
     return [] as EagleEyeSearchOutput
   }
 
