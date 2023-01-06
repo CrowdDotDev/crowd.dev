@@ -377,8 +377,8 @@ describe('Github webhooks tests', () => {
           await gh.main()
           fail('Should have thrown an error')
         } catch (err) {
-          expect(err.message).toBe(
-            `Activity not supported! Event was issues of type  string. Action was ${action}, with a payload type of object.`,
+          expect(err.action).toBe(
+            `GitHub WebHook processing of event 'issues' of type 'string' with action '${action}', with a payload type of 'object'.`,
           )
         }
       }
@@ -710,8 +710,8 @@ describe('Github webhooks tests', () => {
           await gh.main()
           fail('Should have thrown an error')
         } catch (err) {
-          expect(err.message).toBe(
-            `Activity not supported! Event was pull_request of type  string. Action was ${action}, with a payload type of object.`,
+          expect(err.action).toBe(
+            `GitHub WebHook processing of event 'pull_request' of type 'string' with action '${action}', with a payload type of 'object'.`,
           )
         }
       }
@@ -1041,8 +1041,8 @@ describe('Github webhooks tests', () => {
           await gh.main()
           fail('Should have thrown error')
         } catch (err) {
-          expect(err.message).toBe(
-            'Activity not supported! Event was issue_comment of type  string. Action was deleted, with a payload type of object.',
+          expect(err.action).toBe(
+            `GitHub WebHook processing of event 'issue_comment' of type 'string' with action '${action}', with a payload type of 'object'.`,
           )
         }
       }
