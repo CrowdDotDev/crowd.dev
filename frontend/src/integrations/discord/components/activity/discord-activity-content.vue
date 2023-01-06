@@ -1,7 +1,7 @@
 <template>
   <div>
     <blockquote
-      v-if="activity.parent && displayThread"
+      v-if="activity.parent && displayThread && !isParentInForum"
       class="relative px-3 border-l-4 text-gray-500 border-gray-200 text-xs leading-5 mb-4 parsed-body"
       v-html="$sanitize($marked(activity.parent.body))"
     />
@@ -37,6 +37,11 @@ export default {
       type: Boolean,
       required: false,
       default: true
+    }
+  },
+  computed: {
+    isParentInForum() {
+      return this.activity.sourceParentId === this.activity.sourceId && this.activity.attributes.forum
     }
   }
 }

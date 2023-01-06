@@ -66,6 +66,9 @@ export default {
   },
   computed: {
     computedMessage() {
+      if (this.isParentInForum) {
+        return `entities.activity.${this.activity.platform}.started_thread`
+      }
       if (
         this.activity.type === 'message' &&
         this.activity.parentId
@@ -78,6 +81,9 @@ export default {
     },
     computedArgs() {
       return computedArgs(this.activity)
+    },
+    isParentInForum() {
+      return this.activity.sourceParentId === this.activity.sourceId && this.activity.attributes.forum
     }
   }
 }

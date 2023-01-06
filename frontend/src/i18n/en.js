@@ -349,6 +349,7 @@ const en = {
         message: 'sent a message',
         replied: 'replied to a message',
         replied_thread: 'replied to a thread',
+        started_thread: 'started a new thread',
         joined_guild: 'joined server',
         left_guild: 'left server'
       },
