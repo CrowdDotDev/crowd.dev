@@ -38,7 +38,7 @@
             <el-table
               ref="table"
               v-loading="loading"
-              :data="rows"
+              :data="computedRows"
               row-key="id"
               border
               :row-class-name="rowClass"
@@ -149,6 +149,15 @@ const loading = computed(
 )
 const count = computed(() => store.state.report.count)
 const rows = computed(() => store.getters['report/rows'])
+
+const computedRows = computed(() => {
+  if (loading.value) {
+    return []
+  }
+
+  return rows.value.filter((r) => !r.isTemplate)
+})
+
 const selectedRows = computed(
   () => store.getters['report/selectedRows']
 )

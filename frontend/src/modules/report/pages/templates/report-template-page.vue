@@ -16,7 +16,7 @@
           class="flex flex-grow items-center justify-between"
         >
           <h1 class="text-xl font-semibold">
-            Members report
+            {{ report.name }}
           </h1>
           <div class="flex items-center gap-9">
             <div
@@ -64,8 +64,6 @@ const props = defineProps({
   }
 })
 
-// TODO: While there's no backend replace with an existent report id
-// const id = 'a703c422-ab6a-4cc2-826b-d8447d6948d1'
 const { doFind } = mapActions('report')
 
 const report = ref()

@@ -16,7 +16,7 @@
             {{ report.name }}
           </h1>
           <div
-            v-if="!tenantId && !report.template"
+            v-if="!tenantId && !report.isTemplate"
             class="flex items-center"
           >
             <span
@@ -37,7 +37,7 @@
       </div>
       <!-- Template report -->
       <app-page-wrapper
-        v-if="report.template"
+        v-if="report.isTemplate"
         size="narrow"
       >
         <div class="w-full mt-8">

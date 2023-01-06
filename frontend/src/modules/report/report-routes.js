@@ -39,7 +39,8 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.reportRead
-        }
+        },
+        props: true
       },
       {
         name: 'reportEdit',
