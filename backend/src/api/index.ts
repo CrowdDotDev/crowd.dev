@@ -3,6 +3,8 @@ import cors from 'cors'
 import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import { PostHog } from 'posthog-node'
+import * as http from 'http'
+import { Server } from 'socket.io'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -16,12 +18,14 @@ import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddlew
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
-import { createRedisClient } from '../utils/redis'
 import { POSTHOG_CONFIG } from '../config'
+import { createRedisClient } from '../utils/redis'
 
 const serviceLogger = createServiceLogger()
 
 const app = express()
+
+const server = http.createServer(app)
 
 setImmediate(async () => {
   const redis = await createRedisClient(true)
@@ -151,4 +155,4 @@ setImmediate(async () => {
   app.use(io.expressErrorHandler())
 })
 
-export default app
+export default server

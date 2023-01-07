@@ -1,5 +1,5 @@
 import { getServiceLogger } from '../utils/logging'
-import api from '../api'
+import server from '../api'
 import { API_CONFIG } from '../config'
 import { timeout } from '../utils/timing'
 
@@ -7,7 +7,7 @@ const PORT = API_CONFIG.port || 8080
 
 const log = getServiceLogger()
 
-const server = api.listen(PORT, () => {
+server.listen(PORT, () => {
   log.info(`Listening on port ${PORT}`)
 })
 

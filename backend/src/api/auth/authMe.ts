@@ -1,5 +1,5 @@
 import Error403 from '../../errors/Error403'
-import { RedisCache } from '../../utils/redis'
+import { RedisCache } from '../../utils/redis/redisCache'
 
 export default async (req, res) => {
   if (!req.currentUser || !req.currentUser.id) {

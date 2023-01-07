@@ -4,7 +4,7 @@ import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
-import { RedisCache } from '../../utils/redis'
+import { RedisCache } from '../../utils/redis/redisCache'
 
 /**
  * POST /tenant/{tenantId}/member/export
