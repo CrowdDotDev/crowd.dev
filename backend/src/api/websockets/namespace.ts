@@ -52,14 +52,14 @@ export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
     // handle connect
     this.socketIoNamespace.on('connection', (socket: ISocket) => {
       if (authenticated) {
-        this.log.debug(
+        this.log.info(
           { userId: (socket as IAuthenticatedSocket).user.id },
           'Authenticated user connected!',
         )
         // add to user room if we need to send a notification to this user only
         socket.join(`user-${(socket as IAuthenticatedSocket).user.id}`)
       } else {
-        this.log.debug('User connected!')
+        this.log.info('User connected!')
       }
 
       socket.emit('connected')
@@ -84,17 +84,19 @@ export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
       // handle disconnect
       socket.on('disconnect', () => {
         if (authenticated) {
-          this.log.debug(
+          this.log.info(
             { userId: (socket as IAuthenticatedSocket).user.id },
             'Authenticated user disconnected!',
           )
         } else {
-          this.log.debug('User disconnected!')
+          this.log.info('User disconnected!')
         }
 
         ;(socket as any).leaveAll()
       })
     })
+
+    this.log.info('WebSockets namespace initialized!')
   }
 
   public on(event: string, handler: ISocketHandler<TSocket>) {

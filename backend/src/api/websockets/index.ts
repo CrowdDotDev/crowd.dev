@@ -4,7 +4,7 @@ import { createAdapter } from '@socket.io/redis-adapter'
 import { IRedisPubSubPair } from '../../utils/redis'
 import { createServiceChildLogger, Logger } from '../../utils/logging'
 import WebSocketNamespace from './namespace'
-import { IAuthenticatedSocket, ISocket } from './types'
+import { IAuthenticatedSocket } from './types'
 
 export default class WebSockets {
   private readonly log: Logger
@@ -21,11 +21,15 @@ export default class WebSockets {
     this.log.info('Socket.IO server initialized!')
   }
 
-  public authNamespace(name: string): WebSocketNamespace<IAuthenticatedSocket> {
-    return new WebSocketNamespace(this.socketIo, name, true)
+  public authenticatedNamespace(name: string): WebSocketNamespace<IAuthenticatedSocket> {
+    return new WebSocketNamespace<IAuthenticatedSocket>(this.socketIo, name, true)
   }
 
-  public anonymousNamespace(name: string): WebSocketNamespace<ISocket> {
-    return new WebSocketNamespace(this.socketIo, name, false)
+  public static async initialize(
+    server: Server,
+    redisPubSubPair: IRedisPubSubPair,
+  ): Promise<WebSocketNamespace<IAuthenticatedSocket>> {
+    const websockets = new WebSockets(server, redisPubSubPair)
+    return websockets.authenticatedNamespace('/user')
   }
 }

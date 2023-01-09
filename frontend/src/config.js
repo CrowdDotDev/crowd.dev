@@ -17,6 +17,7 @@ const defaultConfig = {
     protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
   },
   backendUrl: process.env.VUE_APP_BACKEND_URL,
+  websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
   stripePublishableKey:
@@ -49,6 +50,7 @@ const composedConfig = {
     protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
   },
   backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
+  websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,
   stripePublishableKey:

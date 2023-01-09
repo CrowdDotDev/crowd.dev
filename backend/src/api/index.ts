@@ -20,7 +20,7 @@ import { redisMiddleware } from '../middlewares/redisMiddleware'
 import { POSTHOG_CONFIG } from '../config'
 import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
 import WebSockets from './websockets'
-import { PubSubReceiver } from '../utils/redis/pubSubReceiver'
+import { handleApiQueueMessages } from './mq'
 
 const serviceLogger = createServiceLogger()
 
@@ -30,6 +30,12 @@ const server = http.createServer(app)
 
 setImmediate(async () => {
   const redis = await createRedisClient(true)
+
+  const redisPubSubPair = await createRedisPubSubPair()
+  const userNamespace = await WebSockets.initialize(server, redisPubSubPair)
+
+  // don't await because it blocks the code from continuing
+  handleApiQueueMessages(userNamespace).catch(() => {})
 
   let posthog = null
 

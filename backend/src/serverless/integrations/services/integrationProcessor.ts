@@ -31,6 +31,7 @@ import { API_CONFIG } from '../../../config'
 import EmailSender from '../../../services/emailSender'
 import UserRepository from '../../../database/repositories/userRepository'
 import { i18n } from '../../../i18n'
+import { sendTenantWebsocketMessage } from '../../../api/mq/apiSQS'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -494,6 +495,13 @@ export class IntegrationProcessor extends LoggingBase {
         },
         userContext,
       )
+
+      if (req.onboarding) {
+        await sendTenantWebsocketMessage(integration.tenantId, 'integration-onboarding-done', {
+          integrationId: integration.id,
+          status: setError ? 'error' : 'done',
+        })
+      }
     }
   }
 }
