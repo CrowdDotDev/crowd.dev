@@ -7,7 +7,8 @@
           :class="template.color"
         >
           <i
-            class="text-white text-xl ri-account-circle-line"
+            class="text-white text-lg"
+            :class="template.icon"
           />
         </div>
 
@@ -16,11 +17,14 @@
             v-if="template.public"
             class="text-green-600 text-xs flex items-center gap-1"
           >
-            <i :class="template.icon" /><span>Public</span>
+            <i class="ri-global-line" /><span>Public</span>
           </div>
           <app-report-template-dropdown
             v-if="template.public"
-            :report="{ public: template.public }"
+            :report="{
+              id: template.id,
+              public: template.public
+            }"
           ></app-report-template-dropdown>
         </div>
       </div>
