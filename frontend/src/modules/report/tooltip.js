@@ -40,26 +40,40 @@ export const externalTooltipHandler = (context) => {
       // TODO: Move this to component
       after.forEach(function (after) {
         if (after) {
+          const classes =
+            after.difference === 0
+              ? {
+                  bgColor: 'bg-gray-100',
+                  color: 'text-gray-700'
+                }
+              : after.difference > 0
+              ? {
+                  bgColor: 'bg-green-50',
+                  color: 'text-green-700',
+                  arrow: 'ri-arrow-up-line'
+                }
+              : {
+                  bgColor: 'bg-red-50',
+                  color: 'text-red-700',
+                  arrow: 'ri-arrow-down-line'
+                }
+
           innerHtml += `
           <tr class="border-b border-gray-100 last:border-none text-gray-900 text-xs font-medium">
             <td class="pb-2">
               <div class="flex items-center gap-2">
-                <div class="${
-                  after.difference > 0
-                    ? 'bg-green-50'
-                    : 'bg-red-50'
-                } rounded-md ${
-            after.difference > 0
-              ? 'text-green-700'
-              : 'text-red-700'
+                <div class="${classes.bgColor} rounded-md ${
+            classes.color
           } h-5 px-1 flex items-center">
-                  <i class="ri-arrow-${
-                    after.difference > 0 ? 'up' : 'down'
-                  }-line mr-1"></i><span>${
+                  ${
+                    after.difference === 0
+                      ? '<span class="px-1">=</span>'
+                      : `<i class="${classes.arrow} mr-1"></i>`
+                  }<span>${Math.abs(
             after.growth
-          }% (${
+          )}% (${Math.abs(
             after.difference
-          })</span></div><span class="text-2xs text-gray-400">vs. ${
+          )})</span></div><span class="text-2xs text-gray-400">vs. ${
             after.previousDate
           }</span></div></td></tr>`
         }
