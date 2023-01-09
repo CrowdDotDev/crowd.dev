@@ -1,4 +1,3 @@
-import pluralize from 'pluralize'
 import moment from 'moment'
 
 export const TOTAL_ACTIVE_MEMBERS_QUERY = (
@@ -8,11 +7,13 @@ export const TOTAL_ACTIVE_MEMBERS_QUERY = (
   measures: ['Members.count'],
   timeDimensions: [
     {
-      dateRange: `Last ${period.value} ${pluralize(
-        period.granularity,
-        period.value,
-        false
-      )}`,
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD')
+      ],
       dimension: 'Activities.date',
       granularity: granularity.value
     }
@@ -26,11 +27,13 @@ export const TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY = (
   measures: ['Members.count'],
   timeDimensions: [
     {
-      dateRange: `Last ${period.value} ${pluralize(
-        period.granularity,
-        period.value,
-        false
-      )}`,
+      dateRange: [
+        moment()
+          .utc()
+          .subtract(period.value, period.granularity)
+          .format('YYYY-MM-DD'),
+        moment().utc().format('YYYY-MM-DD')
+      ],
       dimension: 'Activities.date',
       granularity: granularity.value
     }

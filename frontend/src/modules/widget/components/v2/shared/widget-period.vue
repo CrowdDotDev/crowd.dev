@@ -21,11 +21,21 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  watch
+} from 'vue'
 import {
   SEVEN_DAYS_PERIOD_FILTER,
+  FOURTEEN_DAYS_PERIOD_FILTER,
+  THREE_MONTHS_PERIOD_FILTER,
   DASHBOARD_PERIOD_OPTIONS,
-  WIDGET_PERIOD_OPTIONS
+  WIDGET_PERIOD_OPTIONS,
+  DAILY_GRANULARITY_FILTER,
+  WEEKLY_GRANULARITY_FILTER,
+  MONTHLY_GRANULARITY_FILTER
 } from '@/modules/widget/widget-constants'
 
 const emits = defineEmits(['onUpdate'])
@@ -45,13 +55,57 @@ const props = defineProps({
   widget: {
     type: String,
     default: null
+  },
+  granularity: {
+    type: Object,
+    default: () => DAILY_GRANULARITY_FILTER
   }
 })
 
-const options = computed(() =>
-  props.module === 'dashboard'
-    ? DASHBOARD_PERIOD_OPTIONS
-    : WIDGET_PERIOD_OPTIONS
+const options = computed(() => {
+  if (props.module === 'dashboard') {
+    return DASHBOARD_PERIOD_OPTIONS
+  }
+
+  const { value: granularity } = props.granularity
+
+  // Computed available period options according to selected granlarity
+  // WEEKLY
+  if (granularity === WEEKLY_GRANULARITY_FILTER.value) {
+    return WIDGET_PERIOD_OPTIONS.slice(1)
+  } else if (
+    // MONTHLY
+    granularity === MONTHLY_GRANULARITY_FILTER.value
+  ) {
+    return WIDGET_PERIOD_OPTIONS.slice(3)
+  }
+
+  // DAILY
+  return WIDGET_PERIOD_OPTIONS
+})
+
+watch(
+  () => props.granularity,
+  (granularity) => {
+    // Update selected period wheneve selected granularity changes
+    // WEEKLY
+    // Update if period was previously 7d
+    if (
+      granularity.value ===
+        WEEKLY_GRANULARITY_FILTER.value &&
+      props.period.label === SEVEN_DAYS_PERIOD_FILTER.label
+    ) {
+      emits('onUpdate', FOURTEEN_DAYS_PERIOD_FILTER)
+    } else if (
+      // MONTHLY
+      // Update if period was previously 7d/14d/30d
+      granularity.value ===
+        MONTHLY_GRANULARITY_FILTER.value &&
+      props.period.granularity === 'day'
+    ) {
+      emits('onUpdate', THREE_MONTHS_PERIOD_FILTER)
+    }
+  }
 )
 
 const getPeriodClass = (value) => {
