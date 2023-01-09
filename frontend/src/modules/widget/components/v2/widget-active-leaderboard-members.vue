@@ -101,7 +101,7 @@ const getActiveMembers = async (selectedPeriod) => {
       {
         lastActive: {
           gte: moment()
-            .startOf('day')
+            .utc()
             .subtract(
               selectedPeriod.value,
               selectedPeriod.granularity

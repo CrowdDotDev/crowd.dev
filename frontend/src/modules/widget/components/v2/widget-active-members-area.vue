@@ -30,6 +30,7 @@
             template="Members"
             widget="Active members"
             :period="period"
+            :granularity="granularity"
             module="reports"
             @on-update="
               (updatedPeriod) => (period = updatedPeriod)
