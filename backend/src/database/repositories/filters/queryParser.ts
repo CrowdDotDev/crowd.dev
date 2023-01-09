@@ -353,7 +353,7 @@ class QueryParser {
         // The key is not an operation, but it could be that the value is (NULL, for example)
         else if (QueryParser.operators[query[key]] !== undefined)
           if (query[key] === 'NULL' || query[key] === 'null') query[key] = null
-          if (query[key] === 'NOT_NULL' || query[key] === 'not_null') query[key] = { [Op.not]: null }
+        if (query[key] === 'NOT_NULL' || query[key] === 'not_null') query[key] = { [Op.not]: null }
       }
     })
     return query

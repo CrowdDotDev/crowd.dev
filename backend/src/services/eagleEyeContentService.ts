@@ -102,15 +102,10 @@ export default class EagleEyeContentService extends LoggingBase {
       const response = await request
         .post(`${API_CONFIG.premiumApiUrl}/search`)
         .send({ queries: keywords, nDays, filters, exactKeywords })
-      // try {
-        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
-        await this.bulkUpsert(fromEagleEye)
-        return fromEagleEye
-      // } catch (error) {
-        // this.log.error({ errorInPython: response.text, error }, 'error when calling eagle eye server!')
-        // throw new Error400('en', 'errors.eagleEyeSearchFailed.message')
-      }
-    // }
+      const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+      await this.bulkUpsert(fromEagleEye)
+      return fromEagleEye
+    }
     return [] as EagleEyeSearchOutput
   }
 
