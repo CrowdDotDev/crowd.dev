@@ -1,7 +1,12 @@
 <template>
   <div class="absolute left-0 right-0">
     <div
-      class="w-full border-b bg-gray-50 border-gray-200 pt-4 pb-6 sticky top-[-20px] z-10"
+      ref="header"
+      class="w-full bg-gray-50 border-gray-200 pt-4 pb-6 sticky top-[-20px] z-10"
+      :class="{
+        'border-b': !isHeaderOnTop,
+        shadow: isHeaderOnTop
+      }"
     >
       <div class="max-w-5xl mx-auto px-8">
         <router-link
@@ -42,7 +47,9 @@
     </div>
     <app-page-wrapper size="narrow">
       <div class="w-full mt-8">
-        <app-report-member-template />
+        <app-report-member-template
+          v-if="report.name === MEMBERS_REPORT.name"
+        />
       </div>
     </app-page-wrapper>
   </div>
@@ -53,9 +60,15 @@ import {
   mapGetters,
   mapActions
 } from '@/shared/vuex/vuex.helpers'
-import { ref, onMounted, defineProps } from 'vue'
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  defineProps
+} from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
+import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
 
 const props = defineProps({
   id: {
@@ -67,6 +80,9 @@ const props = defineProps({
 const { doFind } = mapActions('report')
 
 const report = ref()
+const header = ref()
+const wrapper = ref()
+const isHeaderOnTop = ref(false)
 
 const { cubejsApi } = mapGetters('widget')
 const { getCubeToken } = mapActions('widget')
@@ -77,5 +93,21 @@ onMounted(async () => {
   if (cubejsApi.value === null) {
     await getCubeToken()
   }
+
+  wrapper.value = document.querySelector(
+    '#main-page-wrapper'
+  )
+
+  wrapper.value?.addEventListener('scroll', onPageScroll)
 })
+
+onUnmounted(() => {
+  wrapper.value?.removeEventListener('scroll', onPageScroll)
+})
+
+const onPageScroll = () => {
+  isHeaderOnTop.value =
+    header.value.getBoundingClientRect().top === 0 &&
+    wrapper.value.scrollTop !== 0
+}
 </script>
