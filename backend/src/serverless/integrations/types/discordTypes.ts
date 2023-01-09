@@ -31,9 +31,9 @@ export interface DiscordChannel {
 
 export type DiscordChannels = DiscordChannel[]
 
-export interface DiscordChannelsOut  {
-  channels: DiscordChannels,
-  forumChannels: DiscordChannels,
+export interface DiscordChannelsOut {
+  channels: DiscordChannels
+  forumChannels: DiscordChannels
 }
 
 export interface DiscordAuthor {

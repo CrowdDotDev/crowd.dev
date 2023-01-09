@@ -45,11 +45,13 @@ async function getChannels(
     const response = await axios(config)
     const result: DiscordChannels = response.data
 
-    const forumChannels = result.filter((c) => c.type === 15).map((c) => ({
-      name: c.name,
-      id: c.id,
-      thread: true,
-    }))
+    const forumChannels = result
+      .filter((c) => c.type === 15)
+      .map((c) => ({
+        name: c.name,
+        id: c.id,
+        thread: true,
+      }))
 
     if (tryChannels) {
       const out: DiscordChannels = []
