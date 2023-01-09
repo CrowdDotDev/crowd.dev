@@ -10,11 +10,7 @@ export default async (req, res) => {
     new PermissionChecker(req).validateHas(Permissions.values.reportRead)
   }
 
-  track(
-    'Report Viewed',
-    { id: payload.id, name: payload.name, public: payload.public },
-    { ...req },
-  )
+  track('Report Viewed', { id: payload.id, name: payload.name, public: payload.public }, { ...req })
 
   await req.responseHandler.success(req, res, payload)
 }

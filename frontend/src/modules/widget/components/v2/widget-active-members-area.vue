@@ -4,11 +4,12 @@
     :cubejs-api="cubejsApi"
     :query="query"
   >
-    <template #default="{ resultSet }">
+    <template #default="{ resultSet, loading, error }">
       <div class="bg-white px-6 py-5 rounded-lg shadow">
         <!-- Widget Header -->
         <div
-          class="flex grow justify-between items-center pb-5 mb-8 border-b border-gray-100"
+          class="flex grow justify-between items-center pb-5 border-b border-gray-100"
+          :class="{ 'mb-8': !loading && !error }"
         >
           <div class="flex gap-1">
             <app-widget-granularity
@@ -36,8 +37,15 @@
           />
         </div>
 
+        <!-- Loading -->
+        <app-widget-loading v-if="loading" />
+
+        <!-- Error -->
+        <app-widget-error v-else-if="error" />
+
         <!-- Widget Chart -->
         <app-widget-area
+          v-else
           :datasets="datasets"
           :result-set="resultSet"
           :chart-options="{
@@ -72,6 +80,8 @@ import {
   TOTAL_ACTIVE_MEMBERS_QUERY,
   TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY
 } from '@/modules/widget/widget-queries'
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const granularity = ref(DAILY_GRANULARITY_FILTER)

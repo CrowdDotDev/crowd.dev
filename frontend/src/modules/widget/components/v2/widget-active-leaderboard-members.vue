@@ -3,7 +3,8 @@
     <div class="px-6">
       <!-- Widget Header -->
       <div
-        class="flex grow justify-between items-center pb-5 mb-8 border-b border-gray-100"
+        class="flex grow justify-between items-center pb-5 border-b border-gray-100"
+        :class="{ 'mb-8': !loading && !error && !empty }"
       >
         <div class="flex gap-1">
           <app-widget-title
@@ -20,8 +21,18 @@
         />
       </div>
 
+      <!-- Loading -->
+      <app-widget-loading v-if="loading" />
+
+      <!-- Empty -->
+      <app-widget-empty v-else-if="empty" />
+
+      <!-- Error -->
+      <app-widget-error v-else-if="error" />
+
       <!-- Widget Chart -->
       <app-widget-members-table
+        v-else
         :members="activeMembers"
         @on-row-click="onRowClick"
       />
@@ -44,7 +55,7 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 import AppWidgetInsight from '@/modules/widget/components/v2/shared/widget-insight.vue'
@@ -53,9 +64,20 @@ import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 import { MemberService } from '@/modules/member/member-service'
 import moment from 'moment'
 import pluralize from 'pluralize'
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
+import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue'
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const activeMembers = ref([])
+const loading = ref(false)
+const error = ref(false)
+const empty = computed(
+  () =>
+    !loading.value &&
+    !error.value &&
+    activeMembers.value.length === 0
+)
 
 onMounted(async () => {
   const response = await getActiveMembers(period.value)
@@ -71,6 +93,9 @@ const onUpdatePeriod = async (updatedPeriod) => {
 }
 
 const getActiveMembers = async (selectedPeriod) => {
+  loading.value = true
+  error.value = false
+
   try {
     const response = await MemberService.list(
       {
@@ -90,8 +115,12 @@ const getActiveMembers = async (selectedPeriod) => {
       false
     )
 
+    loading.value = false
+
     return response.rows
   } catch (e) {
+    loading.value = false
+    error.value = true
     console.error(e)
     return []
   }
