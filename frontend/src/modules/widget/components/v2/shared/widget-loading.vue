@@ -1,9 +1,10 @@
 <template>
+  <!-- Chart and Table widgets -->
   <div
+    v-if="type !== 'kpi'"
     class="min-h-88 py-12 flex items-center justify-center"
   >
-    <!-- Chart and Table widgets -->
-    <div v-if="type !== 'kpi'" class="text-center">
+    <div class="text-center">
       <i
         class="animate-pulse text-gray-200 text-5xl"
         :class="icon"
@@ -12,17 +13,17 @@
         Loading your data...
       </div>
     </div>
+  </div>
 
-    <!-- KPI widgets -->
-    <div v-else class="w-full">
-      <app-loading
-        class="mb-4"
-        height="20px"
-        width="10%"
-        radius="2px"
-      />
-      <app-loading height="12px" radius="2px" />
-    </div>
+  <!-- KPI widgets -->
+  <div v-else class="w-full flex flex-col justify-center">
+    <app-loading
+      class="mb-4"
+      height="24px"
+      width="30%"
+      radius="2px"
+    />
+    <app-loading height="16px" radius="2px" />
   </div>
 </template>
 
