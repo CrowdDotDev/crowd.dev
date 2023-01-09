@@ -38,7 +38,7 @@
                   class="text-sm account-btn-info"
                 >
                   <div
-                    class="text-gray-900 whitespace-nowrap"
+                    class="text-gray-900 whitespace-nowrap truncate max-w-3.5xs"
                   >
                     {{ currentTenant.name }}
                   </div>
@@ -95,7 +95,9 @@
           <div
             class="flex grow justify-between items-center"
           >
-            <div class="text-gray-900 text-xs flex-grow">
+            <div
+              class="text-gray-900 text-xs w-full truncate max-w-3xs"
+            >
               {{ tenant.name }}
             </div>
             <div
