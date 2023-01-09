@@ -4,6 +4,8 @@ import { createServiceChildLogger, Logger } from '../../utils/logging'
 import AuthService from '../../services/auth/authService'
 import { databaseInit } from '../../database/databaseConnection'
 import { IAuthenticatedSocket, ISocket, ISocketHandler } from './types'
+import SequelizeRepository from '../../database/repositories/sequelizeRepository'
+import TenantUserRepository from '../../database/repositories/tenantUserRepository'
 
 const logger = createServiceChildLogger('websockets/namespaces')
 
@@ -64,23 +66,6 @@ export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
 
       socket.emit('connected')
 
-      if (authenticated) {
-        socket.on('tenant-subscribe', (tenantId: string) => {
-          const user = (socket as IAuthenticatedSocket).user
-          if (user.tenants.find((t) => t.tenantId === tenantId) !== undefined) {
-            socket.join(`tenant-${tenantId}`)
-            socket.emit('success')
-          } else {
-            socket.emit('not-allowed')
-          }
-        })
-
-        socket.on('tenant-unsubscribe', (tenantId: string) => {
-          socket.leave(`tenant-${tenantId}`)
-          socket.emit('success')
-        })
-      }
-
       // handle disconnect
       socket.on('disconnect', () => {
         if (authenticated) {
@@ -115,7 +100,12 @@ export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
     this.emitToRoom(`user-${userId}`, event, data)
   }
 
-  public emitToTenantRoom(tenantId: string, event: string, data: string) {
-    this.emitToRoom(`tenant-${tenantId}`, event, data)
+  public async emitForTenant(tenantId: string, event: string, data: string) {
+    const options = await SequelizeRepository.getDefaultIRepositoryOptions()
+    const tenantUsers = await TenantUserRepository.findByTenant(tenantId, options)
+
+    for (const user of tenantUsers) {
+      this.emitToUserRoom(user.userId, event, data)
+    }
   }
 }

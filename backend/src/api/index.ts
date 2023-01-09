@@ -20,7 +20,8 @@ import { redisMiddleware } from '../middlewares/redisMiddleware'
 import { POSTHOG_CONFIG } from '../config'
 import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
 import WebSockets from './websockets'
-import { handleApiQueueMessages } from './mq'
+import RedisPubSubReceiver from '../utils/redis/pubSubReceiver'
+import { ApiWebsocketMessage } from '../types/mq/apiWebsocketMessage'
 
 const serviceLogger = createServiceLogger()
 
@@ -34,30 +35,28 @@ setImmediate(async () => {
   const redisPubSubPair = await createRedisPubSubPair()
   const userNamespace = await WebSockets.initialize(server, redisPubSubPair)
 
-  // don't await because it blocks the code from continuing
-  handleApiQueueMessages(userNamespace).catch(() => {})
+  const pubSubReceiver = new RedisPubSubReceiver('api-pubsub', redisPubSubPair.subClient, (err) => {
+    serviceLogger.error(err, 'Error while listening to Redis Pub/Sub api-ws channel!')
+    process.exit(1)
+  })
+
+  pubSubReceiver.subscribe('user', async (message) => {
+    const data = message as ApiWebsocketMessage
+
+    if (data.tenantId) {
+      await userNamespace.emitForTenant(data.tenantId, data.event, data.data)
+    } else if (data.userId) {
+      userNamespace.emitToUserRoom(data.userId, data.event, data.data)
+    } else {
+      serviceLogger.error({ type: data.type }, 'Received invalid websocket message!')
+    }
+  })
 
   let posthog = null
 
   if (POSTHOG_CONFIG.apiKey) {
     posthog = new PostHog(POSTHOG_CONFIG.apiKey)
   }
-
-  const redisPubSubPair = await createRedisPubSubPair()
-
-  const websockets = new WebSockets(server, redisPubSubPair)
-  // authenticated websocket namespace
-  const userNamespace = websockets.authNamespace('/user')
-
-  const pubSubReceiver = new PubSubReceiver('api', redisPubSubPair)
-  pubSubReceiver.on('user', async (message) => {
-    const { userId, type, payload } = message as any
-    userNamespace.emitToUserRoom(userId, type, JSON.stringify(payload))
-  })
-  pubSubReceiver.on('tenant', async (message) => {
-    const { tenantId, type, payload } = message as any
-    userNamespace.emitToTenantRoom(tenantId, type, JSON.stringify(payload))
-  })
 
   // Enables CORS
   app.use(cors({ origin: true }))

@@ -37,15 +37,3 @@ export const disconnectSocket = () => {
     socketIoClient.disconnect()
   }
 }
-
-export const subscribeToTenantMessages = (tenantId) => {
-  if (socketIoClient) {
-    socketIoClient.emit('tenant-subscribe', tenantId)
-  }
-}
-
-export const unsubscribeFromTenantMessages = (tenantId) => {
-  if (socketIoClient) {
-    socketIoClient.emit('tenant-unsubscribe', tenantId)
-  }
-}

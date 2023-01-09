@@ -97,3 +97,14 @@ export const stopPubSubPair = async (pair: IRedisPubSubPair): Promise<void> => {
   await stopClient(pair.pubClient)
   await stopClient(pair.subClient)
 }
+
+export interface IRedisPubSubEmitter {
+  emit(channel: string, data: any)
+}
+
+export interface IRedisPubSubReceiver {
+  subscribe(channel: string, listener: (data: any) => Promise<void>): string
+  unsubscribe(id: string)
+}
+
+export interface IRedisPubSubBus extends IRedisPubSubEmitter, IRedisPubSubReceiver {}
