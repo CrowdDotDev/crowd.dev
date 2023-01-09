@@ -13,7 +13,8 @@
         'file_share',
         'channel_joined',
         'channel_left',
-        'reaction_added'
+        'reaction_added',
+        'thread_started'
       ].includes(activity.type) &&
       !short &&
       !channelOnly
@@ -28,6 +29,8 @@
           activity.type
         )
           ? ''
+          : activity.attributes.forum
+          ? 'in forum channel'
           : 'in channel'
       }}</span
     >
@@ -66,6 +69,9 @@ export default {
   },
   computed: {
     computedMessage() {
+      if (this.isParentInForum) {
+        return `entities.activity.${this.activity.platform}.started_thread`
+      }
       if (
         this.activity.type === 'message' &&
         this.activity.parentId
@@ -78,6 +84,9 @@ export default {
     },
     computedArgs() {
       return computedArgs(this.activity)
+    },
+    isParentInForum() {
+      return this.activity.type === 'thread_started'
     }
   }
 }

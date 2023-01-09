@@ -66,6 +66,10 @@ const eagleEyeContentModel = {
     type: DataTypes.ARRAY(DataTypes.TEXT),
     default: [],
   },
+  exactKeywords: {
+    type: DataTypes.ARRAY(DataTypes.TEXT),
+    default: [],
+  },
   similarityScore: {
     type: DataTypes.FLOAT,
   },

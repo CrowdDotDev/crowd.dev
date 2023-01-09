@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.15.0 - 2023-01-09
+
+### Changes
+
+### Features
+
+#### Exact keyword matching for EagleEye
+
+You can now look for posts by an exact keyword in EagleEye. If you send a query wrapped in quotes, we will look for it exactly rather than performing semantic search.
+
+For example, imagine you want to search for content that talks about *generatice AI*, but that mentions *Stable Diffusion*. You could send the query: `generative ai, "stable diffusion"`.
+
+<img width="1067" alt="Screenshot 2023-01-09 at 13 14 50" src="https://user-images.githubusercontent.com/37874460/211305723-24aec737-7edf-4c4d-bcd4-deab5e64a968.png">
+- EagleEye exact keyword matching @mariobalca @joanreyero (#383)
+
+#### Discord forum channels
+
+Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
+
+- Get forum channels from Discord @joanreyero (#405)
+
+### ✨ Improvements
+
+- Preventing that an automation is executed twice. @themarolt (#401)
+- Improved copy for tooltips in widgets. @epipav (#392)
+
+### 🐞 Bug Fixes
+
+- Fix a bug where members could be merged twice. @joanagmaia (#402)
+- Do not throw an error when a GitHub webhook with an unsupported event type comes. @themarolt (#397)
+- Hashtags were not being saved in the Twitter integration. @joanreyero (#396)
+- Engagement score was weighing too much activities at the beginning of the month. @joanreyero (#394)
+- Make sure that the text we send to AWS Comprehend for sentiment analysis is not too big. @joanreyero @themarolt (#391)
+- Fix an edge case where merging members with similar activities was throwing a 500 error. @epipav (#388)
+- Get GitHub user emails with GitHub app token instead of a user token. @themarolt (#389)
+
 ## v0.14.0 - 2023-01-02
 
 ### Changes
@@ -14,7 +50,6 @@ You can now export your community members as CSV. You can export all members or 
 
 <img width="672" alt="Screenshot 2023-01-02 at 18 47 18" src="https://user-images.githubusercontent.com/37874460/210264594-2f744e43-2b31-4be7-aa28-6f0a6c9dbad5.png">
 - Members CSV exports @epipav (#356)
-
 ### ✨ Improvements
 
 - Team members and bots (as well as their activities) are now exported by default from reports. @epipav (#360)
@@ -59,7 +94,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Plan page @joanagmaia (#350)
 - Organizations paywall @joanagmaia (#357)
 ### ✨ Improvements
-
 - Improve the user experience of connecting an integration by sending an email when the connection has succeeded. @mariobalca (#341)
 - Tweaks grid and container-sized on all pages to adapt them to different screen sizes better. @mariobalca (#355)
 - Do not show the engagement level for team members in the members' list, as it does not make sense. @joanreyero (#349)
@@ -136,7 +170,6 @@ The Hacker News integration will detect any post that mentions your community in
 - Fix rate limit handling in the Twitter integration @themarolt (#292 and #293)
 - When moving a widget in a report, save its new position when it is dropped instead of moved to avoid a *too many requests error* @joanreyero (#295)
 - Disable range filters in the frontend if one value is empty @joanagmaia (#290)
-
 ## v0.10.1 - 2022-11-30
 
 ### Changes
@@ -183,7 +216,6 @@ We’ve built a model to conduct sentiment analysis for all activities in your c
 We help you keep track of all conversations going on in your community, now, we also show you the ones that are trending and pulling a lot of engagement.
 :hammer_and_wrench: Custom attributes and identities
 Use our custom attribute function to add specific to you details as well as extra identities for your members beyond their community profiles (e.g., you can add identities using their phone number or extra email).
-
 :key: Social Sign in with Google
 We’ve added social sign-in to make signing up and logging into [crowd.dev](http://crowd.dev/) a breeze. You can now use your Google account.
 
@@ -225,7 +257,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -281,7 +315,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - This includes replies to comments.
 - 
-
 <p align="center">
 <img width="500" alt="Dev.to preview" src="https://user-images.githubusercontent.com/59081450/187646962-f22400ee-3d27-4708-872c-2cc7d6cfc4f1.png">
 </p>
@@ -296,7 +329,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Bumped up version to match pre-OSS version.
 ### ✨ Enhancements
 - Simplified start of development environment @joanreyero (#5)
-
 ### 🐞 Bug Fixes
 
 - EagleEye events @joanreyero (#6)

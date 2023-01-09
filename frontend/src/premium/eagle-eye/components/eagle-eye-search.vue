@@ -3,6 +3,7 @@
     <app-keywords-input
       v-model="computedModel"
       placeholder="Enter keywords, or topics..."
+      eagle-eye
     />
   </div>
 </template>
