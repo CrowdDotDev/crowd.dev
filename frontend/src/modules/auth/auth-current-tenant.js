@@ -1,7 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import config from '@/config'
 import posthog from 'posthog-js'
-import { subscribeToTenantMessages } from '@/modules/auth/auth-socket'
 
 /**
  * Auth Current Tenant
@@ -38,10 +37,6 @@ export default class AuthCurrentTenant {
     }
 
     tenant = tenant || activeTenants[0].tenant
-
-    if (tenant) {
-      subscribeToTenantMessages(tenant.id)
-    }
 
     if (
       tenant &&
