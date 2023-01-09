@@ -1,5 +1,5 @@
 <template>
-  <div v-if="members.length" class="my-8">
+  <div class="my-8">
     <router-link
       v-for="member in members"
       :key="member.id"
@@ -81,15 +81,6 @@
         <i class="ri-arrow-right-s-line" />
       </div>
     </router-link>
-  </div>
-
-  <div
-    v-else
-    class="w-full text-center h-20 flex items-center justify-center mb-10"
-  >
-    <i
-      class="ri-bar-chart-fill animate-pulse text-gray-300 text-5xl"
-    ></i>
   </div>
 </template>
 
