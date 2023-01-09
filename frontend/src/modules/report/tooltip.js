@@ -43,8 +43,8 @@ export const externalTooltipHandler = (context) => {
           const classes =
             after.difference === 0
               ? {
-                  bgColor: 'bg-gray-100',
-                  color: 'text-gray-700'
+                  bgColor: 'bg-blue-100',
+                  color: 'text-blue-700'
                 }
               : after.difference > 0
               ? {
