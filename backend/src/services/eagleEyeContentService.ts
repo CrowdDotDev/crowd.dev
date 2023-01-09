@@ -98,19 +98,13 @@ export default class EagleEyeContentService extends LoggingBase {
     const { keywords, nDays, exactKeywords } = args
     // We do not want what we have already accepted or rejected
     const filters = await this.findNotInbox()
-
     if (API_CONFIG.premiumApiUrl) {
       const response = await request
         .post(`${API_CONFIG.premiumApiUrl}/search`)
         .send({ queries: keywords, nDays, filters, exactKeywords })
-      try {
-        const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
-        await this.bulkUpsert(fromEagleEye)
-        return fromEagleEye
-      } catch (error) {
-        this.log.error({ error: response.text }, 'error when calling eagle eye server!')
-        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
-      }
+      const fromEagleEye: EagleEyeSearchOutput = JSON.parse(response.text)
+      await this.bulkUpsert(fromEagleEye)
+      return fromEagleEye
     }
     return [] as EagleEyeSearchOutput
   }
@@ -126,7 +120,7 @@ export default class EagleEyeContentService extends LoggingBase {
         return JSON.parse(response.text)
       } catch (error) {
         this.log.error({ error: response.error }, 'error while calling eagle eye server!')
-        throw new Error400('en', 'errors.wrongEagleEyeSearch.message')
+        throw new Error400('en', 'errors.eagleEyeSearchFailed.message')
       }
     } else {
       return [] as EagleEyeSearchOutput

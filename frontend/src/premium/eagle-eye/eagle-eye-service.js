@@ -33,7 +33,14 @@ export class EagleEyeService {
 
   static async populate(keywords) {
     const data = {
-      keywords
+      exactKeywords: keywords
+        .filter((k) => {
+          return k[0] === '"' && k[k.length - 1] === '"'
+        })
+        .map((s) => s.replaceAll('"', '')),
+      keywords: keywords.filter((k) => {
+        return k[0] !== '"' && k[k.length - 1] !== '"'
+      })
     }
 
     const tenantId = AuthCurrentTenant.get()

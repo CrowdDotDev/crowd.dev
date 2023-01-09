@@ -26,7 +26,7 @@ def remove_duplicates(iter):
     return [filter_dict[key] for key in filter_dict]
 
 
-def transform(query, id, score, metadata):
+def transform(query, exact_keywords, id, score, metadata):
     """
     Transform a set of results for crowd.dev's Node.js API
 
@@ -56,7 +56,8 @@ def transform(query, id, score, metadata):
         'similarityScore': score,
         'userAttributes': json.loads(metadata.get('userAttributes', '{}')),
         'postAttributes': json.loads(metadata.get('postAttributes', '{}')),
-        'keywords': keywords
+        'keywords': keywords,
+        'exactKeywords': exact_keywords,
     }
 
 
@@ -76,10 +77,13 @@ def search_main(queries, ndays, exclude, exact_keywords):
     logger.info(f"Starting search for queries {queries}")
     vector = VectorAPI()
     out = []
+    if queries == []:
+        queries = ['']
     for query in queries:
         results = vector.search(query, ndays, exclude, exact_keywords)
         for returned_point in results:
-            out.append(transform(query, returned_point.id, returned_point.score, returned_point.payload))
+            out.append(transform(query, exact_keywords, returned_point.id,
+                       returned_point.score, returned_point.payload))
     out = remove_duplicates(out)
     return json.dumps(out)
 
@@ -99,7 +103,7 @@ def keyword_match_main(ndays, exclude, exact_keywords, platform):
     if type(results[0]) == list:
         results = results[0]
     for returned_point in results:
-        transformed = transform('', returned_point.id, 1, returned_point.payload)
+        transformed = transform('', exact_keywords, returned_point.id, 1, returned_point.payload)
         # Check exactly which keywords matched
         for keyword in exact_keywords:
             if keyword in transformed['title'] or keyword in transformed['text']:

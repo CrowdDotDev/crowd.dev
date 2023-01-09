@@ -80,6 +80,29 @@ function _buildAttributeBlock(attribute) {
         }
       })
     }
+  } else if (attribute.name === 'keywords') {
+    // Eagle eye query
+    const keywords = attribute.value.filter((k) => {
+      return k[0] !== '"' && k[k.length - 1] !== '"'
+    })
+    const exactKeywords = attribute.value
+      .filter((k) => {
+        return k[0] === '"' && k[k.length - 1] === '"'
+      })
+      .map((k) => {
+        return k.replace('"', '').replace('"', '')
+      })
+
+    const query = {}
+
+    if (keywords.length > 0) {
+      query.keywords = { overlap: keywords }
+    }
+
+    if (exactKeywords.length > 0) {
+      query.exactKeywords = { overlap: exactKeywords }
+    }
+    return query
   } else if (attribute.name === 'activeOn') {
     rule = {
       contains: attribute.value.reduce((acc, option) => {
