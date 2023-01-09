@@ -22,10 +22,10 @@
       </div>
 
       <!-- Loading -->
-      <app-widget-loading v-if="loading" />
+      <app-widget-loading v-if="loading" type="table" />
 
       <!-- Empty -->
-      <app-widget-empty v-else-if="empty" />
+      <app-widget-empty v-else-if="empty" type="table" />
 
       <!-- Error -->
       <app-widget-error v-else-if="error" />

@@ -10,14 +10,7 @@ export default async (req, res) => {
 
   const payload = true
 
-  track(
-    'Widget Deleted',
-    {
-      id: payload.id,
-      reportId: payload.report ? payload.report.id : undefined,
-    },
-    { ...req },
-  )
+  track('Widget Deleted')
 
   await req.responseHandler.success(req, res, payload)
 }
