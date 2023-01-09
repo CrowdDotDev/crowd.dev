@@ -46,16 +46,29 @@ import {
 } from '@/modules/widget/widget-constants'
 
 const emits = defineEmits(['onUpdate'])
-defineProps({
+const props = defineProps({
   granularity: {
     type: Object,
     default: () => DAILY_GRANULARITY_FILTER
+  },
+  template: {
+    type: String,
+    default: null
+  },
+  widget: {
+    type: String,
+    default: null
   }
 })
 
 const dropdownOpen = ref(false)
 
-const setGranularity = (period) => {
-  emits('onUpdate', period)
+const setGranularity = (granularity) => {
+  window.analytics.track('Filter widget', {
+    granularity,
+    template: props.template,
+    widget: props.widget
+  })
+  emits('onUpdate', granularity)
 }
 </script>

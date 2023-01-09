@@ -8,6 +8,7 @@
         name: 'memberView',
         params: { id: member.id }
       }"
+      @click="onRowClick"
     >
       <div class="flex gap-3 items-center col-span-3">
         <app-avatar :entity="member" size="sm" />
@@ -99,13 +100,18 @@ export default {
 </script>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, defineEmits } from 'vue'
 import AppSvg from '@/shared/svg/svg.vue'
 
+const emit = defineEmits(['onRowClick'])
 defineProps({
   members: {
     type: Array,
     default: () => []
   }
 })
+
+const onRowClick = () => {
+  emit('onRowClick')
+}
 </script>

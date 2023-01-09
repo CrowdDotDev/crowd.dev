@@ -12,6 +12,8 @@
           />
         </div>
         <app-widget-period
+          template="Members"
+          widget="Leaderbord: Most active members"
           :period="period"
           module="reports"
           @on-update="onUpdatePeriod"
@@ -19,7 +21,10 @@
       </div>
 
       <!-- Widget Chart -->
-      <app-widget-members-table :members="activeMembers" />
+      <app-widget-members-table
+        :members="activeMembers"
+        @on-row-click="onRowClick"
+      />
     </div>
 
     <app-widget-insight
@@ -90,5 +95,12 @@ const getActiveMembers = async (selectedPeriod) => {
     console.error(e)
     return []
   }
+}
+
+const onRowClick = () => {
+  window.analytics.track('Click table widget row', {
+    template: 'Members',
+    widget: 'Leaderbord: Most active members'
+  })
 }
 </script>
