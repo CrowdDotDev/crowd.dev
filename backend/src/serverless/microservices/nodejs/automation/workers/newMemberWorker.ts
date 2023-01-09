@@ -11,6 +11,8 @@ import MemberRepository from '../../../../../database/repositories/memberReposit
 import { sendWebhookProcessRequest } from './util'
 import { MemberAutomationData } from '../../messageTypes'
 import { createServiceChildLogger } from '../../../../../utils/logging'
+import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
+import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
 
 const log = createServiceChildLogger('newMemberWorker')
 
@@ -19,7 +21,10 @@ const log = createServiceChildLogger('newMemberWorker')
  * @param member Member data
  * @param automation {AutomationData} Automation data
  */
-export const shouldProcessMember = (member: any, automation: AutomationData): boolean => {
+export const shouldProcessMember = async (
+  member: any,
+  automation: AutomationData,
+): Promise<boolean> => {
   const settings = automation.settings as NewMemberSettings
 
   let process = true
@@ -35,6 +40,17 @@ export const shouldProcessMember = (member: any, automation: AutomationData): bo
           ', ',
         )}]`,
       )
+      process = false
+    }
+  }
+
+  if (process) {
+    const userContext = await SequelizeRepository.getDefaultIRepositoryOptions()
+    const repo = new AutomationExecutionRepository(userContext)
+
+    const hasAlreadyBeenTriggered = await repo.hasAlreadyBeenTriggered(automation.id, member.id)
+    if (hasAlreadyBeenTriggered) {
+      log.warn(`Ignoring automation ${automation.id} - Member ${member.id} was already processed!`)
       process = false
     }
   }
@@ -92,7 +108,7 @@ export default async (
       }
 
       for (const automation of automations) {
-        if (shouldProcessMember(member, automation)) {
+        if (await shouldProcessMember(member, automation)) {
           log.info(`Member ${member.id} is being processed by automation ${automation.id}!`)
 
           switch (automation.type) {

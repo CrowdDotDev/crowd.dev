@@ -1764,7 +1764,7 @@ describe('MemberService tests', () => {
       expect(found).toStrictEqual(memberCreated)
     })
 
-    it('Should not duplicate activities - by timestamp', async () => {
+    it('Should not duplicate activities - by sourceId', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
       const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
 
@@ -1791,17 +1791,7 @@ describe('MemberService tests', () => {
         sourceId: '#sourceId1',
       }
 
-      const aRepeated = {
-        timestamp: '2021-06-27T15:14:30Z',
-        type: 'activity',
-        member: createdMember.id,
-        platform: PlatformType.GITHUB,
-        sourceId: '#sourceId1',
-      }
-
       const a1Created = await ActivityRepository.create(a1, mockIRepositoryOptions)
-
-      const aCreatedRepeated1 = await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
 
       const member2 = {
         username: {
@@ -1813,10 +1803,9 @@ describe('MemberService tests', () => {
 
       const createdMember2 = await MemberRepository.create(member2, mockIRepositoryOptions)
 
-      aRepeated.member = createdMember2.id
-      aRepeated.sourceId = '#sourceId2'
+      a1.member = createdMember2.id
 
-      await ActivityRepository.create(aRepeated, mockIRepositoryOptions)
+      await ActivityRepository.create(a1, mockIRepositoryOptions)
 
       const a3Created = await ActivityRepository.create(
         {
@@ -1829,28 +1818,6 @@ describe('MemberService tests', () => {
         mockIRepositoryOptions,
       )
 
-      const foundActivities = await ActivityRepository.findAndCountAll(
-        {
-          filter: {
-            timestamp: aRepeated.timestamp,
-            type: aRepeated.type,
-            platform: aRepeated.platform,
-          },
-        },
-        mockIRepositoryOptions,
-      )
-
-      // Making sure the activity is indeed repeated
-      expect({
-        timestamp: foundActivities.rows[0].timestamp,
-        type: foundActivities.rows[0].type,
-        platform: foundActivities.rows[0].platform,
-      }).toStrictEqual({
-        timestamp: foundActivities.rows[1].timestamp,
-        type: foundActivities.rows[1].type,
-        platform: foundActivities.rows[1].platform,
-      })
-
       // Merge
       await memberService.merge(createdMember.id, createdMember2.id)
 
@@ -1858,7 +1825,7 @@ describe('MemberService tests', () => {
         .map((a) => a.get({ plain: true }).id)
         .sort()
 
-      const expected = [aCreatedRepeated1.id, a1Created.id, a3Created.id].sort()
+      const expected = [a1Created.id, a3Created.id].sort()
       expect(foundMergedActivities).toStrictEqual(expected)
     })
 

@@ -451,16 +451,11 @@ export default class MemberService extends LoggingBase {
         return oldEmail
       },
       // Get rid of activities that are the same and were in both members
-      activities: (oldActivities, newActivities) => {
-        oldActivities = oldActivities || []
+      activities: (_oldActivities, newActivities) => {
         newActivities = newActivities || []
         // A member cannot 2 different activities with same timestamp and platform and type
-        const uniq = lodash.uniqWith(
-          [...oldActivities, ...newActivities],
-          (act1, act2) =>
-            moment(act1.timestamp).utc().unix() === moment(act2.timestamp).utc().unix() &&
-            act1.platform === act2.platform,
-        )
+        const uniq = lodash.uniqWith(newActivities, (act1, act2) => act1.sourceId === act2.sourceId)
+
         return uniq.length > 0 ? uniq : null
       },
     })

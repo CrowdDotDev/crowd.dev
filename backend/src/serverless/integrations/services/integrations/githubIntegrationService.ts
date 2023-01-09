@@ -1,4 +1,5 @@
 import moment from 'moment/moment'
+import { createAppAuth } from '@octokit/auth-app'
 import { Repo, Repos } from '../../types/regularTypes'
 import { IntegrationType, PlatformType } from '../../../../types/integrationEnums'
 import {
@@ -27,6 +28,9 @@ import { GithubActivityType } from '../../../../types/activityTypes'
 import { GitHubGrid } from '../../grid/githubGrid'
 import getOrganization from '../../usecases/github/graphql/organizations'
 import { singleOrDefault } from '../../../../utils/arrays'
+import { AppTokenResponse, getAppToken } from '../../usecases/github/rest/getAppToken'
+import getMember from '../../usecases/github/graphql/members'
+import { createRedisClient, RedisCache } from '../../../../utils/redis'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -45,7 +49,16 @@ enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
+const privateKey = Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
+
 export class GithubIntegrationService extends IntegrationServiceBase {
+  private static githubAuthenticator = createAppAuth({
+    appId: GITHUB_CONFIG.appId,
+    clientId: GITHUB_CONFIG.clientId,
+    clientSecret: GITHUB_CONFIG.clientSecret,
+    privateKey,
+  })
+
   constructor() {
     super(IntegrationType.GITHUB, -1)
 
@@ -65,6 +78,9 @@ export class GithubIntegrationService extends IntegrationServiceBase {
 
   async preprocess(context: IStepContext): Promise<void> {
     const log = this.logger(context)
+
+    const redis = await createRedisClient(true)
+    const emailCache = new RedisCache('github-emails', redis)
 
     const repos: Repos = []
     const unavailableRepos: Repos = []
@@ -98,6 +114,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     context.pipelineData = {
       repos,
       unavailableRepos,
+      emailCache,
     }
   }
 
@@ -566,7 +583,61 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     return out
   }
 
+  private static async getAppToken(context: IStepContext): Promise<string> {
+    let appToken: AppTokenResponse
+    if (context.pipelineData.appToken) {
+      // check expiration
+      const expiration = moment(context.pipelineData.appToken.expiration).add(5, 'minutes')
+      if (expiration.isAfter(moment())) {
+        // need to refresh
+        const authResponse = await this.githubAuthenticator({ type: 'app' })
+        const jwtToken = authResponse.token
+        appToken = await getAppToken(jwtToken, context.integration.integrationIdentifier)
+      } else {
+        appToken = context.pipelineData.appToken
+      }
+    } else {
+      const authResponse = await this.githubAuthenticator({ type: 'app' })
+      const jwtToken = authResponse.token
+      appToken = await getAppToken(jwtToken, context.integration.integrationIdentifier)
+    }
+
+    context.pipelineData.appToken = appToken
+
+    return appToken.token
+  }
+
+  private static async getMemberData(context: IStepContext, login: string): Promise<any> {
+    const appToken = await this.getAppToken(context)
+    return getMember(login, appToken)
+  }
+
+  private static async getMemberEmail(context: IStepContext, login: string): Promise<string> {
+    const cache: RedisCache = context.pipelineData.emailCache
+
+    const existing = await cache.getValue(login)
+    if (existing) {
+      if (existing === 'null') {
+        return ''
+      }
+
+      return existing
+    }
+
+    const member = await this.getMemberData(context, login)
+    const email = (member.email || '').trim()
+    if (email && email.length > 0) {
+      await cache.setValue(login, email, 60 * 60)
+      return email
+    }
+
+    await cache.setValue(login, 'null', 60 * 60)
+    return ''
+  }
+
   private static async parseMember(memberFromApi: any, context: IStepContext): Promise<Member> {
+    const email = await this.getMemberEmail(context, memberFromApi.login)
+
     const member: Member = {
       username: { [PlatformType.GITHUB]: memberFromApi.login },
       displayName: memberFromApi.name,
@@ -587,7 +658,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
           [PlatformType.GITHUB]: memberFromApi.avatarUrl || '',
         },
       },
-      email: memberFromApi.email || '',
+      email,
     }
 
     if (memberFromApi.company) {

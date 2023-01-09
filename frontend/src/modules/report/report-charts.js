@@ -1,3 +1,6 @@
+import { i18n } from '@/i18n'
+import pluralize from 'pluralize'
+
 const defaultChartOptions = {
   legend: false,
   curve: false,
@@ -14,6 +17,25 @@ const defaultChartOptions = {
     '#F97316'
   ],
   loading: 'Loading...'
+}
+
+const formatTooltipOptions = {
+  library: {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context) =>
+            pluralize(
+              i18n(
+                `widget.cubejs.tooltip.${context.dataset.label}`
+              ),
+              context.dataset.data[context.dataIndex],
+              true
+            )
+        }
+      }
+    }
+  }
 }
 
 const platformColors = {
@@ -122,9 +144,23 @@ export function chartOptions(widget, resultSet) {
       colors: [...mappedColors, ...restColors]
     }
   }
+
+  // When there's a dimension, we don't want custom format in tooltips,
+  // instead we'll use the default format `dimension: value`
+  if (
+    widget.settings.query.dimensions &&
+    widget.settings.query.dimensions.length
+  ) {
+    return {
+      ...defaultChartOptions,
+      ...chartTypeOptions
+    }
+  }
+
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions
+    ...chartTypeOptions,
+    ...formatTooltipOptions
   }
 }
 

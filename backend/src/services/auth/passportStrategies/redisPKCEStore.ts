@@ -51,6 +51,7 @@ class RedisPKCEStore {
       userId: state.userId,
       crowdToken: state.crowdToken,
       tenantId: state.tenantId,
+      hashtags: state.hashtags,
       redirectUrl: state.redirectUrl,
     }).toString()
 

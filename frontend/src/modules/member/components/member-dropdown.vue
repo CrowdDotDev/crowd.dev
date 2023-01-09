@@ -258,6 +258,13 @@ export default {
           memberToKeep: this.primaryMember,
           memberToMerge: this.memberToMerge
         })
+
+        this.isMergeDialogOpen = false
+
+        // If in member view, fetch member newly merged member
+        if (this.$route.name === 'memberView') {
+          this.doFind(this.primaryMember.id)
+        }
       } catch (error) {
         console.log(error)
         Message.error('There was an error merging members')
