@@ -22,12 +22,19 @@ export interface DiscordGetMembersInput {
 }
 
 export interface DiscordChannel {
+  parentId?: string
   id: string
   name: string
   thread?: boolean
+  type?: number
 }
 
 export type DiscordChannels = DiscordChannel[]
+
+export interface DiscordChannelsOut {
+  channels: DiscordChannels
+  forumChannels: DiscordChannels
+}
 
 export interface DiscordAuthor {
   id: string
@@ -89,4 +96,16 @@ export interface DiscordGetMessagesOutput extends DiscordParsedReponse {
 
 export interface DiscordGetMembersOutput extends DiscordParsedReponse {
   records: DiscordMembers | []
+}
+
+export type ProcessedChannel = {
+  id: string
+  name: string
+  thread?: boolean
+  new?: boolean
+}
+
+export interface ProcessedChannels {
+  channels: Array<ProcessedChannel>
+  forumChannels: Array<ProcessedChannel>
 }

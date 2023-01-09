@@ -106,8 +106,8 @@ const en = {
     invalidEagleEyeStatus: {
       message: 'Possible statuses are: "shown", "rejected", "engaged"',
     },
-    wrongEagleEyeSearch: {
-      message: 'Wrong search parameters',
+    eagleEyeSearchFailed: {
+      message: 'Search failed in EagleEye',
     },
     OrganizationNameRequired: {
       message: 'Organization Name is required',

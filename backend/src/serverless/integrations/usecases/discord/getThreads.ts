@@ -21,6 +21,7 @@ async function getThreads(
     return result.map((c) => ({
       name: c.name,
       id: c.id,
+      parentId: c.parent_id,
       thread: true,
     }))
   } catch (err) {

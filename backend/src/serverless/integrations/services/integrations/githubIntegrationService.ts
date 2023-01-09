@@ -50,15 +50,19 @@ enum GithubStreamType {
   DISCUSSION_COMMENTS = 'discussion-comments',
 }
 
-const privateKey = Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
+const privateKey = GITHUB_CONFIG.privateKey
+  ? Buffer.from(GITHUB_CONFIG.privateKey, 'base64').toString('ascii')
+  : undefined
 
 export class GithubIntegrationService extends IntegrationServiceBase {
-  private static githubAuthenticator = createAppAuth({
-    appId: GITHUB_CONFIG.appId,
-    clientId: GITHUB_CONFIG.clientId,
-    clientSecret: GITHUB_CONFIG.clientSecret,
-    privateKey,
-  })
+  private static githubAuthenticator = privateKey
+    ? createAppAuth({
+        appId: GITHUB_CONFIG.appId,
+        clientId: GITHUB_CONFIG.clientId,
+        clientSecret: GITHUB_CONFIG.clientSecret,
+        privateKey,
+      })
+    : undefined
 
   constructor() {
     super(IntegrationType.GITHUB, -1)
@@ -585,27 +589,31 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   private static async getAppToken(context: IStepContext): Promise<string> {
-    let appToken: AppTokenResponse
-    if (context.pipelineData.appToken) {
-      // check expiration
-      const expiration = moment(context.pipelineData.appToken.expiration).add(5, 'minutes')
-      if (expiration.isAfter(moment())) {
-        // need to refresh
+    if (this.githubAuthenticator) {
+      let appToken: AppTokenResponse
+      if (context.pipelineData.appToken) {
+        // check expiration
+        const expiration = moment(context.pipelineData.appToken.expiration).add(5, 'minutes')
+        if (expiration.isAfter(moment())) {
+          // need to refresh
+          const authResponse = await this.githubAuthenticator({ type: 'app' })
+          const jwtToken = authResponse.token
+          appToken = await getAppToken(jwtToken, context.integration.integrationIdentifier)
+        } else {
+          appToken = context.pipelineData.appToken
+        }
+      } else {
         const authResponse = await this.githubAuthenticator({ type: 'app' })
         const jwtToken = authResponse.token
         appToken = await getAppToken(jwtToken, context.integration.integrationIdentifier)
-      } else {
-        appToken = context.pipelineData.appToken
       }
-    } else {
-      const authResponse = await this.githubAuthenticator({ type: 'app' })
-      const jwtToken = authResponse.token
-      appToken = await getAppToken(jwtToken, context.integration.integrationIdentifier)
+
+      context.pipelineData.appToken = appToken
+
+      return appToken.token
     }
 
-    context.pipelineData.appToken = appToken
-
-    return appToken.token
+    throw new Error('GitHub integration is not configured!')
   }
 
   private static async getMemberData(context: IStepContext, login: string): Promise<any> {
