@@ -37,6 +37,14 @@ const props = defineProps({
   module: {
     type: String,
     default: 'dashboard'
+  },
+  template: {
+    type: String,
+    default: null
+  },
+  widget: {
+    type: String,
+    default: null
   }
 })
 
@@ -53,6 +61,13 @@ const getPeriodClass = (value) => {
 }
 
 const setPeriod = (period) => {
+  if (props.module !== 'dashboard') {
+    window.analytics.track('Filter widget', {
+      period,
+      template: props.template,
+      widget: props.widget
+    })
+  }
   emits('onUpdate', period)
 }
 </script>

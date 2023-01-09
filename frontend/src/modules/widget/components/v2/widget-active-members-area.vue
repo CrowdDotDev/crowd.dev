@@ -12,6 +12,8 @@
         >
           <div class="flex gap-1">
             <app-widget-granularity
+              template="Members"
+              widget="Active members"
               :granularity="granularity"
               @on-update="
                 (updatedGranularity) =>
@@ -24,6 +26,8 @@
             />
           </div>
           <app-widget-period
+            template="Members"
+            widget="Active members"
             :period="period"
             module="reports"
             @on-update="
