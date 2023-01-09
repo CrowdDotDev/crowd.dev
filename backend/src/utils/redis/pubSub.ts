@@ -1,29 +1,33 @@
-import NRP, { NodeRedisPubSub } from 'node-redis-pubsub'
 import { IRedisPubSubPair } from './index'
 import { createServiceChildLogger, Logger } from '../logging'
 
 const log = createServiceChildLogger('redis/pubSub')
 
-export interface IPubSubMessage {
-  type: string
-}
-
-export abstract class PubSubBase {
-  protected readonly nrp: NodeRedisPubSub
-
+export class RedisPubSub {
   protected readonly log: Logger
 
-  protected constructor(public readonly scope: string, redisPubSubPair: IRedisPubSubPair) {
+  protected readonly prefix: string
+
+  private subscriptionMap: Map<string, (msg: any) => Promise<void>> = new Map()
+
+  protected constructor(
+    public readonly scope: string,
+    protected readonly redisPubSubPair: IRedisPubSubPair,
+    errorHandler: (err: any) => void,
+  ) {
     this.log = log.child({ scope }, true)
+    this.prefix = `${scope}:`
 
-    this.nrp = new NRP.NodeRedisPubSub({
-      scope,
-      emitter: redisPubSubPair.pubClient,
-      receiver: redisPubSubPair.subClient,
+    redisPubSubPair.pubClient.on('error', (err) => {
+      this.log.error({ err }, 'Redis pub client error!')
+      errorHandler(err)
     })
 
-    this.nrp.on('error', (err) => {
-      this.log.error(err, 'Error in Redis PubSub!')
+    redisPubSubPair.subClient.on('error', (err) => {
+      this.log.error({ err }, 'Redis sub client error!')
+      errorHandler(err)
     })
+
+    redisPubSubPair.subClient.pSubscribe(`${this.prefix}*`, (err) => {})
   }
 }

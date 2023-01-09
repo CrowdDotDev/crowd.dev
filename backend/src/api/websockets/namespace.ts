@@ -1,9 +1,9 @@
 import { Namespace, Server } from 'socket.io'
 import { NextFunction } from 'express'
-import { IAuthenticatedSocket, ISocket, ISocketHandler } from './index'
 import { createServiceChildLogger, Logger } from '../../utils/logging'
 import AuthService from '../../services/auth/authService'
 import { databaseInit } from '../../database/databaseConnection'
+import { IAuthenticatedSocket, ISocket, ISocketHandler } from './types'
 
 const logger = createServiceChildLogger('websockets/namespaces')
 
@@ -111,5 +111,9 @@ export default class WebSocketNamespace<TSocket extends ISocket = ISocket> {
 
   public emitToUserRoom(userId: string, event: string, data: string) {
     this.emitToRoom(`user-${userId}`, event, data)
+  }
+
+  public emitToTenantRoom(tenantId: string, event: string, data: string) {
+    this.emitToRoom(`tenant-${tenantId}`, event, data)
   }
 }

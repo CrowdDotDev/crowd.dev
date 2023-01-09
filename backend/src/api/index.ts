@@ -4,7 +4,6 @@ import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import { PostHog } from 'posthog-node'
 import * as http from 'http'
-import { Server } from 'socket.io'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -19,7 +18,9 @@ import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
 import { POSTHOG_CONFIG } from '../config'
-import { createRedisClient } from '../utils/redis'
+import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
+import WebSockets from './websockets'
+import { PubSubReceiver } from '../utils/redis/pubSubReceiver'
 
 const serviceLogger = createServiceLogger()
 
@@ -35,6 +36,22 @@ setImmediate(async () => {
   if (POSTHOG_CONFIG.apiKey) {
     posthog = new PostHog(POSTHOG_CONFIG.apiKey)
   }
+
+  const redisPubSubPair = await createRedisPubSubPair()
+
+  const websockets = new WebSockets(server, redisPubSubPair)
+  // authenticated websocket namespace
+  const userNamespace = websockets.authNamespace('/user')
+
+  const pubSubReceiver = new PubSubReceiver('api', redisPubSubPair)
+  pubSubReceiver.on('user', async (message) => {
+    const { userId, type, payload } = message as any
+    userNamespace.emitToUserRoom(userId, type, JSON.stringify(payload))
+  })
+  pubSubReceiver.on('tenant', async (message) => {
+    const { tenantId, type, payload } = message as any
+    userNamespace.emitToTenantRoom(tenantId, type, JSON.stringify(payload))
+  })
 
   // Enables CORS
   app.use(cors({ origin: true }))
