@@ -33,7 +33,7 @@
         />
       </div>
 
-      <el-divider class="mb-6 mt-14 border-gray-200" />
+      <el-divider class="!mb-6 !mt-14 border-gray-200" />
     </div>
 
     <!-- Custom Reports -->
