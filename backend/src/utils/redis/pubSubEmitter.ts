@@ -16,7 +16,7 @@ export default class RedisPubSubEmitter extends RedisPubSubBase implements IRedi
   }
 
   public emit(channel: string, data: any) {
-    this.log.info({ channel: `${this.prefix}${channel}`, data }, 'Emitting Redis Pub/Sub message!')
+    this.log.debug({ channel: `${this.prefix}${channel}`, data }, 'Emitting Redis Pub/Sub message!')
     this.sender.publish(`${this.prefix}${channel}`, JSON.stringify(data))
   }
 }
