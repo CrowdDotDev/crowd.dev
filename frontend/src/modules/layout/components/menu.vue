@@ -332,6 +332,29 @@
           </router-link>
         </el-tooltip>
 
+        <!-- Feedback -->
+        <el-tooltip
+          :disabled="!isCollapsed"
+          :hide-after="50"
+          effect="dark"
+          placement="right"
+          raw-content
+          popper-class="custom-menu-tooltip"
+          :content="i18n('feedback.menu')"
+        >
+          <button
+            v-if="formbricksEnabled"
+            id="menu-feedback"
+            class="el-menu-item"
+            @click="openFeedbackWidget"
+          >
+            <i class="ri-feedback-line"></i>
+            <span v-if="!isCollapsed">
+              <app-i18n code="feedback.menu"></app-i18n
+            ></span>
+          </button>
+        </el-tooltip>
+
         <!-- Support popover -->
         <app-support-dropdown />
       </div>
@@ -346,7 +369,46 @@
 
 <script>
 export default {
-  name: 'AppMenu'
+  name: 'AppMenu',
+  methods: {
+    openFeedbackWidget: function (event) {
+      window.formbricks.open(event)
+    },
+  },
+  mounted() {
+    const store = useStore()
+    let formbricksFeedbackWidget = document.createElement('script')
+    formbricksFeedbackWidget.setAttribute('src', 'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js')
+    document.head.appendChild(formbricksFeedbackWidget)
+    let formbricksFeedbackConfig = document.createElement('script')
+    formbricksFeedbackConfig.innerHTML = `
+    window.formbricks = {
+      config: {
+        hqUrl: "${config.formbricks.url}",
+        formId: "${config.formbricks.formId}",
+        contact: {
+          name: "Jonathan",
+          position: "Co-Founder",
+          imgUrl: "https://avatars.githubusercontent.com/u/41432658?v=4",
+        },
+        customer: {
+          id: "${store.getters['auth/currentUser'].id}",
+          name: "${store.getters['auth/currentUser'].fullName}",
+          email: "${store.getters['auth/currentUser'].email}",
+        },
+        style: {
+          brandColor: "#e94f2e",
+          headerBGColor: "#F9FAFB",
+          boxBGColor: "#ffffff",
+          textColor: "#140505",
+          buttonHoverColor: "#F9FAFB",
+        },
+      },
+      ...window.formbricks,
+    };
+    `;
+    document.head.appendChild(formbricksFeedbackConfig)
+  }
 }
 </script>
 
@@ -362,6 +424,7 @@ import AppSupportDropdown from './support-dropdown'
 import AppWorkspaceDropdown from './workspace-dropdown'
 import { computed } from 'vue'
 import { i18n } from '@/i18n'
+import config from '@/config'
 
 import { RouterLink, useLink } from 'vue-router'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
@@ -382,6 +445,10 @@ const currentTenant = computed(
 function toggleMenu() {
   store.dispatch('layout/toggleMenu')
 }
+
+const formbricksEnabled = computed(
+  () => (i18n('feedback.menu') !== "feedback.menu" && config.formbricks.url && config.formbricks.formId)
+)
 
 const { myOpenTasksCount } = mapGetters('task')
 

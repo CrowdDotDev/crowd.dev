@@ -822,6 +822,9 @@ const en = {
       yellow: 'Yellow'
     }
   },
+  feedback: {
+    menu: 'Feedback'
+  },
   integrations: {
     menu: 'Integrations'
   },
