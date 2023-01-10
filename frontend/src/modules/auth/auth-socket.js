@@ -24,12 +24,10 @@ export const connectSocket = (token) => {
     console.log('Socket disconnected')
   })
 
-  socketIoClient.on(
-    'integration-onboarding-done',
-    (data) => {
-      console.log('Integration onboarding done', data)
-    }
-  )
+  socketIoClient.on('integration-completed', (data) => {
+    console.log('Integration onboarding done', data)
+    // TODO handle this data
+  })
 }
 
 export const disconnectSocket = () => {

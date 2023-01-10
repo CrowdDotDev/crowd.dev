@@ -97,7 +97,7 @@ export default {
     )
       .then((token) => {
         AuthToken.set(token, true)
-
+        connectSocket(token)
         return AuthService.fetchMe()
       })
       .then((currentUser) => {
