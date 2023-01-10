@@ -348,7 +348,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         sourceId: IntegrationServiceBase.generateSourceIdHash(
           record.node.login,
           GithubActivityType.STAR,
-          moment(record.starredAt).utc().toDate().toString(),
+          moment(record.starredAt).utc().unix().toString(),
           PlatformType.GITHUB,
         ),
         sourceParentId: '',

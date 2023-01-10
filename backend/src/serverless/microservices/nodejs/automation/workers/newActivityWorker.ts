@@ -13,6 +13,8 @@ import { prepareMemberPayload } from './newMemberWorker'
 import { createServiceChildLogger } from '../../../../../utils/logging'
 import AutomationExecutionRepository from '../../../../../database/repositories/automationExecutionRepository'
 import SequelizeRepository from '../../../../../database/repositories/sequelizeRepository'
+import { PlatformType } from '../../../../../types/integrationEnums'
+import { GithubActivityType } from '../../../../../types/activityTypes'
 
 const log = createServiceChildLogger('newActivityWorker')
 
@@ -28,6 +30,11 @@ export const shouldProcessActivity = async (
   const settings = automation.settings as NewActivitySettings
 
   let process = true
+
+  // TODO ANIL - remove this temp if
+  if (activity.platform === PlatformType.GITHUB && activity.type === GithubActivityType.STAR) {
+    return false
+  }
 
   // check whether activity type matches
   if (settings.types && settings.types.length > 0) {
