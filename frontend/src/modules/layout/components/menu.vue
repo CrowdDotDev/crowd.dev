@@ -370,17 +370,17 @@
 <script>
 export default {
   name: 'AppMenu',
-  methods: {
-    openFeedbackWidget: function (event) {
-      window.formbricks.open(event)
-    },
-  },
   mounted() {
     const store = useStore()
-    let formbricksFeedbackWidget = document.createElement('script')
-    formbricksFeedbackWidget.setAttribute('src', 'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js')
+    let formbricksFeedbackWidget =
+      document.createElement('script')
+    formbricksFeedbackWidget.setAttribute(
+      'src',
+      'https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js'
+    )
     document.head.appendChild(formbricksFeedbackWidget)
-    let formbricksFeedbackConfig = document.createElement('script')
+    let formbricksFeedbackConfig =
+      document.createElement('script')
     formbricksFeedbackConfig.innerHTML = `
     window.formbricks = {
       config: {
@@ -406,8 +406,13 @@ export default {
       },
       ...window.formbricks,
     };
-    `;
+    `
     document.head.appendChild(formbricksFeedbackConfig)
+  },
+  methods: {
+    openFeedbackWidget: function (event) {
+      window.formbricks.open(event)
+    }
   }
 }
 </script>
@@ -447,7 +452,10 @@ function toggleMenu() {
 }
 
 const formbricksEnabled = computed(
-  () => (i18n('feedback.menu') !== "feedback.menu" && config.formbricks.url && config.formbricks.formId)
+  () =>
+    i18n('feedback.menu') !== 'feedback.menu' &&
+    config.formbricks.url &&
+    config.formbricks.formId
 )
 
 const { myOpenTasksCount } = mapGetters('task')
