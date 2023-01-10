@@ -68,9 +68,11 @@ export interface IRedisPubSubPair {
 }
 
 let redisPubSubPair: IRedisPubSubPair
-export const createRedisPubSubPair = async (): Promise<IRedisPubSubPair> => {
+export const createRedisPubSubPair = async (
+  forceNew: boolean = false,
+): Promise<IRedisPubSubPair> => {
   if (REDIS_CONFIG.host) {
-    if (redisPubSubPair) return redisPubSubPair
+    if (redisPubSubPair && !forceNew) return redisPubSubPair
 
     const host = REDIS_CONFIG.host
     const port = REDIS_CONFIG.port
@@ -82,12 +84,21 @@ export const createRedisPubSubPair = async (): Promise<IRedisPubSubPair> => {
     }) as RedisClient
     const subClient = pubClient.duplicate() as RedisClient
 
-    redisPubSubPair = {
+    await pubClient.connect()
+    await pubClient.ping()
+    await subClient.connect()
+    await subClient.ping()
+
+    const newPair = {
       pubClient,
       subClient,
     }
 
-    return redisPubSubPair
+    if (!forceNew) {
+      redisPubSubPair = newPair
+    }
+
+    return newPair
   }
 
   throw new Error('Redis client not configured!')

@@ -24,9 +24,9 @@ export default class RedisPubSubReceiver extends RedisPubSubBase implements IRed
       errorHandler(err)
     })
 
-    receiver.on('pmessage', async (channel, message) => {
+    this.receiver.pSubscribe(`${this.prefix}*`, (message, channel) => {
       const data = JSON.parse(message)
-      this.log.info({ channel, data }, 'Received Redis Pub/Sub message!')
+      this.log.debug({ channel, data }, 'Received Redis Pub/Sub message!')
       const infos = this.subscriptionMap.get(channel)
       if (infos) {
         for (const info of infos) {
@@ -35,8 +35,6 @@ export default class RedisPubSubReceiver extends RedisPubSubBase implements IRed
       }
     })
 
-    receiver.pSubscribe(`${this.prefix}*`, (err) => this.log.error(err, 'Redis pSubscribe error!'))
-
     this.log.info({ scope: `${this.prefix}*` }, 'Redis Pub/Sub receiver initialized!')
   }
 
@@ -44,9 +42,9 @@ export default class RedisPubSubReceiver extends RedisPubSubBase implements IRed
     const id = uuid()
 
     const info = { id, handler }
-    const infos = this.subscriptionMap.get(channel) || []
+    const infos = this.subscriptionMap.get(`${this.prefix}${channel}`) || []
     infos.push(info)
-    this.subscriptionMap.set(channel, infos)
+    this.subscriptionMap.set(`${this.prefix}${channel}`, infos)
 
     return id
   }
