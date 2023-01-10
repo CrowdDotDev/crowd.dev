@@ -182,6 +182,7 @@ const en = {
         displayName: 'Display Name',
         activities: 'Activities',
         activityCount: '# of activities',
+        activityTypes: 'Activity Type',
         location: 'Location',
         organization: 'Organization',
         organizations: 'Organizations',
