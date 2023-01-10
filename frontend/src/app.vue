@@ -1,20 +1,31 @@
 <template>
   <div v-if="!loadingInit" id="app">
-    <router-view v-slot="{ Component }">
-      <transition>
-        <component :is="Component" />
-      </transition>
-    </router-view>
+    <div class="sm:hidden md:block lg:block">
+      <router-view v-slot="{ Component }">
+        <transition>
+          <component :is="Component" />
+        </transition>
+      </router-view>
 
-    <div id="teleport-modal"></div>
+      <div id="teleport-modal"></div>
+    </div>
+
+    <div class="sm:block md:hidden lg:hidden">
+      <app-resize-page />
+    </div>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import AppResizePage from '@/modules/layout/pages/resize-page.vue'
 
 export default {
   name: 'App',
+
+  components: {
+    AppResizePage
+  },
 
   computed: {
     ...mapGetters({
