@@ -1,9 +1,12 @@
+import LinkedinConnect from '@/integrations/linkedin/components/linkedin-connect.vue'
+
 export default {
-  enabled: false,
+  enabled: true,
   name: 'LinkedIn',
   backgroundColor: '#FFFFFF',
   borderColor: '#FFFFFF',
   description:
-    "We're currently working on this integration.",
-  image: '/images/integrations/linkedin.png'
+    'Connect LinkedIn to sync posts and comments from your organizations.',
+  image: '/images/integrations/linkedin.png',
+  connectComponent: LinkedinConnect
 }
