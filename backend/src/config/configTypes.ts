@@ -27,7 +27,6 @@ export interface AwsCredentials {
 export interface SQSConfiguration {
   host?: string
   port?: number
-  apiQueue: string
   nodejsWorkerQueue: string
   nodejsWorkerDelayableQueue: string
   pythonWorkerQueue: string
