@@ -10,7 +10,7 @@
         class="mb-4 h-16 flex items-center flex-shrink-0 sticky top-0 inset-x-0 z-10 bg-gray-50 shadow-sm"
       >
         <div
-          class="max-w-5xl flex flex-grow mx-auto items-center justify-between"
+          class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8"
         >
           <h1 class="text-lg font-semibold">
             {{ report.name }}
