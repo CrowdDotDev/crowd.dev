@@ -83,10 +83,45 @@ const defaultChartOptions = {
         display: true,
         position: 'bottom',
         align: 'center',
+        onClick: (click, legendItem, legend) => {
+          const datasets = legend.legendItems.map(
+            (dataset) => dataset.text
+          )
+
+          const index = datasets.indexOf(legendItem.text)
+
+          if (legend.chart.isDatasetVisible(index)) {
+            legend.chart.hide(index)
+          } else {
+            legend.chart.show(index)
+          }
+        },
         labels: {
-          boxWidth: 16,
-          boxHeight: 1,
-          fontColor: '#6B7280'
+          usePointStyle: true,
+          generateLabels: (chart) => {
+            let visibility = []
+
+            chart.data.datasets.forEach((_, i) => {
+              if (chart.isDatasetVisible(i)) {
+                visibility.push(false)
+              } else {
+                visibility.push(true)
+              }
+            })
+
+            return chart.data.datasets.map(
+              (dataset, index) => ({
+                text: dataset.label,
+                fillStyle: dataset.backgroundColor,
+                strokeStyle: dataset.borderColor,
+                lineDash: dataset.borderDash,
+                fontColor: '#6B7280',
+                pointStyle: 'line',
+                hidden: visibility[index],
+                lineWidth: 2
+              })
+            )
+          }
         }
       }
     }
