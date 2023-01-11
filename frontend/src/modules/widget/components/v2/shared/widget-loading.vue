@@ -2,7 +2,10 @@
   <!-- Chart and Table widgets -->
   <div
     v-if="type !== 'kpi'"
-    class="min-h-88 py-12 flex items-center justify-center"
+    class="flex items-center justify-center"
+    :class="`${
+      size === 'normal' ? 'min-h-88 py-12' : 'min-h-24 py-4'
+    }`"
   >
     <div class="text-center">
       <i
@@ -35,6 +38,10 @@ const props = defineProps({
   type: {
     type: String,
     default: 'chart'
+  },
+  size: {
+    type: String,
+    default: 'normal'
   }
 })
 

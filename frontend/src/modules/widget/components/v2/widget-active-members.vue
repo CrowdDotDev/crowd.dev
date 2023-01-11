@@ -36,16 +36,19 @@
             #default="{ resultSet, loading, error }"
           >
             <!-- Loading -->
-            <app-widget-loading v-if="loading" />
+            <app-widget-loading v-if="loading" type="kpi" />
 
             <!-- Error -->
-            <app-widget-error v-else-if="error" />
+            <app-widget-error
+              v-else-if="error"
+              type="kpi"
+            />
 
             <app-widget-kpi
               v-else
               :current-value="kpiCurrentValue(resultSet)"
               :previous-value="kpiPreviousValue(resultSet)"
-              vs-label="vs. last week"
+              :vs-label="`vs. last ${widget.period}`"
             ></app-widget-kpi>
           </template>
         </query-renderer>
