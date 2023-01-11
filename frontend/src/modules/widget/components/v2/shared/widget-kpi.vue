@@ -14,7 +14,7 @@
             formatPercentage(growth)
           }}</span>
           <span class="ml-1"
-            >({{ formatNumber(previousValue) }})</span
+            >({{ formatNumber(computedGrowthValue) }})</span
           >
         </div>
         <span
@@ -53,13 +53,22 @@ const props = defineProps({
 })
 
 const growth =
-  ((props.currentValue - props.previousValue) * 100) /
-  props.previousValue
+  props.previousValue === 0
+    ? props.currentValue !== 0
+      ? 100
+      : 0
+    : ((props.currentValue - props.previousValue) * 100) /
+      props.previousValue
+
+const computedGrowthValue = computed(() => {
+  const value = props.currentValue - props.previousValue
+  return growth < 0 ? value * -1 : value
+})
 
 const computedGrowthClass = computed(() => {
   if (growth === 0) {
     return 'bg-blue-100 text-blue-700'
-  } else if (growth > 0) {
+  } else if (growth > 0 || isNaN(growth)) {
     return 'bg-green-50 text-green-700'
   } else {
     return 'bg-red-50 text-red-700'
@@ -67,7 +76,7 @@ const computedGrowthClass = computed(() => {
 })
 
 const computedGrowthIcon = computed(() => {
-  if (growth === 0) {
+  if (growth === 0 || isNaN(growth)) {
     return ''
   } else if (growth > 0) {
     return 'ri-arrow-up-line'

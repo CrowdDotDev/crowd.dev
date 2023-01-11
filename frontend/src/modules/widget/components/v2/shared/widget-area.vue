@@ -48,7 +48,7 @@ const props = defineProps({
 const dataset = ref(null)
 
 const loading = computed(
-  () => !props.resultSet?.loadResponse
+  () => !props.resultSet?.loadResponses
 )
 
 const data = computed(() => {
@@ -86,9 +86,13 @@ const series = (resultSet) => {
 
   if (resultSet.loadResponses.length > 0) {
     resultSet.loadResponses.forEach((_, index) => {
+      const prefix =
+        resultSet.loadResponses.length === 1
+          ? ''
+          : `${index},` // has more than 1 dataset
       const data = pivot.map((p) => [
         p.x,
-        p[`${index},${props.datasets[index].measure}`]
+        p[`${prefix}${props.datasets[index].measure}`]
       ])
 
       series.push({

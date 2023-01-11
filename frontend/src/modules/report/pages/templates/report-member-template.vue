@@ -6,6 +6,8 @@
       class="app-page-spinner"
     ></div>
     <div v-else class="flex flex-col gap-8">
+      <app-widget-total-members />
+      <app-widget-active-members />
       <app-widget-active-members-area />
       <app-widget-active-leaderboard-members
         v-if="!isPublicView"
@@ -15,6 +17,8 @@
 </template>
 
 <script setup>
+import AppWidgetActiveMembers from '@/modules/widget/components/v2/widget-active-members.vue'
+import AppWidgetTotalMembers from '@/modules/widget/components/v2/widget-total-members.vue'
 import AppWidgetActiveMembersArea from '@/modules/widget/components/v2/widget-active-members-area.vue'
 import AppWidgetActiveLeaderboardMembers from '@/modules/widget/components/v2/widget-active-leaderboard-members.vue'
 import {
