@@ -73,7 +73,9 @@ function _buildAttributeBlock(attribute) {
   } else if (attribute.name === 'activityTypes') {
     return {
       activityTypes: {
-        overlap: [`${attribute.value.key}:${attribute.value.value}`]
+        overlap: [
+          `${attribute.value.key}:${attribute.value.value}`
+        ]
       }
     }
   } else if (attribute.name === 'search') {

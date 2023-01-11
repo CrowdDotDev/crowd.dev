@@ -105,11 +105,15 @@ const fields = {
     label('activityCount'),
     { filterable: true }
   ),
-  activityTypes: new ActivityTypeField('activityTypes', label('activityTypes'), {
-    required: true,
-    filterable: true,
-    fromMembers: true
-  }),
+  activityTypes: new ActivityTypeField(
+    'activityTypes',
+    label('activityTypes'),
+    {
+      required: true,
+      filterable: true,
+      fromMembers: true
+    }
+  ),
   engagementLevel: new MemberEngagementLevelField(
     'score',
     'Engagement level',

@@ -49,12 +49,17 @@ export default class ActivityTypeField extends JSONField {
           key: 'discord',
           value: 'Discord'
         },
-        nestedOptions: activityTypesJson.discord.map(
-          (activity) => ({
+        nestedOptions: activityTypesJson.discord
+          .map((activity) => ({
             value: activity,
             label: en.entities.activity.discord[activity]
-          })
-        ).filter((option) => !['replied_thread', 'replied'].includes(option.value))
+          }))
+          .filter(
+            (option) =>
+              !['replied_thread', 'replied'].includes(
+                option.value
+              )
+          )
       },
       {
         label: {
