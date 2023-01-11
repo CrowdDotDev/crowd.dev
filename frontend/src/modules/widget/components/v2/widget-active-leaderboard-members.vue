@@ -99,15 +99,24 @@ const getActiveMembers = async (selectedPeriod) => {
   try {
     const response = await MemberService.list(
       {
-        lastActive: {
-          gte: moment()
-            .utc()
-            .subtract(
-              selectedPeriod.value,
-              selectedPeriod.granularity
-            )
-            .toISOString()
-        }
+        and: [
+          {
+            lastActive: {
+              gte: moment()
+                .utc()
+                .subtract(
+                  selectedPeriod.value,
+                  selectedPeriod.granularity
+                )
+                .toISOString()
+            }
+          },
+          {
+            isTeamMember: {
+              not: true
+            }
+          }
+        ]
       },
       'activeDaysCount_DESC',
       10,
