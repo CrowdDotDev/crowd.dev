@@ -61,12 +61,12 @@ import { QueryRenderer } from '@cubejs-client/vue3'
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 import { chartOptions } from '@/modules/report/templates/template-report-charts'
 
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi'
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title'
-import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period'
-import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error'
+import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue'
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
+import AppWidgetArea from '@/modules/widget/components/v2/shared/widget-area.vue'
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
@@ -86,12 +86,20 @@ const datasets = [
 
 const { cubejsApi } = mapGetters('widget')
 const query = computed(() => {
+  let granularity = 'day'
+
+  if (period.value.granularity === 'month') {
+    granularity = 'week'
+  } else if (period.value.granularity === 'year') {
+    granularity = 'month'
+  }
+
   return {
     measures: ['Members.cumulativeCount'],
     timeDimensions: [
       {
         dimension: 'Members.joinedAt',
-        granularity: 'day',
+        granularity: granularity,
         dateRange: dateRange(period)
       }
     ],
