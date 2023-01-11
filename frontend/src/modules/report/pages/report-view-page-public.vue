@@ -7,14 +7,22 @@
     ></div>
     <div v-else>
       <div
-        class="mb-4 h-16 flex items-center flex-shrink-0 sticky top-0 inset-x-0 z-10 bg-gray-50 shadow-sm"
+        class="mb-4 flex items-center flex-shrink-0 sticky top-0 inset-x-0 z-10 bg-gray-50 shadow-sm"
       >
         <div
           class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8"
         >
-          <h1 class="text-lg font-semibold">
-            {{ report.name }}
-          </h1>
+          <div class="mb-6 mt-4">
+            <div
+              v-if="currentTenant.name"
+              class="font-medium text-brand-500 text-sm mb-2"
+            >
+              {{ currentTenant.name }}
+            </div>
+            <h1 class="text-lg font-semibold">
+              {{ report.name }}
+            </h1>
+          </div>
           <div
             v-if="!tenantId && !report.isTemplate"
             class="flex items-center"
@@ -136,7 +144,8 @@ export default {
   computed: {
     ...mapGetters({
       reportFind: 'report/find',
-      loading: 'report/loading'
+      loading: 'report/loading',
+      currentTenant: 'auth/currentTenant'
     }),
     report() {
       return this.reportFind(this.id)

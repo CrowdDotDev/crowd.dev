@@ -1,6 +1,8 @@
 <template>
   <div class="hover:cursor-pointer" @click="onClick">
-    <div class="bg-white p-5 rounded-lg shadow">
+    <div
+      class="bg-white p-5 rounded-lg shadow hover:shadow-md"
+    >
       <div class="flex items-center justify-between mb-8">
         <div
           class="rounded-md h-10 w-10 flex items-center justify-center"
