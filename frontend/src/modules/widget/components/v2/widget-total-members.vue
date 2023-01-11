@@ -70,9 +70,7 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error'
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
-const customChartOptions = {
-  ...chartOptions('area')
-}
+const customChartOptions = cloneDeep(chartOptions('area'))
 customChartOptions.library.plugins.legend = {}
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
@@ -123,14 +121,14 @@ const dateRange = (period) => {
 }
 
 const kpiCurrentValue = (resultSet) => {
-  const data = resultSet.loadResponses[0].data
+  const data = resultSet.chartPivot()
   return Number(
     data[data.length - 1]['Members.cumulativeCount']
   )
 }
 
 const kpiPreviousValue = (resultSet) => {
-  const data = resultSet.loadResponses[0].data
+  const data = resultSet.chartPivot()
   return Number(data[0]['Members.cumulativeCount'])
 }
 

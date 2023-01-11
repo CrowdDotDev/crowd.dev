@@ -133,6 +133,7 @@ const query = (period, granularity) => {
 
 const kpiCurrentValue = (resultSet) => {
   if (resultSet.loadResponses[0].data.length === 0) {
+    // if we get an empty data points array from cube
     return 0
   }
   const pivot = resultSet.chartPivot()
@@ -141,6 +142,7 @@ const kpiCurrentValue = (resultSet) => {
 
 const kpiPreviousValue = (resultSet) => {
   if (resultSet.loadResponses[0].data.length === 0) {
+    // if we get an empty data points array from cube
     return 0
   }
   const pivot = resultSet.chartPivot()
