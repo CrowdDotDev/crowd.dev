@@ -627,7 +627,7 @@ class MemberRepository {
           advancedFilter.and.push({
             activityTypes: {
               overlap: filter.activityTypes.split(','),
-            }
+            },
           })
         }
 
