@@ -89,7 +89,7 @@ const granularity = ref(DAILY_GRANULARITY_FILTER)
 
 const datasets = computed(() => [
   {
-    name: 'Total members',
+    name: 'Total active members',
     borderColor: '#E94F2E',
     measure: 'Members.count',
     granularity: granularity.value.value
