@@ -22,7 +22,7 @@
         <div class="mb-2">
           <app-pagination-sorter
             :page-size="Number(pagination.pageSize)"
-            :total="count"
+            :total="computedCount"
             :current-page="pagination.currentPage"
             :has-page-counter="false"
             module="report"
@@ -106,7 +106,7 @@
 
             <div v-if="!!count" class="mt-8 px-6">
               <app-pagination
-                :total="count"
+                :total="computedCount"
                 :page-size="Number(pagination.pageSize)"
                 :current-page="pagination.currentPage || 1"
                 module="report"
@@ -156,6 +156,17 @@ const computedRows = computed(() => {
   }
 
   return rows.value.filter((r) => !r.isTemplate)
+})
+
+const computedCount = computed(() => {
+  if (loading.value) {
+    return 0
+  }
+
+  return (
+    count.value -
+    rows.value.filter((r) => r.isTemplate).length
+  )
 })
 
 const selectedRows = computed(

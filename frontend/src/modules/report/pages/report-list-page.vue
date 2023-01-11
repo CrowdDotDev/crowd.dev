@@ -22,7 +22,7 @@
       <div
         class="text-gray-900 font-semibold text-base mb-6"
       >
-        Template reports
+        Default reports
       </div>
 
       <div class="grid grid-cols-3">
@@ -33,16 +33,23 @@
         />
       </div>
 
-      <el-divider class="!mb-6 !mt-14 border-gray-200" />
+      <el-divider
+        v-if="customReportsCount"
+        class="!mb-6 !mt-14 border-gray-200"
+      />
     </div>
 
     <!-- Custom Reports -->
-    <div class="text-gray-900 font-semibold text-base mb-6">
-      Custom reports
+    <div v-if="customReportsCount">
+      <div
+        class="text-gray-900 font-semibold text-base mb-6"
+      >
+        Custom reports
+      </div>
+      <app-report-list-table
+        @cta-click="isCreatingReport = true"
+      ></app-report-list-table>
     </div>
-    <app-report-list-table
-      @cta-click="isCreatingReport = true"
-    ></app-report-list-table>
     <app-report-create-dialog
       v-model="isCreatingReport"
     ></app-report-create-dialog>
@@ -108,6 +115,9 @@ export default {
           id: rowTemplate?.id
         }
       })
+    },
+    customReportsCount() {
+      return this.count - this.computedTemplates.length
     }
   },
 

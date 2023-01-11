@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <app-widget-title
         text-size="text-base"
-        description="All members who did at least one activity in your community and its evolution over time."
+        description="All members who did at least one activity in your community and its evolution over time"
         title="Total members"
         class="mb-5"
       />
