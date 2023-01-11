@@ -460,16 +460,12 @@ export default class IntegrationService {
       },
     })
 
-    const isOnboarding: boolean = !(
-      hashtags.length > 0 && lodash.isEqual(hashtags, integration.settings.hashtags)
-    )
-
     await sendNodeWorkerMessage(
       integration.tenantId,
       new NodeWorkerIntegrationProcessMessage(
         IntegrationType.TWITTER,
         integration.tenantId,
-        isOnboarding,
+        true,
         integration.id,
       ),
     )
