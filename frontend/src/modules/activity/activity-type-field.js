@@ -54,7 +54,7 @@ export default class ActivityTypeField extends JSONField {
             value: activity,
             label: en.entities.activity.discord[activity]
           })
-        )
+        ).filter((option) => !['replied_thread', 'replied'].includes(option.value))
       },
       {
         label: {
