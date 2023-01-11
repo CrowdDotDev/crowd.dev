@@ -1,5 +1,8 @@
 <template>
-  <el-dropdown trigger="click" placement="bottom-end"
+  <el-dropdown
+    trigger="click"
+    placement="bottom-end"
+    popper-class="share-report-dialog"
     ><el-button
       type="button"
       class="btn btn--transparent btn--md"
@@ -112,3 +115,9 @@ const handlePublicChange = async (value) => {
   })
 }
 </script>
+
+<style lang="scss">
+.share-report-dialog.el-dropdown__popper .el-scrollbar {
+  @apply overflow-hidden;
+}
+</style>
