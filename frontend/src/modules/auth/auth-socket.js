@@ -34,6 +34,14 @@ export const connectSocket = (token) => {
     console.log('Integration onboarding done', data)
     // TODO handle this data
   })
+
+  socketIoClient.on('tenant-plan-upgraded', (data) => {
+    console.log(
+      'Tenant plan is upgraded. Force a hard refresh!',
+      data
+    )
+    // TODO handle this data
+  })
 }
 
 export const disconnectSocket = () => {

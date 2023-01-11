@@ -1,23 +1,25 @@
 import moment from 'moment'
 import { PostHog } from 'posthog-node'
 import { Stripe } from 'stripe'
-import { POSTHOG_CONFIG } from '../../../config'
+import { POSTHOG_CONFIG, PLANS_CONFIG} from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import ensureFlagUpdated from '../../../feature-flags/ensureFlagUpdated'
 import setPosthogTenantProperties from '../../../feature-flags/setTenantProperties'
 import Plans from '../../../security/plans'
 import { FeatureFlag } from '../../../types/common'
+import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 import { createServiceChildLogger } from '../../../utils/logging'
 import { createRedisClient } from '../../../utils/redis'
+import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { NodeWorkerMessageType } from '../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
 const log = createServiceChildLogger('stripeWebhookWorker')
 
-const endpointSecret = 'whsec_Q3Bz7Be6uFgCNMiqFmCKcElEcfYcLqLm'
+const endpointSecret = PLANS_CONFIG.stripWebhookSigningSecret
 const stripe = new Stripe(
-  'sk_test_51KzyDHEIVdp1yPFhMIlcoa7adkWKPYjbdWdWMgnjVIG1VU22DIKlHtN9BaxqKFiOMPEtaazZuCE6njUR5WvU8jbI00JvwC5VDa',
+  PLANS_CONFIG.stripeSecretKey,
   { apiVersion: '2022-08-01', typescript: true },
 )
 
@@ -57,6 +59,9 @@ export const processWebhook = async (message: any) => {
   const redis = await createRedisClient(true)
   const posthog = new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 })
 
+  const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
+    log.error({ err }, 'Error in api-ws emitter!')
+  })
   const stripeWebhookMessage = message.event
 
   switch (stripeWebhookMessage.type) {
@@ -71,14 +76,7 @@ export const processWebhook = async (message: any) => {
         stripeWebhookMessage.data.object.subscription,
       )
 
-      log.info('Found subscription! ')
-      log.warn(subscription)
       const subscriptionEndsAt = subscription.current_period_end
-      log.warn('Logging current_period_end unix: ')
-      log.warn(subscriptionEndsAt)
-
-      log.warn('Logging current_period_end as isotime: ')
-      log.warn(moment(subscriptionEndsAt, 'X').toISOString())
       const tenantId = stripeWebhookMessage.data.object.client_reference_id
 
       const tenant = await options.database.tenant.findByPk(tenantId)
@@ -103,7 +101,19 @@ export const processWebhook = async (message: any) => {
           plan: Plans.values.growth,
         })
 
+        log.info('Emitting to redis pubsub for websocket forwarding from api..')
         // Send websocket message to frontend
+        apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'tenant-plan-upgraded',
+            JSON.stringify({ plan: Plans.values.growth, stripeSubscriptionId: stripeWebhookMessage.data.object.subscription}),
+            undefined,
+            tenantId,
+          ),
+        )
+        log.info('Done!')
+
       }
 
       break
