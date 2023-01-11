@@ -1,7 +1,5 @@
 import { Server as SocketServer } from 'socket.io'
 import { Server } from 'http'
-import { createAdapter } from '@socket.io/redis-adapter'
-import { IRedisPubSubPair } from '../../utils/redis'
 import { createServiceChildLogger, Logger } from '../../utils/logging'
 import WebSocketNamespace from './namespace'
 import { IAuthenticatedSocket } from './types'
@@ -11,12 +9,9 @@ export default class WebSockets {
 
   private readonly socketIo: SocketServer
 
-  public constructor(server: Server, redisPubSubPair: IRedisPubSubPair) {
+  public constructor(server: Server) {
     this.log = createServiceChildLogger('websockets')
     this.socketIo = new SocketServer(server)
-
-    const adapter = createAdapter(redisPubSubPair.pubClient, redisPubSubPair.subClient)
-    this.socketIo.adapter(adapter)
 
     this.log.info('Socket.IO server initialized!')
   }
@@ -27,9 +22,8 @@ export default class WebSockets {
 
   public static async initialize(
     server: Server,
-    redisPubSubPair: IRedisPubSubPair,
   ): Promise<WebSocketNamespace<IAuthenticatedSocket>> {
-    const websockets = new WebSockets(server, redisPubSubPair)
+    const websockets = new WebSockets(server)
     return websockets.authenticatedNamespace('/user')
   }
 }

@@ -8,7 +8,13 @@ export const connectSocket = (token) => {
     socketIoClient.disconnect()
   }
 
+  const path =
+    config.env === 'production' || config.env === 'staging'
+      ? '/api/socket.io'
+      : '/socket.io'
+
   socketIoClient = io(`${config.websocketsUrl}/user`, {
+    path,
     query: {
       token
     },

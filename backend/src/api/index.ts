@@ -33,7 +33,7 @@ setImmediate(async () => {
   const redis = await createRedisClient(true)
 
   const redisPubSubPair = await createRedisPubSubPair()
-  const userNamespace = await WebSockets.initialize(server, redisPubSubPair)
+  const userNamespace = await WebSockets.initialize(server)
 
   const pubSubReceiver = new RedisPubSubReceiver('api-pubsub', redisPubSubPair.subClient, (err) => {
     serviceLogger.error(err, 'Error while listening to Redis Pub/Sub api-ws channel!')
