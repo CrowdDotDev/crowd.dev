@@ -19,14 +19,7 @@ export default {
 </script>
 
 <script setup>
-import {
-  defineProps,
-  computed,
-  onMounted,
-  nextTick,
-  onUpdated,
-  ref
-} from 'vue'
+import { defineProps, computed, onMounted, ref } from 'vue'
 
 const componentType = 'area-chart'
 
@@ -60,12 +53,6 @@ const data = computed(() => {
 })
 
 onMounted(async () => {
-  await nextTick()
-
-  paintDataSet()
-})
-
-onUpdated(() => {
   paintDataSet()
 })
 
