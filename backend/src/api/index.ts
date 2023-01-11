@@ -118,16 +118,16 @@ setImmediate(async () => {
 
   app.use(
     bodyParser.json({
-      verify (req, res, buf) {
+      verify(req, res, buf) {
         const url = (<any>req).originalUrl
         if (url.startsWith('/webhooks/stripe')) {
           // Stripe Webhook needs the body raw in order
           // to validate the request
-          (<any>req).rawBody = buf.toString()
+          ;(<any>req).rawBody = buf.toString()
         }
       },
     }),
-   )
+  )
 
   // Configure the Entity routes
   const routes = express.Router()
