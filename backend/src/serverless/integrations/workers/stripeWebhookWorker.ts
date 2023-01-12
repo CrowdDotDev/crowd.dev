@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { PostHog } from 'posthog-node'
 import { Stripe } from 'stripe'
-import { POSTHOG_CONFIG } from '../../../config'
+import { PLANS_CONFIG, POSTHOG_CONFIG } from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
 import ensureFlagUpdated from '../../../feature-flags/ensureFlagUpdated'
 import setPosthogTenantProperties from '../../../feature-flags/setTenantProperties'
@@ -17,9 +17,8 @@ import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
 const log = createServiceChildLogger('stripeWebhookWorker')
 
-const endpointSecret = 'whsec_Q3Bz7Be6uFgCNMiqFmCKcElEcfYcLqLm'
 const stripe = new Stripe(
-  'sk_test_51KzyDHEIVdp1yPFhMIlcoa7adkWKPYjbdWdWMgnjVIG1VU22DIKlHtN9BaxqKFiOMPEtaazZuCE6njUR5WvU8jbI00JvwC5VDa',
+  PLANS_CONFIG.stripeSecretKey,
   { apiVersion: '2022-08-01', typescript: true },
 )
 
@@ -33,7 +32,7 @@ export default async function stripeWebhookWorker(req) {
   log.info(req.headers)
 
   try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret)
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, PLANS_CONFIG.stripWebhookSigningSecret)
     await sendNodeWorkerMessage(event.id, {
       type: NodeWorkerMessageType.NODE_MICROSERVICE,
       event,
