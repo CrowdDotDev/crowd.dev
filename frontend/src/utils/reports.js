@@ -75,7 +75,7 @@ export const parseTooltipBody = (context) => {
   } else if (currentPoint === 0) {
     percDiff = 100
   } else {
-    percDiff = (difference / currentPoint) * 100
+    percDiff = (difference / previousPoint) * 100
   }
 
   const date = moment(label)
