@@ -18,5 +18,6 @@ export enum IntegrationType {
   TWITTER = 'twitter',
   TWITTER_REACH = 'twitter-reach',
   HACKER_NEWS = 'hackernews',
+  LINKEDIN = 'linkedin',
   CROWD = 'crowd',
 }
