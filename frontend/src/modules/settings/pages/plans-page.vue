@@ -272,8 +272,10 @@ const handleOnCtaClick = (plan) => {
       '_blank'
     )
   } else {
-    isPlanModalOpen.value = true
-    planModalTitle.value = getCtaContent(plan)
+    console.log("weeeee")
+    onManageBillingClick()
+    // isPlanModalOpen.value = true
+    // planModalTitle.value = getCtaContent(plan)
   }
 }
 
