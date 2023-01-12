@@ -278,10 +278,7 @@ const handleOnCtaClick = (plan) => {
 }
 
 const onManageBillingClick = () => {
-  window.open(
-    'https://billing.stripe.com/p/login/fZedUl4oO70D98sdQQ',
-    '_blank'
-  )
+  window.open(config.stripe.customerPortalLink, '_blank')
 }
 
 const getTrialDate = () => {
