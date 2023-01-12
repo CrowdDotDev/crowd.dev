@@ -12,6 +12,7 @@ import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
 import { createServiceChildLogger } from '../../../utils/logging'
 import { createRedisClient } from '../../../utils/redis'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
+import { timeout } from '../../../utils/timing'
 import { NodeWorkerMessageType } from '../../types/workerTypes'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
@@ -94,6 +95,8 @@ export const processWebhook = async (message: any) => {
         })
 
         setPosthogTenantProperties(updated, posthog, options.database, redis)
+        
+        await timeout(2000)
 
         // Ensure a growth specific flag is available before sending websocket message
         await ensureFlagUpdated(FeatureFlag.ORGANIZATIONS, tenantId, posthog, {
@@ -101,6 +104,10 @@ export const processWebhook = async (message: any) => {
         })
 
         log.info('Emitting to redis pubsub for websocket forwarding from api..')
+
+        // Wait few more seconds to ensure redirect is completed
+        await timeout(3000)
+
         // Send websocket message to frontend
         apiPubSubEmitter.emit(
           'user',
