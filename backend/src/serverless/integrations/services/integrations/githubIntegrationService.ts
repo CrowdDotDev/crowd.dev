@@ -30,7 +30,8 @@ import getOrganization from '../../usecases/github/graphql/organizations'
 import { singleOrDefault } from '../../../../utils/arrays'
 import { AppTokenResponse, getAppToken } from '../../usecases/github/rest/getAppToken'
 import getMember from '../../usecases/github/graphql/members'
-import { createRedisClient, RedisCache } from '../../../../utils/redis'
+import { createRedisClient } from '../../../../utils/redis'
+import { RedisCache } from '../../../../utils/redis/redisCache'
 
 /* eslint class-methods-use-this: 0 */
 

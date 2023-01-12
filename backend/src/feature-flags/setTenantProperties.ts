@@ -3,7 +3,8 @@ import { PostHog } from 'posthog-node'
 import { API_CONFIG, POSTHOG_CONFIG } from '../config'
 import AutomationRepository from '../database/repositories/automationRepository'
 import { Edition } from '../types/common'
-import { RedisCache, RedisClient } from '../utils/redis'
+import { RedisClient } from '../utils/redis'
+import { RedisCache } from '../utils/redis/redisCache'
 
 export default async function setPosthogTenantProperties(
   tenant: any,

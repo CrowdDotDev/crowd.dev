@@ -4,6 +4,7 @@ import { IServiceOptions } from '../../services/IServiceOptions'
 import { Logger } from '../../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
+import { createRedisClient } from '../../utils/redis'
 
 export const processIntegrationCheck = async (
   msg: NodeWorkerIntegrationCheckMessage,
@@ -24,7 +25,9 @@ export const processIntegration = async (
   const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IServiceOptions
   options.log = messageLogger
 
-  const processor = new IntegrationProcessor(options)
+  const redisEmitter = await createRedisClient(true)
+
+  const processor = new IntegrationProcessor(options, redisEmitter)
 
   await processor.process(msg)
 }
