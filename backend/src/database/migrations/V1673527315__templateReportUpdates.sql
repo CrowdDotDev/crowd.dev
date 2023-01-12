@@ -6,6 +6,12 @@ create materialized view "memberActivityAggregatesMVs" as
 SELECT m.id,
        max(a."timestamp")                                                   AS "lastActive",
        count(a.id)                                                          AS "activityCount",
+              array_agg(
+        distinct (concat(a.platform,':',a.type))
+            ) filter (
+            where
+            a.platform is not null
+            )            AS "activityTypes",
        array_agg(DISTINCT a.platform) FILTER (WHERE a.platform IS NOT NULL) AS "activeOn",
        count(distinct a.timestamp::date)                                    AS "activeDaysCount",
        round(avg(
