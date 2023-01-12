@@ -76,6 +76,10 @@ const composedConfig = {
   posthog: {
     apiKey: 'CROWD_VUE_APP_POSTHOG_API_KEY',
     host: 'CROWD_VUE_APP_POSTHOG_HOST'
+  },
+  formbricks: {
+    url: 'CROWD_VUE_APP_FORMBRICKS_URL',
+    formId: 'CROWD_VUE_APP_FORMBRICKS_FORM_ID'
   }
 }
 
