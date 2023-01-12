@@ -72,7 +72,7 @@ export const parseTooltipBody = (context) => {
   // Calculate percentage of difference between both values
   if (currentPoint === 0 && difference === 0) {
     percDiff = 0
-  } else if (currentPoint === 0) {
+  } else if (currentPoint === 0 || previousPoint === 0) {
     percDiff = 100
   } else {
     percDiff = (difference / previousPoint) * 100
