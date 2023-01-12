@@ -49,7 +49,9 @@ const defaultConfig = {
       process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
     growthPlanPaymentLink:
       process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK ||
-      ''
+      '',
+    customerPortalLink:
+      process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
   }
 }
 
@@ -90,7 +92,9 @@ const composedConfig = {
     publishableKey:
       'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
     growthPlanPaymentLink:
-      'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || ''
+      'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
+    customerPortalLink:
+      'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
   }
 }
 
