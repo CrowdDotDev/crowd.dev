@@ -78,27 +78,29 @@ export const parseTooltipBody = (context) => {
     percDiff = (difference / currentPoint) * 100
   }
 
-  // For granularity DAY
-  // Show label as day (e.g Jan 12 )
   const date = moment(label)
-  let previousDate = date
-    .subtract(1, granularity)
-    .format('MMM DD')
+  let previousDate
 
   // For granularity WEEK
   // Show label as range between start and end of week
   // (e.g Nov 14 - Nov 20)
   if (granularity === 'week') {
-    const startDate = date
+    const startDate = moment(label)
       .subtract(7, 'day')
       .format('MMM DD')
-    const endDate = date.subtract(1, 'day').format('MMM DD')
+    const endDate = moment(label)
+      .subtract(1, 'day')
+      .format('MMM DD')
 
     previousDate = `${startDate} - ${endDate}`
     // For granularity MONTH
     // Show label as full month (e.g January)
   } else if (granularity === 'month') {
     previousDate = date.subtract(1, 'month').format('MMMM')
+    // For granularity DAY
+    // Show label as day (e.g Jan 12 )
+  } else {
+    previousDate = date.subtract(1, 'day').format('MMM DD')
   }
 
   return {
