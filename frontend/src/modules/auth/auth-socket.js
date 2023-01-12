@@ -40,7 +40,8 @@ export const connectSocket = (token) => {
       'Tenant plan is upgraded. Force a hard refresh!',
       data
     )
-    // TODO handle this data
+
+    window.location.reload()
   })
 }
 

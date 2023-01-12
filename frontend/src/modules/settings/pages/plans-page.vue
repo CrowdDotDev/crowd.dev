@@ -162,6 +162,10 @@ const currentTenant = computed(
   () => store.getters['auth/currentTenant']
 )
 
+const currentUser = computed(
+  () => store.getters['auth/currentUser']
+)
+
 const plansList = computed(() => {
   if (isCommunityVersion) {
     return plans.community
@@ -264,7 +268,7 @@ const handleOnCtaClick = (plan) => {
     // Growth plan
   } else if (plan === crowdHostedPlans.growth) {
     window.open(
-      'https://buy.stripe.com/4gw9E8c163K6fzW9AB',
+      `${config.stripe.growthPlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`,
       '_blank'
     )
   } else {
