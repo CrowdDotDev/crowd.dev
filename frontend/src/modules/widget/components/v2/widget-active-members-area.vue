@@ -52,6 +52,7 @@
           :chart-options="{
             ...chartOptions('area')
           }"
+          :granularity="granularity.value"
         />
       </div>
     </template>

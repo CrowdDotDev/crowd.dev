@@ -5,7 +5,7 @@
       ref="chart"
       :data="data"
       v-bind="{
-        ...chartOptions,
+        ...customChartOptions,
         dataset
       }"
     ></component>
@@ -20,6 +20,8 @@ export default {
 
 <script setup>
 import { defineProps, computed, onMounted, ref } from 'vue'
+import cloneDeep from 'lodash/cloneDeep'
+import { parseAxisLabel } from '@/utils/reports'
 
 const componentType = 'area-chart'
 
@@ -35,8 +37,21 @@ const props = defineProps({
   chartOptions: {
     type: Object,
     default: () => {}
+  },
+  granularity: {
+    type: String,
+    required: true
+  },
+  isGridMinMax: {
+    type: Boolean,
+    default: false
   }
 })
+
+const customChartOptions = cloneDeep(props.chartOptions)
+customChartOptions.library.scales.x.ticks.callback = (
+  value
+) => parseAxisLabel(value, props.granularity)
 
 const dataset = ref(null)
 
@@ -81,6 +96,12 @@ const series = (resultSet) => {
         p.x,
         p[`${prefix}${props.datasets[index].measure}`]
       ])
+
+      if (props.isGridMinMax) {
+        const maxValue = Math.max(...data.map((d) => d[1]))
+        customChartOptions.library.scales.y.ticks.stepSize =
+          maxValue
+      }
 
       series.push({
         name: props.datasets[index].name,

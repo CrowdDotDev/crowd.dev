@@ -45,6 +45,8 @@
                 :result-set="chartResultSet(resultSet)"
                 :datasets="datasets"
                 :chart-options="customChartOptions"
+                :granularity="granularity"
+                :is-grid-min-max="true"
               />
             </div>
           </div>
@@ -69,6 +71,7 @@ import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loadi
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { getTimeGranularityFromPeriod } from '@/utils/reports'
 
 const customChartOptions = cloneDeep(chartOptions('area'))
 customChartOptions.library.plugins.legend = {}
@@ -76,30 +79,29 @@ customChartOptions.library.plugins.legend = {}
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const platform = ref('all')
 
-const datasets = [
-  {
-    name: 'Total members',
-    borderColor: '#E94F2E',
-    measure: 'Members.cumulativeCount'
-  }
-]
+const granularity = computed(() =>
+  getTimeGranularityFromPeriod(period.value)
+)
+const datasets = computed(() => {
+  return [
+    {
+      name: 'Total members',
+      borderColor: '#E94F2E',
+      measure: 'Members.cumulativeCount',
+      granularity: granularity.value
+    }
+  ]
+})
 
 const { cubejsApi } = mapGetters('widget')
+
 const query = computed(() => {
-  let granularity = 'day'
-
-  if (period.value.granularity === 'month') {
-    granularity = 'week'
-  } else if (period.value.granularity === 'year') {
-    granularity = 'month'
-  }
-
   return {
     measures: ['Members.cumulativeCount'],
     timeDimensions: [
       {
         dimension: 'Members.joinedAt',
-        granularity: granularity,
+        granularity: granularity.value,
         dateRange: dateRange(period)
       }
     ],

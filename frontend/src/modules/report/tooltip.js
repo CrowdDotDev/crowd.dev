@@ -1,5 +1,3 @@
-import moment from 'moment'
-
 export const externalTooltipHandler = (context) => {
   // Tooltip Element
   const { tooltip } = context
@@ -25,9 +23,7 @@ export const externalTooltipHandler = (context) => {
     let innerHtml = '<thead>'
 
     titleLines.forEach(function (title) {
-      innerHtml += `<tr><th class="text-gray-500 text-xs font-normal">${moment(
-        title
-      ).format('MMM DD')}</th></tr>`
+      innerHtml += `<tr><th class="text-gray-500 text-xs font-normal">${title}</th></tr>`
     })
 
     innerHtml += '</thead><tbody>'

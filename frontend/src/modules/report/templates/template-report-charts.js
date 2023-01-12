@@ -1,5 +1,9 @@
 import { externalTooltipHandler } from '../tooltip'
-import moment from 'moment'
+import {
+  parseTooltipTitle,
+  formatTooltipTitle,
+  parseTooltipBody
+} from '@/utils/reports'
 
 const defaultChartOptions = {
   legend: false,
@@ -9,11 +13,21 @@ const defaultChartOptions = {
   colors: ['#E94F2E'],
   loading: 'Loading...',
   library: {
-    lineTension: 0.3,
+    lineTension: 0.25,
     scales: {
       x: {
+        type: 'time',
+        time: {
+          displayFormats: {
+            day: 'MMM DD, YYYY'
+          }
+        },
         ticks: {
-          color: '#9CA3AF'
+          color: '#9CA3AF',
+          font: {
+            family: 'Inter',
+            size: 10
+          }
         }
       },
       y: {
@@ -25,7 +39,11 @@ const defaultChartOptions = {
         },
         ticks: {
           color: '#9CA3AF',
-          padding: 8
+          padding: 8,
+          font: {
+            family: 'Inter',
+            size: 10
+          }
         }
       }
     },
@@ -39,44 +57,9 @@ const defaultChartOptions = {
         enabled: false,
         external: externalTooltipHandler,
         callbacks: {
-          label: (context) => {
-            return `
-              ${
-                context.dataset.data[context.dataIndex]
-              } ${context.dataset.label.toLowerCase()}
-            `
-          },
-          afterLabel: (context) => {
-            if (context.dataIndex === 0) {
-              return null
-            }
-
-            const currentPoint =
-              context.dataset.data[context.dataIndex]
-            const previousPoint =
-              context.dataset.data[context.dataIndex - 1]
-            const difference = currentPoint - previousPoint
-
-            let percDiff
-
-            if (currentPoint === 0 && difference === 0) {
-              percDiff = 0
-            } else if (currentPoint === 0) {
-              percDiff = 100
-            } else {
-              percDiff = (difference / currentPoint) * 100
-            }
-
-            return {
-              difference,
-              growth: percDiff.toLocaleString('fullwide', {
-                maximumFractionDigits: 0
-              }),
-              previousDate: moment(context.label)
-                .subtract(1, context.dataset.granularity)
-                .format('MMM DD')
-            }
-          }
+          title: parseTooltipTitle,
+          label: formatTooltipTitle,
+          afterLabel: parseTooltipBody
         }
       },
       legend: {
@@ -97,6 +80,10 @@ const defaultChartOptions = {
           }
         },
         labels: {
+          font: {
+            family: 'Inter',
+            size: 12
+          },
           usePointStyle: true,
           generateLabels: (chart) => {
             let visibility = []

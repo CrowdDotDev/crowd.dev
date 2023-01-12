@@ -115,6 +115,7 @@ import { mapGetters, mapActions } from 'vuex'
 import ReportGridLayout from '@/modules/report/components/report-grid-layout.vue'
 import AppReportMemberTemplate from '@/modules/report/pages/templates/report-member-template.vue'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import { TenantService } from '@/modules/tenant/tenant-service'
 
 export default {
   name: 'AppReportViewPage',
@@ -137,15 +138,15 @@ export default {
 
   data() {
     return {
-      loading: false
+      loading: false,
+      currentTenant: null
     }
   },
 
   computed: {
     ...mapGetters({
       reportFind: 'report/find',
-      loading: 'report/loading',
-      currentTenant: 'auth/currentTenant'
+      loading: 'report/loading'
     }),
     report() {
       return this.reportFind(this.id)
@@ -160,6 +161,9 @@ export default {
         id: this.id,
         tenantId: this.tenantId
       })
+      this.currentTenant = await TenantService.find(
+        this.tenantId
+      )
     } else {
       await this.doFind(this.id)
     }
