@@ -818,8 +818,6 @@ class MemberRepository {
       offset,
     })
 
-    console.log(parsed.having)
-
     let order = parsed.order
 
     if (customOrderBy.length > 0) {
