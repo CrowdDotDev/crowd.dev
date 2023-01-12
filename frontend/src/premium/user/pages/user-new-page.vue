@@ -50,7 +50,6 @@ export default {
         const response = await this.doAdd(payload.values)
         this.invitationToken = response[0].token
 
-        this.$emit('cancel')
       } catch (error) {
         console.log(error)
       }

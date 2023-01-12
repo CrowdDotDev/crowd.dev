@@ -40,6 +40,10 @@ const defaultConfig = {
   posthog: {
     apiKey: process.env.VUE_APP_POSTHOG_API_KEY,
     host: process.env.VUE_APP_POSTHOG_HOST
+  },
+  formbricks: {
+    url: process.env.VUE_APP_FORMBRICKS_URL,
+    formId: process.env.VUE_APP_FORMBRICKS_FORM_ID
   }
 }
 

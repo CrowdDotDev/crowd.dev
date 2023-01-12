@@ -38,7 +38,15 @@ export default class EagleEyeContentRepository {
       // If the content comes from a different kewword, we also add it
       if (!lodash.isEqual(data.keywords.sort(), existing.keywords.sort())) {
         const keywords = lodash.uniq([...existing.keywords, ...data.keywords])
-        const exactKeywords = lodash.uniq([...existing.exactKeywords, ...data.exactKeywords])
+        let exactKeywords = null
+        if (data.exactKeywords && !existing.exactKeywords) {
+          exactKeywords = data.exactKeywords
+        } else if (!data.exactKeywords && existing.exactKeywords) {
+          exactKeywords = existing.exactKeywords
+        }
+        if (data.exactKeywords && existing.exactKeywords) {
+          exactKeywords = lodash.uniq([...existing.exactKeywords, ...data.exactKeywords])
+        }
         const similarityScore = data.similarityScore
         return existing.update(
           {
