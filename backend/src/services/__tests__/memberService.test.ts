@@ -1708,6 +1708,7 @@ describe('MemberService tests', () => {
           ...member2.attributes,
         },
         activeOn: [activityCreated.platform],
+        activityTypes: [`${activityCreated.platform}:${activityCreated.type}`],
         email: null,
         score: -1,
         importHash: null,
@@ -2089,6 +2090,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.lastActivity
       delete returnedMember1.activeOn
       delete returnedMember1.identities
+      delete returnedMember1.activityTypes
 
       const existing = await memberService.memberExists(
         member1.username[PlatformType.GITHUB],
@@ -2184,6 +2186,7 @@ describe('MemberService tests', () => {
       delete returnedMember1.lastActivity
       delete returnedMember1.activeOn
       delete returnedMember1.identities
+      delete returnedMember1.activityTypes
 
       const existing = await memberService.memberExists(
         { [PlatformType.DISCORD]: 'some-other-username' },

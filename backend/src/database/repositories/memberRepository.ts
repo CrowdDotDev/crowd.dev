@@ -1051,7 +1051,7 @@ class MemberRepository {
 
     output.activityCount = output.activities.length
 
-    output.activityTypes = [...new Set(output.activities.map((i) => i.type))]
+    output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
 
     output.averageSentiment =
       output.activityCount > 0
