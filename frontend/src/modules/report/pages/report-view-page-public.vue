@@ -70,11 +70,16 @@
         >
           <div class="flex items-end">
             <div class="mr-2">Build your own with</div>
-            <img
-              src="/images/logo/crowd.svg"
-              class="block h-4"
-              alt="logo crowd.dev"
-            />
+            <a
+              href="https://www.crowd.dev/"
+              target="_blank"
+            >
+              <img
+                src="/images/logo/crowd.svg"
+                class="block h-4"
+                alt="logo crowd.dev"
+              />
+            </a>
           </div>
           <div class="flex items-center">
             <a
@@ -100,8 +105,9 @@
               Imprint
             </a>
             <div>
-              © Crowd&nbsp;Technologies GmbH 2022. All
-              rights reserved.
+              © Crowd&nbsp;Technologies GmbH
+              {{ new Date().getFullYear() }}. All rights
+              reserved.
             </div>
           </div>
         </div>

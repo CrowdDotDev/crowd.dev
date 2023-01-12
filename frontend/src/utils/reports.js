@@ -14,7 +14,7 @@ const parseDate = (date, granularity) => {
   // For granularity MONTH
   // Show label as full month (e.g January)
   if (granularity === 'month') {
-    return [date.format('MMMM, YYYY')]
+    return [date.format('MMMM YYYY')]
   } else if (granularity === 'week') {
     // For granularity WEEK
     // Show label as range between start and end of week
@@ -98,7 +98,7 @@ export const parseTooltipBody = (context) => {
   } else if (granularity === 'month') {
     previousDate = date
       .subtract(1, 'month')
-      .format('MMMM, YYYY')
+      .format('MMMM YYYY')
     // For granularity DAY
     // Show label as day (e.g Jan 12 )
   } else {

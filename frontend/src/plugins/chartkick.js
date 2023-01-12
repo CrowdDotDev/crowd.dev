@@ -34,18 +34,18 @@ import { h } from 'vue'
 const tooltipAnnotationLine = {
   id: 'tooltipAnnotationLine',
   beforeDraw: (chart) => {
-    if (chart.tooltip._active?.length) {
+    if (chart.tooltip?._active?.length) {
       const ctx = chart.ctx
 
       ctx.save()
 
       ctx.beginPath()
       ctx.moveTo(
-        chart.tooltip._active[0].element.x,
+        chart.tooltip?._active[0].element.x,
         chart.chartArea.top
       )
       ctx.lineTo(
-        chart.tooltip._active[0].element.x,
+        chart.tooltip?._active[0].element.x,
         chart.chartArea.bottom
       )
       ctx.lineWidth = 32
