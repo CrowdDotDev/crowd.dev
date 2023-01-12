@@ -433,6 +433,7 @@ describe('ConversationRepository tests', () => {
         'averageSentiment',
         'lastActive',
         'lastActivity',
+        'activityTypes',
         'noMerge',
         'notes',
         'organizations',
@@ -448,6 +449,7 @@ describe('ConversationRepository tests', () => {
           member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
             'activeOn',
             'identities',
+            'activityTypes',
           ]),
         },
         lastReplies: [
@@ -475,6 +477,7 @@ describe('ConversationRepository tests', () => {
           member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
             'activeOn',
             'identities',
+            'activityTypes',
           ]),
         },
         lastReplies: [
@@ -495,6 +498,7 @@ describe('ConversationRepository tests', () => {
           member: SequelizeTestUtils.objectWithoutKey(memberReturnedWithinConversations, [
             'activeOn',
             'identities',
+            'activityTypes',
           ]),
         },
         lastReplies: [

@@ -623,6 +623,14 @@ class MemberRepository {
           }
         }
 
+        if (filter.activityTypes) {
+          advancedFilter.and.push({
+            activityTypes: {
+              overlap: filter.activityTypes.split(','),
+            },
+          })
+        }
+
         if (filter.joinedAtRange) {
           const [start, end] = filter.joinedAtRange
           if (start !== undefined && start !== null && start !== '') {
@@ -724,6 +732,7 @@ class MemberRepository {
     }, [])
 
     const activityCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activityCount"`)
+    const activityTypes = Sequelize.literal(`"memberActivityAggregatesMVs"."activityTypes"`)
     const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
     const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
@@ -741,6 +750,7 @@ class MemberRepository {
         },
         aggregators: {
           activityCount,
+          activityTypes,
           lastActive,
           averageSentiment,
           activeOn,
@@ -844,6 +854,7 @@ class MemberRepository {
         [activeOn, 'activeOn'],
         [identities, 'identities'],
         [activityCount, 'activityCount'],
+        [activityTypes, 'activityTypes'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
@@ -858,6 +869,7 @@ class MemberRepository {
         'member.id',
         'memberActivityAggregatesMVs.activeOn',
         'memberActivityAggregatesMVs.activityCount',
+        'memberActivityAggregatesMVs.activityTypes',
         'memberActivityAggregatesMVs.lastActive',
         'memberActivityAggregatesMVs.averageSentiment',
         'toMerge.id',
@@ -1038,6 +1050,8 @@ class MemberRepository {
     output.identities = Object.keys(output.username)
 
     output.activityCount = output.activities.length
+
+    output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
 
     output.averageSentiment =
       output.activityCount > 0

@@ -49,7 +49,6 @@ export default {
       try {
         const response = await this.doAdd(payload.values)
         this.invitationToken = response[0].token
-
       } catch (error) {
         console.log(error)
       }
