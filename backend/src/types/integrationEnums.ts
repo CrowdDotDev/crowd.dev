@@ -6,6 +6,7 @@ export enum PlatformType {
   TWITTER = 'twitter',
   REDDIT = 'reddit',
   HACKERNEWS = 'hackernews',
+  LINKEDIN = 'linkedin',
   CROWD = 'crowd',
 }
 

@@ -2,6 +2,7 @@ import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
+import { ILinkedinOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config/index'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
@@ -14,6 +15,9 @@ import { getInstalledRepositories } from '../serverless/integrations/usecases/gi
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../types/mq/nodeWorkerIntegrationProcessMessage'
 import telemetryTrack from '../segment/telemetryTrack'
+import getToken from '../serverless/integrations/usecases/pizzly/getToken'
+import { getOrganizations } from '../serverless/integrations/usecases/linkedin/getOrganizations'
+import Error404 from '../errors/Error404'
 
 const discordToken = DISCORD_CONFIG.token2 || DISCORD_CONFIG.token
 
@@ -317,6 +321,109 @@ export default class IntegrationService {
         integration.id,
       ),
     )
+
+    return integration
+  }
+
+  async linkedinOnboard(organizationId) {
+    let integration
+    try {
+      integration = await IntegrationRepository.findByPlatform(PlatformType.LINKEDIN, {
+        ...this.options,
+      })
+    } catch (err) {
+      this.options.log.error(err, 'Error while fetching LinkedIn integration from DB!')
+      throw new Error404()
+    }
+
+    let valid = false
+    for (const org of integration.settings.organizations) {
+      if (org.id === organizationId) {
+        org.inUse = true
+        valid = true
+        break
+      }
+    }
+
+    if (!valid) {
+      this.options.log.error(`No organization with id ${organizationId} found!`)
+      throw new Error404(this.options.language, 'errors.linkedin.noOrganizationFound')
+    }
+
+    if (integration.status === 'pending-action') {
+      await this.createOrUpdate({
+        status: 'in-progress',
+        settings: integration.settings,
+      })
+
+      await sendNodeWorkerMessage(
+        integration.tenantId,
+        new NodeWorkerIntegrationProcessMessage(
+          IntegrationType.LINKEDIN,
+          integration.tenantId,
+          true,
+          integration.id,
+        ),
+      )
+    } else {
+      this.options.log.error('LinkedIn integration is not in pending-action status!')
+      throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
+    }
+  }
+
+  async linkedinConnect() {
+    const tenantId = this.options.currentTenant.id
+    const pizzlyId = `${tenantId}-${PlatformType.LINKEDIN}`
+
+    let token: string
+    try {
+      token = await getToken(pizzlyId, PlatformType.LINKEDIN, this.options.log)
+    } catch (err) {
+      this.options.log.error(err, 'Error while verifying LinkedIn tenant token in Pizzly!')
+      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
+    }
+
+    if (!token) {
+      throw new Error400(this.options.language, 'errors.noPizzlyToken.message')
+    }
+
+    // fetch organizations
+    let organizations: ILinkedinOrganization[]
+    try {
+      organizations = await getOrganizations(pizzlyId, PlatformType.LINKEDIN, this.options.log)
+    } catch (err) {
+      this.options.log.error(err, 'Error while fetching LinkedIn organizations!')
+      throw new Error400(this.options.language, 'errors.linkedin.noOrganization')
+    }
+
+    if (organizations.length === 0) {
+      this.options.log.error('No organization found for LinkedIn integration!')
+      throw new Error400(this.options.language, 'errors.linkedin.noOrganization')
+    }
+
+    let status = 'pending-action'
+    if (organizations.length === 1) {
+      status = 'in-progress'
+      organizations[0].inUse = true
+    }
+
+    const integration = await this.createOrUpdate({
+      platform: PlatformType.LINKEDIN,
+      settings: { organizations },
+      status,
+    })
+
+    if (status === 'in-progress') {
+      await sendNodeWorkerMessage(
+        integration.tenantId,
+        new NodeWorkerIntegrationProcessMessage(
+          IntegrationType.LINKEDIN,
+          integration.tenantId,
+          true,
+          integration.id,
+        ),
+      )
+    }
 
     return integration
   }
