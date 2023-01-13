@@ -87,6 +87,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         lastActive: null,
         averageSentiment: 0,
         lastActivity: null,
@@ -195,6 +196,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -333,6 +335,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -511,6 +514,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activeOn
       delete member1Returned.identities
       delete member1Returned.activityTypes
+      delete member1Returned.activeDaysCount
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -604,6 +608,7 @@ describe('MemberRepository tests', () => {
       delete member1Returned.activeOn
       delete member1Returned.identities
       delete member1Returned.activityTypes
+      delete member1Returned.activeDaysCount
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1312,6 +1317,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -1459,6 +1465,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -1554,6 +1561,7 @@ describe('MemberRepository tests', () => {
         notes: [],
         tasks: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,

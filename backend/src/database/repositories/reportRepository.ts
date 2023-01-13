@@ -20,7 +20,7 @@ class ReportRepository {
 
     const record = await options.database.report.create(
       {
-        ...lodash.pick(data, ['name', 'public', 'importHash']),
+        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate']),
 
         tenantId: tenant.id,
         createdById: currentUser.id,
@@ -61,7 +61,7 @@ class ReportRepository {
 
     record = await record.update(
       {
-        ...lodash.pick(data, ['name', 'public', 'importHash']),
+        ...lodash.pick(data, ['name', 'public', 'importHash', 'isTemplate']),
 
         updatedById: currentUser.id,
       },
@@ -194,6 +194,12 @@ class ReportRepository {
       if (filter.public !== undefined) {
         advancedFilter.and.push({
           public: filter.public,
+        })
+      }
+
+      if (filter.isTemplate !== undefined) {
+        advancedFilter.and.push({
+          isTemplate: filter.isTemplate,
         })
       }
 
