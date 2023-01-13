@@ -36,7 +36,10 @@
             #default="{ resultSet, loading, error }"
           >
             <!-- Loading -->
-            <app-widget-loading v-if="loading" type="kpi" />
+            <app-widget-loading
+              v-if="loading || !resultSet?.loadResponses"
+              type="kpi"
+            />
 
             <!-- Error -->
             <app-widget-error
@@ -148,6 +151,7 @@ const kpiPreviousValue = (resultSet) => {
   const pivot = resultSet.chartPivot()
   return Number(pivot[pivot.length - 2]['Members.count'])
 }
+
 const handleDrawerOpen = (period) => {
   drawerExpanded.value = period
 }
