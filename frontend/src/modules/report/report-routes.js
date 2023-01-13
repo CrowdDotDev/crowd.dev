@@ -7,6 +7,10 @@ const ReportFormPage = () =>
   import('@/modules/report/pages/report-form-page.vue')
 const ReportViewPage = () =>
   import('@/modules/report/pages/report-view-page.vue')
+const ReportTemplatePage = () =>
+  import(
+    '@/modules/report/pages/templates/report-template-page.vue'
+  )
 const ReportViewPagePublic = () =>
   import(
     '@/modules/report/pages/report-view-page-public.vue'
@@ -27,6 +31,16 @@ export default [
           auth: true,
           permission: Permissions.values.reportRead
         }
+      },
+      {
+        name: 'reportTemplate',
+        path: '/reports/template/:id',
+        component: ReportTemplatePage,
+        meta: {
+          auth: true,
+          permission: Permissions.values.reportRead
+        },
+        props: true
       },
       {
         name: 'reportEdit',
