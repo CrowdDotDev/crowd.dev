@@ -23,7 +23,10 @@
       >
         <template #default="{ resultSet, loading, error }">
           <!-- Loading -->
-          <app-widget-loading v-if="loading" size="small" />
+          <app-widget-loading
+            v-if="loading || !resultSet?.loadResponses"
+            size="small"
+          />
 
           <!-- Error -->
           <app-widget-error v-else-if="error" />
