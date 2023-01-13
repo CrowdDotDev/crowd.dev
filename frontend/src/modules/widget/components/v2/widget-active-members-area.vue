@@ -66,7 +66,7 @@ export default {
 </script>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, defineProps } from 'vue'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 import AppWidgetGranularity from '@/modules/widget/components/v2/shared/widget-granularity.vue'
@@ -84,6 +84,13 @@ import {
 } from '@/modules/widget/widget-queries'
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
+
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: null
+  }
+})
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const granularity = ref(DAILY_GRANULARITY_FILTER)
@@ -103,16 +110,21 @@ const datasets = computed(() => [
     granularity: granularity.value.value
   }
 ])
+
 const query = computed(() => {
   return [
-    TOTAL_ACTIVE_MEMBERS_QUERY(
-      period.value,
-      granularity.value
-    ),
-    TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY(
-      period.value,
-      granularity.value
-    )
+    TOTAL_ACTIVE_MEMBERS_QUERY({
+      period: period.value,
+      granularity: granularity.value,
+      selectedPlatforms: props.filters.platform.value,
+      selectedHasTeamMembers: props.filters.teamMembers
+    }),
+    TOTAL_ACTIVE_RETURNING_MEMBERS_QUERY({
+      period: period.value,
+      granularity: granularity.value,
+      selectedPlatforms: props.filters.platform.value,
+      selectedHasTeamMembers: props.filters.teamMembers
+    })
   ]
 })
 

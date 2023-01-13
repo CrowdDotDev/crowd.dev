@@ -18,7 +18,10 @@
     ></div>
     <div v-else>
       <div
-        v-if="!model.widgets || model.widgets.length === 0"
+        v-if="
+          (!model.widgets || model.widgets.length === 0) &&
+          !isPublicView
+        "
         class="text-black flex flex-col items-center justify-center rounded border border-dashed border-gray-200 p-12 mx-4 my-8"
       >
         <i
@@ -140,6 +143,10 @@ export default {
       default: () => {}
     },
     editable: {
+      type: Boolean,
+      default: false
+    },
+    isPublicView: {
       type: Boolean,
       default: false
     }
