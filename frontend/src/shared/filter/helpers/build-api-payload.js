@@ -70,6 +70,14 @@ function _buildAttributeBlock(attribute) {
         }
       ]
     }
+  } else if (attribute.name === 'activityTypes') {
+    return {
+      activityTypes: {
+        overlap: [
+          `${attribute.value.key}:${attribute.value.value}`
+        ]
+      }
+    }
   } else if (attribute.name === 'search') {
     return {
       or: attribute.fields.map((f) => {

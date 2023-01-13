@@ -2,7 +2,7 @@
   <el-container>
     <app-menu></app-menu>
     <el-container :style="elMainStyle">
-      <el-main class="relative">
+      <el-main id="main-page-wrapper" class="relative">
         <div :class="computedBannerWrapperClass">
           <banner
             v-if="shouldShowSampleDataAlert"

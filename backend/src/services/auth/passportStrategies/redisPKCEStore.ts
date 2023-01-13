@@ -2,7 +2,7 @@
 /* eslint-disable consistent-return */
 
 import { v4 as uuid } from 'uuid'
-import { RedisCache } from '../../../utils/redis'
+import { RedisCache } from '../../../utils/redis/redisCache'
 
 /**
  * This class is a re-implementation of

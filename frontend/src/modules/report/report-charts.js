@@ -159,8 +159,17 @@ export function chartOptions(widget, resultSet) {
 
   return {
     ...defaultChartOptions,
-    ...chartTypeOptions,
-    ...formatTooltipOptions
+    ...{
+      ...chartTypeOptions,
+      ...formatTooltipOptions,
+      library: {
+        ...chartTypeOptions.library,
+        plugins: {
+          ...chartTypeOptions?.library?.plugins,
+          tooltipAnnotationLine: false
+        }
+      }
+    }
   }
 }
 

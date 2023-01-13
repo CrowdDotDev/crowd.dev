@@ -24,71 +24,11 @@
             ><i class="ri-eye-line mr-2"></i>View
             report</router-link
           >
-          <el-dropdown
-            trigger="click"
-            placement="bottom-end"
-            ><el-button
-              type="button"
-              class="btn btn--transparent btn--md mr-4"
-            >
-              <i class="ri-share-line mr-2"></i>Share
-            </el-button>
-            <template #dropdown>
-              <div class="p-2 w-100">
-                <div
-                  class="flex items-start justify-between flex-grow"
-                >
-                  <div>
-                    <div
-                      class="font-medium text-gray-900 text-sm"
-                    >
-                      Publish report
-                    </div>
-                    <div class="text-gray-500 text-2xs">
-                      Publish to web and share with everyone
-                    </div>
-                  </div>
-                  <div>
-                    <el-switch
-                      v-model="isPublic"
-                      @change="handlePublicChange"
-                    />
-                  </div>
-                </div>
-                <div class="mt-6 relative">
-                  <div
-                    v-if="!isPublic"
-                    class="absolute inset-0 bg-gray-50 opacity-60 z-10 -m-6"
-                  ></div>
-                  <div
-                    class="font-medium text-gray-900 text-sm"
-                  >
-                    Shareable link
-                  </div>
-                  <el-input
-                    :value="computedPublicLink"
-                    :disabled="!isPublic"
-                  >
-                    <template #append>
-                      <el-tooltip
-                        content="Copy to clipboard"
-                        placement="top"
-                      >
-                        <el-button
-                          class="append-icon"
-                          @click="
-                            copyPublicLinkToClipboard()
-                          "
-                        >
-                          <i class="ri-file-copy-line"></i>
-                        </el-button>
-                      </el-tooltip>
-                    </template>
-                  </el-input>
-                </div>
-              </div>
-            </template>
-          </el-dropdown>
+          <app-report-share-button
+            :id="record.id"
+            v-model="isPublic"
+            class="mr-4"
+          />
           <app-report-dropdown
             :report="record"
             :show-view-report="false"
@@ -109,15 +49,15 @@
 import { mapActions, mapGetters } from 'vuex'
 import AppReportForm from '@/modules/report/components/report-form.vue'
 import AppReportDropdown from '@/modules/report/components/report-dropdown.vue'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import Message from '@/shared/message/message'
+import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
 
 export default {
   name: 'AppReportFormPage',
 
   components: {
     AppReportForm,
-    AppReportDropdown
+    AppReportDropdown,
+    AppReportShareButton
   },
 
   props: {
@@ -141,10 +81,6 @@ export default {
     ...mapGetters('report', ['find']),
     record() {
       return this.find(this.id)
-    },
-    computedPublicLink() {
-      const tenantId = AuthCurrentTenant.get()
-      return `${window.location.origin}/tenant/${tenantId}/reports/${this.record.id}/public`
     }
   },
 
@@ -158,30 +94,11 @@ export default {
   methods: {
     ...mapActions({
       doFind: 'report/doFind',
-      doUpdate: 'report/doUpdate',
       doCreate: 'report/doCreate'
     }),
 
     doCancel() {
       this.$router.push('/reports')
-    },
-
-    async handlePublicChange() {
-      await this.doUpdate({
-        id: this.record.id,
-        values: {
-          public: this.isPublic
-        }
-      })
-    },
-
-    async copyPublicLinkToClipboard() {
-      await navigator.clipboard.writeText(
-        this.computedPublicLink
-      )
-      Message.success(
-        'Report URL successfully copied to your clipboard'
-      )
     }
   }
 }

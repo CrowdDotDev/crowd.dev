@@ -33,15 +33,20 @@ import { API_CONFIG } from '../../../config'
 import EmailSender from '../../../services/emailSender'
 import UserRepository from '../../../database/repositories/userRepository'
 import { i18n } from '../../../i18n'
+import { IRedisPubSubEmitter, RedisClient } from '../../../utils/redis'
+import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
+import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 
 const MAX_STREAM_RETRIES = 5
 
 export class IntegrationProcessor extends LoggingBase {
   private readonly integrationServices: IntegrationServiceBase[]
 
+  private readonly apiPubSubEmitter?: IRedisPubSubEmitter
+
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
 
-  constructor(options: IServiceOptions) {
+  constructor(options: IServiceOptions, redisEmitterClient?: RedisClient) {
     super(options)
 
     this.integrationServices = [
@@ -76,6 +81,12 @@ export class IntegrationProcessor extends LoggingBase {
       { supportedIntegrations: this.integrationServices.map((i) => i.type) },
       'Successfully detected supported integrations!',
     )
+
+    if (redisEmitterClient) {
+      this.apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redisEmitterClient, (err) => {
+        this.log.error({ err }, 'Error in api-ws emitter!')
+      })
+    }
   }
 
   async processTick() {
@@ -509,6 +520,18 @@ export class IntegrationProcessor extends LoggingBase {
         },
         userContext,
       )
+
+      if (req.onboarding && this.apiPubSubEmitter) {
+        this.apiPubSubEmitter.emit(
+          'user',
+          new ApiWebsocketMessage(
+            'integration-completed',
+            JSON.stringify({ integrationId: integration.id, status: setError ? 'error' : 'done' }),
+            undefined,
+            integration.tenantId,
+          ),
+        )
+      }
     }
   }
 }

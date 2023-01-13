@@ -34,6 +34,12 @@ export const formatNumber = (number) => {
   return number.toLocaleString('en-US')
 }
 
+export const formatPercentage = (percentage) => {
+  return `${Math.ceil(
+    percentage < 0 ? percentage * -1 : percentage
+  )} %`
+}
+
 export const formatNumberToRange = (number) => {
   if (!number) {
     return '-'

@@ -80,12 +80,14 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         activeOn: [],
+        activityTypes: [],
         reach: { total: -1 },
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         tags: [],
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         lastActive: null,
         averageSentiment: 0,
         lastActivity: null,
@@ -185,6 +187,7 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         activeOn: [],
+        activityTypes: [],
         reach: { total: -1 },
         joinedAt: new Date('2020-05-27T15:13:30Z'),
         notes: [],
@@ -193,6 +196,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -322,6 +326,7 @@ describe('MemberRepository tests', () => {
         updatedById: mockIRepositoryOptions.currentUser.id,
         activities: [],
         activeOn: [],
+        activityTypes: [],
         reach: { total: -1 },
         notes: [],
         tasks: [],
@@ -330,6 +335,7 @@ describe('MemberRepository tests', () => {
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -507,6 +513,8 @@ describe('MemberRepository tests', () => {
       delete member1Returned.lastActivity
       delete member1Returned.activeOn
       delete member1Returned.identities
+      delete member1Returned.activityTypes
+      delete member1Returned.activeDaysCount
 
       const found = await MemberRepository.findOne(
         { email: 'joan@crowd.dev' },
@@ -599,6 +607,8 @@ describe('MemberRepository tests', () => {
       delete member1Returned.lastActivity
       delete member1Returned.activeOn
       delete member1Returned.identities
+      delete member1Returned.activityTypes
+      delete member1Returned.activeDaysCount
 
       const found = await MemberRepository.memberExists(
         'test1',
@@ -1301,11 +1311,13 @@ describe('MemberRepository tests', () => {
         notes: [],
         tasks: [],
         activeOn: [],
+        activityTypes: [],
         joinedAt: new Date(updateFields.joinedAt),
         tags: [],
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -1447,11 +1459,13 @@ describe('MemberRepository tests', () => {
         notes: [],
         tasks: [],
         activeOn: [],
+        activityTypes: [],
         joinedAt: new Date(member1.joinedAt),
         tags: [tag1Plain, tag2Plain],
         noMerge: [],
         toMerge: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,
@@ -1522,6 +1536,7 @@ describe('MemberRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         activeOn: [],
+        activityTypes: [],
         activities: [],
         reach: { total: -1 },
         joinedAt: new Date(member1.joinedAt),
@@ -1546,6 +1561,7 @@ describe('MemberRepository tests', () => {
         notes: [],
         tasks: [],
         activityCount: 0,
+        activeDaysCount: 0,
         averageSentiment: 0,
         lastActive: null,
         lastActivity: null,

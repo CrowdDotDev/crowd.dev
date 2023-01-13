@@ -17,6 +17,7 @@ const defaultConfig = {
     protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
   },
   backendUrl: process.env.VUE_APP_BACKEND_URL,
+  websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
   stripePublishableKey:
@@ -53,6 +54,7 @@ const composedConfig = {
     protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
   },
   backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
+  websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,
   stripePublishableKey:
@@ -76,6 +78,10 @@ const composedConfig = {
   posthog: {
     apiKey: 'CROWD_VUE_APP_POSTHOG_API_KEY',
     host: 'CROWD_VUE_APP_POSTHOG_HOST'
+  },
+  formbricks: {
+    url: 'CROWD_VUE_APP_FORMBRICKS_URL',
+    formId: 'CROWD_VUE_APP_FORMBRICKS_FORM_ID'
   }
 }
 

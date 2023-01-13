@@ -38,7 +38,12 @@ export const chartOptions = {
 function dateRange(period) {
   const end = moment().utc().endOf('day')
   const start = moment()
-    .subtract(period - 1, 'day')
+    .subtract(
+      period.granularity === 'day'
+        ? period.value - 1
+        : period.value,
+      period.granularity
+    )
     .utc()
     .startOf('day')
   return [start, end]

@@ -1,9 +1,13 @@
 <template>
   <div class="flex">
-    <svg v-bind="$attrs">
+    <svg
+      v-bind="$attrs"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
+    >
       <use
         :href="`/icons/crowd-icons.svg?#${name}`"
-        fill="#9CA3AF"
+        :fill="isHovered && hoverColor ? hoverColor : color"
       />
     </svg>
   </div>
@@ -16,6 +20,19 @@ export default {
     name: {
       type: String,
       required: true
+    },
+    color: {
+      type: String,
+      default: '#9CA3AF'
+    },
+    hoverColor: {
+      type: String,
+      default: null
+    }
+  },
+  data() {
+    return {
+      isHovered: false
     }
   }
 }

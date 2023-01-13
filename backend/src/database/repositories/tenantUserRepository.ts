@@ -4,6 +4,19 @@ import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
 
 export default class TenantUserRepository {
+  static async findByTenant(tenantId: string, options: IRepositoryOptions): Promise<any[]> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const records = await options.database.tenantUser.findAll({
+      where: {
+        tenantId,
+      },
+      transaction,
+    })
+
+    return records
+  }
+
   static async findByTenantAndUser(tenantId, userId, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 

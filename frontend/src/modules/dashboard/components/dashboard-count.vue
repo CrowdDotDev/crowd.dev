@@ -91,7 +91,12 @@ export default {
         moment()
           .utc()
           .startOf('day')
-          .subtract(this.period - 1, 'd')
+          .subtract(
+            this.period.granularity === 'day'
+              ? this.period.value - 1
+              : this.period.value,
+            this.period.granularity
+          )
           .toISOString(),
         moment().utc().endOf('day').toISOString()
       ]
@@ -101,15 +106,30 @@ export default {
         moment()
           .utc()
           .startOf('day')
-          .subtract(this.period - 1, 'd')
+          .subtract(
+            this.period.granularity === 'day'
+              ? this.period.value - 1
+              : this.period.value,
+            this.period.granularity
+          )
           .subtract(1, 'ms')
           .startOf('day')
-          .subtract(this.period - 1, 'd')
+          .subtract(
+            this.period.granularity === 'day'
+              ? this.period.value - 1
+              : this.period.value,
+            this.period.granularity
+          )
           .toISOString(),
         moment()
           .utc()
           .startOf('day')
-          .subtract(this.period - 1, 'd')
+          .subtract(
+            this.period.granularity === 'day'
+              ? this.period.value - 1
+              : this.period.value,
+            this.period.granularity
+          )
           .subtract(1, 'ms')
           .toISOString()
       ]
