@@ -240,7 +240,7 @@ const getCtaContent = (plan) => {
   ) {
     return `Downgrade to ${title}`
   } else {
-    return `Upgrage to ${title}`
+    return `Upgrade to ${title}`
   }
 }
 

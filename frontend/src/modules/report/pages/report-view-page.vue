@@ -1,8 +1,8 @@
 <template>
   <div class="report-view-page">
     <div
-      v-if="loading"
-      v-loading="loading"
+      v-if="computedLoading"
+      v-loading="computedLoading"
       class="app-page-spinner"
     ></div>
     <div v-else>
@@ -94,10 +94,13 @@ export default {
     ...mapGetters({
       menuCollapsed: 'layout/menuCollapsed',
       reportFind: 'report/find',
-      loading: 'report/loading'
+      reportLoading: 'report/loading'
     }),
     report() {
       return this.reportFind(this.id)
+    },
+    computedLoading() {
+      return this.reportLoading || this.loading
     }
   },
 

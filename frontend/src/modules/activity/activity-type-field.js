@@ -12,6 +12,7 @@ export default class ActivityTypeField extends JSONField {
     this.matches = config.matches
     this.filterable = config.filterable || false
     this.custom = config.custom || false
+    this.fromMembers = config.fromMembers || false
   }
 
   dropdownOptions() {
@@ -48,12 +49,17 @@ export default class ActivityTypeField extends JSONField {
           key: 'discord',
           value: 'Discord'
         },
-        nestedOptions: activityTypesJson.discord.map(
-          (activity) => ({
+        nestedOptions: activityTypesJson.discord
+          .map((activity) => ({
             value: activity,
             label: en.entities.activity.discord[activity]
-          })
-        )
+          }))
+          .filter(
+            (option) =>
+              !['replied_thread', 'replied'].includes(
+                option.value
+              )
+          )
       },
       {
         label: {
@@ -111,6 +117,22 @@ export default class ActivityTypeField extends JSONField {
   }
 
   forFilter() {
+    if (this.fromMembers) {
+      return {
+        name: this.name,
+        label: this.label,
+        custom: this.custom,
+        props: {
+          options: this.dropdownOptions(),
+          multiple: false
+        },
+        defaultValue: null,
+        value: (this.value || []).map((item) => item.value),
+        defaultOperator: 'overlap',
+        operator: 'overlap',
+        type: 'select-group'
+      }
+    }
     return {
       name: this.name,
       label: this.label,

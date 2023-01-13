@@ -12,6 +12,7 @@ import MemberEngagementLevelField from './member-engagement-level-field'
 import SearchField from '@/shared/fields/search-field'
 import MemberIdentitiesField from './member-identities-field'
 import SentimentField from '@/shared/fields/sentiment-field'
+import ActivityTypeField from '@/modules/activity/activity-type-field'
 
 function label(name) {
   return i18n(`entities.member.fields.${name}`)
@@ -103,6 +104,15 @@ const fields = {
     'activityCount',
     label('activityCount'),
     { filterable: true }
+  ),
+  activityTypes: new ActivityTypeField(
+    'activityTypes',
+    label('activityTypes'),
+    {
+      required: true,
+      filterable: true,
+      fromMembers: true
+    }
   ),
   engagementLevel: new MemberEngagementLevelField(
     'score',

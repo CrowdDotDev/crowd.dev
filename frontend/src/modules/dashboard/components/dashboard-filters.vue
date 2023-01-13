@@ -1,29 +1,10 @@
 <template>
   <div class="flex items-center py-6">
     <!-- period filters -->
-    <div class="flex text-xs text-gray-600">
-      <div
-        class="px-3 h-8 border border-gray-200 border-r-0 rounded-l-md flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
-        :class="periodStateClasses(7)"
-        @click="setPeriod(7)"
-      >
-        7D
-      </div>
-      <div
-        class="px-3 h-8 border border-gray-200 flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
-        :class="periodStateClasses(14)"
-        @click="setPeriod(14)"
-      >
-        14D
-      </div>
-      <div
-        class="px-3 h-8 border border-gray-200 border-l-0 rounded-r-md flex items-center justify-center transition hover:bg-gray-50 cursor-pointer"
-        :class="periodStateClasses(30)"
-        @click="setPeriod(30)"
-      >
-        30D
-      </div>
-    </div>
+    <app-widget-period
+      :period="period"
+      @on-update="setPeriod"
+    />
 
     <!-- platform filter -->
     <el-dropdown
@@ -75,9 +56,13 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
+import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 
 export default {
   name: 'AppDashboardFilters',
+  components: {
+    AppWidgetPeriod
+  },
   data() {
     return {
       platformDropdownOpen: false,
@@ -134,11 +119,6 @@ export default {
     }),
     platformDetails(platform) {
       return CrowdIntegrations.getConfig(platform)
-    },
-    periodStateClasses(period) {
-      return this.period === period
-        ? 'bg-gray-100 font-medium text-gray-900'
-        : 'bg-white'
     },
     setPeriod(period) {
       this.setFilters({

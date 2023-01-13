@@ -30,6 +30,7 @@ describe('ReportRepository tests', () => {
       const reportExpected = {
         id: reportCreated.id,
         public: false,
+        isTemplate: false,
         name: report2Add.name,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -62,6 +63,7 @@ describe('ReportRepository tests', () => {
         public: report2Add.public,
         name: report2Add.name,
         importHash: null,
+        isTemplate: false,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -117,6 +119,7 @@ describe('ReportRepository tests', () => {
         public: report2Add.public,
         name: report2Add.name,
         importHash: null,
+        isTemplate: false,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
@@ -159,6 +162,7 @@ describe('ReportRepository tests', () => {
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
         deletedAt: null,
+        isTemplate: false,
         tenantId: mockIRepositoryOptions.currentTenant.id,
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
@@ -244,7 +248,7 @@ describe('ReportRepository tests', () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       const report1 = await ReportRepository.create(
-        { name: 'test-report-1', public: true },
+        { name: 'test-report-1', public: true, isTemplate: false },
         mockIRepositoryOptions,
       )
       await new Promise((resolve) => {
@@ -252,7 +256,7 @@ describe('ReportRepository tests', () => {
       })
 
       const report2 = await ReportRepository.create(
-        { name: 'test-report-2', public: false },
+        { name: 'test-report-2', public: false, isTemplate: true },
         mockIRepositoryOptions,
       )
       await new Promise((resolve) => {
@@ -260,7 +264,7 @@ describe('ReportRepository tests', () => {
       })
 
       const report3 = await ReportRepository.create(
-        { name: 'another-report', public: false },
+        { name: 'another-report', public: false, isTemplate: true },
         mockIRepositoryOptions,
       )
 
@@ -329,6 +333,15 @@ describe('ReportRepository tests', () => {
 
       expect(reports.count).toEqual(1)
       expect(reports.rows).toStrictEqual([report1])
+
+      // filter by isTemplate
+      reports = await ReportRepository.findAndCountAll(
+        { filter: { isTemplate: false } },
+        mockIRepositoryOptions,
+      )
+
+      expect(reports.count).toEqual(1)
+      expect(reports.rows).toStrictEqual([report1])
     })
   })
 
@@ -371,6 +384,7 @@ describe('ReportRepository tests', () => {
         createdById: mockIRepositoryOptions.currentUser.id,
         updatedById: mockIRepositoryOptions.currentUser.id,
         widgets: [widgetRaw],
+        isTemplate: false,
       }
 
       expect(reportUpdated).toStrictEqual(reportExpected)

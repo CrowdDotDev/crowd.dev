@@ -21,6 +21,9 @@ export default (sequelize) => {
     activityCount: {
       type: DataTypes.INTEGER,
     },
+    activeDaysCount: {
+      type: DataTypes.INTEGER,
+    },
   })
 
   return memberActivityAggregatesMV

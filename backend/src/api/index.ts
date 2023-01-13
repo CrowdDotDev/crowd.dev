@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
 import { PostHog } from 'posthog-node'
+import * as http from 'http'
 import { authMiddleware } from '../middlewares/authMiddleware'
 import { tenantMiddleware } from '../middlewares/tenantMiddleware'
 import { databaseMiddleware } from '../middlewares/databaseMiddleware'
@@ -16,15 +17,40 @@ import { responseHandlerMiddleware } from '../middlewares/responseHandlerMiddlew
 import { errorMiddleware } from '../middlewares/errorMiddleware'
 import { passportStrategyMiddleware } from '../middlewares/passportStrategyMiddleware'
 import { redisMiddleware } from '../middlewares/redisMiddleware'
-import { createRedisClient } from '../utils/redis'
 import { POSTHOG_CONFIG } from '../config'
+import { createRedisClient, createRedisPubSubPair } from '../utils/redis'
+import WebSockets from './websockets'
+import RedisPubSubReceiver from '../utils/redis/pubSubReceiver'
+import { ApiWebsocketMessage } from '../types/mq/apiWebsocketMessage'
 
 const serviceLogger = createServiceLogger()
 
 const app = express()
 
+const server = http.createServer(app)
+
 setImmediate(async () => {
   const redis = await createRedisClient(true)
+
+  const redisPubSubPair = await createRedisPubSubPair()
+  const userNamespace = await WebSockets.initialize(server)
+
+  const pubSubReceiver = new RedisPubSubReceiver('api-pubsub', redisPubSubPair.subClient, (err) => {
+    serviceLogger.error(err, 'Error while listening to Redis Pub/Sub api-ws channel!')
+    process.exit(1)
+  })
+
+  pubSubReceiver.subscribe('user', async (message) => {
+    const data = message as ApiWebsocketMessage
+
+    if (data.tenantId) {
+      await userNamespace.emitForTenant(data.tenantId, data.event, data.data)
+    } else if (data.userId) {
+      userNamespace.emitToUserRoom(data.userId, data.event, data.data)
+    } else {
+      serviceLogger.error({ type: data.type }, 'Received invalid websocket message!')
+    }
+  })
 
   let posthog = null
 
@@ -151,4 +177,4 @@ setImmediate(async () => {
   app.use(io.expressErrorHandler())
 })
 
-export default app
+export default server

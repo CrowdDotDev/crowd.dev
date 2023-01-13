@@ -9,6 +9,10 @@ import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import { buildInitialState, store } from '@/store'
+import {
+  connectSocket,
+  disconnectSocket
+} from '@/modules/auth/auth-socket'
 
 export default {
   async doInit({ commit, dispatch }) {
@@ -16,12 +20,14 @@ export default {
     if (token) {
       return AuthService.fetchMe()
         .then((currentUser) => {
+          connectSocket(token)
           commit('AUTH_INIT_SUCCESS', { currentUser })
           ProgressBar.done()
           return currentUser
         })
         .catch((error) => {
           console.error(error)
+          disconnectSocket()
           commit('AUTH_INIT_ERROR')
           dispatch('doSignout')
           ProgressBar.done()
@@ -91,7 +97,7 @@ export default {
     )
       .then((token) => {
         AuthToken.set(token, true)
-
+        connectSocket(token)
         return AuthService.fetchMe()
       })
       .then((currentUser) => {

@@ -3,11 +3,12 @@ import { OrganizationService } from '@/modules/organization/organization-service
 import { ActivityService } from '@/modules/activity/activity-service'
 import { ConversationService } from '@/modules/conversation/conversation-service'
 import moment from 'moment'
+import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 
 export default {
   async reset({ dispatch }) {
     dispatch('setFilters', {
-      period: 7,
+      period: SEVEN_DAYS_PERIOD_FILTER,
       platform: 'all'
     })
   },
@@ -42,7 +43,12 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },
@@ -97,7 +103,12 @@ export default {
             timestamp: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },
@@ -153,7 +164,12 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },
@@ -193,7 +209,12 @@ export default {
             joinedAt: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },
@@ -251,7 +272,12 @@ export default {
             lastActive: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },
@@ -291,7 +317,12 @@ export default {
             joinedAt: {
               gte: moment()
                 .startOf('day')
-                .subtract(period - 1, 'day')
+                .subtract(
+                  period.granularity === 'day'
+                    ? period.value - 1
+                    : period.value,
+                  period.granularity
+                )
                 .toISOString()
             }
           },

@@ -13,6 +13,22 @@ cube(`Members`, {
       GROUP BY m.id`,
 
   preAggregations: {
+    MembersCumulative: {
+      measures: [Members.cumulativeCount],
+      dimensions: [
+        Members.score,
+        Members.location,
+        Members.tenantId,
+        Members.isTeamMember,
+        Members.isBot,
+      ],
+      timeDimension: Members.joinedAt,
+      granularity: `day`,
+      refreshKey: {
+        every: `10 minute`,
+      },
+    },
+
     ActiveMembers: {
       measures: [Members.count],
       dimensions: [
@@ -94,6 +110,13 @@ cube(`Members`, {
       type: 'avg',
       sql: `time_to_first_interaction`,
       shown: false,
+    },
+
+    cumulativeCount: {
+      type: `count`,
+      rollingWindow: {
+        trailing: `unbounded`,
+      },
     },
   },
 

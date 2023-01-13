@@ -484,6 +484,11 @@ class MemberRepository {
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
     )
+
+    customOrderBy = customOrderBy.concat(
+      SequelizeFilterUtils.customOrderByIfExists('activeDaysCount', orderBy),
+    )
+
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('lastActive', orderBy),
     )
@@ -623,6 +628,32 @@ class MemberRepository {
           }
         }
 
+        if (filter.activityTypes) {
+          advancedFilter.and.push({
+            activityTypes: {
+              overlap: filter.activityTypes.split(','),
+            },
+          })
+        }
+        if (filter.activeDaysCountRange) {
+          const [start, end] = filter.activeDaysCountRange
+          if (start !== undefined && start !== null && start !== '') {
+            advancedFilter.and.push({
+              activeDaysCount: {
+                gte: start,
+              },
+            })
+          }
+
+          if (end !== undefined && end !== null && end !== '') {
+            advancedFilter.and.push({
+              activeDaysCount: {
+                lte: end,
+              },
+            })
+          }
+        }
+
         if (filter.joinedAtRange) {
           const [start, end] = filter.joinedAtRange
           if (start !== undefined && start !== null && start !== '') {
@@ -724,6 +755,8 @@ class MemberRepository {
     }, [])
 
     const activityCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activityCount"`)
+    const activityTypes = Sequelize.literal(`"memberActivityAggregatesMVs"."activityTypes"`)
+    const activeDaysCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activeDaysCount"`)
     const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
     const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
@@ -741,6 +774,8 @@ class MemberRepository {
         },
         aggregators: {
           activityCount,
+          activityTypes,
+          activeDaysCount,
           lastActive,
           averageSentiment,
           activeOn,
@@ -844,6 +879,8 @@ class MemberRepository {
         [activeOn, 'activeOn'],
         [identities, 'identities'],
         [activityCount, 'activityCount'],
+        [activityTypes, 'activityTypes'],
+        [activeDaysCount, 'activeDaysCount'],
         [lastActive, 'lastActive'],
         [averageSentiment, 'averageSentiment'],
         [toMergeArray, 'toMergeIds'],
@@ -858,6 +895,8 @@ class MemberRepository {
         'member.id',
         'memberActivityAggregatesMVs.activeOn',
         'memberActivityAggregatesMVs.activityCount',
+        'memberActivityAggregatesMVs.activityTypes',
+        'memberActivityAggregatesMVs.activeDaysCount',
         'memberActivityAggregatesMVs.lastActive',
         'memberActivityAggregatesMVs.averageSentiment',
         'toMerge.id',
@@ -1038,6 +1077,24 @@ class MemberRepository {
     output.identities = Object.keys(output.username)
 
     output.activityCount = output.activities.length
+
+    output.activityTypes = [...new Set(output.activities.map((i) => `${i.platform}:${i.type}`))]
+    output.activeDaysCount =
+      output.activities.reduce((acc, activity) => {
+        if (!acc.datetimeHashmap) {
+          acc.datetimeHashmap = {}
+          acc.count = 0
+        }
+        // strip hours from timestamp
+        const date = activity.timestamp.toISOString().split('T')[0]
+
+        if (!acc.datetimeHashmap[date]) {
+          acc.count += 1
+          acc.datetimeHashmap[date] = true
+        }
+
+        return acc
+      }, {}).count ?? 0
 
     output.averageSentiment =
       output.activityCount > 0
