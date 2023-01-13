@@ -18,19 +18,14 @@ import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 
 const log = createServiceChildLogger('stripeWebhookWorker')
 
-const stripe = new Stripe(
-  PLANS_CONFIG.stripeSecretKey,
-  { apiVersion: '2022-08-01', typescript: true },
-)
+const stripe = new Stripe(PLANS_CONFIG.stripeSecretKey, {
+  apiVersion: '2022-08-01',
+  typescript: true,
+})
 
 export default async function stripeWebhookWorker(req) {
-  log.info('in stripe worker..')
-  log.info(req.body)
   const sig = req.headers['stripe-signature']
-  log.info('Logging sig from request: ')
-  log.info(sig)
   let event
-  log.info(req.headers)
 
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, sig, PLANS_CONFIG.stripWebhookSigningSecret)
@@ -95,7 +90,7 @@ export const processWebhook = async (message: any) => {
         })
 
         setPosthogTenantProperties(updated, posthog, options.database, redis)
-        
+
         await timeout(2000)
 
         // Ensure a growth specific flag is available before sending websocket message
@@ -113,13 +108,15 @@ export const processWebhook = async (message: any) => {
           'user',
           new ApiWebsocketMessage(
             'tenant-plan-upgraded',
-            JSON.stringify({ plan: Plans.values.growth, stripeSubscriptionId: stripeWebhookMessage.data.object.subscription}),
+            JSON.stringify({
+              plan: Plans.values.growth,
+              stripeSubscriptionId: stripeWebhookMessage.data.object.subscription,
+            }),
             undefined,
             tenantId,
           ),
         )
         log.info('Done!')
-
       }
 
       break
