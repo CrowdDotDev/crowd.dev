@@ -36,6 +36,7 @@ describe('MemberService tests', () => {
 
   describe('upsert method', () => {
     it('Should throw 400 error when platform does not exist in member data', async () => {
+      
       const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
 
       const mas = new MemberAttributeSettingsService(mockIServiceOptions)
