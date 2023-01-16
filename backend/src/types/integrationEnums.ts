@@ -7,6 +7,8 @@ export enum PlatformType {
   REDDIT = 'reddit',
   HACKERNEWS = 'hackernews',
   CROWD = 'crowd',
+  ENRICHMENT = 'enrichment',
+  LINKEDIN = 'linkedin',
 }
 
 export enum IntegrationType {

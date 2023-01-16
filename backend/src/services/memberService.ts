@@ -88,6 +88,7 @@ export default class MemberService extends LoggingBase {
             !MemberAttributeSettingsService.isCorrectType(
               attributes[attributeName][platform],
               memberAttributeSettings[attributeName].type,
+              { options: memberAttributeSettings[attributeName].options },
             )
           ) {
             throw new Error400(

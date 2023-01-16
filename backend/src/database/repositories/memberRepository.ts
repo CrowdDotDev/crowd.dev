@@ -476,6 +476,7 @@ class MemberRepository {
     const availableDynamicAttributePlatformKeys = [
       'default',
       'custom',
+      'enrichment',
       ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
         (p) => p.platform,
       ),
@@ -728,7 +729,13 @@ class MemberRepository {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
           )
-        } else {
+        } else if (attribute.type === AttributeType.MULTI_SELECT) {
+          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+            `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
+          )
+        }
+        
+        else {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `"member"."attributes"#>>'{${attribute.name},${key}}'`,
           )

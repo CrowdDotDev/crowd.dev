@@ -11,7 +11,7 @@ export default (sequelize) => {
         primaryKey: true,
       },
       type: {
-        type: DataTypes.ENUM,
+               type: DataTypes.ENUM,
         values: Object.values(AttributeType),
         allowNull: false,
       },
@@ -38,6 +38,11 @@ export default (sequelize) => {
         validate: {
           notEmpty: true,
         },
+      },
+      options: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: false,
+        defaultValue: [],
       },
     },
     {

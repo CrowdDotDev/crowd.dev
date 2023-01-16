@@ -4,6 +4,7 @@ import { AttributeType } from '../../attributes/types'
 export interface MemberAttributeSettingsCreateData {
   label: string
   type: AttributeType
+  options?: string[]
   name?: string
   show?: boolean
   canDelete?: boolean
