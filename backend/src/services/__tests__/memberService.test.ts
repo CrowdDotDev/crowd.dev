@@ -2656,8 +2656,18 @@ describe('MemberService tests', () => {
         show: true,
       }
 
+      const attribute3 = {
+        name: 'aMultiSelectAttribute',
+        label: 'A multi select Attribute',
+        options: ['a', 'b', 'c'],
+        type: AttributeType.MULTI_SELECT,
+        canDelete: true,
+        show: true,
+      }
+
       await mas.create(attribute1)
       await mas.create(attribute2)
+      await mas.create(attribute3)
 
       const member1 = {
         username: {
@@ -2671,6 +2681,10 @@ describe('MemberService tests', () => {
         attributes: {
           aDateAttribute: {
             custom: '2022-08-01T00:00:00',
+          },
+          aMultiSelectAttribute: {
+            custom: ['a', 'b'],
+            github: ['a'],
           },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
@@ -2718,6 +2732,10 @@ describe('MemberService tests', () => {
           aDateAttribute: {
             custom: '2022-08-06T00:00:00',
           },
+          aMultiSelectAttribute: {
+            custom: ['b', 'c'],
+            github: ['b'],
+          },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: true,
             [PlatformType.DISCORD]: true,
@@ -2763,6 +2781,10 @@ describe('MemberService tests', () => {
         attributes: {
           aDateAttribute: {
             custom: '2022-08-15T00:00:00',
+          },
+          aMultiSelectAttribute: {
+            custom: ['a', 'c'],
+            github: ['c'],
           },
           [MemberAttributeName.IS_HIREABLE]: {
             [PlatformType.GITHUB]: false,
@@ -2897,6 +2919,18 @@ describe('MemberService tests', () => {
 
       expect(members.count).toBe(2)
       expect(members.rows.map((i) => i.id)).toStrictEqual([member2Created.id, member1Created.id])
+
+      // filter by custom aMultiSelectAttribute
+      members = await ms.findAndCountAll({
+        advancedFilter: {
+          aMultiSelectAttribute: {
+            overlap: ['a'],
+          },
+        },
+        orderBy: 'createdAt_DESC',
+      })
+      expect(members.count).toBe(2)
+      expect(members.rows.map((i) => i.id)).toStrictEqual([member3Created.id, member1Created.id])
     })
   })
 })

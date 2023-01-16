@@ -799,6 +799,18 @@ describe('MemberAttributeSettingService tests', () => {
       expect(isCorrectType(true, AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType({}, AttributeType.NUMBER)).toBeFalsy()
       expect(isCorrectType([], AttributeType.NUMBER)).toBeFalsy()
+
+      // multiselect
+      expect(
+        isCorrectType(['a', 'b', 'c'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd']),
+      ).toBeTruthy()
+      expect(isCorrectType([], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd'])).toBeTruthy()
+      expect(isCorrectType(['a'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd'])).toBeTruthy()
+      expect(
+        isCorrectType(['a', '42'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd']),
+      ).toBeFalsy()
+      expect(isCorrectType('a', AttributeType.MULTI_SELECT, ['a', 'b', 'c'])).toBeFalsy()
+      expect(isCorrectType(5, AttributeType.MULTI_SELECT, ['a', 'b', 'c'])).toBeFalsy()
     })
   })
 })

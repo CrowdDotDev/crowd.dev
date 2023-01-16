@@ -733,9 +733,7 @@ class MemberRepository {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
           )
-        }
-        
-        else {
+        } else {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `"member"."attributes"#>>'{${attribute.name},${key}}'`,
           )

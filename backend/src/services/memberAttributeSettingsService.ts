@@ -68,19 +68,19 @@ export default class MemberAttributeSettingsService {
 
   static isMultiSelect(values, options) {
     // Type must be array
-   if (!Array.isArray(values)) {
-     return false
-   }
+    if (!Array.isArray(values)) {
+      return false
+    }
     // If empty array, it is valid
-   if (values.length === 0) {
-     return true
-   }
+    if (values.length === 0) {
+      return true
+    }
     // All values must be in options
-   for (const value of values) {
-     if (!options.includes(value)) {
-       return false
-     }
-   }
+    for (const value of values) {
+      if (!options.includes(value)) {
+        return false
+      }
+    }
     return true
   }
 
