@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.16.0 - 2023-01-16
+
+### Changes
+
+### 🚀 Features
+
+#### Template reports
+
+Introducing our newest feature: Default Reports! These specially crafted reports are designed to give you a deep dive into the inner workings of your community. With absolutely no setup required on your end, you can now access valuable insights about your members, including a breakdown of your active members, a comparison of new vs returning active members, and a list of your top engaged members.
+
+- Members reports @joanagmaia (#418)
+- Default reports backend updates @epipav (#398)
+- Fix home dashboard and reports @joanagmaia (#424)
+
+<img width="1727" alt="Reports 1" src="https://user-images.githubusercontent.com/37874460/212732237-8e46b294-8d60-433a-b76b-a3f45c1bf895.png">
+#### Formbricks feedback
+
+Our first external code contribution! @mattinannt and the [Formbricks](https://formbricks.com/) team added an in-app feedback box to our menu. If you have an idea, something needs to be fixed, or want to point out which features you like, you can leave us feedback there!
+<img width="200" alt="Screenshot 2023-01-16 at 14 04 37" src="https://user-images.githubusercontent.com/37874460/212684851-8edd5ee7-1f40-4b48-9556-78190249707e.png">
+
+- Add formbricks feedback @mattinannt (#411)
+
+### ✨ Improvements
+
+- Added the capability of filtering members by the types of activities they performed. @joanreyero (#421)
+- Introduced WebSockets for 2-way communication between the frontend and backend. We will be using this to improve the UX of several features. @themarolt (#413)
+- Installed Pendo so we can show new features within the app. @joanreyero (#406)
+- Add a placeholder for mobile screens that asks the user to sign up from a bigger one. @joanagmaia (#414)
+
+### 🐞 Bug Fixes
+
+- Fixed a typo in the upgrade button @epipav (#409)
+- Every time Twitter is connected, call the integration service in *onboarding* mode. @themarolt (#412)
+- Fixed a bug where the user invite dialog disappeared almost immediately after inviting. @joanreyero (#415)
+- Truncate the tenant name in the workspace dropdown when needed. @mariobalca (#410)
+- Wrong hash was generated for star activities, which caused deduplication issues. @epipav (#407)
+- Github integration service should handle github settings not being available @themarolt (#408)
+- Fixed a bug in EagleEye that was causing exact keyword matching to crash @joanreyero (#416)
+
 ## v0.15.0 - 2023-01-09
 
 ### Changes
@@ -16,7 +55,6 @@ For example, imagine you want to search for content that talks about *generatice
 
 <img width="1067" alt="Screenshot 2023-01-09 at 13 14 50" src="https://user-images.githubusercontent.com/37874460/211305723-24aec737-7edf-4c4d-bcd4-deab5e64a968.png">
 - EagleEye exact keyword matching @mariobalca @joanreyero (#383)
-
 #### Discord forum channels
 
 Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
@@ -51,7 +89,6 @@ You can now export your community members as CSV. You can export all members or 
 <img width="672" alt="Screenshot 2023-01-02 at 18 47 18" src="https://user-images.githubusercontent.com/37874460/210264594-2f744e43-2b31-4be7-aa28-6f0a6c9dbad5.png">
 - Members CSV exports @epipav (#356)
 ### ✨ Improvements
-
 - Team members and bots (as well as their activities) are now exported by default from reports. @epipav (#360)
 - Add an error handler in the frontend to report errors. @joanagmaia (#382)
 - Remove the *Connect integration* suggested task when the workspace already has an integration. @joanagmaia (#381)
@@ -98,7 +135,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Tweaks grid and container-sized on all pages to adapt them to different screen sizes better. @mariobalca (#355)
 - Do not show the engagement level for team members in the members' list, as it does not make sense. @joanreyero (#349)
 - Added the infrastructure so we can display a banner with in-app TypeForm surveys. @joanreyero (#348)
-
 ### 🐞 Bug Fixes
 
 - Add a missing interaction to the *Trial* tag. @joanagmaia (#366)
@@ -171,7 +207,6 @@ The Hacker News integration will detect any post that mentions your community in
 - When moving a widget in a report, save its new position when it is dropped instead of moved to avoid a *too many requests error* @joanreyero (#295)
 - Disable range filters in the frontend if one value is empty @joanagmaia (#290)
 ## v0.10.1 - 2022-11-30
-
 ### Changes
 
 This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
@@ -218,7 +253,6 @@ We help you keep track of all conversations going on in your community, now, we 
 Use our custom attribute function to add specific to you details as well as extra identities for your members beyond their community profiles (e.g., you can add identities using their phone number or extra email).
 :key: Social Sign in with Google
 We’ve added social sign-in to make signing up and logging into [crowd.dev](http://crowd.dev/) a breeze. You can now use your Google account.
-
 #### Breaking changes
 
 This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
@@ -258,7 +292,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -330,7 +366,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ### ✨ Enhancements
 - Simplified start of development environment @joanreyero (#5)
 ### 🐞 Bug Fixes
-
 - EagleEye events @joanreyero (#6)
 
 ## v0.0.3 - 2022-08-24
