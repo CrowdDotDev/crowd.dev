@@ -378,9 +378,8 @@ const en = {
         comment: 'commented'
       },
       linkedin: {
-        post: 'posted',
         comment: 'commented',
-        reaction: 'reacted'
+        reaction: 'reacted with'
       },
       fallback: 'created an activity'
     },

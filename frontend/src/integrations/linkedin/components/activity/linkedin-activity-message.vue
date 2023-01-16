@@ -3,27 +3,19 @@
     <app-i18n
       :code="computedMessage"
       :fallback="'entities.activity.fallback'"
+      :class="{ truncate: short }"
     ></app-i18n>
-    <span v-if="isComment && !short">
-      on
-      <a :href="activity.url" target="_blank">{{
-        computedParentTitle
-          ? computedParentTitle
-          : computedGreatParentTitle
-      }}</a>
-      in
-      <a :href="computedSubredditUrl" target="_blank"
-        >/r/{{ activity.channel }}</a
-      >
-    </span>
-    <span v-if="isComment && short"> on a post </span>
-    <span v-else class="ml-1"
-      >in subreddit
-      <a :href="computedSubredditUrl" target="_blank">
-        r/{{ activity.channel }}
-      </a></span
-    >
   </span>
+  <img :src="computedReactionSVG" class="mx-0.5" />
+  <span v-if="!short"> on a post </span>
+  <a
+    v-if="!short && activity.channel"
+    :href="activity.channel"
+    target="_blank"
+    class="ml-1 text-brand-500"
+  >
+    {{ activity.attributes.title }}
+  </a>
 </template>
 
 <script>
@@ -88,11 +80,10 @@ export default {
       }
       return null
     },
-    computedSubredditUrl() {
-      if (this.activity.channel) {
-        return `https://reddit.com/r/${this.activity.channel}`
-      }
-      return null
+    computedReactionSVG() {
+      return this.activity.type === 'reaction'
+        ? `/images/integrations/linkedin-reactions/${this.activity.attributes.reaction_type}.svg`
+        : null
     },
     isUrl() {
       return isUrl(this.activity.channel)
