@@ -51,6 +51,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: isHireable.show,
           type: isHireable.type,
           canDelete: isHireable.canDelete,
@@ -64,6 +65,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: url.show,
           type: url.type,
           canDelete: url.canDelete,
@@ -77,6 +79,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: websiteUrl.show,
           type: websiteUrl.type,
           canDelete: websiteUrl.canDelete,
@@ -90,6 +93,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: bio.show,
           type: bio.type,
           canDelete: bio.canDelete,
@@ -103,6 +107,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: company.show,
           type: company.type,
           canDelete: company.canDelete,
@@ -116,6 +121,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: location.show,
           type: location.type,
           canDelete: location.canDelete,
@@ -148,6 +154,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: id.show,
           type: id.type,
           canDelete: id.canDelete,
@@ -161,6 +168,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: avatarUrl.show,
           type: avatarUrl.type,
           canDelete: avatarUrl.canDelete,
@@ -193,6 +201,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: id.show,
           type: id.type,
           canDelete: id.canDelete,
@@ -206,6 +215,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: url.show,
           type: url.type,
           canDelete: url.canDelete,
@@ -219,6 +229,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: name.show,
           type: name.type,
           canDelete: name.canDelete,
@@ -232,6 +243,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: bio.show,
           type: bio.type,
           canDelete: bio.canDelete,
@@ -245,6 +257,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: location.show,
           type: location.type,
           canDelete: location.canDelete,
@@ -277,6 +290,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: id.show,
           type: id.type,
           canDelete: id.canDelete,
@@ -290,6 +304,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: avatarUrl.show,
           type: avatarUrl.type,
           canDelete: avatarUrl.canDelete,
@@ -303,6 +318,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: url.show,
           type: url.type,
           canDelete: url.canDelete,
@@ -316,6 +332,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: bio.show,
           type: bio.type,
           canDelete: bio.canDelete,
@@ -329,6 +346,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: location.show,
           type: location.type,
           canDelete: location.canDelete,
@@ -361,6 +379,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: id.show,
           type: id.type,
           canDelete: id.canDelete,
@@ -374,6 +393,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: avatarUrl.show,
           type: avatarUrl.type,
           canDelete: avatarUrl.canDelete,
@@ -387,6 +407,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: jobTitle.show,
           type: jobTitle.type,
           canDelete: jobTitle.canDelete,
@@ -400,6 +421,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: timezone.show,
           type: timezone.type,
           canDelete: timezone.canDelete,
@@ -454,6 +476,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: id.show,
           type: id.type,
           canDelete: id.canDelete,
@@ -467,6 +490,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: url.show,
           type: url.type,
           canDelete: url.canDelete,
@@ -480,6 +504,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: name.show,
           type: name.type,
           canDelete: name.canDelete,
@@ -493,6 +518,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: bio.show,
           type: bio.type,
           canDelete: bio.canDelete,
@@ -506,6 +532,7 @@ describe('MemberAttributeSettingService tests', () => {
           createdById: mockIRepositoryOptions.currentUser.id,
           updatedById: mockIRepositoryOptions.currentUser.id,
           tenantId: mockIRepositoryOptions.currentTenant.id,
+          options: [],
           show: location.show,
           type: location.type,
           canDelete: location.canDelete,
@@ -542,6 +569,35 @@ describe('MemberAttributeSettingService tests', () => {
 
       const attributeExpected = {
         ...attributeCreated,
+        options: [],
+        name: attribute1.name,
+        label: attribute1.label,
+        type: attribute1.type,
+        canDelete: attribute1.canDelete,
+        show: attribute1.show,
+      }
+
+      expect(attributeCreated).toStrictEqual(attributeExpected)
+    })
+
+    it('Should create a multi-select field with options', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const as = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      const attribute1 = {
+        name: 'att1',
+        label: 'attribute 1',
+        type: AttributeType.MULTI_SELECT,
+        options: ['option1', 'option2'],
+        canDelete: true,
+        show: true,
+      }
+
+      const attributeCreated = await as.create(attribute1)
+
+      const attributeExpected = {
+        ...attributeCreated,
+        options: ['option1', 'option2'],
         name: attribute1.name,
         label: attribute1.label,
         type: attribute1.type,
@@ -567,6 +623,7 @@ describe('MemberAttributeSettingService tests', () => {
       // canDelete and show should be true by default
       const attributeExpected = {
         ...attributeCreated,
+        options: [],
         name: attribute1.name,
         label: attribute1.label,
         type: attribute1.type,
@@ -591,6 +648,7 @@ describe('MemberAttributeSettingService tests', () => {
       // name should be generated from the label
       const attributeExpected = {
         ...attributeCreated,
+        options: [],
         name: 'anAttributeWithMultipleWords',
         label: attribute1.label,
         type: attribute1.type,
@@ -802,15 +860,23 @@ describe('MemberAttributeSettingService tests', () => {
 
       // multiselect
       expect(
-        isCorrectType(['a', 'b', 'c'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd']),
+        isCorrectType(['a', 'b', 'c'], AttributeType.MULTI_SELECT, {
+          options: ['a', 'b', 'c', 'd'],
+        }),
       ).toBeTruthy()
-      expect(isCorrectType([], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd'])).toBeTruthy()
-      expect(isCorrectType(['a'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd'])).toBeTruthy()
       expect(
-        isCorrectType(['a', '42'], AttributeType.MULTI_SELECT, ['a', 'b', 'c', 'd']),
+        isCorrectType([], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
+      ).toBeTruthy()
+      expect(
+        isCorrectType(['a'], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
+      ).toBeTruthy()
+      expect(
+        isCorrectType(['a', '42'], AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c', 'd'] }),
       ).toBeFalsy()
-      expect(isCorrectType('a', AttributeType.MULTI_SELECT, ['a', 'b', 'c'])).toBeFalsy()
-      expect(isCorrectType(5, AttributeType.MULTI_SELECT, ['a', 'b', 'c'])).toBeFalsy()
+      expect(
+        isCorrectType('a', AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] }),
+      ).toBeFalsy()
+      expect(isCorrectType(5, AttributeType.MULTI_SELECT, { options: ['a', 'b', 'c'] })).toBeFalsy()
     })
   })
 })

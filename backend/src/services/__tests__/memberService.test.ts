@@ -150,6 +150,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        isEnriched: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -255,6 +256,7 @@ describe('MemberService tests', () => {
         updatedById: mockIServiceOptions.currentUser.id,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
+        isEnriched: false,
       }
 
       expect(memberCreated).toStrictEqual(memberExpected)
@@ -337,6 +339,7 @@ describe('MemberService tests', () => {
         tenantId: mockIServiceOptions.currentTenant.id,
         createdById: mockIServiceOptions.currentUser.id,
         updatedById: mockIServiceOptions.currentUser.id,
+        isEnriched: false,
         reach: { total: -1 },
         joinedAt: new Date('2020-05-28T15:13:30Z'),
       }
@@ -375,6 +378,7 @@ describe('MemberService tests', () => {
         displayName: username,
         attributes: {},
         email: member1.email,
+        isEnriched: false,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -419,6 +423,7 @@ describe('MemberService tests', () => {
         },
         displayName: username,
         attributes: {},
+        isEnriched: false,
         email: member1.email,
         score: member1.score,
         importHash: null,
@@ -466,6 +471,7 @@ describe('MemberService tests', () => {
         attributes: {},
         email: member1.email,
         score: member1.score,
+        isEnriched: false,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
         updatedAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -880,6 +886,7 @@ describe('MemberService tests', () => {
             default: attributes[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
+        isEnriched: false,
         email: member1.email,
         score: member1.score,
         importHash: null,
@@ -985,6 +992,7 @@ describe('MemberService tests', () => {
             default: attributes2[MemberAttributeName.LOCATION][PlatformType.GITHUB],
           },
         },
+        isEnriched: false,
         email: member1.email,
         score: member1.score,
         importHash: null,
@@ -1082,6 +1090,7 @@ describe('MemberService tests', () => {
           },
         },
         email: member1.email,
+        isEnriched: false,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1255,6 +1264,7 @@ describe('MemberService tests', () => {
           },
         },
         email: member1.email,
+        isEnriched: false,
         score: member1.score,
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1303,6 +1313,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
+        isEnriched: false,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1353,6 +1364,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: member1Username,
         },
+        isEnriched: false,
         displayName: member1Username,
         reach: { total: 10, [PlatformType.GITHUB]: 10 },
         importHash: null,
@@ -1405,6 +1417,7 @@ describe('MemberService tests', () => {
         username: {
           [PlatformType.GITHUB]: member1Username,
         },
+        isEnriched: false,
         displayName: member1Username,
         reach: { total: 36, [PlatformType.GITHUB]: 15, linkedin: 11, [PlatformType.TWITTER]: 10 },
         importHash: null,
@@ -1458,6 +1471,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: member1Username,
         },
         displayName: member1Username,
+        isEnriched: false,
         reach: { total: 50, [PlatformType.GITHUB]: 30, linkedin: 10, [PlatformType.TWITTER]: 10 },
         importHash: null,
         createdAt: SequelizeTestUtils.getNowWithoutTime(),
@@ -1700,6 +1714,7 @@ describe('MemberService tests', () => {
           [PlatformType.GITHUB]: member1.username.github,
           [PlatformType.DISCORD]: member2.username.discord,
         },
+        isEnriched: false,
         displayName: member1.displayName,
         identities: [PlatformType.GITHUB, PlatformType.DISCORD],
         activities: [activityCreated],

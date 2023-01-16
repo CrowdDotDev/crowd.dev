@@ -57,7 +57,7 @@ export default (sequelize) => {
       isEnriched: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
-      }
+      },
     },
     {
       indexes: [
