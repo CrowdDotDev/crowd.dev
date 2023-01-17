@@ -53,7 +53,7 @@
         member.attributes.jobTitle?.default ||
         props.member.organizations?.length
       "
-      class="flex items-center mt-2"
+      class="flex items-center"
     >
       <span
         v-if="member.attributes?.jobTitle?.default"
