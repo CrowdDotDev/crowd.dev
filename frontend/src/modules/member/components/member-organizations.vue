@@ -21,7 +21,10 @@
             {{ organization.name || '-' }}
           </p>
           <div
-            v-if="props.showTitle"
+            v-if="
+              props.showTitle &&
+              props.member.attributes.jobTitle?.default
+            "
             class="text-gray-500 text-2xs"
           >
             {{
@@ -53,7 +56,7 @@
         member.attributes.jobTitle?.default ||
         props.member.organizations?.length
       "
-      class="flex items-center"
+      class="flex items-center mt-2"
     >
       <span
         v-if="member.attributes?.jobTitle?.default"

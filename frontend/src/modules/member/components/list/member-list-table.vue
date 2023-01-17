@@ -134,7 +134,6 @@
                   <app-member-organizations
                     :member="scope.row"
                     :show-title="true"
-                    orientation="horizontal"
                   />
                 </template>
               </el-table-column>
