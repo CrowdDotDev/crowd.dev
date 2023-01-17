@@ -16,7 +16,7 @@
         </div>
         <div>
           <p
-            class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition"
+            class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition leading-relaxed"
           >
             {{ organization.name || '-' }}
           </p>
