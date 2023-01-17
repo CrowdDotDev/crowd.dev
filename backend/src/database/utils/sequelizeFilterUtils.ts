@@ -1,6 +1,7 @@
 import validator from 'validator'
 import { v4 as uuid } from 'uuid'
 import Sequelize from 'sequelize'
+import { Col } from 'sequelize/types/utils'
 
 /**
  * Utilities to use on Sequelize queries.
@@ -60,15 +61,22 @@ export default class SequelizeFilterUtils {
     return []
   }
 
-  static getFieldLiteral(field, model) {
+  static getFieldLiteral(field:string, model:string): Col {
     return Sequelize.col(`"${model}"."${field}"`)
   }
 
-  static getLiteralProjections(fields, model) {
+  static getLiteralProjections(fields:any, model:string): string[] {
     return fields.reduce((acc, field) => {
       acc.push([SequelizeFilterUtils.getFieldLiteral(field, model), field])
       return acc
     }, [])
+  }
+
+  static getLiteralProjectionsOfModel(model:string, models:any, modelAlias: string = null) {
+      return SequelizeFilterUtils.getLiteralProjections(
+        Object.keys(models[model].rawAttributes),
+        modelAlias ?? model,
+      )
   }
 
   static getNativeTableFieldAggregations(fields, model) {
