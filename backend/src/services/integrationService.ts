@@ -2,7 +2,7 @@ import { createAppAuth } from '@octokit/auth-app'
 import { request } from '@octokit/request'
 import moment from 'moment'
 import axios from 'axios'
-import { ILinkedinOrganization } from '../serverless/integrations/types/linkedinTypes'
+import { ILinkedInOrganization } from '../serverless/integrations/types/linkedinTypes'
 import { DISCORD_CONFIG, GITHUB_CONFIG, IS_TEST_ENV, KUBE_MODE } from '../config/index'
 import Error400 from '../errors/Error400'
 import { IServiceOptions } from './IServiceOptions'
@@ -388,9 +388,9 @@ export default class IntegrationService {
     }
 
     // fetch organizations
-    let organizations: ILinkedinOrganization[]
+    let organizations: ILinkedInOrganization[]
     try {
-      organizations = await getOrganizations(pizzlyId, PlatformType.LINKEDIN, this.options.log)
+      organizations = await getOrganizations(pizzlyId, this.options.log)
     } catch (err) {
       this.options.log.error(err, 'Error while fetching LinkedIn organizations!')
       throw new Error400(this.options.language, 'errors.linkedin.noOrganization')
