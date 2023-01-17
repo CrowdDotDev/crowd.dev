@@ -49,7 +49,7 @@ export const connectSocket = (token) => {
     posthog.group('tenant', currentTenant.value.id)
     posthog.reloadFeatureFlags()
     store.dispatch('auth/doRefreshCurrentUser')
-    Message.success('Plan successfully upgraded to Growth!')
+    Message.success('Successfully upgraded to Growth plan')
   })
 }
 
