@@ -167,7 +167,7 @@ describe('TenantService tests', () => {
         settings: [],
         conversationSettings: [],
         planSubscriptionEndsAt: null,
-        stripeSubscriptionId: null
+        stripeSubscriptionId: null,
       }
 
       expect(tenantCreatedPlain).toStrictEqual(tenantExpected)
