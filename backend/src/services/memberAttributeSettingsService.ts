@@ -75,6 +75,9 @@ export default class MemberAttributeSettingsService {
     if (values.length === 0) {
       return true
     }
+    if (!options) {
+      return false
+    }
     // All values must be in options
     for (const value of values) {
       if (!options.includes(value)) {

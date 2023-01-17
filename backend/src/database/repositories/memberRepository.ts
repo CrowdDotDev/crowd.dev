@@ -259,7 +259,7 @@ class MemberRepository {
           'displayName',
           'attributes',
           'email',
-          'isEntiched',
+          'isEnriched',
           'score',
           'reach',
           'joinedAt',
