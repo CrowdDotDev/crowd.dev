@@ -611,12 +611,6 @@ class ActivityRepository {
       include,
       attributes: [
         ...SequelizeFilterUtils.getLiteralProjectionsOfModel('activity', options.database),
-        // ...SequelizeFilterUtils.getLiteralProjectionsOfModel(
-        //   'activity',
-        //   options.database,
-        //   'parent',
-        // ),
-        // ...SequelizeFilterUtils.getLiteralProjectionsOfModel('member', options.database),
       ],
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
