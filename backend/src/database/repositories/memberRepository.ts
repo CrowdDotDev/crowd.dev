@@ -874,6 +874,12 @@ class MemberRepository {
     }
   }
 
+  /**
+   * Returns sequelize literals for dynamic member attributes.
+   * @param memberAttributeSettings
+   * @param options
+   * @returns
+   */
   static async getDynamicAttributesLiterals(
     memberAttributeSettings: AttributeData[],
     options: IRepositoryOptions,
