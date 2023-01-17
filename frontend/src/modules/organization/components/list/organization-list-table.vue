@@ -115,7 +115,7 @@
                     <a
                       v-if="scope.row.website"
                       class="text-gray-500 hover:!text-brand-500"
-                      :href="scope.row.website || null"
+                      :href="withHttp(scope.row.website)"
                       target="_blank"
                       @click.stop
                       >{{ scope.row.website }}</a
@@ -277,6 +277,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import { formatDateToTimeAgo } from '@/utils/date'
 import { formatNumberToCompact } from '@/utils/number'
+import { withHttp } from '@/utils/string'
 import AppOrganizationIdentities from '../organization-identities'
 import AppOrganizationListToolbar from './organization-list-toolbar'
 import AppOrganizationName from '../organization-name'

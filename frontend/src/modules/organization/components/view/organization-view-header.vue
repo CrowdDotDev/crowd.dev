@@ -21,7 +21,7 @@
             >
               <i class="ri-link mr-1"></i>
               <a
-                :href="organization.website"
+                :href="withHttp(organization.website)"
                 target="_blank"
                 class="text-gray-600"
                 >{{ organization.website }}</a
@@ -159,6 +159,7 @@ import {
   formatNumberToCompact,
   formatRevenueRange
 } from '@/utils/number'
+import { withHttp } from '@/utils/string'
 
 defineProps({
   organization: {
