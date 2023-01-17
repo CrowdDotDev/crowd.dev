@@ -155,9 +155,6 @@ describe('TenantService tests', () => {
         plan: Plans.values.growth,
         isTrialPlan: true,
         trialEndsAt: moment().add(14, 'days').toISOString().split('T')[0],
-        planStatus: 'active',
-        planStripeCustomerId: null,
-        planUserId: null,
         onboardedAt: null,
         integrationsRequired: ['github', 'discord'],
         hasSampleData: false,
@@ -169,6 +166,8 @@ describe('TenantService tests', () => {
         updatedById: options.currentUser.id,
         settings: [],
         conversationSettings: [],
+        planSubscriptionEndsAt: null,
+        stripeSubscriptionId: null
       }
 
       expect(tenantCreatedPlain).toStrictEqual(tenantExpected)
