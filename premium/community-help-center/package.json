@@ -22,6 +22,7 @@
     "@headlessui/vue": "^1.5.0",
     "@heroicons/vue": "^1.0.6",
     "@meilisearch/instant-meilisearch": "^0.7.0",
+    "@nuxtjs/robots": "^3.0.0",
     "@tailwindcss/line-clamp": "^0.4.0",
     "instantsearch.css": "^7.4.5",
     "lorem-ipsum": "^2.0.4",
