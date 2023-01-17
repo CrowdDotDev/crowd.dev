@@ -1444,7 +1444,7 @@ describe('ActivityRepository tests', () => {
             [MemberAttributeName.LOCATION]: {
               default: 'Berlin',
               [PlatformType.GITHUB]: 'Berlin',
-              [PlatformType.SLACK]: 'Turkey'
+              [PlatformType.SLACK]: 'Turkey',
             },
           },
           joinedAt: '2020-05-27T15:13:30Z',
@@ -1466,7 +1466,7 @@ describe('ActivityRepository tests', () => {
             [MemberAttributeName.LOCATION]: {
               default: 'Scranton',
               [PlatformType.GITHUB]: 'Scranton',
-              [PlatformType.SLACK]: 'New York'
+              [PlatformType.SLACK]: 'New York',
             },
           },
           joinedAt: '2020-05-27T15:13:30Z',
@@ -1520,18 +1520,17 @@ describe('ActivityRepository tests', () => {
           advancedFilter: {
             member: {
               isTeamMember: {
-                not: false
-              }
-            }
+                not: false,
+              },
+            },
           },
-          attributesSettings: memberAttributeSettings
+          attributesSettings: memberAttributeSettings,
         },
         mockIRepositoryOptions,
       )
 
       expect(filteredActivities.count).toBe(1)
       expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
-
     })
   })
 })

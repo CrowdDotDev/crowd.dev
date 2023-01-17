@@ -717,7 +717,7 @@ class MemberRepository {
     const activeDaysCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activeDaysCount"`)
     const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
     const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
-    
+
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
     const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member"."username"))`)
 
@@ -895,28 +895,31 @@ class MemberRepository {
       {},
     )
 
-    const dynamicAttributesPlatformNestedFields = memberAttributeSettings.reduce((acc, attribute) => {
-      for (const key of availableDynamicAttributePlatformKeys) {
-        if (attribute.type === AttributeType.NUMBER) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
-          )
-        } else if (attribute.type === AttributeType.BOOLEAN) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
-          )
-        } else if (attribute.type === AttributeType.MULTI_SELECT) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
-          )
-        } else {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `"member"."attributes"#>>'{${attribute.name},${key}}'`,
-          )
+    const dynamicAttributesPlatformNestedFields = memberAttributeSettings.reduce(
+      (acc, attribute) => {
+        for (const key of availableDynamicAttributePlatformKeys) {
+          if (attribute.type === AttributeType.NUMBER) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
+            )
+          } else if (attribute.type === AttributeType.BOOLEAN) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
+            )
+          } else if (attribute.type === AttributeType.MULTI_SELECT) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
+            )
+          } else {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `"member"."attributes"#>>'{${attribute.name},${key}}'`,
+            )
+          }
         }
-      }
-      return acc
-    }, {})
+        return acc
+      },
+      {},
+    )
 
     const dynamicAttributesProjection = memberAttributeSettings.reduce((acc, attribute) => {
       for (const key of availableDynamicAttributePlatformKeys) {

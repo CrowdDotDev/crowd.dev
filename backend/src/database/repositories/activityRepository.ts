@@ -500,20 +500,16 @@ class ActivityRepository {
       }
     }
 
-
     const memberSequelizeInclude = {
       model: options.database.member,
       as: 'member',
-      where: {}
+      where: {},
     }
 
+    if (advancedFilter.member) {
+      const { dynamicAttributesDefaultNestedFields, dynamicAttributesPlatformNestedFields } =
+        await MemberRepository.getDynamicAttributesLiterals(attributesSettings, options)
 
-    if (advancedFilter.member){
-      const {
-        dynamicAttributesDefaultNestedFields,
-        dynamicAttributesPlatformNestedFields
-      } = await MemberRepository.getDynamicAttributesLiterals(attributesSettings, options)
-  
       const memberQueryParser = new QueryParser(
         {
           nestedFields: {
@@ -554,7 +550,7 @@ class ActivityRepository {
         },
         options,
       )
-  
+
       const parsedMemberQuery: QueryOutput = memberQueryParser.parse({
         filter: advancedFilter.member,
         orderBy: orderBy || ['joinedAt_DESC'],
@@ -562,12 +558,10 @@ class ActivityRepository {
         offset,
       })
 
-      memberSequelizeInclude.where =  parsedMemberQuery.where ?? {}
+      memberSequelizeInclude.where = parsedMemberQuery.where ?? {}
       delete advancedFilter.member
-
     }
 
-    
     const include = [
       memberSequelizeInclude,
       {
