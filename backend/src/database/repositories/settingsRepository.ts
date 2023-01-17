@@ -8,7 +8,6 @@ export default class SettingsRepository {
     const currentUser = SequelizeRepository.getCurrentUser(options)
 
     const tenant = SequelizeRepository.getCurrentTenant(options)
-
     const [settings] = await options.database.settings.findOrCreate({
       where: { id: tenant.id, tenantId: tenant.id },
       defaults: {
