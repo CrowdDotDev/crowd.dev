@@ -1507,7 +1507,7 @@ describe('ActivityRepository tests', () => {
       }
 
       const activityCreated1 = await ActivityRepository.create(activity1, mockIRepositoryOptions)
-      await ActivityRepository.create(activity2, mockIRepositoryOptions)
+      const activityCreated2 = await ActivityRepository.create(activity2, mockIRepositoryOptions)
 
       // Control
       expect(
@@ -1515,7 +1515,7 @@ describe('ActivityRepository tests', () => {
       ).toBe(2)
 
       // Filter by member.isTeamMember
-      const filteredActivities = await ActivityRepository.findAndCountAll(
+      let filteredActivities = await ActivityRepository.findAndCountAll(
         {
           advancedFilter: {
             member: {
@@ -1531,6 +1531,25 @@ describe('ActivityRepository tests', () => {
 
       expect(filteredActivities.count).toBe(1)
       expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
+
+
+
+      filteredActivities = await ActivityRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            member: {
+              'attributes.location.slack': 'New York',
+            },
+          },
+          attributesSettings: memberAttributeSettings,
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated2.id)
+
+
     })
   })
 })
