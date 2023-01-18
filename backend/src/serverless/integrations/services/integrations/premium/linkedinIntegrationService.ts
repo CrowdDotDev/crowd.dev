@@ -129,7 +129,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.postUrnId,
           )}`,
-          postBody: stream.metadata.body
+          postBody: stream.metadata.body,
         },
         member,
         score: LinkedInGrid.comment.score,
@@ -191,7 +191,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
             stream.metadata.urnId,
           )}`,
           postBody: stream.metadata.body,
-          reactionType: reaction.reaction
+          reactionType: reaction.reaction,
         },
         member,
         score: LinkedInGrid.reaction.score,
@@ -254,7 +254,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.urnId,
           )}`,
-          postBody: stream.metadata.body
+          postBody: stream.metadata.body,
         },
         member,
         score: LinkedInGrid.comment.score,
