@@ -19,6 +19,7 @@ export default {
     maybe: 'Curious',
     empathy: 'Love',
     interest: 'Insightful',
-    appreciation: 'Support'
+    appreciation: 'Support',
+    entertainment: 'Funny'
   }
 }
