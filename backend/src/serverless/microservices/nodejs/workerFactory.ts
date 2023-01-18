@@ -16,7 +16,6 @@ import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processWebhook } from '../../integrations/workers/stripeWebhookWorker'
-import MemberEnrichmentService from '../../../services/premium/enrichment/memberEnrichmentService'
 import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 
 /**

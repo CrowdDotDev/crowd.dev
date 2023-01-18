@@ -12,7 +12,6 @@ import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
 import { AttributeType } from '../attributes/types'
 import TenantRepository from './tenantRepository'
-import member from '../../api/member'
 
 const { Op } = Sequelize
 
