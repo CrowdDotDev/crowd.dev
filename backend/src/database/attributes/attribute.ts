@@ -6,6 +6,7 @@ export interface Attribute {
   show: boolean
   label: string
   name: string
+  options?: string[]
 }
 export interface AttributeData extends Attribute {
   id: string
