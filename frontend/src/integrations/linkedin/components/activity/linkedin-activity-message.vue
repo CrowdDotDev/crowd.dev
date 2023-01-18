@@ -13,7 +13,7 @@
   >
     <img :src="computedReactionSVG" class="mx-0.5" />
   </el-tooltip>
-  <span v-if="!short"> on a post </span>
+  <span v-if="!short" class="mx-0.5">on a post</span>
   <a
     v-if="!short && computedPostUrl"
     :href="computedPostUrl"

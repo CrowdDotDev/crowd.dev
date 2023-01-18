@@ -57,12 +57,11 @@ const connect = async () => {
 
 const drawerVisible = ref(false)
 
-// Only render twitter drawer and settings button, if integration has settings
+// Only render linkedin drawer and settings button, if integration has settings and more than 1 organization
 const hasSettings = computed(
   () =>
-    !!props.integration.settings ||
-    props.integration.status === 'error' ||
-    true
+    !!props.integration.settings &&
+    props.integration.settings.organizations.length > 1
 )
 const settings = () => {
   drawerVisible.value = true
