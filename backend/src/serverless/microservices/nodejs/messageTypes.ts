@@ -57,3 +57,9 @@ export interface AnalyticsEmailsOutput extends BaseOutput {
 export enum ExportableEntity {
   MEMBERS = 'members',
 }
+
+export type BulkEnrichMessage = {
+  service: string
+  tenant: string
+  memberIds: string[]
+}

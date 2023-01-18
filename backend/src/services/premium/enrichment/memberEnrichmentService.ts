@@ -24,6 +24,10 @@ import {
   MemberEnrichmentAttributes,
 } from '../../../database/attributes/member/enums'
 import { AttributeType } from '../../../database/attributes/types'
+import { i18n } from '../../../i18n'
+import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
+import { createRedisClient } from '../../../utils/redis'
+import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 
 export default class MemberEnrichmentService extends LoggingBase {
   options: IServiceOptions
@@ -129,6 +133,57 @@ export default class MemberEnrichmentService extends LoggingBase {
   async getAttributes() {
     const memberAttributeSettingsService = new MemberAttributeSettingsService(this.options)
     this.attributes = (await memberAttributeSettingsService.findAndCountAll({})).rows
+  }
+
+  async bulkEnrich(memberIds: string[]) {
+    const redis = await createRedisClient(true)
+
+    const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
+      this.log.error({ err }, 'Error in api-ws emitter!')
+    })
+    let enrichedMembers = 0
+    for (const memberId of memberIds) {
+      try {
+        await this.enrichOne(memberId)
+        enrichedMembers++
+        this.log.info(`Enriched member ${memberId}`)
+      } catch (err) {
+        if (
+          err.message === i18n(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
+        ) {
+          this.log.warn(`Member ${memberId} has no GitHub handle or email address`)
+          continue
+        } else {
+          this.log.error(`Failed to enrich member ${memberId}`, err)
+          apiPubSubEmitter.emit(
+            'user',
+            new ApiWebsocketMessage(
+              'bulk-enrichment',
+              JSON.stringify({
+                enrichedMembers,
+                success: false,
+              }),
+              undefined,
+              this.options.currentTenant.id,
+            ),
+          )
+        }
+      }
+    }
+
+    // Send websocket message to frontend
+    apiPubSubEmitter.emit(
+      'user',
+      new ApiWebsocketMessage(
+        'bulk-enrichment',
+        JSON.stringify({
+          enrichedMembers,
+          success: true,
+        }),
+        undefined,
+        this.options.currentTenant.id,
+      ),
+    )
   }
 
   /**
