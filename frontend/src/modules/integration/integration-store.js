@@ -155,6 +155,18 @@ export default {
       state.loading = false
     },
 
+    UPDATE_STARTED() {},
+
+    UPDATE_SUCCESS(state, record) {
+      state.byId[record.id] = record
+      if (state.allIds.indexOf(record.id) === -1) {
+        state.allIds.push(record.id)
+        state.count++
+      }
+    },
+
+    UPDATE_ERROR() {},
+
     DESTROY_STARTED(state) {
       state.loading = true
     },
@@ -306,17 +318,45 @@ export default {
           await IntegrationService.linkedinConnect()
 
         commit('CREATE_SUCCESS', integration)
+        if (
+          integration.settings?.organizations.length === 1
+        ) {
+          Message.success(
+            'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+            {
+              title:
+                'LinkedIn integration created successfully'
+            }
+          )
+        }
+        router.push('/integrations')
+      } catch (error) {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+      }
+    },
+
+    async doLinkedinOnboard({ commit }, organizationId) {
+      try {
+        commit('UPDATE_STARTED')
+        // Call the connect function in IntegrationService to handle functionality
+        const integration =
+          await IntegrationService.linkedinOnboard(
+            organizationId
+          )
+
+        commit('UPDATE_SUCCESS', integration)
         Message.success(
           'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
           {
             title:
-              'LinkedIn integration created successfully'
+              'LinkedIn integration updated successfully'
           }
         )
         router.push('/integrations')
       } catch (error) {
         Errors.handle(error)
-        commit('CREATE_ERROR')
+        commit('UPDATE_ERROR')
       }
     },
 

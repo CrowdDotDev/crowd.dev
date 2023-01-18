@@ -36,11 +36,14 @@
             <el-option
               v-for="organization of organizations"
               :key="organization.id"
-              :label="organization.name"
-              :value="organization.name"
+              :label="organization.vanityName"
+              :value="organization.id"
             />
           </el-select>
-          <div class="text-yellow-600 flex items-start">
+          <div
+            v-if="integration.status === 'pending-action'"
+            class="text-yellow-600 flex items-start"
+          >
             <i class="ri-alert-line mr-2"></i>
             <div class="text-sm pt-0.5">
               <span class="font-medium"
@@ -78,8 +81,9 @@
           <el-button
             class="btn btn--md btn--primary"
             :class="{
-              disabled: !hasFormChanged || connectDisabled
+              disabled: !hasFormChanged || loading
             }"
+            :loading="loading"
             @click="hasFormChanged ? connect() : undefined"
           >
             {{
@@ -106,17 +110,10 @@ import {
   ref,
   watch
 } from 'vue'
-import { useThrottleFn } from '@vueuse/core'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import { useStore } from 'vuex'
-import Pizzly from '@nangohq/pizzly-frontend'
-import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import config from '@/config'
-import isEqual from 'lodash/isEqual'
 
 const store = useStore()
-
-const tenantId = computed(() => AuthCurrentTenant.get())
 
 const props = defineProps({
   modelValue: {
@@ -130,32 +127,20 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const organizations =
-  props.integration.settings?.organizations.map((i) => {
-    return {
-      value: i,
-      validating: false,
-      touched: true,
-      valid: true
-    }
-  }) || [{ value: '', loading: false }]
+const organizations = computed(
+  () => props.integration.settings?.organizations
+)
+const selectedOrg = computed(() =>
+  organizations.value.find((o) => o.inUse === true)
+)
 
-const model = ref(JSON.parse(JSON.stringify(organizations)))
+const model = ref(
+  selectedOrg.value ? selectedOrg.value.id : null
+)
+const loading = ref(false)
 
 const logoUrl =
   CrowdIntegrations.getConfig('linkedin').image
-
-const connectDisabled = computed(() => {
-  return (
-    model.value.filter((s) => {
-      return (
-        s.valid === false ||
-        s.value === '' ||
-        s.touched !== true
-      )
-    }).length > 0
-  )
-})
 
 const isVisible = computed({
   get() {
@@ -166,39 +151,27 @@ const isVisible = computed({
   }
 })
 
-const hasFormChanged = computed(
-  () =>
-    !isEqual(
-      organizations.map((i) => i.value),
-      model.value.map((i) => i.value)
-    )
-)
+const hasFormChanged = computed(() => {
+  if (selectedOrg.value === undefined) {
+    return model.value !== null
+  } else {
+    return model.value !== selectedOrg.value.id
+  }
+})
 
 const doReset = () => {
-  model.value = JSON.parse(JSON.stringify(organizations))
+  model.value = selectedOrg.value
+    ? selectedOrg.value.id
+    : null
 }
 
-const callOnboard = useThrottleFn(async () => {
-  await store.dispatch('integration/doRedditOnboard', {
-    subreddits: model.value.map((i) => i.value)
-  })
-}, 2000)
-
 const connect = async () => {
-  const pizzly = new Pizzly(
-    config.pizzlyUrl,
-    config.pizzlyPublishableKey
+  loading.value = true
+  await store.dispatch(
+    'integration/doLinkedinOnboard',
+    model.value
   )
-  try {
-    await pizzly.auth(
-      'linkedin',
-      `${tenantId.value}-linkedin`
-    )
-    await callOnboard()
-    emit('update:modelValue', false)
-  } catch (e) {
-    console.log(e)
-  }
+  loading.value = false
 }
 
 watch(isVisible, (newValue, oldValue) => {

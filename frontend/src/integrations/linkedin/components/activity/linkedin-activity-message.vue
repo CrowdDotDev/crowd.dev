@@ -6,11 +6,16 @@
       :class="{ truncate: short }"
     ></app-i18n>
   </span>
-  <img :src="computedReactionSVG" class="mx-0.5" />
+  <el-tooltip
+    placement="top"
+    :content="computedReactionLabel"
+  >
+    <img :src="computedReactionSVG" class="mx-0.5" />
+  </el-tooltip>
   <span v-if="!short"> on a post </span>
   <a
-    v-if="!short && activity.channel"
-    :href="activity.channel"
+    v-if="!short && activity.postUrl"
+    :href="activity.postUrl"
     target="_blank"
     class="ml-1 text-brand-500"
   >
@@ -21,6 +26,8 @@
 <script>
 import AppI18n from '@/shared/i18n/i18n'
 import isUrl from '@/utils/isUrl'
+import linkedInConfig from '@/integrations/linkedin/config'
+
 export default {
   name: 'AppLinkedInActivityMessage',
   components: { AppI18n },
@@ -82,8 +89,11 @@ export default {
     },
     computedReactionSVG() {
       return this.activity.type === 'reaction'
-        ? `/images/integrations/linkedin-reactions/${this.activity.attributes.reaction_type}.svg`
+        ? `/images/integrations/linkedin-reactions/${this.activity.body}.svg`
         : null
+    },
+    computedReactionLabel() {
+      return linkedInConfig.reactions[this.activity.body]
     },
     isUrl() {
       return isUrl(this.activity.channel)

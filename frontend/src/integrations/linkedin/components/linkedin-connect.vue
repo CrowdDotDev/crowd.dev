@@ -12,7 +12,7 @@
 
 <script>
 export default {
-  name: 'AppRedditConnect'
+  name: 'AppLinkedInConnect'
 }
 </script>
 <script setup>
@@ -45,11 +45,10 @@ const connect = async () => {
   )
 
   try {
-    const result = await pizzly.auth(
+    await pizzly.auth(
       'linkedin',
       `${tenantId.value}-linkedin`
     )
-    console.log('result', result)
     await callOnboard()
   } catch (e) {
     console.log(e)

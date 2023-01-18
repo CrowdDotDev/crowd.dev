@@ -12,5 +12,13 @@ export default {
   image: '/images/integrations/linkedin.png',
   connectComponent: LinkedInConnect,
   activityMessage: LinkedInActivityMessage,
-  activityContent: LinkedInActivityContent
+  activityContent: LinkedInActivityContent,
+  reactions: {
+    like: 'Like',
+    praise: 'Celebrate',
+    maybe: 'Curious',
+    empathy: 'Love',
+    interest: 'Insightful',
+    appreciation: 'Support'
+  }
 }
