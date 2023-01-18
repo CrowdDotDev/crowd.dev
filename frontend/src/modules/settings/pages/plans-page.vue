@@ -162,6 +162,10 @@ const currentTenant = computed(
   () => store.getters['auth/currentTenant']
 )
 
+const currentUser = computed(
+  () => store.getters['auth/currentUser']
+)
+
 const plansList = computed(() => {
   if (isCommunityVersion) {
     return plans.community
@@ -264,20 +268,16 @@ const handleOnCtaClick = (plan) => {
     // Growth plan
   } else if (plan === crowdHostedPlans.growth) {
     window.open(
-      'https://buy.stripe.com/4gw9E8c163K6fzW9AB',
+      `${config.stripe.growthPlanPaymentLink}?client_reference_id=${currentTenant.value.id}&prefilled_email=${currentUser.value.email}`,
       '_blank'
     )
   } else {
-    isPlanModalOpen.value = true
-    planModalTitle.value = getCtaContent(plan)
+    onManageBillingClick()
   }
 }
 
 const onManageBillingClick = () => {
-  window.open(
-    'https://billing.stripe.com/p/login/fZedUl4oO70D98sdQQ',
-    '_blank'
-  )
+  window.open(config.stripe.customerPortalLink, '_blank')
 }
 
 const getTrialDate = () => {

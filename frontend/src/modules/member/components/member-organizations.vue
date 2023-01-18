@@ -16,12 +16,15 @@
         </div>
         <div>
           <p
-            class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition"
+            class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition leading-relaxed"
           >
             {{ organization.name || '-' }}
           </p>
           <div
-            v-if="props.showTitle"
+            v-if="
+              props.showTitle &&
+              props.member.attributes.jobTitle?.default
+            "
             class="text-gray-500 text-2xs"
           >
             {{

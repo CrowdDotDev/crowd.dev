@@ -133,7 +133,7 @@
                 <template #default="scope">
                   <app-member-organizations
                     :member="scope.row"
-                    :show-title="false"
+                    :show-title="true"
                   />
                 </template>
               </el-table-column>

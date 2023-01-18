@@ -24,6 +24,19 @@ module.exports = {
         black: '#140505',
         white: '#fff',
         background: '#f8f8f8',
+        brand: {
+          900: '#2F1009',
+          800: '#5D2012',
+          700: '#8C2F1C',
+          600: '#BA3F25',
+          500: '#E94F2E',
+          400: '#ED7258',
+          300: '#F29582',
+          200: '#F6B9AB',
+          100: '#FBDCD5',
+          50: '#FDEDEA',
+          25: '#FDF6F4'
+        },
         primary: {
           900: '#e94f2e',
           800: '#eb6043',

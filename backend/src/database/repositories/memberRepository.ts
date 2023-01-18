@@ -32,6 +32,7 @@ class MemberRepository {
           'displayName',
           'attributes',
           'email',
+          'isEnriched',
           'score',
           'reach',
           'joinedAt',
@@ -210,7 +211,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "attributes", "email", "score", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "email", "score", "isEnriched", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -258,6 +259,7 @@ class MemberRepository {
           'displayName',
           'attributes',
           'email',
+          'isEnriched',
           'score',
           'reach',
           'joinedAt',
@@ -476,6 +478,7 @@ class MemberRepository {
     const availableDynamicAttributePlatformKeys = [
       'default',
       'custom',
+      'enrichment',
       ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
         (p) => p.platform,
       ),
@@ -728,6 +731,10 @@ class MemberRepository {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
           )
+        } else if (attribute.type === AttributeType.MULTI_SELECT) {
+          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+            `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
+          )
         } else {
           acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
             `"member"."attributes"#>>'{${attribute.name},${key}}'`,
@@ -790,6 +797,7 @@ class MemberRepository {
               'displayName',
               'email',
               'score',
+              'isEnriched',
               'joinedAt',
               'importHash',
               'reach',
@@ -866,6 +874,7 @@ class MemberRepository {
             'email',
             'tenantId',
             'score',
+            'isEnriched',
             'joinedAt',
             'importHash',
             'createdAt',

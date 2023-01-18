@@ -1,4 +1,5 @@
 import express from 'express'
+import bodyParser from 'body-parser'
 import cors from 'cors'
 import helmet from 'helmet'
 import bunyanMiddleware from 'bunyan-middleware'
@@ -115,22 +116,18 @@ setImmediate(async () => {
   // increase security.
   app.use(helmet())
 
-  // Parses the body of POST/PUT request
-  // to JSON
-  // app.use(
-  //  bodyParser.json({
-  //    verify (req, res, buf) {
-  //      const url = (<any>req).originalUrl
-  //      if (url.startsWith('/api/plan/stripe/webhook')) {
-  //        // Stripe Webhook needs the body raw in order
-  //        // to validate the request
-  //        (<any>req).rawBody = buf.toString()
-  //      }
-  //    },
-  //  }),
-  // )
-
-  app.use(express.json())
+  app.use(
+    bodyParser.json({
+      verify(req, res, buf) {
+        const url = (<any>req).originalUrl
+        if (url.startsWith('/webhooks/stripe')) {
+          // Stripe Webhook needs the body raw in order
+          // to validate the request
+          ;(<any>req).rawBody = buf.toString()
+        }
+      },
+    }),
+  )
 
   // Configure the Entity routes
   const routes = express.Router()

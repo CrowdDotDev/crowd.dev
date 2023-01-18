@@ -16,27 +16,21 @@ import {
 
 export default {
   async doInit({ commit, dispatch }) {
-    const token = AuthToken.get()
-    if (token) {
-      return AuthService.fetchMe()
-        .then((currentUser) => {
-          connectSocket(token)
-          commit('AUTH_INIT_SUCCESS', { currentUser })
-          ProgressBar.done()
-          return currentUser
-        })
-        .catch((error) => {
-          console.error(error)
-          disconnectSocket()
-          commit('AUTH_INIT_ERROR')
-          dispatch('doSignout')
-          ProgressBar.done()
-          return null
-        })
+    try {
+      const currentUser = await AuthService.fetchMe()
+      const token = AuthToken.get()
+      connectSocket(token)
+      commit('AUTH_INIT_SUCCESS', { currentUser })
+      ProgressBar.done()
+      return currentUser
+    } catch (error) {
+      console.error(error)
+      disconnectSocket()
+      commit('AUTH_INIT_ERROR')
+      dispatch('doSignout')
+      ProgressBar.done()
+      return null
     }
-    commit('AUTH_INIT_SUCCESS', { currentUser: null })
-    ProgressBar.done()
-    return Promise.resolve(null)
   },
 
   doWaitUntilInit({ getters }) {

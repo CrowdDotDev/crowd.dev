@@ -5,4 +5,6 @@ export enum AttributeType {
   STRING = 'string',
   URL = 'url',
   DATE = 'date',
+  MULTI_SELECT = 'multiSelect',
+  SPECIAL = 'special',
 }

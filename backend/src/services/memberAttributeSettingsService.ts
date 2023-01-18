@@ -66,13 +66,34 @@ export default class MemberAttributeSettingsService {
     return false
   }
 
+  static isMultiSelect(values, options) {
+    // Type must be array
+    if (!Array.isArray(values)) {
+      return false
+    }
+    // If empty array, it is valid
+    if (values.length === 0) {
+      return true
+    }
+    if (!options) {
+      return false
+    }
+    // All values must be in options
+    for (const value of values) {
+      if (!options.includes(value)) {
+        return false
+      }
+    }
+    return true
+  }
+
   /**
    * Checks the given attribute value against the attribute type.
    * @param value the value to be checked
    * @param type the type value will be checked against
    * @returns
    */
-  static isCorrectType(value, type: AttributeType): boolean {
+  static isCorrectType(value, type: AttributeType, inputs: any = {}): boolean {
     switch (type) {
       case AttributeType.BOOLEAN:
         return MemberAttributeSettingsService.isBoolean(value)
@@ -86,6 +107,10 @@ export default class MemberAttributeSettingsService {
         return MemberAttributeSettingsService.isUrl(value)
       case AttributeType.NUMBER:
         return MemberAttributeSettingsService.isNumber(value)
+      case AttributeType.MULTI_SELECT:
+        return MemberAttributeSettingsService.isMultiSelect(value, inputs.options)
+      case AttributeType.SPECIAL:
+        return true
       default:
         return false
     }
