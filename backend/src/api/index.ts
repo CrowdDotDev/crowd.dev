@@ -156,7 +156,7 @@ setImmediate(async () => {
   require('./task').default(routes)
   require('./note').default(routes)
   require('./organization').default(routes)
-
+  require('./premium/enrichment').default(routes)
   // Loads the Tenant if the :tenantId param is passed
   routes.param('tenantId', tenantMiddleware)
 

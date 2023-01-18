@@ -188,6 +188,14 @@ const en = {
       planNotSupportingCustomUrls: "Your plan {0} doesn't include custom urls.",
     },
   },
+
+  enrichment: {
+    errors: {
+      enrichmentFailed: 'Failed to call the enrichment API',
+      noGithubHandleOrEmail:
+        'No GitHub handle or email found. We can only enrich profiles with GitHub handles or emails.',
+    },
+  },
 }
 
 export default en
