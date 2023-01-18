@@ -409,7 +409,7 @@ export default class IntegrationService {
 
     const integration = await this.createOrUpdate({
       platform: PlatformType.LINKEDIN,
-      settings: { organizations },
+      settings: { organizations, updateMemberAttributes: true },
       status,
     })
 

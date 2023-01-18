@@ -28,14 +28,15 @@ export const getPostComments = async (
     const response = (await axios(config)).data
 
     const elements = response.elements.map((e) => ({
-      memberId: e.actor,
+      authorUrn: e.actor,
       timestamp: e.created.time,
       comment: e.message.text,
-      id: e.$URN,
+      urnId: e.$URN,
+      objectUrn: e.object,
       childComments: e.commentsSummary?.aggregatedTotalComments || 0,
     }))
 
-    if (response.paging) {
+    if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
         elements,
         start: response.paging.start + response.paging.count,

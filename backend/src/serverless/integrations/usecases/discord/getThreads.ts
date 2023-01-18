@@ -16,7 +16,7 @@ async function getThreads(
     }
 
     const response = await axios(config)
-    const result: DiscordChannels = response.data.threads
+    const result = response.data.threads
 
     return result.map((c) => ({
       name: c.name,

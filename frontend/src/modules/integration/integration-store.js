@@ -298,6 +298,28 @@ export default {
       }
     },
 
+    async doLinkedinConnect({ commit }) {
+      try {
+        commit('CREATE_STARTED')
+        // Call the connect function in IntegrationService to handle functionality
+        const integration =
+          await IntegrationService.linkedinConnect()
+
+        commit('CREATE_SUCCESS', integration)
+        Message.success(
+          'The first activities will show up in a couple of seconds. <br /> <br /> This process might take a few minutes to finish, depending on the amount of data.',
+          {
+            title:
+              'LinkedIn integration created successfully'
+          }
+        )
+        router.push('/integrations')
+      } catch (error) {
+        Errors.handle(error)
+        commit('CREATE_ERROR')
+      }
+    },
+
     async doDiscordConnect({ commit }, { guildId }) {
       // Function to connect to Discord. We just need to store the
       // guildId to be able to match bot events to users.

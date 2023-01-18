@@ -11,15 +11,17 @@ export const getPostReactions = async (
   logger: Logger,
   start?: number,
 ): Promise<IPaginatedResponse<ILinkedInPostReaction>> => {
-  const formattedPostId = encodeURIComponent(`(${postId})`)
-
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/reactions${formattedPostId}`,
+    url: `https://api.linkedin.com/v2/reactions/(entity:${encodeURIComponent(postId)})`,
     params: {
       q: 'entity',
       count: 10,
+      sort: 'CHRONOLOGICAL',
       start,
+    },
+    headers: {
+      'X-Restli-Protocol-Version': '2.0.0',
     },
   }
 
@@ -33,12 +35,12 @@ export const getPostReactions = async (
     const response = (await axios(config)).data
 
     const elements: ILinkedInPostReaction[] = response.elements.map((e) => ({
-      memberId: e.created.actor,
+      authorUrn: e.created.actor,
       reaction: (e.reactionType as string).toLowerCase(),
       timestamp: e.created.time,
     }))
 
-    if (response.paging) {
+    if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
         elements,
         start: response.paging.start + response.paging.count,

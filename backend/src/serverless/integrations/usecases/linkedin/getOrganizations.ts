@@ -15,7 +15,10 @@ export const getOrganizations = async (
     params: {
       q: 'roleAssignee',
       projection:
-        '(elements*(*,roleAssignee~(localizedFirstName,localizedLastName),organization~(id,localizedName)))',
+        '(elements*(*,roleAssignee~(localizedFirstName,localizedLastName),organization~(id,localizedName,vanityName)))',
+    },
+    headers: {
+      'X-Restli-Protocol-Version': '2.0.0',
     },
   }
   try {
@@ -27,11 +30,13 @@ export const getOrganizations = async (
 
     const response = (await axios(config)).data
 
-    return response.data.elements.map((e) => ({
+    logger.debug({ response }, 'Get organizations response from LinkedIn')
+
+    return response.elements.map((e) => ({
       id: e['organization~'].id,
       name: e['organization~'].localizedName,
-      role: e.role,
       organizationUrn: e.organization,
+      vanityName: e['organization~'].vanityName,
     }))
   } catch (err) {
     const newErr = handleLinkedinError(err, config, { pizzlyId }, logger)

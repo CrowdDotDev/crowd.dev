@@ -31,16 +31,15 @@ export const getOrganizationPosts = async (
     const response = (await axios(config)).data
 
     const elements = response.elements.map((e) => ({
-      id: e.id,
+      urnId: e.id,
       lifecycleState: e.lifecycleState,
       visibility: e.visibility,
-      author: e.author,
-      title: e.content?.article?.title,
+      authorUrn: e.author,
       body: e.commentary,
-      originalId: e.reshareContext?.parent,
+      originalUrnId: e.reshareContext?.parent,
     }))
 
-    if (response.paging) {
+    if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
         elements,
         start: response.paging.start + response.paging.count,

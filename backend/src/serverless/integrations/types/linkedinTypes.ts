@@ -1,23 +1,22 @@
 export interface ILinkedInOrganization {
   name: string
   id: number
-  role: string
   organizationUrn: string
+  vanityName: string
   inUse?: boolean
 }
 
 export interface ILinkedInOrganizationPost {
-  id: string
+  urnId: string
   visibility: string
   lifecycleState: string
-  author: string
-  title?: string
+  authorUrn: string
   body?: string
-  originalId?: string
+  originalUrnId?: string
 }
 
 export interface ILinkedInPostReaction {
-  memberId: string
+  authorUrn: string
   reaction: string
   timestamp: number
 }
@@ -31,11 +30,13 @@ export interface ILinkedInMember {
 }
 
 export interface ILinkedInPostComment {
-  memberId: string
+  authorUrn: string
   comment: string
   timestamp: number
-  id: string
+  urnId: string
+  parentUrnId?: string
   childComments: number
+  objectUrn: string
 }
 
 export interface IPaginatedResponse<T> {

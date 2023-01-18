@@ -13,6 +13,9 @@ export const getPost = async (
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://api.linkedin.com/v2/posts/${postId}`,
+    headers: {
+      'X-Restli-Protocol-Version': '2.0.0',
+    },
   }
 
   try {
@@ -24,13 +27,12 @@ export const getPost = async (
     const e = (await axios(config)).data
 
     return {
-      id: e.id,
+      urnId: e.id,
       lifecycleState: e.lifecycleState,
       visibility: e.visibility,
-      author: e.author,
-      title: e.content?.article?.title,
+      authorUrn: e.author,
       body: e.commentary,
-      originalId: e.reshareContext?.parent,
+      originalUrnId: e.reshareContext?.parent,
     }
   } catch (err) {
     const newErr = handleLinkedinError(err, config, { pizzlyId, postId }, logger)

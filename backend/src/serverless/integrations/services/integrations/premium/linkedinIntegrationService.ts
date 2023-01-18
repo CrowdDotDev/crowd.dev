@@ -1,15 +1,24 @@
-import { getAllPostComments } from '../../../usecases/linkedin/getPostComments'
-import { getAllOrganizationPosts } from '../../../usecases/linkedin/getOrganizationPosts'
-import { PlatformType, IntegrationType } from '../../../../../types/integrationEnums'
+import sanitizeHtml from 'sanitize-html'
+import { getAllCommentComments } from '../../../usecases/linkedin/getCommentComments'
+import { LinkedInGrid } from '../../../grid/linkedinGrid'
+import { MemberAttributeName } from '../../../../../database/attributes/member/enums'
+import { LinkedInMemberAttributes } from '../../../../../database/attributes/member/linkedin'
+import MemberAttributeSettingsService from '../../../../../services/memberAttributeSettingsService'
 import {
   IIntegrationStream,
   IProcessStreamResults,
   IStepContext,
-  IStreamResultOperation,
 } from '../../../../../types/integration/stepResult'
-import { IntegrationServiceBase } from '../../integrationServiceBase'
+import { IntegrationType, PlatformType } from '../../../../../types/integrationEnums'
 import { ILinkedInOrganizationPost } from '../../../types/linkedinTypes'
-import { AddActivitiesSingle } from '../../../types/messageTypes'
+import { AddActivitiesSingle, Member } from '../../../types/messageTypes'
+import { getMember } from '../../../usecases/linkedin/getMember'
+import { getOrganization } from '../../../usecases/linkedin/getOrganization'
+import { getAllOrganizationPosts } from '../../../usecases/linkedin/getOrganizationPosts'
+import { getAllPostComments } from '../../../usecases/linkedin/getPostComments'
+import { IntegrationServiceBase } from '../../integrationServiceBase'
+import Operations from '../../../../dbOperations/operations'
+import { getAllPostReactions } from '../../../usecases/linkedin/getPostReactions'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -18,6 +27,11 @@ import { AddActivitiesSingle } from '../../../types/messageTypes'
 export class LinkedinIntegrationService extends IntegrationServiceBase {
   constructor() {
     super(IntegrationType.LINKEDIN, 20)
+  }
+
+  async createMemberAttributes(context: IStepContext): Promise<void> {
+    const service = new MemberAttributeSettingsService(context.serviceContext)
+    await service.createPredefined(LinkedInMemberAttributes)
   }
 
   async preprocess(context: IStepContext): Promise<void> {
@@ -61,7 +75,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const log = this.logger(context)
-    log.info({ stream: stream.value, entityId: stream.metadata.id }, 'Processing stream')
+    log.debug({ stream: stream.value, metadata: stream.metadata }, 'Processing stream!')
 
     switch (stream.value) {
       case 'post_comments':
@@ -78,25 +92,131 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     }
   }
 
-  async processCommentComments(
+  private async processCommentComments(
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const log = this.logger(context)
 
-    return undefined
+    const comments = await getAllCommentComments(
+      context.pipelineData.pizzlyId,
+      stream.metadata.urnId,
+      log,
+    )
+
+    const activities: AddActivitiesSingle[] = []
+
+    for (const comment of comments) {
+      const member = await this.parseMember(comment.authorUrn, context)
+
+      activities.push({
+        tenant: context.integration.tenantId,
+        platform: PlatformType.LINKEDIN,
+        type: 'comment',
+        timestamp: new Date(comment.timestamp),
+        sourceId: comment.urnId,
+        sourceParentId: stream.metadata.urnId,
+        body: sanitizeHtml(comment.comment),
+        url: `https://www.linkedin.com/feed/update/${encodeURIComponent(
+          comment.objectUrn,
+        )}?commentUrn=${encodeURIComponent(
+          comment.parentUrnId.replace('urn:li:activity:', 'activity:'),
+        )}&replyUrn=${encodeURIComponent(comment.urnId.replace('urn:li:activity:', 'activity:'))}`,
+        attributes: {
+          userUrl: !LinkedinIntegrationService.isPrivateMember(member)
+            ? member.attributes[MemberAttributeName.URL][PlatformType.LINKEDIN]
+            : undefined,
+          postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
+            stream.metadata.postUrnId,
+          )}`,
+        },
+        member,
+        score: LinkedInGrid.comment.score,
+        isKeyAction: LinkedInGrid.comment.isKeyAction,
+      })
+
+      if (comment.childComments > 0) {
+        throw new Error('LinkedIn only has one level of comments!')
+      }
+    }
+
+    if (activities.length > 0) {
+      const lastRecord = activities[activities.length - 1]
+      return {
+        operations: [
+          {
+            type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+            records: activities,
+          },
+        ],
+        lastRecord,
+        lastRecordTimestamp: lastRecord.timestamp.getTime(),
+      }
+    }
+
+    return {
+      operations: [],
+    }
   }
 
-  async processPostReactions(
+  private async processPostReactions(
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
     const log = this.logger(context)
 
-    return undefined
+    const reactions = await getAllPostReactions(
+      context.pipelineData.pizzlyId,
+      stream.metadata.urnId,
+      log,
+    )
+
+    const activities: AddActivitiesSingle[] = []
+
+    for (const reaction of reactions) {
+      const member = await this.parseMember(reaction.authorUrn, context)
+      activities.push({
+        tenant: context.integration.tenantId,
+        platform: PlatformType.LINKEDIN,
+        type: 'reaction',
+        timestamp: new Date(reaction.timestamp),
+        sourceId: `${stream.metadata.urnId}:${reaction.reaction}:${reaction.authorUrn}`,
+        body: reaction.reaction,
+        url: `https://www.linkedin.com/feed/update/${encodeURIComponent(stream.metadata.urnId)}`,
+        attributes: {
+          userUrl: !LinkedinIntegrationService.isPrivateMember(member)
+            ? member.attributes[MemberAttributeName.URL][PlatformType.LINKEDIN]
+            : undefined,
+          postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
+            stream.metadata.urnId,
+          )}`,
+        },
+        member,
+        score: LinkedInGrid.reaction.score,
+        isKeyAction: LinkedInGrid.reaction.isKeyAction,
+      })
+    }
+
+    if (activities.length > 0) {
+      const lastRecord = activities[activities.length - 1]
+      return {
+        operations: [
+          {
+            type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+            records: activities,
+          },
+        ],
+        lastRecord,
+        lastRecordTimestamp: lastRecord.timestamp.getTime(),
+      }
+    }
+
+    return {
+      operations: [],
+    }
   }
 
-  async processPostComments(
+  private async processPostComments(
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
@@ -104,16 +224,122 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
 
     const comments = await getAllPostComments(
       context.pipelineData.pizzlyId,
-      stream.metadata.id,
+      stream.metadata.urnId,
       log,
     )
 
     const activities: AddActivitiesSingle[] = []
+    const newStreams: IIntegrationStream[] = []
     for (const comment of comments) {
-      const member: Member = {}
+      const member = await this.parseMember(comment.authorUrn, context)
+
+      activities.push({
+        tenant: context.integration.tenantId,
+        platform: PlatformType.LINKEDIN,
+        type: 'comment',
+        timestamp: new Date(comment.timestamp),
+        sourceId: comment.urnId,
+        body: sanitizeHtml(comment.comment),
+        url: `https://www.linkedin.com/feed/update/${encodeURIComponent(
+          comment.objectUrn,
+        )}?commentUrn=${encodeURIComponent(
+          comment.urnId.replace('urn:li:activity:', 'activity:'),
+        )}`,
+        attributes: {
+          userUrl: !LinkedinIntegrationService.isPrivateMember(member)
+            ? member.attributes[MemberAttributeName.URL][PlatformType.LINKEDIN]
+            : undefined,
+          postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
+            stream.metadata.urnId,
+          )}`,
+        },
+        member,
+        score: LinkedInGrid.comment.score,
+        isKeyAction: LinkedInGrid.comment.isKeyAction,
+      })
+
+      if (comment.childComments > 0) {
+        newStreams.push({
+          value: 'comment_comments',
+          metadata: {
+            urnId: comment.urnId,
+            postUrnId: stream.metadata.urnId,
+          },
+        })
+      }
     }
 
-    return undefined
+    if (activities.length > 0) {
+      const lastRecord = activities[activities.length - 1]
+      return {
+        operations: [
+          {
+            type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+            records: activities,
+          },
+        ],
+        lastRecord,
+        lastRecordTimestamp: lastRecord.timestamp.getTime(),
+        newStreams,
+      }
+    }
+
+    return {
+      operations: [],
+    }
+  }
+
+  private async parseMember(memberUrn: string, context: IStepContext): Promise<Member> {
+    const log = this.logger(context)
+
+    const member: Member = {
+      username: {
+        [PlatformType.LINKEDIN]: '',
+      },
+      attributes: {
+        [MemberAttributeName.URL]: {
+          [PlatformType.LINKEDIN]: '',
+        },
+        [MemberAttributeName.IS_ORGANIZATION]: {
+          [PlatformType.LINKEDIN]: false,
+        },
+      },
+    }
+
+    if (LinkedinIntegrationService.isUser(memberUrn)) {
+      const user = await getMember(
+        context.pipelineData.pizzlyId,
+        LinkedinIntegrationService.getUserId(memberUrn),
+        log,
+      )
+
+      if (user.id === 'private') {
+        member.username[PlatformType.LINKEDIN] = `private-${LinkedinIntegrationService.getUserId(
+          memberUrn,
+        )}`
+      } else {
+        member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
+        member.attributes[MemberAttributeName.URL][
+          PlatformType.LINKEDIN
+        ] = `https://www.linkedin.com/in/${user.vanityName}`
+        member.displayName = `${user.firstName} ${user.lastName}`
+      }
+    } else if (LinkedinIntegrationService.isOrganization(memberUrn)) {
+      const organization = await getOrganization(
+        context.pipelineData.pizzlyId,
+        LinkedinIntegrationService.getOrganizationId(memberUrn),
+        log,
+      )
+      member.username[PlatformType.LINKEDIN] = organization.name
+      member.attributes[MemberAttributeName.URL][
+        PlatformType.LINKEDIN
+      ] = `https://www.linkedin.com/company/${organization.vanityName}`
+      member.attributes[MemberAttributeName.IS_ORGANIZATION][PlatformType.LINKEDIN] = true
+    } else {
+      throw new Error(`Could not determine member type from urn ${memberUrn}!`)
+    }
+
+    return member
   }
 
   async postprocess(
@@ -125,15 +351,23 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     log.info('Postprocessing')
   }
 
-  private static isUser(id: string): boolean {
-    return id.startsWith('urn:li:person:')
+  private static isPrivateMember(member: Member): boolean {
+    return member.username[PlatformType.LINKEDIN].startsWith('private-')
   }
 
-  private static isOrganization(id: string): boolean {
-    return id.startsWith('urn:li:organization:')
+  private static isUser(urn: string): boolean {
+    return urn.startsWith('urn:li:person:')
   }
 
-  private static getUserId(id: string): string {
-    return id.replace('urn:li:person:', '')
+  private static isOrganization(urn: string): boolean {
+    return urn.startsWith('urn:li:organization:') || urn.startsWith('urn:li:company:')
+  }
+
+  private static getUserId(urn: string): string {
+    return urn.replace('urn:li:person:', '')
+  }
+
+  private static getOrganizationId(urn: string): string {
+    return urn.replace('urn:li:organization:', '').replace('urn:li:company:', '')
   }
 }

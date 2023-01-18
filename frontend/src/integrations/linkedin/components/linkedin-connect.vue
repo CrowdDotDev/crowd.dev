@@ -25,7 +25,7 @@ defineProps({
 })
 
 const callOnboard = useThrottleFn(async () => {
-  await store.dispatch('integration/doLinkedinOnboard')
+  await store.dispatch('integration/doLinkedinConnect')
 }, 2000)
 
 const connect = async () => {
@@ -35,10 +35,11 @@ const connect = async () => {
   )
 
   try {
-    await pizzly.auth(
+    const result = await pizzly.auth(
       'linkedin',
       `${tenantId.value}-linkedin`
     )
+    console.log('result', result)
     await callOnboard()
   } catch (e) {
     console.log(e)

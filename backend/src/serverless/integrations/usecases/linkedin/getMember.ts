@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { PlatformType } from '../../../../types/integrationEnums'
+import { Logger } from '../../../../utils/logging'
 import { ILinkedInMember } from '../../types/linkedinTypes'
 import getToken from '../pizzly/getToken'
 import { handleLinkedinError } from './errorHandler'
@@ -11,7 +12,11 @@ export const getMember = async (
 ): Promise<ILinkedInMember> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
-    url: `https://api.linkedin.com/v2/members/(${memberId})`,
+    url: `https://api.linkedin.com/v2/people/(id:${memberId})`,
+    params: {},
+    headers: {
+      'X-Restli-Protocol-Version': '2.0.0',
+    },
   }
 
   try {
@@ -22,6 +27,15 @@ export const getMember = async (
 
     const response = (await axios(config)).data
 
+    if (response.id === 'private') {
+      return {
+        id: 'private',
+        vanityName: 'private',
+        firstName: 'private',
+        lastName: 'private',
+        country: 'private',
+      }
+    }
     return {
       id: response.id,
       vanityName: response.vanityName,
