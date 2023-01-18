@@ -15,6 +15,7 @@ export interface MemberAttributeSettingsUpdateData {
   type?: AttributeType
   name?: string
   show?: boolean
+  options?: string[]
   canDelete?: boolean
 }
 

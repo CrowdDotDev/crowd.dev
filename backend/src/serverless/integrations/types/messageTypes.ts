@@ -55,6 +55,7 @@ export type Member = {
   bio?: string
   reach?: number | any
   location?: string
+  isEnriched?: boolean
 }
 
 export type AddActivitiesSingle = {
