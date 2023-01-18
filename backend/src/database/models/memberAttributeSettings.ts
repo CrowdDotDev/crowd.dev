@@ -39,6 +39,11 @@ export default (sequelize) => {
           notEmpty: true,
         },
       },
+      options: {
+        type: DataTypes.ARRAY(DataTypes.TEXT),
+        allowNull: false,
+        defaultValue: [],
+      },
     },
     {
       indexes: [

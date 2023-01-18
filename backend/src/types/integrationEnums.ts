@@ -8,6 +8,8 @@ export enum PlatformType {
   HACKERNEWS = 'hackernews',
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
+  ENRICHMENT = 'enrichment',
+  LINKEDIN = 'linkedin',
 }
 
 export enum IntegrationType {

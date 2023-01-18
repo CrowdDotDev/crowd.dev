@@ -48,24 +48,7 @@ export default (sequelize, DataTypes) => {
         },
         defaultValue: plans.essential,
       },
-      planStatus: {
-        type: DataTypes.STRING(255),
-        allowNull: false,
-        validate: {
-          notEmpty: true,
-          isIn: [['active', 'cancel_at_period_end', 'error']],
-        },
-        defaultValue: 'active',
-      },
-      planStripeCustomerId: {
-        type: DataTypes.STRING(255),
-        validate: {
-          len: [0, 255],
-        },
-      },
-      planUserId: {
-        type: DataTypes.UUID,
-      },
+
       onboardedAt: {
         type: DataTypes.DATE,
       },
@@ -80,6 +63,14 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
       },
       trialEndsAt: {
+        type: DataTypes.DATE,
+        defaultValue: null,
+      },
+      stripeSubscriptionId: {
+        type: DataTypes.TEXT,
+        defaultValue: null,
+      },
+      planSubscriptionEndsAt: {
         type: DataTypes.DATE,
         defaultValue: null,
       },

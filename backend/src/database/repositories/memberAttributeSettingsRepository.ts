@@ -69,6 +69,7 @@ class MemberAttributeSettingsRepository {
         label: data.label,
         canDelete: data.canDelete,
         show: data.show,
+        options: data.options,
         tenantId: tenant.id,
         createdById: currentUser.id,
         updatedById: currentUser.id,

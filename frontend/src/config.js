@@ -20,8 +20,6 @@ const defaultConfig = {
   websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
-  stripePublishableKey:
-    process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
   gitHubInstallationUrl:
     process.env.VUE_APP_GITHUB_INSTALLATION_URL,
   discordInstallationUrl:
@@ -45,6 +43,15 @@ const defaultConfig = {
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
     formId: process.env.VUE_APP_FORMBRICKS_FORM_ID
+  },
+  stripe: {
+    publishableKey:
+      process.env.VUE_APP_STRIPE_PUBLISHABLE_KEY || '',
+    growthPlanPaymentLink:
+      process.env.VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK ||
+      '',
+    customerPortalLink:
+      process.env.VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK || ''
   }
 }
 
@@ -57,8 +64,6 @@ const composedConfig = {
   websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,
-  stripePublishableKey:
-    'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
   gitHubInstallationUrl:
     'CROWD_VUE_APP_GITHUB_INSTALLATION_URL',
   discordInstallationUrl:
@@ -82,6 +87,14 @@ const composedConfig = {
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',
     formId: 'CROWD_VUE_APP_FORMBRICKS_FORM_ID'
+  },
+  stripe: {
+    publishableKey:
+      'CROWD_VUE_APP_STRIPE_PUBLISHABLE_KEY' || '',
+    growthPlanPaymentLink:
+      'CROWD_VUE_APP_STRIPE_GROWTH_PLAN_PAYMENT_LINK' || '',
+    customerPortalLink:
+      'CROWD_VUE_APP_STRIPE_CUSTOMER_PORTAL_LINK' || ''
   }
 }
 

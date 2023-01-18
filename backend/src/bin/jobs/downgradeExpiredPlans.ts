@@ -21,14 +21,29 @@ const job: CrowdJob = {
     const posthog = new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 })
     const redis = await createRedisClient(true)
 
-    const expiredTenants = await dbOptions.database.sequelize.query(
+    const expiredTrialTenants = await dbOptions.database.sequelize.query(
       `select t.id, t.name from tenants t
       where t."isTrialPlan" and t."trialEndsAt" < now()`,
     )
 
-    for (const tenant of expiredTenants[0]) {
+    for (const tenant of expiredTrialTenants[0]) {
       const updatedTenant = await dbOptions.database.tenant.update(
         { isTrialPlan: false, trialEndsAt: null, plan: Plans.values.essential },
+        { returning: true, raw: true, where: { id: tenant.id } },
+      )
+
+      setPosthogTenantProperties(updatedTenant[1][0], posthog, dbOptions.database, redis)
+    }
+
+    log.info('Downgrading expired non-trial plans')
+    const expiredNonTrialTenants = await dbOptions.database.sequelize.query(
+      `select t.id, t.name from tenants t
+      where t.plan = ${Plans.values.growth} and t."planSubscriptionEndsAt" is not null and t."planSubscriptionEndsAt" + interval '3 days' < now()`,
+    )
+
+    for (const tenant of expiredNonTrialTenants[0]) {
+      const updatedTenant = await dbOptions.database.tenant.update(
+        { plan: Plans.values.essential },
         { returning: true, raw: true, where: { id: tenant.id } },
       )
 
