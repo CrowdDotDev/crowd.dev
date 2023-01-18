@@ -639,7 +639,9 @@ export default class MemberService extends LoggingBase {
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows.filter((setting) => setting.type !== AttributeType.SPECIAL)
+    ).rows.filter(
+      (setting) => setting.type !== AttributeType.SPECIAL,
+    )
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
