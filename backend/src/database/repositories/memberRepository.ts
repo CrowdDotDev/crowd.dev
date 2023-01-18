@@ -12,6 +12,7 @@ import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
 import { AttributeType } from '../attributes/types'
 import TenantRepository from './tenantRepository'
+import member from '../../api/member'
 
 const { Op } = Sequelize
 
@@ -1031,6 +1032,14 @@ class MemberRepository {
             delete plainRecord[attribute.name]
           }
         }
+
+        for (const attributeName in plainRecord.attributes) {
+          if (!lodash.find(attributesSettings, { name: attributeName })) {
+            delete plainRecord.attributes[attributeName]
+          }
+        }
+
+        delete plainRecord.contributions
 
         delete plainRecord.company
         plainRecord.organizations = await record.getOrganizations({
