@@ -377,6 +377,10 @@ const en = {
         post: 'posted',
         comment: 'commented'
       },
+      linkedin: {
+        comment: 'commented',
+        reaction: 'reacted with'
+      },
       fallback: 'created an activity'
     },
 
