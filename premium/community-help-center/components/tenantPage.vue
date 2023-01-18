@@ -273,7 +273,7 @@ export default defineComponent({
     const faviconUrl =
       tenant && tenant.faviconUrl
         ? tenant.faviconUrl
-        : "https://app.crowd.dev/images/icon.png";
+        : "/crowd-white.svg";
     const title =
       tenant && tenant.tenantName ? `${tenant.tenantName} | Community Help Center` : "Open crowd.dev";
 

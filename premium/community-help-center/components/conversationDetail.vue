@@ -134,7 +134,7 @@ export default defineComponent({
     const faviconUrl =
       this.tenant && this.tenant.faviconUrl
         ? this.tenant.faviconUrl
-        : "https://app.crowd.dev/images/icon.png";
+        : "/crowd-white.svg";
     const title = this.conversation
       ? `${this.truncatedTitle()} | ${this.tenant.tenantName}`
       : "Open crowd.dev";
