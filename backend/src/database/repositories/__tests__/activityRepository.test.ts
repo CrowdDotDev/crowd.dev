@@ -1532,8 +1532,6 @@ describe('ActivityRepository tests', () => {
       expect(filteredActivities.count).toBe(1)
       expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
 
-
-
       filteredActivities = await ActivityRepository.findAndCountAll(
         {
           advancedFilter: {
@@ -1548,8 +1546,6 @@ describe('ActivityRepository tests', () => {
 
       expect(filteredActivities.count).toBe(1)
       expect(filteredActivities.rows[0].id).toBe(activityCreated2.id)
-
-
     })
   })
 })
