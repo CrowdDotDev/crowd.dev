@@ -127,6 +127,44 @@ export class MemberService {
     return response.data
   }
 
+  static async listActive({
+    platform,
+    isTeamMember,
+    activityTimestampFrom,
+    activityTimestampTo,
+    orderBy,
+    offset,
+    limit
+  }) {
+    const params = {
+      ...(platform.length && {
+        'filter[platforms]': platform
+          .map((p) => p.value)
+          .join(',')
+      }),
+      ...(isTeamMember === false && {
+        'filter[isTeamMember]': isTeamMember
+      }),
+      'filter[activityTimestampFrom]':
+        activityTimestampFrom,
+      'filter[activityTimestampTo]': activityTimestampTo,
+      orderBy,
+      offset,
+      limit
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/member/active`,
+      {
+        params
+      }
+    )
+
+    return response.data
+  }
+
   static async listAutocomplete(query, limit) {
     const params = {
       query,

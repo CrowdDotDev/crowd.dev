@@ -53,10 +53,24 @@
             ...chartOptions('area')
           }"
           :granularity="granularity.value"
+          @on-view-more-click="onViewMoreClick"
         />
       </div>
     </template>
   </query-renderer>
+  <app-widget-drawer
+    v-if="drawerExpanded"
+    v-model="drawerExpanded"
+    :fetch-fn="getActiveMembers"
+    :date="drawerDate"
+    :granularity="granularity.value"
+    :show-date="true"
+    :title="drawerTitle"
+    :export-by-ids="true"
+    module-name="member"
+    size="480px"
+    @on-export="onExport"
+  ></app-widget-drawer>
 </template>
 
 <script>
@@ -76,7 +90,10 @@ import {
   SEVEN_DAYS_PERIOD_FILTER
 } from '@/modules/widget/widget-constants'
 import { QueryRenderer } from '@cubejs-client/vue3'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
 import { chartOptions } from '@/modules/report/templates/template-report-charts'
 import {
   TOTAL_ACTIVE_MEMBERS_QUERY,
@@ -84,30 +101,50 @@ import {
 } from '@/modules/widget/widget-queries'
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+import { MemberService } from '@/modules/member/member-service'
+import moment from 'moment'
 
 const props = defineProps({
   filters: {
     type: Object,
     default: null
+  },
+  isPublicView: {
+    type: Boolean,
+    default: false
   }
 })
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const granularity = ref(DAILY_GRANULARITY_FILTER)
 
+const drawerExpanded = ref()
+const drawerDate = ref()
+const drawerTitle = ref()
+
+const { doExport } = mapActions('member')
+const { cubejsApi } = mapGetters('widget')
+
 const datasets = computed(() => [
   {
     name: 'Total active members',
     borderColor: '#E94F2E',
     measure: 'Members.count',
-    granularity: granularity.value.value
+    granularity: granularity.value.value,
+    ...(!props.isPublicView && {
+      tooltipBtn: 'View members'
+    })
   },
   {
     name: 'Returning members',
     borderDash: [4, 4],
     borderColor: '#E94F2E',
     measure: 'Members.count',
-    granularity: granularity.value.value
+    granularity: granularity.value.value,
+    ...(!props.isPublicView && {
+      tooltipBtn: 'View members'
+    })
   }
 ])
 
@@ -128,7 +165,63 @@ const query = computed(() => {
   ]
 })
 
-const { cubejsApi } = mapGetters('widget')
+// Fetch function to pass to detail drawer
+const getActiveMembers = async ({ pagination }) => {
+  const startDate = moment(drawerDate.value).startOf('day')
+  const endDate = moment(drawerDate.value)
+
+  if (granularity.value.value === 'day') {
+    endDate.endOf('day')
+  } else if (granularity.value.value === 'week') {
+    endDate.startOf('day').add(6, 'day').endOf('day')
+  } else if (granularity.value.value === 'month') {
+    endDate.startOf('day').add(1, 'month')
+  }
+
+  return await MemberService.listActive({
+    platform: props.filters.platform.value,
+    isTeamMember: props.filters.teamMembers,
+    activityTimestampFrom: startDate.toISOString(),
+    activityTimestampTo: endDate.toISOString(),
+    orderBy: 'activityCount_DESC',
+    offset: !pagination.count
+      ? (pagination.currentPage - 1) * pagination.pageSize
+      : 0,
+    limit: !pagination.count
+      ? pagination.pageSize
+      : pagination.count
+  })
+}
+
+// Open drawer and set title and date
+const onViewMoreClick = (date) => {
+  window.analytics.track('Open report drawer', {
+    template: 'Members report',
+    widget: 'Active members',
+    date,
+    granularity: granularity.value
+  })
+
+  drawerExpanded.value = true
+  drawerDate.value = date
+
+  // Title
+  if (granularity.value.value === 'week') {
+    drawerTitle.value = 'Weekly active members'
+  } else if (granularity.value.value === 'month') {
+    drawerTitle.value = 'Monthly active members'
+  } else {
+    drawerTitle.value = 'Daily active members'
+  }
+}
+
+const onExport = async (ids) => {
+  try {
+    await doExport({ selected: true, customIds: ids })
+  } catch (error) {
+    console.log(error)
+  }
+}
 </script>
 
 <style lang="scss" scoped>

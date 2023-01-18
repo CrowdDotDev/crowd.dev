@@ -26,7 +26,8 @@ export const formatDateToTimeAgo = (timestamp) => {
 export const formatDate = ({
   timestamp = null,
   subtractDays,
-  subtractMonths
+  subtractMonths,
+  subtractYears
 }) => {
   const date = timestamp ? moment(timestamp) : moment()
 
@@ -36,6 +37,10 @@ export const formatDate = ({
 
   if (subtractMonths) {
     date.subtract(subtractMonths, 'months')
+  }
+
+  if (subtractYears) {
+    date.subtract(subtractYears, 'years')
   }
 
   return date.format('YYYY-MM-DD')

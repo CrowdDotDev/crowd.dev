@@ -23,6 +23,30 @@ const getCubeFilters = ({ platforms, hasTeamMembers }) => {
   return filters
 }
 
+const setApiFilters = ({
+  selectedPlatforms,
+  selectedHasTeamMembers,
+  filters
+}) => {
+  // Only add filter if team members are excluded
+  if (selectedHasTeamMembers === false) {
+    filters.push({
+      isTeamMember: {
+        not: true
+      }
+    })
+  }
+
+  // Only add filter if there are selected platforms
+  if (selectedPlatforms.length) {
+    filters.push({
+      or: selectedPlatforms.map((platform) => ({
+        platform: { jsonContains: platform.value }
+      }))
+    })
+  }
+}
+
 export const TOTAL_ACTIVE_MEMBERS_QUERY = ({
   period,
   granularity,
@@ -122,39 +146,100 @@ export const TOTAL_MEMBERS_QUERY = ({
   }
 }
 
-export const ACTIVE_LEADERBOARD_MEMBERS_FILTER = ({
-  period,
+export const ACTIVE_MEMBERS_AREA_FILTER = ({
+  date,
+  granularity,
   selectedPlatforms,
   selectedHasTeamMembers
 }) => {
+  const startDate = moment(date)
+    .startOf('day')
+    .toISOString()
+  let endDate
+
+  if (granularity === 'day') {
+    endDate = moment(date).endOf('day').toISOString()
+  } else if (granularity === 'week') {
+    endDate = moment(date)
+      .startOf('day')
+      .add(6, 'day')
+      .endOf('day')
+      .toISOString()
+  } else if (granularity === 'month') {
+    endDate = moment(date)
+      .startOf('day')
+      .add(1, 'month')
+      .toISOString()
+  }
+
   const filters = [
     {
-      lastActive: {
-        gte: moment()
-          .utc()
-          .subtract(period.value, period.granularity)
-          .toISOString()
-      }
+      and: [
+        {
+          lastActive: {
+            gte: startDate
+          }
+        },
+        {
+          lastActive: {
+            lte: endDate
+          }
+        }
+      ]
     }
   ]
 
-  // Only add filter if team members are excluded
-  if (selectedHasTeamMembers === false) {
-    filters.push({
-      isTeamMember: {
-        not: true
-      }
-    })
+  setApiFilters({
+    filters,
+    selectedHasTeamMembers,
+    selectedPlatforms
+  })
+
+  return {
+    and: filters
+  }
+}
+
+export const TOTAL_MEMBERS_FILTER = ({
+  date,
+  granularity,
+  selectedPlatforms,
+  selectedHasTeamMembers
+}) => {
+  let endDate
+
+  if (granularity === 'day') {
+    endDate = moment(date).endOf('day').toISOString()
+  } else if (granularity === 'week') {
+    endDate = moment(date)
+      .startOf('day')
+      .add(6, 'day')
+      .endOf('day')
+      .toISOString()
+  } else if (granularity === 'month') {
+    endDate = moment(date)
+      .startOf('day')
+      .add(1, 'month')
+      .toISOString()
   }
 
-  // Only add filter if there are selected platforms
-  if (selectedPlatforms.length) {
-    filters.push({
-      or: selectedPlatforms.map((platform) => ({
-        platform: { jsonContains: platform.value }
-      }))
-    })
-  }
+  const filters = [
+    {
+      and: [
+        {
+          joinedAt: {
+            lte: endDate
+          }
+        }
+      ]
+    }
+  ]
+
+  setApiFilters({
+    filters,
+    selectedHasTeamMembers,
+    selectedPlatforms
+  })
 
   return {
     and: filters

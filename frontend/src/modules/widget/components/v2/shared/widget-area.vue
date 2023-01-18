@@ -16,12 +16,20 @@ export default {
 </script>
 
 <script setup>
-import { defineProps, computed, onMounted, ref } from 'vue'
+import {
+  defineEmits,
+  defineProps,
+  computed,
+  onMounted,
+  ref
+} from 'vue'
 import cloneDeep from 'lodash/cloneDeep'
 import { parseAxisLabel } from '@/utils/reports'
+import { externalTooltipHandler } from '@/modules/report/tooltip'
 
 const componentType = 'area-chart'
 
+const emit = defineEmits(['on-view-more-click'])
 const props = defineProps({
   datasets: {
     type: Array,
@@ -46,6 +54,23 @@ const props = defineProps({
 })
 
 const customChartOptions = cloneDeep(props.chartOptions)
+
+// Customize external tooltip
+// Handle View more button click
+// Get dataPoint from tooltip and extract the date
+customChartOptions.library.plugins.tooltip.external = (
+  context
+) =>
+  externalTooltipHandler(context, () => {
+    const point = context.tooltip.dataPoints.find(
+      (p) => p.datasetIndex === 0
+    )
+    const date = data.value[0].data[point.dataIndex][0]
+
+    emit('on-view-more-click', date)
+  })
+
+// Customize x ticks
 customChartOptions.library.scales.x.ticks.callback = (
   value
 ) => parseAxisLabel(value, props.granularity)
@@ -124,6 +149,7 @@ const buildSeriesDataset = (data, index) => {
   }
 }
 
+// Parse resultSet into data that can be consumed by area-chart component
 const series = (resultSet) => {
   // For line & area charts
   const pivot = resultSet.chartPivot()
@@ -140,6 +166,8 @@ const series = (resultSet) => {
         p[`${prefix}${props.datasets[index].measure}`]
       ])
 
+      // Only show bottom and top grid lines by setting
+      // the stepSize to be the maxValue
       if (props.isGridMinMax) {
         const maxValue = Math.max(...data.map((d) => d[1]))
         customChartOptions.library.scales.y.ticks.stepSize =

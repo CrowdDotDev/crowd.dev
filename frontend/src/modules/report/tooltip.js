@@ -1,6 +1,9 @@
-export const externalTooltipHandler = (context) => {
+export const externalTooltipHandler = (
+  context,
+  clickFn
+) => {
   // Tooltip Element
-  const { tooltip } = context
+  const { tooltip, chart } = context
   let tooltipEl = document.getElementById('chartjs-tooltip')
   // Create element on first render
   if (!tooltipEl) {
@@ -10,9 +13,46 @@ export const externalTooltipHandler = (context) => {
     document.body.appendChild(tooltipEl)
   }
 
+  // Handle mouseenter event on tooltip
+  tooltipEl.onmouseenter = () => {
+    if (chart.canvas) {
+      const meta = chart.getDatasetMeta(0)
+      const canvas = chart.canvas.getBoundingClientRect()
+      const point =
+        meta.data[
+          tooltip.dataPoints[0].dataIndex
+        ].getCenterPoint()
+      const evt = new MouseEvent('mousemove', {
+        clientX: canvas.x + point.x,
+        clientY: canvas.y + point.y
+      })
+      const canvasNode = chart.canvas
+
+      // Dispatch mousemove event to canvas
+      // This will allow for the tooltip render
+      // logic to still be on the library side
+      canvasNode?.dispatchEvent(evt)
+    }
+  }
+
+  // Handle mouseleave event on tooltip
+  tooltipEl.onmouseleave = ({ clientX, clientY }) => {
+    if (chart.canvas) {
+      const evt = new MouseEvent('mouseout', {
+        clientX,
+        clientY
+      })
+      const canvasNode = chart.canvas
+
+      // Dispatch mouseposition in the mouseout event
+      // This will hide tooltip
+      canvasNode?.dispatchEvent(evt)
+    }
+  }
+
   // Hide if no tooltip
   if (tooltip.opacity === 0) {
-    tooltipEl.style.opacity = 0
+    tooltipEl.style.display = 'none'
     return
   }
 
@@ -57,7 +97,7 @@ export const externalTooltipHandler = (context) => {
           innerHtml += `
           <tr class="border-b border-gray-100 last:border-none text-gray-900 text-xs font-medium">
             <td class="pb-2">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center flex-wrap gap-2">
                 <div class="${classes.bgColor} rounded-md ${
             classes.color
           } h-5 px-1 flex items-center">
@@ -80,6 +120,24 @@ export const externalTooltipHandler = (context) => {
 
     innerHtml += '</tbody>'
 
+    let footerBtn = document.getElementById(
+      'custom-tooltip-footer-btn'
+    )
+    if (!footerBtn && tooltip.footer) {
+      footerBtn = document.createElement('el-button')
+      footerBtn.id = 'custom-tooltip-footer-btn'
+      tooltip.footer.forEach((lines) => {
+        footerBtn.className =
+          'btn btn--sm btn--full btn--secondary mt-4'
+        footerBtn.innerText = lines
+        tooltipEl.appendChild(footerBtn)
+      })
+    }
+
+    // Add clickFn to footerBtn
+    // This will allow each graph to handle the button click differently
+    footerBtn.onclick = clickFn
+
     let tableRoot = tooltipEl.querySelector('table')
     tableRoot.innerHTML = innerHtml
   }
@@ -89,6 +147,7 @@ export const externalTooltipHandler = (context) => {
 
   // Display, position, and set styles for font
   tooltipEl.style.opacity = 1
+  tooltipEl.style.display = 'block'
   tooltipEl.style.backgroundColor = 'white'
   tooltipEl.style.borderRadius = '8px'
   tooltipEl.style.position = 'absolute'
@@ -103,12 +162,13 @@ export const externalTooltipHandler = (context) => {
   tooltipEl.style.top =
     position.top +
     window.pageYOffset +
-    tooltip.caretY -
+    (tooltip.dataPoints?.[0]?.element?.y ||
+      tooltip.caretY) -
     tooltipEl.getBoundingClientRect().height -
-    40 +
+    20 +
     'px'
   tooltipEl.style.padding = '12px'
   tooltipEl.style.textAlign = 'left'
-  tooltipEl.style.pointerEvents = 'none'
   tooltipEl.style.zIndex = '20'
+  tooltipEl.style.maxWidth = '200px'
 }
