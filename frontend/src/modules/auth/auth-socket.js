@@ -1,5 +1,9 @@
 import io from 'socket.io-client'
+import posthog from 'posthog-js'
 import config from '@/config'
+import { computed } from 'vue'
+import { store } from '@/store'
+import Message from '@/shared/message/message'
 
 let socketIoClient
 
@@ -7,7 +11,9 @@ export const connectSocket = (token) => {
   if (socketIoClient && socketIoClient.connected) {
     socketIoClient.disconnect()
   }
-
+  const currentTenant = computed(
+    () => store.getters['auth/currentTenant']
+  )
   const path =
     config.env === 'production' || config.env === 'staging'
       ? '/api/socket.io'
@@ -33,6 +39,17 @@ export const connectSocket = (token) => {
   socketIoClient.on('integration-completed', (data) => {
     console.log('Integration onboarding done', data)
     // TODO handle this data
+  })
+
+  socketIoClient.on('tenant-plan-upgraded', (data) => {
+    console.log(
+      'Tenant plan is upgraded. Force a hard refresh!',
+      data
+    )
+    posthog.group('tenant', currentTenant.value.id)
+    posthog.reloadFeatureFlags()
+    store.dispatch('auth/doRefreshCurrentUser')
+    Message.success('Successfully upgraded to Growth plan')
   })
 }
 
