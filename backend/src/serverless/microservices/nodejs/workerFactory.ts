@@ -8,6 +8,7 @@ import {
   NodeMicroserviceMessage,
   ProcessAutomationMessage,
   ProcessWebhookAutomationMessage,
+  BulkEnrichMessage,
 } from './messageTypes'
 import { AutomationTrigger, AutomationType } from '../../../types/automationTypes'
 import newActivityWorker from './automation/workers/newActivityWorker'
@@ -15,6 +16,8 @@ import newMemberWorker from './automation/workers/newMemberWorker'
 import webhookWorker from './automation/workers/webhookWorker'
 import { csvExportWorker } from './csv-export/csvExportWorker'
 import { processWebhook } from '../../integrations/workers/stripeWebhookWorker'
+import MemberEnrichmentService from '../../../services/premium/enrichment/memberEnrichmentService'
+import { bulkEnrichmentWorker } from './bulk-enrichment/bulkEnrichmentWorker'
 
 /**
  * Worker factory for spawning different microservices
@@ -39,6 +42,10 @@ async function workerFactory(event: NodeMicroserviceMessage): Promise<any> {
         tenant,
         csvExportMessage.criteria,
       )
+    case 'bulk-enrich':
+      const bulkEnrichMessage = event as BulkEnrichMessage
+      return bulkEnrichmentWorker(bulkEnrichMessage.tenant, bulkEnrichMessage.memberIds)
+
     case 'automation-process':
       const automationProcessRequest = event as ProcessAutomationMessage
 
