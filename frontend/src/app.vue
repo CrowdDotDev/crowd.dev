@@ -46,7 +46,6 @@ export default {
   methods: {
     ...mapActions({
       doInit: 'auth/doInit',
-      taskDoInit: 'task/doInit',
       resize: 'layout/resize'
     }),
 
