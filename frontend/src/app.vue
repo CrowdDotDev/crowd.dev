@@ -35,7 +35,6 @@ export default {
 
   async created() {
     await this.doInit()
-    await this.taskDoInit()
     window.addEventListener('resize', this.handleResize)
     this.handleResize()
   },
