@@ -9,7 +9,6 @@ export enum PlatformType {
   LINKEDIN = 'linkedin',
   CROWD = 'crowd',
   ENRICHMENT = 'enrichment',
-  LINKEDIN = 'linkedin',
 }
 
 export enum IntegrationType {
