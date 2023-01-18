@@ -159,7 +159,7 @@ export default defineComponent({
     logoUrl() {
       return this.tenant && this.tenant.logoUrl
         ? this.tenant.logoUrl
-        : "https://app.crowd.dev/images/icon.png";
+        : "/crowd-white.svg";
     },
     name() {
       return this.tenant ? this.tenant.tenantName : "";
