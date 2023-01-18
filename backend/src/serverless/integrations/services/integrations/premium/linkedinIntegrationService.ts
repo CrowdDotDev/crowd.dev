@@ -129,6 +129,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.postUrnId,
           )}`,
+          postBody: stream.metadata.body
         },
         member,
         score: LinkedInGrid.comment.score,
@@ -181,7 +182,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         type: 'reaction',
         timestamp: new Date(reaction.timestamp),
         sourceId: `${stream.metadata.urnId}:${reaction.reaction}:${reaction.authorUrn}`,
-        body: reaction.reaction,
         url: `https://www.linkedin.com/feed/update/${encodeURIComponent(stream.metadata.urnId)}`,
         attributes: {
           userUrl: !LinkedinIntegrationService.isPrivateMember(member)
@@ -190,6 +190,8 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.urnId,
           )}`,
+          postBody: stream.metadata.body,
+          reactionType: reaction.reaction
         },
         member,
         score: LinkedInGrid.reaction.score,
@@ -252,6 +254,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.urnId,
           )}`,
+          postBody: stream.metadata.body
         },
         member,
         score: LinkedInGrid.comment.score,

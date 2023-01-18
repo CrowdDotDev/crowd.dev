@@ -351,7 +351,7 @@ export default class IntegrationService {
     }
 
     if (integration.status === 'pending-action') {
-      await this.createOrUpdate({
+      integration = await this.createOrUpdate({
         platform: PlatformType.LINKEDIN,
         status: 'in-progress',
         settings: integration.settings,
@@ -367,10 +367,9 @@ export default class IntegrationService {
         ),
       )
       return integration
-    } else {
-      this.options.log.error('LinkedIn integration is not in pending-action status!')
-      throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
     }
+    this.options.log.error('LinkedIn integration is not in pending-action status!')
+    throw new Error404(this.options.language, 'errors.linkedin.cantOnboardWrongStatus')
   }
 
   async linkedinConnect() {
