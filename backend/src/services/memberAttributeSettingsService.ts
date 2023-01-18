@@ -109,6 +109,8 @@ export default class MemberAttributeSettingsService {
         return MemberAttributeSettingsService.isNumber(value)
       case AttributeType.MULTI_SELECT:
         return MemberAttributeSettingsService.isMultiSelect(value, inputs.options)
+      case AttributeType.SPECIAL:
+        return true
       default:
         return false
     }
