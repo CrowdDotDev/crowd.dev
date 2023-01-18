@@ -7,7 +7,7 @@
     ></div>
     <div v-else>
       <div
-        class="mb-4 flex items-center flex-shrink-0 sticky top-0 inset-x-0 z-10 bg-gray-50 shadow-sm"
+        class="mb-4 flex items-center flex-shrink-0 sticky top-0 inset-x-0 z-10 bg-white shadow-sm"
       >
         <div
           class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8"
@@ -63,35 +63,22 @@
       </div>
       <div
         v-if="tenantId"
-        class="fixed bottom-0 inset-x-0 h-12 bg-gray-100 border-t border-gray-200 w-full text-gray-600 text-xs flex items-center leading-none flex-shrink-0"
+        class="w-full text-gray-400 text-xs flex items-center leading-none"
       >
         <div
-          class="max-w-5xl flex flex-grow justify-between mx-auto"
+          class="max-w-5xl flex flex-grow mx-auto items-center justify-between px-6 lg:px-8 mb-8"
         >
-          <div class="flex items-end">
-            <div class="mr-2">Build your own with</div>
-            <a
-              href="https://www.crowd.dev/"
-              target="_blank"
-            >
-              <img
-                src="/images/logo/crowd.svg"
-                class="block h-4"
-                alt="logo crowd.dev"
-              />
-            </a>
-          </div>
           <div class="flex items-center">
             <a
               href="https://www.crowd.dev/privacy-policy"
-              class="text-gray-600 hover:text-gray-900"
+              class="text-gray-400 hover:text-brand-500"
               target="_blank"
               >Privacy Policy</a
             >
             <span class="mx-1"> · </span>
             <a
               href="https://www.crowd.dev/terms-of-use"
-              class="text-gray-600 hover:text-gray-900"
+              class="text-gray-400 hover:text-brand-500"
               target="_blank"
             >
               Terms of Use
@@ -99,18 +86,30 @@
             <span class="mx-1"> · </span>
             <a
               href="https://www.crowd.dev/imprint"
-              class="text-gray-600 hover:text-gray-900 mr-8"
+              class="text-gray-400 hover:text-brand-500 mr-8"
               target="_blank"
             >
               Imprint
             </a>
-            <div>
-              © Crowd&nbsp;Technologies GmbH
-              {{ new Date().getFullYear() }}. All rights
-              reserved.
-            </div>
+          </div>
+          <div>
+            © Crowd&nbsp;Technologies GmbH
+            {{ new Date().getFullYear() }}. All rights
+            reserved.
           </div>
         </div>
+      </div>
+      <div
+        class="fixed right-6 flex items-center gap-2 bg-black rounded-full px-3 h-8 bottom-btn"
+      >
+        <div class="text-gray-300 text-2xs">Powered by</div>
+        <a href="https://www.crowd.dev/" target="_blank">
+          <img
+            src="/images/logo/crowd-white.svg"
+            class="block h-3.5 mb-1"
+            alt="logo crowd.dev"
+          />
+        </a>
       </div>
     </div>
   </div>
@@ -191,5 +190,17 @@ export default {
 <style lang="scss">
 .report-view-page {
   @apply relative h-screen;
+}
+
+@media (max-width: 1362px) {
+  .bottom-btn {
+    @apply bottom-16;
+  }
+}
+
+@media (min-width: 1362px) {
+  .bottom-btn {
+    @apply bottom-6;
+  }
 }
 </style>
