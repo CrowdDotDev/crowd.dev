@@ -32,15 +32,17 @@ async function getTenant(searchClient, tenantSlug) {
 async function getTenantSlugAndMode(searchClient, req) {
   const query = useQuery(req);
 
-  if (req.headers || req.headers.host) {
-    const hostArray = req.headers.host.split('.');
+  const request = req.req
+
+  if (request.headers || request.headers.host) {
+    const hostArray = request.headers.host.split('.');
     const domain =
       hostArray.length === 2 ? hostArray[0] : hostArray[hostArray.length - 2];
 
     if (
-      req.headers.host === APP_DOMAIN ||
-      req.headers.host.includes('open-crowd.netlify.app') ||
-      req.headers.host.includes('open-crowd-prod.netlify.app')
+      request.headers.host === APP_DOMAIN ||
+      request.headers.host.includes('open-crowd.netlify.app') ||
+      request.headers.host.includes('open-crowd-prod.netlify.app')
     ) {
       return {
         mode: 'urlPath',
@@ -54,7 +56,7 @@ async function getTenantSlugAndMode(searchClient, req) {
     } else {
       const results = await searchClient
         .index(SEARCH_ENGINE_SETTINGS_INDEX)
-        .search('', { filter: `customUrl=${req.headers.host.split(':')[0]}` });
+        .search('', { filter: `customUrl=${request.headers.host.split(':')[0]}` });
       return {
         mode: 'subdomain',
         tenantSlug: results.hits[0].tenantSlug,
