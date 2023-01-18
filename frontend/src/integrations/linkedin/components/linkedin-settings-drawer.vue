@@ -172,6 +172,7 @@ const connect = async () => {
     model.value
   )
   loading.value = false
+  isVisible.value = false
 }
 
 watch(isVisible, (newValue, oldValue) => {

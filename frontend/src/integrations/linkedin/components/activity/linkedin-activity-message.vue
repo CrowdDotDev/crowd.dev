@@ -7,6 +7,7 @@
     ></app-i18n>
   </span>
   <el-tooltip
+    v-if="activity.type === 'reaction'"
     placement="top"
     :content="computedReactionLabel"
   >
@@ -14,12 +15,12 @@
   </el-tooltip>
   <span v-if="!short"> on a post </span>
   <a
-    v-if="!short && activity.postUrl"
-    :href="activity.postUrl"
+    v-if="!short && computedPostUrl"
+    :href="computedPostUrl"
     target="_blank"
     class="ml-1 text-brand-500"
   >
-    {{ activity.attributes.title }}
+    {{ computedPostTitle }}
   </a>
 </template>
 
@@ -49,51 +50,29 @@ export default {
     computedMessage() {
       return `entities.activity.${this.activity.platform}.${this.activity.type}`
     },
-    computedChannel() {
-      if (this.activity.channel.length > 60) {
+    computedPostTitle() {
+      if (this.activity.attributes.postBody.length > 40) {
         return (
-          this.activity.channel.substring(0, 60) + '...'
+          this.activity.attributes.postBody.substring(
+            0,
+            40
+          ) + '...'
         )
       }
-      return this.activity.channel
+      return this.activity.attributes.postBody
     },
-    computedChannelShort() {
-      if (this.activity.channel.length > 8) {
-        return this.activity.channel.substring(0, 8) + '...'
-      }
-      return this.activity.channel
-    },
-    computedParentTitle() {
-      if (this.activity.attributes.parentTitle) {
-        return this.activity.attributes.parentTitle
-          .length >= 60
-          ? this.activity.attributes.parentTitle.substring(
-              0,
-              20
-            ) + '...'
-          : this.activity.attributes.parentTitle
-      }
-      return null
-    },
-    computedGreatParentTitle() {
-      if (this.activity.attributes.greatParentTitle) {
-        return this.activity.attributes.greatParentTitle
-          .length >= 60
-          ? this.activity.attributes.greatParentTitle.substring(
-              0,
-              20
-            ) + '...'
-          : this.activity.attributes.greatParentTitle
-      }
-      return null
+    computedPostUrl() {
+      return this.activity.attributes.postUrl
     },
     computedReactionSVG() {
       return this.activity.type === 'reaction'
-        ? `/images/integrations/linkedin-reactions/${this.activity.body}.svg`
+        ? `/images/integrations/linkedin-reactions/${this.activity.attributes.reactionType}.svg`
         : null
     },
     computedReactionLabel() {
-      return linkedInConfig.reactions[this.activity.body]
+      return linkedInConfig.reactions[
+        this.activity.attributes.reactionType
+      ]
     },
     isUrl() {
       return isUrl(this.activity.channel)
