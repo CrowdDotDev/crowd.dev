@@ -59,11 +59,12 @@
           }"
         >
           <div class="flex items-center justify-between">
-            <a
+            <el-button
               v-if="!connected"
               class="btn btn--secondary btn--md"
+              :disabled="connectDisabled"
               @click="connect"
-              >Connect</a
+              >Connect</el-button
             >
             <el-button
               v-else
@@ -101,6 +102,10 @@ const props = defineProps({
   integration: {
     type: Object,
     default: () => {}
+  },
+  connectDisabled: {
+    type: Boolean,
+    default: false
   }
 })
 

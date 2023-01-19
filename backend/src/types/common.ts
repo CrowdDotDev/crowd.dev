@@ -16,6 +16,7 @@ export enum FeatureFlag {
   EAGLE_EYE = 'eagle-eye',
   ORGANIZATIONS = 'organizations',
   CSV_EXPORT = 'csv-export',
+  LINKEDIN = 'linkedin'
 }
 
 export enum Edition {

@@ -5,7 +5,8 @@ export const featureFlags = {
   eagleEye: 'eagle-eye',
   communityCenterPro: 'community-help-center-pro',
   organizations: 'organizations',
-  automations: 'automations'
+  automations: 'automations',
+  linkedin: 'linkedin'
 }
 
 export const isFeatureEnabled = async (flag) => {
