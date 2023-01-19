@@ -50,15 +50,15 @@ export default {
       return `entities.activity.${this.activity.platform}.${this.activity.type}`
     },
     computedPostTitle() {
-      if (this.activity.attributes.postBody.length > 40) {
-        return (
-          this.activity.attributes.postBody.substring(
-            0,
-            40
-          ) + '...'
-        )
+      let postBody = this.activity.attributes.postBody
+      postBody = postBody
+        .replace(/@\[/i, '') // remove first "@["
+        .replace(/]\([^)]*\)/i, '') // then remove "](urn:something...)", to keep the entity's name
+
+      if (postBody.length > 40) {
+        return postBody.substring(0, 40) + '...'
       }
-      return this.activity.attributes.postBody
+      return postBody
     },
     computedPostUrl() {
       return this.activity.attributes.postUrl
