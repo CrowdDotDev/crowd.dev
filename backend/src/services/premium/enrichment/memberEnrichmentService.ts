@@ -220,7 +220,7 @@ export default class MemberEnrichmentService extends LoggingBase {
   }
 
   async normalize(member: Member, enrichmentData: EnrichmentAPIMember) {
-    member.isEnriched = true
+    member.lastEnriched = new Date()
     if (!member.email && enrichmentData.primary_mail) {
       member.email = enrichmentData.primary_mail
     }

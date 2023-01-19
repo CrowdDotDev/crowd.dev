@@ -55,7 +55,7 @@ export type Member = {
   bio?: string
   reach?: number | any
   location?: string
-  isEnriched?: boolean
+  lastEnriched?: Date | null
 }
 
 export type AddActivitiesSingle = {
