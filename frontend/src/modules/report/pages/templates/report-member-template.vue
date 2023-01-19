@@ -6,11 +6,13 @@
       class="app-page-spinner"
     ></div>
     <div v-else class="flex flex-col gap-8">
-      <app-widget-total-members />
-      <app-widget-active-members />
-      <app-widget-active-members-area />
+      <app-widget-total-members :filters="filters" />
+      <app-widget-active-members :filters="filters" />
+      <app-widget-active-members-area :filters="filters" />
       <app-widget-active-leaderboard-members
         v-if="!isPublicView"
+        :platforms="filters.platform.value"
+        :team-members="filters.teamMembers"
       />
     </div>
   </div>
@@ -28,6 +30,10 @@ import {
 import { computed, onMounted, defineProps } from 'vue'
 
 defineProps({
+  filters: {
+    type: Object,
+    required: true
+  },
   isPublicView: {
     type: Boolean,
     default: false
