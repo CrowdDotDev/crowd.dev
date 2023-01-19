@@ -129,7 +129,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           postUrl: `https://www.linkedin.com/feed/update/${encodeURIComponent(
             stream.metadata.postUrnId,
           )}`,
-          postBody: stream.metadata.body,
+          postBody: stream.metadata.postBody,
         },
         member,
         score: LinkedInGrid.comment.score,
@@ -267,6 +267,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           metadata: {
             urnId: comment.urnId,
             postUrnId: stream.metadata.urnId,
+            postBody: stream.metadata.body
           },
         })
       }
@@ -324,7 +325,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
         member.attributes[MemberAttributeName.URL][
           PlatformType.LINKEDIN
-        ] = `https://www.linkedin.com/in/${user.vanityName}`
+          ] = `https://www.linkedin.com/in/${user.vanityName}`
         member.displayName = `${user.firstName} ${user.lastName}`
       }
     } else if (LinkedinIntegrationService.isOrganization(memberUrn)) {
@@ -336,7 +337,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       member.username[PlatformType.LINKEDIN] = organization.name
       member.attributes[MemberAttributeName.URL][
         PlatformType.LINKEDIN
-      ] = `https://www.linkedin.com/company/${organization.vanityName}`
+        ] = `https://www.linkedin.com/company/${organization.vanityName}`
       member.attributes[MemberAttributeName.IS_ORGANIZATION][PlatformType.LINKEDIN] = true
     } else {
       throw new Error(`Could not determine member type from urn ${memberUrn}!`)
