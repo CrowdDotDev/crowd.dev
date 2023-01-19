@@ -51,9 +51,15 @@ export default {
     },
     computedPostTitle() {
       let postBody = this.activity.attributes.postBody
-      postBody = postBody
-        .replace(/@\[/i, '') // remove first "@["
-        .replace(/]\([^)]*\)/i, '') // then remove "](urn:something...)", to keep the entity's name
+
+      const firstRegex = /@\[/i // to look/remove the "@["
+      const secondRegex = /]\([^)]*\)/i // to look/remove the "](urn:something...)", and the entity name will remain
+
+      while (firstRegex.test(postBody)) {
+        postBody = postBody
+          .replace(firstRegex, '')
+          .replace(secondRegex, '')
+      }
 
       if (postBody.length > 40) {
         return postBody.substring(0, 40) + '...'
