@@ -1,12 +1,9 @@
 <template>
   <div
-    v-if="hasSocialIdentities || member.email"
+    v-if="hasSocialIdentities"
     class="flex items-center gap-3"
   >
-    <div
-      v-if="hasSocialIdentities"
-      class="flex gap-2 items-center"
-    >
+    <div class="flex gap-2 items-center">
       <app-platform
         v-if="!!member.username?.twitter"
         platform="twitter"
@@ -72,23 +69,6 @@
         :as-link="true"
       />
     </div>
-
-    <el-divider
-      v-if="showDivider"
-      direction="vertical"
-      class="border-gray-200 m-0 h-8"
-    />
-
-    <app-platform
-      v-if="member.email"
-      platform="email"
-      track-event-name="Click Member Contact"
-      track-event-channel="Email"
-      :has-tooltip="true"
-      tooltip-label="Send e-mail"
-      :href="`mailto:${member.email}`"
-      :as-link="true"
-    />
   </div>
   <div v-else>-</div>
 </template>
@@ -118,8 +98,5 @@ const hasSocialIdentities = computed(
     !!props.member.username?.slack ||
     !!props.member.username?.hackernews ||
     !!props.member.username?.reddit
-)
-const showDivider = computed(
-  () => props.member.email && hasSocialIdentities.value
 )
 </script>

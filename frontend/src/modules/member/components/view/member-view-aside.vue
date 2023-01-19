@@ -13,7 +13,7 @@
       </div>
       <div class="-mx-6 mt-6">
         <a
-          v-for="platform of Object.keys(member.username)"
+          v-for="platform of Object.keys(socialIdentities)"
           :key="platform"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
@@ -24,7 +24,7 @@
           "
           :href="
             platform === 'hackernews'
-              ? `https://news.ycombinator.com/user?id=${member.username.hackernews}`
+              ? `https://news.ycombinator.com/user?id=${socialIdentities.hackernews}`
               : member.attributes.url?.[platform]
           "
           target="_blank"
@@ -32,7 +32,7 @@
           <div class="flex gap-3 items-center">
             <app-platform :platform="platform" />
             <span class="text-gray-900 text-xs">
-              {{ member.username[platform] }}</span
+              {{ socialIdentities[platform] }}</span
             >
           </div>
           <i
@@ -41,6 +41,27 @@
                 ? true
                 : member.attributes.url?.[platform]
             "
+            class="ri-external-link-line text-gray-300"
+          ></i>
+        </a>
+      </div>
+      <div
+        v-if="Object.keys(socialIdentities).length && email"
+        class="-mx-6 mt-6"
+      >
+        <el-divider class="border-t-gray-200"></el-divider>
+        <a
+          class="px-6 py-2 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
+          :href="`mailto:${email}`"
+          target="_blank"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="email" />
+            <span class="text-gray-900 text-xs">
+              {{ email }}</span
+            >
+          </div>
+          <i
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -118,6 +139,14 @@ const props = defineProps({
 
 const identitiesDrawer = ref(false)
 const attributesDrawer = ref(false)
+
+const email = ref(props.member.username?.email)
+const socialIdentities = computed(() => {
+  const identities = { ...props.member.username }
+  delete identities.email
+
+  return identities
+})
 
 const computedCustomAttributes = computed(() => {
   return Object.values(

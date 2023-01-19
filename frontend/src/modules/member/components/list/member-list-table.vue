@@ -231,6 +231,22 @@
                 </template>
               </el-table-column>
 
+              <el-table-column label="Email" width="240">
+                <template #default="scope">
+                  <div class="text-sm cursor-auto">
+                    <span
+                      v-if="scope.row.email"
+                      class="text-gray-500"
+                      @click.stop
+                      >{{ scope.row.email }}</span
+                    >
+                    <span v-else class="text-gray-500"
+                      >-</span
+                    >
+                  </div>
+                </template>
+              </el-table-column>
+
               <el-table-column
                 :width="maxTabWidth"
                 :label="
