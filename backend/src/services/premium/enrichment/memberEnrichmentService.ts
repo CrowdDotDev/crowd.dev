@@ -229,6 +229,19 @@ export default class MemberEnrichmentService extends LoggingBase {
         member.displayName = `${enrichmentData.first_name} ${enrichmentData.last_name}`
       }
     }
+    member.contributions = enrichmentData.oss_contributions.map(
+      (contribution: EnrichmentAPIContribution) => {
+        return {
+          id: contribution.id,
+          topics: contribution.topics,
+          summary: contribution.summary,
+          url: contribution.github_url,
+          firstCommitDate: contribution.first_commit_date,
+          lastCommitDate: contribution.last_commit_date,
+          numberCommits: contribution.num_of_commits,
+        }
+      },
+    )
     member = this.fillPlatformData(member, enrichmentData)
     member = await this.fillAttributes(member, enrichmentData)
     member = await this.fillSkills(member, enrichmentData)
