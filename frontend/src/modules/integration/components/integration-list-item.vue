@@ -62,7 +62,8 @@
             connect,
             connected,
             settings,
-            hasSettings
+            hasSettings,
+            hasIntegration
           }"
         >
           <div class="flex items-center justify-between">
@@ -113,10 +114,6 @@ const props = defineProps({
   integration: {
     type: Object,
     default: () => {}
-  },
-  hasIntegration: {
-    type: Boolean,
-    default: true
   }
 })
 
