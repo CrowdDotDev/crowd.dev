@@ -16,6 +16,8 @@ import { AuthToken } from '@/modules/auth/auth-token'
 import { TenantService } from '@/modules/tenant/tenant-service'
 import Vue3Sanitize from 'vue-3-sanitize'
 import LogRocket from 'logrocket'
+import VNetworkGraph from 'v-network-graph'
+import 'v-network-graph/lib/style.css'
 
 import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
@@ -75,6 +77,7 @@ i18nInit()
   Object.values(plugins).map((plugin) => {
     app.use(plugin)
   })
+  app.use(VNetworkGraph)
 
   app.use(store).use(router).mount('#app')
 

@@ -215,6 +215,18 @@ export default class MemberEnrichmentService extends LoggingBase {
     if (member.username[PlatformType.GITHUB]) {
       enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
       const normalized = await this.normalize(member, enrichmentData)
+
+      // We are updating the displayName only if the existing one has one word only
+      // And we are using an update here instead of the upsert because
+      // upsert always takes the existing displayName
+      if (!/\W/.test(member.displayName)) {
+        if (enrichmentData.first_name && enrichmentData.last_name) {
+          await memberService.update(member.id, {
+            displayName: `${enrichmentData.first_name} ${enrichmentData.last_name}`,
+          })
+        }
+      }
+
       return await memberService.upsert({ ...normalized, platform: PlatformType.GITHUB })
     }
   }
@@ -223,11 +235,6 @@ export default class MemberEnrichmentService extends LoggingBase {
     member.lastEnriched = new Date()
     if (!member.email && enrichmentData.primary_mail) {
       member.email = enrichmentData.primary_mail
-    }
-    if (!/\W/.test(member.displayName)) {
-      if (enrichmentData.first_name && enrichmentData.last_name) {
-        member.displayName = `${enrichmentData.first_name} ${enrichmentData.last_name}`
-      }
     }
     member.contributions = enrichmentData.oss_contributions.map(
       (contribution: EnrichmentAPIContribution) => {
