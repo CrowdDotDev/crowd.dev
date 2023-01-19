@@ -93,12 +93,7 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import {
-  defineProps,
-  computed,
-  ref,
-  onUnmounted
-} from 'vue'
+import { defineProps, computed, ref } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
 
 const store = useStore()
@@ -142,29 +137,6 @@ const handleDisconnect = async () => {
   )
   loadingDisconnect.value = false
 }
-
-const fetchIntegrationInProgress = async () => {
-  if (
-    props.integration.status &&
-    props.integration.status === 'in-progress'
-  ) {
-    await store.dispatch(
-      'integration/doFind',
-      props.integration.id
-    )
-  } else {
-    clearInterval(integrationInProgressInterval)
-  }
-}
-
-const integrationInProgressInterval = setInterval(
-  fetchIntegrationInProgress,
-  10000
-)
-
-onUnmounted(() => {
-  clearInterval(integrationInProgressInterval)
-})
 </script>
 <style lang="scss">
 .integration-custom {
