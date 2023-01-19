@@ -77,11 +77,22 @@
             Email address
           </div>
         </div>
-        <el-input
-          v-model="computedModelEmail"
+        <el-form-item
+          prop="email"
           class="flex-1"
-          placeholder="john.doe@gmail.com"
-        />
+          :rules="[
+            {
+              type: 'email',
+              message: 'Please input correct email address',
+              trigger: ['blur', 'change']
+            }
+          ]"
+        >
+          <el-input
+            v-model="computedModelEmail"
+            placeholder="john.doe@gmail.com"
+          />
+        </el-form-item>
       </div>
     </div>
   </div>

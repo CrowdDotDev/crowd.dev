@@ -47,11 +47,11 @@
       </div>
       <div
         v-if="Object.keys(socialIdentities).length && email"
-        class="-mx-6 mt-6"
+        class="mt-2"
       >
         <el-divider class="border-t-gray-200"></el-divider>
         <a
-          class="px-6 py-2 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
+          class="py-2 px-6 -mx-6 mt-4 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
           :href="`mailto:${email}`"
           target="_blank"
         >

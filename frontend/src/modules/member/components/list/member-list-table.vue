@@ -234,12 +234,27 @@
               <el-table-column label="Email" width="240">
                 <template #default="scope">
                   <div class="text-sm cursor-auto">
-                    <span
+                    <el-tooltip
                       v-if="scope.row.email"
-                      class="text-gray-500"
-                      @click.stop
-                      >{{ scope.row.email }}</span
+                      :disabled="!scope.row.email"
+                      popper-class="custom-identity-tooltip"
+                      placement="top"
                     >
+                      <template #content
+                        ><span
+                          >Send email
+                          <i
+                            v-if="scope.row.email"
+                            class="ri-external-link-line text-gray-400"
+                          ></i></span
+                      ></template>
+                      <a
+                        class="text-gray-500 hover:!text-brand-500"
+                        :href="`mailto:${scope.row.email}`"
+                        @click.stop="trackEmailClick"
+                        >{{ scope.row.email }}</a
+                      >
+                    </el-tooltip>
                     <span v-else class="text-gray-500"
                       >-</span
                     >
@@ -547,6 +562,12 @@ const onTableMouseover = () => {
 const onTableMouseLeft = () => {
   isTableHovered.value = false
   isScrollbarVisible.value = isCursorDown.value
+}
+
+const trackEmailClick = () => {
+  window.analytics.track('Click Member Contact', {
+    channel: 'Email'
+  })
 }
 </script>
 
