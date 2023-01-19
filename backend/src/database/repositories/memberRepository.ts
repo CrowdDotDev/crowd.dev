@@ -33,6 +33,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'contributions',
           'score',
           'reach',
           'joinedAt',
@@ -211,7 +212,7 @@ class MemberRepository {
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
     const query =
-      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
+      'SELECT "id", "username", "displayName", "attributes", "email", "score", "lastEnriched", "contributions", "reach", "joinedAt", "importHash", "createdAt", "updatedAt", "deletedAt", "tenantId", "createdById", "updatedById" FROM "members" AS "member" WHERE ("member"."deletedAt" IS NULL AND ("member"."tenantId" = $tenantId AND ("member"."username"->>$platform) = $username)) LIMIT 1;'
 
     const records = await options.database.sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT,
@@ -260,6 +261,7 @@ class MemberRepository {
           'attributes',
           'email',
           'lastEnriched',
+          'contributions',
           'score',
           'reach',
           'joinedAt',
@@ -798,6 +800,7 @@ class MemberRepository {
               'email',
               'score',
               'lastEnriched',
+              'contributions',
               'joinedAt',
               'importHash',
               'reach',
@@ -875,6 +878,7 @@ class MemberRepository {
             'tenantId',
             'score',
             'lastEnriched',
+            'contributions',
             'joinedAt',
             'importHash',
             'createdAt',
