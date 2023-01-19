@@ -43,9 +43,12 @@
       </div>
     </div>
     <div>
-      <span class="block font-semibold leading-none mb-2">{{
-        integration.name
-      }}</span>
+      <div class="flex items-staart leading-none mb-2">
+        <span class="block font-semibold">{{
+          integration.name
+        }}</span>
+        <span v-if="hasIntegration"></span>
+      </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
       }}</span>
@@ -62,9 +65,13 @@
             <el-button
               v-if="!connected"
               class="btn btn--secondary btn--md"
-              :disabled="connectDisabled"
               @click="connect"
-              >Connect</el-button
+              >{{
+                integration.premium === true &&
+                !hasIntegration
+                  ? 'Upgrade Plan'
+                  : 'Connect'
+              }}</el-button
             >
             <el-button
               v-else
@@ -103,9 +110,9 @@ const props = defineProps({
     type: Object,
     default: () => {}
   },
-  connectDisabled: {
+  hasIntegration: {
     type: Boolean,
-    default: false
+    default: true
   }
 })
 

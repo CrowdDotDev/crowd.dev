@@ -21,5 +21,6 @@ export default {
     interest: 'Insightful',
     appreciation: 'Support',
     entertainment: 'Funny'
-  }
+  },
+  premium: true
 }

@@ -1,9 +1,9 @@
 <template>
   <slot
-    :connect="connect"
+    :connect="isLinkedinEnabled ? connect : upgradePlan"
     :settings="settings"
     :has-settings="hasSettings"
-    :connect-disabled="connectDisabled"
+    :has-integration="isLinkedinEnabled"
   />
   <app-linkedin-settings-drawer
     v-if="integration.status"
@@ -25,6 +25,7 @@ import {
   ref,
   watch
 } from 'vue'
+import { useRouter } from 'vue-router'
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer'
 import config from '@/config'
 import Pizzly from '@nangohq/pizzly-frontend'
@@ -37,6 +38,7 @@ import {
 } from '@/utils/posthog'
 
 const store = useStore()
+const router = useRouter()
 const props = defineProps({
   integration: {
     type: Object,
@@ -67,8 +69,12 @@ const connect = async () => {
   }
 }
 
+const upgradePlan = () => {
+  router.push('/settings?activeTab=plans')
+}
+
 const drawerVisible = ref(false)
-const connectDisabled = ref(false)
+const isLinkedinEnabled = ref(false)
 
 // Only render linkedin drawer and settings button, if integration has settings and more than 1 organization
 const hasSettings = computed(
@@ -81,10 +87,9 @@ const settings = () => {
 }
 
 onMounted(async () => {
-  const hasLinkedinPermissions = await isFeatureEnabled(
+  isLinkedinEnabled.value = await isFeatureEnabled(
     featureFlags.linkedin
   )
-  connectDisabled.value = !hasLinkedinPermissions
 })
 
 watch(
