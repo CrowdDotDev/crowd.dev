@@ -26,7 +26,6 @@
 
 <script>
 import AppI18n from '@/shared/i18n/i18n'
-import isUrl from '@/utils/isUrl'
 import linkedInConfig from '@/integrations/linkedin/config'
 
 export default {
@@ -73,9 +72,6 @@ export default {
       return linkedInConfig.reactions[
         this.activity.attributes.reactionType
       ]
-    },
-    isUrl() {
-      return isUrl(this.activity.channel)
     }
   }
 }

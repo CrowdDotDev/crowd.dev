@@ -138,12 +138,9 @@ export default {
       state.byId[id].loading = false
     },
 
-    CREATE_STARTED(state) {
-      state.loading = true
-    },
+    CREATE_STARTED() {},
 
     CREATE_SUCCESS(state, record) {
-      state.loading = false
       state.byId[record.id] = record
       if (state.allIds.indexOf(record.id) === -1) {
         state.allIds.push(record.id)
@@ -151,9 +148,7 @@ export default {
       }
     },
 
-    CREATE_ERROR(state) {
-      state.loading = false
-    },
+    CREATE_ERROR() {},
 
     UPDATE_STARTED() {},
 

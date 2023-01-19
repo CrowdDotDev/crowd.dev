@@ -14,6 +14,7 @@
         class="flex flex-col gap-2 items-start mb-2"
       ></div>
       <el-form
+        v-if="isVisible"
         label-position="top"
         class="form integration-linkedin-form"
         @submit.prevent
@@ -41,7 +42,10 @@
             />
           </el-select>
           <div
-            v-if="integration.status === 'pending-action'"
+            v-if="
+              integration.status === 'pending-action' &&
+              model === null
+            "
             class="text-yellow-600 flex items-start"
           >
             <i class="ri-alert-line mr-2"></i>

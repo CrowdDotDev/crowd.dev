@@ -5,6 +5,7 @@
     :has-settings="hasSettings"
   />
   <app-linkedin-settings-drawer
+    v-if="integration.status"
     v-model="drawerVisible"
     :integration="integration"
   />
@@ -16,7 +17,7 @@ export default {
 }
 </script>
 <script setup>
-import { computed, defineProps, ref } from 'vue'
+import { computed, defineProps, ref, watch } from 'vue'
 import AppLinkedinSettingsDrawer from '@/integrations/linkedin/components/linkedin-settings-drawer'
 import config from '@/config'
 import Pizzly from '@nangohq/pizzly-frontend'
@@ -66,4 +67,13 @@ const hasSettings = computed(
 const settings = () => {
   drawerVisible.value = true
 }
+
+watch(
+  computed(() => props.integration.status),
+  (newValue, oldValue) => {
+    if (newValue === 'pending-action' && !oldValue) {
+      drawerVisible.value = true
+    }
+  }
+)
 </script>
