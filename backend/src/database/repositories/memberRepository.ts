@@ -476,16 +476,6 @@ class MemberRepository {
       },
     ]
 
-    // get possible platforms for a tenant
-    const availableDynamicAttributePlatformKeys = [
-      'default',
-      'custom',
-      'enrichment',
-      ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
-        (p) => p.platform,
-      ),
-    ]
-
     customOrderBy = customOrderBy.concat(
       SequelizeFilterUtils.customOrderByIfExists('activityCount', orderBy),
     )
@@ -718,67 +708,28 @@ class MemberRepository {
       }
     }
 
-    const dynamicAttributesNestedFields = attributesSettings.reduce((acc, attribute) => {
-      acc[attribute.name] = `attributes.${attribute.name}.default`
-      return acc
-    }, {})
-
-    const dynamicAttributesLiterals = attributesSettings.reduce((acc, attribute) => {
-      for (const key of availableDynamicAttributePlatformKeys) {
-        if (attribute.type === AttributeType.NUMBER) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
-          )
-        } else if (attribute.type === AttributeType.BOOLEAN) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
-          )
-        } else if (attribute.type === AttributeType.MULTI_SELECT) {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
-          )
-        } else {
-          acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
-            `"member"."attributes"#>>'{${attribute.name},${key}}'`,
-          )
-        }
-      }
-      return acc
-    }, {})
-
-    const dynamicAttributesProjection = attributesSettings.reduce((acc, attribute) => {
-      for (const key of availableDynamicAttributePlatformKeys) {
-        if (key === 'default') {
-          acc.push([
-            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},default}'`),
-            attribute.name,
-          ])
-        } else {
-          acc.push([
-            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},${key}}'`),
-            `${attribute.name}.${key}`,
-          ])
-        }
-      }
-      return acc
-    }, [])
+    const {
+      dynamicAttributesDefaultNestedFields,
+      dynamicAttributesPlatformNestedFields,
+      dynamicAttributesProjection,
+    } = await MemberRepository.getDynamicAttributesLiterals(attributesSettings, options)
 
     const activityCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activityCount"`)
     const activityTypes = Sequelize.literal(`"memberActivityAggregatesMVs"."activityTypes"`)
     const activeDaysCount = Sequelize.literal(`"memberActivityAggregatesMVs"."activeDaysCount"`)
     const lastActive = Sequelize.literal(`"memberActivityAggregatesMVs"."lastActive"`)
     const activeOn = Sequelize.literal(`"memberActivityAggregatesMVs"."activeOn"`)
+
     const averageSentiment = Sequelize.literal(`"memberActivityAggregatesMVs"."averageSentiment"`)
     const identities = Sequelize.literal(`ARRAY(SELECT jsonb_object_keys("member"."username"))`)
 
     const toMergeArray = Sequelize.literal(`STRING_AGG( distinct "toMerge"."id"::text, ',')`)
-
     const noMergeArray = Sequelize.literal(`STRING_AGG( distinct "noMerge"."id"::text, ',')`)
 
     const parser = new QueryParser(
       {
         nestedFields: {
-          ...dynamicAttributesNestedFields,
+          ...dynamicAttributesDefaultNestedFields,
           reach: 'reach.total',
         },
         aggregators: {
@@ -789,7 +740,7 @@ class MemberRepository {
           averageSentiment,
           activeOn,
           identities,
-          ...dynamicAttributesLiterals,
+          ...dynamicAttributesPlatformNestedFields,
           'reach.total': Sequelize.literal(`("member".reach->'total')::int`),
           ...SequelizeFilterUtils.getNativeTableFieldAggregations(
             [
@@ -924,6 +875,84 @@ class MemberRepository {
       count: count.length,
       limit: limit ? Number(limit) : 50,
       offset: offset ? Number(offset) : 0,
+    }
+  }
+
+  /**
+   * Returns sequelize literals for dynamic member attributes.
+   * @param memberAttributeSettings
+   * @param options
+   * @returns
+   */
+  static async getDynamicAttributesLiterals(
+    memberAttributeSettings: AttributeData[],
+    options: IRepositoryOptions,
+  ) {
+    // get possible platforms for a tenant
+    const availableDynamicAttributePlatformKeys = [
+      'default',
+      'custom',
+      ...(await TenantRepository.getAvailablePlatforms(options.currentTenant.id, options)).map(
+        (p) => p.platform,
+      ),
+    ]
+
+    const dynamicAttributesDefaultNestedFields = memberAttributeSettings.reduce(
+      (acc, attribute) => {
+        acc[attribute.name] = `attributes.${attribute.name}.default`
+        return acc
+      },
+      {},
+    )
+
+    const dynamicAttributesPlatformNestedFields = memberAttributeSettings.reduce(
+      (acc, attribute) => {
+        for (const key of availableDynamicAttributePlatformKeys) {
+          if (attribute.type === AttributeType.NUMBER) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `("member"."attributes"#>>'{${attribute.name},${key}}')::integer`,
+            )
+          } else if (attribute.type === AttributeType.BOOLEAN) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `("member"."attributes"#>>'{${attribute.name},${key}}')::boolean`,
+            )
+          } else if (attribute.type === AttributeType.MULTI_SELECT) {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `ARRAY( SELECT jsonb_array_elements_text("member"."attributes"#>'{${attribute.name},${key}}'))`,
+            )
+          } else {
+            acc[`attributes.${attribute.name}.${key}`] = Sequelize.literal(
+              `"member"."attributes"#>>'{${attribute.name},${key}}'`,
+            )
+          }
+        }
+        return acc
+      },
+      {},
+    )
+
+    const dynamicAttributesProjection = memberAttributeSettings.reduce((acc, attribute) => {
+      for (const key of availableDynamicAttributePlatformKeys) {
+        if (key === 'default') {
+          acc.push([
+            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},default}'`),
+            attribute.name,
+          ])
+        } else {
+          acc.push([
+            Sequelize.literal(`"member"."attributes"#>>'{${attribute.name},${key}}'`),
+            `${attribute.name}.${key}`,
+          ])
+        }
+      }
+      return acc
+    }, [])
+
+    return {
+      dynamicAttributesDefaultNestedFields,
+      dynamicAttributesPlatformNestedFields,
+      availableDynamicAttributePlatformKeys,
+      dynamicAttributesProjection,
     }
   }
 
