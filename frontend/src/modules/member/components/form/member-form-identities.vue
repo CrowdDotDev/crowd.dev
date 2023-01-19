@@ -128,7 +128,6 @@ const computedModelEmail = computed({
   },
   set(newEmail) {
     model.value.email = newEmail
-    model.value.username.email = newEmail
   }
 })
 

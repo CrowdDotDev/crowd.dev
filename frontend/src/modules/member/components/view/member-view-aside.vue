@@ -140,7 +140,7 @@ const props = defineProps({
 const identitiesDrawer = ref(false)
 const attributesDrawer = ref(false)
 
-const email = ref(props.member.username?.email)
+const email = ref(props.member.email)
 const socialIdentities = computed(() => {
   const identities = { ...props.member.username }
   delete identities.email
