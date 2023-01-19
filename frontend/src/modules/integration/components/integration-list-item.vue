@@ -43,11 +43,15 @@
       </div>
     </div>
     <div>
-      <div class="flex items-staart leading-none mb-2">
+      <div class="flex mb-2">
         <span class="block font-semibold">{{
           integration.name
         }}</span>
-        <span v-if="hasIntegration"></span>
+        <span
+          v-if="integration.premium"
+          class="text-2xs text-brand-500 ml-1"
+          >Premium</span
+        >
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
