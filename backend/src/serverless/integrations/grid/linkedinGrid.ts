@@ -7,7 +7,7 @@ export class LinkedInGrid {
   }
 
   static reaction: gridEntry = {
-    score: 3,
+    score: 1,
     isKeyAction: false,
   }
 }
