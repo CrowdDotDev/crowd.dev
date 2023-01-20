@@ -1,6 +1,6 @@
 <template>
   <app-page-wrapper
-    :container-class="'md:col-start-1 md:col-span-6 lg:col-start-2 lg:col-span-10'"
+    :container-class="'md:col-start-1 md:col-span-12 lg:col-start-2 lg:col-span-10'"
   >
     <div class="member-form-page">
       <el-button
