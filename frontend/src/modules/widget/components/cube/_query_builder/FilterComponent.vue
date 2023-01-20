@@ -371,18 +371,23 @@ export default {
         return []
       }
 
-      return JSON.parse(JSON.stringify(this.filters)).map(
-        (f) => {
-          const filter = f
+      return (
+        JSON.parse(JSON.stringify(this.filters))
+          .map((f) => {
+            const filter = f
 
-          filter.value = f.values[0]
-          filter.select = f.member.name
+            filter.value = f.values[0]
+            filter.select = f.member.name
 
-          delete filter.member
-          delete filter.values
+            delete filter.member
+            delete filter.values
 
-          return filter
-        }
+            return filter
+          })
+          // Remove this filter from options for now
+          .filter(
+            (f) => f.select !== 'Members.isTeamMember'
+          )
       )
     },
     syncFilters(option, value, index) {

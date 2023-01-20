@@ -532,6 +532,7 @@ const en = {
       },
       Members: {
         count: '[Members] Count',
+        cumulativeCount: '[Members] Cumulative Count',
         score: '[Members] Engagement Level',
         location: '[Members] Location',
         organization: '[Members] Organization',
