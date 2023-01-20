@@ -321,6 +321,9 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         member.username[PlatformType.LINKEDIN] = `private-${LinkedinIntegrationService.getUserId(
           memberUrn,
         )}`
+        member.displayName = `Unknown #${LinkedinIntegrationService.getUserId(
+          memberUrn,
+        )}`
       } else {
         member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
         member.attributes[MemberAttributeName.URL][
