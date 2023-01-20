@@ -67,7 +67,6 @@
           }"
         >
           <div class="flex items-center justify-between">
-            hasIntegration: {{ hasIntegration }}
             <el-button
               v-if="!connected"
               class="btn btn--secondary btn--md"
