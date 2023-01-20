@@ -22,7 +22,7 @@
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="identityUrl(socialIdentities, platform)"
+          :href="identityUrl(platform)"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
