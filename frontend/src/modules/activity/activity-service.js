@@ -86,10 +86,16 @@ export class ActivityService {
     offset,
     buildFilter = true
   ) {
+    let builtFilter = buildFilter
+      ? buildApiPayload(filter)
+      : filter
+    builtFilter = {
+      ...builtFilter,
+      member: { isTeamMember: { not: true } }
+    }
+
     const body = {
-      filter: buildFilter
-        ? buildApiPayload(filter)
-        : filter,
+      filter: builtFilter,
       orderBy,
       limit,
       offset

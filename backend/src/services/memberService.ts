@@ -21,6 +21,7 @@ import {
 } from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
+import { AttributeType } from '../database/attributes/types'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -638,7 +639,7 @@ export default class MemberService extends LoggingBase {
   async query(data, exportMode = false) {
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
-    ).rows
+    ).rows.filter((setting) => setting.type !== AttributeType.SPECIAL)
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit

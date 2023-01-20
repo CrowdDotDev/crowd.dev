@@ -6,4 +6,5 @@ export enum AttributeType {
   URL = 'url',
   DATE = 'date',
   MULTI_SELECT = 'multiSelect',
+  SPECIAL = 'special',
 }
