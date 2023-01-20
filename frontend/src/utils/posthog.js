@@ -16,3 +16,11 @@ export const isFeatureEnabled = async (flag) => {
 
   return posthog.isFeatureEnabled(flag)
 }
+
+export const premiumFeatureCopy = () => {
+  if (config.isCommunityVersion) {
+    return 'Premium'
+  } else {
+    return 'Growth'
+  }
+}

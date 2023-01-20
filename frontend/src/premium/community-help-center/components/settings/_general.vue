@@ -42,7 +42,7 @@
           <span
             v-if="hasPremiumPlan"
             class="font-medium ml-2 text-purple-500"
-            >Premium only</span
+            >{{ premiumFeatureCopy() }} only</span
           >
           <span
             v-else
@@ -92,7 +92,8 @@ import { useStore } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
 import {
   isFeatureEnabled,
-  featureFlags
+  featureFlags,
+  premiumFeatureCopy
 } from '@/utils/posthog'
 import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
