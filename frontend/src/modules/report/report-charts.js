@@ -157,16 +157,21 @@ export function chartOptions(widget, resultSet) {
     }
   }
 
-  return {
+  const options = {
     ...defaultChartOptions,
-    ...{
-      ...chartTypeOptions,
-      ...formatTooltipOptions,
-      library: {
-        ...chartTypeOptions.library,
-        plugins: {
-          ...chartTypeOptions?.library?.plugins,
-          tooltipAnnotationLine: false
+    ...chartTypeOptions,
+    ...formatTooltipOptions
+  }
+
+  return {
+    ...options,
+    library: {
+      ...options.library,
+      plugins: {
+        ...options.library.plugins,
+        tooltipAnnotationLine: false,
+        verticalTodayLine: {
+          bottomMargin: 11
         }
       }
     }
