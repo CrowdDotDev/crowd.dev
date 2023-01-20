@@ -1,39 +1,42 @@
 <template>
-  <div class="filter-list-item">
+  <div :class="filterClass">
     <el-popover
       trigger="click"
       placement="bottom-start"
-      class="filter-list-item"
+      :class="filterClass"
       :popper-class="`filter-list-item-popper filter-type-${filter.name}-popper`"
       :visible="filter.expanded"
       :width="320"
     >
       <template #reference>
-        <el-button-group class="btn-group">
-          <el-button
-            class="filter-list-item-btn"
-            :class="`${
-              filter.expanded ? 'is-expanded' : ''
-            } ${hasValue ? 'is-active' : ''}`"
-            @click="handleOpen"
-          >
-            <span>
-              {{ filter.label }}{{ hasValue ? ':' : '...' }}
-            </span>
-            <span
-              v-if="hasValue"
-              class="ml-1 max-w-xs truncate font-normal"
-              >{{ valueToString }}</span
+        <slot name="button">
+          <el-button-group class="btn-group">
+            <el-button
+              class="filter-list-item-btn"
+              :class="`${
+                filter.expanded ? 'is-expanded' : ''
+              } ${hasValue ? 'is-active' : ''}`"
+              @click="handleOpen"
             >
-          </el-button>
-          <el-button
-            class="filter-list-item-btn filter-list-item-btn__close"
-            :class="hasValue ? 'is-active' : ''"
-            @click.stop="handleDestroy"
-          >
-            <i class="ri-close-line"></i>
-          </el-button>
-        </el-button-group>
+              <span>
+                {{ filter.label
+                }}{{ hasValue ? ':' : '...' }}
+              </span>
+              <span
+                v-if="hasValue"
+                class="ml-1 max-w-xs truncate font-normal"
+                >{{ valueToString }}</span
+              >
+            </el-button>
+            <el-button
+              class="filter-list-item-btn filter-list-item-btn__close"
+              :class="hasValue ? 'is-active' : ''"
+              @click.stop="handleDestroy"
+            >
+              <i class="ri-close-line"></i>
+            </el-button>
+          </el-button-group>
+        </slot>
       </template>
       <component
         :is="`app-filter-type-${filter.type}`"
@@ -94,6 +97,10 @@ const props = defineProps({
   filter: {
     type: Object,
     default: () => {}
+  },
+  filterClass: {
+    type: String,
+    default: 'filter-list-item'
   }
 })
 

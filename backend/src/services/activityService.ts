@@ -16,6 +16,7 @@ import { IS_TEST_ENV, IS_DEV_ENV } from '../config'
 import { logExecutionTime } from '../utils/logging'
 import { sendNewActivityNodeSQSMessage } from '../serverless/utils/nodeWorkerSQS'
 import { LoggingBase } from './loggingBase'
+import MemberAttributeSettingsRepository from '../database/repositories/memberAttributeSettingsRepository'
 
 export default class ActivityService extends LoggingBase {
   options: IServiceOptions
@@ -470,12 +471,15 @@ export default class ActivityService extends LoggingBase {
   }
 
   async query(data) {
+    const memberAttributeSettings = (
+      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+    ).rows
     const advancedFilter = data.filter
     const orderBy = data.orderBy
     const limit = data.limit
     const offset = data.offset
     return ActivityRepository.findAndCountAll(
-      { advancedFilter, orderBy, limit, offset },
+      { advancedFilter, orderBy, limit, offset, attributesSettings: memberAttributeSettings },
       this.options,
     )
   }

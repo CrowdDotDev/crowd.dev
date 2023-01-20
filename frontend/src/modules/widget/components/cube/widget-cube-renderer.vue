@@ -2,7 +2,7 @@
   <query-renderer
     v-if="cubejsApi"
     :cubejs-api="cubejsApi"
-    :query="widget.settings.query"
+    :query="query"
   >
     <template #default="{ resultSet }">
       <app-widget-cube
@@ -71,7 +71,24 @@ export default {
     ...mapGetters({
       cubejsToken: 'widget/cubejsToken',
       cubejsApi: 'widget/cubejsApi'
-    })
+    }),
+    query() {
+      // Exclude team members in all queries
+      const widgetQuery = this.widget.settings.query
+      const isTeamMemberFilter = {
+        member: `Members.isTeamMember`,
+        operator: 'equals',
+        values: ['0']
+      }
+
+      if (!widgetQuery.filters) {
+        widgetQuery.filters = [isTeamMemberFilter]
+      } else {
+        widgetQuery.filters.push(isTeamMemberFilter)
+      }
+
+      return widgetQuery
+    }
   },
   async created() {
     if (this.cubejsApi === null) {

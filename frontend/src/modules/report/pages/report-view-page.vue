@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import ReportGridLayout from '../components/report-grid-layout'
 import ReportDropdown from '../components/report-dropdown'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
@@ -91,10 +91,12 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      reportLoading: 'report/loading'
+    }),
     ...mapGetters({
       menuCollapsed: 'layout/menuCollapsed',
-      reportFind: 'report/find',
-      reportLoading: 'report/loading'
+      reportFind: 'report/find'
     }),
     report() {
       return this.reportFind(this.id)

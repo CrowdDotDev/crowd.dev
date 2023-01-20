@@ -55,18 +55,35 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import {
+  ref,
+  onMounted,
+  computed,
+  defineProps,
+  watch
+} from 'vue'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
 import AppWidgetInsight from '@/modules/widget/components/v2/shared/widget-insight.vue'
 import AppWidgetMembersTable from '@/modules/widget/components/v2/shared/widget-members-table.vue'
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 import { MemberService } from '@/modules/member/member-service'
-import moment from 'moment'
 import pluralize from 'pluralize'
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue'
+import { ACTIVE_LEADERBOARD_MEMBERS_FILTER } from '@/modules/widget/widget-queries'
+
+const props = defineProps({
+  platforms: {
+    type: Array,
+    default: () => []
+  },
+  teamMembers: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
 const activeMembers = ref([])
@@ -85,6 +102,20 @@ onMounted(async () => {
   activeMembers.value = response
 })
 
+// Each time filter changes, query a new response
+watch(
+  () => [props.platforms, props.teamMembers],
+  async ([platforms, teamMembers]) => {
+    const response = await getActiveMembers(
+      period.value,
+      platforms,
+      teamMembers
+    )
+
+    activeMembers.value = response
+  }
+)
+
 const onUpdatePeriod = async (updatedPeriod) => {
   const response = await getActiveMembers(updatedPeriod)
 
@@ -92,32 +123,21 @@ const onUpdatePeriod = async (updatedPeriod) => {
   period.value = updatedPeriod
 }
 
-const getActiveMembers = async (selectedPeriod) => {
+const getActiveMembers = async (
+  selectedPeriod,
+  platforms = props.platforms,
+  teamMembers = props.teamMembers
+) => {
   loading.value = true
   error.value = false
 
   try {
     const response = await MemberService.list(
-      {
-        and: [
-          {
-            lastActive: {
-              gte: moment()
-                .utc()
-                .subtract(
-                  selectedPeriod.value,
-                  selectedPeriod.granularity
-                )
-                .toISOString()
-            }
-          },
-          {
-            isTeamMember: {
-              not: true
-            }
-          }
-        ]
-      },
+      ACTIVE_LEADERBOARD_MEMBERS_FILTER({
+        period: selectedPeriod,
+        selectedPlatforms: platforms,
+        selectedHasTeamMembers: teamMembers
+      }),
       'activeDaysCount_DESC',
       10,
       0,

@@ -54,9 +54,11 @@ export default (sequelize) => {
           total: -1,
         },
       },
-      isEnriched: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
+      contributions: {
+        type: DataTypes.JSONB,
+      },
+      lastEnriched: {
+        type: DataTypes.DATE,
       },
     },
     {
