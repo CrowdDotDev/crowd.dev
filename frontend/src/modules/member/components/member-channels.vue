@@ -71,6 +71,15 @@
         :href="`https://reddit.com/u/${member.username.reddit}`"
         :as-link="true"
       />
+      <app-platform
+        v-if="!!member.username?.linkedin"
+        platform="linkedin"
+        track-event-name="LinkedIn"
+        :has-tooltip="true"
+        tooltip-label="LinkedIn profile"
+        :href="`https://linkedin.com/in/${member.username.linkedin}`"
+        :as-link="true"
+      />
     </div>
 
     <el-divider
