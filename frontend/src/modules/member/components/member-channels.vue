@@ -53,7 +53,8 @@
       <app-platform
         v-if="!!member.username?.hackernews"
         platform="hackernews"
-        track-event-name="Hacker News"
+        track-event-name="Click Member Contact"
+        track-event-channel="Hackernews"
         :has-tooltip="true"
         tooltip-label="Hacker News profile"
         :href="`https://news.ycombinator.com/user?id=${member.username.hackernews}`"
@@ -62,7 +63,8 @@
       <app-platform
         v-if="!!member.username?.reddit"
         platform="reddit"
-        track-event-name="Reddit"
+        track-event-name="Click Member Contact"
+        track-event-channel="Reddit"
         :has-tooltip="true"
         tooltip-label="Reddit profile"
         :href="`https://reddit.com/u/${member.username.reddit}`"
@@ -71,7 +73,8 @@
       <app-platform
         v-if="!!member.username?.linkedin"
         platform="linkedin"
-        track-event-name="LinkedIn"
+        track-event-name="Click Member Contact"
+        track-event-channel="LinkedIn"
         :has-tooltip="true"
         tooltip-label="LinkedIn profile"
         :href="`https://linkedin.com/in/${member.username.linkedin}`"
