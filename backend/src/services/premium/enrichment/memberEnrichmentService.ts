@@ -214,6 +214,12 @@ export default class MemberEnrichmentService extends LoggingBase {
     // If the member has a GitHub handle, use it to make a request to the Enrichment API
     if (member.username[PlatformType.GITHUB]) {
       enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
+    } else if (member.email) {
+      // If the member has an email address, use it to make a request to the Enrichment API
+      enrichmentData = await this.getEnrichmentByEmail(member.email)
+    }
+
+    if (enrichmentData) {
       const normalized = await this.normalize(member, enrichmentData)
 
       // We are updating the displayName only if the existing one has one word only
@@ -441,6 +447,37 @@ export default class MemberEnrichmentService extends LoggingBase {
     } catch (error) {
       // Log the error and throw a custom error
       this.log.error({ error, githubHandle }, 'Enrichment failed')
+      throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
+    }
+  }
+  /**
+   * This function is used to get an enrichment profile for a given email.
+   * It makes a GET request to the Enrichment API with the provided email and an API key,
+   * and returns the profile data from the API response.
+   * If the request fails, it logs the error and throws a custom error.
+   * @param email - the email of the member to get the enrichment profile for
+   * @returns a promise that resolves to the enrichment profile for the given email
+   */
+  async getEnrichmentByEmail(email: string): Promise<EnrichmentAPIMember> {
+    try {
+      // Construct the API url and the config for the GET request
+      const url = `${ENRICHMENT_CONFIG.url}/get_profile`
+      const config = {
+        method: 'get',
+        url,
+        params: {
+          email,
+          with_emails: true,
+          api_key: ENRICHMENT_CONFIG.apiKey,
+        },
+        headers: {},
+      }
+      // Make the GET request and extract the profile data from the response
+      const response: EnrichmentAPIResponse = (await axios(config)).data
+      return response.profile
+    } catch (error) {
+      // Log the error and throw a custom error
+      this.log.error({ error, email }, 'Enrichment failed')
       throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
     }
   }
