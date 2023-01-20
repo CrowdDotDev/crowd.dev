@@ -348,6 +348,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         log,
       )
       member.username[PlatformType.LINKEDIN] = organization.name
+      member.displayName = organization.name
       member.attributes[MemberAttributeName.URL][
         PlatformType.LINKEDIN
       ] = `https://www.linkedin.com/company/${organization.vanityName}`
