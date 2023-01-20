@@ -307,6 +307,9 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         [MemberAttributeName.IS_ORGANIZATION]: {
           [PlatformType.LINKEDIN]: false,
         },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.LINKEDIN]: '',
+        },
       },
     }
 
@@ -322,12 +325,21 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           memberUrn,
         )}`
         member.displayName = `Unknown #${LinkedinIntegrationService.getUserId(memberUrn)}`
+        member.attributes = {}
       } else {
         member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
         member.attributes[MemberAttributeName.URL][
           PlatformType.LINKEDIN
         ] = `https://www.linkedin.com/in/${user.vanityName}`
         member.displayName = `${user.firstName} ${user.lastName}`
+
+        if (user.profilePictureUrl) {
+          member.attributes[MemberAttributeName.AVATAR_URL] = {
+            [PlatformType.LINKEDIN]: user.profilePictureUrl,
+          }
+        } else {
+          delete member.attributes[MemberAttributeName.AVATAR_URL]
+        }
       }
     } else if (LinkedinIntegrationService.isOrganization(memberUrn)) {
       const organization = await getOrganization(
@@ -336,10 +348,19 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
         log,
       )
       member.username[PlatformType.LINKEDIN] = organization.name
+      member.displayName = organization.name
       member.attributes[MemberAttributeName.URL][
         PlatformType.LINKEDIN
       ] = `https://www.linkedin.com/company/${organization.vanityName}`
       member.attributes[MemberAttributeName.IS_ORGANIZATION][PlatformType.LINKEDIN] = true
+
+      if (organization.profilePictureUrl) {
+        member.attributes[MemberAttributeName.AVATAR_URL] = {
+          [PlatformType.LINKEDIN]: organization.profilePictureUrl,
+        }
+      } else {
+        delete member.attributes[MemberAttributeName.AVATAR_URL]
+      }
     } else {
       throw new Error(`Could not determine member type from urn ${memberUrn}!`)
     }

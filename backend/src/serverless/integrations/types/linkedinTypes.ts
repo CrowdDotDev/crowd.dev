@@ -3,6 +3,7 @@ export interface ILinkedInOrganization {
   id: number
   organizationUrn: string
   vanityName: string
+  profilePictureUrl?: string
   inUse?: boolean
 }
 
@@ -27,6 +28,7 @@ export interface ILinkedInMember {
   lastName: string
   vanityName: string
   country: string
+  profilePictureUrl?: string
 }
 
 export interface ILinkedInPostComment {

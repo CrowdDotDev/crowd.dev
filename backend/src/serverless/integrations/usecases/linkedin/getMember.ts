@@ -13,7 +13,10 @@ export const getMember = async (
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://api.linkedin.com/v2/people/(id:${memberId})`,
-    params: {},
+    params: {
+      projection:
+        '(id,firstName,localizedFirstName,localizedLastName,vanityName,profilePicture(displayImage~:playableStreams))',
+    },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
     },
@@ -27,7 +30,7 @@ export const getMember = async (
 
     const response = (await axios(config)).data
 
-    if (response.id === 'private') {
+    if (response.id === undefined || response.id === 'private') {
       return {
         id: 'private',
         vanityName: 'private',
@@ -36,12 +39,20 @@ export const getMember = async (
         country: 'private',
       }
     }
+
+    let profilePictureUrl: string | undefined
+    if (response.profilePicture?.['displayImage~']?.elements?.length > 0) {
+      const pictures = response.profilePicture['displayImage~'].elements
+      profilePictureUrl = pictures[pictures.length - 1].identifiers[0].identifier
+    }
+
     return {
       id: response.id,
       vanityName: response.vanityName,
       firstName: response.localizedFirstName,
       lastName: response.localizedLastName,
       country: response.firstName.preferredLocale.country,
+      profilePictureUrl,
     }
   } catch (err) {
     const newErr = handleLinkedinError(err, config, { pizzlyId, memberId }, logger)
