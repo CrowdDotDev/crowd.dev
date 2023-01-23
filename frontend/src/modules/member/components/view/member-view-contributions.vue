@@ -1,39 +1,63 @@
 <template>
-  <div>
-    <v-network-graph
-      :nodes="nodes"
-      :edges="edges"
-      :configs="configs"
-    />
+  <div class="panel contributions-panel relative">
+    <div ref="mine" class="background-dotted h-full">
+      <v-network-graph
+        ref="graph"
+        v-model:layouts="layouts"
+        :nodes="nodes"
+        :edges="edges"
+        :configs="configs"
+        :event-handlers="eventHandlers"
+      />
+      <!-- Tooltip -->
+      <div
+        ref="tooltip"
+        class="tooltip"
+        :style="{ ...tooltipPos, opacity: tooltipOpacity }"
+      >
+        <div>
+          {{ nodes[targetNodeId]?.name ?? '' }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'AppMemberViewContributions'
-}
-</script>
-
 <script setup>
-import * as vNG from 'v-network-graph'
-import {
-  ForceLayout
-  //   ForceNodeDatum,
-  //   ForceEdgeDatum,
-} from 'v-network-graph/lib/force-layout'
-import { computed, defineProps } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { defineConfigs } from 'v-network-graph'
+import { ForceLayout } from 'v-network-graph/lib/force-layout'
 
-const props = defineProps({
-  contributions: {
-    type: Array,
-    required: true
+// ref="graph"
+const graph = ref()
+// ref="tooltip"
+const tooltip = ref()
+
+const mine = ref()
+
+const nodes = computed(() => {
+  return {
+    node1: { name: 'Node 1', size: 20 },
+    node2: { name: 'Node 2', size: 10 },
+    node3: { name: 'Node 3', size: 15 },
+    node4: { name: 'Node 4', size: 8 },
+    node5: { name: 'Node 5', size: 5 }
   }
 })
 
-const configs = vNG.defineConfigs({
+const edges = {
+  edge1: { source: 'node1', target: 'node2' },
+  edge12: { source: 'node1', target: 'node2' },
+  edge2: { source: 'node2', target: 'node3' },
+  edge3: { source: 'node3', target: 'node4' }
+}
+
+const layouts = ref({})
+
+const configs = defineConfigs({
   view: {
     layoutHandler: new ForceLayout({
-      positionFixedByDrag: true,
+      positionFixedByDrag: false,
       positionFixedByClickWithAltKey: true,
       // * The following are the default parameters for the simulation.
       // * You can customize it by uncommenting below.
@@ -43,178 +67,127 @@ const configs = vNG.defineConfigs({
           .id((d) => d.id)
         return d3
           .forceSimulation(nodes)
-          .force('edge', forceLink.distance(100))
+          .force('edge', forceLink.distance(50))
           .force('charge', d3.forceManyBody())
           .force(
             'collide',
-            d3.forceCollide(50).strength(0.2)
+            d3.forceCollide(50).strength(0.1)
           )
-          .force('center', d3.forceCenter().strength(0.05))
+          .force('center', d3.forceCenter().strength(0.1))
           .alphaMin(0.001)
       }
     })
   },
   node: {
-    selectable: true,
-    normal: {
-      type: 'circle',
-      radius: (node) =>
-        Math.min(Math.max(node.size, 4), 25),
-      strokeWidth: 0,
-      strokeColor: '#000000',
-      strokeDasharray: '0',
-      color: '#4466cc'
-    },
-    hover: {
-      type: 'circle',
-      radius: (node) => node.size + 2,
-      strokeWidth: 0,
-      strokeColor: '#000000',
-      strokeDasharray: '0',
-      color: '#dd2288'
-    },
-    selected: {
-      type: 'circle',
-      strokeWidth: 0,
-      strokeColor: '#000000',
-      strokeDasharray: '0',
-      color: '#4466cc'
-    },
     label: {
-      visible: true,
-      fontFamily: undefined,
-      fontSize: 11,
-      lineHeight: 1.1,
-      color: '#000000',
-      margin: 4,
-      direction: 'south',
-      background: {
-        visible: false,
-        color: '#ffffff',
-        padding: {
-          vertical: 1,
-          horizontal: 4
-        },
-        borderRadius: 2
-      }
+      visible: true
     },
-    focusring: {
-      visible: true,
-      width: 4,
-      padding: 3,
-      color: '#eebb00',
-      dasharray: '0'
+    normal: {
+      radius: (node) => node.size,
+      color: '#E5E7EB',
+      strokeWidth: 3,
+      strokeColor: '#FFFFFF'
     }
   },
   edge: {
-    selectable: true,
     normal: {
-      width: 1,
-      color: '#4466cc',
-      dasharray: '0',
-      linecap: 'butt',
-      animate: false,
-      animationSpeed: 50
-    },
-    hover: {
-      width: 2,
-      color: '#3355bb',
-      dasharray: '0',
-      linecap: 'butt',
-      animate: false,
-      animationSpeed: 50
-    },
-    selected: {
-      width: 1,
-      color: '#dd8800',
-      dasharray: '6',
-      linecap: 'round',
-      animate: false,
-      animationSpeed: 50
-    },
-    gap: 3,
-    type: 'straight',
-    summarize: true,
-    summarized: {
-      label: {
-        fontSize: 10,
-        color: '#4466cc'
-      },
-      shape: {
-        type: 'rect',
-        radius: 6, // for type is "circle"
-        width: 12,
-        height: 12,
-        borderRadius: 3,
-        color: '#ffffff',
-        strokeWidth: 1,
-        strokeColor: '#4466cc',
-        strokeDasharray: '0'
-      },
-      stroke: {
-        width: 5,
-        color: '#4466cc',
-        dasharray: '0',
-        linecap: 'butt',
-        animate: false,
-        animationSpeed: 50
-      }
+      color: '#111827',
+      width: 1
     }
   }
 })
 
-// const openRepo = (url) => {
-//   window.open(url, '_blank')
-// }
+const targetNodeId = ref('')
+const tooltipOpacity = ref(0) // 0 or 1
+const tooltipPos = ref({ left: '0px', top: '0px' })
 
-const nodes = computed(() => {
-  const nodes = {}
-  props.contributions.forEach((contribution) => {
-    const node = {
-      name: contribution.url.split('/').pop(),
-      //   id: contribution.id,
-      //   label: contribution.url,
-      size: contribution.numberCommits
-      //   title: `Commits: ${
-      //     contribution.numberCommits
-      //   }\nTopics: ${contribution.topics.join(', ')}`,
-      //   on: {
-      //     click: () => {
-      //       openRepo(contribution.github_url)
-      //     }
-      //   }
-    }
-    nodes[contribution.id.toString()] = node
-  })
-  console.log(nodes)
-  return nodes
+const targetNodePos = computed(() => {
+  const nodePos = layouts.value.nodes[targetNodeId.value]
+  return nodePos || { x: 0, y: 0 }
 })
-const edges = computed(() => {
-  let edges = {}
-  let topicMap = {}
-  props.contributions.forEach((contribution) => {
-    contribution.topics.forEach((topic) => {
-      if (!topicMap[topic]) {
-        topicMap[topic] = [contribution.id]
-      } else {
-        topicMap[topic].push(contribution.id)
-      }
-    })
-  })
-  for (let topic in topicMap) {
-    let contributionIds = topicMap[topic]
-    for (let i = 0; i < contributionIds.length; i++) {
-      for (let j = i + 1; j < contributionIds.length; j++) {
-        if (contributionIds[i] !== contributionIds[j]) {
-          edges[topic] = {
-            source: contributionIds[i].toString(),
-            target: contributionIds[j].toString()
-          }
-        }
-      }
+
+const targetNodeRadius = computed(() => {
+  const node = nodes.value[targetNodeId.value]
+  return node?.size
+})
+
+// Update `tooltipPos`
+watch(
+  () => [targetNodePos.value, tooltipOpacity.value],
+  () => {
+    if (!graph.value || !tooltip.value) return
+
+    // translate coordinates: SVG -> DOM
+    const domPoint =
+      graph.value.translateFromSvgToDomCoordinates(
+        targetNodePos.value
+      )
+
+    // console.log('dompoint', domPoint)
+    const top = mine.value.getBoundingClientRect().top
+    // console.log('top', top)
+    // calculates top-left position of the tooltip.
+    console.log('tooltip', tooltip.value.offsetWidth)
+    console.log('domPoint', domPoint.y)
+    console.log('top', top)
+    tooltipPos.value = {
+      left:
+        domPoint.x -
+        tooltip.value.offsetWidth / 2 +
+        // left +
+        'px',
+      top:
+        domPoint.y -
+        targetNodeRadius.value -
+        tooltip.value.offsetHeight -
+        10 +
+        'px'
     }
+
+    // console.log(tooltipPos.value)
+  },
+  { deep: true }
+)
+
+const eventHandlers = {
+  'node:pointerover': ({ node }) => {
+    targetNodeId.value = node
+    tooltipOpacity.value = 1 // show
+  },
+  // eslint-disable-next-line no-unused-vars
+  'node:pointerout': (_) => {
+    tooltipOpacity.value = 0 // hide
   }
-  console.log(edges)
-  return edges
-})
+}
 </script>
+
+<style lang="css" scoped>
+.tooltip {
+  top: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  width: 80px;
+  height: 36px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 2px 2px 2px #aaa;
+  transition: opacity 0.2s linear;
+  pointer-events: none;
+  z-index: 100000000000;
+}
+
+.background-dotted {
+  background: white;
+  background-image: radial-gradient(
+    #d4d4d4 1px,
+    transparent 0
+  );
+  background-size: 20px 20px;
+  background-position: -19px -19px;
+}
+
+.contributions-panel {
+  padding: 0 !important;
+}
+</style>

@@ -36,9 +36,9 @@ function create_pizzly_integrations() {
     integrations=$CROWD_PIZZLY_INTEGRATIONS
     IFS=',' read -ra INTEGRATIONS <<< "$integrations"
 
-    for i in "${INTEGRATIONS[@]}"; do
-        create_pizzly_integration "$i"
-    done
+    # for i in "${INTEGRATIONS[@]}"; do
+        # create_pizzly_integration "$i"
+    # done
 }
 
 create_pizzly_integrations
