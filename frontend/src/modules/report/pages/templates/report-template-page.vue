@@ -2,13 +2,13 @@
   <div class="absolute left-0 right-0">
     <div
       ref="header"
-      class="w-full bg-gray-50 border-gray-200 pt-4 pb-6 sticky top-[-20px] z-10"
+      class="w-full bg-gray-50 border-gray-200 pt-4 sticky top-[-20px] z-10"
       :class="{
         'border-b': !isHeaderOnTop,
         shadow: isHeaderOnTop
       }"
     >
-      <div class="max-w-5xl mx-auto px-8">
+      <div class="max-w-5xl mx-auto px-8 pb-6">
         <router-link
           class="btn-link--sm btn-link--secondary inline-flex items-center mb-3.5"
           :to="{ path: '/reports' }"
@@ -44,11 +44,30 @@
           </div>
         </div>
       </div>
+
+      <!-- Filters -->
+      <app-report-template-filters
+        v-model:platform="platform"
+        v-model:team-members="teamMembers"
+        :show-platform="currentTemplate.filters.platform"
+        :show-team-members="
+          currentTemplate.filters.teamMembers
+        "
+        @open="onPlatformFilterOpen"
+        @reset="onPlatformFilterReset"
+        @track-filters="onTrackFilters"
+      />
     </div>
     <app-page-wrapper size="narrow">
       <div class="w-full mt-8">
         <app-report-member-template
-          v-if="report.name === MEMBERS_REPORT.name"
+          v-if="
+            currentTemplate.name === MEMBERS_REPORT.name
+          "
+          :filters="{
+            platform,
+            teamMembers
+          }"
         />
       </div>
     </app-page-wrapper>
@@ -64,11 +83,15 @@ import {
   ref,
   onMounted,
   onUnmounted,
-  defineProps
+  defineProps,
+  computed
 } from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
 import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
+import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
+import ActivityPlatformField from '@/modules/activity/activity-platform-field'
+import { templates } from '@/modules/report/templates/template-reports'
 
 const props = defineProps({
   id: {
@@ -83,6 +106,24 @@ const report = ref()
 const header = ref()
 const wrapper = ref()
 const isHeaderOnTop = ref(false)
+
+const platformField = new ActivityPlatformField(
+  'activeOn',
+  'Platforms',
+  { filterable: true }
+).forFilter()
+
+const initialPlatformValue = {
+  ...platformField,
+  expanded: false
+}
+
+const platform = ref(initialPlatformValue)
+const teamMembers = ref(false)
+
+const currentTemplate = computed(() =>
+  templates.find((t) => t.name === report.value.name)
+)
 
 const { cubejsApi } = mapGetters('widget')
 const { getCubeToken } = mapActions('widget')
@@ -109,5 +150,24 @@ const onPageScroll = () => {
   isHeaderOnTop.value =
     header.value.getBoundingClientRect().top === 0 &&
     wrapper.value.scrollTop !== 0
+}
+
+const onPlatformFilterOpen = () => {
+  platform.value = {
+    ...platform.value,
+    expanded: true
+  }
+}
+
+const onPlatformFilterReset = () => {
+  platform.value = initialPlatformValue
+}
+
+const onTrackFilters = () => {
+  window.analytics.track('Filter template report', {
+    template: currentTemplate.value.name,
+    platforms: platform.value.value.map((p) => p.value),
+    includeTeamMembers: teamMembers.value
+  })
 }
 </script>

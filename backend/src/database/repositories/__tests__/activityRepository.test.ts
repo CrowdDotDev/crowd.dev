@@ -4,6 +4,10 @@ import Error404 from '../../../errors/Error404'
 import ActivityRepository from '../activityRepository'
 import { PlatformType } from '../../../types/integrationEnums'
 import TaskRepository from '../taskRepository'
+import { MemberAttributeName } from '../../attributes/member/enums'
+import MemberAttributeSettingsRepository from '../memberAttributeSettingsRepository'
+import MemberAttributeSettingsService from '../../../services/memberAttributeSettingsService'
+import { DefaultMemberAttributes } from '../../attributes/member/default'
 
 const db = null
 
@@ -1344,6 +1348,7 @@ describe('ActivityRepository tests', () => {
 
     it('Overall sentiment filter and sort', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
       const memberCreated = await MemberRepository.create(
         {
           username: {
@@ -1413,6 +1418,134 @@ describe('ActivityRepository tests', () => {
       expect(filteredActivities3.rows[0].sentiment.positive).toBeGreaterThan(
         filteredActivities3.rows[1].sentiment.positive,
       )
+    })
+
+    it('Member related attributes filters', async () => {
+      const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+      const mas = new MemberAttributeSettingsService(mockIRepositoryOptions)
+
+      await mas.createPredefined(DefaultMemberAttributes)
+
+      const memberAttributeSettings = (
+        await MemberAttributeSettingsRepository.findAndCountAll({}, mockIRepositoryOptions)
+      ).rows
+
+      const memberCreated1 = await MemberRepository.create(
+        {
+          username: {
+            [PlatformType.GITHUB]: 'test',
+          },
+          displayName: 'Anil',
+          attributes: {
+            [MemberAttributeName.IS_TEAM_MEMBER]: {
+              default: true,
+              [PlatformType.CROWD]: true,
+            },
+            [MemberAttributeName.LOCATION]: {
+              default: 'Berlin',
+              [PlatformType.GITHUB]: 'Berlin',
+              [PlatformType.SLACK]: 'Turkey',
+            },
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const memberCreated2 = await MemberRepository.create(
+        {
+          username: {
+            [PlatformType.GITHUB]: 'Michael',
+          },
+          displayName: 'Michael',
+          attributes: {
+            [MemberAttributeName.IS_TEAM_MEMBER]: {
+              default: false,
+              [PlatformType.CROWD]: false,
+            },
+            [MemberAttributeName.LOCATION]: {
+              default: 'Scranton',
+              [PlatformType.GITHUB]: 'Scranton',
+              [PlatformType.SLACK]: 'New York',
+            },
+          },
+          joinedAt: '2020-05-27T15:13:30Z',
+        },
+        mockIRepositoryOptions,
+      )
+
+      const activity1 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.98,
+          negative: 0.0,
+          neutral: 0.02,
+          mixed: 0.0,
+          label: 'positive',
+          sentiment: 0.98,
+        },
+        member: memberCreated1.id,
+        sourceId: '#sourceId1',
+      }
+
+      const activity2 = {
+        type: 'activity',
+        timestamp: '2020-05-27T15:13:30Z',
+        platform: PlatformType.GITHUB,
+        sentiment: {
+          positive: 0.55,
+          negative: 0.0,
+          neutral: 0.45,
+          mixed: 0.0,
+          label: 'neutral',
+          sentiment: 0.55,
+        },
+        member: memberCreated2.id,
+        sourceId: '#sourceId2',
+      }
+
+      const activityCreated1 = await ActivityRepository.create(activity1, mockIRepositoryOptions)
+      const activityCreated2 = await ActivityRepository.create(activity2, mockIRepositoryOptions)
+
+      // Control
+      expect(
+        (await ActivityRepository.findAndCountAll({ filter: {} }, mockIRepositoryOptions)).count,
+      ).toBe(2)
+
+      // Filter by member.isTeamMember
+      let filteredActivities = await ActivityRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            member: {
+              isTeamMember: {
+                not: false,
+              },
+            },
+          },
+          attributesSettings: memberAttributeSettings,
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated1.id)
+
+      filteredActivities = await ActivityRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            member: {
+              'attributes.location.slack': 'New York',
+            },
+          },
+          attributesSettings: memberAttributeSettings,
+        },
+        mockIRepositoryOptions,
+      )
+
+      expect(filteredActivities.count).toBe(1)
+      expect(filteredActivities.rows[0].id).toBe(activityCreated2.id)
     })
   })
 })

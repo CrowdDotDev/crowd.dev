@@ -26,6 +26,8 @@ export default (app) => {
     safeWrap(require('./helpers/discordAuthenticate').default),
   )
   app.put(`/reddit-onboard/:tenantId`, safeWrap(require('./helpers/redditOnboard').default))
+  app.put('/linkedin-connect/:tenantId', safeWrap(require('./helpers/linkedinConnect').default))
+  app.post('/linkedin-onboard/:tenantId', safeWrap(require('./helpers/linkedinOnboard').default))
   app.get(
     '/tenant/:tenantId/devto-validate',
     safeWrap(require('./helpers/devtoValidators').default),

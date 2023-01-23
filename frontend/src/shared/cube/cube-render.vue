@@ -1,8 +1,8 @@
 <template>
   <query-renderer
-    v-if="cubejsApi && cubejsToken && query"
+    v-if="cubejsApi && cubejsToken && computedQuery"
     :cubejs-api="cubejsApi"
-    :query="query"
+    :query="computedQuery"
   >
     <template #default="{ resultSet }">
       <div v-if="loadingData(resultSet)">
@@ -35,7 +35,24 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('widget', ['cubejsToken', 'cubejsApi'])
+    ...mapGetters('widget', ['cubejsToken', 'cubejsApi']),
+    computedQuery() {
+      // Exclude team members in all queries
+      const widgetQuery = this.query
+      const isTeamMemberFilter = {
+        member: `Members.isTeamMember`,
+        operator: 'equals',
+        values: ['0']
+      }
+
+      if (!widgetQuery.filters) {
+        widgetQuery.filters = [isTeamMemberFilter]
+      } else {
+        widgetQuery.filters.push(isTeamMemberFilter)
+      }
+
+      return widgetQuery
+    }
   },
   async created() {
     if (this.cubejsApi === null) {

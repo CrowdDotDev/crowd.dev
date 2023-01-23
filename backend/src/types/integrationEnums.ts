@@ -6,9 +6,9 @@ export enum PlatformType {
   TWITTER = 'twitter',
   REDDIT = 'reddit',
   HACKERNEWS = 'hackernews',
+  LINKEDIN = 'linkedin',
   CROWD = 'crowd',
   ENRICHMENT = 'enrichment',
-  LINKEDIN = 'linkedin',
 }
 
 export enum IntegrationType {
@@ -20,5 +20,6 @@ export enum IntegrationType {
   TWITTER = 'twitter',
   TWITTER_REACH = 'twitter-reach',
   HACKER_NEWS = 'hackernews',
+  LINKEDIN = 'linkedin',
   CROWD = 'crowd',
 }

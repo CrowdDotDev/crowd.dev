@@ -31,25 +31,87 @@ import { h } from 'vue'
  * - Creating global components like <line-chart> or <pie-chart> to enhance developer experience and code quality
  */
 
+const verticalTodayLine = {
+  id: 'verticalTodayLine',
+  beforeDraw(chart, _args, options) {
+    const chartType = chart.config?._config?.type
+    const xScaleType = chart.scales?.x?.type
+
+    // Only add vertical lines to line and bar charts
+    // Only add vertical lines to time scaled x axis
+    if (
+      (chartType === 'line' || chartType === 'bar') &&
+      xScaleType === 'time'
+    ) {
+      const {
+        ctx,
+        data,
+        chartArea: { top, bottom },
+        scales: { x }
+      } = chart
+
+      const penultimatePoint =
+        data.labels[data.labels.length - 2]
+      const lastPoint = data.labels[data.labels.length - 1]
+
+      // Logic to add vertical line to the
+      // penultimate data point
+      ctx.save()
+
+      // Draw vertical line
+      ctx.strokeStyle = 'rgb(200,200,200)'
+      ctx.lineWidth = 0.5
+      ctx.strokeRect(
+        x.getPixelForValue(penultimatePoint),
+        top,
+        0,
+        bottom - options.bottomMargin
+      )
+
+      // Logic to add vertical rect
+      // between penultimate and last data point
+      const rectWidth =
+        x.getPixelForValue(lastPoint) -
+        x.getPixelForValue(penultimatePoint)
+
+      // Draw vertical rect
+      ctx.fillStyle = 'rgb(200,200,200, 0.1)'
+      ctx.fillRect(
+        x.getPixelForValue(penultimatePoint),
+        top,
+        rectWidth,
+        bottom - options.bottomMargin
+      )
+
+      ctx.restore()
+    }
+  }
+}
+
 const tooltipAnnotationLine = {
   id: 'tooltipAnnotationLine',
   beforeDraw: (chart) => {
     if (chart.tooltip?._active?.length) {
-      const ctx = chart.ctx
+      const { ctx, data, tooltip, chartArea } = chart
+      const activeElement = tooltip._active[0]
 
       ctx.save()
 
       ctx.beginPath()
-      ctx.moveTo(
-        chart.tooltip?._active[0].element.x,
-        chart.chartArea.top
-      )
-      ctx.lineTo(
-        chart.tooltip?._active[0].element.x,
-        chart.chartArea.bottom
-      )
+      ctx.moveTo(activeElement.element.x, chartArea.top)
+      ctx.lineTo(activeElement.element.x, chartArea.bottom)
+
       ctx.lineWidth = 32
-      ctx.strokeStyle = 'rgba(233,79,46, 0.05)'
+
+      // If tooltip is hovered after the last two data points
+      // the highlight rect should be greyed out as well
+      const isAfterPenultimatePoint =
+        activeElement.index >= data.labels.length - 2
+
+      ctx.strokeStyle = isAfterPenultimatePoint
+        ? 'rgba(100,100,100, 0.05)'
+        : 'rgba(233,79,46, 0.05)'
+
       ctx.stroke()
       ctx.restore()
     }
@@ -75,7 +137,8 @@ Chart.register(
   Tooltip,
   SubTitle,
   Filler,
-  tooltipAnnotationLine
+  tooltipAnnotationLine,
+  verticalTodayLine
 )
 
 let createComponent = function (app, tagName, chartType) {

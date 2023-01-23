@@ -13,41 +13,6 @@
       class="identities-form"
       :class="showHeader ? 'col-span-2' : 'col-span-3'"
     >
-      <div class="border-gray-200 last:border-none">
-        <div>
-          <el-form-item class="h-14 !flex items-center">
-            <div>
-              <span
-                class="w-8 h-8 rounded flex items-center justify-center text-base leading-none bg-white text-brand-500 border border-gray-200"
-                ><i class="ri-mail-line"></i
-              ></span>
-            </div>
-            <el-switch
-              v-model="identitiesForm.email.enabled"
-              inactive-text="Email"
-            />
-          </el-form-item>
-
-          <el-form-item
-            v-if="identitiesForm.email.enabled"
-            prop="email"
-            class="mt-1 !mb-6"
-            :rules="[
-              {
-                type: 'email',
-                message:
-                  'Please input correct email address',
-                trigger: ['blur', 'change']
-              }
-            ]"
-          >
-            <el-input
-              v-model="computedModelEmail"
-              placeholder="john.doe@gmail.com"
-            />
-          </el-form-item>
-        </div>
-      </div>
       <div
         v-for="[key, value] in Object.entries(
           identitiesForm
@@ -104,6 +69,31 @@
           </el-form-item>
         </div>
       </div>
+
+      <div class="flex items-center justify-between mt-24">
+        <div class="flex items-center flex-1">
+          <app-platform platform="email" />
+          <div class="font-medium text-sm ml-3">
+            Email address
+          </div>
+        </div>
+        <el-form-item
+          prop="email"
+          class="flex-1"
+          :rules="[
+            {
+              type: 'email',
+              message: 'Please input correct email address',
+              trigger: ['blur', 'change']
+            }
+          ]"
+        >
+          <el-input
+            v-model="computedModelEmail"
+            placeholder="john.doe@gmail.com"
+          />
+        </el-form-item>
+      </div>
     </div>
   </div>
 </template>
@@ -149,7 +139,6 @@ const computedModelEmail = computed({
   },
   set(newEmail) {
     model.value.email = newEmail
-    model.value.username.email = newEmail
   }
 })
 
@@ -171,9 +160,6 @@ watch(
 )
 
 const identitiesForm = reactive({
-  email: {
-    enabled: props.modelValue.email !== undefined || false
-  },
   devto: {
     enabled:
       props.modelValue.username?.devto !== undefined ||

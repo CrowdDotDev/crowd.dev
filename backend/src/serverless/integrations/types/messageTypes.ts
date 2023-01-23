@@ -1,4 +1,4 @@
-import { Channels, State } from './regularTypes'
+import { State } from './regularTypes'
 
 export type IntegrationsMessage = {
   integration: string
@@ -34,13 +34,13 @@ export interface TwitterReachMessage extends IntegrationsMessage {
 export interface DiscordIntegrationMessage extends IntegrationsMessage {
   args: {
     guildId: string
-    channels?: Channels
+    channels?: any
   }
 }
 
 export interface SlackIntegrationMessage extends IntegrationsMessage {
   args: {
-    channels?: Channels
+    channels?: any
   }
 }
 

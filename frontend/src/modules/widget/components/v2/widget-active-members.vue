@@ -66,7 +66,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, defineProps } from 'vue'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries'
@@ -74,6 +74,13 @@ import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi'
 import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title'
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading'
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error'
+
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: null
+  }
+})
 
 const { currentUser } = mapGetters('auth')
 const { cubejsApi } = mapGetters('widget')
@@ -131,7 +138,12 @@ const computedDrawerTitle = computed(() => {
 })
 
 const query = (period, granularity) => {
-  return TOTAL_ACTIVE_MEMBERS_QUERY(period, granularity)
+  return TOTAL_ACTIVE_MEMBERS_QUERY({
+    period,
+    granularity,
+    selectedPlatforms: props.filters.platform.value,
+    selectedHasTeamMembers: props.filters.teamMembers
+  })
 }
 
 const kpiCurrentValue = (resultSet) => {
@@ -151,7 +163,6 @@ const kpiPreviousValue = (resultSet) => {
   const pivot = resultSet.chartPivot()
   return Number(pivot[pivot.length - 2]['Members.count'])
 }
-
 const handleDrawerOpen = (period) => {
   drawerExpanded.value = period
 }

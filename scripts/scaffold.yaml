@@ -80,7 +80,7 @@ services:
       - 6333:6333
     networks:
       - crowd-bridge
-      
+
   redis:
     build:
       context: scaffold/redis
@@ -93,7 +93,7 @@ services:
       - crowd-bridge
 
   pizzly:
-    image: nangohq/pizzly-server:0.4.0
+    image: crowddotdev/pizzly-server:1
     restart: always
     environment:
       - NANGO_DB_HOST=db
@@ -104,7 +104,7 @@ services:
       - PIZZLY_SECRET_KEY=424242
       - PIZZLY_PUBLISHABLE_KEY=424242
     ports:
-        - '3003:3003'
+      - '3003:3003'
     networks:
       - crowd-bridge
 

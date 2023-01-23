@@ -9,6 +9,8 @@ import Error404 from '../../errors/Error404'
 import { IRepositoryOptions } from './IRepositoryOptions'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
+import { AttributeData } from '../attributes/attribute'
+import MemberRepository from './memberRepository'
 
 const { Op } = Sequelize
 
@@ -282,7 +284,14 @@ class ActivityRepository {
   }
 
   static async findAndCountAll(
-    { filter = {} as any, advancedFilter = null as any, limit = 0, offset = 0, orderBy = '' },
+    {
+      filter = {} as any,
+      advancedFilter = null as any,
+      limit = 0,
+      offset = 0,
+      orderBy = '',
+      attributesSettings = [] as AttributeData[],
+    },
     options: IRepositoryOptions,
   ) {
     // If the advanced filter is empty, we construct it from the query parameter filter
@@ -491,11 +500,70 @@ class ActivityRepository {
       }
     }
 
+    const memberSequelizeInclude = {
+      model: options.database.member,
+      as: 'member',
+      where: {},
+    }
+
+    if (advancedFilter.member) {
+      const { dynamicAttributesDefaultNestedFields, dynamicAttributesPlatformNestedFields } =
+        await MemberRepository.getDynamicAttributesLiterals(attributesSettings, options)
+
+      const memberQueryParser = new QueryParser(
+        {
+          nestedFields: {
+            ...dynamicAttributesDefaultNestedFields,
+            ...dynamicAttributesPlatformNestedFields,
+            reach: 'reach.total',
+          },
+          manyToMany: {
+            tags: {
+              table: 'members',
+              model: 'member',
+              relationTable: {
+                name: 'memberTags',
+                from: 'memberId',
+                to: 'tagId',
+              },
+            },
+            organizations: {
+              table: 'members',
+              model: 'member',
+              relationTable: {
+                name: 'memberOrganizations',
+                from: 'memberId',
+                to: 'organizationId',
+              },
+            },
+          },
+          customOperators: {
+            username: {
+              model: 'member',
+              column: 'username',
+            },
+            platform: {
+              model: 'member',
+              column: 'username',
+            },
+          },
+        },
+        options,
+      )
+
+      const parsedMemberQuery: QueryOutput = memberQueryParser.parse({
+        filter: advancedFilter.member,
+        orderBy: orderBy || ['joinedAt_DESC'],
+        limit,
+        offset,
+      })
+
+      memberSequelizeInclude.where = parsedMemberQuery.where ?? {}
+      delete advancedFilter.member
+    }
+
     const include = [
-      {
-        model: options.database.member,
-        as: 'member',
-      },
+      memberSequelizeInclude,
       {
         model: options.database.activity,
         as: 'parent',
@@ -535,6 +603,9 @@ class ActivityRepository {
       count, // eslint-disable-line prefer-const
     } = await options.database.activity.findAndCountAll({
       include,
+      attributes: [
+        ...SequelizeFilterUtils.getLiteralProjectionsOfModel('activity', options.database),
+      ],
       ...(parsed.where ? { where: parsed.where } : {}),
       ...(parsed.having ? { having: parsed.having } : {}),
       order: parsed.order,
