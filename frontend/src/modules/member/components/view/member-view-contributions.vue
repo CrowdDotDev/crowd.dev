@@ -29,17 +29,25 @@
           <p class="key">Topics</p>
           <div class="flex flex-wrap">
             <div
-              v-for="topic in nodes[targetNodeId]?.topics ??
-              []"
+              v-for="topic in nodes[
+                targetNodeId
+              ]?.topics.slice(0, 5) ?? []"
               :key="topic"
-              class="border border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2"
+              class="topic"
             >
               {{ topic }}
+            </div>
+
+            <div
+              v-if="nodes[targetNodeId]?.topics.length > 5"
+              class="topic"
+            >
+              +{{ nodes[targetNodeId]?.topics.length - 5 }}
             </div>
           </div>
         </div>
         <div class="w-full text-center pt-3">
-          <span> Click to open on GitHub </span>
+          <button>Click to open on GitHub</button>
         </div>
       </div>
     </div>
@@ -72,6 +80,7 @@ const reduceFactor = ref(1)
 const graph = ref()
 // ref="tooltip"
 const tooltip = ref()
+const targetNodeId = ref('')
 
 const nodes = computed(() => {
   const nodes = {}
@@ -157,7 +166,6 @@ const configs = reactive(
       })
     },
     node: {
-      // selectable: 1,
       label: {
         visible: true
       },
@@ -168,12 +176,6 @@ const configs = reactive(
         strokeColor: '#FFFFFF'
       },
       hover: {
-        radius: (node) => node.size,
-        color: nodeColor,
-        strokeWidth: 3,
-        strokeColor: '#FFFFFF'
-      },
-      selected: {
         radius: (node) => node.size,
         color: nodeColor,
         strokeWidth: 3,
@@ -211,7 +213,6 @@ function nodeColor(node) {
     : '#F3F4F6'
 }
 
-const targetNodeId = ref('')
 const tooltipOpacity = ref(0) // 0 or 1
 const tooltipPos = ref({ left: '0px', top: '0px' })
 
@@ -258,25 +259,19 @@ watch(
 
 const eventHandlers = {
   'node:click': ({ node }) => {
+    const url = nodes.value[node].url
+    window.open(url, '_blank')
+  },
+
+  'node:pointerover': ({ node }) => {
     targetNodeId.value = node
     tooltipOpacity.value = 1 // show
     hoveredNode.value = nodes.value[node].name
   },
-  'view:click': () => {
+  'node:pointerout': () => {
     targetNodeId.value = ''
     tooltipOpacity.value = 0 // hide
     hoveredNode.value = null
-  },
-
-  'node:pointerover': ({ node }) => {
-    if (targetNodeId.value === '') {
-      hoveredNode.value = nodes.value[node].name
-    }
-  },
-  'node:pointerout': () => {
-    if (targetNodeId.value === '') {
-      hoveredNode.value = null
-    }
   },
   'edge:pointerover': ({ edge }) => {
     hoveredEdge.value = edges.value[edge].label
@@ -307,7 +302,7 @@ const eventHandlers = {
   transition: opacity 0.2s linear;
   pointer-events: none;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto;
 }
 
 .background-dotted {
@@ -331,5 +326,9 @@ const eventHandlers = {
 
 .key {
   @apply text-gray-400 text-xs font-medium py-2;
+}
+
+.topic {
+  @apply border border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2;
 }
 </style>
