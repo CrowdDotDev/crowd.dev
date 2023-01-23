@@ -38,7 +38,10 @@ export const connectSocket = (token) => {
 
   socketIoClient.on('integration-completed', (data) => {
     console.log('Integration onboarding done', data)
-    // TODO handle this data
+    store.dispatch(
+      'integration/doFind',
+      JSON.parse(data).integrationId
+    )
   })
 
   socketIoClient.on('tenant-plan-upgraded', (data) => {

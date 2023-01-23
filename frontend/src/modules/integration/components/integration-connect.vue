@@ -7,11 +7,19 @@
     "
     :integration="props.integration"
   >
-    <template #default="{ connect, settings, hasSettings }">
+    <template
+      #default="{
+        connect,
+        settings,
+        hasSettings,
+        hasIntegration
+      }"
+    >
       <slot
         :connect="connect"
         :settings="settings"
         :has-settings="hasSettings"
+        :has-integration="hasIntegration"
         :connected="isConnected"
         :done="isDone"
       />

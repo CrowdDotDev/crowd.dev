@@ -12,7 +12,6 @@ import { IntegrationType, PlatformType } from '../../../../types/integrationEnum
 import { IntegrationServiceBase } from '../integrationServiceBase'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
 import { SlackMemberAttributes } from '../../../../database/attributes/member/slack'
-import { Channels } from '../../types/regularTypes'
 import getChannels from '../../usecases/slack/getChannels'
 import { Thread } from '../../types/iteratorTypes'
 import getMessagesThreads from '../../usecases/slack/getMessagesInThreads'
@@ -42,7 +41,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    let channelsFromSlackAPI: Channels = await getChannels(
+    let channelsFromSlackAPI = await getChannels(
       { token: context.integration.token },
       this.logger(context),
     )
@@ -70,7 +69,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       channelsInfo: channelsFromSlackAPI.reduce((acc, channel) => {
         acc[channel.id] = {
           name: channel.name,
-          new: !!channel.new,
+          new: !!(channel as any).new,
         }
         return acc
       }, {}),

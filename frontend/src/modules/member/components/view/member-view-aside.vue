@@ -22,16 +22,31 @@
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="
-            platform === 'hackernews'
-              ? `https://news.ycombinator.com/user?id=${socialIdentities.hackernews}`
-              : member.attributes.url?.[platform]
-          "
+          :href="identityUrl(platform)"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
             <app-platform :platform="platform" />
-            <span class="text-gray-900 text-xs">
+            <div
+              v-if="
+                platform === 'linkedin' &&
+                socialIdentities[platform].includes(
+                  'private-'
+                )
+              "
+              class="text-gray-900 text-xs"
+            >
+              *********
+              <el-tooltip
+                placement="top"
+                content="Private profile"
+              >
+                <i
+                  class="ri-lock-line text-gray-400 ml-2"
+                ></i>
+              </el-tooltip>
+            </div>
+            <span v-else class="text-gray-900 text-xs">
               {{ socialIdentities[platform] }}</span
             >
           </div>
@@ -170,5 +185,17 @@ const formattedComputedAttributeValue = (value) => {
         timestamp: value
       })
     : value
+}
+const identityUrl = (platform) => {
+  if (platform === 'hackernews') {
+    return `https://news.ycombinator.com/user?id=${socialIdentities.value.hackernews}`
+  } else if (
+    platform === 'linkedin' &&
+    socialIdentities.value[platform].includes('private-')
+  ) {
+    return null
+  } else {
+    return props.member.attributes.url?.[platform]
+  }
 }
 </script>
