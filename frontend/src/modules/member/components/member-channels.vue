@@ -109,6 +109,7 @@ const hasSocialIdentities = computed(
     !!props.member.username?.discord ||
     !!props.member.username?.slack ||
     !!props.member.username?.hackernews ||
-    !!props.member.username?.reddit
+    !!props.member.username?.reddit ||
+    !!props.member.username?.linkedin
 )
 </script>
