@@ -10,5 +10,4 @@ export default class CubeDimensions {
   static readonly CONVERSATION_FIRST_ACTIVITY_TIME: string = 'Conversations.firstActivityTime'
 
   static readonly ORGANIZATIONS_JOINED_AT: string = 'Organizations.joinedAt'
-
 }

@@ -25,24 +25,21 @@ const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
  * @param tenantId
  */
 async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsEmailsOutput> {
-  
+  log.info(tenantId, `Processing tenant's weekly emails...`)
+
+  const s3Url = `https://${
+    S3_CONFIG.microservicesAssetsBucket
+  }-${getStage()}.s3.eu-central-1.amazonaws.com`
+
   const unixEpoch = moment.unix(0)
 
-  // const dateTimeEndThisWeek = moment().utc().startOf('isoWeek')
-  // const dateTimeStartThisWeek = moment().utc().startOf('isoWeek').subtract(7, 'days')
-  // 
-  // const dateTimeEndPreviousWeek = dateTimeStartThisWeek.clone()
-  // const dateTimeStartPreviousWeek = dateTimeStartThisWeek.clone().subtract(7, 'days')
+  const dateTimeEndThisWeek = moment().utc().startOf('isoWeek')
+  const dateTimeStartThisWeek = moment().utc().startOf('isoWeek').subtract(7, 'days')
 
-
-  const dateTimeStartThisWeek = moment("2023-01-02")
-  const dateTimeEndThisWeek = moment("2023-01-09")
-
-  const dateTimeEndPreviousWeek = moment("2023-01-02")
-  const dateTimeStartPreviousWeek = moment("2022-12-26")
+  const dateTimeEndPreviousWeek = dateTimeStartThisWeek.clone()
+  const dateTimeStartPreviousWeek = dateTimeStartThisWeek.clone().subtract(7, 'days')
 
   const userContext = await getUserContext(tenantId)
-
 
   if (userContext.currentUser) {
     const cjs = new CubeJsService()
@@ -50,17 +47,42 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     await cjs.setTenant(tenantId)
 
     // members
-    const totalMembersThisWeek = await CubeJsRepository.getNewMembers(cjs, unixEpoch, dateTimeEndThisWeek)
-    const totalMembersPreviousWeek = await CubeJsRepository.getNewMembers(cjs, unixEpoch, dateTimeEndPreviousWeek)
+    const totalMembersThisWeek = await CubeJsRepository.getNewMembers(
+      cjs,
+      unixEpoch,
+      dateTimeEndThisWeek,
+    )
+    const totalMembersPreviousWeek = await CubeJsRepository.getNewMembers(
+      cjs,
+      unixEpoch,
+      dateTimeEndPreviousWeek,
+    )
 
-    const activeMembersThisWeek = await CubeJsRepository.getActiveMembers(cjs, dateTimeStartThisWeek, dateTimeEndThisWeek)
-    const activeMembersPreviousWeek = await CubeJsRepository.getActiveMembers(cjs, dateTimeStartPreviousWeek, dateTimeEndPreviousWeek )
+    const activeMembersThisWeek = await CubeJsRepository.getActiveMembers(
+      cjs,
+      dateTimeStartThisWeek,
+      dateTimeEndThisWeek,
+    )
+    const activeMembersPreviousWeek = await CubeJsRepository.getActiveMembers(
+      cjs,
+      dateTimeStartPreviousWeek,
+      dateTimeEndPreviousWeek,
+    )
 
-    const newMembersThisWeek = await CubeJsRepository.getNewMembers(cjs, dateTimeStartThisWeek, dateTimeEndThisWeek)
-    const newMembersPreviousWeek = await CubeJsRepository.getNewMembers(cjs, dateTimeStartPreviousWeek, dateTimeEndPreviousWeek)
+    const newMembersThisWeek = await CubeJsRepository.getNewMembers(
+      cjs,
+      dateTimeStartThisWeek,
+      dateTimeEndThisWeek,
+    )
+    const newMembersPreviousWeek = await CubeJsRepository.getNewMembers(
+      cjs,
+      dateTimeStartPreviousWeek,
+      dateTimeEndPreviousWeek,
+    )
 
-
-    const mostActiveMembers = (await userContext.database.sequelize.query(`
+    const mostActiveMembers = (
+      await userContext.database.sequelize.query(
+        `
     select 
       count(a.id) as "activityCount",
       m."displayName" as name,
@@ -74,32 +96,59 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     group by m.id
     order by count(a.id) desc
     limit 5;`,
-    {
-      replacements: {
-        tenantId,
-        startDate: dateTimeStartThisWeek.toISOString(),
-        endDate: dateTimeEndThisWeek.toISOString(),
-      },
-      type: QueryTypes.SELECT,
-    })).map( (m) => {
-      if (!m.avatarUrl){
-        m.avatarUrl = `https://${S3_CONFIG.microservicesAssetsBucket}-staging.s3.eu-central-1.amazonaws.com/email/member-placeholder.png`
+        {
+          replacements: {
+            tenantId,
+            startDate: dateTimeStartThisWeek.toISOString(),
+            endDate: dateTimeEndThisWeek.toISOString(),
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+    ).map((m) => {
+      if (!m.avatarUrl) {
+        m.avatarUrl = `/email/member-placeholder.png`
       }
       return m
     })
 
-
     // organizations
-    const totalOrganizationsThisWeek = await CubeJsRepository.getNewOrganizations(cjs, unixEpoch, dateTimeEndThisWeek)
-    const totalOrganizationsPreviousWeek = await CubeJsRepository.getNewOrganizations(cjs, unixEpoch, dateTimeEndPreviousWeek)
+    const totalOrganizationsThisWeek = await CubeJsRepository.getNewOrganizations(
+      cjs,
+      unixEpoch,
+      dateTimeEndThisWeek,
+    )
+    const totalOrganizationsPreviousWeek = await CubeJsRepository.getNewOrganizations(
+      cjs,
+      unixEpoch,
+      dateTimeEndPreviousWeek,
+    )
 
-    const activeOrganizationsThisWeek = await CubeJsRepository.getActiveOrganizations(cjs, dateTimeStartThisWeek, dateTimeEndThisWeek)
-    const activeOrganizationsPreviousWeek = await CubeJsRepository.getActiveOrganizations(cjs, dateTimeStartPreviousWeek, dateTimeEndPreviousWeek )
+    const activeOrganizationsThisWeek = await CubeJsRepository.getActiveOrganizations(
+      cjs,
+      dateTimeStartThisWeek,
+      dateTimeEndThisWeek,
+    )
+    const activeOrganizationsPreviousWeek = await CubeJsRepository.getActiveOrganizations(
+      cjs,
+      dateTimeStartPreviousWeek,
+      dateTimeEndPreviousWeek,
+    )
 
-    const newOrganizationsThisWeek = await CubeJsRepository.getNewOrganizations(cjs, dateTimeStartThisWeek, dateTimeEndThisWeek)
-    const newOrganizationsPreviousWeek = await CubeJsRepository.getNewOrganizations(cjs, dateTimeStartPreviousWeek, dateTimeEndPreviousWeek)
+    const newOrganizationsThisWeek = await CubeJsRepository.getNewOrganizations(
+      cjs,
+      dateTimeStartThisWeek,
+      dateTimeEndThisWeek,
+    )
+    const newOrganizationsPreviousWeek = await CubeJsRepository.getNewOrganizations(
+      cjs,
+      dateTimeStartPreviousWeek,
+      dateTimeEndPreviousWeek,
+    )
 
-    const mostActiveOrganizations = (await userContext.database.sequelize.query(`
+    const mostActiveOrganizations = (
+      await userContext.database.sequelize.query(
+        `
     select count(a.id) as "activityCount",
        o.name as name,
        o.logo as "avatarUrl"
@@ -114,28 +163,47 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     group by o.id
     order by count(a.id) desc
     limit 5;`,
-    {
-      replacements: {
-        tenantId,
-        startDate: dateTimeStartThisWeek.toISOString(),
-        endDate: dateTimeEndThisWeek.toISOString(),
-      },
-      type: QueryTypes.SELECT,
-    })).map( (o) => {
-      if (!o.avatarUrl){
-        o.avatarUrl = `https://${S3_CONFIG.microservicesAssetsBucket}-staging.s3.eu-central-1.amazonaws.com/email/organization-placeholder.png`
+        {
+          replacements: {
+            tenantId,
+            startDate: dateTimeStartThisWeek.toISOString(),
+            endDate: dateTimeEndThisWeek.toISOString(),
+          },
+          type: QueryTypes.SELECT,
+        },
+      )
+    ).map((o) => {
+      if (!o.avatarUrl) {
+        o.avatarUrl = `${s3Url}/email/organization-placeholder.png`
       }
       return o
     })
 
     // activities
-    const totalActivitiesThisWeek = await CubeJsRepository.getNewActivities(cjs, unixEpoch, dateTimeEndThisWeek)
-    const totalActivitiesPreviousWeek = await CubeJsRepository.getNewActivities(cjs, unixEpoch, dateTimeEndPreviousWeek)
+    const totalActivitiesThisWeek = await CubeJsRepository.getNewActivities(
+      cjs,
+      unixEpoch,
+      dateTimeEndThisWeek,
+    )
+    const totalActivitiesPreviousWeek = await CubeJsRepository.getNewActivities(
+      cjs,
+      unixEpoch,
+      dateTimeEndPreviousWeek,
+    )
 
-    const newActivitiesThisWeek = await CubeJsRepository.getNewActivities(cjs, dateTimeStartThisWeek, dateTimeEndThisWeek)
-    const newActivitiesPreviousWeek = await CubeJsRepository.getNewActivities(cjs, dateTimeStartPreviousWeek, dateTimeEndPreviousWeek)
-    
-    let topActivityTypes = await userContext.database.sequelize.query(`
+    const newActivitiesThisWeek = await CubeJsRepository.getNewActivities(
+      cjs,
+      dateTimeStartThisWeek,
+      dateTimeEndThisWeek,
+    )
+    const newActivitiesPreviousWeek = await CubeJsRepository.getNewActivities(
+      cjs,
+      dateTimeStartPreviousWeek,
+      dateTimeEndPreviousWeek,
+    )
+
+    let topActivityTypes = await userContext.database.sequelize.query(
+      `
     select sum(count(*)) OVER () as "totalCount",
        count(*)              as count,
        a.type,
@@ -146,29 +214,31 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     group by a.type, a.platform
     order by count(*) desc
     limit 5;`,
-    {
-      replacements: {
-        tenantId,
-        startDate: dateTimeStartThisWeek.toISOString(),
-        endDate: dateTimeEndThisWeek.toISOString(),
+      {
+        replacements: {
+          tenantId,
+          startDate: dateTimeStartThisWeek.toISOString(),
+          endDate: dateTimeEndThisWeek.toISOString(),
+        },
+        type: QueryTypes.SELECT,
       },
-      type: QueryTypes.SELECT,
-    })
+    )
 
-    topActivityTypes = topActivityTypes.map( (a) => {
-      const prettyName: string = prettyActivityTypes[a.platform][a.type] 
+    topActivityTypes = topActivityTypes.map((a) => {
+      const prettyName: string = prettyActivityTypes[a.platform][a.type]
       a.type = prettyName[0].toUpperCase() + prettyName.slice(1)
       a.percentage = Number((a.count / a.totalCount) * 100).toFixed(2)
-      a.platformIcon = `https://${S3_CONFIG.microservicesAssetsBucket}-staging.s3.eu-central-1.amazonaws.com/email/${a.platform}.png`
+      a.platformIcon = `${s3Url}/email/${a.platform}.png`
       return a
     })
-
 
     // conversations
     const cs = new ConversationService(userContext)
 
-    const conversations =   await Promise.all(
-      (await userContext.database.sequelize.query(`
+    const conversations = await Promise.all(
+      (
+        await userContext.database.sequelize.query(
+          `
     select
         c.id
     from conversations c
@@ -178,52 +248,62 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     group by c.id
     order by count(a.id) desc
     limit 5;`,
-    {
-      replacements: {
-        tenantId,
-        startDate: dateTimeStartThisWeek.toISOString(),
-        endDate: dateTimeEndThisWeek.toISOString(),
-      },
-      type: QueryTypes.SELECT,
-    })).map( async (c) => {
+          {
+            replacements: {
+              tenantId,
+              startDate: dateTimeStartThisWeek.toISOString(),
+              endDate: dateTimeEndThisWeek.toISOString(),
+            },
+            type: QueryTypes.SELECT,
+          },
+        )
+      ).map(async (c) => {
+        const conversationLazyLoaded = await cs.findById(c.id)
 
-      const conversationLazyLoaded = await cs.findById(c.id)
+        const conversationStarterActivity = conversationLazyLoaded.activities[0]
 
-      const conversationStarterActivity = conversationLazyLoaded.activities[0]
+        c.conversationStartedFromNow = moment(conversationStarterActivity.timestamp).fromNow()
 
-      c.conversationStartedFromNow = moment(conversationStarterActivity.timestamp).fromNow()
+        c.replyCount = conversationLazyLoaded.activities.length - 1
 
-      c.replyCount = conversationLazyLoaded.activities.length - 1
+        c.memberCount = await ConversationRepository.getTotalMemberCount(
+          conversationLazyLoaded.activities,
+        )
 
-      c.memberCount = await ConversationRepository.getTotalMemberCount(conversationLazyLoaded.activities)
+        c.platform = conversationStarterActivity.platform
 
-      c.platform = conversationStarterActivity.platform
+        c.body = conversationStarterActivity.title
+          ? convertHtmlToText(conversationStarterActivity.title)
+          : convertHtmlToText(conversationStarterActivity.body)
 
-      c.body = conversationStarterActivity.title ? convertHtmlToText(conversationStarterActivity.title) : convertHtmlToText(conversationStarterActivity.body)
+        c.platformIcon = `${s3Url}/email/${conversationStarterActivity.platform}.png`
 
-      c.platformIcon = `https://${S3_CONFIG.microservicesAssetsBucket}-staging.s3.eu-central-1.amazonaws.com/email/${conversationStarterActivity.platform}.png`
+        let prettyChannel = conversationStarterActivity.channel
 
-      let prettyChannel = conversationStarterActivity.channel
+        let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
 
-      let prettyChannelHTML = `<span style='text-decoration:none;color:#4B5563'>${prettyChannel}</span>`
+        if (conversationStarterActivity.platform === PlatformType.GITHUB) {
+          const prettyChannelSplitted = prettyChannel.split('/')
+          prettyChannel = prettyChannelSplitted[prettyChannelSplitted.length - 1]
+          prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
+        }
 
-      if (conversationStarterActivity.platform === PlatformType.GITHUB){
-        const prettyChannelSplitted = prettyChannel.split("/")
-        prettyChannel = prettyChannelSplitted[prettyChannelSplitted.length - 1]
-        prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
-      }
+        c.description = `${
+          prettyActivityTypes[conversationStarterActivity.platform][
+            conversationStarterActivity.type
+          ]
+        } in ${prettyChannelHTML}`
 
-      c.description = `${prettyActivityTypes[conversationStarterActivity.platform][conversationStarterActivity.type]} in ${prettyChannelHTML}`
+        c.sourceLink = conversationStarterActivity.url
 
-      c.sourceLink = conversationStarterActivity.url
+        c.member = conversationStarterActivity.member.username[conversationStarterActivity.platform]
 
-      c.member = conversationStarterActivity.member.username[conversationStarterActivity.platform]
-
-      return c
-
-    }))
+        return c
+      }),
+    )
 
     if (activeMembersThisWeek > 0) {
+      log.info(tenantId, ` has some active members this week. Eligible for weekly emails.. `)
       const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
       const advancedSuppressionManager = {
@@ -236,45 +316,53 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           const userFirstName = user.firstName ? user.firstName : user.email.split('@')[0]
 
           const data = {
-            dateRangePretty: `${dateTimeStartThisWeek.format('D MMM YYYY')} - ${dateTimeEndThisWeek.format('D MMM YYYY')}`,
+            dateRangePretty: `${dateTimeStartThisWeek.format(
+              'D MMM YYYY',
+            )} - ${dateTimeEndThisWeek.format('D MMM YYYY')}`,
             members: {
               total: {
                 value: totalMembersThisWeek,
-                ...getChangeAndDirection(totalMembersThisWeek, totalMembersPreviousWeek)
+                ...getChangeAndDirection(totalMembersThisWeek, totalMembersPreviousWeek),
               },
               new: {
                 value: newMembersThisWeek,
-                ...getChangeAndDirection(newMembersThisWeek, newMembersPreviousWeek)
+                ...getChangeAndDirection(newMembersThisWeek, newMembersPreviousWeek),
               },
               active: {
                 value: activeMembersThisWeek,
-                ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek)
+                ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek),
               },
-              mostActive: mostActiveMembers
+              mostActive: mostActiveMembers,
             },
             organizations: {
               total: {
                 value: totalOrganizationsThisWeek,
-                ...getChangeAndDirection(totalOrganizationsThisWeek, totalOrganizationsPreviousWeek)
+                ...getChangeAndDirection(
+                  totalOrganizationsThisWeek,
+                  totalOrganizationsPreviousWeek,
+                ),
               },
               new: {
                 value: newOrganizationsThisWeek,
-                ...getChangeAndDirection(newOrganizationsThisWeek, newOrganizationsPreviousWeek)
+                ...getChangeAndDirection(newOrganizationsThisWeek, newOrganizationsPreviousWeek),
               },
               active: {
                 value: activeOrganizationsThisWeek,
-                ...getChangeAndDirection(activeOrganizationsThisWeek, activeOrganizationsPreviousWeek)
+                ...getChangeAndDirection(
+                  activeOrganizationsThisWeek,
+                  activeOrganizationsPreviousWeek,
+                ),
               },
-              mostActive: mostActiveOrganizations
+              mostActive: mostActiveOrganizations,
             },
             activities: {
               total: {
                 value: totalActivitiesThisWeek,
-                ...getChangeAndDirection(totalActivitiesThisWeek, totalActivitiesPreviousWeek)
+                ...getChangeAndDirection(totalActivitiesThisWeek, totalActivitiesPreviousWeek),
               },
               new: {
                 value: newActivitiesThisWeek,
-                ...getChangeAndDirection(newActivitiesThisWeek, newActivitiesPreviousWeek)
+                ...getChangeAndDirection(newActivitiesThisWeek, newActivitiesPreviousWeek),
               },
               topActivityTypes,
             },
@@ -318,83 +406,34 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   }
 }
 
-function getChangeAndDirection(thisWeekValue: number, previousWeekValue:number){
-
+function getChangeAndDirection(thisWeekValue: number, previousWeekValue: number) {
   let changeAndDirection
 
-  if (thisWeekValue > previousWeekValue){
+  if (thisWeekValue > previousWeekValue) {
     changeAndDirection = {
       changeVsLastWeek: thisWeekValue - previousWeekValue,
-      changeVsLastWeekPercentage: Number(((thisWeekValue - previousWeekValue) / thisWeekValue) * 100).toFixed(2),
-      changeVsLastWeekDerivative: 'increasing'
+      changeVsLastWeekPercentage: Number(
+        ((thisWeekValue - previousWeekValue) / thisWeekValue) * 100,
+      ).toFixed(2),
+      changeVsLastWeekDerivative: 'increasing',
     }
-  }
-  else if (thisWeekValue === previousWeekValue){
+  } else if (thisWeekValue === previousWeekValue) {
     changeAndDirection = {
       changeVsLastWeek: 0,
       changeVsLastWeekPercentage: 0,
-      changeVsLastWeekDerivative: 'equal'
+      changeVsLastWeekDerivative: 'equal',
     }
-  }
-  else {
+  } else {
     changeAndDirection = {
       changeVsLastWeek: previousWeekValue - thisWeekValue,
-      changeVsLastWeekPercentage: Number(((previousWeekValue - thisWeekValue) / previousWeekValue) * 100).toFixed(2),
-      changeVsLastWeekDerivative: 'decreasing'
+      changeVsLastWeekPercentage: Number(
+        ((previousWeekValue - thisWeekValue) / previousWeekValue) * 100,
+      ).toFixed(2),
+      changeVsLastWeekDerivative: 'decreasing',
     }
   }
 
   return changeAndDirection
-
-}
-
-/**
- * If any of the measures have a value other than zero, returns true
- * Example analyticsDataObject:
- * {
- *    newMembers: '5',
- *    activeMembers: '0',
- *    newActivities: '10',
- *    newConversations: '0'
- * }
- * @param analyticsData
- * @returns
- */
-function hasReasonableInsights(analyticsData: any): boolean {
-  let hasInsight = false
-
-  for (const measure in analyticsData) {
-    if (Object.prototype.hasOwnProperty.call(analyticsData, measure)) {
-      hasInsight = hasInsight || (analyticsData[measure] && analyticsData[measure] > 0)
-    }
-  }
-
-  return hasInsight
-}
-
-/**
- * Checks if the icon of a platform exists
- * in s3 assets bucket.
- * Icons will not be rendered if this function
- * returns false.
- *
- * @param platform
- * @returns the existence of icon
- */
-async function platformIconExists(platform: string): Promise<boolean> {
-  try {
-    await s3
-      .headObject({
-        Bucket: `${S3_CONFIG.microservicesAssetsBucket}-staging`,
-        Key: `email/${platform}.png`,
-      })
-      .promise()
-    return true
-  } catch (error) {
-    // If there are access problems to bucket, or bucket doesn't exist, or file doesn't exist
-    log.error(error, { platform }, 'Error checking if platform icon exists!')
-    return false
-  }
 }
 
 export { weeklyAnalyticsEmailsWorker }

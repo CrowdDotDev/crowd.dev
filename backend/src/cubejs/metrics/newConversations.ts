@@ -12,18 +12,18 @@ import CubeMeasures from '../../services/cubejs/cubeMeasures'
  */
 export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: moment.Moment) => {
   const newConversations =
-      (
-        await cjs.load({
-          measures: [CubeMeasures.CONVERSATION_COUNT],
-          timeDimensions: [
-            {
-              dimension: CubeDimensions.CONVERSATION_FIRST_ACTIVITY_TIME,
-              dateRange: [startDate.toISOString(), endDate.toISOString()],
-            },
-          ],
-          limit: 1,
-        })
-      )[0][CubeMeasures.CONVERSATION_COUNT] ?? 0
+    (
+      await cjs.load({
+        measures: [CubeMeasures.CONVERSATION_COUNT],
+        timeDimensions: [
+          {
+            dimension: CubeDimensions.CONVERSATION_FIRST_ACTIVITY_TIME,
+            dateRange: [startDate.toISOString(), endDate.toISOString()],
+          },
+        ],
+        limit: 1,
+      })
+    )[0][CubeMeasures.CONVERSATION_COUNT] ?? 0
 
   return parseInt(newConversations, 10)
 }

@@ -26,12 +26,10 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
         filters: [
           {
             member: CubeDimensions.IS_TEAM_MEMBER,
-            operator: "equals",
-            values: [
-              "false"
-            ]
-          }
-        ]
+            operator: 'equals',
+            values: ['false'],
+          },
+        ],
       })
     )[0][CubeMeasures.ACTIVITY_COUNT] ?? 0
 
