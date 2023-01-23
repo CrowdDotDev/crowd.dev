@@ -319,35 +319,34 @@ export default class MemberEnrichmentService extends LoggingBase {
       member.attributes = {}
     }
 
+    // eslint-disable-next-line guard-for-in
     for (const attributeName in this.attributeSettings) {
-      if (Object.prototype.hasOwnProperty.call(attributeName, this.attributeSettings)) {
-        const attribute = this.attributeSettings[attributeName]
+      const attribute = this.attributeSettings[attributeName]
 
-        let value = null
+      let value = null
 
-        for (const field of attribute.fields) {
-          if (value) {
-            break
-          }
-          // Get value from 'enrichmentData' object using the defined mapping and 'lodash.get'
-          value = lodash.get(enrichmentData, field)
-        }
-
+      for (const field of attribute.fields) {
         if (value) {
-          // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
-          if (!member.attributes[attributeName]) {
-            member.attributes[attributeName] = {}
-          }
-
-          // Check if 'attribute.fn' exists, otherwise set it the identity function
-          const fn = attribute.fn || ((value) => value)
-          value = fn(value)
-
-          // Assign 'value' to 'member.attributes[attributeName].enrichment'
-          member.attributes[attributeName].enrichment = value
-
-          await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
+          break
         }
+        // Get value from 'enrichmentData' object using the defined mapping and 'lodash.get'
+        value = lodash.get(enrichmentData, field)
+      }
+
+      if (value) {
+        // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
+        if (!member.attributes[attributeName]) {
+          member.attributes[attributeName] = {}
+        }
+
+        // Check if 'attribute.fn' exists, otherwise set it the identity function
+        const fn = attribute.fn || ((value) => value)
+        value = fn(value)
+
+        // Assign 'value' to 'member.attributes[attributeName].enrichment'
+        member.attributes[attributeName].enrichment = value
+
+        await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
       }
     }
 
