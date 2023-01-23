@@ -31,7 +31,9 @@ import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 
 export default class MemberEnrichmentService extends LoggingBase {
   options: IServiceOptions
+
   attributes: AttributeData[] | undefined
+
   attributeSettings: any
 
   constructor(options) {
@@ -152,6 +154,7 @@ export default class MemberEnrichmentService extends LoggingBase {
           err.message === i18n(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
         ) {
           this.log.warn(`Member ${memberId} has no GitHub handle or email address`)
+          // eslint-disable-next-line no-continue
           continue
         } else {
           this.log.error(`Failed to enrich member ${memberId}`, err)
@@ -203,7 +206,7 @@ export default class MemberEnrichmentService extends LoggingBase {
 
     // Create an instance of the MemberService and use it to look up the member
     const memberService = new MemberService(this.options)
-    const member = await memberService.findById(memberId)
+    const member = await memberService.findById(memberId, false, false)
 
     // If the member's GitHub handle or email address is not available, throw an error
     if (!(member.username[PlatformType.GITHUB] || member.email)) {
@@ -232,9 +235,9 @@ export default class MemberEnrichmentService extends LoggingBase {
           })
         }
       }
-
-      return await memberService.upsert({ ...normalized, platform: PlatformType.GITHUB })
+      return memberService.upsert({ ...normalized, platform: PlatformType.GITHUB })
     }
+    return null
   }
 
   async normalize(member: Member, enrichmentData: EnrichmentAPIMember) {
@@ -243,17 +246,15 @@ export default class MemberEnrichmentService extends LoggingBase {
       member.email = enrichmentData.primary_mail
     }
     member.contributions = enrichmentData.oss_contributions.map(
-      (contribution: EnrichmentAPIContribution) => {
-        return {
-          id: contribution.id,
-          topics: contribution.topics,
-          summary: contribution.summary,
-          url: contribution.github_url,
-          firstCommitDate: contribution.first_commit_date,
-          lastCommitDate: contribution.last_commit_date,
-          numberCommits: contribution.num_of_commits,
-        }
-      },
+      (contribution: EnrichmentAPIContribution) => ({
+        id: contribution.id,
+        topics: contribution.topics,
+        summary: contribution.summary,
+        url: contribution.github_url,
+        firstCommitDate: contribution.first_commit_date,
+        lastCommitDate: contribution.last_commit_date,
+        numberCommits: contribution.num_of_commits,
+      }),
     )
     member = this.fillPlatformData(member, enrichmentData)
     member = await this.fillAttributes(member, enrichmentData)
@@ -267,6 +268,7 @@ export default class MemberEnrichmentService extends LoggingBase {
    * @param enrichmentData - An object that contains data obtained from an external API
    * @returns the updated 'member' object
    */
+  // eslint-disable-next-line class-methods-use-this
   fillPlatformData(member: Member, enrichmentData: EnrichmentAPIMember) {
     if (enrichmentData.github_handle) {
       // Set 'member.username.github' to be equal to 'enrichmentData.github_handle' (if it is not already set)
@@ -318,34 +320,37 @@ export default class MemberEnrichmentService extends LoggingBase {
     }
 
     for (const attributeName in this.attributeSettings) {
-      const attribute = this.attributeSettings[attributeName]
+      if (Object.prototype.hasOwnProperty.call(attributeName, this.attributeSettings)) {
+        const attribute = this.attributeSettings[attributeName]
 
-      let value = null
+        let value = null
 
-      for (const field of attribute.fields) {
+        for (const field of attribute.fields) {
+          if (value) {
+            break
+          }
+          // Get value from 'enrichmentData' object using the defined mapping and 'lodash.get'
+          value = lodash.get(enrichmentData, field)
+        }
+
         if (value) {
-          break
+          // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
+          if (!member.attributes[attributeName]) {
+            member.attributes[attributeName] = {}
+          }
+
+          // Check if 'attribute.fn' exists, otherwise set it the identity function
+          const fn = attribute.fn || ((value) => value)
+          value = fn(value)
+
+          // Assign 'value' to 'member.attributes[attributeName].enrichment'
+          member.attributes[attributeName].enrichment = value
+
+          await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
         }
-        // Get value from 'enrichmentData' object using the defined mapping and 'lodash.get'
-        value = lodash.get(enrichmentData, field)
-      }
-
-      if (value) {
-        // Check if 'member.attributes[attributeName]' exists, and if it does not, initialize it as an empty object
-        if (!member.attributes[attributeName]) {
-          member.attributes[attributeName] = {}
-        }
-
-        // Check if 'attribute.fn' exists, otherwise set it the identity function
-        const fn = attribute.fn || ((value) => value)
-        value = fn(value)
-
-        // Assign 'value' to 'member.attributes[attributeName].enrichment'
-        member.attributes[attributeName].enrichment = value
-
-        await this.createAttributeAndUpdateOptions(attributeName, attribute, value)
       }
     }
+
     return member
   }
 
@@ -397,7 +402,7 @@ export default class MemberEnrichmentService extends LoggingBase {
       const attributeSettings = lodash.find(this.attributes, { name: attributeName })
       // Get options
       const options = attributeSettings.options || []
-      //Update options
+      // Update options
       await new MemberAttributeSettingsService(this.options).update(attributeSettings.id, {
         options: lodash.uniq([...options, ...value]),
       })
@@ -450,6 +455,7 @@ export default class MemberEnrichmentService extends LoggingBase {
       throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
     }
   }
+
   /**
    * This function is used to get an enrichment profile for a given email.
    * It makes a GET request to the Enrichment API with the provided email and an API key,
