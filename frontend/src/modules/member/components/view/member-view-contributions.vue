@@ -81,61 +81,12 @@ const graph = ref()
 // ref="tooltip"
 const tooltip = ref()
 const targetNodeId = ref('')
-
-const nodes = computed(() => {
-  const nodes = {}
-  props.contributions.forEach((contribution) => {
-    const node = {
-      name: contribution.url.split('/').pop(),
-      size:
-        Math.max(
-          Math.min(contribution.numberCommits, maxSize),
-          minSize
-        ) * reduceFactor.value,
-      topics: contribution.topics,
-      numberCommits: contribution.numberCommits,
-      url: contribution.url
-    }
-    nodes[contribution.id.toString()] = node
-  })
-  return nodes
-})
-
-const edges = computed(() => {
-  let edges = {}
-  let topicMap = {}
-  props.contributions.forEach((contribution) => {
-    contribution.topics.forEach((topic) => {
-      if (!topicMap[topic]) {
-        topicMap[topic] = [contribution.id]
-      } else {
-        topicMap[topic].push(contribution.id)
-      }
-    })
-  })
-  for (let topic in topicMap) {
-    let contributionIds = topicMap[topic]
-    for (let i = 0; i < contributionIds.length; i++) {
-      for (let j = i + 1; j < contributionIds.length; j++) {
-        if (contributionIds[i] !== contributionIds[j]) {
-          edges[
-            `${contributionIds[i]}-${contributionIds[j]}`
-          ] = {
-            source: contributionIds[i].toString(),
-            target: contributionIds[j].toString(),
-            label: topic
-          }
-        }
-      }
-    }
-  }
-  return edges
-})
-
 const hoveredEdge = ref(null)
 const hoveredNode = ref(null)
-
 const layouts = ref({})
+
+const tooltipOpacity = ref(0) // 0 or 1
+const tooltipPos = ref({ left: '0px', top: '0px' })
 
 const configs = reactive(
   defineConfigs({
@@ -195,6 +146,56 @@ const configs = reactive(
   })
 )
 
+const nodes = computed(() => {
+  const nodes = {}
+  props.contributions.forEach((contribution) => {
+    const node = {
+      name: contribution.url.split('/').pop(),
+      size:
+        Math.max(
+          Math.min(contribution.numberCommits, maxSize),
+          minSize
+        ) * reduceFactor.value,
+      topics: contribution.topics,
+      numberCommits: contribution.numberCommits,
+      url: contribution.url
+    }
+    nodes[contribution.id.toString()] = node
+  })
+  return nodes
+})
+
+const edges = computed(() => {
+  let edges = {}
+  let topicMap = {}
+  props.contributions.forEach((contribution) => {
+    contribution.topics.forEach((topic) => {
+      if (!topicMap[topic]) {
+        topicMap[topic] = [contribution.id]
+      } else {
+        topicMap[topic].push(contribution.id)
+      }
+    })
+  })
+  for (let topic in topicMap) {
+    let contributionIds = topicMap[topic]
+    for (let i = 0; i < contributionIds.length; i++) {
+      for (let j = i + 1; j < contributionIds.length; j++) {
+        if (contributionIds[i] !== contributionIds[j]) {
+          edges[
+            `${contributionIds[i]}-${contributionIds[j]}`
+          ] = {
+            source: contributionIds[i].toString(),
+            target: contributionIds[j].toString(),
+            label: topic
+          }
+        }
+      }
+    }
+  }
+  return edges
+})
+
 function edgeColor(edge) {
   if (hoveredNode.value) return '#F6B9AB'
   return edge.label === hoveredEdge.value
@@ -212,9 +213,6 @@ function nodeColor(node) {
     ? '#E5E7EB'
     : '#F3F4F6'
 }
-
-const tooltipOpacity = ref(0) // 0 or 1
-const tooltipPos = ref({ left: '0px', top: '0px' })
 
 const targetNodePos = computed(() => {
   const nodePos = layouts.value.nodes[targetNodeId.value]
