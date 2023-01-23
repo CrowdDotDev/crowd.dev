@@ -189,5 +189,6 @@ const eventHandlers = {
 
 .contributions-panel {
   padding: 0 !important;
+  overflow: visible !important;
 }
 </style>
