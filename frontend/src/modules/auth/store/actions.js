@@ -17,19 +17,25 @@ import {
 export default {
   async doInit({ commit, dispatch }) {
     try {
-      const currentUser = await AuthService.fetchMe()
       const token = AuthToken.get()
-      connectSocket(token)
-      commit('AUTH_INIT_SUCCESS', { currentUser })
-      ProgressBar.done()
-      return currentUser
+      if (token) {
+        const currentUser = await AuthService.fetchMe()
+        connectSocket(token)
+        commit('AUTH_INIT_SUCCESS', { currentUser })
+        return currentUser
+      }
+
+      disconnectSocket()
+      commit('AUTH_INIT_ERROR')
+      return null
     } catch (error) {
       console.error(error)
       disconnectSocket()
       commit('AUTH_INIT_ERROR')
       dispatch('doSignout')
-      ProgressBar.done()
       return null
+    } finally {
+      ProgressBar.done()
     }
   },
 
