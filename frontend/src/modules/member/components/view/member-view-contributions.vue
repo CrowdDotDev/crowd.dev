@@ -50,6 +50,19 @@
           <button>Click to open on GitHub</button>
         </div>
       </div>
+      <div
+        ref="edgeTooltip"
+        class="edge-tooltip"
+        :style="{
+          ...edgeToolTipPos,
+          opacity: edgeToolTipOpacity
+        }"
+      >
+        <div>
+          <span class="font-medium"> Topic: </span
+          >{{ `${edges[targetEdgeId]?.label ?? ''}` }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -72,7 +85,7 @@ const props = defineProps({
   }
 })
 
-const maxSize = 50
+const maxSize = 40
 const minSize = 10
 const reduceFactor = ref(1)
 
@@ -80,13 +93,19 @@ const reduceFactor = ref(1)
 const graph = ref()
 // ref="tooltip"
 const tooltip = ref()
+const edgeTooltip = ref()
 const targetNodeId = ref('')
+const EDGE_MARGIN_TOP = 2
+const targetEdgeId = ref('')
 const hoveredEdge = ref(null)
 const hoveredNode = ref(null)
 const layouts = ref({})
 
 const tooltipOpacity = ref(0) // 0 or 1
 const tooltipPos = ref({ left: '0px', top: '0px' })
+
+const edgeToolTipOpacity = ref(0) // 0 or 1
+const edgeToolTipPos = ref({ left: '0px', top: '0px' })
 
 const configs = reactive(
   defineConfigs({
@@ -109,7 +128,7 @@ const configs = reactive(
             )
             .force(
               'collide',
-              d3.forceCollide(20).strength(0.1)
+              d3.forceCollide(40).strength(0.1)
             )
             .force('center', d3.forceCenter().strength(0.1))
             .alphaMin(0.001)
@@ -196,6 +215,25 @@ const edges = computed(() => {
   return edges
 })
 
+const edgeCenterPos = computed(() => {
+  const edge = edges.value[targetEdgeId.value]
+  if (!edge) return { x: 0, y: 0 }
+
+  const sourceNode = edges.value[targetEdgeId.value].source
+  const targetNode = edges.value[targetEdgeId.value].target
+
+  return {
+    x:
+      (layouts.value.nodes[sourceNode].x +
+        layouts.value.nodes[targetNode].x) /
+      2,
+    y:
+      (layouts.value.nodes[sourceNode].y +
+        layouts.value.nodes[targetNode].y) /
+      2
+  }
+})
+
 function edgeColor(edge) {
   if (hoveredNode.value) return '#F6B9AB'
   return edge.label === hoveredEdge.value
@@ -255,6 +293,35 @@ watch(
   { deep: true }
 )
 
+watch(
+  () => [edgeCenterPos.value, edgeToolTipOpacity.value],
+  () => {
+    if (!graph.value || !edgeTooltip.value)
+      return { x: 0, y: 0 }
+    if (!targetEdgeId.value) return { x: 0, y: 0 }
+
+    // translate coordinates: SVG -> DOM
+    const domPoint =
+      graph.value.translateFromSvgToDomCoordinates(
+        edgeCenterPos.value
+      )
+    // calculates top-left position of the tooltip.
+    edgeToolTipPos.value = {
+      left:
+        domPoint.x -
+        edgeTooltip.value.offsetWidth / 2 +
+        'px',
+      top:
+        domPoint.y -
+        EDGE_MARGIN_TOP -
+        edgeTooltip.value.offsetHeight -
+        10 +
+        'px'
+    }
+  },
+  { deep: true }
+)
+
 const eventHandlers = {
   'node:click': ({ node }) => {
     const url = nodes.value[node].url
@@ -273,9 +340,13 @@ const eventHandlers = {
   },
   'edge:pointerover': ({ edge }) => {
     hoveredEdge.value = edges.value[edge].label
+    targetEdgeId.value = edge ?? ''
+    edgeToolTipOpacity.value = 1 // show
   },
   'edge:pointerout': () => {
     hoveredEdge.value = null
+    targetEdgeId.value = ''
+    edgeToolTipOpacity.value = 0 // hide
   },
   'view:zoom'(zoom) {
     if (zoom < 0.7) {
@@ -301,6 +372,17 @@ const eventHandlers = {
   pointer-events: none;
   z-index: 100000000;
   @apply bg-white shadow-lg rounded-lg p-4 cursor-auto;
+}
+
+.edge-tooltip {
+  top: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.2s linear;
+  pointer-events: none;
+  z-index: 100000000;
+  @apply bg-gray-900 text-white text-sm shadow-lg rounded-lg p-1 cursor-auto;
 }
 
 .background-dotted {
