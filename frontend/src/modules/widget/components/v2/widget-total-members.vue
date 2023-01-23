@@ -61,7 +61,7 @@
 <script setup>
 import moment from 'moment'
 import cloneDeep from 'lodash/cloneDeep'
-import { ref, computed } from 'vue'
+import { ref, computed, defineProps } from 'vue'
 import { QueryRenderer } from '@cubejs-client/vue3'
 import { SEVEN_DAYS_PERIOD_FILTER } from '@/modules/widget/widget-constants'
 import { chartOptions } from '@/modules/report/templates/template-report-charts'
@@ -75,12 +75,19 @@ import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.v
 
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { getTimeGranularityFromPeriod } from '@/utils/reports'
+import { TOTAL_MEMBERS_QUERY } from '@/modules/widget/widget-queries'
 
 const customChartOptions = cloneDeep(chartOptions('area'))
 customChartOptions.library.plugins.legend = {}
 
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: null
+  }
+})
+
 const period = ref(SEVEN_DAYS_PERIOD_FILTER)
-const platform = ref('all')
 
 const granularity = computed(() =>
   getTimeGranularityFromPeriod(period.value)
@@ -99,39 +106,13 @@ const datasets = computed(() => {
 const { cubejsApi } = mapGetters('widget')
 
 const query = computed(() => {
-  return {
-    measures: ['Members.cumulativeCount'],
-    timeDimensions: [
-      {
-        dimension: 'Members.joinedAt',
-        granularity: granularity.value,
-        dateRange: dateRange(period)
-      }
-    ],
-    filters:
-      platform.value !== 'all'
-        ? [
-            {
-              member: 'Activities.platform',
-              operator: 'equals',
-              values: [platform]
-            }
-          ]
-        : undefined
-  }
+  return TOTAL_MEMBERS_QUERY({
+    period: period.value,
+    granularity,
+    selectedPlatforms: props.filters.platform.value,
+    selectedHasTeamMembers: props.filters.teamMembers
+  })
 })
-
-const dateRange = (period) => {
-  const end = moment().utc().format('YYYY-MM-DD')
-  const start = moment()
-    .utc()
-    .subtract(period.value.value, period.value.granularity)
-    // we're subtracting one more day, to get the last value of the previous period within the same request
-    .subtract(1, 'day')
-    .format('YYYY-MM-DD')
-
-  return [start, end]
-}
 
 const kpiCurrentValue = (resultSet) => {
   const data = resultSet.chartPivot()

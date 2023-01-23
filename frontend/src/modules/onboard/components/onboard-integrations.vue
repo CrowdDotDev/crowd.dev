@@ -23,7 +23,6 @@
           <div class="flex-grow">
             <h6 class="text-sm font-medium mb-1">
               {{ integration.name }}
-              {{ integration.status }}
             </h6>
             <p class="text-gray-500 text-2xs">
               {{ integration.description }}

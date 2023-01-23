@@ -30,7 +30,8 @@ export const plans = {
         'Community growth',
         'Organization-level insights',
         '10 active workflows & CSV exports per month',
-        'Slack connect support'
+        'Slack connect support',
+        'LinkedIn integration'
       ],
       sale: '🐦 Early bird offer'
     },
@@ -77,7 +78,8 @@ export const plans = {
         'Community growth',
         'Organization-level insights',
         'Custom integrations',
-        'Enterprise-grade support'
+        'Enterprise-grade support',
+        'LinkedIn integration'
       ]
     }
   ]

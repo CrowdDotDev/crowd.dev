@@ -13,7 +13,7 @@
       </div>
       <div class="-mx-6 mt-6">
         <a
-          v-for="platform of Object.keys(member.username)"
+          v-for="platform of Object.keys(socialIdentities)"
           :key="platform"
           class="px-6 py-2 flex justify-between items-center relative"
           :class="
@@ -22,17 +22,32 @@
               ? 'hover:bg-gray-50 transition-colors cursor-pointer'
               : ''
           "
-          :href="
-            platform === 'hackernews'
-              ? `https://news.ycombinator.com/user?id=${member.username.hackernews}`
-              : member.attributes.url?.[platform]
-          "
+          :href="identityUrl(platform)"
           target="_blank"
         >
           <div class="flex gap-3 items-center">
             <app-platform :platform="platform" />
-            <span class="text-gray-900 text-xs">
-              {{ member.username[platform] }}</span
+            <div
+              v-if="
+                platform === 'linkedin' &&
+                socialIdentities[platform].includes(
+                  'private-'
+                )
+              "
+              class="text-gray-900 text-xs"
+            >
+              *********
+              <el-tooltip
+                placement="top"
+                content="Private profile"
+              >
+                <i
+                  class="ri-lock-line text-gray-400 ml-2"
+                ></i>
+              </el-tooltip>
+            </div>
+            <span v-else class="text-gray-900 text-xs">
+              {{ socialIdentities[platform] }}</span
             >
           </div>
           <i
@@ -41,6 +56,27 @@
                 ? true
                 : member.attributes.url?.[platform]
             "
+            class="ri-external-link-line text-gray-300"
+          ></i>
+        </a>
+      </div>
+      <div
+        v-if="Object.keys(socialIdentities).length && email"
+        class="mt-2"
+      >
+        <el-divider class="border-t-gray-200"></el-divider>
+        <a
+          class="py-2 px-6 -mx-6 mt-4 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
+          :href="`mailto:${email}`"
+          target="_blank"
+        >
+          <div class="flex gap-3 items-center">
+            <app-platform platform="email" />
+            <span class="text-gray-900 text-xs">
+              {{ email }}</span
+            >
+          </div>
+          <i
             class="ri-external-link-line text-gray-300"
           ></i>
         </a>
@@ -119,6 +155,14 @@ const props = defineProps({
 const identitiesDrawer = ref(false)
 const attributesDrawer = ref(false)
 
+const email = ref(props.member.email)
+const socialIdentities = computed(() => {
+  const identities = { ...props.member.username }
+  delete identities.email
+
+  return identities
+})
+
 const computedCustomAttributes = computed(() => {
   return Object.values(
     store.state.member.customAttributes
@@ -141,5 +185,17 @@ const formattedComputedAttributeValue = (value) => {
         timestamp: value
       })
     : value
+}
+const identityUrl = (platform) => {
+  if (platform === 'hackernews') {
+    return `https://news.ycombinator.com/user?id=${socialIdentities.value.hackernews}`
+  } else if (
+    platform === 'linkedin' &&
+    socialIdentities.value[platform].includes('private-')
+  ) {
+    return null
+  } else {
+    return props.member.attributes.url?.[platform]
+  }
 }
 </script>

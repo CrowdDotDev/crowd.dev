@@ -11,13 +11,15 @@ async function getToken(connectionId: string, providerConfigKey: string, logger:
       Authorization: `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`,
     }
 
+    logger.debug({ secretKey, connectionId, providerConfigKey }, 'Fetching Pizzly token!')
+
     const params = {
       provider_config_key: providerConfigKey,
     }
 
     const response = await axios.get(url, { params, headers })
 
-    return response.data.credentials.accessToken
+    return response.data.credentials.access_token
   } catch (err) {
     logger.error({ err }, 'Error while getting token from Pizzly')
     throw err

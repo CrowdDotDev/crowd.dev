@@ -15,7 +15,7 @@
           </div>
           <div class="flex flex-col">
             <div class="text-2xs text-brand-500">
-              Premium feature
+              {{ premiumFeatureCopy() }} feature
             </div>
             <h5 class="text-gray-900">
               {{ page.headerTitle }}
@@ -96,6 +96,7 @@
 import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import { defineProps, computed } from 'vue'
+import { premiumFeatureCopy } from '@/utils/posthog'
 
 const props = defineProps({
   module: {

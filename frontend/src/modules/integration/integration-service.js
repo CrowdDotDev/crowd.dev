@@ -162,6 +162,30 @@ export class IntegrationService {
     return response.data
   }
 
+  static async linkedinConnect() {
+    const tenantId = AuthCurrentTenant.get()
+    const response = await authAxios.put(
+      `/linkedin-connect/${tenantId}`
+    )
+
+    return response.data
+  }
+
+  static async linkedinOnboard(organizationId) {
+    const body = {
+      organizationId
+    }
+
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/linkedin-onboard/${tenantId}`,
+      body
+    )
+
+    return response.data
+  }
+
   static async discordConnect(guild_id) {
     // Getting the tenant_id
     const tenantId = AuthCurrentTenant.get()

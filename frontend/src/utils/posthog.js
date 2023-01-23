@@ -5,7 +5,8 @@ export const featureFlags = {
   eagleEye: 'eagle-eye',
   communityCenterPro: 'community-help-center-pro',
   organizations: 'organizations',
-  automations: 'automations'
+  automations: 'automations',
+  linkedin: 'linkedin'
 }
 
 export const isFeatureEnabled = async (flag) => {
@@ -14,4 +15,12 @@ export const isFeatureEnabled = async (flag) => {
   }
 
   return posthog.isFeatureEnabled(flag)
+}
+
+export const premiumFeatureCopy = () => {
+  if (config.isCommunityVersion) {
+    return 'Premium'
+  } else {
+    return 'Growth'
+  }
 }
