@@ -64,6 +64,10 @@ export const prettyActivityTypes = {
     [PlatformType.REDDIT]: {
         [RedditActivityType.POST]: 'posted',
         [RedditActivityType.COMMENT]: 'commented'
+    },
+    [PlatformType.LINKEDIN]: {
+        comment: 'commented',
+        reaction: 'reacted'
     }
 
 }
