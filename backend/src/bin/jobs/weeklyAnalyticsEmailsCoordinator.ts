@@ -10,6 +10,10 @@ const job: CrowdJob = {
   onTrigger: async () => {
     const tenants = await TenantService._findAndCountAllForEveryUser({})
 
+    console.log("Found tenants: ")
+    console.log(tenants.rows)
+
+
     for (const tenant of tenants.rows) {
       await sendNodeWorkerMessage(tenant.id, {
         type: NodeWorkerMessageType.NODE_MICROSERVICE,
@@ -19,5 +23,10 @@ const job: CrowdJob = {
     }
   },
 }
+
+setImmediate( async ()=> {
+  console.log("HEYA")
+  await job.onTrigger()
+})
 
 export default job

@@ -3,26 +3,26 @@ import CubeDimensions from '../../services/cubejs/cubeDimensions'
 import CubeMeasures from '../../services/cubejs/cubeMeasures'
 
 /**
- * Gets `new members` count for a given date range.
- * Members are new when member.joinedAt is in between given date range.
+ * Gets `active organizations` count for a given date range.
+ * Organizations are active when they have an activity in given date range.
  * @param cjs cubejs service instance
  * @param startDate
  * @param endDate
  * @returns
  */
 export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: moment.Moment) => {
-  const newMembers =
+  const activeOrganizations =
     (
       await cjs.load({
-        measures: [CubeMeasures.MEMBER_COUNT],
+        measures: [CubeMeasures.ORGANIZATION_COUNT],
         timeDimensions: [
           {
-            dimension: CubeDimensions.MEMBER_JOINED_AT,
+            dimension: CubeDimensions.ACTIVITY_DATE,
             dateRange: [startDate.toISOString(), endDate.toISOString()],
           },
         ],
         limit: 1,
-        order: { [CubeDimensions.MEMBER_JOINED_AT]: 'asc' },
+        order: { [CubeDimensions.ORGANIZATIONS_JOINED_AT]: 'asc' },
         filters: [
           {
             member: CubeDimensions.IS_TEAM_MEMBER,
@@ -33,7 +33,7 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
           }
         ]
       })
-    )[0][CubeMeasures.MEMBER_COUNT] ?? 0
+    )[0][CubeMeasures.ORGANIZATION_COUNT] ?? 0
 
-  return parseInt(newMembers, 10)
+  return parseInt(activeOrganizations, 10)
 }

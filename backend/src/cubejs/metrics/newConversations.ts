@@ -12,7 +12,6 @@ import CubeMeasures from '../../services/cubejs/cubeMeasures'
  */
 export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: moment.Moment) => {
   const newConversations =
-    parseInt(
       (
         await cjs.load({
           measures: [CubeMeasures.CONVERSATION_COUNT],
@@ -24,9 +23,7 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
           ],
           limit: 1,
         })
-      )[0][CubeMeasures.CONVERSATION_COUNT],
-      10,
-    ) ?? 0
+      )[0][CubeMeasures.CONVERSATION_COUNT] ?? 0
 
-  return newConversations
+  return parseInt(newConversations, 10)
 }
