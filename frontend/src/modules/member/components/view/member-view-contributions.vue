@@ -56,7 +56,6 @@ import {
 } from 'vue'
 import { defineConfigs } from 'v-network-graph'
 import { ForceLayout } from 'v-network-graph/lib/force-layout'
-import dagre from 'dagre/dist/dagre.min.js'
 
 const props = defineProps({
   contributions: {
@@ -64,6 +63,10 @@ const props = defineProps({
     required: true
   }
 })
+
+const maxSize = 50
+const minSize = 10
+const reduceFactor = ref(1)
 
 // ref="graph"
 const graph = ref()
@@ -75,10 +78,11 @@ const nodes = computed(() => {
   props.contributions.forEach((contribution) => {
     const node = {
       name: contribution.url.split('/').pop(),
-      size: Math.max(
-        Math.min(contribution.numberCommits, 50),
-        10
-      ),
+      size:
+        Math.max(
+          Math.min(contribution.numberCommits, maxSize),
+          minSize
+        ) * reduceFactor.value,
       topics: contribution.topics,
       numberCommits: contribution.numberCommits,
       url: contribution.url
@@ -116,7 +120,6 @@ const edges = computed(() => {
       }
     }
   }
-  console.log(edges)
   return edges
 })
 
@@ -154,6 +157,7 @@ const configs = reactive(
       })
     },
     node: {
+      // selectable: 1,
       label: {
         visible: true
       },
@@ -164,6 +168,12 @@ const configs = reactive(
         strokeColor: '#FFFFFF'
       },
       hover: {
+        radius: (node) => node.size,
+        color: nodeColor,
+        strokeWidth: 3,
+        strokeColor: '#FFFFFF'
+      },
+      selected: {
         radius: (node) => node.size,
         color: nodeColor,
         strokeWidth: 3,
@@ -199,69 +209,6 @@ function nodeColor(node) {
   return node.name === hoveredNode.value
     ? '#E5E7EB'
     : '#F3F4F6'
-}
-
-function layout(direction: 'TB' | 'LR') {
-  if (
-    Object.keys(data.nodes).length <= 1 ||
-    Object.keys(data.edges).length == 0
-  ) {
-    return
-  }
-
-  // convert graph
-  // ref: https://github.com/dagrejs/dagre/wiki
-  const g = new dagre.graphlib.Graph()
-  // Set an object for the graph label
-  g.setGraph({
-    rankdir: direction,
-    nodesep: nodeSize * 2,
-    edgesep: nodeSize,
-    ranksep: nodeSize * 2
-  })
-  // Default to assigning a new object as a label for each new edge.
-  g.setDefaultEdgeLabel(() => ({}))
-
-  // Add nodes to the graph. The first argument is the node id. The second is
-  // metadata about the node. In this case we're going to add labels to each of
-  // our nodes.
-  Object.entries(data.nodes).forEach(([nodeId, node]) => {
-    g.setNode(nodeId, {
-      label: node.name,
-      width: nodeSize,
-      height: nodeSize
-    })
-  })
-
-  // Add edges to the graph.
-  Object.values(data.edges).forEach((edge) => {
-    g.setEdge(edge.source, edge.target)
-  })
-
-  dagre.layout(g)
-
-  const box: Record<string, number | undefined> = {}
-  g.nodes().forEach((nodeId: string) => {
-    // update node position
-    const x = g.node(nodeId).x
-    const y = g.node(nodeId).y
-    data.layouts.nodes[nodeId] = { x, y }
-
-    // calculate bounding box size
-    box.top = box.top ? Math.min(box.top, y) : y
-    box.bottom = box.bottom ? Math.max(box.bottom, y) : y
-    box.left = box.left ? Math.min(box.left, x) : x
-    box.right = box.right ? Math.max(box.right, x) : x
-  })
-
-  const graphMargin = nodeSize * 2
-  const viewBox = {
-    top: (box.top ?? 0) - graphMargin,
-    bottom: (box.bottom ?? 0) + graphMargin,
-    left: (box.left ?? 0) - graphMargin,
-    right: (box.right ?? 0) + graphMargin
-  }
-  graph.value?.setViewBox(viewBox)
 }
 
 const targetNodeId = ref('')
@@ -310,30 +257,42 @@ watch(
 )
 
 const eventHandlers = {
-  'node:pointerover': ({ node }) => {
+  'node:click': ({ node }) => {
     targetNodeId.value = node
     tooltipOpacity.value = 1 // show
     hoveredNode.value = nodes.value[node].name
   },
-  // eslint-disable-next-line no-unused-vars
-  'node:pointerout': (_) => {
+  'view:click': () => {
+    targetNodeId.value = ''
     tooltipOpacity.value = 0 // hide
     hoveredNode.value = null
   },
+
+  'node:pointerover': ({ node }) => {
+    if (targetNodeId.value === '') {
+      hoveredNode.value = nodes.value[node].name
+    }
+  },
+  'node:pointerout': () => {
+    if (targetNodeId.value === '') {
+      hoveredNode.value = null
+    }
+  },
   'edge:pointerover': ({ edge }) => {
-    console.log('edge', edge)
     hoveredEdge.value = edges.value[edge].label
   },
   'edge:pointerout': () => {
     hoveredEdge.value = null
   },
-  'node:click': ({ node }) => {
-    // open repo url in new tab
-    console.log(node)
-    window.open(
-      'https://github.com/CrowdDotDev/crowd.dev',
-      '_blank'
-    )
+  'view:zoom'(zoom) {
+    if (zoom < 0.7) {
+      configs.node.label.visible = false
+    } else {
+      configs.node.label.visible = true
+    }
+    if (zoom < 1) {
+      reduceFactor.value = zoom
+    }
   }
 }
 </script>
@@ -347,7 +306,7 @@ const eventHandlers = {
   width: 240px;
   transition: opacity 0.2s linear;
   pointer-events: none;
-  z-index: 100000000000;
+  z-index: 100000000;
   @apply bg-white shadow-lg rounded-lg p-4;
 }
 
