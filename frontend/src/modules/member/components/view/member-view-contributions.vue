@@ -305,33 +305,21 @@ const edgeCenterPos = computed(() => {
   }
 })
 
+const targetNodePos = computed(() => {
+  const nodePos = layouts.value.nodes[targetNodeId.value]
+  return nodePos || { x: 0, y: 0 }
+})
+
+const targetNodeRadius = computed(() => {
+  const node = nodes.value[targetNodeId.value]
+  return node?.size
+})
+
 function nodeColor(node) {
   if (!hoveredNode.value) return '#E5E7EB'
   return node.name === hoveredNode.value
     ? '#E5E7EB'
     : '#F3F4F6'
-}
-
-function listsOverlap(list1, list2, percentage) {
-  let overlapCount = 0
-  let totalCount = 0
-
-  // Use a hash set to store the elements of the first list
-  const set = new Set(list1)
-
-  // Iterate through the second list and check if each element is in the hash set
-  for (let i = 0; i < list2.length; i++) {
-    if (set.has(list2[i])) {
-      overlapCount++
-    }
-    totalCount++
-  }
-
-  // Calculate the overlap percentage
-  const overlapPercentage = overlapCount / totalCount
-
-  // Compare the overlap percentage to the given threshold
-  return overlapPercentage > percentage
 }
 
 function edgeColor(edge) {
@@ -356,15 +344,27 @@ function edgeSize(edge) {
   return sharedTopics ? edge.size + 0.5 : edge.size
 }
 
-const targetNodePos = computed(() => {
-  const nodePos = layouts.value.nodes[targetNodeId.value]
-  return nodePos || { x: 0, y: 0 }
-})
+function listsOverlap(list1, list2, percentage) {
+  let overlapCount = 0
+  let totalCount = 0
 
-const targetNodeRadius = computed(() => {
-  const node = nodes.value[targetNodeId.value]
-  return node?.size
-})
+  // Use a hash set to store the elements of the first list
+  const set = new Set(list1)
+
+  // Iterate through the second list and check if each element is in the hash set
+  for (let i = 0; i < list2.length; i++) {
+    if (set.has(list2[i])) {
+      overlapCount++
+    }
+    totalCount++
+  }
+
+  // Calculate the overlap percentage
+  const overlapPercentage = overlapCount / totalCount
+
+  // Compare the overlap percentage to the given threshold
+  return overlapPercentage > percentage
+}
 
 // Update `tooltipPos`
 watch(
