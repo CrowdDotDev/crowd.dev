@@ -187,6 +187,8 @@ export default class MemberEnrichmentService extends LoggingBase {
         this.options.currentTenant.id,
       ),
     )
+
+    return { enrichedMemberCount: enrichedMembers }
   }
 
   /**
