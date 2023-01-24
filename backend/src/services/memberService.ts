@@ -57,8 +57,16 @@ export default class MemberService extends LoggingBase {
    * @param attributes
    * @returns restructured object
    */
-  async validateAttributes(attributes: { [key: string]: any }, transaction): Promise<object> {
+  async validateAttributes(
+    attributes: { [key: string]: any },
+    transaction = null,
+  ): Promise<object> {
     // check attribute exists in memberAttributeSettings
+
+    if (!transaction) {
+      transaction = await SequelizeRepository.createTransaction(this.options.database)
+    }
+
     const memberAttributeSettings = (
       await MemberAttributeSettingsRepository.findAndCountAll({}, { ...this.options, transaction })
     ).rows.reduce((acc, attribute) => {
