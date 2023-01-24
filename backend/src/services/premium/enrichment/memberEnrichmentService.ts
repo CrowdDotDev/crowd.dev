@@ -245,7 +245,7 @@ export default class MemberEnrichmentService extends LoggingBase {
     if (!member.email && enrichmentData.primary_mail) {
       member.email = enrichmentData.primary_mail
     }
-    member.contributions = enrichmentData.oss_contributions.map(
+    member.contributions = enrichmentData.oss_contributions?.map(
       (contribution: EnrichmentAPIContribution) => ({
         id: contribution.id,
         topics: contribution.topics,
