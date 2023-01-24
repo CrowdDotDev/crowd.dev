@@ -86,6 +86,7 @@ export const showEnrichmentSuccessMessage = ({
       ? essentialMessage
       : commonMessage
 
+  Message.closeAll()
   Message.success(message, {
     title: `Successfully enriched ${
       isBulk ? 'members' : 'member'
@@ -105,11 +106,15 @@ export const showEnrichmentErrorMessage = ({ isBulk }) => {
   )
 }
 
-export const showEnrichmentLoadingMessage = () => {
+export const showEnrichmentLoadingMessage = ({
+  isBulk
+}) => {
   Message.info(
     "We'll let you know when the process is done.",
     {
-      title: 'Members are being enriched'
+      title: `${
+        isBulk ? 'Members are' : 'Member is'
+      } being enriched`
     }
   )
 }

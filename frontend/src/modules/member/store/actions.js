@@ -304,9 +304,16 @@ export default {
       // Start member enrichment
       commit('UPDATE_STARTED')
 
+      // Show enrichment loading message
+      showEnrichmentLoadingMessage({ isBulk: false })
+
       const response = await MemberService.enrichMember(id)
 
       commit('UPDATE_SUCCESS', response)
+
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
+      })
 
       // Update member
       dispatch('doFind', id)
@@ -328,7 +335,7 @@ export default {
     }
   },
 
-  async doBulkEnrich({ commit, rootGetters }, ids) {
+  async doBulkEnrich({ dispatch, rootGetters }, ids) {
     try {
       const currentTenant =
         rootGetters['auth/currentTenant']
@@ -346,13 +353,11 @@ export default {
       )
 
       // Show enrichment loading message
-      showEnrichmentLoadingMessage()
+      showEnrichmentLoadingMessage({ isBulk: true })
 
-      const response = await MemberService.enrichMemberBulk(
-        ids
-      )
+      await MemberService.enrichMemberBulk(ids)
 
-      commit('BULK_UPDATE_MEMBERS_SUCCESS', response)
+      // TODO: Refresh memberEnrichmentCount
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
@@ -360,6 +365,11 @@ export default {
         planEnrichmentCountMax,
         plan: currentTenant.plan,
         isBulk: true
+      })
+
+      // Refresh list page
+      await dispatch('doFetch', {
+        keepPagination: true
       })
     } catch (error) {
       // Show enrichment error message

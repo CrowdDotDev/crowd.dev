@@ -72,6 +72,6 @@ const isEnrichmentDisabled = computed(
 const onLearnMoreClick = () => {}
 
 const onEnrichmentClick = async () => {
-  await doEnrich()
+  await doEnrich(props.member.id)
 }
 </script>
