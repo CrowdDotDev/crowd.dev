@@ -1,6 +1,22 @@
 <template>
-  <div class="panel contributions-panel relative">
-    <div class="background-dotted rounded-lg h-full">
+  <div class="panel contributions-panel relative h-80">
+    <div class="p-4 flex justify-between">
+      <h6 class="flex align-center">
+        <i class="ri-github-fill text-lg pr-1"></i>
+        OSS contributions
+      </h6>
+      <div class="text-gray-500 flex align-center text-sm">
+        <i
+          class="ri-checkbox-blank-circle-fill text-gray-200 pr-2"
+        ></i>
+        <span class="pr-4"> Repository </span>
+        <span class="font-medium text-brand-200 pr-2">
+          —
+        </span>
+        <span> Topics </span>
+      </div>
+    </div>
+    <div class="background-dotted rounded-lg h-64">
       <v-network-graph
         ref="graph"
         v-model:layouts="layouts"
@@ -58,9 +74,12 @@
           opacity: edgeToolTipOpacity
         }"
       >
-        <div>
-          <span class="font-medium"> Topic: </span
-          >{{ `${edges[targetEdgeId]?.label ?? ''}` }}
+        <div class="text-xs">
+          <span class="font-medium">
+            {{
+              `${edges[targetEdgeId]?.label.key ?? ''}`
+            }}: </span
+          >{{ `${edges[targetEdgeId]?.label.value ?? ''}` }}
         </div>
       </div>
     </div>
@@ -97,7 +116,6 @@ const edgeTooltip = ref()
 const targetNodeId = ref('')
 const EDGE_MARGIN_TOP = 2
 const targetEdgeId = ref('')
-const hoveredEdge = ref(null)
 const hoveredNode = ref(null)
 const layouts = ref({})
 
@@ -154,12 +172,12 @@ const configs = reactive(
     },
     edge: {
       normal: {
-        color: edgeColor,
-        width: edgeWidth
+        color: '#F6B9AB',
+        width: 0.5
       },
       hover: {
-        color: edgeColor,
-        width: edgeWidth
+        color: '#E94F2E',
+        width: 3
       }
     }
   })
@@ -168,18 +186,39 @@ const configs = reactive(
 const nodes = computed(() => {
   const nodes = {}
   props.contributions.forEach((contribution) => {
-    const node = {
-      name: contribution.url.split('/').pop(),
-      size:
+    const name = contribution.url.split('/').pop()
+    if (!nodes[name]) {
+      const node = {
+        name,
+        size:
+          Math.max(
+            Math.min(contribution.numberCommits, maxSize),
+            minSize
+          ) * reduceFactor.value,
+        topics: contribution.topics,
+        numberCommits: contribution.numberCommits,
+        url: contribution.url
+      }
+      nodes[name] = node
+    } else {
+      nodes[name].size =
         Math.max(
-          Math.min(contribution.numberCommits, maxSize),
+          Math.min(
+            nodes[name].numberCommits +
+              contribution.numberCommits,
+            maxSize
+          ),
           minSize
-        ) * reduceFactor.value,
-      topics: contribution.topics,
-      numberCommits: contribution.numberCommits,
-      url: contribution.url
+        ) * reduceFactor.value
+      nodes[name].numberCommits +=
+        contribution.numberCommits
+      nodes[name].topics = [
+        ...new Set([
+          ...nodes[name].topics,
+          ...contribution.topics
+        ])
+      ]
     }
-    nodes[contribution.id.toString()] = node
   })
   return nodes
 })
@@ -188,25 +227,55 @@ const edges = computed(() => {
   let edges = {}
   let topicMap = {}
   props.contributions.forEach((contribution) => {
+    const name = contribution.url.split('/').pop()
     contribution.topics.forEach((topic) => {
       if (!topicMap[topic]) {
-        topicMap[topic] = [contribution.id]
+        topicMap[topic] = [name]
       } else {
-        topicMap[topic].push(contribution.id)
+        topicMap[topic].push(name)
       }
     })
   })
+
   for (let topic in topicMap) {
     let contributionIds = topicMap[topic]
     for (let i = 0; i < contributionIds.length; i++) {
       for (let j = i + 1; j < contributionIds.length; j++) {
-        if (contributionIds[i] !== contributionIds[j]) {
-          edges[
-            `${contributionIds[i]}-${contributionIds[j]}`
-          ] = {
+        const id = `${contributionIds[i]}-${contributionIds[j]}`
+        const reverseId = `${contributionIds[j]}-${contributionIds[i]}`
+        if (
+          contributionIds[i] !== contributionIds[j] &&
+          !edges[id] &&
+          !edges[reverseId]
+        ) {
+          edges[id] = {
             source: contributionIds[i].toString(),
             target: contributionIds[j].toString(),
-            label: topic
+            topics: [topic],
+            label: {
+              key: 'Topic',
+              value: topic
+            }
+          }
+        } else {
+          if (edges[id]) {
+            edges[id].topics.push(topic)
+            let label
+
+            if (edges[id].topics.length === 2) {
+              label = {
+                key: 'Topics',
+                value: edges[id].topics.join(', ')
+              }
+            } else {
+              label = {
+                key: 'Topics',
+                value: `${edges[id].topics
+                  .slice(0, 3)
+                  .join(', ')}...`
+              }
+            }
+            edges[id].label = label
           }
         }
       }
@@ -233,17 +302,6 @@ const edgeCenterPos = computed(() => {
       2
   }
 })
-
-function edgeColor(edge) {
-  if (hoveredNode.value) return '#F6B9AB'
-  return edge.label === hoveredEdge.value
-    ? '#E94F2E'
-    : '#F29582'
-}
-
-function edgeWidth(edge) {
-  return edge.label === hoveredEdge.value ? 2.5 : 2
-}
 
 function nodeColor(node) {
   if (!hoveredNode.value) return '#E5E7EB'
@@ -339,12 +397,10 @@ const eventHandlers = {
     hoveredNode.value = null
   },
   'edge:pointerover': ({ edge }) => {
-    hoveredEdge.value = edges.value[edge].label
     targetEdgeId.value = edge ?? ''
     edgeToolTipOpacity.value = 1 // show
   },
   'edge:pointerout': () => {
-    hoveredEdge.value = null
     targetEdgeId.value = ''
     edgeToolTipOpacity.value = 0 // hide
   },
@@ -368,7 +424,6 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   width: 240px;
-  transition: opacity 0.2s linear;
   pointer-events: none;
   z-index: 100000000;
   @apply bg-white shadow-lg rounded-lg p-4 cursor-auto;
@@ -379,7 +434,6 @@ const eventHandlers = {
   left: 0;
   opacity: 0;
   position: absolute;
-  transition: opacity 0.2s linear;
   pointer-events: none;
   z-index: 100000000;
   @apply bg-gray-900 text-white text-sm shadow-lg rounded-lg p-1 cursor-auto;

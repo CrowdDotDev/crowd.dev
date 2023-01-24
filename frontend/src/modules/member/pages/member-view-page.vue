@@ -24,7 +24,7 @@
         />
         <app-member-view-contributions
           :contributions="member.contributions"
-          class="col-span-2 h-64"
+          class="col-span-2"
         />
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
