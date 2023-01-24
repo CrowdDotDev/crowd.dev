@@ -56,7 +56,7 @@ export type Member = {
   reach?: number | any
   location?: string
   lastEnriched?: Date | null
-  contributions: any
+  contributions?: any
 }
 
 export type AddActivitiesSingle = {

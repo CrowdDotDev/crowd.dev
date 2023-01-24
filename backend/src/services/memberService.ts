@@ -63,12 +63,11 @@ export default class MemberService extends LoggingBase {
   ): Promise<object> {
     // check attribute exists in memberAttributeSettings
 
-    if (!transaction) {
-      transaction = await SequelizeRepository.createTransaction(this.options.database)
-    }
-
     const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, { ...this.options, transaction })
+      await MemberAttributeSettingsRepository.findAndCountAll(
+        {},
+        { ...this.options, ...(transaction && { transaction }) },
+      )
     ).rows.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc
