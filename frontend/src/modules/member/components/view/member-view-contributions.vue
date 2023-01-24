@@ -34,11 +34,11 @@
         }"
         :style="{ ...tooltipPos, opacity: tooltipOpacity }"
       >
-        <div class="section">
+        <div class="section border-b">
           <p class="key">Repository</p>
           <h6>{{ nodes[targetNodeId]?.name ?? '' }}</h6>
         </div>
-        <div class="section">
+        <div class="section border-b">
           <p class="key">Contributions</p>
           <p class="text-sm text-gray-900">
             {{ nodes[targetNodeId]?.numberCommits ?? '' }}
@@ -46,7 +46,7 @@
         </div>
         <div class="section">
           <p class="key">Topics</p>
-          <div class="flex flex-wrap h-20 overflow-scroll">
+          <div class="flex flex-wrap h-24 overflow-scroll">
             <div
               v-for="topic in nodes[targetNodeId]?.topics ??
               []"
@@ -57,8 +57,17 @@
             </div>
           </div>
         </div>
-        <div class="w-full text-center pt-3">
-          <button>Click to open on GitHub</button>
+        <div
+          class="w-full text-center py-1 my-3 bg-gray-100 rounded-lg"
+        >
+          <a
+            :href="nodes[targetNodeId]?.url"
+            target="_blank"
+          >
+            <button class="text-gray-900 text-sm">
+              View on GitHub
+            </button>
+          </a>
         </div>
       </div>
       <div
@@ -458,7 +467,7 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-80 w-60 overflow-hidden;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto max-h-88 w-60 overflow-hidden;
 }
 
 .edge-tooltip {
@@ -486,7 +495,7 @@ const eventHandlers = {
 }
 
 .section {
-  @apply pb-2 border-b border-gray-200;
+  @apply pb-2 border-gray-200;
 }
 
 .key {
