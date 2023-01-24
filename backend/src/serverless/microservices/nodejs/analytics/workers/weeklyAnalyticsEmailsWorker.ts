@@ -382,7 +382,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           )
 
           await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
-            'epipav@gmail.com',
+            'team@crowd.dev',
             advancedSuppressionManager,
           )
         }
