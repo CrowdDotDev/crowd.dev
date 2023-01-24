@@ -8,7 +8,7 @@ export interface IActiveMemberData {
 }
 
 export interface IActiveMemberFilter {
-  platform?: string
+  platforms?: string[]
   isTeamMember?: boolean
   activityTimestampFrom: string
   activityTimestampTo: string
