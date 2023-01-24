@@ -7,6 +7,13 @@ import { MemberModel } from '../member-model'
 import { FormSchema } from '@/shared/form/form-schema'
 import sharedActions from '@/shared/store/actions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
+import {
+  getEnrichmentMax,
+  checkEnrichmentLimit,
+  showEnrichmentSuccessMessage,
+  showEnrichmentErrorMessage,
+  showEnrichmentLoadingMessage
+} from '@/modules/member/member-enrichment'
 
 export default {
   ...sharedActions('member', MemberService),
@@ -274,6 +281,91 @@ export default {
     } catch (error) {
       Errors.handle(error)
       commit('BULK_UPDATE_MEMBERS_TAGS_ERROR')
+    }
+  },
+
+  async doEnrich({ commit, dispatch, rootGetters }, id) {
+    try {
+      const currentTenant =
+        rootGetters['auth/currentTenant']
+
+      const { memberEnrichmentCount } = currentTenant
+      const planEnrichmentCountMax = getEnrichmentMax(
+        currentTenant.plan
+      )
+
+      // Check if it has reached enrichment maximum
+      // If so, show dialog to upgrade plan
+      checkEnrichmentLimit(
+        memberEnrichmentCount,
+        planEnrichmentCountMax
+      )
+
+      // Start member enrichment
+      commit('UPDATE_STARTED')
+
+      const response = await MemberService.enrichMember(id)
+
+      commit('UPDATE_SUCCESS', response)
+
+      // Update member
+      dispatch('doFind', id)
+
+      // Show enrichment success message
+      showEnrichmentSuccessMessage({
+        memberEnrichmentCount,
+        planEnrichmentCountMax,
+        plan: currentTenant.plan,
+        isBulk: false
+      })
+    } catch (error) {
+      // Show enrichment error message
+      showEnrichmentErrorMessage({ isBulk: false })
+
+      Errors.handle(error)
+
+      commit('UPDATE_ERROR')
+    }
+  },
+
+  async doBulkEnrich({ commit, rootGetters }, ids) {
+    try {
+      const currentTenant =
+        rootGetters['auth/currentTenant']
+
+      const { memberEnrichmentCount } = currentTenant
+      const planEnrichmentCountMax = getEnrichmentMax(
+        currentTenant.plan
+      )
+
+      // Check if it has reached enrichment maximum
+      // If so, show dialog to upgrade plan
+      checkEnrichmentLimit(
+        memberEnrichmentCount,
+        planEnrichmentCountMax
+      )
+
+      // Show enrichment loading message
+      showEnrichmentLoadingMessage()
+
+      const response = await MemberService.enrichMemberBulk(
+        ids
+      )
+
+      commit('BULK_UPDATE_MEMBERS_SUCCESS', response)
+
+      // Show enrichment success message
+      showEnrichmentSuccessMessage({
+        memberEnrichmentCount,
+        planEnrichmentCountMax,
+        plan: currentTenant.plan,
+        isBulk: true
+      })
+    } catch (error) {
+      // Show enrichment error message
+      showEnrichmentErrorMessage({ isBulk: true })
+
+      Errors.handle(error)
     }
   }
 }

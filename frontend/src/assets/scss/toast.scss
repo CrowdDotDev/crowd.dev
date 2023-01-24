@@ -2,14 +2,19 @@
   @apply border-0 border-l rounded-lg px-4 w-120 min-h-11;
   border: 0;
   border-radius: 6px;
-  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.1), 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0px 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   &.error {
-    border-left: 2px solid #EF4444;
+    border-left: 2px solid #ef4444;
   }
 
   &.success {
-    border-left: 2px solid #10B981;
+    border-left: 2px solid #10b981;
+  }
+
+  &.info {
+    border-left: 2px solid #2563eb;
   }
 }
 

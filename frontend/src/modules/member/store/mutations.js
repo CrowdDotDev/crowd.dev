@@ -64,5 +64,11 @@ export default {
 
   BULK_UPDATE_MEMBERS_TAGS_ERROR(state) {
     state.list.loading = false
+  },
+
+  BULK_UPDATE_MEMBERS_SUCCESS(state, members) {
+    for (const member of members) {
+      state.records[member.id] = member
+    }
   }
 }

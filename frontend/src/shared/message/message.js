@@ -15,6 +15,12 @@ const errorIcon = h(
   []
 )
 
+const infoIcon = h(
+  'i', // type
+  { class: 'ri-loader-4-line text-blue-600 animate-spin' }, // props
+  []
+)
+
 export default class Message {
   static success(message, options = {}) {
     ElNotification(
@@ -60,5 +66,29 @@ export default class Message {
         options
       )
     )
+  }
+
+  static info(message, options = {}) {
+    ElNotification(
+      Object.assign(
+        {},
+        {
+          title: options.title ? options.title : message,
+          showClose: true,
+          message: options.title ? message : null,
+          customClass: 'info',
+          icon: infoIcon,
+          duration: 6000,
+          dangerouslyUseHTMLString: true,
+          position: 'bottom-right',
+          offset: 24
+        },
+        options
+      )
+    )
+  }
+
+  static closeAll() {
+    ElNotification.closeAll()
   }
 }

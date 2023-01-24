@@ -1,116 +1,134 @@
 <template>
-  <div class="member-view-aside panel">
-    <div>
-      <div class="flex items-center justify-between">
-        <div class="font-medium text-black">Identities</div>
-        <el-button
-          class="btn btn-link btn-link--primary"
-          @click="identitiesDrawer = true"
-          ><i class="ri-pencil-line" /><span
-            >Edit</span
-          ></el-button
-        >
-      </div>
-      <div class="-mx-6 mt-6">
-        <a
-          v-for="platform of Object.keys(socialIdentities)"
-          :key="platform"
-          class="px-6 py-2 flex justify-between items-center relative"
-          :class="
-            member.attributes.url?.[platform] !==
-              undefined || platform === 'hackernews'
-              ? 'hover:bg-gray-50 transition-colors cursor-pointer'
-              : ''
-          "
-          :href="
-            platform === 'hackernews'
-              ? `https://news.ycombinator.com/user?id=${socialIdentities.hackernews}`
-              : member.attributes.url?.[platform]
-          "
-          target="_blank"
-        >
-          <div class="flex gap-3 items-center">
-            <app-platform :platform="platform" />
-            <span class="text-gray-900 text-xs">
-              {{ socialIdentities[platform] }}</span
-            >
+  <div class="flex flex-col gap-6">
+    <!-- Member enrichment -->
+    <app-member-enrichment
+      v-if="!member.lastEnriched"
+      :member="member"
+    />
+    <!-- Member identities and attributes -->
+    <div class="panel">
+      <div>
+        <div class="flex items-center justify-between">
+          <div class="font-medium text-black">
+            Identities
           </div>
-          <i
-            v-if="
+          <el-button
+            class="btn btn-link btn-link--primary"
+            @click="identitiesDrawer = true"
+            ><i class="ri-pencil-line" /><span
+              >Edit</span
+            ></el-button
+          >
+        </div>
+        <div class="-mx-6 mt-6">
+          <a
+            v-for="platform of Object.keys(
+              socialIdentities
+            )"
+            :key="platform"
+            class="px-6 py-2 flex justify-between items-center relative"
+            :class="
+              member.attributes.url?.[platform] !==
+                undefined || platform === 'hackernews'
+                ? 'hover:bg-gray-50 transition-colors cursor-pointer'
+                : ''
+            "
+            :href="
               platform === 'hackernews'
-                ? true
+                ? `https://news.ycombinator.com/user?id=${socialIdentities.hackernews}`
                 : member.attributes.url?.[platform]
             "
-            class="ri-external-link-line text-gray-300"
-          ></i>
-        </a>
-      </div>
-      <div
-        v-if="Object.keys(socialIdentities).length && email"
-        class="mt-2"
-      >
-        <el-divider class="border-t-gray-200"></el-divider>
-        <a
-          class="py-2 px-6 -mx-6 mt-4 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
-          :href="`mailto:${email}`"
-          target="_blank"
+            target="_blank"
+          >
+            <div class="flex gap-3 items-center">
+              <app-platform :platform="platform" />
+              <span class="text-gray-900 text-xs">
+                {{ socialIdentities[platform] }}</span
+              >
+            </div>
+            <i
+              v-if="
+                platform === 'hackernews'
+                  ? true
+                  : member.attributes.url?.[platform]
+              "
+              class="ri-external-link-line text-gray-300"
+            ></i>
+          </a>
+        </div>
+        <div
+          v-if="
+            Object.keys(socialIdentities).length && email
+          "
+          class="mt-2"
         >
-          <div class="flex gap-3 items-center">
-            <app-platform platform="email" />
-            <span class="text-gray-900 text-xs">
-              {{ email }}</span
-            >
+          <el-divider
+            class="border-t-gray-200"
+          ></el-divider>
+          <a
+            class="py-2 px-6 -mx-6 mt-4 flex justify-between items-center relative hover:bg-gray-50 transition-colors cursor-pointer"
+            :href="`mailto:${email}`"
+            target="_blank"
+          >
+            <div class="flex gap-3 items-center">
+              <app-platform platform="email" />
+              <span class="text-gray-900 text-xs">
+                {{ email }}</span
+              >
+            </div>
+            <i
+              class="ri-external-link-line text-gray-300"
+            ></i>
+          </a>
+        </div>
+      </div>
+      <div class="mt-10">
+        <div class="flex items-center justify-between">
+          <div class="font-medium text-black">
+            Attributes
           </div>
-          <i
-            class="ri-external-link-line text-gray-300"
-          ></i>
-        </a>
-      </div>
-    </div>
-    <div class="mt-10">
-      <div class="flex items-center justify-between">
-        <div class="font-medium text-black">Attributes</div>
-        <el-button
-          class="btn btn-link btn-link--primary"
-          @click="attributesDrawer = true"
-          ><i class="ri-pencil-line" /><span
-            >Edit</span
-          ></el-button
+          <el-button
+            class="btn btn-link btn-link--primary"
+            @click="attributesDrawer = true"
+            ><i class="ri-pencil-line" /><span
+              >Edit</span
+            ></el-button
+          >
+        </div>
+        <div
+          v-if="!computedCustomAttributes.length"
+          class="py-3 text-gray-500 text-xs italic"
         >
+          No attributes defined
+        </div>
+        <div
+          v-for="attribute of computedCustomAttributes"
+          v-else
+          :key="attribute.id"
+          class="py-3 border-b border-gray-200 last:border-none"
+        >
+          <p class="text-gray-400 font-medium text-2xs">
+            {{ attribute.label }}
+          </p>
+          <p class="mt-1 text-gray-900 text-xs">
+            {{
+              formattedComputedAttributeValue(
+                member.attributes[attribute.name].default
+              )
+            }}
+          </p>
+        </div>
       </div>
-      <div
-        v-if="!computedCustomAttributes.length"
-        class="py-3 text-gray-500 text-xs italic"
-      >
-        No attributes defined
-      </div>
-      <div
-        v-for="attribute of computedCustomAttributes"
-        v-else
-        :key="attribute.id"
-        class="py-3 border-b border-gray-200 last:border-none"
-      >
-        <p class="text-gray-400 font-medium text-2xs">
-          {{ attribute.label }}
-        </p>
-        <p class="mt-1 text-gray-900 text-xs">
-          {{
-            formattedComputedAttributeValue(
-              member.attributes[attribute.name].default
-            )
-          }}
-        </p>
-      </div>
+      <app-member-manage-identities-drawer
+        v-model="identitiesDrawer"
+        :member="member"
+      />
+      <app-member-manage-attributes-drawer
+        v-if="attributesDrawer"
+        v-model="attributesDrawer"
+        :member="member"
+      />
     </div>
-    <app-member-manage-identities-drawer
-      v-model="identitiesDrawer"
-      :member="member"
-    />
-    <app-member-manage-attributes-drawer
-      v-if="attributesDrawer"
-      v-model="attributesDrawer"
-      :member="member"
-    />
   </div>
 </template>
 
@@ -125,6 +143,7 @@ import { useStore } from 'vuex'
 import { computed, defineProps, ref } from 'vue'
 import AppMemberManageIdentitiesDrawer from '../member-manage-identities-drawer'
 import AppMemberManageAttributesDrawer from '../member-manage-attributes-drawer'
+import AppMemberEnrichment from '@/modules/member/components/member-enrichment.vue'
 import moment from 'moment'
 import { formatDate } from '@/utils/date'
 
