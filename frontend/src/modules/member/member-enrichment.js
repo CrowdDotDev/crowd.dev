@@ -62,7 +62,7 @@ export const checkEnrichmentPlan = ({
       type: 'danger',
       title: `You are trying to enrich a number of members above the limit of ${formatNumber(
         planEnrichmentCountMax
-      )} enrichments that you have available in your current plan.`,
+      )} enrichments available in your current plan`,
       message:
         'Upgrade your plan in order to increase your quota of available member enrichments.',
       icon: 'ri-error-warning-line',
