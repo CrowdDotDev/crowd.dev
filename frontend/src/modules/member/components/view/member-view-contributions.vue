@@ -36,7 +36,7 @@
       >
         <div class="section border-b">
           <p class="key">Repository</p>
-          <h6>{{ nodes[targetNodeId]?.name ?? '' }}</h6>
+          <h6>{{ nodes[targetNodeId]?.fullName ?? '' }}</h6>
         </div>
         <div class="section border-b">
           <p class="key">Contributions</p>
@@ -204,6 +204,10 @@ const nodes = computed(() => {
     if (!nodes[name]) {
       const node = {
         name,
+        fullName: contribution.url
+          .split('/')
+          .slice(-2)
+          .join('/'),
         size:
           Math.max(
             Math.min(contribution.numberCommits, maxSize),
@@ -384,7 +388,7 @@ watch(
         tooltip.value.offsetWidth / 2 +
         // left +
         'px',
-      top: domPoint.y - targetNodeRadius.value - 300 + 'px'
+      top: domPoint.y - targetNodeRadius.value - 320 + 'px'
     }
   },
   { deep: true }
@@ -465,7 +469,7 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-88 w-60 overflow-hidden;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto w-60 overflow-hidden;
 }
 
 .edge-tooltip {
