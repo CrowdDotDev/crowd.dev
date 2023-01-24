@@ -427,10 +427,9 @@ const eventHandlers = {
   left: 0;
   opacity: 0;
   position: absolute;
-  width: 240px;
   pointer-events: none;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-80 overflow-hidden;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-80 w-60 overflow-hidden;
 }
 
 .edge-tooltip {
