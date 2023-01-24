@@ -73,6 +73,9 @@
       <div
         ref="edgeTooltip"
         class="edge-tooltip"
+        :class="{
+          'pointer-events-none': targetEdgeId === ''
+        }"
         :style="{
           ...edgeToolTipPos,
           opacity: edgeToolTipOpacity
@@ -80,7 +83,7 @@
       >
         <span class="font-medium"> Topics </span>
         <div
-          class="text-xs max-h-20 overflow-scroll flex flex-wrap mt-2"
+          class="text-xs h-20 overflow-scroll flex flex-wrap mt-2"
         >
           <div
             v-for="topic in edges[targetEdgeId]?.topics ??
@@ -405,12 +408,7 @@ watch(
         domPoint.x -
         edgeTooltip.value.offsetWidth / 2 +
         'px',
-      top:
-        domPoint.y -
-        EDGE_MARGIN_TOP -
-        edgeTooltip.value.offsetHeight -
-        10 +
-        'px'
+      top: domPoint.y - EDGE_MARGIN_TOP - 60 - 10 + 'px'
     }
   },
   { deep: true }
@@ -467,7 +465,7 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto max-h-88 w-60 overflow-hidden;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-88 w-60 overflow-hidden;
 }
 
 .edge-tooltip {
@@ -503,6 +501,6 @@ const eventHandlers = {
 }
 
 .topic {
-  @apply border bg-gray-50 border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2;
+  @apply border bg-gray-50 border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2 h-8;
 }
 </style>
