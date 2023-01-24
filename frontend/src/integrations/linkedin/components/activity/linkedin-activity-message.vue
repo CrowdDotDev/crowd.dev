@@ -6,14 +6,17 @@
       :class="{ truncate: short }"
     ></app-i18n>
   </span>
-  <el-tooltip
-    v-if="activity.type === 'reaction'"
-    placement="top"
-    :content="computedReactionLabel"
-  >
-    <img :src="computedReactionSVG" class="mx-0.5" />
-  </el-tooltip>
-  <span v-if="!short" class="mx-0.5">on a post</span>
+  <span v-if="!short">
+    <span class="mx-0.5">with</span>
+    <el-tooltip
+      v-if="activity.type === 'reaction'"
+      placement="top"
+      :content="computedReactionLabel"
+    >
+      <img :src="computedReactionSVG" class="mx-0.5" />
+    </el-tooltip>
+  </span>
+  <span class="mx-0.5">on a post</span>
   <a
     v-if="!short && computedPostUrl"
     :href="computedPostUrl"
