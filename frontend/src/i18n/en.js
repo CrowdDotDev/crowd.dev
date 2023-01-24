@@ -379,7 +379,7 @@ const en = {
       },
       linkedin: {
         comment: 'commented',
-        reaction: 'reacted with'
+        reaction: 'reacted'
       },
       fallback: 'created an activity'
     },
