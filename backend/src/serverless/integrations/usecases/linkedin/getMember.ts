@@ -55,6 +55,16 @@ export const getMember = async (
       profilePictureUrl,
     }
   } catch (err) {
+    if (err.response?.status === 403) {
+      // we can't access this profile because of visibility settings
+      return {
+        id: 'private',
+        vanityName: 'private',
+        firstName: 'private',
+        lastName: 'private',
+        country: 'private',
+      }
+    }
     const newErr = handleLinkedinError(err, config, { pizzlyId, memberId }, logger)
     throw newErr
   }

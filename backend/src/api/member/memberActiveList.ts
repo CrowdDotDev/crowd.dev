@@ -12,7 +12,7 @@ import PermissionChecker from '../../services/user/permissionChecker'
  * @description List active members. It accepts filters, sorting options and pagination.
  * @pathParam {string} tenantId - Your workspace/tenant ID
  * @queryParam {string} [filter[platform]] - Filter by activity platform
- * @queryParam {string} [filter[includeTeamMembers]] - Include or exclude team members (default false)
+ * @queryParam {string} [filter[isTeamMember]] - If true we will return just team members, if false we will return just non-team members, if undefined we will return both.
  * @queryParam {string} [filter[activityTimestampFrom]] - Filter by activity timestamp from (required)
  * @queryParam {string} [filter[activityTimestampTo]] - Filter by activity timestamp to (required)
  * @queryParam {string} [orderBy] - How to sort results. Available values: activityCount_DESC, activityCount_ASC, activeDaysCount_DESC, activeDaysCount_ASC (default activityCount_DESC)
@@ -44,7 +44,10 @@ export default async (req, res) => {
 
   const filters: IActiveMemberFilter = {
     platform: req.query.filter?.platform || undefined,
-    includeTeamMembers: req.query.filter?.includeTeamMembers === 'true',
+    isTeamMember:
+      req.query.filter?.isTeamMember === undefined
+        ? undefined
+        : req.query.filter?.isTeamMember === 'true',
     activityTimestampFrom: req.query.filter?.activityTimestampFrom,
     activityTimestampTo: req.query.filter?.activityTimestampTo,
   }
