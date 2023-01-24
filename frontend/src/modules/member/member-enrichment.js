@@ -48,7 +48,31 @@ export const checkEnrichmentLimit = (
       router.push(`/settings?activeTab=plans`)
     })
 
-    return
+    return true
+  }
+}
+
+export const checkEnrichmentPlan = ({
+  enrichmentCount,
+  planEnrichmentCountMax
+}) => {
+  if (enrichmentCount > planEnrichmentCountMax) {
+    ConfirmDialog({
+      vertical: true,
+      type: 'danger',
+      title: `You are trying to enrich a number of members above the limit of ${formatNumber(
+        planEnrichmentCountMax
+      )} enrichments that you have available in your current plan.`,
+      message:
+        'Upgrade your plan in order to increase your quota of available member enrichments.',
+      icon: 'ri-error-warning-line',
+      confirmButtonText: 'Upgrade plan',
+      showCancelButton: false
+    }).then(() => {
+      router.push(`/settings?activeTab=plans`)
+    })
+
+    return true
   }
 }
 

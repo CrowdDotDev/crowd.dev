@@ -12,7 +12,8 @@ import {
   checkEnrichmentLimit,
   showEnrichmentSuccessMessage,
   showEnrichmentErrorMessage,
-  showEnrichmentLoadingMessage
+  showEnrichmentLoadingMessage,
+  checkEnrichmentPlan
 } from '@/modules/member/member-enrichment'
 
 export default {
@@ -296,10 +297,14 @@ export default {
 
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      checkEnrichmentLimit(
-        memberEnrichmentCount,
-        planEnrichmentCountMax
-      )
+      if (
+        checkEnrichmentLimit(
+          memberEnrichmentCount,
+          planEnrichmentCountMax
+        )
+      ) {
+        return
+      }
 
       // Start member enrichment
       commit('UPDATE_STARTED')
@@ -345,19 +350,32 @@ export default {
         currentTenant.plan
       )
 
+      // Check if it is trying to enrich more members than
+      // the number available for the current tenant plan
+      if (
+        checkEnrichmentPlan({
+          enrichmentCount: ids.length,
+          planEnrichmentCountMax
+        })
+      ) {
+        return
+      }
+
       // Check if it has reached enrichment maximum
       // If so, show dialog to upgrade plan
-      checkEnrichmentLimit(
-        memberEnrichmentCount,
-        planEnrichmentCountMax
-      )
+      if (
+        checkEnrichmentLimit(
+          memberEnrichmentCount,
+          planEnrichmentCountMax
+        )
+      ) {
+        return
+      }
 
       // Show enrichment loading message
       showEnrichmentLoadingMessage({ isBulk: true })
 
       await MemberService.enrichMemberBulk(ids)
-
-      // TODO: Refresh memberEnrichmentCount
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
@@ -365,6 +383,10 @@ export default {
         planEnrichmentCountMax,
         plan: currentTenant.plan,
         isBulk: true
+      })
+
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
       })
 
       // Refresh list page
