@@ -23,6 +23,7 @@
           class="row-span-4"
         />
         <app-member-view-contributions
+          v-if="member.contributions"
           :contributions="member.contributions"
           class="col-span-2"
         />

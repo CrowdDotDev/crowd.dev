@@ -118,6 +118,7 @@ const targetNodeId = ref('')
 const EDGE_MARGIN_TOP = 2
 const targetEdgeId = ref('')
 const hoveredNode = ref(null)
+const hoveredEdge = ref(null)
 const layouts = ref({})
 
 const tooltipOpacity = ref(0) // 0 or 1
@@ -173,12 +174,12 @@ const configs = reactive(
     },
     edge: {
       normal: {
-        color: '#F6B9AB',
-        width: 0.5
+        color: edgeColor,
+        width: edgeSize
       },
       hover: {
-        color: '#E94F2E',
-        width: 3
+        color: edgeColor,
+        width: edgeSize
       }
     }
   })
@@ -240,29 +241,30 @@ const edges = computed(() => {
 
   for (let topic in topicMap) {
     let contributionIds = topicMap[topic]
+
     for (let i = 0; i < contributionIds.length; i++) {
       for (let j = i + 1; j < contributionIds.length; j++) {
         const id = [contributionIds[i], contributionIds[j]]
           .sort()
           .join('-')
-        if (
-          contributionIds[i] !== contributionIds[j] &&
-          !edges[id]
-        ) {
+        if (contributionIds[i] === contributionIds[j]) {
+          break
+        }
+        if (!edges[id]) {
           edges[id] = {
             source: contributionIds[i].toString(),
             target: contributionIds[j].toString(),
             topics: [topic],
-            size: 0.5
+            size: 1
           }
         } else {
           if (edges[id].topics.indexOf(topic) === -1) {
             edges[id].topics.push(topic)
           }
           edges[id].size = Math.min(
-            ((3 - 0.5) / (10 - 1)) *
+            ((3 - 1) / (10 - 1)) *
               (edges[id].topics.length - 1) +
-              0.5,
+              1,
             3
           )
         }
@@ -298,6 +300,50 @@ function nodeColor(node) {
     : '#F3F4F6'
 }
 
+function listsOverlap(list1, list2, percentage) {
+  let overlapCount = 0
+  let totalCount = 0
+
+  // Use a hash set to store the elements of the first list
+  const set = new Set(list1)
+
+  // Iterate through the second list and check if each element is in the hash set
+  for (let i = 0; i < list2.length; i++) {
+    if (set.has(list2[i])) {
+      overlapCount++
+    }
+    totalCount++
+  }
+
+  // Calculate the overlap percentage
+  const overlapPercentage = overlapCount / totalCount
+
+  // Compare the overlap percentage to the given threshold
+  return overlapPercentage > percentage
+}
+
+function edgeColor(edge) {
+  if (!hoveredEdge.value) return '#F6B9AB'
+  // if the hovered edge and the current edge share any topic
+  const sharedTopics = listsOverlap(
+    hoveredEdge.value.topics,
+    edge.topics,
+    0.5
+  )
+  return sharedTopics ? '#E94F2E' : '#F6B9AB'
+}
+
+function edgeSize(edge) {
+  if (!hoveredEdge.value) return edge.size
+  // if the hovered edge and the current edge share any topic
+  const sharedTopics = listsOverlap(
+    hoveredEdge.value.topics,
+    edge.topics,
+    0.5
+  )
+  return sharedTopics ? edge.size + 0.5 : edge.size
+}
+
 const targetNodePos = computed(() => {
   const nodePos = layouts.value.nodes[targetNodeId.value]
   return nodePos || { x: 0, y: 0 }
@@ -320,14 +366,6 @@ watch(
         targetNodePos.value
       )
 
-    console.log('domPoint', domPoint.y)
-    console.log('targetNodeRadius', targetNodeRadius.value)
-    console.log('tooltip', tooltip.value.offsetHeight)
-    console.log(
-      domPoint.y -
-        targetNodeRadius.value -
-        tooltip.value.offsetHeight
-    )
     tooltipPos.value = {
       left:
         domPoint.x -
@@ -336,8 +374,6 @@ watch(
         'px',
       top: domPoint.y - targetNodeRadius.value - 300 + 'px'
     }
-
-    // console.log(tooltipPos.value)
   },
   { deep: true }
 )
@@ -381,6 +417,7 @@ const eventHandlers = {
     targetNodeId.value = ''
     tooltipOpacity.value = 0 // hide
     hoveredNode.value = null
+    hoveredEdge.value = null
     targetEdgeId.value = ''
     edgeToolTipOpacity.value = 0 // hide
   },
@@ -391,8 +428,15 @@ const eventHandlers = {
     hoveredNode.value = null
   },
   'edge:click': ({ edge }) => {
+    hoveredEdge.value = edges.value[edge]
     targetEdgeId.value = edge ?? ''
     edgeToolTipOpacity.value = 1 // show
+  },
+  'edge:pointerover': ({ edge }) => {
+    hoveredEdge.value = edges.value[edge]
+  },
+  'edge:pointerout': () => {
+    hoveredEdge.value = null
   },
   'view:zoom'(zoom) {
     if (zoom < 0.7) {
