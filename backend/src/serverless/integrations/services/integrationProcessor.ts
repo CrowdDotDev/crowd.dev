@@ -2,6 +2,8 @@
 
 import moment from 'moment'
 import { v4 as uuid } from 'uuid'
+import path from 'path'
+import fs from 'fs'
 import { createChildLogger } from '../../../utils/logging'
 import IntegrationRepository from '../../../database/repositories/integrationRepository'
 import MicroserviceRepository from '../../../database/repositories/microserviceRepository'
@@ -57,6 +59,19 @@ export class IntegrationProcessor extends LoggingBase {
       new SlackIntegrationService(),
       new GithubIntegrationService(),
     ]
+
+    // add premium integrations
+    const premiumIndexFile = path.resolve(`${__dirname}/integrations/premium/index.ts`)
+
+    if (fs.existsSync(premiumIndexFile)) {
+      const premiumIntegrations: IntegrationServiceBase[] =
+        require('./integrations/premium').default
+
+      if (premiumIntegrations.length > 0) {
+        this.integrationServices.push(...premiumIntegrations)
+        this.log.info(`Loaded ${premiumIntegrations.length} premium integrations!`)
+      }
+    }
 
     for (const intService of this.integrationServices) {
       this.tickTrackingMap[intService.type] = 0

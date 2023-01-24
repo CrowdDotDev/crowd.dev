@@ -23,8 +23,8 @@ class IntegrationsConfig {
       hackernews,
       reddit,
       // discourse,
-      stackoverflow,
       linkedin,
+      stackoverflow,
       zapier,
       crunchbase,
       make

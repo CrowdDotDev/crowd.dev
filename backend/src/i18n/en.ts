@@ -132,6 +132,15 @@ const en = {
       templateReportsCreateNotAllowed: `Template reports can't be created.`,
       templateReportsUpdateNotAllowed: `Custom reports can't be updated to template reports.`,
     },
+    noPizzlyToken: {
+      message: 'No Pizzly token found!',
+    },
+    linkedin: {
+      noOrganization: 'User does not belong to any organization!',
+      cantOnboardWrongStatus:
+        'Can not trigger nboarding because integration is not in state pending-action!',
+      noOrganizationFound: 'No organization found for given id!',
+    },
   },
 
   email: {
@@ -186,6 +195,18 @@ const en = {
   communityHelpCenter: {
     errors: {
       planNotSupportingCustomUrls: "Your plan {0} doesn't include custom urls.",
+    },
+  },
+
+  enrichment: {
+    errors: {
+      planLimitExceeded:
+        'You have exceeded # of member enrichments you can have per month in your plan.',
+      requestedEnrichmentMoreThanLimit:
+        'You have requested more member enrichments than your available limit.',
+      enrichmentFailed: 'Failed to call the enrichment API',
+      noGithubHandleOrEmail:
+        'No GitHub handle or email found. We can only enrich profiles with GitHub handles or emails.',
     },
   },
 }

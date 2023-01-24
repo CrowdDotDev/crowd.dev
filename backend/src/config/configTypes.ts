@@ -174,3 +174,8 @@ export interface PizzlyConfiguration {
   url: string
   secretKey: string
 }
+
+export interface EnrichmentConfiguration {
+  url: string
+  apiKey: string
+}

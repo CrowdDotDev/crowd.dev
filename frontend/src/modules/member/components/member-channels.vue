@@ -53,7 +53,8 @@
       <app-platform
         v-if="!!member.username?.hackernews"
         platform="hackernews"
-        track-event-name="Hacker News"
+        track-event-name="Click Member Contact"
+        track-event-channel="Hackernews"
         :has-tooltip="true"
         tooltip-label="Hacker News profile"
         :href="`https://news.ycombinator.com/user?id=${member.username.hackernews}`"
@@ -62,10 +63,21 @@
       <app-platform
         v-if="!!member.username?.reddit"
         platform="reddit"
-        track-event-name="Reddit"
+        track-event-name="Click Member Contact"
+        track-event-channel="Reddit"
         :has-tooltip="true"
         tooltip-label="Reddit profile"
         :href="`https://reddit.com/u/${member.username.reddit}`"
+        :as-link="true"
+      />
+      <app-platform
+        v-if="!!member.username?.linkedin"
+        platform="linkedin"
+        track-event-name="Click Member Contact"
+        track-event-channel="LinkedIn"
+        :has-tooltip="true"
+        tooltip-label="LinkedIn profile"
+        :href="`https://linkedin.com/in/${member.username.linkedin}`"
         :as-link="true"
       />
     </div>
@@ -97,6 +109,7 @@ const hasSocialIdentities = computed(
     !!props.member.username?.discord ||
     !!props.member.username?.slack ||
     !!props.member.username?.hackernews ||
-    !!props.member.username?.reddit
+    !!props.member.username?.reddit ||
+    !!props.member.username?.linkedin
 )
 </script>

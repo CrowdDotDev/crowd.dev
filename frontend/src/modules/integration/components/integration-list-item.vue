@@ -17,6 +17,12 @@
         connect
       </div>
       <div
+        v-else-if="isWaitingForAction"
+        class="text-yellow-600 flex items-center text-sm"
+      >
+        <i class="ri-alert-line mr-1"></i> Action required
+      </div>
+      <div
         v-else-if="isConnected"
         class="flex items-center"
       >
@@ -37,9 +43,16 @@
       </div>
     </div>
     <div>
-      <span class="block font-semibold leading-none mb-2">{{
-        integration.name
-      }}</span>
+      <div class="flex mb-2">
+        <span class="block font-semibold">{{
+          integration.name
+        }}</span>
+        <span
+          v-if="integration.premium"
+          class="text-2xs text-brand-500 ml-1"
+          >{{ premiumFeatureCopy() }}</span
+        >
+      </div>
       <span class="block mb-6 text-xs text-gray-500">{{
         integration.description
       }}</span>
@@ -49,15 +62,21 @@
             connect,
             connected,
             settings,
-            hasSettings
+            hasSettings,
+            hasIntegration
           }"
         >
           <div class="flex items-center justify-between">
-            <a
+            <el-button
               v-if="!connected"
               class="btn btn--secondary btn--md"
               @click="connect"
-              >Connect</a
+              >{{
+                integration.premium === true &&
+                !hasIntegration
+                  ? 'Upgrade Plan'
+                  : 'Connect'
+              }}</el-button
             >
             <el-button
               v-else
@@ -87,13 +106,9 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import {
-  defineProps,
-  computed,
-  ref,
-  onUnmounted
-} from 'vue'
+import { defineProps, computed, ref } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
+import { premiumFeatureCopy } from '@/utils/posthog'
 
 const store = useStore()
 const props = defineProps({
@@ -122,6 +137,10 @@ const isError = computed(() => {
   return props.integration.status === 'error'
 })
 
+const isWaitingForAction = computed(() => {
+  return props.integration.status === 'pending-action'
+})
+
 const loadingDisconnect = ref(false)
 
 const handleDisconnect = async () => {
@@ -132,29 +151,6 @@ const handleDisconnect = async () => {
   )
   loadingDisconnect.value = false
 }
-
-const fetchIntegrationInProgress = async () => {
-  if (
-    props.integration.status &&
-    props.integration.status === 'in-progress'
-  ) {
-    await store.dispatch(
-      'integration/doFind',
-      props.integration.id
-    )
-  } else {
-    clearInterval(integrationInProgressInterval)
-  }
-}
-
-const integrationInProgressInterval = setInterval(
-  fetchIntegrationInProgress,
-  10000
-)
-
-onUnmounted(() => {
-  clearInterval(integrationInProgressInterval)
-})
 </script>
 <style lang="scss">
 .integration-custom {

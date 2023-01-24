@@ -38,7 +38,10 @@ export const connectSocket = (token) => {
 
   socketIoClient.on('integration-completed', (data) => {
     console.log('Integration onboarding done', data)
-    // TODO handle this data
+    store.dispatch(
+      'integration/doFind',
+      JSON.parse(data).integrationId
+    )
   })
 
   socketIoClient.on('tenant-plan-upgraded', (data) => {
@@ -50,6 +53,27 @@ export const connectSocket = (token) => {
     posthog.reloadFeatureFlags()
     store.dispatch('auth/doRefreshCurrentUser')
     Message.success('Successfully upgraded to Growth plan')
+  })
+
+  socketIoClient.on('bulk-enrichment', (data) => {
+    if (typeof data === 'string') {
+      data = JSON.parse(data)
+    }
+
+    console.log('Bulk enrichment is completed', data)
+
+    // posthog.group('tenant', currentTenant.value.id)
+    // posthog.reloadFeatureFlags()
+    store.dispatch('auth/doRefreshCurrentUser')
+    if (!data.success) {
+      Message.error(
+        `Bulk enrichment failed. We managed to enrich ${data.enrichedMembers} members.`
+      )
+    } else {
+      Message.success(
+        `Bulk enrichment succeeded. We enriched ${data.enrichedMembers} members.`
+      )
+    }
   })
 }
 
