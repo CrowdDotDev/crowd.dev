@@ -29,6 +29,9 @@
       <div
         ref="tooltip"
         class="tooltip"
+        :class="{
+          'pointer-events-none': targetNodeId === ''
+        }"
         :style="{ ...tooltipPos, opacity: tooltipOpacity }"
       >
         <div class="section">
@@ -43,11 +46,10 @@
         </div>
         <div class="section">
           <p class="key">Topics</p>
-          <div class="flex flex-wrap">
+          <div class="flex flex-wrap h-20 overflow-scroll">
             <div
-              v-for="topic in nodes[
-                targetNodeId
-              ]?.topics.slice(0, 5) ?? []"
+              v-for="topic in nodes[targetNodeId]?.topics ??
+              []"
               :key="topic"
               class="topic"
             >
@@ -427,7 +429,6 @@ const eventHandlers = {
   left: 0;
   opacity: 0;
   position: absolute;
-  pointer-events: none;
   z-index: 100000000;
   @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-80 w-60 overflow-hidden;
 }
@@ -437,7 +438,6 @@ const eventHandlers = {
   left: 0;
   opacity: 0;
   position: absolute;
-  pointer-events: none;
   z-index: 100000000;
   @apply bg-gray-900 text-white text-sm shadow-lg rounded-lg p-1 cursor-auto;
 }
