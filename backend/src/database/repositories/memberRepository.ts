@@ -12,6 +12,8 @@ import { KUBE_MODE, SERVICE } from '../../config'
 import { ServiceType } from '../../config/configTypes'
 import { AttributeType } from '../attributes/types'
 import TenantRepository from './tenantRepository'
+import { PageData } from '../../types/common'
+import { IActiveMemberData, IActiveMemberFilter } from './types/memberTypes'
 
 const { Op } = Sequelize
 
@@ -434,6 +436,106 @@ class MemberRepository {
       },
       transaction,
     })
+  }
+
+  static async findAndCountActive(
+    filter: IActiveMemberFilter,
+    limit: number,
+    offset: number,
+    orderBy: string,
+    options: IRepositoryOptions,
+  ): Promise<PageData<IActiveMemberData>> {
+    const tenant = SequelizeRepository.getCurrentTenant(options)
+
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const seq = SequelizeRepository.getSequelize(options)
+
+    const conditions = ['m."tenantId" = :tenantId']
+    const parameters: any = {
+      tenantId: tenant.id,
+      periodStart: filter.activityTimestampFrom,
+      periodEnd: filter.activityTimestampTo,
+    }
+
+    if (filter.includeTeamMembers !== true) {
+      conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = false")
+    }
+
+    if (filter.platform && filter.platform.trim().length > 0) {
+      conditions.push('a.platform = :platform')
+      parameters.platform = filter.platform.trim()
+    }
+
+    const conditionsString = conditions.join(' and ')
+
+    const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
+    let orderString: string
+    if (orderBy.startsWith('activityCount')) {
+      orderString = `count(a.id) ${direction}`
+    } else if (orderBy.startsWith('activeDaysCount')) {
+      orderString = `count(distinct a.timestamp::date) ${direction}`
+    } else {
+      throw new Error(`Invalid order by: ${orderBy}`)
+    }
+
+    const limitCondition = `limit ${limit} offset ${offset}`
+    const query = `
+          select m.id,
+             m."displayName",
+             m.username,
+             m.attributes,
+             count(a.id)                       as "activityCount",
+             count(distinct a.timestamp::date) as "activeDaysCount",
+             count(*) over ()                  as "totalCount"
+      from members m
+               inner join activities a on (m.id = a."memberId" and a.timestamp >= :periodStart and
+                                           a.timestamp < :periodEnd)
+      where ${conditionsString}
+      group by m.id, m."displayName", m.username, m.attributes
+      order by ${orderString}
+      ${limitCondition};
+    `
+
+    options.log.debug(
+      { query, filter, orderBy, limit, offset, test: orderBy.split('_')[1].toLowerCase() },
+      'Active members query!',
+    )
+
+    const results = await seq.query(query, {
+      replacements: parameters,
+      type: QueryTypes.SELECT,
+      transaction,
+    })
+
+    if (results.length === 0) {
+      return {
+        rows: [],
+        count: 0,
+        offset,
+        limit,
+      }
+    }
+
+    const count = parseInt((results[0] as any).totalCount, 10)
+    const rows: IActiveMemberData[] = results.map((r) => {
+      const row = r as any
+      return {
+        id: row.id,
+        displayName: row.displayName,
+        username: row.username,
+        attributes: row.attributes,
+        activityCount: parseInt(row.activityCount, 10),
+        activeDaysCount: parseInt(row.activeDaysCount, 10),
+      }
+    })
+
+    return {
+      rows,
+      count,
+      offset,
+      limit,
+    }
   }
 
   static async findAndCountAll(
