@@ -34,6 +34,7 @@ export interface ILinkedInMember {
 export interface ILinkedInPostComment {
   authorUrn: string
   comment: string
+  imageUrl?: string
   timestamp: number
   urnId: string
   parentUrnId?: string
