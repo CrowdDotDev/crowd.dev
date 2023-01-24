@@ -55,13 +55,6 @@
             >
               {{ topic }}
             </div>
-
-            <div
-              v-if="nodes[targetNodeId]?.topics.length > 5"
-              class="topic"
-            >
-              +{{ nodes[targetNodeId]?.topics.length - 5 }}
-            </div>
           </div>
         </div>
         <div class="w-full text-center pt-3">
@@ -76,12 +69,18 @@
           opacity: edgeToolTipOpacity
         }"
       >
-        <div class="text-xs">
-          <span class="font-medium">
-            {{
-              `${edges[targetEdgeId]?.label.key ?? ''}`
-            }}: </span
-          >{{ `${edges[targetEdgeId]?.label.value ?? ''}` }}
+        <span class="font-medium"> Topics </span>
+        <div
+          class="text-xs max-h-20 overflow-scroll flex flex-wrap mt-2"
+        >
+          <div
+            v-for="topic in edges[targetEdgeId]?.topics ??
+            []"
+            :key="topic"
+            class="topic"
+          >
+            {{ topic }}
+          </div>
         </div>
       </div>
     </div>
@@ -243,42 +242,29 @@ const edges = computed(() => {
     let contributionIds = topicMap[topic]
     for (let i = 0; i < contributionIds.length; i++) {
       for (let j = i + 1; j < contributionIds.length; j++) {
-        const id = `${contributionIds[i]}-${contributionIds[j]}`
-        const reverseId = `${contributionIds[j]}-${contributionIds[i]}`
+        const id = [contributionIds[i], contributionIds[j]]
+          .sort()
+          .join('-')
         if (
           contributionIds[i] !== contributionIds[j] &&
-          !edges[id] &&
-          !edges[reverseId]
+          !edges[id]
         ) {
           edges[id] = {
             source: contributionIds[i].toString(),
             target: contributionIds[j].toString(),
             topics: [topic],
-            label: {
-              key: 'Topic',
-              value: topic
-            }
+            size: 0.5
           }
         } else {
-          if (edges[id]) {
+          if (edges[id].topics.indexOf(topic) === -1) {
             edges[id].topics.push(topic)
-            let label
-
-            if (edges[id].topics.length === 2) {
-              label = {
-                key: 'Topics',
-                value: edges[id].topics.join(', ')
-              }
-            } else {
-              label = {
-                key: 'Topics',
-                value: `${edges[id].topics
-                  .slice(0, 3)
-                  .join(', ')}...`
-              }
-            }
-            edges[id].label = label
           }
+          edges[id].size = Math.min(
+            ((3 - 0.5) / (10 - 1)) *
+              (edges[id].topics.length - 1) +
+              0.5,
+            3
+          )
         }
       }
     }
@@ -395,6 +381,8 @@ const eventHandlers = {
     targetNodeId.value = ''
     tooltipOpacity.value = 0 // hide
     hoveredNode.value = null
+    targetEdgeId.value = ''
+    edgeToolTipOpacity.value = 0 // hide
   },
   'node:pointerover': ({ node }) => {
     hoveredNode.value = nodes.value[node].name
@@ -402,13 +390,9 @@ const eventHandlers = {
   'node:pointerout': () => {
     hoveredNode.value = null
   },
-  'edge:pointerover': ({ edge }) => {
+  'edge:click': ({ edge }) => {
     targetEdgeId.value = edge ?? ''
     edgeToolTipOpacity.value = 1 // show
-  },
-  'edge:pointerout': () => {
-    targetEdgeId.value = ''
-    edgeToolTipOpacity.value = 0 // hide
   },
   'view:zoom'(zoom) {
     if (zoom < 0.7) {
@@ -439,7 +423,7 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   z-index: 100000000;
-  @apply bg-gray-900 text-white text-sm shadow-lg rounded-lg p-1 cursor-auto;
+  @apply bg-white text-sm shadow-lg rounded-lg p-2  w-60 cursor-auto;
 }
 
 .background-dotted {
@@ -466,6 +450,6 @@ const eventHandlers = {
 }
 
 .topic {
-  @apply border border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2;
+  @apply border bg-gray-50 border-gray-200 text-gray-900 rounded-lg px-2 py-1 text-xs mr-2 mb-2;
 }
 </style>
