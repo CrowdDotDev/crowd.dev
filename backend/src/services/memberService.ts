@@ -68,6 +68,10 @@ export default class MemberService extends LoggingBase {
 
     for (const attributeName of Object.keys(attributes)) {
       if (!memberAttributeSettings[attributeName]) {
+        this.log.error('Attribute does not exist', {
+          attributeName,
+          attributes,
+        })
         throw new Error400(
           this.options.language,
           'settings.memberAttributes.notFound',
@@ -92,6 +96,13 @@ export default class MemberService extends LoggingBase {
               { options: memberAttributeSettings[attributeName].options },
             )
           ) {
+            this.log.error('Failed to validate attributee', {
+              attributeName,
+              platform,
+              attributeValue: attributes[attributeName][platform],
+              attributeType: memberAttributeSettings[attributeName].type,
+              options: memberAttributeSettings[attributeName].options,
+            })
             throw new Error400(
               this.options.language,
               'settings.memberAttributes.wrongType',
