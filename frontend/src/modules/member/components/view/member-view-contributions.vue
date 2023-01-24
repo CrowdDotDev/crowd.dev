@@ -332,18 +332,21 @@ watch(
         targetNodePos.value
       )
 
+    console.log('domPoint', domPoint.y)
+    console.log('targetNodeRadius', targetNodeRadius.value)
+    console.log('tooltip', tooltip.value.offsetHeight)
+    console.log(
+      domPoint.y -
+        targetNodeRadius.value -
+        tooltip.value.offsetHeight
+    )
     tooltipPos.value = {
       left:
         domPoint.x -
         tooltip.value.offsetWidth / 2 +
         // left +
         'px',
-      top:
-        domPoint.y -
-        targetNodeRadius.value -
-        tooltip.value.offsetHeight -
-        10 +
-        'px'
+      top: domPoint.y - targetNodeRadius.value - 300 + 'px'
     }
 
     // console.log(tooltipPos.value)
@@ -427,7 +430,7 @@ const eventHandlers = {
   width: 240px;
   pointer-events: none;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto;
+  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto h-80 overflow-hidden;
 }
 
 .edge-tooltip {
