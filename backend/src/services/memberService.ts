@@ -57,10 +57,10 @@ export default class MemberService extends LoggingBase {
    * @param attributes
    * @returns restructured object
    */
-  async validateAttributes(attributes: { [key: string]: any }): Promise<object> {
+  async validateAttributes(attributes: { [key: string]: any }, transaction): Promise<object> {
     // check attribute exists in memberAttributeSettings
     const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      await MemberAttributeSettingsRepository.findAndCountAll({}, { ...this.options, transaction })
     ).rows.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc
@@ -201,7 +201,7 @@ export default class MemberService extends LoggingBase {
       const { platform } = data
 
       if (data.attributes) {
-        data.attributes = await this.validateAttributes(data.attributes)
+        data.attributes = await this.validateAttributes(data.attributes, transaction)
       }
 
       if (data.reach) {
