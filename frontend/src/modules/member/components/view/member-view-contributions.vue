@@ -382,18 +382,19 @@ watch(
 
 const eventHandlers = {
   'node:click': ({ node }) => {
-    const url = nodes.value[node].url
-    window.open(url, '_blank')
-  },
-
-  'node:pointerover': ({ node }) => {
     targetNodeId.value = node
     tooltipOpacity.value = 1 // show
     hoveredNode.value = nodes.value[node].name
   },
-  'node:pointerout': () => {
+  'view:click': () => {
     targetNodeId.value = ''
     tooltipOpacity.value = 0 // hide
+    hoveredNode.value = null
+  },
+  'node:pointerover': ({ node }) => {
+    hoveredNode.value = nodes.value[node].name
+  },
+  'node:pointerout': () => {
     hoveredNode.value = null
   },
   'edge:pointerover': ({ edge }) => {
