@@ -36,7 +36,6 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
       userContext.currentTenant.id,
     )
 
-    // update enrichment count, we'll also check failed enrichments and deduct these from grand total in bulkEnrichmentWorker
     const endTime = moment().endOf('month')
     const startTime = moment()
     const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
