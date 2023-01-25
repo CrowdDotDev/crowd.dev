@@ -20,6 +20,7 @@ export default (app) => {
     safeWrap(require('./memberAutocomplete').default),
   )
   app.get(`/tenant/:tenantId/member`, safeWrap(require('./memberList').default))
+  app.get(`/tenant/:tenantId/member/active`, safeWrap(require('./memberActiveList').default))
   app.get(`/tenant/:tenantId/member/:id`, safeWrap(require('./memberFind').default))
   app.put(`/tenant/:tenantId/member/:memberId/merge`, safeWrap(require('./memberMerge').default))
   app.put(

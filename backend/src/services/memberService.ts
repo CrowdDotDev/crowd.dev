@@ -22,6 +22,7 @@ import {
 import { LoggingBase } from './loggingBase'
 import { ExportableEntity } from '../serverless/microservices/nodejs/messageTypes'
 import { AttributeType } from '../database/attributes/types'
+import { IActiveMemberFilter } from '../database/repositories/types/memberTypes'
 
 export default class MemberService extends LoggingBase {
   options: IServiceOptions
@@ -624,6 +625,15 @@ export default class MemberService extends LoggingBase {
 
   async findAllAutocomplete(search, limit) {
     return MemberRepository.findAllAutocomplete(search, limit, this.options)
+  }
+
+  async findAndCountActive(
+    filters: IActiveMemberFilter,
+    offset: number,
+    limit: number,
+    orderBy: string,
+  ) {
+    return MemberRepository.findAndCountActive(filters, limit, offset, orderBy, this.options)
   }
 
   async findAndCountAll(args) {
