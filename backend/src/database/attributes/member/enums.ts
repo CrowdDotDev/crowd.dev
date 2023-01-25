@@ -92,6 +92,7 @@ export enum MemberEnrichmentAttributeName {
   AWARDS = 'awards',
   CERTIFICATIONS = 'certifications',
   WORK_EXPERIENCES = 'workExperiences',
+  EXPERTISE = 'expertise',
 }
 
 export const MemberEnrichmentAttributes = {
@@ -138,5 +139,9 @@ export const MemberEnrichmentAttributes = {
   [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
     name: MemberEnrichmentAttributeName.WORK_EXPERIENCES,
     label: 'Work Experiences',
+  },
+  [MemberEnrichmentAttributeName.EXPERTISE]: {
+    name: MemberEnrichmentAttributeName.EXPERTISE,
+    label: 'Expertise',
   },
 }
