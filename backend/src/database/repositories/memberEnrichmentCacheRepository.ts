@@ -33,7 +33,6 @@ class MemberEnrichmentCacheRepository {
           type: QueryTypes.UPSERT,
         },
       )
-
     }
 
     const cacheUpserted = await MemberEnrichmentCacheRepository.findByMemberId(memberId, options)
