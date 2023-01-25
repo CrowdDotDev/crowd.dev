@@ -13,6 +13,12 @@
       :class="bodyClass"
       v-html="$sanitize($marked(activity.body))"
     />
+    <img
+      v-if="displayBody && activity.attributes.imageUrl"
+      :src="activity.attributes.imageUrl"
+      alt="comment-image"
+      class="mt-4 max-w-3xs max-h-32 h-auto w-auto"
+    />
   </div>
 </template>
 

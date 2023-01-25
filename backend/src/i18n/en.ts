@@ -141,6 +141,12 @@ const en = {
         'Can not trigger nboarding because integration is not in state pending-action!',
       noOrganizationFound: 'No organization found for given id!',
     },
+    members: {
+      activeList: {
+        activityTimestampFrom: 'activityTimestampFrom is required query parameter!',
+        activityTimestampTo: 'activityTimestampTo is required query parameter!',
+      },
+    },
   },
 
   email: {
