@@ -22,10 +22,6 @@
           :member="member"
           class="row-span-4"
         />
-        <app-member-view-contributions
-          :contributions="member.contributions"
-          class="col-span-2 h-64"
-        />
         <div class="panel w-full col-span-2">
           <el-tabs v-model="tab">
             <el-tab-pane
@@ -77,7 +73,6 @@ import {
 
 import AppActivityTimeline from '@/modules/activity/components/activity-timeline'
 import AppMemberViewHeader from '@/modules/member/components/view/member-view-header'
-import AppMemberViewContributions from '@/modules/member/components/view/member-view-contributions'
 import AppMemberViewAside from '@/modules/member/components/view/member-view-aside'
 import AppMemberViewNotes from '@/modules/member/components/view/member-view-notes'
 import AppMemberViewTasks from '@/modules/member/components/view/member-view-tasks'
