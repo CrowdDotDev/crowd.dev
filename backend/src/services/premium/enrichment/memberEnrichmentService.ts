@@ -28,6 +28,7 @@ import { i18n } from '../../../i18n'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { createRedisClient } from '../../../utils/redis'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
+import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
 
 export default class MemberEnrichmentService extends LoggingBase {
   options: IServiceOptions
@@ -228,6 +229,9 @@ export default class MemberEnrichmentService extends LoggingBase {
     }
 
     if (enrichmentData) {
+      // save raw data to cache
+      await MemberEnrichmentCacheRepository.upsert(memberId, enrichmentData, this.options)
+
       const normalized = await this.normalize(member, enrichmentData)
 
       // We are updating the displayName only if the existing one has one word only
