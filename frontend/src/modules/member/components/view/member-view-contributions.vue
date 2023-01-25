@@ -1,5 +1,8 @@
 <template>
-  <div class="panel contributions-panel relative h-80">
+  <div
+    v-click-away="turnOff"
+    class="panel contributions-panel relative h-80"
+  >
     <div class="py-4 px-6 flex justify-between">
       <p class="flex align-center">
         <img
@@ -211,15 +214,18 @@ const configs = reactive(
       selectable: true,
       normal: {
         color: edgeColor,
-        width: edgeSize
+        width: edgeSize,
+        dasharray: 0
       },
       hover: {
         color: edgeColor,
-        width: edgeSize
+        width: edgeSize,
+        dasharray: 0
       },
       selected: {
         color: edgeColor,
-        width: edgeSize
+        width: edgeSize,
+        dasharray: 0
       }
     }
   })

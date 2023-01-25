@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter } from '@/router'
 import { createStore } from '@/store'
 import plugins from '@/plugins'
+import VueClickAway from 'vue3-click-away'
 import modules from '@/modules'
 import config from '@/config'
 
@@ -54,6 +55,7 @@ i18nInit()
   app.use(ElementPlus, { locale: getElementUILanguage() })
   app.use(VueGridLayout)
   app.use(Vue3Sanitize, vueSanitizeOptions)
+  app.use(VueClickAway)
   app.use(marked)
   app.config.productionTip =
     process.env.NODE_ENV === 'production'

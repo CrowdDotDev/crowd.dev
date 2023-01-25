@@ -59,6 +59,7 @@
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.2",
     "vue-router": "^4.1.5",
+    "vue3-click-away": "^1.2.4",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",
