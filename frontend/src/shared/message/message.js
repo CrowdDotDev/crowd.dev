@@ -78,7 +78,7 @@ export default class Message {
           message: options.title ? message : null,
           customClass: 'info',
           icon: infoIcon,
-          duration: 6000,
+          duration: 0,
           dangerouslyUseHTMLString: true,
           position: 'bottom-right',
           offset: 24

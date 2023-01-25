@@ -207,6 +207,8 @@ const en = {
       enrichmentFailed: 'Failed to call the enrichment API',
       noGithubHandleOrEmail:
         'No GitHub handle or email found. We can only enrich profiles with GitHub handles or emails.',
+      memberNotFound:
+        'Member not found in the enrichment database. This did not affect your quota.',
     },
   },
 }

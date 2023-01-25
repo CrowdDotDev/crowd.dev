@@ -349,7 +349,7 @@ export default {
     }
   },
 
-  async doBulkEnrich({ dispatch, rootGetters }, ids) {
+  async doBulkEnrich({ rootGetters }, ids) {
     try {
       const currentTenant =
         rootGetters['auth/currentTenant']
@@ -386,27 +386,6 @@ export default {
       showEnrichmentLoadingMessage({ isBulk: true })
 
       await MemberService.enrichMemberBulk(ids)
-
-      await dispatch(`auth/doRefreshCurrentUser`, null, {
-        root: true
-      })
-
-      const updatedTenant =
-        rootGetters['auth/currentTenant']
-
-      // Show enrichment success message
-      showEnrichmentSuccessMessage({
-        memberEnrichmentCount:
-          updatedTenant.memberEnrichmentCount,
-        planEnrichmentCountMax,
-        plan: currentTenant.plan,
-        isBulk: true
-      })
-
-      // Refresh list page
-      await dispatch('doFetch', {
-        keepPagination: true
-      })
     } catch (error) {
       Message.closeAll()
       Errors.handle(error)
