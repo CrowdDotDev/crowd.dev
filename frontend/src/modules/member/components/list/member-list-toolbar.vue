@@ -115,11 +115,14 @@ export default {
     },
     elegibleEnrichmentMembers() {
       return this.selectedRows.filter(
-        (r) => r.username?.github || r.email
+        (r) =>
+          (r.username?.github || r.email) && !r.lastEnriched
       )
     },
     selectedIds() {
-      return this.selectedRows.map((item) => item.id)
+      return this.selectedRows
+        .filter((item) => !item.lastEnriched)
+        .map((item) => item.id)
     },
     areSelectedMembersNotEnriched() {
       return this.selectedRows.some(
@@ -149,7 +152,7 @@ export default {
         // All members are elegible for enrichment
         if (
           this.elegibleEnrichmentMembers.length ===
-          this.selectedRows.length
+          this.selectedIds.length
         ) {
           await this.doBulkEnrich(this.selectedIds)
         } else {

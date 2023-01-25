@@ -11,7 +11,6 @@ import {
   getEnrichmentMax,
   checkEnrichmentLimit,
   showEnrichmentSuccessMessage,
-  showEnrichmentErrorMessage,
   showEnrichmentLoadingMessage,
   checkEnrichmentPlan
 } from '@/modules/member/member-enrichment'
@@ -343,9 +342,7 @@ export default {
         await dispatch('doFind', id)
       }
     } catch (error) {
-      // Show enrichment error message
-      showEnrichmentErrorMessage({ isBulk: false })
-
+      Message.closeAll()
       Errors.handle(error)
 
       commit('UPDATE_ERROR')
@@ -366,7 +363,8 @@ export default {
       // the number available for the current tenant plan
       if (
         checkEnrichmentPlan({
-          enrichmentCount: ids.length,
+          enrichmentCount:
+            memberEnrichmentCount + ids.length,
           planEnrichmentCountMax
         })
       ) {
@@ -410,9 +408,7 @@ export default {
         keepPagination: true
       })
     } catch (error) {
-      // Show enrichment error message
-      showEnrichmentErrorMessage({ isBulk: true })
-
+      Message.closeAll()
       Errors.handle(error)
     }
   }

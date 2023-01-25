@@ -118,18 +118,6 @@ export const showEnrichmentSuccessMessage = ({
   })
 }
 
-export const showEnrichmentErrorMessage = ({ isBulk }) => {
-  Message.closeAll()
-  Message.error(
-    'An error has occured while trying to enrich a member. Please try again',
-    {
-      title: `${
-        isBulk ? 'Members' : 'Member'
-      } enrichment failed`
-    }
-  )
-}
-
 export const showEnrichmentLoadingMessage = ({
   isBulk
 }) => {
