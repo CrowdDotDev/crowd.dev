@@ -17,7 +17,8 @@ export const plans = {
         'Community intelligence',
         'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, and Hacker News',
         '2 active workflows & CSV exports per month',
-        'Community & email support'
+        'Community & email support',
+        '25 member enrichments'
       ]
     },
     {
@@ -31,7 +32,8 @@ export const plans = {
         'Organization-level insights',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
-        'LinkedIn integration'
+        'LinkedIn integration',
+        '1000 member enrichments'
       ],
       sale: '🐦 Early bird offer'
     },
@@ -79,7 +81,8 @@ export const plans = {
         'Organization-level insights',
         'Custom integrations',
         'Enterprise-grade support',
-        'LinkedIn integration'
+        'LinkedIn integration',
+        '1000 member enrichments'
       ]
     }
   ]

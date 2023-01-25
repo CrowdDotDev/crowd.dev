@@ -22,7 +22,6 @@
     "@cubejs-client/vue3": "^0.31.0",
     "@nangohq/pizzly-frontend": "^0.4.0",
     "@octokit/core": "^3.5.1",
-    "@tailwindcss/postcss7-compat": "^2.2.17",
     "@tiptap/extension-placeholder": "^2.0.0-beta.199",
     "@tiptap/starter-kit": "^2.0.0-beta.199",
     "@tiptap/vue-3": "^2.0.0-beta.199",
@@ -86,7 +85,7 @@
     "sass": "^1.49.7",
     "sass-loader": "^12.6.0",
     "tailwind-config-viewer": "^1.7.2",
-    "tailwindcss": "^3.0.22",
+    "tailwindcss": "^3.2.4",
     "wait-on": "^6.0.0"
   }
 }
