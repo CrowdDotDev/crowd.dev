@@ -200,9 +200,15 @@ const en = {
 
   enrichment: {
     errors: {
+      planLimitExceeded:
+        'You have exceeded # of member enrichments you can have per month in your plan.',
+      requestedEnrichmentMoreThanLimit:
+        'You have requested more member enrichments than your available limit.',
       enrichmentFailed: 'Failed to call the enrichment API',
       noGithubHandleOrEmail:
         'No GitHub handle or email found. We can only enrich profiles with GitHub handles or emails.',
+      memberNotFound:
+        'Member not found in the enrichment database. This did not affect your quota.',
     },
   },
 }

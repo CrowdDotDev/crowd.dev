@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.17.0 - 2023-01-23
+
+### Changes
+
+### 🚀 Features
+
+#### LinkedIn integration
+
+Introduction the LinkedIn integration! With it, you can bring the comments and reactions to your organization's LinkedIn posts into crowd.dev. This integration is only available for Growth and Custom plans.
+
+<img width="1727" alt="Linkedin" src="https://user-images.githubusercontent.com/37874460/214154195-3e3ba24e-ba70-4eae-9f65-c22f3bd9042e.png">
+- Linkedin integration @mariobalca (#442)
+
+### ✨ Improvements
+
+- Add global filters to Default Reports. @joanagmaia (#425)
+- Added a Stripe integration for payment so we can automatically upgrade new Growth workspaces. @epipav (#419)
+- Show the current date's value differently in reports. @joanagmaia (#443)
+- Make the email independent from the identities in the members' list. @joanagmaia (#440)
+- Refactor the UI of public reports. @joanagmaia (#437)
+- Remove activities performed by team members. @epipav (#427)
+
+### 🐞 Bug Fixes
+
+- Fix a bug that kept redirecting from `auth/signup` to `augh/signin`. @themarolt (#445)
+- Fix an error when unpublishing conversations in bulk. @epipav (#438)
+- Modified the Community help center's `robots.txt` so Google will index it again. @epipav (#434)
+- Fix URLs in organizations @joanagmaia (#430)
+- Add the Job Title to the members list view @mariobalca (#428)
+
 ## v0.16.0 - 2023-01-16
 
 ### Changes
@@ -18,7 +48,6 @@ Introducing our newest feature: Default Reports! These specially crafted reports
 
 <img width="1727" alt="Reports 1" src="https://user-images.githubusercontent.com/37874460/212732237-8e46b294-8d60-433a-b76b-a3f45c1bf895.png">
 #### Formbricks feedback
-
 Our first external code contribution! @mattinannt and the [Formbricks](https://formbricks.com/) team added an in-app feedback box to our menu. If you have an idea, something needs to be fixed, or want to point out which features you like, you can leave us feedback there!
 <img width="200" alt="Screenshot 2023-01-16 at 14 04 37" src="https://user-images.githubusercontent.com/37874460/212684851-8edd5ee7-1f40-4b48-9556-78190249707e.png">
 
@@ -56,7 +85,6 @@ For example, imagine you want to search for content that talks about *generatice
 <img width="1067" alt="Screenshot 2023-01-09 at 13 14 50" src="https://user-images.githubusercontent.com/37874460/211305723-24aec737-7edf-4c4d-bcd4-deab5e64a968.png">
 - EagleEye exact keyword matching @mariobalca @joanreyero (#383)
 #### Discord forum channels
-
 Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
 
 - Get forum channels from Discord @joanreyero (#405)
@@ -97,7 +125,6 @@ You can now export your community members as CSV. You can export all members or 
 - Update the call to action layout when a workspace is in the trial. @joanagmaia (#371)
 - When a Kubernetes pod is restarted while performing a job, retake the job when the pod is back up. @themarolt (#365 and #368)
 - Update the logos and images on the app. @joanagmaia (#367)
-
 ### 🐞 Bug Fixes
 
 - Fixed the sorting in the *Most engaged* view on the member's page. @joanagmaia (#375)
@@ -136,7 +163,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Do not show the engagement level for team members in the members' list, as it does not make sense. @joanreyero (#349)
 - Added the infrastructure so we can display a banner with in-app TypeForm surveys. @joanreyero (#348)
 ### 🐞 Bug Fixes
-
 - Add a missing interaction to the *Trial* tag. @joanagmaia (#366)
 - Tenants created after the 18th of December only had a trial for 14 days. It should be until the 15th of January. @joanreyero (#363)
 - Fix EagleEye's API throwing a 500 when sending posts to exclude @joanreyero (#359)
@@ -208,7 +234,6 @@ The Hacker News integration will detect any post that mentions your community in
 - Disable range filters in the frontend if one value is empty @joanagmaia (#290)
 ## v0.10.1 - 2022-11-30
 ### Changes
-
 This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
 
 ### :rocket: Features
@@ -254,7 +279,6 @@ Use our custom attribute function to add specific to you details as well as extr
 :key: Social Sign in with Google
 We’ve added social sign-in to make signing up and logging into [crowd.dev](http://crowd.dev/) a breeze. You can now use your Google account.
 #### Breaking changes
-
 This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
 
 ## v0.8.0 - 2022-10-07
@@ -293,7 +317,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -367,7 +393,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - Simplified start of development environment @joanreyero (#5)
 ### 🐞 Bug Fixes
 - EagleEye events @joanreyero (#6)
-
 ## v0.0.3 - 2022-08-24
 
 ### Changes

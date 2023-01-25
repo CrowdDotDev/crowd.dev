@@ -190,6 +190,8 @@ export default class MemberEnrichmentService extends LoggingBase {
         this.options.currentTenant.id,
       ),
     )
+
+    return { enrichedMemberCount: enrichedMembers }
   }
 
   /**
@@ -449,11 +451,16 @@ export default class MemberEnrichmentService extends LoggingBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
+
+      if (response.error) {
+        this.log.error(githubHandle, `Member not found using github handle.`)
+        throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
+      }
       return response.profile
     } catch (error) {
       // Log the error and throw a custom error
       this.log.error({ error, githubHandle }, 'Enrichment failed')
-      throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
+      throw error
     }
   }
 
@@ -481,11 +488,15 @@ export default class MemberEnrichmentService extends LoggingBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
+      if (response.error) {
+        this.log.error(email, `Member not found using email.`)
+        throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
+      }
       return response.profile
     } catch (error) {
       // Log the error and throw a custom error
       this.log.error({ error, email }, 'Enrichment failed')
-      throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
+      throw error
     }
   }
 }
