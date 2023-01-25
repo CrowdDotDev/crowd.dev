@@ -52,7 +52,7 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
     } else {
       // Before sending the queue message, we increase the memberEnrichmentCount with all member Ids that are sent,
       // assuming that we'll be able to enrich all.
-      // If any of enrichments failed, we should deduct these credits from memberEnrichmentCount
+      // If any of enrichments failed, we should add these credits back, reducing memberEnrichmentCount
       await memberEnrichmentCountCache.setValue(
         userContext.currentTenant.id,
         (parseInt(memberEnrichmentCount, 10) - failedEnrichmentRequests).toString(),
