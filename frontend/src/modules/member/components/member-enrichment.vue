@@ -11,14 +11,14 @@
           >Member enrichment</span
         >
       </div>
-      <!-- TODO: Uncomment once we have the link -->
-      <!-- <el-tooltip placement="top" content="Learn more">
-        <el-button
+      <el-tooltip placement="top" content="Learn more">
+        <a
           class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
-          @click="onLearnMoreClick"
+          href="https://docs.crowd.dev/docs/member-enrichment"
+          target="_blank"
           ><i class="ri-question-line text-lg"
-        /></el-button>
-      </el-tooltip> -->
+        /></a>
+      </el-tooltip>
     </div>
 
     <div class="mt-4 mb-5 text-2xs text-gray-600">
@@ -68,9 +68,6 @@ const isEnrichmentDisabled = computed(
   () =>
     !props.member.username?.github && !props.member.email
 )
-
-// TODO: Add link on click
-// const onLearnMoreClick = () => {}
 
 const onEnrichmentClick = async () => {
   await doEnrich(props.member.id)
