@@ -40,7 +40,7 @@ export default async (req, res) => {
   // send the message
   await sendBulkEnrichMessage(tenant, membersToEnrich)
 
-  // update enrichment count
+  // update enrichment count, we'll also check failed enrichments and deduct these from grand total in bulkEnrichmentWorker
   const endTime = moment().endOf('month')
   const startTime = moment()
 

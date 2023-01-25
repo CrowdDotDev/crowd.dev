@@ -53,9 +53,8 @@ export default class MemberEnrichmentService extends LoggingBase {
         fields: ['location'],
         default: true,
       },
-      [MemberAttributeName.JOB_TITLE]: {
+      [MemberAttributeName.BIO]: {
         fields: ['title', 'work_experiences[0].title'],
-        default: true,
       },
       [MemberEnrichmentAttributeName.SENIORITY_LEVEL]: {
         fields: ['seniority_level'],
@@ -82,6 +81,10 @@ export default class MemberEnrichmentService extends LoggingBase {
       [MemberEnrichmentAttributeName.YEARS_OF_EXPERIENCE]: {
         fields: ['years_of_experience'],
         type: AttributeType.NUMBER,
+      },
+      [MemberEnrichmentAttributeName.EXPERTISE]: {
+        fields: ['expertise'],
+        type: AttributeType.MULTI_SELECT,
       },
       [MemberEnrichmentAttributeName.WORK_EXPERIENCES]: {
         fields: ['work_experiences'],
@@ -189,6 +192,8 @@ export default class MemberEnrichmentService extends LoggingBase {
         this.options.currentTenant.id,
       ),
     )
+
+    return { enrichedMemberCount: enrichedMembers }
   }
 
   /**
@@ -362,15 +367,14 @@ export default class MemberEnrichmentService extends LoggingBase {
    * @returns the updated 'member' object
    */
   async fillSkills(member: Member, enrichmentData: EnrichmentAPIMember) {
-    // Check if 'enrichmentData.skills' or 'enrichmentData.expertise' properties exist
-    if (enrichmentData.skills || enrichmentData.expertise) {
+    // Check if 'enrichmentData.skills' properties exists
+    if (enrichmentData.skills) {
       if (!member.attributes.skills) {
         member.attributes.skills = {}
       }
 
       // Assign unique and ordered skills to 'member.attributes[MemberEnrichmentAttributeName.SKILLS].enrichment'
       member.attributes[MemberEnrichmentAttributeName.SKILLS].enrichment = lodash.uniq([
-        ...(enrichmentData.expertise || []),
         // Use 'lodash.orderBy' to sort the skills by weight in descending order
         ...lodash
           .orderBy(enrichmentData.skills || [], ['weight'], ['desc'])
@@ -418,7 +422,7 @@ export default class MemberEnrichmentService extends LoggingBase {
         name: attributeName,
         label: MemberEnrichmentAttributes[attributeName].label,
         type: attribute.type,
-        show: true,
+        show: attributeName !== MemberEnrichmentAttributeName.EMAILS,
         canDelete: false,
         ...(attribute.type === AttributeType.MULTI_SELECT && { options: value }),
       })
@@ -449,11 +453,16 @@ export default class MemberEnrichmentService extends LoggingBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
+
+      if (response.error) {
+        this.log.error(githubHandle, `Member not found using github handle.`)
+        throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
+      }
       return response.profile
     } catch (error) {
       // Log the error and throw a custom error
       this.log.error({ error, githubHandle }, 'Enrichment failed')
-      throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
+      throw error
     }
   }
 
@@ -481,11 +490,15 @@ export default class MemberEnrichmentService extends LoggingBase {
       }
       // Make the GET request and extract the profile data from the response
       const response: EnrichmentAPIResponse = (await axios(config)).data
+      if (response.error) {
+        this.log.error(email, `Member not found using email.`)
+        throw new Error400(this.options.language, 'enrichment.errors.memberNotFound')
+      }
       return response.profile
     } catch (error) {
       // Log the error and throw a custom error
       this.log.error({ error, email }, 'Enrichment failed')
-      throw new Error400(this.options.language, 'enrichment.errors.enrichmentFailed')
+      throw error
     }
   }
 }
