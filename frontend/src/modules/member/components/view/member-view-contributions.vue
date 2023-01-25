@@ -257,10 +257,8 @@ const nodes = computed(() => {
           .slice(-2)
           .join('/'),
         size,
-        // Store the topics and number of commits for the node
         topics: contribution.topics,
         numberCommits: contribution.numberCommits,
-        // Store the URL for the node
         url: contribution.url
       }
       // Add the new node to the nodes object
@@ -282,38 +280,37 @@ const nodes = computed(() => {
   return nodes
 })
 
-// edges computed property
+// The edges computed property is used to create a mapping of
+// edges between contributions based on their shared topics.
 const edges = computed(() => {
-  // Create an empty object to store the edges
+  // The edges object will store information about the source and
+  // target contributions, the topics they share, and the size of the edge.
   let edges = {}
-  // Create an empty object to store a mapping of topics to contribution IDs
+  // The topicMap object is updated to store a mapping of topics
+  // to the IDs of contributions that are associated with that topic.
   let topicMap = {}
-  // Iterate over the contributions prop
   props.contributions.forEach((contribution) => {
     // Extract the name of the contribution from the URL
     const name = contribution.url.split('/').pop()
-    // Iterate over the topics for the contribution
     contribution.topics.forEach((topic) => {
-      // Check if the topic is already in the topicMap
       if (!topicMap[topic]) {
-        // If the topic is not in the topicMap, create a new entry with the contribution's ID
         topicMap[topic] = [name]
       } else {
-        // If the topic is already in the topicMap, add the contribution's ID to the array of IDs for that topic
         topicMap[topic].push(name)
       }
     })
   })
 
-  // Iterate over the topics in the topicMap
+  // Next, the topics in the topicMap are iterated over and for each topic,
+  // the corresponding contribution IDs are used to create edges
+  // between the contributions.
   for (let topic in topicMap) {
-    // Get the array of contribution IDs for the current topic
     let contributionIds = topicMap[topic]
 
     for (let i = 0; i < contributionIds.length; i++) {
       for (let j = i + 1; j < contributionIds.length; j++) {
         const id = [contributionIds[i], contributionIds[j]]
-          .sort()
+          .sort() // Sort the IDs so that the edge ID is consistent
           .join('-')
         if (contributionIds[i] === contributionIds[j]) {
           break
@@ -342,13 +339,21 @@ const edges = computed(() => {
   return edges
 })
 
+// This code uses computed properties to calculate the center position
+// of a specific edge on a graph
 const edgeCenterPos = computed(() => {
+  // It first checks if the edge exists by checking if
+  // the value of the targetEdgeId variable is present in the edges array
+  // If it does not exist, it returns an object with x and y values of 0.
   const edge = edges.value[targetEdgeId.value]
   if (!edge) return { x: 0, y: 0 }
 
+  // If it does exist, it assigns the source and target nodes of the edge to variables.
   const sourceNode = edges.value[targetEdgeId.value].source
   const targetNode = edges.value[targetEdgeId.value].target
 
+  // Then, it calculates the x and y values of the center position
+  // by taking the average of the x and y values of the source and target nodes.
   return {
     x:
       (layouts.value.nodes[sourceNode].x +
@@ -361,17 +366,22 @@ const edgeCenterPos = computed(() => {
   }
 })
 
+// If either we are on a node or an edge, the graph is disabled
 const isDisabled = computed(() => {
   return (
     targetNodeId.value !== '' || targetEdgeId.value !== ''
   )
 })
 
+// The targetNodePos computed property is used to calculate the position
+// of the target node on the graph.
 const targetNodePos = computed(() => {
   const nodePos = layouts.value.nodes[targetNodeId.value]
   return nodePos || { x: 0, y: 0 }
 })
 
+// The targetNodeRadius computed property is used to calculate the radius
+// of the target node on the graph.
 const targetNodeRadius = computed(() => {
   const node = nodes.value[targetNodeId.value]
   return node?.size
@@ -382,6 +392,7 @@ function openGithubRepo() {
   window.open(node.url, '_blank')
 }
 
+// The nodeColor computed property is used to calculate the color of a node
 function nodeColor(node) {
   if (!hoveredNode.value) return '#E5E7EB'
   return node.name === hoveredNode.value
@@ -389,6 +400,7 @@ function nodeColor(node) {
     : '#F3F4F6'
 }
 
+// The edgeColor computed property is used to calculate the color of an edge
 function edgeColor(edge) {
   if (hoveredNode.value) return '#FBDCD5'
   if (!hoveredEdge.value) return '#F6B9AB'
@@ -401,6 +413,7 @@ function edgeColor(edge) {
   return sharedTopics ? '#E94F2E' : '#F6B9AB'
 }
 
+// The edgeSize computed property is used to calculate the size of an edge
 function edgeSize(edge) {
   if (!hoveredEdge.value) return edge.size
   // if the hovered edge and the current edge share any topic
@@ -416,21 +429,24 @@ function listsOverlap(list1, list2, percentage) {
   let overlapCount = 0
   let totalCount = 0
 
-  // Use a hash set to store the elements of the first list
+  // This function takes in two lists and a percentage threshold as inputs
+  // It then uses a hash set to store the elements of the first list
   const set = new Set(list1)
 
-  // Iterate through the second list and check if each element is in the hash set
+  // Next, it iterates through the second list and checks if each element is in the hash set
   for (let i = 0; i < list2.length; i++) {
     if (set.has(list2[i])) {
       overlapCount++
     }
+    // The totalCount is incremented for every element in the second list
     totalCount++
   }
 
-  // Calculate the overlap percentage
+  // After iterating through the second list, the overlap percentage is calculated by dividing the overlapCount by the totalCount
   const overlapPercentage = overlapCount / totalCount
 
-  // Compare the overlap percentage to the given threshold
+  // Finally, the function compares the calculated overlap percentage to the given threshold percentage
+  // If the overlap percentage is greater than the threshold, the function returns true, otherwise it returns false.
   return overlapPercentage > percentage
 }
 
@@ -482,6 +498,7 @@ watch(
   { deep: true }
 )
 
+// Remove all popups or hovers
 function turnOff() {
   targetNodeId.value = ''
   tooltipOpacity.value = 0 // hide
