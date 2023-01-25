@@ -4,7 +4,7 @@
       <div class="flex gap-2">
         <app-svg
           name="enrichment"
-          class="w-5 h-5"
+          class="w-5 h-5 enrichment-icon"
           color="#111827"
         />
         <span class="text-gray-900 font-semibold text-sm"
@@ -74,3 +74,9 @@ const onEnrichmentClick = async () => {
   await doEnrich(props.member.id)
 }
 </script>
+
+<style lang="scss">
+.enrichment-icon svg use {
+  transform: scale(1.25);
+}
+</style>

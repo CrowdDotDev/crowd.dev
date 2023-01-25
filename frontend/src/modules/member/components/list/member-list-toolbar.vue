@@ -19,6 +19,7 @@
           Export to CSV
         </el-dropdown-item>
         <el-tooltip
+          v-if="areSelectedMembersNotEnriched"
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
           :disabled="elegibleEnrichmentMembers.length"
@@ -119,6 +120,11 @@ export default {
     },
     selectedIds() {
       return this.selectedRows.map((item) => item.id)
+    },
+    areSelectedMembersNotEnriched() {
+      return this.selectedRows.some(
+        (item) => !item.lastEnriched
+      )
     }
   },
 

@@ -332,8 +332,16 @@ export default {
         isBulk: false
       })
 
-      // Update member
-      await dispatch('doFind', id)
+      if (router.currentRoute.value.name !== 'memberView') {
+        router.push({
+          name: 'memberView',
+          params: {
+            id
+          }
+        })
+      } else {
+        await dispatch('doFind', id)
+      }
     } catch (error) {
       // Show enrichment error message
       showEnrichmentErrorMessage({ isBulk: false })
