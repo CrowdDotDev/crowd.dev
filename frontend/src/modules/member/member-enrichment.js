@@ -86,7 +86,7 @@ export const showEnrichmentSuccessMessage = ({
     memberEnrichmentCount
   )} out of ${formatNumber(
     planEnrichmentCountMax
-  )} used this month.`
+  )} enrichments used this month.`
 
   const essentialMessage = h('span', null, [
     h('span', null, commonMessage),

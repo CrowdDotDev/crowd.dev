@@ -116,6 +116,9 @@ export default {
       return this.selectedRows.filter(
         (r) => r.username?.github || r.email
       )
+    },
+    selectedIds() {
+      return this.selectedRows.map((item) => item.id)
     }
   },
 
@@ -142,11 +145,7 @@ export default {
           this.elegibleEnrichmentMembers.length ===
           this.selectedRows.length
         ) {
-          const ids = this.selectedRows.map(
-            (item) => item.id
-          )
-
-          await this.doBulkEnrich(ids)
+          await this.doBulkEnrich(this.selectedIds)
         } else {
           // Only a few members are elegible for enrichment
           try {
@@ -165,11 +164,7 @@ export default {
               icon: 'ri-alert-line'
             })
 
-            const ids = this.selectedRows.map(
-              (item) => item.id
-            )
-
-            await this.doBulkEnrich(ids)
+            await this.doBulkEnrich(this.selectedIds)
           } catch (error) {
             // no
           }
