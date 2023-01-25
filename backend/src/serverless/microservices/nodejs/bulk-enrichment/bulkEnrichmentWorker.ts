@@ -27,15 +27,18 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
   if (failedEnrichmentRequests > 0) {
     const redis = await createRedisClient(true)
 
+    // get redis cache that stores memberEnrichmentCount
     const memberEnrichmentCountCache = new RedisCache(
       FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,
       redis,
     )
 
+    // get current enrichment count of tenant from redis
     const memberEnrichmentCount = await memberEnrichmentCountCache.getValue(
       userContext.currentTenant.id,
     )
 
+    // calculate remaining seconds for the end of the month, to set TTL for redis keys
     const endTime = moment().endOf('month')
     const startTime = moment()
     const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
@@ -47,12 +50,17 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
         secondsRemainingUntilEndOfMonth,
       )
     } else {
+      // Before sending the queue message, we increase the memberEnrichmentCount with all member Ids that are sent,
+      // assuming that we'll be able to enrich all.
+      // If any of enrichments failed, we should deduct these credits from memberEnrichmentCount
       await memberEnrichmentCountCache.setValue(
         userContext.currentTenant.id,
         (parseInt(memberEnrichmentCount, 10) - failedEnrichmentRequests).toString(),
         secondsRemainingUntilEndOfMonth,
       )
     }
+
+    // send data to posthog
     setPosthogTenantProperties(
       userContext.currentTenant,
       new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
