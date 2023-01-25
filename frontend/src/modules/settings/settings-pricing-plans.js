@@ -16,7 +16,7 @@ export const plans = {
         'Community management',
         'Community intelligence',
         'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, and Hacker News',
-        '5 member enrichments (manual)',
+        '5 member enrichments per month (manual)',
         '2 active workflows & CSV exports per month',
         'Community & email support'
       ]
@@ -30,7 +30,7 @@ export const plans = {
       features: [
         'Community growth',
         'Organization-level insights',
-        '1,000 member enrichments (manual)',
+        '1,000 member enrichments per month (manual)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
         'LinkedIn integration'
