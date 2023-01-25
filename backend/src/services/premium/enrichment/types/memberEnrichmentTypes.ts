@@ -79,4 +79,5 @@ export interface EnrichmentAPIMember {
 
 export interface EnrichmentAPIResponse {
   profile: EnrichmentAPIMember
+  error?: any
 }
