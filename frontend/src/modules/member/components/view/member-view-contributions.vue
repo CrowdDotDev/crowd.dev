@@ -216,6 +216,10 @@ const configs = reactive(
       hover: {
         color: edgeColor,
         width: edgeSize
+      },
+      selected: {
+        color: edgeColor,
+        width: edgeSize
       }
     }
   })
@@ -380,6 +384,7 @@ function nodeColor(node) {
 }
 
 function edgeColor(edge) {
+  if (hoveredNode.value) return '#FBDCD5'
   if (!hoveredEdge.value) return '#F6B9AB'
   // if the hovered edge and the current edge share any topic
   const sharedTopics = listsOverlap(
