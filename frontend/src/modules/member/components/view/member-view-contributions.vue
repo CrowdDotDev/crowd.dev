@@ -41,22 +41,22 @@
         }"
         :style="{ ...tooltipPos, opacity: tooltipOpacity }"
       >
-        <div class="section border-b">
+        <div class="section border-b mx-4">
           <p class="key">Repository</p>
           <p class="break-words font-medium text-black">
             {{ nodes[targetNodeId]?.fullName ?? '' }}
           </p>
         </div>
-        <div class="section border-b">
+        <div class="section border-b mx-4">
           <p class="key">Contributions</p>
           <p class="text-sm text-gray-900">
             {{ nodes[targetNodeId]?.numberCommits ?? '' }}
           </p>
         </div>
-        <div class="section">
+        <div class="section ml-4">
           <p class="key">Topics</p>
           <div
-            class="flex flex-wrap h-24 overflow-y-scroll"
+            class="flex flex-wrap h-24 overflow-y-scroll pr-4"
           >
             <div
               v-for="topic in nodes[targetNodeId]?.topics ??
@@ -68,17 +68,12 @@
             </div>
           </div>
         </div>
-        <div class="pt-4">
+        <div class="pt-4 mx-4">
           <button
-            class="text-gray-900 text-sm w-full text-center my-auto bg-gray-100 rounded-lg h-8 btn"
+            class="text-gray-900 text-sm w-full text-center my-auto bg-gray-100 rounded-lg h-8 py-2 btn"
+            @click="openGithubRepo"
           >
-            <a
-              :href="nodes[targetNodeId]?.url"
-              target="_blank"
-              class="text-gray-900"
-            >
-              View on GitHub
-            </a>
+            View on GitHub
           </button>
         </div>
       </div>
@@ -372,6 +367,11 @@ const targetNodeRadius = computed(() => {
   return node?.size
 })
 
+function openGithubRepo() {
+  const node = nodes.value[targetNodeId.value]
+  window.open(node.url, '_blank')
+}
+
 function nodeColor(node) {
   if (!hoveredNode.value) return '#E5E7EB'
   return node.name === hoveredNode.value
@@ -544,7 +544,7 @@ const eventHandlers = {
   opacity: 0;
   position: absolute;
   z-index: 100000000;
-  @apply bg-white shadow-lg rounded-lg p-4 cursor-auto w-60 overflow-hidden;
+  @apply bg-white shadow-lg rounded-lg py-4 px-0 cursor-auto w-60 overflow-hidden;
 }
 
 .edge-tooltip {
