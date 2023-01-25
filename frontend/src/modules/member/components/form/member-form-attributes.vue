@@ -33,14 +33,37 @@
           :key="index"
           class="grid grid-cols-12 gap-3"
         >
-          <div class="col-span-4 flex flex-col gap-1">
+          <div
+            class="col-span-4 flex flex-col gap-1 justify-center"
+          >
+            <div class="flex items-center leading-tight">
+              <div
+                class="text-gray-900 text-xs font-medium mr-2"
+              >
+                {{ attribute.label }}
+              </div>
+              <el-tooltip
+                v-if="
+                  model.attributes[attribute.name]
+                    ?.enrichment
+                "
+                content="Member enrichment"
+                placement="top"
+              >
+                <div
+                  class="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center"
+                >
+                  <app-svg
+                    name="enrichment"
+                    class="h-3 w-4"
+                  />
+                </div>
+              </el-tooltip>
+            </div>
             <span
-              class="text-gray-900 text-xs font-medium"
-              >{{ attribute.label }}</span
+              class="text-2xs text-gray-500 leading-none"
+              >{{ attributesTypes[attribute.type] }}</span
             >
-            <span class="text-2xs text-gray-500">{{
-              attributesTypes[attribute.type]
-            }}</span>
           </div>
           <el-form-item class="col-span-8">
             <el-date-picker
@@ -73,6 +96,22 @@
                 label="False"
                 :value="false"
                 @mouseleave="onSelectMouseLeave"
+              />
+            </el-select>
+
+            <el-select
+              v-else-if="attribute.type === 'multiSelect'"
+              v-model="model[attribute.name]"
+              class="w-full"
+              disabled
+              filterable
+              multiple
+              placeholder="Select option"
+            >
+              <el-option
+                v-for="item of attribute.options"
+                :key="item"
+                :label="item"
               />
             </el-select>
 
@@ -109,6 +148,7 @@ import {
   watch
 } from 'vue'
 import { onSelectMouseLeave } from '@/utils/select'
+import AppSvg from '@/shared/svg/svg'
 
 const CalendarIcon = h(
   'i', // type
@@ -125,7 +165,8 @@ const attributesTypes = {
   email: 'E-mail',
   url: 'URL',
   date: 'Date',
-  boolean: 'Boolean'
+  boolean: 'Boolean',
+  multiSelect: 'Multi-select'
 }
 
 const emit = defineEmits([
@@ -144,13 +185,30 @@ const props = defineProps({
   showHeader: {
     type: Boolean,
     default: true
+  },
+  record: {
+    type: Object,
+    default: () => {}
   }
 })
 
 const customAttributes = computed(() =>
-  props.attributes.filter(
-    (attribute) => attribute.canDelete
-  )
+  props.attributes.filter((attribute) => {
+    return (
+      attribute.show &&
+      ![
+        'bio',
+        'url',
+        'location',
+        'jobTitle',
+        'emails',
+        'workExperiences', // we render them in _aside-work-experience
+        'certifications', // we render them in _aside-work-certifications
+        'education', // we render them in _aside-work-education
+        'awards' // we render them in _aside-work-awards
+      ].includes(attribute.name)
+    )
+  })
 )
 
 const model = computed(() => props.modelValue)
