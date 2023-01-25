@@ -1,11 +1,18 @@
 <template>
   <div class="panel contributions-panel relative h-80">
-    <div class="p-4 flex justify-between">
-      <h6 class="flex align-center">
-        <i class="ri-github-fill text-lg pr-1"></i>
-        OSS contributions
-      </h6>
-      <div class="text-gray-500 flex align-center text-sm">
+    <div class="py-4 px-6 flex justify-between">
+      <p class="flex align-center">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
+          class="h-5 w-5 mr-2"
+        />
+        <span class="font-medium text-black">
+          OSS contributions
+        </span>
+      </p>
+      <div
+        class="text-gray-500 flex align-center italic text-2xs"
+      >
         <i
           class="ri-checkbox-blank-circle-fill text-gray-200 pr-2"
         ></i>
@@ -36,7 +43,9 @@
       >
         <div class="section border-b">
           <p class="key">Repository</p>
-          <h6>{{ nodes[targetNodeId]?.fullName ?? '' }}</h6>
+          <p class="break-words font-medium text-black">
+            {{ nodes[targetNodeId]?.fullName ?? '' }}
+          </p>
         </div>
         <div class="section border-b">
           <p class="key">Contributions</p>
@@ -46,7 +55,9 @@
         </div>
         <div class="section">
           <p class="key">Topics</p>
-          <div class="flex flex-wrap h-24 overflow-scroll">
+          <div
+            class="flex flex-wrap h-24 overflow-y-scroll"
+          >
             <div
               v-for="topic in nodes[targetNodeId]?.topics ??
               []"
@@ -57,17 +68,18 @@
             </div>
           </div>
         </div>
-        <div
-          class="w-full text-center py-1 my-3 bg-gray-100 rounded-lg"
-        >
-          <a
-            :href="nodes[targetNodeId]?.url"
-            target="_blank"
+        <div class="pt-4">
+          <button
+            class="text-gray-900 text-sm w-full text-center my-auto bg-gray-100 rounded-lg h-8 btn"
           >
-            <button class="text-gray-900 text-sm">
+            <a
+              :href="nodes[targetNodeId]?.url"
+              target="_blank"
+              class="text-gray-900"
+            >
               View on GitHub
-            </button>
-          </a>
+            </a>
+          </button>
         </div>
       </div>
       <div
@@ -121,6 +133,7 @@ const props = defineProps({
 // These are the min and max size for the nodes in the graph
 const maxSize = 40
 const minSize = 10
+const edgeMarginTop = 20
 
 // This ref is used to change the size of the nodes in the graph,
 // it will be used to multiply the size of each node based on the zoom level
@@ -200,6 +213,7 @@ const configs = reactive(
       }
     },
     edge: {
+      selectable: true,
       normal: {
         color: edgeColor,
         width: edgeSize
@@ -451,7 +465,7 @@ watch(
         domPoint.x -
         edgeTooltip.value.offsetWidth / 2 +
         'px',
-      top: domPoint.y - EDGE_MARGIN_TOP - 60 - 10 + 'px'
+      top: domPoint.y - edgeMarginTop - 60 - 10 + 'px'
     }
   },
   { deep: true }
