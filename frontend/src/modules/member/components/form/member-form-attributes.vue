@@ -99,22 +99,28 @@
               />
             </el-select>
 
-            <el-select
+            <el-tooltip
               v-else-if="attribute.type === 'multiSelect'"
-              v-model="model[attribute.name]"
-              class="w-full"
-              disabled
-              filterable
-              multiple
-              placeholder="Select option"
+              content="Multi-select fields are temporarily read-only"
+              placement="top"
             >
-              <el-option
-                v-for="item of attribute.options"
-                :key="item"
-                :label="item"
-              />
-            </el-select>
-
+              <el-select
+                v-model="model[attribute.name]"
+                class="w-full"
+                disabled
+                filterable
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="Select option"
+              >
+                <el-option
+                  v-for="item of attribute.options"
+                  :key="item"
+                  :label="item"
+                />
+              </el-select>
+            </el-tooltip>
             <el-input
               v-else
               v-model="model[attribute.name]"

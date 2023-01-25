@@ -12,6 +12,7 @@
     <el-popover
       v-if="attribute?.default.length > sliceSize"
       placement="top"
+      trigger="click"
       width="240px"
     >
       <template #reference>
@@ -30,7 +31,10 @@
       >
         {{ title }}
       </div>
-      <div :class="wrapperClass">
+      <div
+        :class="wrapperClass"
+        class="max-h-72 overflow-auto"
+      >
         <div
           v-for="item of restOfValues"
           :key="item"

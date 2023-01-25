@@ -15,7 +15,7 @@
       <template #itemSlot="{ item }">
         <div class="block py-3">
           <div
-            class="text-xs text-gray-900 break-words text-left"
+            class="text-xs text-gray-900 break-keep text-left"
           >
             {{ item.title }}
           </div>
@@ -41,7 +41,7 @@
       <template #itemSlot="{ item }">
         <div class="block py-3">
           <div
-            class="text-xs text-gray-900 break-words text-left"
+            class="text-xs text-gray-900 break-keep text-left"
           >
             {{ item.major }} {{ item.specialization }}
           </div>
@@ -67,7 +67,7 @@
       <template #itemSlot="{ item }">
         <div class="block py-3">
           <div
-            class="text-xs text-gray-900 break-words text-left"
+            class="text-xs text-gray-900 break-keep text-left"
           >
             {{ item.title }}
           </div>
@@ -92,7 +92,7 @@
     >
       <template #itemSlot="{ item }">
         <div
-          class="text-xs text-gray-900 break-words text-left py-3"
+          class="text-xs text-gray-900 break-keep text-left py-3"
         >
           {{ item }}
         </div>
