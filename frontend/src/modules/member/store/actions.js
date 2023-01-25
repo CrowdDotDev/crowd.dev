@@ -320,16 +320,20 @@ export default {
         root: true
       })
 
-      // Update member
-      dispatch('doFind', id)
+      const updatedTenant =
+        rootGetters['auth/currentTenant']
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
-        memberEnrichmentCount,
+        memberEnrichmentCount:
+          updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
         plan: currentTenant.plan,
         isBulk: false
       })
+
+      // Update member
+      await dispatch('doFind', id)
     } catch (error) {
       // Show enrichment error message
       showEnrichmentErrorMessage({ isBulk: false })
@@ -377,16 +381,20 @@ export default {
 
       await MemberService.enrichMemberBulk(ids)
 
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
+      })
+
+      const updatedTenant =
+        rootGetters['auth/currentTenant']
+
       // Show enrichment success message
       showEnrichmentSuccessMessage({
-        memberEnrichmentCount,
+        memberEnrichmentCount:
+          updatedTenant.memberEnrichmentCount,
         planEnrichmentCountMax,
         plan: currentTenant.plan,
         isBulk: true
-      })
-
-      await dispatch(`auth/doRefreshCurrentUser`, null, {
-        root: true
       })
 
       // Refresh list page

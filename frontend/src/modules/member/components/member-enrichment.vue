@@ -11,13 +11,14 @@
           >Member enrichment</span
         >
       </div>
-      <el-tooltip placement="top" content="Learn more">
+      <!-- TODO: Uncomment once we have the link -->
+      <!-- <el-tooltip placement="top" content="Learn more">
         <el-button
           class="btn btn--transparent !h-8 !w-8 !text-gray-400 hover:!text-gray-600"
           @click="onLearnMoreClick"
           ><i class="ri-question-line text-lg"
         /></el-button>
-      </el-tooltip>
+      </el-tooltip> -->
     </div>
 
     <div class="mt-4 mb-5 text-2xs text-gray-600">
@@ -69,7 +70,7 @@ const isEnrichmentDisabled = computed(
 )
 
 // TODO: Add link on click
-const onLearnMoreClick = () => {}
+// const onLearnMoreClick = () => {}
 
 const onEnrichmentClick = async () => {
   await doEnrich(props.member.id)
