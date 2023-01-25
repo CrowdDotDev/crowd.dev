@@ -22,6 +22,7 @@
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
           :disabled="elegibleEnrichmentMembers.length"
+          popper-class="max-w-[260px]"
         >
           <span>
             <el-dropdown-item

@@ -31,6 +31,7 @@
       placement="top"
       content="Member enrichment requires an associated GitHub profile or Email"
       :disabled="!isEnrichmentDisabled"
+      popper-class="max-w-[260px]"
     >
       <span>
         <el-button
