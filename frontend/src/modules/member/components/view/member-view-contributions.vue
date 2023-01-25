@@ -110,6 +110,7 @@ import {
 import { defineConfigs } from 'v-network-graph'
 import { ForceLayout } from 'v-network-graph/lib/force-layout'
 
+// Define the props that will be passed to this component
 const props = defineProps({
   contributions: {
     type: Array,
@@ -117,37 +118,50 @@ const props = defineProps({
   }
 })
 
+// These are the min and max size for the nodes in the graph
 const maxSize = 40
 const minSize = 10
+
+// This ref is used to change the size of the nodes in the graph,
+// it will be used to multiply the size of each node based on the zoom level
 const reduceFactor = ref(1)
 
-// ref="graph"
+// These refs are used to store references to the
+// graph and tooltip elements in the template
 const graph = ref()
-// ref="tooltip"
 const tooltip = ref()
 const edgeTooltip = ref()
+
+// These refs are used to store the id of the target node
+// and edge when hovering
 const targetNodeId = ref('')
-const EDGE_MARGIN_TOP = 2
 const targetEdgeId = ref('')
+
+// These refs are used to store references to the hovered node and edge
 const hoveredNode = ref(null)
 const hoveredEdge = ref(null)
+
+// This ref is used to store the different layouts for the graph
 const layouts = ref({})
 
-const tooltipOpacity = ref(0) // 0 or 1
+// These refs are used to store the opacity and position of the tooltip
+const tooltipOpacity = ref(0)
 const tooltipPos = ref({ left: '0px', top: '0px' })
 
-const edgeToolTipOpacity = ref(0) // 0 or 1
+// These refs are used to store the opacity and position of the edge tooltip
+const edgeToolTipOpacity = ref(0)
 const edgeToolTipPos = ref({ left: '0px', top: '0px' })
 
+// This reactive object is used to store the configurations for the graph
 const configs = reactive(
   defineConfigs({
     view: {
       layoutHandler: new ForceLayout({
         positionFixedByDrag: false,
         positionFixedByClickWithAltKey: true,
-        // * The following are the default parameters for the simulation.
-        // * You can customize it by uncommenting below.
         createSimulation: (d3, nodes, edges) => {
+          // This creates the simulation for the graph using D3
+          // you can learn more here: https://github.com/d3/d3-force#forces
           const forceLink = d3
             .forceLink(edges)
             .id((d) => d.id)
@@ -198,37 +212,43 @@ const configs = reactive(
   })
 )
 
+// nodes computed property
 const nodes = computed(() => {
+  // Create an empty object to store the nodes
   const nodes = {}
+  // Iterate over the contributions prop
   props.contributions.forEach((contribution) => {
+    // Extract the name of the contribution from the URL
     const name = contribution.url.split('/').pop()
+    // Check if the node for this contribution already exists
+
+    // Calculate the size of the node based on the number of commits and the reduceFactor ref
+    const size =
+      Math.max(
+        Math.min(contribution.numberCommits, maxSize),
+        minSize
+      ) * reduceFactor.value
+
     if (!nodes[name]) {
+      // If the node does not exist, create a new node object
       const node = {
         name,
         fullName: contribution.url
           .split('/')
           .slice(-2)
           .join('/'),
-        size:
-          Math.max(
-            Math.min(contribution.numberCommits, maxSize),
-            minSize
-          ) * reduceFactor.value,
+        size,
+        // Store the topics and number of commits for the node
         topics: contribution.topics,
         numberCommits: contribution.numberCommits,
+        // Store the URL for the node
         url: contribution.url
       }
+      // Add the new node to the nodes object
       nodes[name] = node
     } else {
-      nodes[name].size =
-        Math.max(
-          Math.min(
-            nodes[name].numberCommits +
-              contribution.numberCommits,
-            maxSize
-          ),
-          minSize
-        ) * reduceFactor.value
+      // If the node already exists, update its size, number of commits, and topics
+      nodes[name].size = size
       nodes[name].numberCommits +=
         contribution.numberCommits
       nodes[name].topics = [
@@ -239,24 +259,36 @@ const nodes = computed(() => {
       ]
     }
   })
+  // Return the nodes object
   return nodes
 })
 
+// edges computed property
 const edges = computed(() => {
+  // Create an empty object to store the edges
   let edges = {}
+  // Create an empty object to store a mapping of topics to contribution IDs
   let topicMap = {}
+  // Iterate over the contributions prop
   props.contributions.forEach((contribution) => {
+    // Extract the name of the contribution from the URL
     const name = contribution.url.split('/').pop()
+    // Iterate over the topics for the contribution
     contribution.topics.forEach((topic) => {
+      // Check if the topic is already in the topicMap
       if (!topicMap[topic]) {
+        // If the topic is not in the topicMap, create a new entry with the contribution's ID
         topicMap[topic] = [name]
       } else {
+        // If the topic is already in the topicMap, add the contribution's ID to the array of IDs for that topic
         topicMap[topic].push(name)
       }
     })
   })
 
+  // Iterate over the topics in the topicMap
   for (let topic in topicMap) {
+    // Get the array of contribution IDs for the current topic
     let contributionIds = topicMap[topic]
 
     for (let i = 0; i < contributionIds.length; i++) {
