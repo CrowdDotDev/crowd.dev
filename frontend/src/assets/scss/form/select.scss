@@ -42,7 +42,7 @@
 
   &--disabled {
     .el-select__tags {
-      @apply cursor-not-allowed;
+      @apply cursor-text;
     }
   }
 }

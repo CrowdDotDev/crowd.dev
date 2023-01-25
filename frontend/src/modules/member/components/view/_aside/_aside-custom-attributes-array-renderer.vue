@@ -12,7 +12,6 @@
     <el-popover
       v-if="attribute?.default.length > sliceSize"
       placement="top"
-      trigger="click"
       width="240px"
     >
       <template #reference>
