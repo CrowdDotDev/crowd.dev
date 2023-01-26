@@ -16,7 +16,8 @@ export default {
     {
       selected = false,
       customIds = [],
-      customFilter = null
+      customFilter = null,
+      count = null
     }
   ) {
     let filter
@@ -64,11 +65,9 @@ export default {
         cancelButtonText: 'Cancel',
         badgeContent: selected
           ? `${
-              customIds.length ||
-              getters.selectedRows.length
+              count || getters.selectedRows.length
             } member${
-              (customIds.length ||
-                getters.selectedRows.length) === 1
+              (count || getters.selectedRows.length) === 1
                 ? ''
                 : 's'
             }`

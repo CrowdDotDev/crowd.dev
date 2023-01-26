@@ -316,7 +316,7 @@ const onExportClick = async () => {
     }
   }
 
-  emit('on-export', ids)
+  emit('on-export', { ids, count: count.value })
 }
 
 const onRowClick = () => {

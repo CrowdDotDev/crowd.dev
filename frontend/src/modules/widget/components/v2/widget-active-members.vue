@@ -207,9 +207,13 @@ const handleDrawerOpen = async (widget) => {
   drawerGranularity.value = widget.period
 }
 
-const onExport = async (ids) => {
+const onExport = async ({ ids, count }) => {
   try {
-    await doExport({ selected: true, customIds: ids })
+    await doExport({
+      selected: true,
+      customIds: ids,
+      count
+    })
   } catch (error) {
     console.log(error)
   }

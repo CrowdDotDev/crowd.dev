@@ -231,7 +231,7 @@ const onViewMoreClick = (date) => {
   }
 }
 
-const onExport = async () => {
+const onExport = async ({ count }) => {
   try {
     await doExport({
       selected: false,
@@ -240,7 +240,8 @@ const onExport = async () => {
         granularity: granularity.value,
         selectedPlatforms: props.filters.platform.value,
         selectedHasTeamMembers: props.filters.teamMembers
-      })
+      }),
+      count
     })
   } catch (error) {
     console.log(error)
