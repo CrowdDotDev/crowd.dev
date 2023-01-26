@@ -106,7 +106,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       )
     ).map((m) => {
       if (!m.avatarUrl) {
-        m.avatarUrl = `/email/member-placeholder.png`
+        m.avatarUrl = `${s3Url}/email/member-placeholder.png`
       }
       return m
     })

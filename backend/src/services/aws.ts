@@ -30,7 +30,14 @@ if (KUBE_MODE) {
       region: S3_CONFIG.aws.region,
     }
 
-    s3Instance = new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
+    s3Instance = IS_DEV_ENV
+    ? new AWS.S3({
+        s3ForcePathStyle: true,
+        endpoint: `${S3_CONFIG.host}:${S3_CONFIG.port}`,
+        apiVersion: '2012-10-17',
+        ...awsS3Config,
+      })
+    : new AWS.S3({ apiVersion: '2012-10-17', ...awsS3Config })
   }
 
   comprehendInstance = COMPREHEND_CONFIG.aws.accessKeyId
