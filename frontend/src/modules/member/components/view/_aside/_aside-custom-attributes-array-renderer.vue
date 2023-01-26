@@ -9,13 +9,14 @@
         <slot name="itemSlot" :item="item" />
       </div>
     </div>
-    <el-popover
-      v-if="attribute?.default.length > sliceSize"
-      placement="top"
-      width="240px"
-    >
-      <template #reference>
-        <div>
+
+    <div>
+      <el-popover
+        v-if="attribute?.default.length > sliceSize"
+        placement="top"
+        width="240px"
+      >
+        <template #reference>
           <span
             class="badge badge--sm inline-block mt-4 !font-normal"
           >
@@ -23,26 +24,28 @@
             {{ restOfValues.length }}
             {{ moreLabel }}
           </span>
-        </div>
-      </template>
-      <div
-        class="uppercase text-gray-400 tracking-wide font-semibold text-2xs mb-2"
-      >
-        {{ title }}
-      </div>
-      <div
-        :class="wrapperClass"
-        class="max-h-72 overflow-auto"
-      >
+        </template>
         <div
-          v-for="item of restOfValues"
-          :key="item"
-          :class="itemClass"
+          class="uppercase text-gray-400 tracking-wide font-semibold text-2xs mb-2"
         >
-          <slot name="itemSlot" :item="item" />
+          {{ title }}
         </div>
-      </div>
-    </el-popover>
+        <div
+          :class="wrapperClass"
+          class="max-h-72 overflow-auto -mr-3"
+        >
+          <div class="mr-3">
+            <div
+              v-for="item of restOfValues"
+              :key="item"
+              :class="itemClass"
+            >
+              <slot name="itemSlot" :item="item" />
+            </div>
+          </div>
+        </div>
+      </el-popover>
+    </div>
   </div>
 </template>
 

@@ -58,7 +58,7 @@
             :slice-size="5"
             :with-separators="false"
             wrapper-class="flex flex-wrap -mx-1 mt-2 -mb-1"
-            item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex"
+            item-class="border border-gray-200 px-2.5 text-xs py-1 rounded-md h-fit text-gray-900 m-1 inline-flex break-keep"
           >
             <template #itemSlot="{ item }">
               {{ item }}
