@@ -263,10 +263,12 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
         c.conversationStartedFromNow = moment(conversationStarterActivity.timestamp).fromNow()
 
-        c.replyCount = conversationLazyLoaded.activities.length - 1
+        const replyActivities = conversationLazyLoaded.activities.slice(1)
+
+        c.replyCount = replyActivities.length
 
         c.memberCount = await ConversationRepository.getTotalMemberCount(
-          conversationLazyLoaded.activities,
+          replyActivities,
         )
 
         c.platform = conversationStarterActivity.platform
