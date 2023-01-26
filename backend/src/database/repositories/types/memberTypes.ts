@@ -3,6 +3,7 @@ export interface IActiveMemberData {
   displayName: string
   username: any
   attributes: any
+  organizations: any[]
   activityCount: number
   activeDaysCount: number
 }
