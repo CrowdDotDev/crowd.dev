@@ -63,15 +63,16 @@ export default {
         icon: 'ri-file-download-line',
         confirmButtonText: 'Send download link to e-mail',
         cancelButtonText: 'Cancel',
-        badgeContent: selected
-          ? `${
-              count || getters.selectedRows.length
-            } member${
-              (count || getters.selectedRows.length) === 1
-                ? ''
-                : 's'
-            }`
-          : `View: ${getters.activeView.label}`,
+        badgeContent:
+          selected || count
+            ? `${
+                count || getters.selectedRows.length
+              } member${
+                (count || getters.selectedRows.length) === 1
+                  ? ''
+                  : 's'
+              }`
+            : `View: ${getters.activeView.label}`,
         highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`
       })
 
