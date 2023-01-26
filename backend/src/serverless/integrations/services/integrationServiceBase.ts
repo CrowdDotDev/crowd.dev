@@ -144,7 +144,7 @@ export abstract class IntegrationServiceBase {
     timestamp: string,
     platform: string,
   ) {
-    if (uniqueRemoteId === '' || type === '' || timestamp === '' || platform === '') {
+    if (!uniqueRemoteId || !type || !timestamp || !platform) {
       throw new Error('Bad hash input')
     }
 

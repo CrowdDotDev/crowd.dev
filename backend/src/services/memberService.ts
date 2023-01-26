@@ -123,11 +123,16 @@ export default class MemberService extends LoggingBase {
       .attributeSettings.priorities
 
     for (const attributeName of Object.keys(attributes)) {
-      const highestPriorityPlatform = this.getHighestPriorityPlatformForAttributes(
+      const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         Object.keys(attributes[attributeName]),
         priorityArray,
       )
-      attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+
+      if (highestPriorityPlatform !== undefined) {
+        attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+      } else {
+        delete attributes[attributeName]
+      }
     }
 
     return attributes
@@ -139,11 +144,14 @@ export default class MemberService extends LoggingBase {
    * the first platform sent as the highest priority platform.
    * @param platforms Array of platforms to select the highest priority platform
    * @param priorityArray zero indexed priority array. Lower index means higher priority
-   * @returns the highest priority platform
+   * @returns the highest priority platform or undefined if values are incorrect
    */
-  getHighestPriorityPlatformForAttributes(platforms: string[], priorityArray: string[]): string {
+  public static getHighestPriorityPlatformForAttributes(
+    platforms: string[],
+    priorityArray: string[],
+  ): string | undefined {
     if (platforms.length <= 0) {
-      throw new Error400(this.options.language, 'settings.memberAttributes.noPlatformSent')
+      return undefined
     }
     const filteredPlatforms = priorityArray.filter((i) => platforms.includes(i))
     return filteredPlatforms.length > 0 ? filteredPlatforms[0] : platforms[0]

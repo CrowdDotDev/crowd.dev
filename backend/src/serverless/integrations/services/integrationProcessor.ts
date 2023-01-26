@@ -320,7 +320,7 @@ export class IntegrationProcessor extends LoggingBase {
           // surround with try catch so if one stream fails we try all of them as well just in case
           try {
             logger.trace(
-              { stream: stream.value },
+              { stream: JSON.stringify(stream) },
               `Processing stream! Still have ${streams.length} streams left to process!`,
             )
             let processStreamResult
@@ -330,7 +330,7 @@ export class IntegrationProcessor extends LoggingBase {
               if (err.rateLimitResetSeconds) {
                 delay = err.rateLimitResetSeconds + 5
                 logger.warn(
-                  { stream: stream.value, delay, message: err.message },
+                  { stream: JSON.stringify(stream), delay, message: err.message },
                   'Rate limit reached while processing stream! Delaying...',
                 )
                 failedStreams.push(stream)
@@ -372,7 +372,7 @@ export class IntegrationProcessor extends LoggingBase {
                 logger.warn('Integration processing finished because of service implementation!')
               } else {
                 logger.trace(
-                  { currentStream: stream },
+                  { currentStream: JSON.stringify(stream) },
                   `Detected next page stream! Now we have ${streams.length} left to process!`,
                 )
                 streams.push(processStreamResult.nextPageStream)
@@ -421,7 +421,7 @@ export class IntegrationProcessor extends LoggingBase {
               notifyCount = 0
             }
           } catch (err) {
-            logger.error(err, { stream }, 'Error processing a stream!')
+            logger.error(err, { stream: JSON.stringify(stream) }, 'Error processing a stream!')
             failedStreams.push(stream)
           }
         }
@@ -454,7 +454,7 @@ export class IntegrationProcessor extends LoggingBase {
 
             if (retryCount > MAX_STREAM_RETRIES) {
               logger.warn(
-                { failedStream },
+                { failedStream: JSON.stringify(failedStream) },
                 'Failed stream will not be retried because it reached retry limit!',
               )
               streamRetryLimitReached = true
