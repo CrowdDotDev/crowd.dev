@@ -267,9 +267,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
         c.replyCount = replyActivities.length
 
-        c.memberCount = await ConversationRepository.getTotalMemberCount(
-          replyActivities,
-        )
+        c.memberCount = await ConversationRepository.getTotalMemberCount(replyActivities)
 
         c.platform = conversationStarterActivity.platform
 
