@@ -55,7 +55,7 @@
                 >
                   <app-svg
                     name="enrichment"
-                    class="h-3 w-4"
+                    class="h-3 w-3.5 overflow-visible flex items-center justify-center leading-none"
                   />
                 </div>
               </el-tooltip>
@@ -118,6 +118,7 @@
                   v-for="item of attribute.options"
                   :key="item"
                   :label="item"
+                  :value="item"
                 />
               </el-select>
             </el-tooltip>
@@ -208,10 +209,10 @@ const customAttributes = computed(() =>
         'location',
         'jobTitle',
         'emails',
-        'workExperiences', // we render them in _aside-work-experience
-        'certifications', // we render them in _aside-work-certifications
-        'education', // we render them in _aside-work-education
-        'awards' // we render them in _aside-work-awards
+        'workExperiences', // we render them in _aside-enriched
+        'certifications', // we render them in _aside-enriched
+        'education', // we render them in _aside-enriched
+        'awards' // we render them in _aside-enriched
       ].includes(attribute.name)
     )
   })

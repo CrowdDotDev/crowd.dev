@@ -14,7 +14,7 @@
             <img :src="organization.logo" alt="Logo" />
           </div>
         </div>
-        <div>
+        <div class="max-w-full">
           <p
             class="text-gray-900 text-sm text-ellipsis truncate hover:text-brand-500 transition leading-relaxed"
           >
@@ -25,7 +25,7 @@
               props.showTitle &&
               props.member.attributes.jobTitle?.default
             "
-            class="text-gray-500 text-2xs"
+            class="text-gray-500 text-2xs truncate pr-4"
           >
             {{
               props.member.attributes.jobTitle?.default ||
@@ -60,13 +60,13 @@
     >
       <span
         v-if="member.attributes?.jobTitle?.default"
-        class="text-gray-600 text-2xs mr-2"
+        class="text-gray-600 text-2xs mr-2 truncate block flex-shrink max-w-xs"
         >{{ member.attributes.jobTitle.default }}
         {{ member.organizations.length ? 'at' : '' }}</span
       >
       <div
         v-if="member.organizations.length"
-        class="text-gray-900 text-sm text-ellipsis truncate flex flex-wrap items-center hover:cursor-pointer hover:text-brand-500 transition"
+        class="text-gray-900 text-sm text-ellipsis truncate flex items-center hover:cursor-pointer hover:text-brand-500 transition"
         @click.stop="
           () => onOrganizationClick(member.organizations[0])
         "
