@@ -37,6 +37,15 @@
       >
         <p class="title">
           {{ attribute.label }}
+          <el-tooltip
+            content="Skills are sorted by relevance"
+            placement="top"
+          >
+            <i
+              v-if="attribute.name === 'skills'"
+              class="ri-information-line"
+            ></i>
+          </el-tooltip>
         </p>
         <div
           v-if="attribute.type === 'multiSelect'"
