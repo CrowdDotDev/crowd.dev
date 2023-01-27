@@ -42,7 +42,8 @@ const defaultConfig = {
   },
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
-    formId: process.env.VUE_APP_FORMBRICKS_FORM_ID
+    formId: process.env.VUE_APP_FORMBRICKS_FORM_ID,
+    pmfFormId: process.env.VUE_APP_FORMBRICKS_PMF_FORM_ID
   },
   stripe: {
     publishableKey:
