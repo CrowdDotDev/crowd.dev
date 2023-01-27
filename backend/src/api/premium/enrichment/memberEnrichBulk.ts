@@ -8,6 +8,7 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlag, FeatureFlagRedisKey } from '../../../types/common'
 import { createServiceLogger } from '../../../utils/logging'
 import { RedisCache } from '../../../utils/redis/redisCache'
+import track from '../../../segment/track'
 
 const log = createServiceLogger()
 
@@ -29,6 +30,12 @@ export default async (req, res) => {
     parseInt(memberEnrichmentCount, 10) + membersToEnrich.length >
     PLAN_LIMITS[req.currentTenant.plan][FeatureFlag.MEMBER_ENRICHMENT]
   ) {
+    track(
+      `Bulk member enrichment`,
+      { count: membersToEnrich.length, memberIds: membersToEnrich, overTheLimit: true },
+      { ...req },
+    )
+
     await req.responseHandler.error(
       req,
       res,
@@ -36,6 +43,12 @@ export default async (req, res) => {
     )
     return
   }
+
+  track(
+    'Bulk member enrichment',
+    { count: membersToEnrich.length, memberIds: membersToEnrich, overTheLimit: false },
+    { ...req },
+  )
 
   // send the message
   await sendBulkEnrichMessage(tenant, membersToEnrich)

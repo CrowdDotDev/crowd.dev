@@ -5,26 +5,14 @@ import MemberEnrichmentService from '../../../services/premium/enrichment/member
 import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlagRedisKey } from '../../../types/common'
 import { RedisCache } from '../../../utils/redis/redisCache'
+import track from '../../../segment/track'
 
-// /**
-//  * PUT /tenant/{tenantId}/member/{id}
-//  * @summary Update a member
-//  * @tag Members
-//  * @security Bearer
-//  * @description Update a member
-//  * @pathParam {string} tenantId - Your workspace/tenant ID
-//  * @pathParam {string} id - The ID of the member
-//  * @bodyContent {MemberUpsertInput} application/json
-//  * @response 200 - Ok
-//  * @responseContent {Member} 200.application/json
-//  * @responseExample {MemberUpsert} 200.application/json.Member
-//  * @response 401 - Unauthorized
-//  * @response 404 - Not found
-//  * @response 429 - Too many requests
-//  */
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
+
   const payload = await new MemberEnrichmentService(req).enrichOne(req.params.id)
+
+  track('Single member enrichment', { memberId: req.params.id }, { ...req })
 
   const memberEnrichmentCountCache = new RedisCache(
     FeatureFlagRedisKey.MEMBER_ENRICHMENT_COUNT,

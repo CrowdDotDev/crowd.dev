@@ -29,6 +29,7 @@ import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { createRedisClient } from '../../../utils/redis'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
+import track from '../../../segment/telemetryTrack'
 
 export default class MemberEnrichmentService extends LoggingBase {
   options: IServiceOptions
@@ -219,11 +220,14 @@ export default class MemberEnrichmentService extends LoggingBase {
       throw new Error400(this.options.language, 'enrichment.errors.noGithubHandleOrEmail')
     }
 
+    let enrichedFrom = ''
     let enrichmentData: EnrichmentAPIMember
     // If the member has a GitHub handle, use it to make a request to the Enrichment API
     if (member.username[PlatformType.GITHUB]) {
+      enrichedFrom = 'github'
       enrichmentData = await this.getEnrichmentByGithubHandle(member.username[PlatformType.GITHUB])
     } else if (member.email) {
+      enrichedFrom = 'email'
       // If the member has an email address, use it to make a request to the Enrichment API
       enrichmentData = await this.getEnrichmentByEmail(member.email)
     }
@@ -244,6 +248,16 @@ export default class MemberEnrichmentService extends LoggingBase {
           })
         }
       }
+
+      track(
+        'Member Enriched',
+        {
+          memberId: member.id,
+          enrichedFrom,
+        },
+        this.options,
+      )
+
       return memberService.upsert({ ...normalized, platform: PlatformType.GITHUB })
     }
     return null
