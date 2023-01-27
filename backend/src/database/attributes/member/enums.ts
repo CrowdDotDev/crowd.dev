@@ -71,15 +71,12 @@ export const MemberAttributes = {
     name: MemberAttributeName.IS_TEAM_MEMBER,
     label: 'is Team Member',
   },
-<<<<<<< HEAD
   [MemberAttributeName.IS_ORGANIZATION]: {
     name: MemberAttributeName.IS_ORGANIZATION,
     label: 'is Organization',
-=======
   [MemberAttributeName.IS_BOT]: {
     name: MemberAttributeName.IS_BOT,
     label: 'is Bot',
->>>>>>> f7e2f9ce (First commit on isBot)
   },
   [MemberAttributeName.KARMA]: {
     name: MemberAttributeName.KARMA,
