@@ -104,25 +104,33 @@ const store = useStore()
 const attributesDrawer = ref(false)
 
 const computedCustomAttributes = computed(() => {
-  return Object.values(
-    store.state.member.customAttributes
-  ).filter((attribute) => {
-    return (
-      attribute.show &&
-      ![
-        'bio',
-        'url',
-        'location',
-        'jobTitle',
-        // 'emails' TODO: should we actually render emails here?
-        'workExperiences', // we render them in _aside-work-experience
-        'certifications', // we render them in _aside-work-certifications
-        'education', // we render them in _aside-work-education
-        'awards' // we render them in _aside-work-awards
-      ].includes(attribute.name) &&
-      props.member.attributes[attribute.name]
-    )
-  })
+  return Object.values(store.state.member.customAttributes)
+    .filter((attribute) => {
+      return (
+        attribute.show &&
+        ![
+          'bio',
+          'url',
+          'location',
+          'jobTitle',
+          // 'emails' TODO: should we actually render emails here?
+          'workExperiences', // we render them in _aside-work-experience
+          'certifications', // we render them in _aside-work-certifications
+          'education', // we render them in _aside-work-education
+          'awards' // we render them in _aside-work-awards
+        ].includes(attribute.name) &&
+        props.member.attributes[attribute.name]
+      )
+    })
+    .sort((a, b) => {
+      if (props.member.attributes[a.name].enrich) {
+        return props.member.attributes[b.name].enrich
+          ? 0
+          : -1
+      } else {
+        return 1
+      }
+    })
 })
 
 const formattedComputedAttributeValue = (value) => {
