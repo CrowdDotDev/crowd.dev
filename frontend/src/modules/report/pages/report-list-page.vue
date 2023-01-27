@@ -17,42 +17,49 @@
       </div>
     </div>
 
-    <!-- Template reports -->
-    <div v-if="computedTemplates.length">
-      <div
-        class="text-gray-900 font-semibold text-base mb-6"
-      >
-        Default reports
-      </div>
+    <div
+      v-if="loading"
+      v-loading="loading"
+      class="app-page-spinner h-16 !relative !min-h-5"
+    ></div>
+    <div v-else>
+      <!-- Template reports -->
+      <div v-if="computedTemplates.length">
+        <div
+          class="text-gray-900 font-semibold text-base mb-6"
+        >
+          Default reports
+        </div>
 
-      <div class="grid grid-cols-3">
-        <app-report-template-item
-          v-for="template in computedTemplates"
-          :key="template.name"
-          :template="template"
+        <div class="grid grid-cols-3">
+          <app-report-template-item
+            v-for="template in computedTemplates"
+            :key="template.name"
+            :template="template"
+          />
+        </div>
+
+        <el-divider
+          v-if="customReportsCount"
+          class="!mb-6 !mt-14 border-gray-200"
         />
       </div>
 
-      <el-divider
-        v-if="customReportsCount"
-        class="!mb-6 !mt-14 border-gray-200"
-      />
-    </div>
-
-    <!-- Custom Reports -->
-    <div v-if="customReportsCount">
-      <div
-        class="text-gray-900 font-semibold text-base mb-6"
-      >
-        Custom reports
+      <!-- Custom Reports -->
+      <div v-if="customReportsCount">
+        <div
+          class="text-gray-900 font-semibold text-base mb-6"
+        >
+          Custom reports
+        </div>
+        <app-report-list-table
+          @cta-click="isCreatingReport = true"
+        ></app-report-list-table>
       </div>
-      <app-report-list-table
-        @cta-click="isCreatingReport = true"
-      ></app-report-list-table>
+      <app-report-create-dialog
+        v-model="isCreatingReport"
+      ></app-report-create-dialog>
     </div>
-    <app-report-create-dialog
-      v-model="isCreatingReport"
-    ></app-report-create-dialog>
   </app-page-wrapper>
 </template>
 

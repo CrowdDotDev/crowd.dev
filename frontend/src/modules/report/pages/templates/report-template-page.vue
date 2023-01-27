@@ -1,5 +1,10 @@
 <template>
-  <div class="absolute left-0 right-0">
+  <div
+    v-if="loading"
+    v-loading="loading"
+    class="app-page-spinner"
+  ></div>
+  <div v-else-if="!error" class="absolute left-0 right-0">
     <div
       ref="header"
       class="w-full bg-gray-50 border-gray-200 pt-4 sticky top-[-20px] z-10"
@@ -84,7 +89,8 @@ import {
   onMounted,
   onUnmounted,
   defineProps,
-  computed
+  computed,
+  onBeforeUnmount
 } from 'vue'
 import AppReportMemberTemplate from './report-member-template.vue'
 import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
@@ -92,6 +98,7 @@ import { MEMBERS_REPORT } from '@/modules/report/templates/template-reports'
 import AppReportTemplateFilters from '@/modules/report/components/templates/report-template-filters.vue'
 import ActivityPlatformField from '@/modules/activity/activity-platform-field'
 import { templates } from '@/modules/report/templates/template-reports'
+import { useStore } from 'vuex'
 
 const props = defineProps({
   id: {
@@ -102,9 +109,14 @@ const props = defineProps({
 
 const { doFind } = mapActions('report')
 
+const store = useStore()
+
 const report = ref()
 const header = ref()
 const wrapper = ref()
+const loading = ref()
+const error = ref()
+const storeUnsubscribe = ref(() => {})
 const isHeaderOnTop = ref(false)
 
 const platformField = new ActivityPlatformField(
@@ -129,7 +141,15 @@ const { cubejsApi } = mapGetters('widget')
 const { getCubeToken } = mapActions('widget')
 
 onMounted(async () => {
+  storeUnsubscribe.value = store.subscribe((mutation) => {
+    if (mutation.type === 'report/FIND_ERROR') {
+      error.value = true
+    }
+  })
+
+  loading.value = true
   report.value = await doFind(props.id)
+  loading.value = false
 
   if (cubejsApi.value === null) {
     await getCubeToken()
@@ -140,6 +160,10 @@ onMounted(async () => {
   )
 
   wrapper.value?.addEventListener('scroll', onPageScroll)
+})
+
+onBeforeUnmount(() => {
+  storeUnsubscribe.value()
 })
 
 onUnmounted(() => {
