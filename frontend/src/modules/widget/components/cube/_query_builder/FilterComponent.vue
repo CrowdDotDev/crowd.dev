@@ -1,11 +1,11 @@
 <template>
+  <div class="flex items-center justify-between">
+    <div class="font-semibold text-sm">Filters</div>
+  </div>
   <div
     v-if="!!computedFilters.length"
     class="widget-filter-container"
   >
-    <div class="flex items-center justify-between">
-      <div class="font-semibold text-sm">Filters</div>
-    </div>
     <div class="mt-2">
       <div class="flex -mx-2">
         <div class="flex-1 grow h-0">
@@ -187,16 +187,36 @@
           </el-tooltip>
         </div>
       </div>
+    </div>
+  </div>
+  <el-tooltip
+    :disabled="!!computedFilters.length"
+    placement="top-start"
+    content="There are no available filters for the selected measure"
+  >
+    <span
+      class="w-fit flex"
+      :class="{
+        'mt-4': !computedFilters.length,
+        'mt-2': computedFilters.length
+      }"
+    >
       <span
-        class="flex items-center text-brand-500 hover:text-brand-700 cursor-pointer text-xs font-medium mt-2"
+        class="flex items-center hover:text-brand-700 text-xs font-medium"
+        :class="{
+          'pointer-events-none text-gray-300':
+            !computedFilters.length,
+          'cursor-pointer text-brand-500':
+            computedFilters.length
+        }"
       >
         <i class="flex items-center ri-add-line mr-1"></i
         ><span class="leading-none block" @click="addFilter"
           >Add filter</span
         >
       </span>
-    </div>
-  </div>
+    </span>
+  </el-tooltip>
 </template>
 
 <script>
