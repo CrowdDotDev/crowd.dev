@@ -33,6 +33,7 @@ export const getPost = async (
       authorUrn: e.author,
       body: e.commentary,
       originalUrnId: e.reshareContext?.parent,
+      timestamp: e.createdAt,
     }
   } catch (err) {
     const newErr = handleLinkedinError(err, config, { pizzlyId, postId }, logger)
