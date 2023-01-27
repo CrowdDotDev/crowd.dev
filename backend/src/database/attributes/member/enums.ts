@@ -74,6 +74,7 @@ export const MemberAttributes = {
   [MemberAttributeName.IS_ORGANIZATION]: {
     name: MemberAttributeName.IS_ORGANIZATION,
     label: 'is Organization',
+  },
   [MemberAttributeName.IS_BOT]: {
     name: MemberAttributeName.IS_BOT,
     label: 'is Bot',
