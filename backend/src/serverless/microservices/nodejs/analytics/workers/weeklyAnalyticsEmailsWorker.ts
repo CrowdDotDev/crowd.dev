@@ -301,8 +301,22 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       }),
     )
 
-    if (activeMembersThisWeek > 0) {
-      log.info(tenantId, ` has some active members this week. Eligible for weekly emails.. `)
+    const activeTenantIntegrations = await userContext.database.sequelize.query(
+      `
+      select * from integrations i
+      where i."tenantId" = :tenantId
+      and i.status = 'done'
+      limit 1;`,
+      {
+        replacements: {
+          tenantId,
+        },
+        type: QueryTypes.SELECT,
+      },
+    )
+
+    if (activeTenantIntegrations.length > 0) {
+      log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
       const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
 
       const advancedSuppressionManager = {
