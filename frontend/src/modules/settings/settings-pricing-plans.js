@@ -45,10 +45,9 @@ export const plans = {
       price: 'from $850/month',
       featuresNote: 'Everything in Growth, plus:',
       features: [
-        'Powerful enrichment for members & organizations',
         'Activity categorization & topic analysis',
         'Integrations with CRMs & CDPs',
-        'Unlimited member enrichments (automated)',
+        'Unlimited member & organization enrichment (automated)',
         'Unlimited active workflows & CSV exports per month',
         'Dedicated community expert'
       ]
