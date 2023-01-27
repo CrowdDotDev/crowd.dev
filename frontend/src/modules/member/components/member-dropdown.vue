@@ -37,7 +37,7 @@
           ></el-dropdown-item
         >
         <el-dropdown-item
-          v-if="!member.team"
+          v-if="!member.attributes.isTeamMember?.default"
           class="h-10"
           :command="{
             action: 'memberMarkAsTeamMember',
@@ -50,7 +50,7 @@
           ></el-dropdown-item
         >
         <el-dropdown-item
-          v-if="!member.bot"
+          v-if="!member.attributes.isBot?.default"
           class="h-10"
           :command="{
             action: 'memberMarkAsBot',
@@ -241,7 +241,7 @@ export default {
         } else {
           this.doFind(command.member.id)
         }
-      } else if (command.action === 'markAsBot') {
+      } else if (command.action === 'memberMarkAsBot') {
         await MemberService.update(command.member.id, {
           attributes: {
             ...command.member.attributes,

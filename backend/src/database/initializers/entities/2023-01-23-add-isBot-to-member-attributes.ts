@@ -3,8 +3,7 @@ import getUserContext from '../../utils/getUserContext'
 import MemberAttributeSettingsService from "../../../services/memberAttributeSettingsService";
 import { DefaultMemberAttributes } from "../../attributes/member/default";
 
-
-export default async () => {
+const addIsBotToMemberAttributes = async () => {
   const tenants = await TenantService._findAndCountAllForEveryUser({})
   const isBotAttributes = DefaultMemberAttributes.find((a) => a.name === 'isBot')
 
@@ -23,3 +22,5 @@ export default async () => {
     })
   }
 }
+
+addIsBotToMemberAttributes()

@@ -98,11 +98,6 @@ export default {
     const { platform, period } = state.filters
     return ActivityService.list(
       {
-        member: {
-          isTeamMember: {
-            not: true
-          }
-        },
         and: [
           {
             timestamp: {

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="isNew || isTeam"
+    v-if="isNew || isTeam || isBot"
     class="member-badge flex items-center ml-1"
   >
     <el-tooltip
