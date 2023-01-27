@@ -81,3 +81,10 @@ export interface EnrichmentAPIResponse {
   profile: EnrichmentAPIMember
   error?: any
 }
+
+export interface EnrichmentCache {
+  memberId: string
+  data: any
+  createdAt: string
+  updatedAt: string
+}
