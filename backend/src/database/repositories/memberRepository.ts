@@ -878,7 +878,6 @@ class MemberRepository {
     }
   }
 
-
   /**
    * Returns sequelize literals for dynamic member attributes.
    * @param memberAttributeSettings
