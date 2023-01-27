@@ -3,7 +3,7 @@
     v-click-away="turnOff"
     class="panel contributions-panel relative h-80"
   >
-    <div class="py-4 px-6 flex justify-between">
+    <div class="py-4 px-6 flex justify-between text-center">
       <p class="flex align-center">
         <img
           src="https://cdn-icons-png.flaticon.com/512/25/25231.png"
@@ -14,16 +14,36 @@
         </span>
       </p>
       <div
-        class="text-gray-500 flex align-center italic text-2xs"
+        class="text-gray-500 flex align-center italic text-2xs h-5"
       >
-        <i
-          class="ri-checkbox-blank-circle-fill text-gray-200 pr-2"
-        ></i>
-        <span class="pr-4"> Repository </span>
-        <span class="font-medium text-brand-200 pr-2">
-          —
-        </span>
-        <span> Topics </span>
+        <el-tooltip
+          placement="top"
+          content="The size of a repository represents the number of contributions made."
+        >
+          <p>
+            <i
+              class="ri-checkbox-blank-circle-fill text-gray-200 pr-2 my-auto cursor-default"
+            ></i>
+            <span class="pr-4 my-auto cursor-default">
+              Repository
+            </span>
+          </p>
+        </el-tooltip>
+        <el-tooltip
+          placement="top"
+          content="The thickness of the line represents how many topics are shared between the two repositories."
+        >
+          <p>
+            <span
+              class="font-medium text-brand-200 pr-2 my-auto cursor-default"
+            >
+              —
+            </span>
+            <span class="my-auto cursor-default">
+              Topics
+            </span>
+          </p>
+        </el-tooltip>
       </div>
     </div>
     <div class="background-dotted rounded-lg h-64">
