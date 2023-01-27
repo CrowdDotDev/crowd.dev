@@ -196,7 +196,6 @@ const configs = reactive(
       label: {
         visible: true
       },
-      draggable: () => !isDisabled.value,
       normal: {
         radius: (node) => node.size,
         color: nodeColor,
@@ -511,9 +510,11 @@ function turnOff() {
 const eventHandlers = {
   'node:click': ({ node }) => {
     if (isDisabled.value) {
-      turnOff()
-      return
+      targetEdgeId.value = ''
+      edgeToolTipOpacity.value = 0 // hide
+      hoveredEdge.value = null
     }
+    console.log('here')
     targetNodeId.value = node
     tooltipOpacity.value = 1 // show
     hoveredNode.value = nodes.value[node].name
@@ -527,29 +528,25 @@ const eventHandlers = {
     edgeToolTipOpacity.value = 0 // hide
   },
   'node:pointerover': ({ node }) => {
-    if (isDisabled.value) return
     hoveredNode.value = nodes.value[node].name
   },
   'node:pointerout': () => {
-    if (isDisabled.value) return
     hoveredNode.value = null
   },
   'edge:click': ({ edge }) => {
     if (isDisabled.value) {
-      turnOff()
-      return
+      targetNodeId.value = ''
+      tooltipOpacity.value = 0 // hide
+      hoveredNode.value = null
     }
     hoveredEdge.value = edges.value[edge]
     targetEdgeId.value = edge ?? ''
     edgeToolTipOpacity.value = 1 // show
   },
   'edge:pointerover': ({ edge }) => {
-    if (isDisabled.value) return
-
     hoveredEdge.value = edges.value[edge]
   },
   'edge:pointerout': () => {
-    if (isDisabled.value) return
     hoveredEdge.value = null
   },
   'view:zoom'(zoom) {
