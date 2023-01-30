@@ -5,7 +5,7 @@
       v-loading="computedLoading"
       class="app-page-spinner"
     ></div>
-    <div v-else>
+    <div v-else-if="!error">
       <div
         class="mb-4 h-24 flex items-center flex-shrink-0 fixed top-0 inset-x-0 z-10 bg-gray-50 shadow-sm transition-all ease-in-out duration-300 justify-center"
         :style="
@@ -86,7 +86,9 @@ export default {
 
   data() {
     return {
-      loading: false
+      loading: false,
+      error: false,
+      storeUnsubscribe: () => {}
     }
   },
 
@@ -118,6 +120,19 @@ export default {
       await this.doFind(this.id)
     }
     this.loading = false
+  },
+
+  mounted() {
+    this.storeUnsubscribe = this.$store.subscribe(
+      (mutation) => {
+        if (mutation.type === 'report/FIND_ERROR') {
+          this.error = true
+        }
+      }
+    )
+  },
+  beforeUnmount() {
+    this.storeUnsubscribe()
   },
 
   methods: {
