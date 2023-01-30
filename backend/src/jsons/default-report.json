@@ -1,6 +1,6 @@
 {
   "name": "Default Report",
-  "public": true,
+  "public": false,
   "widgets": [
     {
       "title": "Total activities, All time",
