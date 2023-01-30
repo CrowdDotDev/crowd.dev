@@ -111,9 +111,18 @@ export const sendExportCSVNodeSQSMessage = async (
     type: NodeWorkerMessageType.NODE_MICROSERVICE,
     service: 'csv-export',
     tenant,
-    user,
     entity,
     criteria,
+  }
+  await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
+}
+
+export const sendBulkEnrichMessage = async (tenant: string, memberIds: string[]): Promise<void> => {
+  const payload = {
+    type: NodeWorkerMessageType.NODE_MICROSERVICE,
+    service: 'bulk-enrich',
+    memberIds,
+    tenant,
   }
   await sendNodeWorkerMessage(tenant, payload as NodeWorkerMessageBase)
 }

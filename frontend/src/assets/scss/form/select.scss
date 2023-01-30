@@ -35,6 +35,16 @@
       border: 1px solid var(--el-input-focus-border-color);
     }
   }
+
+  &__collapse-tags {
+    @apply max-w-sm;
+  }
+
+  &--disabled {
+    .el-select__tags {
+      @apply cursor-text;
+    }
+  }
 }
 
 // Select input as input group append

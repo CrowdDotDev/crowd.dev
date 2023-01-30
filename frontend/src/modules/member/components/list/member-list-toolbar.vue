@@ -18,6 +18,28 @@
           <i class="ri-lg ri-file-download-line mr-1" />
           Export to CSV
         </el-dropdown-item>
+        <el-tooltip
+          v-if="areSelectedMembersNotEnriched"
+          placement="top"
+          content="Selected members lack an associated GitHub profile or Email"
+          :disabled="elegibleEnrichmentMembers.length"
+          popper-class="max-w-[260px]"
+        >
+          <span>
+            <el-dropdown-item
+              command="enrichMember"
+              :disabled="!elegibleEnrichmentMembers.length"
+              class="mb-1"
+            >
+              <app-svg
+                name="enrichment"
+                class="max-w-[16px] h-4"
+                color="#9CA3AF"
+              />
+              <span class="ml-2">Enrich members</span>
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
         <el-dropdown-item
           command="markAsTeamMember"
           :disabled="isReadOnly"
@@ -57,12 +79,15 @@ import { mapGetters, mapActions, mapState } from 'vuex'
 import AppMemberListBulkUpdateTags from '@/modules/member/components/list/member-list-bulk-update-tags'
 import { MemberPermissions } from '@/modules/member/member-permissions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import pluralize from 'pluralize'
+import AppSvg from '@/shared/svg/svg.vue'
 
 export default {
   name: 'AppMemberListToolbar',
 
   components: {
-    AppMemberListBulkUpdateTags
+    AppMemberListBulkUpdateTags,
+    AppSvg
   },
 
   data() {
@@ -87,6 +112,22 @@ export default {
           this.currentUser
         ).edit === false
       )
+    },
+    elegibleEnrichmentMembers() {
+      return this.selectedRows.filter(
+        (r) =>
+          (r.username?.github || r.email) && !r.lastEnriched
+      )
+    },
+    selectedIds() {
+      return this.selectedRows
+        .filter((item) => !item.lastEnriched)
+        .map((item) => item.id)
+    },
+    areSelectedMembersNotEnriched() {
+      return this.selectedRows.some(
+        (item) => !item.lastEnriched
+      )
     }
   },
 
@@ -94,7 +135,8 @@ export default {
     ...mapActions({
       doExport: 'member/doExport',
       doMarkAsTeamMember: 'member/doMarkAsTeamMember',
-      doDestroyAll: 'member/doDestroyAll'
+      doDestroyAll: 'member/doDestroyAll',
+      doBulkEnrich: 'member/doBulkEnrich'
     }),
 
     async handleCommand(command) {
@@ -106,6 +148,36 @@ export default {
         await this.handleAddTags()
       } else if (command === 'destroyAll') {
         await this.doDestroyAllWithConfirm()
+      } else if (command === 'enrichMember') {
+        // All members are elegible for enrichment
+        if (
+          this.elegibleEnrichmentMembers.length ===
+          this.selectedIds.length
+        ) {
+          await this.doBulkEnrich(this.selectedIds)
+        } else {
+          // Only a few members are elegible for enrichment
+          try {
+            await ConfirmDialog({
+              type: 'warning',
+              title:
+                'Some members lack an associated GitHub profile or Email',
+              message:
+                'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill this requirement will be enriched and counted towards your quota.',
+              confirmButtonText: `Proceed with enrichment (${pluralize(
+                'member',
+                this.elegibleEnrichmentMembers.length,
+                true
+              )})`,
+              cancelButtonText: 'Cancel',
+              icon: 'ri-alert-line'
+            })
+
+            await this.doBulkEnrich(this.selectedIds)
+          } catch (error) {
+            // no
+          }
+        }
       }
     },
 

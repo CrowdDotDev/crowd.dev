@@ -58,10 +58,17 @@ export default class MemberService extends LoggingBase {
    * @param attributes
    * @returns restructured object
    */
-  async validateAttributes(attributes: { [key: string]: any }): Promise<object> {
+  async validateAttributes(
+    attributes: { [key: string]: any },
+    transaction = null,
+  ): Promise<object> {
     // check attribute exists in memberAttributeSettings
+
     const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      await MemberAttributeSettingsRepository.findAndCountAll(
+        {},
+        { ...this.options, ...(transaction && { transaction }) },
+      )
     ).rows.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc
@@ -69,6 +76,10 @@ export default class MemberService extends LoggingBase {
 
     for (const attributeName of Object.keys(attributes)) {
       if (!memberAttributeSettings[attributeName]) {
+        this.log.error('Attribute does not exist', {
+          attributeName,
+          attributes,
+        })
         throw new Error400(
           this.options.language,
           'settings.memberAttributes.notFound',
@@ -93,6 +104,13 @@ export default class MemberService extends LoggingBase {
               { options: memberAttributeSettings[attributeName].options },
             )
           ) {
+            this.log.error('Failed to validate attributee', {
+              attributeName,
+              platform,
+              attributeValue: attributes[attributeName][platform],
+              attributeType: memberAttributeSettings[attributeName].type,
+              options: memberAttributeSettings[attributeName].options,
+            })
             throw new Error400(
               this.options.language,
               'settings.memberAttributes.wrongType',
@@ -210,7 +228,7 @@ export default class MemberService extends LoggingBase {
       const { platform } = data
 
       if (data.attributes) {
-        data.attributes = await this.validateAttributes(data.attributes)
+        data.attributes = await this.validateAttributes(data.attributes, transaction)
       }
 
       if (data.reach) {

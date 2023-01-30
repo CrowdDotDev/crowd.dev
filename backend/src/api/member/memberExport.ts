@@ -4,6 +4,7 @@ import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'
 import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
+import { FeatureFlagRedisKey } from '../../types/common'
 import { RedisCache } from '../../utils/redis/redisCache'
 
 /**
@@ -24,7 +25,7 @@ export default async (req, res) => {
 
   const payload = await new MemberService(req).export(req.body)
 
-  const csvCountCache = new RedisCache('csvExportCount', req.redis)
+  const csvCountCache = new RedisCache(FeatureFlagRedisKey.CSV_EXPORT_COUNT, req.redis)
 
   const csvCount = await csvCountCache.getValue(req.currentTenant.id)
 
