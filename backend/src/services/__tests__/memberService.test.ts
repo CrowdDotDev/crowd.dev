@@ -2326,10 +2326,6 @@ describe('MemberService tests', () => {
 
   describe('getHighestPriorityPlatformForAttributes method', () => {
     it('Should return the highest priority platform from a priority array, handling the exceptions', async () => {
-      const mockIServiceOptions = await SequelizeTestUtils.getTestIServiceOptions(db)
-
-      const memberService = new MemberService(mockIServiceOptions)
-
       const priorityArray = [
         PlatformType.TWITTER,
         PlatformType.CROWD,
@@ -2340,7 +2336,7 @@ describe('MemberService tests', () => {
       ]
 
       let inputPlatforms = [PlatformType.GITHUB, PlatformType.DEVTO]
-      let highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+      let highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         inputPlatforms,
         priorityArray,
       )
@@ -2348,7 +2344,7 @@ describe('MemberService tests', () => {
       expect(highestPriorityPlatform).toBe(PlatformType.DEVTO)
 
       inputPlatforms = [PlatformType.GITHUB, 'someOtherPlatform'] as any
-      highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+      highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         inputPlatforms,
         priorityArray,
       )
@@ -2358,7 +2354,7 @@ describe('MemberService tests', () => {
       inputPlatforms = ['somePlatform1', 'somePlatform2'] as any
 
       // if no match in the priority array, it should return the first platform it finds
-      highestPriorityPlatform = memberService.getHighestPriorityPlatformForAttributes(
+      highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         inputPlatforms,
         priorityArray,
       )
@@ -2367,10 +2363,12 @@ describe('MemberService tests', () => {
 
       inputPlatforms = []
 
-      // if no platforms are sent to choose from, it should throw a 400 Error
-      expect(() =>
-        memberService.getHighestPriorityPlatformForAttributes(inputPlatforms, priorityArray),
-      ).toThrowError(new Error400('en', 'settings.memberAttributes.noPlatformSent'))
+      // if no platforms are sent to choose from, it should return undefined
+      highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
+        inputPlatforms,
+        priorityArray,
+      )
+      expect(highestPriorityPlatform).not.toBeDefined()
     })
   })
 

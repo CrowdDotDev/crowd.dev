@@ -23,8 +23,15 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
         ],
         limit: 1,
         order: { [CubeDimensions.ACTIVITY_DATE]: 'asc' },
+        filters: [
+          {
+            member: CubeDimensions.IS_TEAM_MEMBER,
+            operator: 'equals',
+            values: ['false'],
+          },
+        ],
       })
     )[0][CubeMeasures.ACTIVITY_COUNT] ?? 0
 
-  return newActivities
+  return parseInt(newActivities, 10)
 }

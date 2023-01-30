@@ -16,7 +16,6 @@ const en = {
         canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
         requiredFields: `Type and label fields are required when creating member attributes.`,
         notFound: `Member attribute {0} not found in memberAttributeSettings.`,
-        noPlatformSent: `Cannot select the highest priority platform. No platform was sent.`,
         priorityArrayNotFound: `Member attributes platform priority array does not exist.`,
         reservedField: `Cannot use reserved field '{0}' for dynamic attributes.`,
       },
@@ -140,6 +139,12 @@ const en = {
       cantOnboardWrongStatus:
         'Can not trigger nboarding because integration is not in state pending-action!',
       noOrganizationFound: 'No organization found for given id!',
+    },
+    members: {
+      activeList: {
+        activityTimestampFrom: 'activityTimestampFrom is required query parameter!',
+        activityTimestampTo: 'activityTimestampTo is required query parameter!',
+      },
     },
   },
 

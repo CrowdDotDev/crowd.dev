@@ -10,6 +10,7 @@ export const getOrganizationPosts = async (
   organization: string,
   logger: Logger,
   start?: number,
+  lookBackUntilTs?: number,
 ): Promise<IPaginatedResponse<ILinkedInOrganizationPost>> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
@@ -30,14 +31,29 @@ export const getOrganizationPosts = async (
 
     const response = (await axios(config)).data
 
-    const elements = response.elements.map((e) => ({
-      urnId: e.id,
-      lifecycleState: e.lifecycleState,
-      visibility: e.visibility,
-      authorUrn: e.author,
-      body: e.commentary,
-      originalUrnId: e.reshareContext?.parent,
-    }))
+    let stop = false
+
+    const elements = response.elements.map((e) => {
+      if (lookBackUntilTs && e.createdAt <= lookBackUntilTs) {
+        stop = true
+      }
+
+      return {
+        urnId: e.id,
+        lifecycleState: e.lifecycleState,
+        visibility: e.visibility,
+        authorUrn: e.author,
+        body: e.commentary,
+        originalUrnId: e.reshareContext?.parent,
+        timestamp: e.createdAt,
+      }
+    })
+
+    if (stop) {
+      return {
+        elements,
+      }
+    }
 
     if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
@@ -59,13 +75,26 @@ export const getAllOrganizationPosts = async (
   pizzlyId: string,
   organization: string,
   logger: Logger,
+  lookBackUntilTs?: number,
 ): Promise<ILinkedInOrganizationPost[]> => {
   const elements = []
 
-  let response = await getOrganizationPosts(pizzlyId, organization, logger)
+  let response = await getOrganizationPosts(
+    pizzlyId,
+    organization,
+    logger,
+    undefined,
+    lookBackUntilTs,
+  )
   elements.push(...response.elements)
   while (response.start !== undefined) {
-    response = await getOrganizationPosts(pizzlyId, organization, logger, response.start)
+    response = await getOrganizationPosts(
+      pizzlyId,
+      organization,
+      logger,
+      response.start,
+      lookBackUntilTs,
+    )
     elements.push(...response.elements)
   }
 
