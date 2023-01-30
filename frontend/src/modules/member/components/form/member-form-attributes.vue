@@ -50,13 +50,8 @@
                 content="Member enrichment"
                 placement="top"
               >
-                <div
-                  class="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center"
-                >
-                  <app-svg
-                    name="enrichment"
-                    class="h-3 w-3.5 overflow-visible flex items-center justify-center leading-none"
-                  />
+                <div class="form-enrichment-badge">
+                  <app-svg name="enrichment" />
                 </div>
               </el-tooltip>
             </div>
@@ -235,3 +230,12 @@ watch(model.value, (newModel) => {
   emit('update:modelValue', newModel)
 })
 </script>
+
+<style lang="scss">
+.form-enrichment-badge {
+  @apply w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center;
+  svg {
+    @apply h-4 w-4 overflow-visible flex items-center justify-center leading-none;
+  }
+}
+</style>
