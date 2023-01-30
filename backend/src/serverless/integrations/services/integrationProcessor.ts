@@ -36,6 +36,7 @@ import { i18n } from '../../../i18n'
 import { IRedisPubSubEmitter, RedisClient } from '../../../utils/redis'
 import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
+import { RedisCache } from '../../../utils/redis/redisCache'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -43,6 +44,8 @@ export class IntegrationProcessor extends LoggingBase {
   private readonly integrationServices: IntegrationServiceBase[]
 
   private readonly apiPubSubEmitter?: IRedisPubSubEmitter
+
+  private readonly redisCache?: RedisCache
 
   private tickTrackingMap: Map<IntegrationType, number> = new Map()
 
@@ -86,6 +89,8 @@ export class IntegrationProcessor extends LoggingBase {
       this.apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redisEmitterClient, (err) => {
         this.log.error({ err }, 'Error in api-ws emitter!')
       })
+
+      this.redisCache = new RedisCache('integrationProcessor', redisEmitterClient)
     }
   }
 
@@ -132,20 +137,24 @@ export class IntegrationProcessor extends LoggingBase {
       if (microservices.length > 0) {
         this.log.debug({ type, count: microservices.length }, 'Found microservices to check!')
         for (const micro of microservices) {
-          const microservice = micro as any
-          await sendNodeWorkerMessage(
-            microservice.tenantId,
-            new NodeWorkerIntegrationProcessMessage(
-              type,
+          const triggered = await this.redisCache.getValue(micro.id)
+
+          if (triggered !== null) {
+            const microservice = micro as any
+            await sendNodeWorkerMessage(
               microservice.tenantId,
-              false,
-              undefined,
-              microservice.id,
-              {
-                platform: PlatformType.TWITTER,
-              },
-            ),
-          )
+              new NodeWorkerIntegrationProcessMessage(
+                type,
+                microservice.tenantId,
+                false,
+                undefined,
+                microservice.id,
+                {
+                  platform: PlatformType.TWITTER,
+                },
+              ),
+            )
+          }
         }
       } else {
         logger.debug('Found no microservices to check!')
@@ -157,7 +166,14 @@ export class IntegrationProcessor extends LoggingBase {
       const integrations = await IntegrationRepository.findAllActive(type)
       if (integrations.length > 0) {
         logger.debug({ count: integrations.length }, 'Found integrations to check!')
-        await intService.triggerIntegrationCheck(integrations)
+        const inactiveIntegrations: any[] = []
+        for (const integration of integrations as any[]) {
+          const triggered = await this.redisCache.getValue(integration.id)
+          if (triggered !== null) {
+            inactiveIntegrations.push(integration)
+          }
+        }
+        await intService.triggerIntegrationCheck(inactiveIntegrations)
       } else {
         logger.debug('Found no integrations to check!')
       }
@@ -168,6 +184,7 @@ export class IntegrationProcessor extends LoggingBase {
     const logger = createChildLogger('process', this.log, {
       type: req.integrationType,
       integrationId: req.integrationId,
+      onboarding: req.onboarding,
       microserviceId: req.microserviceId,
     })
     logger.info('Processing integration!')
@@ -179,6 +196,16 @@ export class IntegrationProcessor extends LoggingBase {
     const integration = req.integrationId
       ? await IntegrationRepository.findById(req.integrationId, userContext)
       : await IntegrationRepository.findByPlatform(req.metadata.platform, userContext)
+
+    if (!req.onboarding) {
+      const processing = await this.redisCache.getValue(integration.id)
+      if (processing !== null) {
+        logger.info('Integration is already being processed!')
+        return
+      }
+    }
+
+    await this.redisCache.setValue(integration.id, 'processing', 5 * 60)
 
     // get the relevant integration service that is supposed to be configured already
     const intService = singleOrDefault(
@@ -300,6 +327,9 @@ export class IntegrationProcessor extends LoggingBase {
         let processedCount = 0
         let notifyCount = 0
         while (streams.length > 0) {
+          // reset value
+          await this.redisCache.setValue(integration.id, 'processing', 5 * 60)
+
           if ((req as any).exiting) {
             if (!req.onboarding) {
               logger.warn('Stopped processing integration (not onboarding)!')
@@ -509,6 +539,9 @@ export class IntegrationProcessor extends LoggingBase {
           }).sendTo(user.email)
         }
       }
+
+      await this.redisCache.delete(integration.id)
+
       await IntegrationRepository.update(
         integration.id,
         {
