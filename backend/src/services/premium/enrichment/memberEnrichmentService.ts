@@ -169,6 +169,7 @@ export default class MemberEnrichmentService extends LoggingBase {
               'bulk-enrichment',
               JSON.stringify({
                 enrichedMembers,
+                tenantId: this.options.currentTenant.id,
                 success: false,
               }),
               undefined,
@@ -186,6 +187,7 @@ export default class MemberEnrichmentService extends LoggingBase {
         'bulk-enrichment',
         JSON.stringify({
           enrichedMembers,
+          tenantId: this.options.currentTenant.id,
           success: true,
         }),
         undefined,

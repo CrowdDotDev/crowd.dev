@@ -4,6 +4,10 @@ import config from '@/config'
 import { computed } from 'vue'
 import { store } from '@/store'
 import Message from '@/shared/message/message'
+import {
+  showEnrichmentSuccessMessage,
+  getEnrichmentMax
+} from '@/modules/member/member-enrichment'
 
 let socketIoClient
 
@@ -14,6 +18,10 @@ export const connectSocket = (token) => {
   const currentTenant = computed(
     () => store.getters['auth/currentTenant']
   )
+  const currentUser = computed(
+    () => store.getters['auth/currentUser']
+  )
+
   const path =
     config.env === 'production' || config.env === 'staging'
       ? '/api/socket.io'
@@ -55,24 +63,46 @@ export const connectSocket = (token) => {
     Message.success('Successfully upgraded to Growth plan')
   })
 
-  socketIoClient.on('bulk-enrichment', (data) => {
+  socketIoClient.on('bulk-enrichment', async (data) => {
     if (typeof data === 'string') {
       data = JSON.parse(data)
     }
 
-    console.log('Bulk enrichment is completed', data)
-
     // posthog.group('tenant', currentTenant.value.id)
     // posthog.reloadFeatureFlags()
-    store.dispatch('auth/doRefreshCurrentUser')
+    await store.dispatch('auth/doRefreshCurrentUser')
+
+    const updatedTenant = currentUser.value.tenants.find(
+      (tenant) => tenant.tenantId === data.tenantId
+    )
+
     if (!data.success) {
+      Message.closeAll()
       Message.error(
         `Bulk enrichment failed. We managed to enrich ${data.enrichedMembers} members.`
       )
     } else {
-      Message.success(
-        `Bulk enrichment succeeded. We enriched ${data.enrichedMembers} members.`
+      Message.closeAll()
+      const planEnrichmentCountMax = getEnrichmentMax(
+        updatedTenant.tenant.plan
       )
+
+      // Show enrichment success message
+      showEnrichmentSuccessMessage({
+        memberEnrichmentCount:
+          updatedTenant.tenant.memberEnrichmentCount,
+        planEnrichmentCountMax,
+        plan: updatedTenant.tenant.plan,
+        isBulk: true
+      })
+
+      // Update members list if tenant hasn't changed
+      if (currentTenant.value.id === data.tenantId) {
+        // Refresh list page
+        await store.dispatch('member/doFetch', {
+          keepPagination: true
+        })
+      }
     }
   })
 }
