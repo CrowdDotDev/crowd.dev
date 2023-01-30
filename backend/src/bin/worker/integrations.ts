@@ -13,7 +13,9 @@ export const processIntegrationCheck = async (
   const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IServiceOptions
   options.log = messageLogger
 
-  const processor = new IntegrationProcessor(options)
+  const redisEmitter = await createRedisClient(true)
+
+  const processor = new IntegrationProcessor(options, redisEmitter)
 
   await processor.processCheck(msg.integrationType)
 }
