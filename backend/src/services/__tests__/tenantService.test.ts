@@ -2,11 +2,11 @@ import moment from 'moment'
 import SequelizeTestUtils from '../../database/utils/sequelizeTestUtils'
 import TenantService from '../tenantService'
 import MemberService from '../memberService'
-import { IServiceOptions } from '../IServiceOptions'
+import {IServiceOptions} from '../IServiceOptions'
 import MicroserviceService from '../microserviceService'
-import { PlatformType } from '../../types/integrationEnums'
+import {PlatformType} from '../../types/integrationEnums'
 import MemberAttributeSettingsService from '../memberAttributeSettingsService'
-import { MemberAttributeName } from '../../database/attributes/member/enums'
+import {MemberAttributeName} from '../../database/attributes/member/enums'
 import TaskService from '../taskService'
 import Plans from '../../security/plans'
 
@@ -188,6 +188,7 @@ describe('TenantService tests', () => {
 
       expect(defaultAttributes.rows.map((i) => i.name).sort()).toEqual([
         MemberAttributeName.BIO,
+        MemberAttributeName.IS_BOT,
         MemberAttributeName.IS_TEAM_MEMBER,
         MemberAttributeName.JOB_TITLE,
         MemberAttributeName.LOCATION,
