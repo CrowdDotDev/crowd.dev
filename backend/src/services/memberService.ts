@@ -58,10 +58,17 @@ export default class MemberService extends LoggingBase {
    * @param attributes
    * @returns restructured object
    */
-  async validateAttributes(attributes: { [key: string]: any }): Promise<object> {
+  async validateAttributes(
+    attributes: { [key: string]: any },
+    transaction = null,
+  ): Promise<object> {
     // check attribute exists in memberAttributeSettings
+
     const memberAttributeSettings = (
-      await MemberAttributeSettingsRepository.findAndCountAll({}, this.options)
+      await MemberAttributeSettingsRepository.findAndCountAll(
+        {},
+        { ...this.options, ...(transaction && { transaction }) },
+      )
     ).rows.reduce((acc, attribute) => {
       acc[attribute.name] = attribute
       return acc
@@ -69,6 +76,10 @@ export default class MemberService extends LoggingBase {
 
     for (const attributeName of Object.keys(attributes)) {
       if (!memberAttributeSettings[attributeName]) {
+        this.log.error('Attribute does not exist', {
+          attributeName,
+          attributes,
+        })
         throw new Error400(
           this.options.language,
           'settings.memberAttributes.notFound',
@@ -93,6 +104,13 @@ export default class MemberService extends LoggingBase {
               { options: memberAttributeSettings[attributeName].options },
             )
           ) {
+            this.log.error('Failed to validate attributee', {
+              attributeName,
+              platform,
+              attributeValue: attributes[attributeName][platform],
+              attributeType: memberAttributeSettings[attributeName].type,
+              options: memberAttributeSettings[attributeName].options,
+            })
             throw new Error400(
               this.options.language,
               'settings.memberAttributes.wrongType',
@@ -123,11 +141,16 @@ export default class MemberService extends LoggingBase {
       .attributeSettings.priorities
 
     for (const attributeName of Object.keys(attributes)) {
-      const highestPriorityPlatform = this.getHighestPriorityPlatformForAttributes(
+      const highestPriorityPlatform = MemberService.getHighestPriorityPlatformForAttributes(
         Object.keys(attributes[attributeName]),
         priorityArray,
       )
-      attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+
+      if (highestPriorityPlatform !== undefined) {
+        attributes[attributeName].default = attributes[attributeName][highestPriorityPlatform]
+      } else {
+        delete attributes[attributeName]
+      }
     }
 
     return attributes
@@ -139,11 +162,14 @@ export default class MemberService extends LoggingBase {
    * the first platform sent as the highest priority platform.
    * @param platforms Array of platforms to select the highest priority platform
    * @param priorityArray zero indexed priority array. Lower index means higher priority
-   * @returns the highest priority platform
+   * @returns the highest priority platform or undefined if values are incorrect
    */
-  getHighestPriorityPlatformForAttributes(platforms: string[], priorityArray: string[]): string {
+  public static getHighestPriorityPlatformForAttributes(
+    platforms: string[],
+    priorityArray: string[],
+  ): string | undefined {
     if (platforms.length <= 0) {
-      throw new Error400(this.options.language, 'settings.memberAttributes.noPlatformSent')
+      return undefined
     }
     const filteredPlatforms = priorityArray.filter((i) => platforms.includes(i))
     return filteredPlatforms.length > 0 ? filteredPlatforms[0] : platforms[0]
@@ -202,7 +228,7 @@ export default class MemberService extends LoggingBase {
       const { platform } = data
 
       if (data.attributes) {
-        data.attributes = await this.validateAttributes(data.attributes)
+        data.attributes = await this.validateAttributes(data.attributes, transaction)
       }
 
       if (data.reach) {

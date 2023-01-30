@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html'
+import moment from 'moment'
 import { getAllCommentComments } from '../../../usecases/linkedin/getCommentComments'
 import { LinkedInGrid } from '../../../grid/linkedinGrid'
 import { MemberAttributeName } from '../../../../../database/attributes/member/enums'
@@ -19,6 +20,14 @@ import { getAllPostComments } from '../../../usecases/linkedin/getPostComments'
 import { IntegrationServiceBase } from '../../integrationServiceBase'
 import Operations from '../../../../dbOperations/operations'
 import { getAllPostReactions } from '../../../usecases/linkedin/getPostReactions'
+import {
+  getLinkedInOrganizationId,
+  getLinkedInUserId,
+  isLinkedInOrganization,
+  isLinkedInUser,
+} from '../../../usecases/linkedin/utils'
+import { RedisCache } from '../../../../../utils/redis/redisCache'
+import { createRedisClient } from '../../../../../utils/redis'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -37,6 +46,9 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   async preprocess(context: IStepContext): Promise<void> {
     const log = this.logger(context)
     log.info('Preprocessing!')
+
+    const redis = await createRedisClient(true)
+    const membersCache = new RedisCache('linkedin-members', redis)
 
     const organization: ILinkedInOrganization = context.integration.settings.organizations.find(
       (o) => o.inUse === true,
@@ -61,7 +73,32 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
 
     const posts = await getAllOrganizationPosts(pizzlyId, organization.organizationUrn, log)
 
+    let cachedData = context.integration.settings.posts || []
+    if (cachedData.length === 0) {
+      cachedData = posts.map((p) => ({
+        id: p.urnId,
+      }))
+    } else {
+      const cachedPostsNotFound = cachedData.filter((p) => !posts.find((p2) => p2.urnId === p.id))
+
+      cachedData = posts.map((p) => {
+        const cachedPost = cachedData.find((c) => c.id === p.urnId)
+        return {
+          id: p.urnId,
+          lastReactionTs: cachedPost?.lastReactionTs,
+          lastCommentTs: cachedPost?.lastReactionTs,
+        }
+      })
+
+      if (cachedPostsNotFound.length > 0) {
+        cachedData.push(...cachedPostsNotFound)
+      }
+    }
+
+    context.integration.settings.posts = cachedData
+
     context.pipelineData = {
+      membersCache,
       posts,
       pizzlyId,
     }
@@ -180,16 +217,36 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     const log = this.logger(context)
 
+    let lastReactionTs: number | undefined
+    const cachedPost = context.integration.settings.posts.find(
+      (p) => p.id === stream.metadata.urnId,
+    )
+    if (!context.onboarding) {
+      lastReactionTs = cachedPost.lastReactionTs
+      if (lastReactionTs === undefined) {
+        lastReactionTs = moment().subtract(1, 'month').valueOf()
+      }
+    }
+
     const reactions = await getAllPostReactions(
       context.pipelineData.pizzlyId,
       stream.metadata.urnId,
       log,
+      lastReactionTs,
     )
 
     const activities: AddActivitiesSingle[] = []
 
     for (const reaction of reactions) {
       const member = await this.parseMember(reaction.authorUrn, context)
+
+      if (
+        cachedPost.lastReactionTs === undefined ||
+        cachedPost.lastReactionTs < reaction.timestamp
+      ) {
+        cachedPost.lastReactionTs = reaction.timestamp
+      }
+
       activities.push({
         tenant: context.integration.tenantId,
         platform: PlatformType.LINKEDIN,
@@ -238,16 +295,39 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   ): Promise<IProcessStreamResults> {
     const log = this.logger(context)
 
+    let lastCommentTs: number | undefined
+    const cachedPost = context.integration.settings.posts.find(
+      (p) => p.id === stream.metadata.urnId,
+    )
+
+    if (!context.onboarding) {
+      lastCommentTs = cachedPost.lastCommentTs
+
+      const lastMonth = moment().subtract(1, 'month').valueOf()
+
+      if (lastCommentTs === undefined) {
+        lastCommentTs = lastMonth
+      } else if (lastCommentTs > lastMonth) {
+        // always check at least 1 month back so we can get possible nested comments
+        lastCommentTs = lastMonth
+      }
+    }
+
     const comments = await getAllPostComments(
       context.pipelineData.pizzlyId,
       stream.metadata.urnId,
       log,
+      lastCommentTs,
     )
 
     const activities: AddActivitiesSingle[] = []
     const newStreams: IIntegrationStream[] = []
     for (const comment of comments) {
       const member = await this.parseMember(comment.authorUrn, context)
+
+      if (cachedPost.lastCommentTs === undefined || cachedPost.lastCommentTs < comment.timestamp) {
+        cachedPost.lastCommentTs = comment.timestamp
+      }
 
       activities.push({
         tenant: context.integration.tenantId,
@@ -328,18 +408,25 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       },
     }
 
-    if (LinkedinIntegrationService.isUser(memberUrn)) {
-      const user = await getMember(
-        context.pipelineData.pizzlyId,
-        LinkedinIntegrationService.getUserId(memberUrn),
-        log,
+    const membersCache: RedisCache = context.pipelineData.membersCache
+
+    if (isLinkedInUser(memberUrn)) {
+      const userId = getLinkedInUserId(memberUrn)
+
+      const userString = await membersCache.getOrAdd(
+        userId,
+        async () => {
+          const user = await getMember(context.pipelineData.pizzlyId, userId, log)
+          return JSON.stringify(user)
+        },
+        24 * 60 * 60,
       )
 
+      const user = JSON.parse(userString)
+
       if (user.id === 'private') {
-        member.username[PlatformType.LINKEDIN] = `private-${LinkedinIntegrationService.getUserId(
-          memberUrn,
-        )}`
-        member.displayName = `Unknown #${LinkedinIntegrationService.getUserId(memberUrn)}`
+        member.username[PlatformType.LINKEDIN] = `private-${userId}`
+        member.displayName = `Unknown #${userId}`
         member.attributes = {}
       } else {
         member.username[PlatformType.LINKEDIN] = `${user.vanityName}`
@@ -356,12 +443,16 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
           delete member.attributes[MemberAttributeName.AVATAR_URL]
         }
       }
-    } else if (LinkedinIntegrationService.isOrganization(memberUrn)) {
-      const organization = await getOrganization(
-        context.pipelineData.pizzlyId,
-        LinkedinIntegrationService.getOrganizationId(memberUrn),
-        log,
-      )
+    } else if (isLinkedInOrganization(memberUrn)) {
+      const userId = getLinkedInOrganizationId(memberUrn)
+
+      const organizationString = await membersCache.getOrAdd(userId, async () => {
+        const organization = await getOrganization(context.pipelineData.pizzlyId, userId, log)
+        return JSON.stringify(organization)
+      })
+
+      const organization = JSON.parse(organizationString)
+
       member.username[PlatformType.LINKEDIN] = organization.name
       member.displayName = organization.name
       member.attributes[MemberAttributeName.URL][
@@ -383,32 +474,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     return member
   }
 
-  async postprocess(
-    context: IStepContext,
-    failedStreams?: IIntegrationStream[],
-    remainingStreams?: IIntegrationStream[],
-  ): Promise<void> {
-    const log = this.logger(context)
-    log.info('Postprocessing')
-  }
-
   private static isPrivateMember(member: Member): boolean {
     return member.username[PlatformType.LINKEDIN].startsWith('private-')
-  }
-
-  private static isUser(urn: string): boolean {
-    return urn.startsWith('urn:li:person:')
-  }
-
-  private static isOrganization(urn: string): boolean {
-    return urn.startsWith('urn:li:organization:') || urn.startsWith('urn:li:company:')
-  }
-
-  private static getUserId(urn: string): string {
-    return urn.replace('urn:li:person:', '')
-  }
-
-  private static getOrganizationId(urn: string): string {
-    return urn.replace('urn:li:organization:', '').replace('urn:li:company:', '')
   }
 }

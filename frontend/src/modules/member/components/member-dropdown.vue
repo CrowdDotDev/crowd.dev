@@ -25,6 +25,37 @@
             >Edit member</span
           ></el-dropdown-item
         >
+        <el-tooltip
+          v-if="!member.lastEnriched"
+          placement="top"
+          content="Member enrichment requires an associated GitHub profile or Email"
+          :disabled="!isEnrichmentDisabled"
+          popper-class="max-w-[260px]"
+        >
+          <span>
+            <el-dropdown-item
+              :command="{
+                action: 'memberEnrich',
+                member
+              }"
+              class="h-10 mb-1"
+              :disabled="isEnrichmentDisabled"
+            >
+              <app-svg
+                name="enrichment"
+                class="max-w-[16px] h-4"
+                color="#9CA3AF"
+              />
+              <span
+                class="ml-2 text-xs text-gray-900"
+                :class="{
+                  'text-gray-400': isEnrichmentDisabled
+                }"
+                >Enrich member</span
+              >
+            </el-dropdown-item>
+          </span>
+        </el-tooltip>
         <el-dropdown-item
           class="h-10"
           :command="{
@@ -118,12 +149,14 @@ import { MemberPermissions } from '@/modules/member/member-permissions'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import AppMemberSelectionDropdown from './member-selection-dropdown.vue'
 import AppMemberSuggestionsDetails from './suggestions/member-merge-suggestions-details.vue'
+import AppSvg from '@/shared/svg/svg.vue'
 
 export default {
   name: 'AppMemberDropdown',
   components: {
     AppMemberSelectionDropdown,
-    AppMemberSuggestionsDetails
+    AppMemberSuggestionsDetails,
+    AppSvg
   },
   props: {
     member: {
@@ -152,6 +185,11 @@ export default {
           this.currentUser
         ).edit === false
       )
+    },
+    isEnrichmentDisabled() {
+      return (
+        !this.member.username?.github && !this.member.email
+      )
     }
   },
   watch: {
@@ -176,7 +214,8 @@ export default {
     ...mapActions({
       doFetch: 'member/doFetch',
       doFind: 'member/doFind',
-      doDestroy: 'member/doDestroy'
+      doDestroy: 'member/doDestroy',
+      doEnrich: 'member/doEnrich'
     }),
     async doDestroyWithConfirm(id) {
       try {
@@ -237,6 +276,8 @@ export default {
           { username: {}, attributes: {} }
         ]
         this.isMergeDialogOpen = true
+      } else if (command.action === 'memberEnrich') {
+        this.doEnrich(command.member.id)
       } else {
         return this.$router.push({
           name: command.action,
@@ -260,6 +301,7 @@ export default {
         })
 
         this.isMergeDialogOpen = false
+        this.memberToMerge = null
 
         // If in member view, fetch member newly merged member
         if (this.$route.name === 'memberView') {

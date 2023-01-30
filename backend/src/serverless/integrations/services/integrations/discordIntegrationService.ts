@@ -343,22 +343,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         if (record.user.avatar !== null && record.user.avatar !== undefined) {
           avatarUrl = `https://cdn.discordapp.com/avatars/${record.user.id}/${record.user.avatar}.png`
         }
+
+        const joinedAt = moment(record.joined_at).utc().toDate()
+        const sourceId = `gen-${record.user.id}-${joinedAt.toISOString()}`
+
         acc.push({
           tenant: context.integration.tenantId,
           platform: PlatformType.DISCORD,
           type: 'joined_guild',
-          sourceId: IntegrationServiceBase.generateSourceIdHash(
-            record.id,
-            'joined_guild',
-            moment(record.joined_at).utc().unix().toString(),
-            PlatformType.DISCORD,
-          ),
-          timestamp: moment(record.joined_at).utc().toDate(),
+          sourceId,
+          timestamp: joinedAt,
           member: {
             username: record.user.username,
             attributes: {
               [MemberAttributeName.SOURCE_ID]: {
-                [PlatformType.DISCORD]: record.id,
+                [PlatformType.DISCORD]: record.user.id,
               },
               ...(avatarUrl && {
                 [MemberAttributeName.AVATAR_URL]: {

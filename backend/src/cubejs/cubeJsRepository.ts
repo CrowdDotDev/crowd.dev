@@ -8,6 +8,10 @@ class CubeJsRepository {
   static getNewConversations = metrics.newConversations
 
   static getNewMembers = metrics.newMembers
+
+  static getNewOrganizations = metrics.newOrganizations
+
+  static getActiveOrganizations = metrics.activeOrganizations
 }
 
 export default CubeJsRepository

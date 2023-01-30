@@ -16,7 +16,6 @@ const en = {
         canDeleteReadonly: `Readonly field canDelete cannot be updated.`,
         requiredFields: `Type and label fields are required when creating member attributes.`,
         notFound: `Member attribute {0} not found in memberAttributeSettings.`,
-        noPlatformSent: `Cannot select the highest priority platform. No platform was sent.`,
         priorityArrayNotFound: `Member attributes platform priority array does not exist.`,
         reservedField: `Cannot use reserved field '{0}' for dynamic attributes.`,
       },
@@ -201,6 +200,20 @@ const en = {
   communityHelpCenter: {
     errors: {
       planNotSupportingCustomUrls: "Your plan {0} doesn't include custom urls.",
+    },
+  },
+
+  enrichment: {
+    errors: {
+      planLimitExceeded:
+        'You have exceeded # of member enrichments you can have per month in your plan.',
+      requestedEnrichmentMoreThanLimit:
+        'You have requested more member enrichments than your available limit.',
+      enrichmentFailed: 'Failed to call the enrichment API',
+      noGithubHandleOrEmail:
+        'No GitHub handle or email found. We can only enrich profiles with GitHub handles or emails.',
+      memberNotFound:
+        'Member not found in the enrichment database. This did not affect your quota.',
     },
   },
 }

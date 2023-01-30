@@ -23,6 +23,7 @@ import {
   RedisConfiguration,
   PosthogConfiguration,
   PizzlyConfiguration,
+  EnrichmentConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -224,4 +225,11 @@ export const PIZZLY_CONFIG: PizzlyConfiguration = KUBE_MODE
   : {
       url: process.env.PIZZLY_URL,
       secretKey: process.env.PIZZLY_SECRET_KEY,
+    }
+
+export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
+  ? config.get<EnrichmentConfiguration>('enrichment')
+  : {
+      url: process.env.ENRICHMENT_URL,
+      apiKey: process.env.ENRICHMENT_SECRET_KEY,
     }

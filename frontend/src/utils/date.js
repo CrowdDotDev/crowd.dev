@@ -21,13 +21,15 @@ export const formatDateToTimeAgo = (timestamp) => {
  * @param {string} timestamp
  * @param {number} subtractDays
  * @param {number} subtractMonths
- * @returns timestamp in YYYY-MM-DD format
+ * @param {string} format (default: "YYYY-MM-DD")
+ * @returns timestamp in format
  */
 export const formatDate = ({
   timestamp = null,
   subtractDays,
   subtractMonths,
-  subtractYears
+  subtractYears,
+  format = 'YYYY-MM-DD'
 }) => {
   const date = timestamp ? moment(timestamp) : moment()
 
@@ -43,7 +45,7 @@ export const formatDate = ({
     date.subtract(subtractYears, 'years')
   }
 
-  return date.format('YYYY-MM-DD')
+  return date.format(format)
 }
 
 export const getTrialDate = (tenant) => {

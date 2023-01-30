@@ -275,4 +275,27 @@ export class MemberService {
 
     return response.data
   }
+
+  static async enrichMember(id) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/enrichment/member/${id}`
+    )
+
+    return response.data
+  }
+
+  static async enrichMemberBulk(ids) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/enrichment/member/bulk`,
+      {
+        members: ids
+      }
+    )
+
+    return response
+  }
 }

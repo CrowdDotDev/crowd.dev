@@ -18,6 +18,8 @@ import { IS_TEST_ENV } from '../../../config'
 import { sendNodeWorkerMessage } from '../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../types/mq/nodeWorkerIntegrationProcessMessage'
 
+const logger = createServiceChildLogger('integrationService')
+
 /* eslint class-methods-use-this: 0 */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -55,7 +57,7 @@ export abstract class IntegrationServiceBase {
 
   async triggerIntegrationCheck(integrations: any[]): Promise<void> {
     for (const integration of integrations) {
-      console.log('Triggering integration check for', integration.id)
+      logger.info({ integrationId: integration.id }, 'Triggering integration processing!')
       await sendNodeWorkerMessage(
         integration.tenantId,
         new NodeWorkerIntegrationProcessMessage(
@@ -144,7 +146,7 @@ export abstract class IntegrationServiceBase {
     timestamp: string,
     platform: string,
   ) {
-    if (uniqueRemoteId === '' || type === '' || timestamp === '' || platform === '') {
+    if (!uniqueRemoteId || !type || !timestamp || !platform) {
       throw new Error('Bad hash input')
     }
 

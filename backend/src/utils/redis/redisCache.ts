@@ -96,7 +96,7 @@ return count`
 
   public async getOrAdd(
     key: string,
-    provider: (key: string) => Promise<string> | string,
+    provider: () => Promise<string> | string,
     ttlSeconds?: number,
   ): Promise<string> {
     const value = await this.getValue(key)
@@ -104,8 +104,8 @@ return count`
       return value
     }
 
-    const generatedValue = await provider(key)
-    await this.setValue(key, value, ttlSeconds)
+    const generatedValue = await provider()
+    await this.setValue(key, generatedValue, ttlSeconds)
     return generatedValue
   }
 

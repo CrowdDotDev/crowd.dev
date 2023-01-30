@@ -22,7 +22,6 @@
     "@cubejs-client/vue3": "^0.31.0",
     "@nangohq/pizzly-frontend": "^0.4.0",
     "@octokit/core": "^3.5.1",
-    "@tailwindcss/postcss7-compat": "^2.2.17",
     "@tiptap/extension-placeholder": "^2.0.0-beta.199",
     "@tiptap/starter-kit": "^2.0.0-beta.199",
     "@tiptap/vue-3": "^2.0.0-beta.199",
@@ -53,11 +52,13 @@
     "remixicon": "^2.5.0",
     "socket.io-client": "^4.5.4",
     "uuid": "8.3.0",
+    "v-network-graph": "^0.8.1",
     "vue": "^3.2.45",
     "vue-3-sanitize": "^0.1.4",
     "vue-grid-layout": "3.0.0-beta1",
     "vue-json-pretty": "^2.2.2",
     "vue-router": "^4.1.5",
+    "vue3-click-away": "^1.2.4",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",
@@ -84,7 +85,7 @@
     "sass": "^1.49.7",
     "sass-loader": "^12.6.0",
     "tailwind-config-viewer": "^1.7.2",
-    "tailwindcss": "^3.0.22",
+    "tailwindcss": "^3.2.4",
     "wait-on": "^6.0.0"
   }
 }

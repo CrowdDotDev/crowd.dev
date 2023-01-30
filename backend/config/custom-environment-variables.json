@@ -131,5 +131,9 @@
   "pizzly": {
     "url": "CROWD_PIZZLY_URL",
     "secretKey": "CROWD_PIZZLY_SECRET_KEY"
+  },
+  "enrichment": {
+    "url": "CROWD_ENRICHMENT_URL",
+    "apiKey": "CROWD_ENRICHMENT_API_KEY"
   }
 }

@@ -17,6 +17,12 @@ export enum FeatureFlag {
   ORGANIZATIONS = 'organizations',
   CSV_EXPORT = 'csv-export',
   LINKEDIN = 'linkedin',
+  MEMBER_ENRICHMENT = 'member-enrichment',
+}
+
+export enum FeatureFlagRedisKey {
+  CSV_EXPORT_COUNT = 'csvExportCount',
+  MEMBER_ENRICHMENT_COUNT = 'memberEnrichmentCount',
 }
 
 export enum Edition {

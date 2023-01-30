@@ -10,6 +10,7 @@ export const getPostReactions = async (
   postId: string,
   logger: Logger,
   start?: number,
+  lookBackUntilTs?: number,
 ): Promise<IPaginatedResponse<ILinkedInPostReaction>> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
@@ -17,7 +18,7 @@ export const getPostReactions = async (
     params: {
       q: 'entity',
       count: 10,
-      sort: 'CHRONOLOGICAL',
+      sort: 'REVERSE_CHRONOLOGICAL',
       start,
     },
     headers: {
@@ -34,11 +35,25 @@ export const getPostReactions = async (
 
     const response = (await axios(config)).data
 
-    const elements: ILinkedInPostReaction[] = response.elements.map((e) => ({
-      authorUrn: e.created.actor,
-      reaction: (e.reactionType as string).toLowerCase(),
-      timestamp: e.created.time,
-    }))
+    let stop = false
+
+    const elements: ILinkedInPostReaction[] = response.elements.map((e) => {
+      if (lookBackUntilTs && e.created.time <= lookBackUntilTs) {
+        stop = true
+      }
+
+      return {
+        authorUrn: e.created.actor,
+        reaction: (e.reactionType as string).toLowerCase(),
+        timestamp: e.created.time,
+      }
+    })
+
+    if (stop) {
+      return {
+        elements,
+      }
+    }
 
     if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
@@ -60,13 +75,14 @@ export const getAllPostReactions = async (
   pizzlyId: string,
   postId: string,
   logger: Logger,
+  lookBackUntilTs?: number,
 ): Promise<ILinkedInPostReaction[]> => {
   const elements = []
 
-  let response = await getPostReactions(pizzlyId, postId, logger)
+  let response = await getPostReactions(pizzlyId, postId, logger, undefined, lookBackUntilTs)
   elements.push(...response.elements)
   while (response.start !== undefined) {
-    response = await getPostReactions(pizzlyId, postId, logger, response.start)
+    response = await getPostReactions(pizzlyId, postId, logger, response.start, lookBackUntilTs)
     elements.push(...response.elements)
   }
 
