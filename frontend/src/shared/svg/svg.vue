@@ -6,7 +6,7 @@
       @mouseleave="isHovered = false"
     >
       <use
-        :href="`/icons/crowd-icons.svg?#${name}`"
+        :href="`/icons/crowd-icons.svg?v=${version}#${name}`"
         :fill="isHovered && hoverColor ? hoverColor : color"
       />
     </svg>
@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import moment from 'moment'
+
 export default {
   name: 'AppSvg',
   props: {
@@ -32,7 +34,8 @@ export default {
   },
   data() {
     return {
-      isHovered: false
+      isHovered: false,
+      version: moment().format('x')
     }
   }
 }
