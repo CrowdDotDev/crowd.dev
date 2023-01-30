@@ -33,5 +33,6 @@
   "discord": {
     "maxRetrospectInSeconds": 3600
   },
-  "github": {}
+  "github": {},
+  "enrichment": {}
 }

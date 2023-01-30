@@ -1169,6 +1169,14 @@ class MemberRepository {
           }
         }
 
+        for (const attributeName in plainRecord.attributes) {
+          if (!lodash.find(attributesSettings, { name: attributeName })) {
+            delete plainRecord.attributes[attributeName]
+          }
+        }
+
+        delete plainRecord.contributions
+
         delete plainRecord.company
         plainRecord.organizations = await record.getOrganizations({
           joinTableAttributes: [],
