@@ -591,9 +591,7 @@ const classFor = (path, exact = false) => {
     display: none;
   }
 
-  .el-menu:hover:not(
-      .horizontal-collapse-transition
-    ).el-menu--collapse {
+  .el-menu:hover:not(.horizontal-collapse-transition).el-menu--collapse {
     .dynamic-logo {
       display: none;
     }
@@ -629,9 +627,7 @@ const classFor = (path, exact = false) => {
   }
 
   // Menu width and padding customization
-  .el-menu--vertical:not(.el-menu--collapse):not(
-      .el-menu--popup-container
-    ) {
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container) {
     width: 260px;
 
     .menu-collapsed-header {
@@ -639,9 +635,7 @@ const classFor = (path, exact = false) => {
     }
   }
 
-  .el-menu--vertical:not(.el-menu--collapse):not(
-      .el-menu--popup-container
-    )
+  .el-menu--vertical:not(.el-menu--collapse):not(.el-menu--popup-container)
     .el-menu-item {
     @apply px-2.5;
   }

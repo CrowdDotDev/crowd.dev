@@ -18,10 +18,9 @@
           :member="member"
           class="col-span-2"
         />
-        <app-member-view-aside
-          :member="member"
-          class="row-span-4"
-        />
+        <div class="row-span-4">
+          <app-member-view-aside :member="member" />
+        </div>
         <app-member-view-contributions
           v-if="member.contributions"
           :contributions="member.contributions"

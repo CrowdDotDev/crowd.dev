@@ -15,7 +15,7 @@ export const getOrganizations = async (
     params: {
       q: 'roleAssignee',
       projection:
-        '(elements*(*,roleAssignee~(localizedFirstName,localizedLastName),organization~(id,localizedName,vanityName)))',
+        '(elements*(*,roleAssignee~(localizedFirstName,localizedLastName),organization~(id,localizedName,vanityName,logoV2(original~:playableStreams))))',
     },
     headers: {
       'X-Restli-Protocol-Version': '2.0.0',
@@ -30,14 +30,22 @@ export const getOrganizations = async (
 
     const response = (await axios(config)).data
 
-    logger.debug({ response }, 'Get organizations response from LinkedIn')
+    return response.elements.map((e) => {
+      let profilePictureUrl: string | undefined
 
-    return response.elements.map((e) => ({
-      id: e['organization~'].id,
-      name: e['organization~'].localizedName,
-      organizationUrn: e.organization,
-      vanityName: e['organization~'].vanityName,
-    }))
+      if (e['organization~'].logoV2?.['original~']?.elements?.length > 0) {
+        const pictures = e['organization~'].logoV2['original~'].elements
+        profilePictureUrl = pictures[pictures.length - 1].identifiers[0].identifier
+      }
+
+      return {
+        id: e['organization~'].id,
+        name: e['organization~'].localizedName,
+        organizationUrn: e.organization,
+        vanityName: e['organization~'].vanityName,
+        profilePictureUrl,
+      }
+    })
   } catch (err) {
     const newErr = handleLinkedinError(err, config, { pizzlyId }, logger)
     throw newErr

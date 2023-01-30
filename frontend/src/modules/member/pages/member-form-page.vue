@@ -1,6 +1,6 @@
 <template>
   <app-page-wrapper
-    :container-class="'md:col-start-1 md:col-span-12 lg:col-start-2 lg:col-span-10'"
+    :container-class="'col-start-1 col-span-12'"
   >
     <div class="member-form-page">
       <el-button
@@ -283,7 +283,9 @@ function getInitialModel(record) {
         displayName: record ? record.displayName : '',
         email: record ? record.email : '',
         joinedAt: record ? record.joinedAt : '',
-        attributes: record ? record.attributes : {},
+        attributes: record
+          ? filteredAttributes(record.attributes)
+          : {},
         organizations: record?.organizations.length
           ? record.organizations[0].name
           : '',
@@ -296,6 +298,22 @@ function getInitialModel(record) {
       })
     )
   )
+}
+
+function filteredAttributes(attributes) {
+  return Object.keys(attributes).reduce((acc, item) => {
+    if (
+      ![
+        'workExperiences',
+        'education',
+        'certifications',
+        'awards'
+      ].includes(item)
+    ) {
+      acc[item] = attributes[item]
+    }
+    return acc
+  }, {})
 }
 
 async function onReset() {

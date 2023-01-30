@@ -10,7 +10,7 @@ import {
   IStepContext,
 } from '../../../../../types/integration/stepResult'
 import { IntegrationType, PlatformType } from '../../../../../types/integrationEnums'
-import { ILinkedInOrganizationPost } from '../../../types/linkedinTypes'
+import { ILinkedInOrganization, ILinkedInOrganizationPost } from '../../../types/linkedinTypes'
 import { AddActivitiesSingle, Member } from '../../../types/messageTypes'
 import { getMember } from '../../../usecases/linkedin/getMember'
 import { getOrganization } from '../../../usecases/linkedin/getOrganization'
@@ -26,7 +26,7 @@ import { getAllPostReactions } from '../../../usecases/linkedin/getPostReactions
 
 export class LinkedinIntegrationService extends IntegrationServiceBase {
   constructor() {
-    super(IntegrationType.LINKEDIN, 20)
+    super(IntegrationType.LINKEDIN, 60)
   }
 
   async createMemberAttributes(context: IStepContext): Promise<void> {
@@ -38,13 +38,26 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     const log = this.logger(context)
     log.info('Preprocessing!')
 
-    const organization = context.integration.settings.organizations.find((o) => o.inUse === true)
+    const organization: ILinkedInOrganization = context.integration.settings.organizations.find(
+      (o) => o.inUse === true,
+    )
 
     if (!organization) {
       throw new Error('No organization selected!')
     }
 
     const pizzlyId = `${context.integration.tenantId}-${PlatformType.LINKEDIN}`
+
+    if (organization.profilePictureUrl === undefined) {
+      const org = await getOrganization(pizzlyId, organization.id.toString(), log)
+      context.integration.settings.organizations = [
+        ...context.integration.settings.organizations.filter((o) => o.id !== organization.id),
+        {
+          ...org,
+          inUse: true,
+        },
+      ]
+    }
 
     const posts = await getAllOrganizationPosts(pizzlyId, organization.organizationUrn, log)
 
@@ -130,6 +143,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
             stream.metadata.postUrnId,
           )}`,
           postBody: stream.metadata.postBody,
+          imageUrl: comment.imageUrl,
         },
         member,
         score: LinkedInGrid.comment.score,
@@ -255,6 +269,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
             stream.metadata.urnId,
           )}`,
           postBody: stream.metadata.body,
+          imageUrl: comment.imageUrl,
         },
         member,
         score: LinkedInGrid.comment.score,

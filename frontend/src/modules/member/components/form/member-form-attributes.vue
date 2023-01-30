@@ -33,14 +33,32 @@
           :key="index"
           class="grid grid-cols-12 gap-3"
         >
-          <div class="col-span-4 flex flex-col gap-1">
+          <div
+            class="col-span-4 flex flex-col gap-1 justify-center"
+          >
+            <div class="flex items-center leading-tight">
+              <div
+                class="text-gray-900 text-xs font-medium mr-2"
+              >
+                {{ attribute.label }}
+              </div>
+              <el-tooltip
+                v-if="
+                  model.attributes[attribute.name]
+                    ?.enrichment
+                "
+                content="Member enrichment"
+                placement="top"
+              >
+                <div class="form-enrichment-badge">
+                  <app-svg name="enrichment" />
+                </div>
+              </el-tooltip>
+            </div>
             <span
-              class="text-gray-900 text-xs font-medium"
-              >{{ attribute.label }}</span
+              class="text-2xs text-gray-500 leading-none"
+              >{{ attributesTypes[attribute.type] }}</span
             >
-            <span class="text-2xs text-gray-500">{{
-              attributesTypes[attribute.type]
-            }}</span>
           </div>
           <el-form-item class="col-span-8">
             <el-date-picker
@@ -76,6 +94,29 @@
               />
             </el-select>
 
+            <el-tooltip
+              v-else-if="attribute.type === 'multiSelect'"
+              content="Multi-select fields are temporarily read-only"
+              placement="top"
+            >
+              <el-select
+                v-model="model[attribute.name]"
+                class="w-full"
+                disabled
+                filterable
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                placeholder="Select option"
+              >
+                <el-option
+                  v-for="item of attribute.options"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                />
+              </el-select>
+            </el-tooltip>
             <el-input
               v-else
               v-model="model[attribute.name]"
@@ -109,6 +150,7 @@ import {
   watch
 } from 'vue'
 import { onSelectMouseLeave } from '@/utils/select'
+import AppSvg from '@/shared/svg/svg'
 
 const CalendarIcon = h(
   'i', // type
@@ -125,7 +167,8 @@ const attributesTypes = {
   email: 'E-mail',
   url: 'URL',
   date: 'Date',
-  boolean: 'Boolean'
+  boolean: 'Boolean',
+  multiSelect: 'Multi-select'
 }
 
 const emit = defineEmits([
@@ -144,13 +187,41 @@ const props = defineProps({
   showHeader: {
     type: Boolean,
     default: true
+  },
+  record: {
+    type: Object,
+    default: () => {}
   }
 })
 
 const customAttributes = computed(() =>
-  props.attributes.filter(
-    (attribute) => attribute.canDelete
-  )
+  props.attributes
+    .filter((attribute) => {
+      return (
+        attribute.show &&
+        ![
+          'bio',
+          'url',
+          'location',
+          'jobTitle',
+          'emails',
+          'workExperiences', // we render them in _aside-enriched
+          'certifications', // we render them in _aside-enriched
+          'education', // we render them in _aside-enriched
+          'awards' // we render them in _aside-enriched
+        ].includes(attribute.name) &&
+        props.record.attributes[attribute.name]
+      )
+    })
+    .sort((a, b) => {
+      if (props.record.attributes[a.name].enrich) {
+        return props.record.attributes[b.name].enrich
+          ? 0
+          : -1
+      } else {
+        return 1
+      }
+    })
 )
 
 const model = computed(() => props.modelValue)
@@ -159,3 +230,12 @@ watch(model.value, (newModel) => {
   emit('update:modelValue', newModel)
 })
 </script>
+
+<style lang="scss">
+.form-enrichment-badge {
+  @apply w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center;
+  svg {
+    @apply h-4 w-4 overflow-visible flex items-center justify-center leading-none;
+  }
+}
+</style>

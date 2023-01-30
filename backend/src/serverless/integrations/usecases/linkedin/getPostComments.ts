@@ -27,14 +27,22 @@ export const getPostComments = async (
 
     const response = (await axios(config)).data
 
-    const elements = response.elements.map((e) => ({
-      authorUrn: e.actor,
-      timestamp: e.created.time,
-      comment: e.message.text,
-      urnId: e.$URN,
-      objectUrn: e.object,
-      childComments: e.commentsSummary?.aggregatedTotalComments || 0,
-    }))
+    const elements = response.elements.map((e) => {
+      let imageUrl: string | undefined
+      if (e.content && e.content.length > 0 && e.content[0].type === 'IMAGE') {
+        imageUrl = e.content[0].url
+      }
+
+      return {
+        authorUrn: e.actor,
+        timestamp: e.created.time,
+        comment: e.message.text,
+        imageUrl,
+        urnId: e.$URN,
+        objectUrn: e.object,
+        childComments: e.commentsSummary?.aggregatedTotalComments || 0,
+      }
+    })
 
     if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
