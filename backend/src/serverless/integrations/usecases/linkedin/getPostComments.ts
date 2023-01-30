@@ -10,6 +10,7 @@ export const getPostComments = async (
   postId: string,
   logger: Logger,
   start?: number,
+  lookBackUntilTs?: number,
 ): Promise<IPaginatedResponse<ILinkedInPostComment>> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
@@ -20,14 +21,20 @@ export const getPostComments = async (
   }
 
   try {
-    logger.debug({ pizzlyId, postId, start }, 'Fetching organization posts!')
+    logger.debug({ pizzlyId, postId, start }, 'Fetching organization comments!')
     // Get an access token from Pizzly
     const accessToken = await getToken(pizzlyId, PlatformType.LINKEDIN, logger)
     config.params.oauth2_access_token = accessToken
 
     const response = (await axios(config)).data
 
+    let stop = false
+
     const elements = response.elements.map((e) => {
+      if (lookBackUntilTs && e.created.time <= lookBackUntilTs) {
+        stop = true
+      }
+
       let imageUrl: string | undefined
       if (e.content && e.content.length > 0 && e.content[0].type === 'IMAGE') {
         imageUrl = e.content[0].url
@@ -43,6 +50,12 @@ export const getPostComments = async (
         childComments: e.commentsSummary?.aggregatedTotalComments || 0,
       }
     })
+
+    if (stop) {
+      return {
+        elements,
+      }
+    }
 
     if (response.paging.links.find((l) => l.rel === 'next')) {
       return {
@@ -64,13 +77,14 @@ export const getAllPostComments = async (
   pizzlyId: string,
   postId: string,
   logger: Logger,
+  lookBackUntilTs?: number,
 ): Promise<ILinkedInPostComment[]> => {
   const elements = []
 
-  let response = await getPostComments(pizzlyId, postId, logger)
+  let response = await getPostComments(pizzlyId, postId, logger, undefined, lookBackUntilTs)
   elements.push(...response.elements)
   while (response.start !== undefined) {
-    response = await getPostComments(pizzlyId, postId, logger, response.start)
+    response = await getPostComments(pizzlyId, postId, logger, response.start, lookBackUntilTs)
     elements.push(...response.elements)
   }
 

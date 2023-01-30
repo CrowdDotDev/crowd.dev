@@ -14,6 +14,12 @@ export interface ILinkedInOrganizationPost {
   authorUrn: string
   body?: string
   originalUrnId?: string
+  timestamp: number
+}
+
+export enum LinkedInAuthorType {
+  ORGANIZATION = 'organization',
+  USER = 'user',
 }
 
 export interface ILinkedInPostReaction {
