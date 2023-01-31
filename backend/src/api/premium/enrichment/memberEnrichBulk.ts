@@ -1,4 +1,3 @@
-import moment from 'moment'
 import Error403 from '../../../errors/Error403'
 import { PLAN_LIMITS } from '../../../feature-flags/ensureFlagUpdated'
 import Permissions from '../../../security/permissions'
@@ -9,6 +8,7 @@ import { FeatureFlag, FeatureFlagRedisKey } from '../../../types/common'
 import { createServiceLogger } from '../../../utils/logging'
 import { RedisCache } from '../../../utils/redis/redisCache'
 import track from '../../../segment/track'
+import { getSecondsTillEndOfMonth } from '../../../utils/timing'
 
 const log = createServiceLogger()
 
@@ -54,10 +54,7 @@ export default async (req, res) => {
   await sendBulkEnrichMessage(tenant, membersToEnrich)
 
   // update enrichment count, we'll also check failed enrichments and deduct these from grand total in bulkEnrichmentWorker
-  const endTime = moment().endOf('month')
-  const startTime = moment()
-
-  const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
+  const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
   if (!memberEnrichmentCount) {
     await memberEnrichmentCountCache.setValue(
