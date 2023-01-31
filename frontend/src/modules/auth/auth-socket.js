@@ -86,13 +86,11 @@ export const connectSocket = (token) => {
       store.commit('member/BULK_ENRICHMENT_ERROR')
 
       Message.error(
-        `Bulk enrichment failed for ${pluralize(
+        `Failed to enrich ${pluralize(
           'member',
           data.failedEnrichedMembers,
           true
-        )}. We managed to enrich ${
-          data.enrichedMembers
-        } members.`
+        )}.`
       )
     } else {
       if (enrichmentLoading.value) {
