@@ -1,4 +1,3 @@
-import moment from 'moment-timezone'
 import { PostHog } from 'posthog-node'
 import { POSTHOG_CONFIG } from '../../../../config'
 import getUserContext from '../../../../database/utils/getUserContext'
@@ -7,6 +6,7 @@ import MemberEnrichmentService from '../../../../services/premium/enrichment/mem
 import { FeatureFlagRedisKey } from '../../../../types/common'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
+import { getSecondsTillEndOfMonth } from '../../../../utils/timing'
 
 /**
  * Sends weekly analytics emails of a given tenant
@@ -39,9 +39,7 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
     )
 
     // calculate remaining seconds for the end of the month, to set TTL for redis keys
-    const endTime = moment().endOf('month')
-    const startTime = moment()
-    const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
+    const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
     if (!memberEnrichmentCount) {
       await memberEnrichmentCountCache.setValue(

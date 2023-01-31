@@ -2511,10 +2511,18 @@ describe('MemberService tests', () => {
           [PlatformType.TWITTER]: 'some value',
         },
       }
+      const validateAttributes = await memberService.validateAttributes(attributes)
 
-      await expect(() => memberService.validateAttributes(attributes)).rejects.toThrowError(
-        new Error400('en', 'settings.memberAttributes.notFound', 'non-existing-attribute'),
-      )
+      // member attribute that is non existing in settings, should be omitted after validate
+      const expectedValidatedAttributes = {
+        [MemberAttributeName.URL]: {
+          [PlatformType.GITHUB]: 'https://some-github-url',
+        },
+        [MemberAttributeName.AVATAR_URL]: {
+          [PlatformType.TWITTER]: 'https://some-image-url',
+        },
+      }
+      expect(validateAttributes).toEqual(expectedValidatedAttributes)
     })
 
     it('Should throw a 400 Error when the type of an attribute does not match the type in member attribute settings', async () => {
