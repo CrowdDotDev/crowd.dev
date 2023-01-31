@@ -327,8 +327,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         groupId: parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10),
         groupsToDisplay: [parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10)],
       }
-      
-      const emailSentTo:string[] = []
+
+      const emailSentTo: string[] = []
 
       for (const user of allTenantUsers) {
         if (user.email && user.emailVerified) {
@@ -405,23 +405,22 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
           )
 
           emailSentTo.push(user.email)
-
         }
       }
 
       const waeHistory = await waeRepository.create({
         tenantId,
-        weekOfYear: (dateTimeStartThisWeek.isoWeek()).toString(),
+        weekOfYear: dateTimeStartThisWeek.isoWeek().toString(),
         emailSentAt: moment().toISOString(),
-        emailSentTo
+        emailSentTo,
       })
 
-      log.info( { receipt: waeHistory }, `Email sent!`)
+      log.info({ receipt: waeHistory }, `Email sent!`)
 
       return { status: 200, emailSent: true }
     }
-      
-    log.info({tenantId}, 'No active integrations present in the tenant. Email will not be sent.')
+
+    log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
 
     return {
       status: 200,

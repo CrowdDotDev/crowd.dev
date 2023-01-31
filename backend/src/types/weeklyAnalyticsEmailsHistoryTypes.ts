@@ -1,6 +1,7 @@
 export interface WeeklyAnalyticsEmailsHistoryData {
-    tenantId: string
-    weekOfYear: string
-    emailSentAt: string
-    emailSentTo: string[]
+  id?: string
+  tenantId: string
+  weekOfYear: string
+  emailSentAt: string
+  emailSentTo: string[]
 }

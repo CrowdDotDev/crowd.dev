@@ -36,7 +36,8 @@ const sections = [
   },
   {
     header: 'Send weekly analytics email to given tenant.',
-    content: 'Sends weekly analytics email to given tenant. The daterange will be from previous week.',
+    content:
+      'Sends weekly analytics email to given tenant. The daterange will be from previous week.',
   },
   {
     header: 'Options',
@@ -58,23 +59,24 @@ if (parameters.help || !parameters.tenant) {
 
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
-      const isEmailAlreadySent = (await waeRepository.find(tenantId, weekOfYear)) !== null 
+      const isEmailAlreadySent = (await waeRepository.findByWeekOfYear(weekOfYear)) !== null
 
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found! Skipping.')
-      }
-      else if (isEmailAlreadySent){
-        log.info( { tenantId }, 'Analytics email for this week is already sent to this tenant. Skipping.' )
-      } 
-      else {
+      } else if (isEmailAlreadySent) {
+        log.info(
+          { tenantId },
+          'Analytics email for this week is already sent to this tenant. Skipping.',
+        )
+      } else {
         log.info({ tenantId }, `Tenant found - sending weekly email message!`)
         await sendNodeWorkerMessage(tenant.id, {
-            type: NodeWorkerMessageType.NODE_MICROSERVICE,
-            tenant: tenant.id,
-            service: 'weekly-analytics-emails',
-          } as NodeWorkerMessageBase)
+          type: NodeWorkerMessageType.NODE_MICROSERVICE,
+          tenant: tenant.id,
+          service: 'weekly-analytics-emails',
+        } as NodeWorkerMessageBase)
 
-        if(tenantIds.length > 1){
+        if (tenantIds.length > 1) {
           await timeout(1000)
         }
       }
