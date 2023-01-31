@@ -22,13 +22,15 @@
           v-if="areSelectedMembersNotEnriched"
           placement="top"
           content="Selected members lack an associated GitHub profile or Email"
-          :disabled="elegibleEnrichmentMembers.length"
+          :disabled="elegibleEnrichmentMembersIds.length"
           popper-class="max-w-[260px]"
         >
           <span>
             <el-dropdown-item
               command="enrichMember"
-              :disabled="!elegibleEnrichmentMembers.length"
+              :disabled="
+                !elegibleEnrichmentMembersIds.length
+              "
               class="mb-1"
             >
               <app-svg
@@ -113,11 +115,14 @@ export default {
         ).edit === false
       )
     },
-    elegibleEnrichmentMembers() {
-      return this.selectedRows.filter(
-        (r) =>
-          (r.username?.github || r.email) && !r.lastEnriched
-      )
+    elegibleEnrichmentMembersIds() {
+      return this.selectedRows
+        .filter(
+          (r) =>
+            (r.username?.github || r.email) &&
+            !r.lastEnriched
+        )
+        .map((item) => item.id)
     },
     selectedIds() {
       return this.selectedRows
@@ -151,11 +156,11 @@ export default {
       } else if (command === 'enrichMember') {
         // All members are elegible for enrichment
         if (
-          this.elegibleEnrichmentMembers.length ===
+          this.elegibleEnrichmentMembersIds.length ===
           this.selectedIds.length
         ) {
           await this.doBulkEnrich(
-            this.elegibleEnrichmentMembers
+            this.elegibleEnrichmentMembersIds
           )
         } else {
           // Only a few members are elegible for enrichment
@@ -168,7 +173,7 @@ export default {
                 'Member enrichment requires an associated GitHub profile or Email. If you proceed, only the members who fulfill this requirement will be enriched and counted towards your quota.',
               confirmButtonText: `Proceed with enrichment (${pluralize(
                 'member',
-                this.elegibleEnrichmentMembers.length,
+                this.elegibleEnrichmentMembersIds.length,
                 true
               )})`,
               cancelButtonText: 'Cancel',
@@ -176,7 +181,7 @@ export default {
             })
 
             await this.doBulkEnrich(
-              this.elegibleEnrichmentMembers
+              this.elegibleEnrichmentMembersIds
             )
           } catch (error) {
             // no
