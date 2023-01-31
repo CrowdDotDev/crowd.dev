@@ -323,7 +323,6 @@ export default {
         rootGetters['auth/currentTenant']
 
       // Show enrichment success message
-      Message.closeAll()
       showEnrichmentSuccessMessage({
         memberEnrichmentCount:
           updatedTenant.memberEnrichmentCount,
@@ -350,7 +349,7 @@ export default {
     }
   },
 
-  async doBulkEnrich({ commit, rootGetters }, ids) {
+  async doBulkEnrich({ rootGetters }, ids) {
     try {
       const currentTenant =
         rootGetters['auth/currentTenant']
@@ -385,8 +384,6 @@ export default {
 
       // Show enrichment loading message
       showEnrichmentLoadingMessage({ isBulk: true })
-
-      commit('BULK_ENRICHMENT_STARTED')
 
       await MemberService.enrichMemberBulk(ids)
     } catch (error) {

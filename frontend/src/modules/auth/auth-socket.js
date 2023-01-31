@@ -22,9 +22,6 @@ export const connectSocket = (token) => {
   const currentUser = computed(
     () => store.getters['auth/currentUser']
   )
-  const enrichmentLoading = computed(
-    () => store.state.member.enrichmentLoading
-  )
 
   const path =
     config.env === 'production' || config.env === 'staging'
@@ -82,9 +79,6 @@ export const connectSocket = (token) => {
 
     if (!data.success) {
       Message.closeAll()
-
-      store.commit('member/BULK_ENRICHMENT_ERROR')
-
       Message.error(
         `Failed to enrich ${pluralize(
           'member',
@@ -93,12 +87,6 @@ export const connectSocket = (token) => {
         )}.`
       )
     } else {
-      if (enrichmentLoading.value) {
-        Message.closeAll()
-      }
-
-      store.commit('member/BULK_ENRICHMENT_SUCCESS')
-
       const planEnrichmentCountMax = getEnrichmentMax(
         updatedTenant.tenant.plan
       )

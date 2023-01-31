@@ -64,17 +64,5 @@ export default {
 
   BULK_UPDATE_MEMBERS_TAGS_ERROR(state) {
     state.list.loading = false
-  },
-
-  BULK_ENRICHMENT_STARTED(state) {
-    state.enrichmentLoading = true
-  },
-
-  BULK_ENRICHMENT_SUCCESS(state) {
-    state.enrichmentLoading = false
-  },
-
-  BULK_ENRICHMENT_ERROR(state) {
-    state.enrichmentLoading = false
   }
 }
