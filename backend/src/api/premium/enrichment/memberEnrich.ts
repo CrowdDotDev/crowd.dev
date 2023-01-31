@@ -1,4 +1,3 @@
-import moment from 'moment'
 import Permissions from '../../../security/permissions'
 import identifyTenant from '../../../segment/identifyTenant'
 import MemberEnrichmentService from '../../../services/premium/enrichment/memberEnrichmentService'
@@ -6,6 +5,10 @@ import PermissionChecker from '../../../services/user/permissionChecker'
 import { FeatureFlagRedisKey } from '../../../types/common'
 import { RedisCache } from '../../../utils/redis/redisCache'
 import track from '../../../segment/track'
+import { createServiceLogger } from '../../../utils/logging'
+import { getSecondsTillEndOfMonth } from '../../../utils/timing'
+
+const log = createServiceLogger()
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.memberEdit)
@@ -21,10 +24,9 @@ export default async (req, res) => {
 
   const memberEnrichmentCount = await memberEnrichmentCountCache.getValue(req.currentTenant.id)
 
-  const endTime = moment().endOf('month')
-  const startTime = moment()
+  const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
-  const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
+  log.info(secondsRemainingUntilEndOfMonth, 'Seconds remaining')
 
   if (!memberEnrichmentCount) {
     await memberEnrichmentCountCache.setValue(

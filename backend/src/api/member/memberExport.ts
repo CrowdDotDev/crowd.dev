@@ -1,4 +1,3 @@
-import moment from 'moment'
 import Permissions from '../../security/permissions'
 import identifyTenant from '../../segment/identifyTenant'
 import track from '../../segment/track'
@@ -6,6 +5,7 @@ import MemberService from '../../services/memberService'
 import PermissionChecker from '../../services/user/permissionChecker'
 import { FeatureFlagRedisKey } from '../../types/common'
 import { RedisCache } from '../../utils/redis/redisCache'
+import { getSecondsTillEndOfMonth } from '../../utils/timing'
 
 /**
  * POST /tenant/{tenantId}/member/export
@@ -29,10 +29,7 @@ export default async (req, res) => {
 
   const csvCount = await csvCountCache.getValue(req.currentTenant.id)
 
-  const endTime = moment().endOf('month')
-  const startTime = moment()
-
-  const secondsRemainingUntilEndOfMonth = endTime.diff(startTime, 'days') * 86400
+  const secondsRemainingUntilEndOfMonth = getSecondsTillEndOfMonth()
 
   if (!csvCount) {
     await csvCountCache.setValue(req.currentTenant.id, '0', secondsRemainingUntilEndOfMonth)
