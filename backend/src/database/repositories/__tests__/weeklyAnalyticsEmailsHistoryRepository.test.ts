@@ -123,12 +123,18 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
       const receiptCreated = await waeRepository.create(historyData)
 
       // should find recently created receipt
-      let receiptFound = await waeRepository.findByWeekOfYear(mockIRepositoryOptions.currentTenant.id, '1')
+      let receiptFound = await waeRepository.findByWeekOfYear(
+        mockIRepositoryOptions.currentTenant.id,
+        '1',
+      )
 
       expect(receiptCreated).toStrictEqual(receiptFound)
 
       // shouldn't find any receipts
-      receiptFound = await waeRepository.findByWeekOfYear(mockIRepositoryOptions.currentTenant.id, '2')
+      receiptFound = await waeRepository.findByWeekOfYear(
+        mockIRepositoryOptions.currentTenant.id,
+        '2',
+      )
 
       expect(receiptFound).toBeNull()
     })
