@@ -154,7 +154,9 @@ export default {
           this.elegibleEnrichmentMembers.length ===
           this.selectedIds.length
         ) {
-          await this.doBulkEnrich(this.selectedIds)
+          await this.doBulkEnrich(
+            this.elegibleEnrichmentMembers
+          )
         } else {
           // Only a few members are elegible for enrichment
           try {
@@ -173,7 +175,9 @@ export default {
               icon: 'ri-alert-line'
             })
 
-            await this.doBulkEnrich(this.selectedIds)
+            await this.doBulkEnrich(
+              this.elegibleEnrichmentMembers
+            )
           } catch (error) {
             // no
           }

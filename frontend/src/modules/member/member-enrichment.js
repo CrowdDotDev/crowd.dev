@@ -110,7 +110,6 @@ export const showEnrichmentSuccessMessage = ({
       ? essentialMessage
       : commonMessage
 
-  Message.closeAll()
   Message.success(message, {
     title: `Successfully enriched ${
       isBulk ? 'members' : 'member'

@@ -323,6 +323,7 @@ export default {
         rootGetters['auth/currentTenant']
 
       // Show enrichment success message
+      Message.closeAll()
       showEnrichmentSuccessMessage({
         memberEnrichmentCount:
           updatedTenant.memberEnrichmentCount,

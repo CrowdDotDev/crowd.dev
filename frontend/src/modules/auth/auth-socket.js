@@ -23,7 +23,7 @@ export const connectSocket = (token) => {
     () => store.getters['auth/currentUser']
   )
   const enrichmentLoading = computed(
-    () => store.state.enrichmentLoading
+    () => store.state.member.enrichmentLoading
   )
 
   const path =
