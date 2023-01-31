@@ -149,7 +149,6 @@ export default class MemberEnrichmentService extends LoggingBase {
       this.log.error({ err }, 'Error in api-ws emitter!')
     })
     let enrichedMembers = 0
-    let showErrorMessage = false
     for (const memberId of memberIds) {
       try {
         await this.enrichOne(memberId)
@@ -164,14 +163,13 @@ export default class MemberEnrichmentService extends LoggingBase {
           continue
         } else {
           this.log.error(`Failed to enrich member ${memberId}`, err)
-          showErrorMessage = true
         }
       }
     }
 
     // Send websocket messages to frontend after all requests have been made
-    // Only send error message if any enrichment failed
-    if (showErrorMessage) {
+    // Only send error message if all enrichments failed
+    if (!enrichedMembers) {
       apiPubSubEmitter.emit(
         'user',
         new ApiWebsocketMessage(
@@ -187,9 +185,8 @@ export default class MemberEnrichmentService extends LoggingBase {
         ),
       )
     }
-
-    // Only send success message if there were enrichedMembers
-    if (enrichedMembers) {
+    // Send success message if there were enrichedMembers
+    else {
       apiPubSubEmitter.emit(
         'user',
         new ApiWebsocketMessage(

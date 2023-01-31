@@ -107,6 +107,7 @@ export const connectSocket = (token) => {
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
+        enrichedMembers: data.enrichedMembers,
         memberEnrichmentCount:
           updatedTenant.tenant.memberEnrichmentCount,
         planEnrichmentCountMax,
