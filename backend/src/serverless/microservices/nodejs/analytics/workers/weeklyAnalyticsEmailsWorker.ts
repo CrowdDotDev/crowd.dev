@@ -33,7 +33,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   const userContext = await getUserContext(tenantId)
 
   if (response.shouldRetry) {
-    // send new node message and return
+    // expception while getting data. send new node message and return
     await sendNodeWorkerMessage(tenantId, {
       type: NodeWorkerMessageType.NODE_MICROSERVICE,
       tenant: tenantId,
@@ -48,7 +48,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
   }
 
   if (!userContext.currentUser) {
-    const message = `Tenant(${tenantId}) doesn't have any active users.` 
+    const message = `Tenant(${tenantId}) doesn't have any active users.`
     log.info(message)
     return {
       status: 200,
@@ -194,8 +194,9 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
 async function getAnalyticsData(tenantId: string) {
   try {
-    const s3Url = `https://${S3_CONFIG.microservicesAssetsBucket
-      }-${getStage()}.s3.eu-central-1.amazonaws.com`
+    const s3Url = `https://${
+      S3_CONFIG.microservicesAssetsBucket
+    }-${getStage()}.s3.eu-central-1.amazonaws.com`
 
     const unixEpoch = moment.unix(0)
 
@@ -454,15 +455,15 @@ async function getAnalyticsData(tenantId: string) {
           prettyChannelHTML = `<span style='color:#e94f2e'><a target="_blank" style="-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:none;color:#e94f2e;font-size:14px;line-height:14px" href="${conversationStarterActivity.channel}">${prettyChannel}</a></span>`
         }
 
-        c.description = `${prettyActivityTypes[conversationStarterActivity.platform][
-          conversationStarterActivity.type
+        c.description = `${
+          prettyActivityTypes[conversationStarterActivity.platform][
+            conversationStarterActivity.type
           ]
-          } in ${prettyChannelHTML}`
+        } in ${prettyChannelHTML}`
 
         c.sourceLink = conversationStarterActivity.url
 
-        c.member =
-          conversationStarterActivity.member.username[conversationStarterActivity.platform]
+        c.member = conversationStarterActivity.member.username[conversationStarterActivity.platform]
 
         return c
       }),
@@ -512,7 +513,6 @@ async function getAnalyticsData(tenantId: string) {
         activeTenantIntegrations,
       },
     }
-
   } catch (e) {
     return {
       shouldRetry: true,
