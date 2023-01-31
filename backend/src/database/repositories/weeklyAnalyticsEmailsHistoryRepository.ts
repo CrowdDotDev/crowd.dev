@@ -16,9 +16,7 @@ class WeeklyAnalyticsEmailsHistoryRepository extends RepositoryBase<
   }
 
   /**
-   * Inserts weekly analytics email history
-   * If there is already a historical entry for given tenant and weekOfYear,
-   * returns the already existing entry.
+   * Inserts weekly analytics email history.
    * @param data weekly emails historical data
    * @param options
    * @returns
