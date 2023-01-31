@@ -107,7 +107,7 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
     })
   })
 
-  describe('findById method', () => {
+  describe('findByWeekOfYear method', () => {
     it('Should find historical receipt by week of year', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
