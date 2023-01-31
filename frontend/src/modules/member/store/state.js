@@ -156,6 +156,7 @@ export default () => {
       loading: false,
       table: false
     },
+    enrichmentLoading: false,
     exportLoading: false,
     count: 0
   }

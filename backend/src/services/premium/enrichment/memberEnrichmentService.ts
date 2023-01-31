@@ -177,7 +177,7 @@ export default class MemberEnrichmentService extends LoggingBase {
         new ApiWebsocketMessage(
           'bulk-enrichment',
           JSON.stringify({
-            failedErichedMembers: memberIds.length - enrichedMembers,
+            failedEnrichedMembers: memberIds.length - enrichedMembers,
             enrichedMembers,
             tenantId: this.options.currentTenant.id,
             success: false,
@@ -186,8 +186,10 @@ export default class MemberEnrichmentService extends LoggingBase {
           this.options.currentTenant.id,
         ),
       )
-      // Only send success message if there were enrichedMembers
-    } else if (enrichedMembers) {
+    }
+
+    // Only send success message if there were enrichedMembers
+    if (enrichedMembers) {
       apiPubSubEmitter.emit(
         'user',
         new ApiWebsocketMessage(
