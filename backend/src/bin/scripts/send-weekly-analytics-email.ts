@@ -20,7 +20,7 @@ const options = [
     name: 'tenant',
     alias: 't',
     type: String,
-    description: 'The unique ID of tenant that you would like to update.',
+    description: 'The unique ID of tenant that you would like to send weekly emails to.',
   },
   {
     name: 'help',
