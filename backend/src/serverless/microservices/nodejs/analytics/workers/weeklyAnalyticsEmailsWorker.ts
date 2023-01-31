@@ -14,6 +14,7 @@ import { createServiceChildLogger } from '../../../../../utils/logging'
 import { prettyActivityTypes } from '../../../../../types/prettyActivityTypes'
 import ConversationRepository from '../../../../../database/repositories/conversationRepository'
 import { PlatformType } from '../../../../../types/integrationEnums'
+import WeeklyAnalyticsEmailsHistoryRepository from '../../../../../database/repositories/weeklyAnalyticsEmailsHistoryRepository'
 
 const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -51,6 +52,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       unixEpoch,
       dateTimeEndThisWeek,
     )
+
     const totalMembersPreviousWeek = await CubeJsRepository.getNewMembers(
       cjs,
       unixEpoch,
@@ -315,6 +317,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       },
     )
 
+    const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(userContext)
+
     if (activeTenantIntegrations.length > 0) {
       log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
       const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
@@ -323,6 +327,8 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
         groupId: parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10),
         groupsToDisplay: [parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10)],
       }
+      
+      const emailSentTo:string[] = []
 
       for (const user of allTenantUsers) {
         if (user.email && user.emailVerified) {
@@ -388,8 +394,6 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
             },
           }
 
-          log.info(data, 'Sending data to sendgrid.. ')
-
           await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
             user.email,
             advancedSuppressionManager,
@@ -399,15 +403,29 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
             'team@crowd.dev',
             advancedSuppressionManager,
           )
+
+          emailSentTo.push(user.email)
+
         }
       }
 
+      const waeHistory = await waeRepository.create({
+        tenantId,
+        weekOfYear: (dateTimeStartThisWeek.isoWeek()).toString(),
+        emailSentAt: moment().toISOString(),
+        emailSentTo
+      })
+
+      log.info( { receipt: waeHistory }, `Email sent!`)
+
       return { status: 200, emailSent: true }
     }
+      
+    log.info({tenantId}, 'No active integrations present in the tenant. Email will not be sent.')
 
     return {
       status: 200,
-      msg: `Tenant ${tenantId} doesn't have reasonable insights. `,
+      msg: `No active integrations present in the tenant. Email will not be sent.`,
       emailSent: false,
     }
   }

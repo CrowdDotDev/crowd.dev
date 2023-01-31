@@ -1,6 +1,7 @@
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
+import moment from 'moment'
 import path from 'path'
 import { createServiceLogger } from '../../utils/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
@@ -8,6 +9,7 @@ import { timeout } from '../../utils/timing'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
+import WeeklyAnalyticsEmailsHistoryRepository from '../../database/repositories/weeklyAnalyticsEmailsHistoryRepository'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -51,20 +53,30 @@ if (parameters.help || !parameters.tenant) {
   setImmediate(async () => {
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const tenantIds = parameters.tenant.split(',')
+    const weekOfYear = moment().utc().startOf('isoWeek').subtract(7, 'days').isoWeek().toString()
+    const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(options)
 
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
+      const isEmailAlreadySent = (await waeRepository.find(tenantId, weekOfYear)) !== null 
 
       if (!tenant) {
-        log.error({ tenantId }, 'Tenant not found!')
-        process.exit(1)
-      } else {
+        log.error({ tenantId }, 'Tenant not found! Skipping.')
+      }
+      else if (isEmailAlreadySent){
+        log.info( { tenantId }, 'Analytics email for this week is already sent to this tenant. Skipping.' )
+      } 
+      else {
         log.info({ tenantId }, `Tenant found - sending weekly email message!`)
         await sendNodeWorkerMessage(tenant.id, {
             type: NodeWorkerMessageType.NODE_MICROSERVICE,
             tenant: tenant.id,
             service: 'weekly-analytics-emails',
           } as NodeWorkerMessageBase)
+
+        if(tenantIds.length > 1){
+          await timeout(1000)
+        }
       }
     }
 
