@@ -79,7 +79,7 @@ export const connectSocket = (token) => {
     if (!data.success) {
       Message.closeAll()
       Message.error(
-        `Bulk enrichment failed. We managed to enrich ${data.enrichedMembers} members.`
+        `Bulk enrichment failed for ${data.failedErichedMembers} members. We managed to enrich ${data.enrichedMembers} members.`
       )
     } else {
       Message.closeAll()

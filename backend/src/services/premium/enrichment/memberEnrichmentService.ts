@@ -149,6 +149,7 @@ export default class MemberEnrichmentService extends LoggingBase {
       this.log.error({ err }, 'Error in api-ws emitter!')
     })
     let enrichedMembers = 0
+    let showErrorMessage = false
     for (const memberId of memberIds) {
       try {
         await this.enrichOne(memberId)
@@ -163,37 +164,44 @@ export default class MemberEnrichmentService extends LoggingBase {
           continue
         } else {
           this.log.error(`Failed to enrich member ${memberId}`, err)
-          apiPubSubEmitter.emit(
-            'user',
-            new ApiWebsocketMessage(
-              'bulk-enrichment',
-              JSON.stringify({
-                enrichedMembers,
-                tenantId: this.options.currentTenant.id,
-                success: false,
-              }),
-              undefined,
-              this.options.currentTenant.id,
-            ),
-          )
+          showErrorMessage = true
         }
       }
     }
 
-    // Send websocket message to frontend
-    apiPubSubEmitter.emit(
-      'user',
-      new ApiWebsocketMessage(
-        'bulk-enrichment',
-        JSON.stringify({
-          enrichedMembers,
-          tenantId: this.options.currentTenant.id,
-          success: true,
-        }),
-        undefined,
-        this.options.currentTenant.id,
-      ),
-    )
+    // Send websocket messages to frontend after all requests have been made
+    // Only send error message if any enrichment failed
+    if (showErrorMessage) {
+      apiPubSubEmitter.emit(
+        'user',
+        new ApiWebsocketMessage(
+          'bulk-enrichment',
+          JSON.stringify({
+            failedErichedMembers: memberIds.length - enrichedMembers,
+            enrichedMembers,
+            tenantId: this.options.currentTenant.id,
+            success: false,
+          }),
+          undefined,
+          this.options.currentTenant.id,
+        ),
+      )
+      // Only send success message if there were enrichedMembers
+    } else if (enrichedMembers) {
+      apiPubSubEmitter.emit(
+        'user',
+        new ApiWebsocketMessage(
+          'bulk-enrichment',
+          JSON.stringify({
+            enrichedMembers,
+            tenantId: this.options.currentTenant.id,
+            success: true,
+          }),
+          undefined,
+          this.options.currentTenant.id,
+        ),
+      )
+    }
 
     return { enrichedMemberCount: enrichedMembers }
   }
