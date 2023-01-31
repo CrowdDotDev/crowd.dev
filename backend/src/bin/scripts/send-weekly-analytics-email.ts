@@ -59,7 +59,7 @@ if (parameters.help || !parameters.tenant) {
 
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
-      const isEmailAlreadySent = (await waeRepository.findByWeekOfYear(weekOfYear)) !== null
+      const isEmailAlreadySent = (await waeRepository.findByWeekOfYear(tenantId, weekOfYear)) !== null
 
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found! Skipping.')
