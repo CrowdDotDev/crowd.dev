@@ -10,6 +10,7 @@ export interface IActiveMemberData {
 
 export interface IActiveMemberFilter {
   platforms?: string[]
+  isBot?: boolean
   isTeamMember?: boolean
   activityTimestampFrom: string
   activityTimestampTo: string
