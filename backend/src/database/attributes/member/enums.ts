@@ -13,6 +13,7 @@ export enum MemberAttributeName {
   JOB_TITLE = 'jobTitle',
   IS_TEAM_MEMBER = 'isTeamMember',
   IS_ORGANIZATION = 'isOrganization',
+  IS_BOT = 'isBot',
   TIMEZONE = 'timezone',
   KARMA = 'karma',
 }
@@ -73,6 +74,10 @@ export const MemberAttributes = {
   [MemberAttributeName.IS_ORGANIZATION]: {
     name: MemberAttributeName.IS_ORGANIZATION,
     label: 'is Organization',
+  },
+  [MemberAttributeName.IS_BOT]: {
+    name: MemberAttributeName.IS_BOT,
+    label: 'is Bot',
   },
   [MemberAttributeName.KARMA]: {
     name: MemberAttributeName.KARMA,

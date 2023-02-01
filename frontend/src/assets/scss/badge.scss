@@ -33,6 +33,10 @@
     @apply bg-gray-400 text-white;
   }
 
+  &--gray-dark {
+    @apply bg-gray-600 text-white;
+  }
+
   &--red {
     @apply bg-red-100 text-red-900;
   }

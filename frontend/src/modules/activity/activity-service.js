@@ -91,7 +91,10 @@ export class ActivityService {
       : filter
     builtFilter = {
       ...builtFilter,
-      member: { isTeamMember: { not: true } }
+      member: {
+        isTeamMember: { not: true },
+        isBot: { not: true }
+      }
     }
 
     const body = {

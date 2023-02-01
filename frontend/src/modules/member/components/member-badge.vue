@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="isNew || isTeam"
+    v-if="isNew || isTeam || isBot"
     class="member-badge flex items-center ml-1"
   >
     <el-tooltip
@@ -18,6 +18,13 @@
       :content="computedTooltipContent('team')"
     >
       <div :class="computedBadgeClass('team')">Team</div>
+    </el-tooltip>
+    <el-tooltip
+      v-if="isBot"
+      placement="top"
+      :content="computedTooltipContent('bot')"
+    >
+      <div :class="computedBadgeClass('bot')">Bot</div>
     </el-tooltip>
   </div>
 </template>
@@ -43,6 +50,10 @@ const isTeam = computed(() => {
   return props.member.attributes.isTeamMember
 })
 
+const isBot = computed(() => {
+  return props.member.attributes.isBot
+})
+
 const isNew = computed(() => {
   return (
     moment().diff(moment(props.member.joinedAt), 'days') <=
@@ -60,6 +71,8 @@ const computedBadgeClass = function (badge) {
       classes += ' mr-1'
     }
   } else if (badge === 'team') {
+    classes += ' badge--gray-dark'
+  } else if (badge === 'bot') {
     classes += ' badge--gray'
   }
 
@@ -67,11 +80,15 @@ const computedBadgeClass = function (badge) {
 }
 
 const computedTooltipContent = function (tooltip) {
-  return tooltip === 'new'
-    ? `Member since ${moment(props.member.joinedAt).format(
-        'MMM DD, YYYY'
-      )}`
-    : `Team member`
+  if (tooltip === 'new') {
+    return `Member since ${moment(
+      props.member.joinedAt
+    ).format('MMM DD, YYYY')}`
+  } else if (tooltip === 'team') {
+    return 'Team member'
+  } else {
+    return 'Bot'
+  }
 }
 </script>
 
