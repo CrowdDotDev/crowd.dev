@@ -464,6 +464,12 @@ class MemberRepository {
       conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = false")
     }
 
+    if (filter.isBot === true) {
+      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = true")
+    } else if (filter.isBot === false) {
+      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = false")
+    }
+
     const activityConditions = ['1=1']
 
     if (filter.platforms && filter.platforms.length > 0) {

@@ -145,6 +145,7 @@ export class MemberService {
       ...(isTeamMember === false && {
         'filter[isTeamMember]': isTeamMember
       }),
+      'filter[isBot]': false,
       'filter[activityTimestampFrom]':
         activityTimestampFrom,
       'filter[activityTimestampTo]': activityTimestampTo,

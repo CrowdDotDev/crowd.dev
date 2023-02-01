@@ -26,12 +26,21 @@ const getCubeFilters = ({ platforms, hasTeamMembers }) => {
 const setApiFilters = ({
   selectedPlatforms,
   selectedHasTeamMembers,
+  isBot,
   filters
 }) => {
   // Only add filter if team members are excluded
   if (selectedHasTeamMembers === false) {
     filters.push({
       isTeamMember: {
+        not: true
+      }
+    })
+  }
+
+  if (isBot === false) {
+    filters.push({
+      isBot: {
         not: true
       }
     })
@@ -146,60 +155,6 @@ export const TOTAL_MEMBERS_QUERY = ({
   }
 }
 
-export const ACTIVE_MEMBERS_AREA_FILTER = ({
-  date,
-  granularity,
-  selectedPlatforms,
-  selectedHasTeamMembers
-}) => {
-  const startDate = moment(date)
-    .startOf('day')
-    .toISOString()
-  let endDate
-
-  if (granularity === 'day') {
-    endDate = moment(date).endOf('day').toISOString()
-  } else if (granularity === 'week') {
-    endDate = moment(date)
-      .startOf('day')
-      .add(6, 'day')
-      .endOf('day')
-      .toISOString()
-  } else if (granularity === 'month') {
-    endDate = moment(date)
-      .startOf('day')
-      .add(1, 'month')
-      .toISOString()
-  }
-
-  const filters = [
-    {
-      and: [
-        {
-          lastActive: {
-            gte: startDate
-          }
-        },
-        {
-          lastActive: {
-            lte: endDate
-          }
-        }
-      ]
-    }
-  ]
-
-  setApiFilters({
-    filters,
-    selectedHasTeamMembers,
-    selectedPlatforms
-  })
-
-  return {
-    and: filters
-  }
-}
-
 export const TOTAL_MEMBERS_FILTER = ({
   date,
   granularity,
@@ -238,7 +193,8 @@ export const TOTAL_MEMBERS_FILTER = ({
   setApiFilters({
     filters,
     selectedHasTeamMembers,
-    selectedPlatforms
+    selectedPlatforms,
+    isBot: false
   })
 
   return {
