@@ -38,4 +38,11 @@ export const DefaultMemberAttributes: Attribute[] = [
     canDelete: false,
     show: false,
   },
+  {
+    name: MemberAttributes[MemberAttributeName.IS_BOT].name,
+    label: MemberAttributes[MemberAttributeName.IS_BOT].label,
+    type: AttributeType.BOOLEAN,
+    canDelete: false,
+    show: false,
+  },
 ]
