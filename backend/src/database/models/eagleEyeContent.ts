@@ -6,26 +6,31 @@ const eagleEyeContentModel = {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  sourceId: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
+  post: {
+    type: DataTypes.JSONB,
+    allowNull: false
   },
-  vectorId: {
+  action: {
     type: DataTypes.TEXT,
-    allowNull: false,
     validate: {
-      notEmpty: true,
-    },
-  },
-  status: {
-    type: DataTypes.STRING(255),
-    validate: {
-      isIn: [['engaged', 'rejected']],
+      isIn: [['thumbs-up', 'thumbs-down', 'bookmark']],
     },
     defaultValue: null,
+  },
+  timestamp: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  url: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  },
+  post: {
+    type: DataTypes.JSONB,
+    allowNull: false
   },
   title: {
     type: DataTypes.TEXT,
@@ -51,10 +56,7 @@ const eagleEyeContentModel = {
   text: {
     type: DataTypes.TEXT,
   },
-  timestamp: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
+
   platform: {
     type: DataTypes.TEXT,
     allowNull: false,
@@ -75,7 +77,6 @@ const eagleEyeContentModel = {
   },
   userAttributes: {
     type: DataTypes.JSONB,
-    default: {},
   },
   postAttributes: {
     type: DataTypes.JSONB,
@@ -132,12 +133,9 @@ export default (sequelize) => {
     })
 
     models.eagleEyeContent.belongsTo(models.user, {
-      as: 'createdBy',
+      as: 'actionBy',
     })
 
-    models.eagleEyeContent.belongsTo(models.user, {
-      as: 'updatedBy',
-    })
   }
 
   return eagleEyeContent
