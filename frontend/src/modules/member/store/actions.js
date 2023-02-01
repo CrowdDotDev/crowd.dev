@@ -20,15 +20,27 @@ export default {
 
   async doExport(
     { commit, getters, rootGetters, dispatch },
-    selected = false
+    {
+      selected = false,
+      customIds = [],
+      customFilter = null,
+      count = null
+    }
   ) {
     let filter
+
     if (selected) {
+      const ids = customIds.length
+        ? customIds
+        : [getters.selectedRows.map((i) => i.id)]
+
       filter = {
         id: {
-          in: [getters.selectedRows.map((i) => i.id)]
+          in: ids
         }
       }
+    } else if (customFilter) {
+      filter = customFilter
     } else {
       filter = getters.activeView.filter
     }
@@ -58,11 +70,16 @@ export default {
         icon: 'ri-file-download-line',
         confirmButtonText: 'Send download link to e-mail',
         cancelButtonText: 'Cancel',
-        badgeContent: selected
-          ? `${getters.selectedRows.length} member${
-              getters.selectedRows.length === 1 ? '' : 's'
-            }`
-          : `View: ${getters.activeView.label}`,
+        badgeContent:
+          selected || count
+            ? `${
+                count || getters.selectedRows.length
+              } member${
+                (count || getters.selectedRows.length) === 1
+                  ? ''
+                  : 's'
+              }`
+            : `View: ${getters.activeView.label}`,
         highlightedInfo: `${tenantCsvExportCount}/${planCsvExportMax} exports available in this plan used`
       })
 
@@ -71,7 +88,7 @@ export default {
         getters.orderBy,
         0,
         null,
-        !selected // build API payload if selected === false
+        !selected && !customFilter // build API payload if selected === false || !customFilter
       )
 
       await dispatch(`auth/doRefreshCurrentUser`, null, {

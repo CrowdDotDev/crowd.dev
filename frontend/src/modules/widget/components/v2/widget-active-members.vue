@@ -18,10 +18,10 @@
           />
           <button
             v-if="currentUser"
-            v-show="false"
+            v-show="!isPublicView"
             type="button"
             class="btn btn-brand--transparent btn--sm"
-            @click="handleDrawerOpen(widget.period)"
+            @click="handleDrawerOpen(widget)"
           >
             View
           </button>
@@ -57,84 +57,89 @@
         </query-renderer>
       </div>
     </div>
-    <app-drawer
-      v-model="computedDrawerExpanded"
-      :title="computedDrawerTitle"
+    <app-widget-drawer
+      v-if="drawerExpanded"
+      v-model="drawerExpanded"
+      :fetch-fn="getActiveMembers"
+      :title="drawerTitle"
+      :export-by-ids="true"
+      module-name="member"
       size="480px"
-    ></app-drawer>
+      @on-export="onExport"
+    ></app-widget-drawer>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, defineProps } from 'vue'
 import { QueryRenderer } from '@cubejs-client/vue3'
-import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import {
+  mapGetters,
+  mapActions
+} from '@/shared/vuex/vuex.helpers'
 import { TOTAL_ACTIVE_MEMBERS_QUERY } from '@/modules/widget/widget-queries'
-import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi'
-import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title'
-import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading'
-import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error'
+import AppWidgetKpi from '@/modules/widget/components/v2/shared/widget-kpi.vue'
+import AppWidgetTitle from '@/modules/widget/components/v2/shared/widget-title.vue'
+import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
+import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+import {
+  ONE_DAY_PERIOD_FILTER,
+  FOURTEEN_DAYS_PERIOD_FILTER,
+  THIRTY_DAYS_PERIOD_FILTER,
+  DAILY_GRANULARITY_FILTER,
+  WEEKLY_GRANULARITY_FILTER,
+  MONTHLY_GRANULARITY_FILTER
+} from '@/modules/widget/widget-constants'
+import { MemberService } from '@/modules/member/member-service'
+import moment from 'moment'
 
 const props = defineProps({
   filters: {
     type: Object,
     default: null
+  },
+  isPublicView: {
+    type: Boolean,
+    default: false
   }
 })
 
 const { currentUser } = mapGetters('auth')
 const { cubejsApi } = mapGetters('widget')
+const { doExport } = mapActions('member')
 
-const drawerExpanded = ref(null)
+const drawerExpanded = ref()
+const drawerTitle = ref()
+const drawerGranularity = ref()
 
 const widgets = computed(() => {
   return [
     {
       title: 'Active members today',
       query: query(
-        { value: 1, granularity: 'day' },
-        { value: 'day' }
+        ONE_DAY_PERIOD_FILTER,
+        DAILY_GRANULARITY_FILTER
       ),
       period: 'day'
     },
     {
       title: 'Active members this week',
       query: query(
-        { value: 14, granularity: 'day' },
-        { value: 'week' }
+        FOURTEEN_DAYS_PERIOD_FILTER,
+        WEEKLY_GRANULARITY_FILTER
       ),
       period: 'week'
     },
     {
       title: 'Active members this month',
       query: query(
-        { value: 30, granularity: 'day' },
-        { value: 'month' }
+        THIRTY_DAYS_PERIOD_FILTER,
+        MONTHLY_GRANULARITY_FILTER
       ),
       period: 'month'
     }
   ]
-})
-
-const computedDrawerExpanded = computed({
-  get() {
-    return drawerExpanded.value !== null
-  },
-  set(value) {
-    if (value === false) {
-      drawerExpanded.value = null
-    }
-  }
-})
-
-const computedDrawerTitle = computed(() => {
-  let period = 'today'
-  if (drawerExpanded.value === 'week') {
-    period = 'this week'
-  } else if (drawerExpanded.value === 'month') {
-    period = 'this month'
-  }
-  return `Active members ${period}`
 })
 
 const query = (period, granularity) => {
@@ -163,8 +168,55 @@ const kpiPreviousValue = (resultSet) => {
   const pivot = resultSet.chartPivot()
   return Number(pivot[pivot.length - 2]['Members.count'])
 }
-const handleDrawerOpen = (period) => {
-  drawerExpanded.value = period
+
+// Fetch function to pass to detail drawer
+const getActiveMembers = async ({ pagination }) => {
+  const activityTimestampFrom = moment()
+    .utc()
+    .startOf(drawerGranularity.value)
+
+  if (drawerGranularity.value === 'week') {
+    activityTimestampFrom.add(1, 'day')
+  }
+
+  return await MemberService.listActive({
+    platform: props.filters.platform.value,
+    isTeamMember: props.filters.teamMembers,
+    activityTimestampFrom,
+    activityTimestampTo: moment().utc(),
+    orderBy: 'activityCount_DESC',
+    offset: !pagination.count
+      ? (pagination.currentPage - 1) * pagination.pageSize
+      : 0,
+    limit: !pagination.count
+      ? pagination.pageSize
+      : pagination.count
+  })
+}
+
+// Open drawer and set title and period
+const handleDrawerOpen = async (widget) => {
+  window.analytics.track('Open report drawer', {
+    template: 'Members report',
+    widget: widget.title,
+    period: widget.period
+  })
+
+  drawerExpanded.value = true
+  drawerTitle.value = widget.title
+  drawerGranularity.value = widget.period
+}
+
+const onExport = async ({ ids, count }) => {
+  try {
+    await doExport({
+      selected: true,
+      customIds: ids,
+      count
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 </script>
 

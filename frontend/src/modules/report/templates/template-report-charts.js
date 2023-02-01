@@ -13,6 +13,11 @@ const defaultChartOptions = {
   colors: ['#E94F2E'],
   loading: 'Loading...',
   library: {
+    layout: {
+      padding: {
+        top: 20
+      }
+    },
     lineTension: 0.25,
     scales: {
       x: {
@@ -62,7 +67,10 @@ const defaultChartOptions = {
         callbacks: {
           title: parseTooltipTitle,
           label: formatTooltipTitle,
-          afterLabel: parseTooltipBody
+          afterLabel: parseTooltipBody,
+          footer: (context) => {
+            return context[0].dataset.tooltipBtn
+          }
         }
       },
       legend: {
