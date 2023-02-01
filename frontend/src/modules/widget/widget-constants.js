@@ -1,4 +1,11 @@
 // Period
+export const ONE_DAY_PERIOD_FILTER = {
+  label: '1d',
+  extendedLabel: '1 day',
+  value: 1,
+  granularity: 'day'
+}
+
 export const SEVEN_DAYS_PERIOD_FILTER = {
   label: '7d',
   extendedLabel: '7 days',

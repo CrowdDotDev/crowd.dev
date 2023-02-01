@@ -464,37 +464,58 @@ class MemberRepository {
       conditions.push("COALESCE((m.attributes->'isTeamMember'->'default')::boolean, false) = false")
     }
 
+    if (filter.isBot === true) {
+      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = true")
+    } else if (filter.isBot === false) {
+      conditions.push("COALESCE((m.attributes->'isBot'->'default')::boolean, false) = false")
+    }
+
+    const activityConditions = ['1=1']
+
     if (filter.platforms && filter.platforms.length > 0) {
-      conditions.push('a.platform in (:platforms)')
+      activityConditions.push('platform in (:platforms)')
       parameters.platforms = filter.platforms
     }
 
     const conditionsString = conditions.join(' and ')
+    const activityConditionsString = activityConditions.join(' and ')
 
     const direction = orderBy.split('_')[1].toLowerCase() === 'desc' ? 'desc' : 'asc'
     let orderString: string
     if (orderBy.startsWith('activityCount')) {
-      orderString = `count(a.id) ${direction}`
+      orderString = `ad."activityCount" ${direction}`
     } else if (orderBy.startsWith('activeDaysCount')) {
-      orderString = `count(distinct a.timestamp::date) ${direction}`
+      orderString = `ad."activeDaysCount" ${direction}`
     } else {
       throw new Error(`Invalid order by: ${orderBy}`)
     }
 
     const limitCondition = `limit ${limit} offset ${offset}`
     const query = `
+        with orgs as (select mo."memberId", json_agg(row_to_json(o.*)) as organizations
+                      from "memberOrganizations" mo
+                               inner join organizations o on mo."organizationId" = o.id
+                      group by mo."memberId"),
+             activity_data as (select "memberId",
+                                      count(id)                       as "activityCount",
+                                      count(distinct timestamp::date) as "activeDaysCount"
+                               from activities
+                               where ${activityConditionsString} and 
+                                     timestamp >= :periodStart and 
+                                     timestamp < :periodEnd
+                               group by "memberId")
           select m.id,
              m."displayName",
              m.username,
              m.attributes,
-             count(a.id)                       as "activityCount",
-             count(distinct a.timestamp::date) as "activeDaysCount",
+             ad."activityCount",
+             ad."activeDaysCount",
+             coalesce(o.organizations, json_build_array()) as organizations,
              count(*) over ()                  as "totalCount"
       from members m
-               inner join activities a on (m.id = a."memberId" and a.timestamp >= :periodStart and
-                                           a.timestamp < :periodEnd)
+               inner join activity_data ad on ad."memberId" = m.id
+               left join orgs o on o."memberId" = m.id
       where ${conditionsString}
-      group by m.id, m."displayName", m.username, m.attributes
       order by ${orderString}
       ${limitCondition};
     `
@@ -527,6 +548,7 @@ class MemberRepository {
         displayName: row.displayName,
         username: row.username,
         attributes: row.attributes,
+        organizations: row.organizations,
         activityCount: parseInt(row.activityCount, 10),
         activeDaysCount: parseInt(row.activeDaysCount, 10),
       }

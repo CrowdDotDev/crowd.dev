@@ -15,7 +15,7 @@
         <app-widget-period
           template="Members"
           widget="Leaderbord: Most active members"
-          :period="period"
+          :period="selectedPeriod"
           module="reports"
           @on-update="onUpdatePeriod"
         />
@@ -31,21 +31,42 @@
       <app-widget-error v-else-if="error" />
 
       <!-- Widget Chart -->
-      <app-widget-members-table
-        v-else
-        :members="activeMembers"
-        @on-row-click="onRowClick"
-      />
+      <div v-else>
+        <app-widget-members-table
+          :list="activeMembers"
+          @on-row-click="onRowClick"
+        />
+        <div class="flex justify-end">
+          <el-button
+            class="btn btn-link btn-link--primary mt-4 mb-8"
+            @click="handleDrawerOpen"
+            >View all</el-button
+          >
+        </div>
+      </div>
     </div>
 
     <app-widget-insight
       :description="`We recommend speaking with these members, as they went above and beyond in the last ${pluralize(
-        period.granularity,
-        period.value,
+        selectedPeriod.granularity,
+        selectedPeriod.value,
         true
       )}. They are probably eager to share their experiences and enthusiasm for your community.`"
     />
   </div>
+  <app-widget-drawer
+    v-if="drawerExpanded"
+    v-model="drawerExpanded"
+    :fetch-fn="getDetailedActiveMembers"
+    :title="drawerTitle"
+    :show-period="true"
+    :export-by-ids="true"
+    :period="selectedPeriod"
+    :show-active-days="true"
+    module-name="member"
+    size="480px"
+    @on-export="onExport"
+  ></app-widget-drawer>
 </template>
 
 <script>
@@ -72,7 +93,9 @@ import pluralize from 'pluralize'
 import AppWidgetLoading from '@/modules/widget/components/v2/shared/widget-loading.vue'
 import AppWidgetError from '@/modules/widget/components/v2/shared/widget-error.vue'
 import AppWidgetEmpty from '@/modules/widget/components/v2/shared/widget-empty.vue'
-import { ACTIVE_LEADERBOARD_MEMBERS_FILTER } from '@/modules/widget/widget-queries'
+import AppWidgetDrawer from '@/modules/widget/components/v2/shared/widget-drawer.vue'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import moment from 'moment'
 
 const props = defineProps({
   platforms: {
@@ -85,10 +108,16 @@ const props = defineProps({
   }
 })
 
-const period = ref(SEVEN_DAYS_PERIOD_FILTER)
+const drawerExpanded = ref()
+const drawerTitle = ref()
+
+const selectedPeriod = ref(SEVEN_DAYS_PERIOD_FILTER)
 const activeMembers = ref([])
 const loading = ref(false)
 const error = ref(false)
+
+const { doExport } = mapActions('member')
+
 const empty = computed(
   () =>
     !loading.value &&
@@ -97,7 +126,9 @@ const empty = computed(
 )
 
 onMounted(async () => {
-  const response = await getActiveMembers(period.value)
+  const response = await getActiveMembers(
+    selectedPeriod.value
+  )
 
   activeMembers.value = response
 })
@@ -107,7 +138,7 @@ watch(
   () => [props.platforms, props.teamMembers],
   async ([platforms, teamMembers]) => {
     const response = await getActiveMembers(
-      period.value,
+      selectedPeriod.value,
       platforms,
       teamMembers
     )
@@ -120,11 +151,11 @@ const onUpdatePeriod = async (updatedPeriod) => {
   const response = await getActiveMembers(updatedPeriod)
 
   activeMembers.value = response
-  period.value = updatedPeriod
+  selectedPeriod.value = updatedPeriod
 }
 
 const getActiveMembers = async (
-  selectedPeriod,
+  period = selectedPeriod.value,
   platforms = props.platforms,
   teamMembers = props.teamMembers
 ) => {
@@ -132,17 +163,18 @@ const getActiveMembers = async (
   error.value = false
 
   try {
-    const response = await MemberService.list(
-      ACTIVE_LEADERBOARD_MEMBERS_FILTER({
-        period: selectedPeriod,
-        selectedPlatforms: platforms,
-        selectedHasTeamMembers: teamMembers
-      }),
-      'activeDaysCount_DESC',
-      10,
-      0,
-      false
-    )
+    const response = await MemberService.listActive({
+      platform: platforms,
+      isTeamMember: teamMembers,
+      activityTimestampFrom: moment()
+        .utc()
+        .subtract(period.value, period.granularity)
+        .toISOString(),
+      activityTimestampTo: moment().utc(),
+      orderBy: 'activeDaysCount_DESC',
+      offset: 0,
+      limit: 10
+    })
 
     loading.value = false
 
@@ -155,10 +187,57 @@ const getActiveMembers = async (
   }
 }
 
+// Fetch function to pass to detail drawer
+const getDetailedActiveMembers = async ({
+  pagination,
+  period = selectedPeriod.value
+}) => {
+  return await MemberService.listActive({
+    platform: props.platforms,
+    isTeamMember: props.teamMembers,
+    activityTimestampFrom: moment()
+      .utc()
+      .subtract(period.value, period.granularity)
+      .toISOString(),
+    activityTimestampTo: moment().utc(),
+    orderBy: 'activeDaysCount_DESC',
+    offset: !pagination.count
+      ? (pagination.currentPage - 1) * pagination.pageSize
+      : 0,
+    limit: !pagination.count
+      ? pagination.pageSize
+      : pagination.count
+  })
+}
+
 const onRowClick = () => {
   window.analytics.track('Click table widget row', {
-    template: 'Members',
+    template: 'Members report',
     widget: 'Leaderbord: Most active members'
   })
+}
+
+// Open drawer and set title
+const handleDrawerOpen = async () => {
+  window.analytics.track('Open report drawer', {
+    template: 'Members report',
+    widget: 'Leaderbord: Most active members',
+    period: selectedPeriod.value
+  })
+
+  drawerExpanded.value = true
+  drawerTitle.value = 'Most active members'
+}
+
+const onExport = async ({ ids, count }) => {
+  try {
+    await doExport({
+      selected: true,
+      customIds: ids,
+      count
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 </script>

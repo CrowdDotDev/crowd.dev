@@ -7,7 +7,10 @@
       <div class="text-gray-600 text-sm font-semibold">
         No data found
       </div>
-      <div class="text-gray-400 text-2xs font-semibold">
+      <div
+        v-if="withDescription"
+        class="text-gray-400 text-2xs font-semibold"
+      >
         Try to select a different time period
       </div>
     </div>
@@ -21,6 +24,10 @@ const props = defineProps({
   type: {
     type: String,
     default: 'chart'
+  },
+  withDescription: {
+    type: Boolean,
+    default: true
   }
 })
 

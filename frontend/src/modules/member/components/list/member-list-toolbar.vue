@@ -212,7 +212,7 @@ export default {
 
     async handleDoExport() {
       try {
-        await this.doExport(true)
+        await this.doExport({ selected: true })
       } catch (error) {
         console.log(error)
       }

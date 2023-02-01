@@ -11,7 +11,7 @@
     @close="onClose"
   >
     <template #header="{ close, titleId, titleClass }">
-      <div class="flex grow justify-between items-center">
+      <div class="flex grow justify-between items-start">
         <div class="h-fit">
           <div
             v-if="preTitle"
