@@ -446,10 +446,14 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     } else if (isLinkedInOrganization(memberUrn)) {
       const userId = getLinkedInOrganizationId(memberUrn)
 
-      const organizationString = await membersCache.getOrAdd(userId, async () => {
-        const organization = await getOrganization(context.pipelineData.pizzlyId, userId, log)
-        return JSON.stringify(organization)
-      })
+      const organizationString = await membersCache.getOrAdd(
+        userId,
+        async () => {
+          const organization = await getOrganization(context.pipelineData.pizzlyId, userId, log)
+          return JSON.stringify(organization)
+        },
+        24 * 60 * 60,
+      )
 
       const organization = JSON.parse(organizationString)
 

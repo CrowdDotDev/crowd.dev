@@ -68,7 +68,7 @@
           ></el-dropdown-item
         >
         <el-dropdown-item
-          v-if="!member.team"
+          v-if="!member.attributes.isTeamMember?.default"
           class="h-10"
           :command="{
             action: 'memberMarkAsTeamMember',
@@ -78,6 +78,18 @@
             class="ri-bookmark-line text-base mr-2"
           /><span class="text-xs text-gray-900"
             >Mark as team member</span
+          ></el-dropdown-item
+        >
+        <el-dropdown-item
+          v-if="!member.attributes.isBot?.default"
+          class="h-10"
+          :command="{
+            action: 'memberMarkAsBot',
+            member: member
+          }"
+          ><i class="ri-robot-line text-base mr-2" /><span
+            class="text-xs text-gray-900"
+            >Mark as bot</span
           ></el-dropdown-item
         >
         <el-divider class="border-gray-200" />
@@ -251,7 +263,28 @@ export default {
           attributes: {
             ...command.member.attributes,
             isTeamMember: {
-              crowd: true,
+              default: true
+            }
+          }
+        })
+        await this.doFetch({
+          filter: {},
+          keepPagination: false
+        })
+        Message.success('Member updated successfully')
+        if (this.$route.name === 'member') {
+          this.doFetch({
+            filter: {},
+            keepPagination: true
+          })
+        } else {
+          this.doFind(command.member.id)
+        }
+      } else if (command.action === 'memberMarkAsBot') {
+        await MemberService.update(command.member.id, {
+          attributes: {
+            ...command.member.attributes,
+            isBot: {
               default: true
             }
           }

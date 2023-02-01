@@ -137,9 +137,8 @@ export class IntegrationProcessor extends LoggingBase {
       if (microservices.length > 0) {
         this.log.debug({ type, count: microservices.length }, 'Found microservices to check!')
         for (const micro of microservices) {
-          const triggered = await this.redisCache.getValue(micro.id)
-
-          if (triggered !== null) {
+          const isProcessing = await this.redisCache.getValue(micro.id)
+          if (isProcessing === null) {
             const microservice = micro as any
             await sendNodeWorkerMessage(
               microservice.tenantId,
@@ -168,8 +167,8 @@ export class IntegrationProcessor extends LoggingBase {
         logger.debug({ count: integrations.length }, 'Found integrations to check!')
         const inactiveIntegrations: any[] = []
         for (const integration of integrations as any[]) {
-          const triggered = await this.redisCache.getValue(integration.id)
-          if (triggered !== null) {
+          const isProcessing = await this.redisCache.getValue(integration.id)
+          if (isProcessing === null) {
             inactiveIntegrations.push(integration)
           }
         }

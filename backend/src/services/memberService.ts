@@ -1,3 +1,5 @@
+/* eslint-disable no-continue */
+
 import moment from 'moment-timezone'
 import lodash from 'lodash'
 import validator from 'validator'
@@ -80,11 +82,8 @@ export default class MemberService extends LoggingBase {
           attributeName,
           attributes,
         })
-        throw new Error400(
-          this.options.language,
-          'settings.memberAttributes.notFound',
-          attributeName,
-        )
+        delete attributes[attributeName]
+        continue
       }
       if (typeof attributes[attributeName] !== 'object') {
         attributes[attributeName] = {

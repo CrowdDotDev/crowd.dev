@@ -163,37 +163,44 @@ export default class MemberEnrichmentService extends LoggingBase {
           continue
         } else {
           this.log.error(`Failed to enrich member ${memberId}`, err)
-          apiPubSubEmitter.emit(
-            'user',
-            new ApiWebsocketMessage(
-              'bulk-enrichment',
-              JSON.stringify({
-                enrichedMembers,
-                tenantId: this.options.currentTenant.id,
-                success: false,
-              }),
-              undefined,
-              this.options.currentTenant.id,
-            ),
-          )
         }
       }
     }
 
-    // Send websocket message to frontend
-    apiPubSubEmitter.emit(
-      'user',
-      new ApiWebsocketMessage(
-        'bulk-enrichment',
-        JSON.stringify({
-          enrichedMembers,
-          tenantId: this.options.currentTenant.id,
-          success: true,
-        }),
-        undefined,
-        this.options.currentTenant.id,
-      ),
-    )
+    // Send websocket messages to frontend after all requests have been made
+    // Only send error message if all enrichments failed
+    if (!enrichedMembers) {
+      apiPubSubEmitter.emit(
+        'user',
+        new ApiWebsocketMessage(
+          'bulk-enrichment',
+          JSON.stringify({
+            failedEnrichedMembers: memberIds.length - enrichedMembers,
+            enrichedMembers,
+            tenantId: this.options.currentTenant.id,
+            success: false,
+          }),
+          undefined,
+          this.options.currentTenant.id,
+        ),
+      )
+    }
+    // Send success message if there were enrichedMembers
+    else {
+      apiPubSubEmitter.emit(
+        'user',
+        new ApiWebsocketMessage(
+          'bulk-enrichment',
+          JSON.stringify({
+            enrichedMembers,
+            tenantId: this.options.currentTenant.id,
+            success: true,
+          }),
+          undefined,
+          this.options.currentTenant.id,
+        ),
+      )
+    }
 
     return { enrichedMemberCount: enrichedMembers }
   }
