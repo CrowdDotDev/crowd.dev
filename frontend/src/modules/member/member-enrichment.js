@@ -4,6 +4,7 @@ import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { formatNumber } from '@/utils/number'
 import { h } from 'vue'
 import Message from '@/shared/message/message'
+import pluralize from 'pluralize'
 
 const growthEnrichmentMax = 1000
 const essentialEnrichmentMax = 5
@@ -77,6 +78,7 @@ export const checkEnrichmentPlan = ({
 }
 
 export const showEnrichmentSuccessMessage = ({
+  enrichedMembers = 1,
   memberEnrichmentCount,
   planEnrichmentCountMax,
   plan,
@@ -112,9 +114,11 @@ export const showEnrichmentSuccessMessage = ({
 
   Message.closeAll()
   Message.success(message, {
-    title: `Successfully enriched ${
-      isBulk ? 'members' : 'member'
-    }`
+    title: `Successfully enriched ${pluralize(
+      'member',
+      enrichedMembers,
+      isBulk
+    )}`
   })
 }
 

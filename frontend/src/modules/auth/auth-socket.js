@@ -8,6 +8,7 @@ import {
   showEnrichmentSuccessMessage,
   getEnrichmentMax
 } from '@/modules/member/member-enrichment'
+import pluralize from 'pluralize'
 
 let socketIoClient
 
@@ -79,16 +80,20 @@ export const connectSocket = (token) => {
     if (!data.success) {
       Message.closeAll()
       Message.error(
-        `Bulk enrichment failed. We managed to enrich ${data.enrichedMembers} members.`
+        `Failed to enrich ${pluralize(
+          'member',
+          data.failedEnrichedMembers,
+          true
+        )}.`
       )
     } else {
-      Message.closeAll()
       const planEnrichmentCountMax = getEnrichmentMax(
         updatedTenant.tenant.plan
       )
 
       // Show enrichment success message
       showEnrichmentSuccessMessage({
+        enrichedMembers: data.enrichedMembers,
         memberEnrichmentCount:
           updatedTenant.tenant.memberEnrichmentCount,
         planEnrichmentCountMax,
