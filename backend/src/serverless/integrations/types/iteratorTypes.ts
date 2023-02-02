@@ -1,5 +1,4 @@
 import { AddActivitiesSingle } from './messageTypes'
-import { Channels } from './regularTypes'
 
 export type IntegrationResponse = {
   records: Array<object>
@@ -24,11 +23,11 @@ export interface TwitterOutput extends BaseOutput {
 export interface TwitterReachOutput extends BaseOutput {}
 
 export interface DiscordOutput extends BaseOutput {
-  channels: Channels
+  channels: any[]
 }
 
 export interface SlackOutput extends BaseOutput {
-  channels: Channels
+  channels: any[]
   users: Object
 }
 
