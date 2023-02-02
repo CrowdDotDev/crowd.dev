@@ -1,5 +1,4 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
-import { Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { createServiceChildLogger } from '../../../../utils/logging'
@@ -11,7 +10,7 @@ async function getChannels(
   client: SuperfaceClient,
   serverId: string,
   accessToken: string,
-): Promise<Channels> {
+): Promise<any[]> {
   try {
     const input = { server: serverId.toString() }
     const profile = await client.getProfile('chat/threads')
