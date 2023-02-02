@@ -6,8 +6,7 @@ export const featureFlags = {
   communityCenterPro: 'community-help-center-pro',
   organizations: 'organizations',
   automations: 'automations',
-  linkedin: 'linkedin',
-  eagleEyeNewVersion: 'eagle-eye-new-version'
+  linkedin: 'linkedin'
 }
 
 export const isFeatureEnabled = async (flag) => {

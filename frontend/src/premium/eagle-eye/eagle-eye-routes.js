@@ -6,28 +6,11 @@ import {
   isFeatureEnabled,
   featureFlags
 } from '@/utils/posthog'
-import posthog from 'posthog-js'
 
 const isEagleEyeFeatureEnabled = async () => {
   return (
     config.hasPremiumModules &&
     (await isFeatureEnabled(featureFlags.eagleEye))
-  )
-}
-
-const isEagleEyeNewVersionEnabled = async () => {
-  const currentTenant = store.getters['auth/currentTenant']
-  const payload = {
-    groupType: 'tenant',
-    groupKey: currentTenant.id
-  }
-
-  await posthog.group(payload)
-  return (
-    config.hasPremiumModules &&
-    (await isFeatureEnabled(
-      featureFlags.eagleEyeNewVersion
-    ))
   )
 }
 
@@ -75,10 +58,7 @@ export default [
             store.getters['auth/currentUser']
 
           // Redirect to onboard page if user is not onboarded
-          if (
-            (await isEagleEyeNewVersionEnabled()) &&
-            !currentUser.eagleEyeSettings?.onboarded
-          ) {
+          if (!currentUser.eagleEyeSettings?.onboarded) {
             next('/eagle-eye/onboard')
           }
 
