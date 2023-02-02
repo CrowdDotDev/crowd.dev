@@ -1,7 +1,6 @@
 import { SuperfaceClient } from '@superfaceai/one-sdk'
 import { cleanSuperfaceError } from '../cleanError'
 import { createServiceChildLogger } from '../../../../utils/logging'
-import { Channel, Channels } from '../../types/regularTypes'
 import isInvalid from '../isInvalid'
 import { timeout } from '../../../../utils/timing'
 
@@ -17,7 +16,7 @@ async function tryChannel(
   client: SuperfaceClient,
   source: string,
   accessToken: string,
-  channel: Channel,
+  channel: any,
 ): Promise<any> {
   try {
     const input = {
@@ -61,11 +60,11 @@ async function getChannels(
       log.warn({ input, result }, 'Invalid request in getChannels')
     }
     if (tryChannels) {
-      const out: Channels = []
+      const out: any[] = []
       for (const channel of result.value.channels) {
         const limit = await tryChannel(client, source, accessToken, channel)
         if (limit) {
-          const toOut: Channel = {
+          const toOut: any = {
             name: channel.name,
             id: channel.id,
           }

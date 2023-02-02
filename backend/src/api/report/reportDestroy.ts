@@ -8,7 +8,7 @@ export default async (req, res) => {
 
   await new ReportService(req).destroyAll(req.query.ids)
 
-  track('Report Deleted')
+  track('Report Deleted', { ids: req.query.ids }, { ...req })
 
   const payload = true
 
