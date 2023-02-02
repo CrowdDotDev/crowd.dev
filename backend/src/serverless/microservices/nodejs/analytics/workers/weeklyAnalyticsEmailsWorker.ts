@@ -14,6 +14,10 @@ import { createServiceChildLogger } from '../../../../../utils/logging'
 import { prettyActivityTypes } from '../../../../../types/prettyActivityTypes'
 import ConversationRepository from '../../../../../database/repositories/conversationRepository'
 import { PlatformType } from '../../../../../types/integrationEnums'
+import WeeklyAnalyticsEmailsHistoryRepository from '../../../../../database/repositories/weeklyAnalyticsEmailsHistoryRepository'
+import { sendNodeWorkerMessage } from '../../../../utils/nodeWorkerSQS'
+import { NodeWorkerMessageType } from '../../../../types/workerTypes'
+import { NodeWorkerMessageBase } from '../../../../../types/mq/nodeWorkerMessageBase'
 
 const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
 
@@ -25,22 +29,185 @@ const log = createServiceChildLogger('weeklyAnalyticsEmailsWorker')
  */
 async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsEmailsOutput> {
   log.info(tenantId, `Processing tenant's weekly emails...`)
-
-  const s3Url = `https://${
-    S3_CONFIG.microservicesAssetsBucket
-  }-${getStage()}.s3.eu-central-1.amazonaws.com`
-
-  const unixEpoch = moment.unix(0)
-
-  const dateTimeEndThisWeek = moment().utc().startOf('isoWeek')
-  const dateTimeStartThisWeek = moment().utc().startOf('isoWeek').subtract(7, 'days')
-
-  const dateTimeEndPreviousWeek = dateTimeStartThisWeek.clone()
-  const dateTimeStartPreviousWeek = dateTimeStartThisWeek.clone().subtract(7, 'days')
-
+  const response = await getAnalyticsData(tenantId)
   const userContext = await getUserContext(tenantId)
 
-  if (userContext.currentUser) {
+  if (response.shouldRetry) {
+    // expception while getting data. send new node message and return
+    await sendNodeWorkerMessage(tenantId, {
+      type: NodeWorkerMessageType.NODE_MICROSERVICE,
+      tenant: tenantId,
+      service: 'weekly-analytics-emails',
+    } as NodeWorkerMessageBase)
+
+    return {
+      status: 400,
+      msg: `Exception while getting analytics data. Retrying with a new mq message.`,
+      emailSent: false,
+    }
+  }
+
+  if (!userContext.currentUser) {
+    const message = `Tenant(${tenantId}) doesn't have any active users.`
+    log.info(message)
+    return {
+      status: 200,
+      msg: message,
+      emailSent: false,
+    }
+  }
+
+  const {
+    dateTimeStartThisWeek,
+    dateTimeEndThisWeek,
+    totalMembersThisWeek,
+    totalMembersPreviousWeek,
+    activeMembersThisWeek,
+    activeMembersPreviousWeek,
+    newMembersThisWeek,
+    newMembersPreviousWeek,
+    mostActiveMembers,
+    totalOrganizationsThisWeek,
+    totalOrganizationsPreviousWeek,
+    activeOrganizationsThisWeek,
+    activeOrganizationsPreviousWeek,
+    newOrganizationsThisWeek,
+    newOrganizationsPreviousWeek,
+    mostActiveOrganizations,
+    totalActivitiesThisWeek,
+    totalActivitiesPreviousWeek,
+    newActivitiesThisWeek,
+    newActivitiesPreviousWeek,
+    topActivityTypes,
+    conversations,
+    activeTenantIntegrations,
+  } = response.data as any
+
+  const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(userContext)
+
+  if (activeTenantIntegrations.length > 0) {
+    log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
+    const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
+
+    const advancedSuppressionManager = {
+      groupId: parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10),
+      groupsToDisplay: [parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10)],
+    }
+
+    const emailSentTo: string[] = []
+
+    for (const user of allTenantUsers) {
+      if (user.email && user.emailVerified) {
+        const userFirstName = user.firstName ? user.firstName : user.email.split('@')[0]
+
+        const data = {
+          dateRangePretty: `${dateTimeStartThisWeek.format(
+            'D MMM YYYY',
+          )} - ${dateTimeEndThisWeek.format('D MMM YYYY')}`,
+          members: {
+            total: {
+              value: totalMembersThisWeek,
+              ...getChangeAndDirection(totalMembersThisWeek, totalMembersPreviousWeek),
+            },
+            new: {
+              value: newMembersThisWeek,
+              ...getChangeAndDirection(newMembersThisWeek, newMembersPreviousWeek),
+            },
+            active: {
+              value: activeMembersThisWeek,
+              ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek),
+            },
+            mostActive: mostActiveMembers,
+          },
+          organizations: {
+            total: {
+              value: totalOrganizationsThisWeek,
+              ...getChangeAndDirection(totalOrganizationsThisWeek, totalOrganizationsPreviousWeek),
+            },
+            new: {
+              value: newOrganizationsThisWeek,
+              ...getChangeAndDirection(newOrganizationsThisWeek, newOrganizationsPreviousWeek),
+            },
+            active: {
+              value: activeOrganizationsThisWeek,
+              ...getChangeAndDirection(
+                activeOrganizationsThisWeek,
+                activeOrganizationsPreviousWeek,
+              ),
+            },
+            mostActive: mostActiveOrganizations,
+          },
+          activities: {
+            total: {
+              value: totalActivitiesThisWeek,
+              ...getChangeAndDirection(totalActivitiesThisWeek, totalActivitiesPreviousWeek),
+            },
+            new: {
+              value: newActivitiesThisWeek,
+              ...getChangeAndDirection(newActivitiesThisWeek, newActivitiesPreviousWeek),
+            },
+            topActivityTypes,
+          },
+          conversations,
+          tenant: {
+            name: userContext.currentTenant.name,
+          },
+          user: {
+            name: userFirstName,
+          },
+        }
+
+        await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
+          user.email,
+          advancedSuppressionManager,
+        )
+
+        await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
+          'team@crowd.dev',
+          advancedSuppressionManager,
+        )
+
+        emailSentTo.push(user.email)
+      }
+    }
+
+    const waeHistory = await waeRepository.create({
+      tenantId,
+      weekOfYear: dateTimeStartThisWeek.isoWeek().toString(),
+      emailSentAt: moment().toISOString(),
+      emailSentTo,
+    })
+
+    log.info({ receipt: waeHistory }, `Email sent!`)
+
+    return { status: 200, emailSent: true }
+  }
+
+  log.info({ tenantId }, 'No active integrations present in the tenant. Email will not be sent.')
+
+  return {
+    status: 200,
+    msg: `No active integrations present in the tenant. Email will not be sent.`,
+    emailSent: false,
+  }
+}
+
+async function getAnalyticsData(tenantId: string) {
+  try {
+    const s3Url = `https://${
+      S3_CONFIG.microservicesAssetsBucket
+    }-${getStage()}.s3.eu-central-1.amazonaws.com`
+
+    const unixEpoch = moment.unix(0)
+
+    const dateTimeEndThisWeek = moment().utc().startOf('isoWeek')
+    const dateTimeStartThisWeek = moment().utc().startOf('isoWeek').subtract(7, 'days')
+
+    const dateTimeEndPreviousWeek = dateTimeStartThisWeek.clone()
+    const dateTimeStartPreviousWeek = dateTimeStartThisWeek.clone().subtract(7, 'days')
+
+    const userContext = await getUserContext(tenantId)
+
     const cjs = new CubeJsService()
     // tokens should be set for each tenant
     await cjs.setTenant(tenantId)
@@ -51,6 +218,7 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       unixEpoch,
       dateTimeEndThisWeek,
     )
+
     const totalMembersPreviousWeek = await CubeJsRepository.getNewMembers(
       cjs,
       unixEpoch,
@@ -82,19 +250,19 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     const mostActiveMembers = (
       await userContext.database.sequelize.query(
         `
-    select 
-      count(a.id) as "activityCount",
-      m."displayName" as name,
-      m.attributes->'avatarUrl'->>'default' as "avatarUrl"
-    from members m
-    inner join activities a on m.id = a."memberId"
-    where m."tenantId" = :tenantId
-      and a.timestamp between :startDate and :endDate
-      and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
-      and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
-    group by m.id
-    order by count(a.id) desc
-    limit 5;`,
+      select 
+        count(a.id) as "activityCount",
+        m."displayName" as name,
+        m.attributes->'avatarUrl'->>'default' as "avatarUrl"
+      from members m
+      inner join activities a on m.id = a."memberId"
+      where m."tenantId" = :tenantId
+        and a.timestamp between :startDate and :endDate
+        and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
+        and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
+      group by m.id
+      order by count(a.id) desc
+      limit 5;`,
         {
           replacements: {
             tenantId,
@@ -148,20 +316,20 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
     const mostActiveOrganizations = (
       await userContext.database.sequelize.query(
         `
-    select count(a.id) as "activityCount",
-       o.name as name,
-       o.logo as "avatarUrl"
-    from organizations o
-      inner join "memberOrganizations" mo on o.id = mo."organizationId"
-      inner join members m on mo."memberId" = m.id
-      inner join activities a on m.id = a."memberId"
-    where m."tenantId" = :tenantId
-      and a.timestamp between :startDate and :endDate
-      and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
-      and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
-    group by o.id
-    order by count(a.id) desc
-    limit 5;`,
+      select count(a.id) as "activityCount",
+         o.name as name,
+         o.logo as "avatarUrl"
+      from organizations o
+        inner join "memberOrganizations" mo on o.id = mo."organizationId"
+        inner join members m on mo."memberId" = m.id
+        inner join activities a on m.id = a."memberId"
+      where m."tenantId" = :tenantId
+        and a.timestamp between :startDate and :endDate
+        and coalesce(m.attributes->'isTeamMember'->>'default', 'false')::boolean is false
+        and coalesce(m.attributes->'isBot'->>'default', 'false')::boolean is false
+      group by o.id
+      order by count(a.id) desc
+      limit 5;`,
         {
           replacements: {
             tenantId,
@@ -203,16 +371,16 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
     let topActivityTypes = await userContext.database.sequelize.query(
       `
-    select sum(count(*)) OVER () as "totalCount",
-       count(*)              as count,
-       a.type,
-       a.platform
-    from activities a
-    where a."tenantId" = :tenantId
-      and a.timestamp between :startDate and :endDate
-    group by a.type, a.platform
-    order by count(*) desc
-    limit 5;`,
+      select sum(count(*)) OVER () as "totalCount",
+         count(*)              as count,
+         a.type,
+         a.platform
+      from activities a
+      where a."tenantId" = :tenantId
+        and a.timestamp between :startDate and :endDate
+      group by a.type, a.platform
+      order by count(*) desc
+      limit 5;`,
       {
         replacements: {
           tenantId,
@@ -238,15 +406,15 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       (
         await userContext.database.sequelize.query(
           `
-    select
-        c.id
-    from conversations c
-        join activities a on a."conversationId" = c.id
-    where a."tenantId" = :tenantId
-      and a.timestamp between :startDate and :endDate
-    group by c.id
-    order by count(a.id) desc
-    limit 5;`,
+      select
+          c.id
+      from conversations c
+          join activities a on a."conversationId" = c.id
+      where a."tenantId" = :tenantId
+        and a.timestamp between :startDate and :endDate
+      group by c.id
+      order by count(a.id) desc
+      limit 5;`,
           {
             replacements: {
               tenantId,
@@ -303,10 +471,10 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
 
     const activeTenantIntegrations = await userContext.database.sequelize.query(
       `
-      select * from integrations i
-      where i."tenantId" = :tenantId
-      and i.status = 'done'
-      limit 1;`,
+        select * from integrations i
+        where i."tenantId" = :tenantId
+        and i.status = 'done'
+        limit 1;`,
       {
         replacements: {
           tenantId,
@@ -315,107 +483,41 @@ async function weeklyAnalyticsEmailsWorker(tenantId: string): Promise<AnalyticsE
       },
     )
 
-    if (activeTenantIntegrations.length > 0) {
-      log.info(tenantId, ` has completed integrations. Eligible for weekly emails.. `)
-      const allTenantUsers = await UserRepository.findAllUsersOfTenant(tenantId)
-
-      const advancedSuppressionManager = {
-        groupId: parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10),
-        groupsToDisplay: [parseInt(SENDGRID_CONFIG.weeklyAnalyticsUnsubscribeGroupId, 10)],
-      }
-
-      for (const user of allTenantUsers) {
-        if (user.email && user.emailVerified) {
-          const userFirstName = user.firstName ? user.firstName : user.email.split('@')[0]
-
-          const data = {
-            dateRangePretty: `${dateTimeStartThisWeek.format(
-              'D MMM YYYY',
-            )} - ${dateTimeEndThisWeek.format('D MMM YYYY')}`,
-            members: {
-              total: {
-                value: totalMembersThisWeek,
-                ...getChangeAndDirection(totalMembersThisWeek, totalMembersPreviousWeek),
-              },
-              new: {
-                value: newMembersThisWeek,
-                ...getChangeAndDirection(newMembersThisWeek, newMembersPreviousWeek),
-              },
-              active: {
-                value: activeMembersThisWeek,
-                ...getChangeAndDirection(activeMembersThisWeek, activeMembersPreviousWeek),
-              },
-              mostActive: mostActiveMembers,
-            },
-            organizations: {
-              total: {
-                value: totalOrganizationsThisWeek,
-                ...getChangeAndDirection(
-                  totalOrganizationsThisWeek,
-                  totalOrganizationsPreviousWeek,
-                ),
-              },
-              new: {
-                value: newOrganizationsThisWeek,
-                ...getChangeAndDirection(newOrganizationsThisWeek, newOrganizationsPreviousWeek),
-              },
-              active: {
-                value: activeOrganizationsThisWeek,
-                ...getChangeAndDirection(
-                  activeOrganizationsThisWeek,
-                  activeOrganizationsPreviousWeek,
-                ),
-              },
-              mostActive: mostActiveOrganizations,
-            },
-            activities: {
-              total: {
-                value: totalActivitiesThisWeek,
-                ...getChangeAndDirection(totalActivitiesThisWeek, totalActivitiesPreviousWeek),
-              },
-              new: {
-                value: newActivitiesThisWeek,
-                ...getChangeAndDirection(newActivitiesThisWeek, newActivitiesPreviousWeek),
-              },
-              topActivityTypes,
-            },
-            conversations,
-            tenant: {
-              name: userContext.currentTenant.name,
-            },
-            user: {
-              name: userFirstName,
-            },
-          }
-
-          log.info(data, 'Sending data to sendgrid.. ')
-
-          await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
-            user.email,
-            advancedSuppressionManager,
-          )
-
-          await new EmailSender(EmailSender.TEMPLATES.WEEKLY_ANALYTICS, data).sendTo(
-            'team@crowd.dev',
-            advancedSuppressionManager,
-          )
-        }
-      }
-
-      return { status: 200, emailSent: true }
-    }
-
     return {
-      status: 200,
-      msg: `Tenant ${tenantId} doesn't have reasonable insights. `,
-      emailSent: false,
+      shouldRetry: false,
+      data: {
+        dateTimeStartThisWeek,
+        dateTimeEndThisWeek,
+        dateTimeStartPreviousWeek,
+        dateTimeEndPreviousWeek,
+        totalMembersThisWeek,
+        totalMembersPreviousWeek,
+        activeMembersThisWeek,
+        activeMembersPreviousWeek,
+        newMembersThisWeek,
+        newMembersPreviousWeek,
+        mostActiveMembers,
+        totalOrganizationsThisWeek,
+        totalOrganizationsPreviousWeek,
+        activeOrganizationsThisWeek,
+        activeOrganizationsPreviousWeek,
+        newOrganizationsThisWeek,
+        newOrganizationsPreviousWeek,
+        mostActiveOrganizations,
+        totalActivitiesThisWeek,
+        totalActivitiesPreviousWeek,
+        newActivitiesThisWeek,
+        newActivitiesPreviousWeek,
+        topActivityTypes,
+        conversations,
+        activeTenantIntegrations,
+      },
     }
-  }
-
-  return {
-    status: 200,
-    msg: `Email is not verified for tenant ${tenantId}`,
-    emailSent: false,
+  } catch (e) {
+    return {
+      shouldRetry: true,
+      data: {},
+    }
   }
 }
 

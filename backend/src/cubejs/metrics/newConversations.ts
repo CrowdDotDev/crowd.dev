@@ -18,7 +18,7 @@ export default async (cjs: CubeJsService, startDate: moment.Moment, endDate: mom
         timeDimensions: [
           {
             dimension: CubeDimensions.CONVERSATION_FIRST_ACTIVITY_TIME,
-            dateRange: [startDate.toISOString(), endDate.toISOString()],
+            dateRange: [startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD')],
           },
         ],
         limit: 1,
