@@ -84,8 +84,7 @@ const headerContent = computed(() => {
 
 const keywords = reactive([
   {
-    value: null,
-    type: 'semantic'
+    value: null
   }
 ])
 const publishedDate = ref(publishedDateOptions[0].label)
@@ -144,12 +143,7 @@ const onSubmit = async () => {
       .toISOString(),
     moment().utc().toISOString()
   ]
-  const formattedKeywords = keywords
-    .filter((k) => k.type === 'semantic')
-    .map((k) => k.value)
-  const formattedExactKeywords = keywords
-    .filter((k) => k.type === 'exact')
-    .map((k) => k.value)
+  const formattedKeywords = keywords.map((k) => k.value)
   const formattedPlatforms = Object.entries(platforms)
     .filter(([, value]) => value.enabled)
     .map(([key]) => key)
@@ -160,7 +154,7 @@ const onSubmit = async () => {
       onboarded: true,
       feed: {
         keywords: formattedKeywords,
-        exactKeywords: formattedExactKeywords,
+        exactKeywords: [],
         excludedKeywords: [],
         publishedDate: formattedPublishedDate,
         platforms: formattedPlatforms

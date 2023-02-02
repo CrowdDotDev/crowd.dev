@@ -1,16 +1,3 @@
-export const matchTypes = [
-  {
-    value: 'semantic',
-    label: 'Semantic match',
-    description: 'Results semantically related'
-  },
-  {
-    value: 'exact',
-    label: 'Exact match',
-    description: 'Results containing the keyword'
-  }
-]
-
 export const publishedDateOptions = [
   {
     period: 1,

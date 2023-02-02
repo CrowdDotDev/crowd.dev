@@ -25,34 +25,6 @@
         <el-form-item class="flex-1">
           <el-input v-model="keyword.value" />
         </el-form-item>
-        <el-form-item>
-          <el-select
-            v-model="keyword.type"
-            popper-class="eagle-eye-keywords-select"
-          >
-            <el-option
-              v-for="matchType in matchTypes"
-              :key="matchType.value"
-              :label="matchType.label"
-              :value="matchType.value"
-              class="!h-fit !px-3"
-              @mouseleave="onSelectMouseLeave"
-            >
-              <div class="block py-3">
-                <div
-                  class="text-xs font-medium h-fit leading-6"
-                >
-                  {{ matchType.label }}
-                </div>
-                <div
-                  class="text-2xs text-gray-500 leading-4 h-fit"
-                >
-                  {{ matchType.description }}
-                </div>
-              </div>
-            </el-option>
-          </el-select>
-        </el-form-item>
 
         <el-button
           class="btn btn--md btn--transparent w-10 h-10"
@@ -82,8 +54,6 @@
 <script setup>
 import EagleEyeFooter from '@/premium/eagle-eye/components/onboard/eagle-eye-footer.vue'
 import { defineEmits, computed, defineProps } from 'vue'
-import { matchTypes } from '@/premium/eagle-eye/eagle-eye-constants'
-import { onSelectMouseLeave } from '@/utils/select'
 
 const emit = defineEmits([
   'update:modelValue',
@@ -111,8 +81,7 @@ const isKeywordsFormValid = computed(
 
 const addKeyword = () => {
   keywords.value.push({
-    value: null,
-    type: 'semantic'
+    value: null
   })
 }
 
@@ -127,11 +96,5 @@ const deleteKeyword = (index) => {
   .el-form-item__content {
     @apply mb-0;
   }
-}
-
-.el-select__popper.eagle-eye-keywords-select
-  .el-select-dropdown
-  .el-select-dropdown__item.selected::after {
-  display: none;
 }
 </style>
