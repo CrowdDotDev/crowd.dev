@@ -4,7 +4,7 @@ CREATE TABLE public."eageEyeContents" (
     "id" uuid NOT NULL,
     "platform" text NOT NULL,
     "url" text NOT NULL,
-    "content" jsonb NOT NULL,
+    "post" jsonb NOT NULL,
     "tenantId" uuid NOT NULL,
 	"createdAt" timestamptz NOT NULL,
 	"updatedAt" timestamptz NOT NULL,
