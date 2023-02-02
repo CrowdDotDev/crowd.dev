@@ -6,6 +6,7 @@ import {
   isFeatureEnabled,
   featureFlags
 } from '@/utils/posthog'
+import posthog from 'posthog-js'
 
 const isEagleEyeFeatureEnabled = async () => {
   return (
@@ -15,6 +16,13 @@ const isEagleEyeFeatureEnabled = async () => {
 }
 
 const isEagleEyeNewVersionEnabled = async () => {
+  const currentTenant = store.getters['auth/currentTenant']
+  const payload = {
+    groupType: 'tenant',
+    groupKey: currentTenant.id
+  }
+
+  await posthog.groupIdentify(payload)
   return (
     config.hasPremiumModules &&
     (await isFeatureEnabled(
