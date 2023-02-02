@@ -37,6 +37,9 @@ jobs:
       - name: Check formatting
         run: npx prettier --check .
 
+      - name: Check typescript
+        run: npx tsc
+
   tests-main:
     needs: lint-format
     runs-on: ubuntu-latest
