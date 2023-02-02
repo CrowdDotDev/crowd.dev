@@ -2,6 +2,8 @@ DROP TABLE IF EXISTS "eagleEyeContents";
 
 CREATE TABLE public."eageEyeContents" (
     "id" uuid NOT NULL,
+    "platform" text NOT NULL,
+    "url" text NOT NULL,
     "content" jsonb NOT NULL,
     "tenantId" uuid NOT NULL,
 	"createdAt" timestamptz NOT NULL,
@@ -15,10 +17,8 @@ CREATE TYPE public."eagleEyeActions_action_type" AS ENUM ('thumbs-up', 'thumbs-d
 
 CREATE TABLE public."eageEyeActions" (
     "id" uuid NOT NULL,
-    "platform" text NOT NULL,
     "action" public."eagleEyeActions_action_type" NOT NULL,
     "timestamp" timestamptz NOT NULL,
-    "url" text NOT NULL,
     "contentId" uuid NOT NULL,
     "tenantId" uuid NOT NULL,
     "actionById" uuid NOT NULL,
