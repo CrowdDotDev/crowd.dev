@@ -3,6 +3,7 @@ import TenantService from '../../services/tenantService'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
+import { timeout } from '../../utils/timing'
 
 const job: CrowdJob = {
   name: 'Weekly Analytics Emails coordinator',
@@ -16,6 +17,9 @@ const job: CrowdJob = {
         tenant: tenant.id,
         service: 'weekly-analytics-emails',
       } as NodeWorkerMessageBase)
+
+      // Wait 1 second between messages to potentially reduce spike load on cube between each tenant runs
+      await timeout(1000)
     }
   },
 }
