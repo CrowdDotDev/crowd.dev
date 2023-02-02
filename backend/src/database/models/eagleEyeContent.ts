@@ -13,7 +13,7 @@ const eagleEyeContentModel = {
       notEmpty: true,
     },
   },
-  content: {
+  post: {
     type: DataTypes.JSONB,
     allowNull: false
   },
