@@ -6,10 +6,24 @@ const eagleEyeContentModel = {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  platform: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  },
   content: {
     type: DataTypes.JSONB,
     allowNull: false
   },
+  url: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    validate: {
+      notEmpty: true,
+    },
+  }
 }
 
 export default (sequelize) => {
@@ -24,10 +38,6 @@ export default (sequelize) => {
       foreignKey: {
         allowNull: false,
       },
-    })
-
-    models.eagleEyeContent.belongsTo(models.user, {
-      as: 'actionBy',
     })
 
   }

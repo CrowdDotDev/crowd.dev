@@ -6,13 +6,6 @@ const eagleEyeActionModel = {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  platform: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  },
   action: {
     type: DataTypes.TEXT,
     validate: {
@@ -24,13 +17,6 @@ const eagleEyeActionModel = {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  url: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  }
 }
 
 export default (sequelize) => {
