@@ -22,7 +22,7 @@ const isEagleEyeNewVersionEnabled = async () => {
     groupKey: currentTenant.id
   }
 
-  await posthog.groupIdentify(payload)
+  await posthog.group(payload)
   return (
     config.hasPremiumModules &&
     (await isFeatureEnabled(
