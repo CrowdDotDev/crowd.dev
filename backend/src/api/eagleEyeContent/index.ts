@@ -9,11 +9,7 @@ export default (app) => {
     `/tenant/:tenantId/eagleEyeContent/query`,
     safeWrap(require('./eagleEyeContentQuery').default),
   )
-  app.put(
-    `/tenant/:tenantId/eagleEyeContent/:id`,
-    safeWrap(require('./eagleEyeContentUpdate').default),
-  )
-  app.get(`/tenant/:tenantId/eagleEyeContent`, safeWrap(require('./eagleEyeContentList').default))
+
   app.get(
     `/tenant/:tenantId/eagleEyeContent/:id`,
     safeWrap(require('./eagleEyeContentFind').default),
@@ -24,4 +20,8 @@ export default (app) => {
     safeWrap(require('./eagleEyeActionCreate').default),
   )
 
+  app.delete(
+    `/tenant/:tenantId/eagleEyeContent/:contentId/action/:actionId`,
+    safeWrap(require('./eagleEyeActionDestroy').default),
+  )
 }

@@ -109,7 +109,8 @@ const en = {
       message: 'Project not found',
     },
     eagleEye: {
-      urlRequiredWhenUpserting: 'URL field is mandatory when upserting eagleEyeContent'
+      urlRequiredWhenUpserting: 'URL field is mandatory when upserting eagleEyeContent',
+      contentNotFound: 'Eagle eye content not found. Action will not be created.',
     },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',

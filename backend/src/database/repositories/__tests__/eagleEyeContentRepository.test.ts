@@ -3,8 +3,6 @@ import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
 import { EagleEyeActionType, EagleEyeContent } from '../../../types/eagleEyeTypes'
 import EagleEyeActionRepository from '../eagleEyeActionRepository'
 
-
-
 const db = null
 
 describe('eagleEyeContentRepository tests', () => {
@@ -422,17 +420,17 @@ describe('eagleEyeContentRepository tests', () => {
 
   describe('findAndCountAll method', () => {
     it('Should find eagle eye contant, various cases', async () => {
-      // create random tenant with one user 
+      // create random tenant with one user
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
       // create additional users for same tenant to test out actionBy filtering
       const randomUser = await SequelizeTestUtils.getRandomUser()
 
-      console.log("random user: ")
+      console.log('random user: ')
       console.log(randomUser)
 
       const user2 = await mockIRepositoryOptions.database.user.create(randomUser)
-      
+
       await mockIRepositoryOptions.database.tenantUser.create({
         roles: ['admin'],
         status: 'active',
@@ -455,7 +453,6 @@ describe('eagleEyeContentRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-
 
       // one with a bookmark action
       let c2 = await EagleEyeContentRepository.create(
@@ -486,7 +483,7 @@ describe('eagleEyeContentRepository tests', () => {
 
       // another content with a thumbs-up(user1) and a bookmark(user2) action
       let c3 = await EagleEyeContentRepository.create(
-        { 
+        {
           platform: 'devto',
           url: 'https://some-devto-url',
           post: {
@@ -498,7 +495,7 @@ describe('eagleEyeContentRepository tests', () => {
         },
         mockIRepositoryOptions,
       )
-      
+
       // add the thumbs up action
       await EagleEyeActionRepository.createActionForContent(
         {
@@ -516,38 +513,40 @@ describe('eagleEyeContentRepository tests', () => {
           timestamp: '2022-09-30T23:11:10Z',
         },
         c3.id,
-        {...mockIRepositoryOptions, currentUser: user2},
+        { ...mockIRepositoryOptions, currentUser: user2 },
       )
 
       c3 = await EagleEyeContentRepository.findById(c3.id, mockIRepositoryOptions)
 
-
       // filter by action type
-      let res = await EagleEyeContentRepository.findAndCountAll({
-        advancedFilter: {
-          action: {
-            type: EagleEyeActionType.BOOKMARK
-            
-          }
-        }
-      }, mockIRepositoryOptions)
-
+      let res = await EagleEyeContentRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            action: {
+              type: EagleEyeActionType.BOOKMARK,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
 
       expect(res.count).toBe(2)
-      expect(res.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([c2,c3])
+      expect(res.rows.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))).toStrictEqual([c2, c3])
 
       // filter by actionBy
-      res = await EagleEyeContentRepository.findAndCountAll({
-        advancedFilter: {
-          action: {
-            actionById: user2.id
-          }
-        }
-      }, mockIRepositoryOptions)
+      res = await EagleEyeContentRepository.findAndCountAll(
+        {
+          advancedFilter: {
+            action: {
+              actionById: user2.id,
+            },
+          },
+        },
+        mockIRepositoryOptions,
+      )
 
       expect(res.count).toBe(1)
       expect(res.rows).toStrictEqual([c3])
-
     })
   })
 })
