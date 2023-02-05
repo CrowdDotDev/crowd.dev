@@ -102,19 +102,15 @@ const en = {
     activityDup: {
       message: 'This activity has already been linked to this member',
     },
-    invalidEagleEyeStatus: {
-      message: 'Possible statuses are: "shown", "rejected", "engaged"',
-    },
-    eagleEyeSearchFailed: {
-      message: 'Search failed in EagleEye',
-    },
     OrganizationNameRequired: {
       message: 'Organization Name is required',
     },
     projectNotFound: {
       message: 'Project not found',
     },
-
+    eagleEye: {
+      urlRequiredWhenUpserting: 'URL field is mandatory when upserting eagleEyeContent'
+    },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',
     },
