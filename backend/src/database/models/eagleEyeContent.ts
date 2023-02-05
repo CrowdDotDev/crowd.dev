@@ -23,13 +23,17 @@ const eagleEyeContentModel = {
     validate: {
       notEmpty: true,
     },
-  }
+  },
+  postedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
 }
 
 export default (sequelize) => {
   const eagleEyeContent = sequelize.define('eagleEyeContent', eagleEyeContentModel, {
     timestamps: true,
-    paranoid: true,
+    paranoid: false,
   })
 
   eagleEyeContent.associate = (models) => {
@@ -38,6 +42,10 @@ export default (sequelize) => {
       foreignKey: {
         allowNull: false,
       },
+    })
+    models.eagleEyeContent.hasMany(models.eagleEyeAction, {
+      as: 'actions',
+      foreignKey: 'contentId',
     })
 
   }

@@ -1,60 +1,39 @@
-import moment from 'moment'
 import lodash from 'lodash'
+import { Op } from 'sequelize'
 import SequelizeRepository from './sequelizeRepository'
 import Error404 from '../../errors/Error404'
-import Error400 from '../../errors/Error400'
-import AuditLogRepository from './auditLogRepository'
 import { IRepositoryOptions } from './IRepositoryOptions'
-import { EagleEyeContentData } from '../../types/eagleEyeTypes'
+import { EagleEyeContent } from '../../types/eagleEyeTypes'
+import QueryParser from './filters/queryParser'
+import { QueryOutput } from './filters/queryTypes'
+import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
+import EagleEyeActionRepository from './eagleEyeActionRepository'
 
 export default class EagleEyeContentRepository {
-  /**
-   * Create an eagle eye shown content record.
-   * @param data Data to a new EagleEyeContent record.
-   * @param options Repository options.
-   * @returns Created EagleEyeContent record.
-   */
-  static async upsert(data:EagleEyeContentData, options: IRepositoryOptions): Promise<EagleEyeContentData> {
 
-    if(!data.url){
-      throw new Error(`Can't upsert without url`)
+  static async create(data:EagleEyeContent, options:IRepositoryOptions): Promise<EagleEyeContent>{
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.eagleEyeContent.create(
+      {
+        ...lodash.pick(data, [
+          'platform',
+          'post',
+          'url',
+          'postedAt'
+        ]),
+        tenantId: currentTenant.id,
+      },
+    )
+
+    if (data.actions){
+      for (const action of data.actions){
+        await EagleEyeActionRepository.createActionForContent(action, record.id, options)
+      }
     }
-
-    // find by url
-    const existing = await EagleEyeContentRepository.findByUrl(data.url, options)
-
-    let record
-
-    if (existing){
-      record  = await EagleEyeContentRepository.update(existing.id, data, options)
-    }
-    /*
-    else{
-      record = options.database.eagleEyeContent.create(
-        {
-          ...lodash.pick(data, [
-            'platform',
-            'post',
-            'url',
-          ]),
-          memberId: data.member || null,
-          parentId: data.parent || null,
-          sourceParentId: data.sourceParentId || null,
-          conversationId: data.conversationId || null,
-          tenantId: tenant.id,
-          createdById: currentUser.id,
-          updatedById: currentUser.id,
-        },
-        {
-          transaction,
-        },
-      )
-    }
-    */
-
-    
 
     return this.findById(record.id, options)
+
   }
 
 
@@ -83,6 +62,7 @@ export default class EagleEyeContentRepository {
         ...lodash.pick(data, [
           'platform',
           'post',
+          'postedAt',
           'url',
         ]),
         updatedById: currentUser.id,
@@ -98,7 +78,14 @@ export default class EagleEyeContentRepository {
   static async findById(id:string, options: IRepositoryOptions) {
     const transaction = SequelizeRepository.getTransaction(options)
 
-    const include = []
+    const include = [{
+      model: options.database.eagleEyeAction,
+      as: 'actions',
+      // attributes: [],
+      // through: {
+      //   attributes: [],
+      // },
+    }]
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
 
@@ -116,6 +103,131 @@ export default class EagleEyeContentRepository {
     }
 
     return this._populateRelations(record)
+  }
+
+  static async destroy(id: string, options: IRepositoryOptions): Promise<void> {
+    const transaction = SequelizeRepository.getTransaction(options)
+
+    const currentTenant = SequelizeRepository.getCurrentTenant(options)
+
+    const record = await options.database.eagleEyeContent.findOne({
+      where: {
+        id,
+        tenantId: currentTenant.id,
+      },
+      transaction,
+    })
+
+    if (record) {
+      await record.destroy({
+        transaction,
+        force: true,
+      })
+    }
+  }
+
+  static async findAndCountAll(
+    {
+      advancedFilter = null as any,
+      limit = 0,
+      offset = 0,
+      orderBy = '',
+    },
+    options: IRepositoryOptions,
+  ) {
+
+    const actionsSequelizeInclude = {
+      model: options.database.eagleEyeAction,
+      as: 'actions',
+      // required:false,
+      where: {},
+    //   subQuery:true
+
+    }
+
+    // let wh = {}
+
+    if (advancedFilter && advancedFilter.action) {
+
+      const actionQueryParser = new QueryParser(
+        {
+        // nestedFields: {
+        //    type: `$actions.type$`
+        // }
+        },
+        options,
+      )
+
+      const parsedActionQuery: QueryOutput = actionQueryParser.parse({
+        filter: advancedFilter.action,
+        orderBy: 'timestamp_DESC',
+      })
+
+      actionsSequelizeInclude.where = parsedActionQuery.where ?? {}
+      delete advancedFilter.action
+    }
+
+    const include = [
+      actionsSequelizeInclude,
+    ]
+
+    const contentParser = new QueryParser(
+      {},
+      options,
+    )
+
+
+    const parsed: QueryOutput = contentParser.parse({
+      filter: advancedFilter,
+      orderBy: orderBy || ['postedAt_DESC'],
+      limit,
+      offset,
+    })
+
+    
+
+    console.log("SENDING SHIEEEEEEEEEET")
+    console.log(parsed)
+    console.log(include)
+
+    // const wtf = parsed.where ? { where: {...parsed.where, ...wh} } : {}
+    console.log("wtf")
+    // console.log(wtf)
+    let {
+      rows,
+      count, // eslint-disable-line prefer-const
+    } = await options.database.eagleEyeContent.findAndCountAll({
+      include,
+      ...(parsed.where ? { where: parsed.where } : {}),
+      order: parsed.order,
+      limit: parsed.limit,
+      offset: parsed.offset,
+      transaction: SequelizeRepository.getTransaction(options),
+      subQuery: false
+    })
+
+    // If we have an actions filter, we should query again to eager
+    // load the all actions on a content because previous query will 
+    // omit actions that don't match the given action filter
+    if (Object.keys(actionsSequelizeInclude.where).length !== 0)
+    {
+      rows = (await options.database.eagleEyeContent.findAndCountAll({
+        include: [{...actionsSequelizeInclude, where: {}}],
+        where: { id: { [Op.in]: rows.map( (i) => i.id) } },
+        order: parsed.order,
+        limit: parsed.limit,
+        offset: parsed.offset,
+        transaction: SequelizeRepository.getTransaction(options),
+        subQuery: false
+  
+      })).rows
+    }
+   
+
+    rows = await this._populateRelationsForRows(rows)
+
+    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+
   }
 
   static async findByUrl(url:string, options: IRepositoryOptions) {
