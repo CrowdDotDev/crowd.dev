@@ -4,21 +4,24 @@ export enum EagleEyeActionType {
     BOOKMARK = 'bookmark',
 }
 
-export interface EagleEyeContentData {
+
+export interface EagleEyeAction {
+    id?: string
+    type: EagleEyeActionType
+    timestamp: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+}
+
+export interface EagleEyeContent {
     id?: string
     platform: string
     post: any
     url: string
+    actions?: EagleEyeAction[]
     tenantId: string
-    createdAt?: string
-    updatedAt?: string
+    postedAt: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
 }
 
-export interface EagleEyeActionData {
-    id?: string
-    action: EagleEyeActionType
-    timestamp: string
-    content: EagleEyeContentData
-    createdAt?: string
-    updatedAt?: string
-}

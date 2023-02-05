@@ -6,7 +6,7 @@ const eagleEyeActionModel = {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  action: {
+  type: {
     type: DataTypes.TEXT,
     validate: {
       isIn: [['thumbs-up', 'thumbs-down', 'bookmark']],
@@ -26,7 +26,7 @@ export default (sequelize) => {
   })
 
   eagleEyeAction.associate = (models) => {
-    models.eagleEyeContent.belongsTo(models.tenant, {
+    models.eagleEyeAction.belongsTo(models.tenant, {
       as: 'tenant',
       foreignKey: {
         allowNull: false,

@@ -18,4 +18,10 @@ export default (app) => {
     `/tenant/:tenantId/eagleEyeContent/:id`,
     safeWrap(require('./eagleEyeContentFind').default),
   )
+
+  app.post(
+    `/tenant/:tenantId/eagleEyeContent/:contentId/action`,
+    safeWrap(require('./eagleEyeActionCreate').default),
+  )
+
 }

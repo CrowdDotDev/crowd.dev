@@ -34,6 +34,7 @@ export default class SequelizeTestUtils {
         files,
         microservices,
         "eagleEyeContents",
+        "eagleEyeActions",
         "auditLogs",
         "memberEnrichmentCache"
       cascade;
