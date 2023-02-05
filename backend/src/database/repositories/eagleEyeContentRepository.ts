@@ -6,7 +6,6 @@ import { IRepositoryOptions } from './IRepositoryOptions'
 import { EagleEyeContent } from '../../types/eagleEyeTypes'
 import QueryParser from './filters/queryParser'
 import { QueryOutput } from './filters/queryTypes'
-import SequelizeFilterUtils from '../utils/sequelizeFilterUtils'
 import EagleEyeActionRepository from './eagleEyeActionRepository'
 
 export default class EagleEyeContentRepository {
@@ -81,10 +80,6 @@ export default class EagleEyeContentRepository {
     const include = [{
       model: options.database.eagleEyeAction,
       as: 'actions',
-      // attributes: [],
-      // through: {
-      //   attributes: [],
-      // },
     }]
 
     const currentTenant = SequelizeRepository.getCurrentTenant(options)
@@ -139,21 +134,15 @@ export default class EagleEyeContentRepository {
     const actionsSequelizeInclude = {
       model: options.database.eagleEyeAction,
       as: 'actions',
-      // required:false,
       where: {},
-    //   subQuery:true
 
     }
 
-    // let wh = {}
 
     if (advancedFilter && advancedFilter.action) {
 
       const actionQueryParser = new QueryParser(
         {
-        // nestedFields: {
-        //    type: `$actions.type$`
-        // }
         },
         options,
       )
@@ -185,14 +174,6 @@ export default class EagleEyeContentRepository {
     })
 
     
-
-    console.log("SENDING SHIEEEEEEEEEET")
-    console.log(parsed)
-    console.log(include)
-
-    // const wtf = parsed.where ? { where: {...parsed.where, ...wh} } : {}
-    console.log("wtf")
-    // console.log(wtf)
     let {
       rows,
       count, // eslint-disable-line prefer-const
