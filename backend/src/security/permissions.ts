@@ -422,6 +422,11 @@ class Permissions {
         allowedRoles: [roles.admin, roles.readonly],
         allowedPlans: [plans.essential, plans.growth],
       },
+      eagleEyeContentCreate: {
+        id: 'eagleEyeContentCreate',
+        allowedRoles: [roles.admin],
+        allowedPlans: [plans.growth],
+      },
       eagleEyeContentRead: {
         id: 'eagleEyeContentRead',
         allowedRoles: [roles.admin, roles.readonly],
