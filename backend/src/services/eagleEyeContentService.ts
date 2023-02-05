@@ -24,7 +24,6 @@ export default class EagleEyeContentService extends LoggingBase {
    * @returns Created EagleEyeContent record.
    */
   async upsert(data: EagleEyeContent): Promise<EagleEyeContent | null> {
-
     if (!data.url) {
       throw new Error400(this.options.language, 'errors.eagleEye.urlRequiredWhenUpserting')
     }
@@ -41,7 +40,6 @@ export default class EagleEyeContentService extends LoggingBase {
     }
 
     return record
-
   }
 
   async findById(id: string): Promise<EagleEyeContent> {
@@ -59,9 +57,11 @@ export default class EagleEyeContentService extends LoggingBase {
     )
   }
 
-  /** TODO 
-  async search(args) {
-  
-  }
+  /**  
+  TODO
   */
+  /* eslint-disable-next-line */
+  async search(args) {
+    return null
+  }
 }

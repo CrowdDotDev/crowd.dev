@@ -38,7 +38,7 @@ export default (sequelize) => {
     })
 
     models.eagleEyeAction.belongsTo(models.eagleEyeContent, {
-        as: 'content',
+      as: 'content',
     })
   }
 

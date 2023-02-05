@@ -27,10 +27,12 @@ describe('EagleEyeContentService tests', () => {
         },
         postedAt: '2020-05-27T15:13:30Z',
         tenantId: mockIRepositoryOptions.currentTenant.id,
-        actions: [{
-          type: EagleEyeActionType.BOOKMARK,
-          timestamp: '2022-06-27T14:13:30Z',
-        }]
+        actions: [
+          {
+            type: EagleEyeActionType.BOOKMARK,
+            timestamp: '2022-06-27T14:13:30Z',
+          },
+        ],
       }
 
       const service = new EagleEyeContentService(mockIRepositoryOptions)
@@ -60,11 +62,6 @@ describe('EagleEyeContentService tests', () => {
       expect(contents.rows).toStrictEqual([c1Upserted])
       expect(c1Upserted.id).toEqual(c1.id)
       expect(contents.rows[0].post).toStrictEqual(contentWithSameUrl.post)
-
     })
-
-
   })
-
-
 })

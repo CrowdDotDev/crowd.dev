@@ -15,7 +15,7 @@ const eagleEyeContentModel = {
   },
   post: {
     type: DataTypes.JSONB,
-    allowNull: false
+    allowNull: false,
   },
   url: {
     type: DataTypes.TEXT,
@@ -47,7 +47,6 @@ export default (sequelize) => {
       as: 'actions',
       foreignKey: 'contentId',
     })
-
   }
 
   return eagleEyeContent

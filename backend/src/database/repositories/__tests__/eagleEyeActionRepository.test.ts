@@ -33,13 +33,16 @@ describe('eagleEyeActionRepository tests', () => {
 
       const contentCreated = await EagleEyeContentRepository.create(content, mockIRepositoryOptions)
 
-
-      const action: EagleEyeAction= {
+      const action: EagleEyeAction = {
         type: EagleEyeActionType.BOOKMARK,
         timestamp: '2022-07-27T19:13:30Z',
-      } 
+      }
 
-      const actionCreated = await EagleEyeActionRepository.createActionForContent(action, contentCreated.id, mockIRepositoryOptions)
+      const actionCreated = await EagleEyeActionRepository.createActionForContent(
+        action,
+        contentCreated.id,
+        mockIRepositoryOptions,
+      )
 
       actionCreated.createdAt = (actionCreated.createdAt as Date).toISOString().split('T')[0]
       actionCreated.updatedAt = (actionCreated.updatedAt as Date).toISOString().split('T')[0]
@@ -56,6 +59,5 @@ describe('eagleEyeActionRepository tests', () => {
       }
       expect(expectedAction).toStrictEqual(actionCreated)
     })
-
   })
 })
