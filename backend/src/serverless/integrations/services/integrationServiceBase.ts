@@ -10,6 +10,7 @@ import {
 import {
   IIntegrationStream,
   IProcessStreamResults,
+  IProcessWebhookResults,
   IStepContext,
   IStreamResultOperation,
 } from '../../../types/integration/stepResult'
@@ -101,6 +102,10 @@ export abstract class IntegrationServiceBase {
     remainingStreams?: IIntegrationStream[],
   ): Promise<void> {
     // do nothing - override if something is needed
+  }
+
+  async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
+    throw new Error('Not implemented')
   }
 
   static superfaceClient(): SuperfaceClient {

@@ -32,6 +32,13 @@ export interface IProcessStreamResults {
   sleep?: number
 }
 
+export interface IProcessWebhookResults {
+  // result of stream processing are operations that have to be done after
+  operations: IStreamResultOperation[]
+  // seconds to pause between continuing with integration processing for the remaining streams
+  sleep?: number
+}
+
 export interface IStepContext {
   // when did integration processing start
   startTimestamp: number

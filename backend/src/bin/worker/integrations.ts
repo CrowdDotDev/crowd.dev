@@ -5,6 +5,7 @@ import { Logger } from '../../utils/logging'
 import { NodeWorkerIntegrationCheckMessage } from '../../types/mq/nodeWorkerIntegrationCheckMessage'
 import { NodeWorkerIntegrationProcessMessage } from '../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { createRedisClient } from '../../utils/redis'
+import { NodeWorkerProcessWebhookMessage } from '../../types/mq/nodeWorkerProcessWebhookMessage'
 
 export const processIntegrationCheck = async (
   msg: NodeWorkerIntegrationCheckMessage,
@@ -32,4 +33,18 @@ export const processIntegration = async (
   const processor = new IntegrationProcessor(options, redisEmitter)
 
   await processor.process(msg)
+}
+
+export const processWebhook = async (
+  msg: NodeWorkerProcessWebhookMessage,
+  messageLogger: Logger,
+): Promise<void> => {
+  const options = (await SequelizeRepository.getDefaultIRepositoryOptions()) as IServiceOptions
+  options.log = messageLogger
+
+  const redisEmitter = await createRedisClient(true)
+
+  const processor = new IntegrationProcessor(options, redisEmitter)
+
+  await processor.processWebhook(msg.webhookId)
 }

@@ -1,38 +1,52 @@
 import moment from 'moment'
 import IntegrationRepository from '../../../../database/repositories/integrationRepository'
 import SequelizeTestUtils from '../../../../database/utils/sequelizeTestUtils'
-import Error404 from '../../../../errors/Error404'
 import { GitHubGrid } from '../../grid/githubGrid'
-import GitHubWebhook from '../github'
 import TestEvents from './events'
 import { PlatformType } from '../../../../types/integrationEnums'
 import { GithubActivityType } from '../../../../types/activityTypes'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
+import { GithubIntegrationService } from '../../services/integrations/githubIntegrationService'
+import { IStepContext } from '../../../../types/integration/stepResult'
 
 const db = null
 const installId = '23585816'
 
-async function init(event = '', payload = {}, integration = false) {
+async function fakeContext(integration = {}): Promise<IStepContext> {
   const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-  let tenantId
+
+  return {
+    onboarding: false,
+    integration,
+    repoContext: options,
+    serviceContext: options,
+    limitCount: 0,
+    startTimestamp: 0,
+    pipelineData: {},
+  }
+}
+
+async function init(integration = false) {
+  const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
+
   if (integration) {
-    tenantId = (
-      await IntegrationRepository.create(
-        {
-          platform: PlatformType.GITHUB,
-          token: '',
-          integrationIdentifier: installId,
-        },
-        options,
-      )
-    ).tenantId
-  } else {
-    tenantId = ''
+    const integration = await IntegrationRepository.create(
+      {
+        platform: PlatformType.GITHUB,
+        token: '',
+        integrationIdentifier: installId,
+      },
+      options,
+    )
+
+    return {
+      tenantId: options.currentTenant.id,
+      integration,
+    }
   }
   return {
-    gh: new GitHubWebhook(event, payload),
-    tenantId,
+    tenantId: options.currentTenant.id,
   }
 }
 
@@ -53,7 +67,7 @@ describe('Github webhooks tests', () => {
         name: 'Joan Reyero',
         url: 'https://github.com/joanreyero',
       }
-      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
+      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -76,6 +90,7 @@ describe('Github webhooks tests', () => {
           },
         },
         email: '',
+        displayName: 'Joan Reyero',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -87,7 +102,7 @@ describe('Github webhooks tests', () => {
         url: 'https://github.com/joanreyero',
         twitterUsername: 'reyero',
       }
-      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
+      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -112,6 +127,7 @@ describe('Github webhooks tests', () => {
           },
         },
         email: '',
+        displayName: 'Joan Reyero',
       }
       expect(parsedMember).toStrictEqual(expected)
     })
@@ -132,7 +148,7 @@ describe('Github webhooks tests', () => {
           totalCount: 10,
         },
       }
-      const parsedMember = await GitHubWebhook.parseMember(member, 'token')
+      const parsedMember = await GithubIntegrationService.parseMember(member, await fakeContext())
       const expected = {
         username: {
           [PlatformType.GITHUB]: 'joanreyero',
@@ -160,43 +176,22 @@ describe('Github webhooks tests', () => {
           },
         },
         reach: { [PlatformType.GITHUB]: 10 },
-        email: 'joan@crowd.dev',
+        email: '',
+        displayName: 'Joan Reyero',
         organizations: [{ name: 'crowd.dev' }],
       }
       expect(parsedMember).toStrictEqual(expected)
     })
   })
 
-  describe('Find integrations test', () => {
-    it('It should find integration with a correct install ID', async () => {
-      const payload = {
-        installation: {
-          id: installId,
-        },
-      }
-      const { gh } = await init('', payload, true)
-      const integrations = await gh.findIntegration()
-      expect(integrations).toBeDefined()
-    })
-
-    it('It should not find integration with a wrong tenant ID', async () => {
-      const payload = {
-        installation: {
-          id: '42',
-        },
-      }
-      const { gh } = await init('', payload, true)
-      await expect(() => gh.findIntegration()).rejects.toThrowError(new Error404())
-    })
-  })
-
   describe('Issues tests', () => {
     it('It should parse an issue open coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.opened, true)
-      const issue = await gh.issue(
-        GithubActivityType.ISSUE_OPENED,
-        GitHubGrid.issueOpened,
-        TestEvents.issues.opened.issue.created_at,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.opened,
+        context,
       )
       const expected = {
         member: {
@@ -221,27 +216,17 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       }
       expect(issue).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse an issue edited coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.opened, true)
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
 
-      const issueCreated = await gh.main()
-
-      gh.payload = TestEvents.issues.edited
-      gh.event = TestEvents.issues.event
-
-      const issue = await gh.issue(
-        GithubActivityType.ISSUE_OPENED,
-        GitHubGrid.issueOpened,
-        TestEvents.issues.edited.issue.created_at,
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.edited,
+        context,
       )
+
       const expected = {
         member: {
           username: {
@@ -265,23 +250,17 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       }
       expect(issue).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-
-      expect(fromDb.id).toBe(issueCreated.id)
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse an issue reopened coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.reopened, true)
-      const issue = await gh.issue(
-        GithubActivityType.ISSUE_OPENED,
-        GitHubGrid.issueOpened,
-        TestEvents.issues.reopened.issue.created_at,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.reopened,
+        context,
       )
+
       const expected = {
         member: {
           username: {
@@ -305,21 +284,17 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.issueOpened.isKeyAction,
       }
       expect(issue).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse an issue closed coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.closed, true)
-      const issue = await gh.issue(
-        GithubActivityType.ISSUE_CLOSED,
-        GitHubGrid.issueClosed,
-        TestEvents.issues.closed.issue.closed_at,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.closed,
+        context,
       )
+
       const expected = {
         member: {
           username: {
@@ -343,16 +318,13 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.issueClosed.isKeyAction,
       }
       expect(issue).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
-    it('getActivityWithMember should throw an error for all other actions', async () => {
-      const { gh } = await init(TestEvents.issues.event, TestEvents.issues.closed, true)
+    it('processWebhook should not return any operations for unsupported actions', async () => {
+      const { integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const service = new GithubIntegrationService()
 
       const actions = [
         'deleted',
@@ -368,31 +340,33 @@ describe('Github webhooks tests', () => {
         'milestoned',
         'demilestoned',
       ]
-      for (const action of actions) {
-        gh.payload.action = action
-        const fromMain = await gh.getActivityWithMember()
-        expect(fromMain).toBeNull()
 
-        try {
-          await gh.main()
-          fail('Should have thrown an error')
-        } catch (err) {
-          expect(err.action).toBe(
-            `GitHub WebHook processing of event 'issues' of type 'string' with action '${action}', with a payload type of 'object'.`,
-          )
+      for (const action of actions) {
+        const webhook = {
+          payload: {
+            signature: '',
+            event: 'issues',
+            data: {
+              action,
+            },
+          },
         }
+
+        const result = await service.processWebhook(webhook, context)
+        expect(result.operations).toStrictEqual([])
       }
     })
   })
 
   describe('Discussion tests', () => {
     it('It should parse a discussion created event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.discussion.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const discussion = await GithubIntegrationService.parseWebhookDiscussion(
         TestEvents.discussion.created,
-        true,
+        context,
       )
-      const discussion = await gh.discussion()
+
       const expected = {
         member: {
           username: {
@@ -422,22 +396,18 @@ describe('Github webhooks tests', () => {
         score: GitHubGrid.discussionOpened.score,
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       }
+
       expect(discussion).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse a discussion edited event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.discussion.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const discussion = await GithubIntegrationService.parseWebhookDiscussion(
         TestEvents.discussion.edited,
-        true,
+        context,
       )
-      const discussion = await gh.discussion()
+
       const expected = {
         member: {
           username: {
@@ -468,23 +438,14 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       }
       expect(discussion).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse a discussion answered event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.discussion.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const discussion = await GithubIntegrationService.parseWebhookDiscussion(
         TestEvents.discussion.answered,
-        true,
-      )
-      const discussion = await gh.answer(
-        GithubActivityType.DISCUSSION_COMMENT,
-        TestEvents.discussion.answered.discussion.node_id.toString(),
+        context,
       )
       const expected = {
         member: {
@@ -508,27 +469,18 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.discussionOpened.isKeyAction,
       }
       expect(discussion).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
   })
 
   describe('Pull request tests', () => {
     it('It should parse an open PR coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
         TestEvents.pullRequests.opened,
-        true,
+        context,
       )
-      const pr = await gh.pullRequest(
-        GithubActivityType.PULL_REQUEST_OPENED,
-        GitHubGrid.pullRequestOpened,
-        TestEvents.pullRequests.opened.pull_request.created_at,
-      )
+
       const expected = {
         member: {
           username: {
@@ -549,31 +501,16 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
       expect(pr).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse an edited PR coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
-        TestEvents.pullRequests.opened,
-        true,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
+        TestEvents.pullRequests.edited,
+        context,
       )
 
-      const prCreated = await gh.main()
-
-      gh.payload = TestEvents.pullRequests.edited
-      gh.event = TestEvents.pullRequests.event
-
-      const pr = await gh.pullRequest(
-        GithubActivityType.PULL_REQUEST_OPENED,
-        GitHubGrid.pullRequestOpened,
-        TestEvents.pullRequests.edited.pull_request.created_at,
-      )
       const expected = {
         member: {
           username: {
@@ -593,28 +530,18 @@ describe('Github webhooks tests', () => {
         score: GitHubGrid.pullRequestOpened.score,
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
+
       expect(pr).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-
-      expect(fromDb.id).toBe(prCreated.id)
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse a reopened PR coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
         TestEvents.pullRequests.reopened,
-        true,
+        context,
       )
-      const pr = await gh.pullRequest(
-        GithubActivityType.PULL_REQUEST_OPENED,
-        GitHubGrid.pullRequestOpened,
-        TestEvents.pullRequests.reopened.pull_request.created_at,
-      )
+
       const expected = {
         member: {
           username: {
@@ -636,25 +563,16 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.pullRequestOpened.isKeyAction,
       }
       expect(pr).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse a closed PR coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pr = await GithubIntegrationService.parseWebhookPullRequest(
         TestEvents.pullRequests.closed,
-        true,
+        context,
       )
-      const pr = await gh.pullRequest(
-        GithubActivityType.PULL_REQUEST_CLOSED,
-        GitHubGrid.pullRequestClosed,
-        TestEvents.pullRequests.closed.pull_request.closed_at,
-      )
+
       const expected = {
         member: {
           username: {
@@ -675,16 +593,13 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.pullRequestClosed.isKeyAction,
       }
       expect(pr).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
-    it('getActivityWithMember should throw an error for all other actions', async () => {
-      const { gh } = await init(TestEvents.pullRequests.event, TestEvents.pullRequests.closed, true)
+    it('processWebhook should not return any operations for unsupported actions', async () => {
+      const { integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const service = new GithubIntegrationService()
 
       const actions = [
         'assigned',
@@ -702,26 +617,27 @@ describe('Github webhooks tests', () => {
         'unlocked',
       ]
       for (const action of actions) {
-        gh.payload.action = action
-        const fromMain = await gh.getActivityWithMember()
-        expect(fromMain).toBeNull()
-
-        try {
-          await gh.main()
-          fail('Should have thrown an error')
-        } catch (err) {
-          expect(err.action).toBe(
-            `GitHub WebHook processing of event 'pull_request' of type 'string' with action '${action}', with a payload type of 'object'.`,
-          )
+        const webhook = {
+          payload: {
+            signature: '',
+            event: 'pull_request',
+            data: {
+              action,
+            },
+          },
         }
+
+        const result = await service.processWebhook(webhook, context)
+        expect(result.operations).toStrictEqual([])
       }
     })
   })
 
   describe('Star tests', () => {
     it('It should parse a star event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.star.event, TestEvents.star.created, true)
-      const star = await gh.star(GithubActivityType.STAR)
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const star = await GithubIntegrationService.parseWebhookStar(TestEvents.star.created, context)
 
       const expected = {
         member: {
@@ -745,25 +661,13 @@ describe('Github webhooks tests', () => {
         isKeyAction: false,
       }
       expect(star).toStrictEqual(expected)
-      // Check timestamp
-
-      const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
-        'joanreyero',
-        'star',
-        moment(fromMain.timestamp).unix().toString(),
-        PlatformType.GITHUB,
-      )
-
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
 
     it('It should parse an unstar event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.star.event, TestEvents.star.deleted, true)
-      const star = await gh.star(GithubActivityType.UNSTAR)
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const star = await GithubIntegrationService.parseWebhookStar(TestEvents.star.deleted, context)
+
       const starTimestamp = star.timestamp
       delete star.timestamp
       const expected = {
@@ -789,27 +693,15 @@ describe('Github webhooks tests', () => {
       expect(star).toStrictEqual(expected)
       // Check timestamp
       expect(moment(starTimestamp).unix()).toBeCloseTo(moment().unix(), 3)
-
-      const fromMain = await gh.getActivityWithMember()
-      expected.sourceId = IntegrationServiceBase.generateSourceIdHash(
-        'joanreyero',
-        GithubActivityType.UNSTAR,
-        moment(fromMain.timestamp).unix().toString(),
-        PlatformType.GITHUB,
-      )
-
-      delete fromMain.timestamp
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
   })
 
   describe('Fork tests', () => {
     it('It should parse a fork event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.fork.event, TestEvents.fork.created, true)
-      const fork = await gh.fork()
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const fork = await GithubIntegrationService.parseWebhookFork(TestEvents.fork.created, context)
+
       const expected = {
         member: {
           username: {
@@ -827,28 +719,23 @@ describe('Github webhooks tests', () => {
         isKeyAction: true,
       }
       expect(fork).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
     })
   })
 
   describe('Comments tests', () => {
     it('It should parse an issue comment created event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.opened, true)
-      const issue = await gh.main()
-
-      gh.payload = TestEvents.comment.issue.created
-      gh.payload.issue.node_id = issue.sourceId
-      gh.event = TestEvents.comment.event
-
-      const comment = await gh.comment(
-        GithubActivityType.ISSUE_COMMENT,
-        gh.payload.issue.node_id.toString(),
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.opened,
+        context,
       )
+
+      const payload = TestEvents.comment.issue.created
+      payload.issue.node_id = issue.sourceId
+      const event = TestEvents.comment.event
+
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -869,34 +756,27 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
-      expect(fromDb.sourceParentId).toBe(issue.sourceId)
-      expect(fromDb.parentId).toBe(issue.id)
     })
 
     it('It should parse an issue comment edited event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(TestEvents.issues.event, TestEvents.issues.opened, true)
-      const issue = await gh.main()
-
-      gh.payload = TestEvents.comment.issue.created
-      gh.payload.issue.node_id = issue.sourceId
-      gh.event = TestEvents.comment.event
-
-      const commentCreated = await gh.main()
-
-      gh.payload = TestEvents.comment.issue.edited
-      gh.payload.issue.node_id = issue.sourceId
-      gh.event = TestEvents.comment.event
-
-      const comment = await gh.comment(
-        GithubActivityType.ISSUE_COMMENT,
-        gh.payload.issue.node_id.toString(),
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const issue = await GithubIntegrationService.parseWebhookIssue(
+        TestEvents.issues.opened,
+        context,
       )
+
+      let payload = TestEvents.comment.issue.created
+      payload.issue.node_id = issue.sourceId
+      let event = TestEvents.comment.event
+
+      await GithubIntegrationService.parseWebhookComment(event, payload, context)
+
+      payload = TestEvents.comment.issue.edited
+      payload.issue.node_id = issue.sourceId
+      event = TestEvents.comment.event
+
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -917,34 +797,21 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-
-      expect(fromDb).toBeDefined()
-      expect(fromDb.id).toBe(commentCreated.id)
-      expect(fromDb.sourceParentId).toBe(issue.sourceId)
-      expect(fromDb.parentId).toBe(issue.id)
     })
 
     it('It should parse a pull request comment created event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pull = await GithubIntegrationService.parseWebhookPullRequest(
         TestEvents.pullRequests.opened,
-        true,
+        context,
       )
-      const pull = await gh.main()
 
-      gh.payload = TestEvents.comment.pullRequest.created
-      gh.payload.issue.node_id = pull.sourceId
-      gh.event = TestEvents.comment.event
+      const payload = TestEvents.comment.pullRequest.created
+      payload.issue.node_id = pull.sourceId
+      const event = TestEvents.comment.event
 
-      const comment = await gh.comment(
-        GithubActivityType.PULL_REQUEST_COMMENT,
-        gh.payload.issue.node_id.toString(),
-      )
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -965,37 +832,26 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
-      expect(fromDb.sourceParentId).toBe(pull.sourceId)
-      expect(fromDb.parentId).toBe(pull.id)
     })
     it('It should parse a pull request comment edited event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.pullRequests.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const pull = await GithubIntegrationService.parseWebhookPullRequest(
         TestEvents.pullRequests.opened,
-        true,
+        context,
       )
-      const pull = await gh.main()
 
-      gh.payload = TestEvents.comment.pullRequest.created
-      gh.payload.issue.node_id = pull.sourceId
-      gh.event = TestEvents.comment.event
+      let payload = TestEvents.comment.pullRequest.created
+      payload.issue.node_id = pull.sourceId
+      let event = TestEvents.comment.event
 
-      const commentCreated = await gh.main()
+      await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
-      gh.payload = TestEvents.comment.pullRequest.edited
-      gh.payload.issue.node_id = pull.sourceId
-      gh.event = TestEvents.comment.event
+      payload = TestEvents.comment.pullRequest.edited
+      payload.issue.node_id = pull.sourceId
+      event = TestEvents.comment.event
 
-      const comment = await gh.comment(
-        GithubActivityType.PULL_REQUEST_COMMENT,
-        gh.payload.issue.node_id.toString(),
-      )
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -1016,53 +872,44 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-
-      expect(fromDb).toBeDefined()
-      expect(fromDb.id).toBe(commentCreated.id)
-      expect(fromDb.sourceParentId).toBe(pull.sourceId)
-      expect(fromDb.parentId).toBe(pull.id)
     })
 
-    it('getActivityWithMember should throw an error for all other actions', async () => {
-      const { gh } = await init(TestEvents.comment.event, TestEvents.comment.issue, true)
+    it('processWebhook should not return any operations for unsupported actions', async () => {
+      const { integration } = await init(true)
+      const context = await fakeContext(integration)
+
+      const service = new GithubIntegrationService()
 
       const actions = ['deleted']
       for (const action of actions) {
-        gh.payload.action = action
-        const fromMain = await gh.getActivityWithMember()
-        expect(fromMain).toBeNull()
-
-        try {
-          await gh.main()
-          fail('Should have thrown error')
-        } catch (err) {
-          expect(err.action).toBe(
-            `GitHub WebHook processing of event 'issue_comment' of type 'string' with action '${action}', with a payload type of 'object'.`,
-          )
+        const webhook = {
+          payload: {
+            signature: '',
+            event: 'issue_comment',
+            data: {
+              action,
+            },
+          },
         }
+
+        const result = await service.processWebhook(webhook, context)
+        expect(result.operations).toStrictEqual([])
       }
     })
+
     it('It should parse a discussion comment created event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.discussion.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const discussion = await GithubIntegrationService.parseWebhookDiscussion(
         TestEvents.discussion.created,
-        true,
+        context,
       )
-      const discussion = await gh.main()
 
-      gh.payload = TestEvents.discussionComment.created
-      gh.payload.discussion.node_id = discussion.sourceId
-      gh.event = TestEvents.discussionComment.event
+      const payload = TestEvents.discussionComment.created
+      payload.discussion.node_id = discussion.sourceId
+      const event = TestEvents.discussionComment.event
 
-      const comment = await gh.comment(
-        GithubActivityType.DISCUSSION_COMMENT,
-        gh.payload.discussion.node_id.toString(),
-      )
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -1083,38 +930,27 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-      expect(fromDb).toBeDefined()
-      expect(fromDb.sourceParentId).toBe(discussion.sourceId)
-      expect(fromDb.parentId).toBe(discussion.id)
     })
 
     it('It should parse a discussion comment edited event coming from the GitHub API', async () => {
-      const { tenantId, gh } = await init(
-        TestEvents.discussion.event,
+      const { tenantId, integration } = await init(true)
+      const context = await fakeContext(integration)
+      const discussion = await GithubIntegrationService.parseWebhookDiscussion(
         TestEvents.discussion.created,
-        true,
+        context,
       )
-      const discussion = await gh.main()
 
-      gh.payload = TestEvents.discussionComment.created
-      gh.payload.discussion.node_id = discussion.sourceId
-      gh.event = TestEvents.discussionComment.event
+      let payload = TestEvents.discussionComment.created
+      payload.discussion.node_id = discussion.sourceId
+      let event = TestEvents.discussionComment.event
 
-      const commentCreated = await gh.main()
+      await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
-      gh.payload = TestEvents.discussionComment.edited
-      gh.payload.discussion.node_id = discussion.sourceId
-      gh.event = TestEvents.discussionComment.event
+      payload = TestEvents.discussionComment.edited
+      payload.discussion.node_id = discussion.sourceId
+      event = TestEvents.discussionComment.event
 
-      const comment = await gh.comment(
-        GithubActivityType.DISCUSSION_COMMENT,
-        gh.payload.discussion.node_id.toString(),
-      )
+      const comment = await GithubIntegrationService.parseWebhookComment(event, payload, context)
 
       const expected = {
         member: {
@@ -1135,27 +971,6 @@ describe('Github webhooks tests', () => {
         isKeyAction: GitHubGrid.comment.isKeyAction,
       }
       expect(comment).toStrictEqual(expected)
-
-      const fromMain = await gh.getActivityWithMember()
-      expect(fromMain).toStrictEqual(expected)
-
-      const fromDb = await gh.main()
-
-      expect(fromDb).toBeDefined()
-      expect(fromDb.id).toBe(commentCreated.id)
-      expect(fromDb.sourceParentId).toBe(discussion.sourceId)
-      expect(fromDb.parentId).toBe(discussion.id)
-    })
-  })
-
-  describe('Previously failing tests', () => {
-    it('It should parse events that failed before', async () => {
-      for (let i = 0; i < TestEvents.failed.length; i++) {
-        const { gh } = await init(TestEvents.failed[i].event, TestEvents.failed[i].payload, true)
-        const out = await gh.main()
-        expect(out.id).toBeDefined()
-        expect(out).toBeDefined()
-      }
     })
   })
 })

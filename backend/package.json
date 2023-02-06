@@ -54,6 +54,7 @@
     "axios": "^0.27.2",
     "bcrypt": "5.0.0",
     "body-parser": "^1.20.1",
+    "bufferutil": "^4.0.7",
     "bunyan": "^1.8.15",
     "bunyan-format": "^0.2.1",
     "bunyan-middleware": "^1.0.2",
@@ -66,9 +67,11 @@
     "cron": "^2.1.0",
     "cron-time-generator": "^1.3.0",
     "crypto-js": "^4.1.1",
+    "discord.js": "^14.7.1",
     "dotenv": "8.2.0",
     "dotenv-expand": "^8.0.3",
     "emoji-dictionary": "^1.0.11",
+    "erlpack": "^0.1.4",
     "express": "4.17.1",
     "express-rate-limit": "6.5.1",
     "formidable-serverless": "1.1.1",
@@ -101,9 +104,11 @@
     "stripe": "^10.0.0",
     "superagent": "^8.0.0",
     "swagger-ui-dist": "4.1.3",
+    "utf-8-validate": "^5.0.10",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
-    "verify-github-webhook": "^1.0.1"
+    "verify-github-webhook": "^1.0.1",
+    "zlib-sync": "^0.1.8"
   },
   "private": true,
   "devDependencies": {
