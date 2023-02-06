@@ -1,40 +1,50 @@
 <template>
   <div class="flex flex-col gap-6">
-    <div class="flex gap-8">
-      <img class="basis-1/3" />
+    <div class="flex gap-8 items-center">
+      <div
+        class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
+      >
+        <img src="/images/eagle-eye/onboard-discover.png" />
+      </div>
 
-      <div class="basis-2/3">
+      <div class="basis-3/5">
         <h6 class="text-gray-900">Discover</h6>
         <div class="text-xs text-gray-500 mt-2">
-          Quas provident possimus id placeat ipsa id ut ea
-          cum similique et. Quos error sint ut deserunt
-          molestiae...
+          Locate the most relevant content in your niche
+          across multiple community platforms.
         </div>
       </div>
     </div>
 
-    <div class="flex gap-8">
-      <img class="basis-1/3" />
+    <div class="flex gap-8 items-center">
+      <div
+        class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
+      >
+        <img src="/images/eagle-eye/onboard-engage.png" />
+      </div>
 
-      <div class="basis-2/3">
+      <div class="basis-3/5">
         <h6 class="text-gray-900">Engage</h6>
         <div class="text-xs text-gray-500 mt-2">
-          Quas provident possimus id placeat ipsa id ut ea
-          cum similique et. Quos error sint ut deserunt
-          molestiae...
+          Engage in the comment section and add genuine
+          value to the conversation.
         </div>
       </div>
     </div>
 
-    <div class="flex gap-8">
-      <img class="basis-1/3" />
+    <div class="flex gap-8 items-center">
+      <div
+        class="basis-2/5 bg-gray-50 rounded-lg flex items-center justify-center h-34"
+      >
+        <img src="/images/eagle-eye/onboard-grow.png" />
+      </div>
 
-      <div class="basis-2/3">
+      <div class="basis-3/5">
         <h6 class="text-gray-900">Grow</h6>
         <div class="text-xs text-gray-500 mt-2">
-          Quas provident possimus id placeat ipsa id ut ea
-          cum similique et. Quos error sint ut deserunt
-          molestiae...
+          Gain developers' mindshare, increase brand
+          awareness, and growth your community (and
+          business) organically.
         </div>
       </div>
     </div>

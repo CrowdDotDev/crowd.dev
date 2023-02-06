@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-2xl mx-auto">
+  <div class="max-w-xl mx-auto pt-16 pb-24">
     <div class="panel !p-0">
       <!-- Banner -->
       <eagle-eye-banner
