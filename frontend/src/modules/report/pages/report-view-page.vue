@@ -40,6 +40,11 @@
                 ><i class="ri-pencil-line mr-2"></i
                 >Edit</router-link
               >
+              <app-report-share-button
+                :id="id"
+                v-model="report.public"
+                class="mr-4"
+              />
               <app-report-dropdown
                 :report="report"
                 :show-edit-report="false"
@@ -64,11 +69,13 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import ReportGridLayout from '../components/report-grid-layout'
 import ReportDropdown from '../components/report-dropdown'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
+import ReportShareButton from '@/modules/report/components/report-share-button.vue'
 
 export default {
   name: 'AppReportViewPage',
 
   components: {
+    'app-report-share-button': ReportShareButton,
     'app-report-grid-layout': ReportGridLayout,
     'app-report-dropdown': ReportDropdown
   },

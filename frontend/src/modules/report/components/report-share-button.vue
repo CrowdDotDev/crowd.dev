@@ -2,7 +2,7 @@
   <el-dropdown trigger="click" placement="bottom-end"
     ><el-button
       type="button"
-      class="btn btn--transparent btn--md"
+      class="btn btn--secondary !bg-gray-200 !text-gray-600 btn--md"
     >
       <i class="ri-share-line mr-2"></i>Share
     </el-button>
