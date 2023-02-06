@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.18.0 - 2023-02-06
+
+### Changes
+
+### 🚀 Features
+
+#### Member enrichment
+
+Introducing our member enrichment feature! With it you can populate your community's developer profiles with over 25 additional data points, including social information from various platforms, technical skills, programming languages, and a network graph of their open-source contributions.
+
+<img width="1727" alt="Member enrichment 1 (1)" src="https://user-images.githubusercontent.com/37874460/217013465-198132f3-1895-49a6-a2a5-2651878a6bc6.png">
+<img width="1727" alt="Member enrichment 2 (1)" src="https://user-images.githubusercontent.com/37874460/217013513-c8b0244d-1c54-4aa3-9826-6ae53d53bf74.png">
+- Member enrichment @joanreyero (#452)
+- Added a contributions column to members @joanreyero (#439)
+- Replaced isEnriched (bool) by lastEnriched (timestamp) @joanreyero (#436)
+- Added the special type for member attributes @joanreyero (#431)
+- Multi-select attribute type for members @joanreyero (#426)
+- Tweak error messages when enriching in bulk @joanagmaia (#477)
+
+#### Detailed report drawers
+
+You can now get a detailed view of the members returned by widgets in default reports. For example, you can see exactly which members were active this month, as well as the total count.
+
+<img width="860" alt="Screenshot 2023-02-06 at 16 34 00" src="https://user-images.githubusercontent.com/37874460/217014619-f2b3b0ff-b25e-457b-9206-7793998b7a23.png">
+- Report detailed drawers @joanagmaia (#461)
+- Find active members endpoint @themarolt (#449)
+
+### ✨ Improvements
+
+- Optimizations in the LinkedIn integration. @themarolt (#464)
+- Show organization logos and image comments for the LinkedIn integration. @themarolt (#451)
+- Prevent the same integration from being processed multiple times at once. @themarolt (#471)
+- Hide activity from bot users. @mariobalca (#465)
+- Re-designed weekly analytics report. @epipav (#446)
+
+### 🐞 Bug Fixes
+
+- Fix TypeScript errors and add a check in the CI. @themarolt (#480)
+- Add receipt history for weekly report emails. @epipav (#479)
+- Fix some member attributes being non-existent. @epipav (#476)
+- Disable the filter button in custom reports for unsupported measures .@joanagmaia (#466)
+- Fix a bug related to Discord's *joined guild* activity. @themarolt (#462)
+
 ## v0.17.0 - 2023-01-23
 
 ### Changes
@@ -14,7 +57,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 
 <img width="1727" alt="Linkedin" src="https://user-images.githubusercontent.com/37874460/214154195-3e3ba24e-ba70-4eae-9f65-c22f3bd9042e.png">
 - Linkedin integration @mariobalca (#442)
-
 ### ✨ Improvements
 
 - Add global filters to Default Reports. @joanagmaia (#425)
@@ -50,7 +92,6 @@ Introducing our newest feature: Default Reports! These specially crafted reports
 #### Formbricks feedback
 Our first external code contribution! @mattinannt and the [Formbricks](https://formbricks.com/) team added an in-app feedback box to our menu. If you have an idea, something needs to be fixed, or want to point out which features you like, you can leave us feedback there!
 <img width="200" alt="Screenshot 2023-01-16 at 14 04 37" src="https://user-images.githubusercontent.com/37874460/212684851-8edd5ee7-1f40-4b48-9556-78190249707e.png">
-
 - Add formbricks feedback @mattinannt (#411)
 
 ### ✨ Improvements
@@ -86,7 +127,6 @@ For example, imagine you want to search for content that talks about *generatice
 - EagleEye exact keyword matching @mariobalca @joanreyero (#383)
 #### Discord forum channels
 Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
-
 - Get forum channels from Discord @joanreyero (#405)
 
 ### ✨ Improvements
@@ -126,7 +166,6 @@ You can now export your community members as CSV. You can export all members or 
 - When a Kubernetes pod is restarted while performing a job, retake the job when the pod is back up. @themarolt (#365 and #368)
 - Update the logos and images on the app. @joanagmaia (#367)
 ### 🐞 Bug Fixes
-
 - Fixed the sorting in the *Most engaged* view on the member's page. @joanagmaia (#375)
 - Fix the missing label when assigning tasks to colleagues. @mariobalca (#379)
 - Fix creating members with email only. @mariobalca (#377)
@@ -169,7 +208,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Proxy requests to PostHog from frontend through an internal URL to avoid being blocked by the client. @epipav (#358)
 - Fix a copy in the pricing page @joanagmaia (#353)
 - Fix a copy error in the Hacker News integration's connection page. @jonathimer (#343)
-
 ## v0.12.0 - 2022-12-13
 
 ### Changes
@@ -235,7 +273,6 @@ The Hacker News integration will detect any post that mentions your community in
 ## v0.10.1 - 2022-11-30
 ### Changes
 This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
-
 ### :rocket: Features
 
 #### Organizations
@@ -280,7 +317,6 @@ Use our custom attribute function to add specific to you details as well as extr
 We’ve added social sign-in to make signing up and logging into [crowd.dev](http://crowd.dev/) a breeze. You can now use your Google account.
 #### Breaking changes
 This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
-
 ## v0.8.0 - 2022-10-07
 
 ### Changes
@@ -318,7 +354,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -394,7 +432,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 ### 🐞 Bug Fixes
 - EagleEye events @joanreyero (#6)
 ## v0.0.3 - 2022-08-24
-
 ### Changes
 
 ### 🚀 Features
