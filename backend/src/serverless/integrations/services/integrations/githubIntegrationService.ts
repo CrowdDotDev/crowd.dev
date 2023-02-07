@@ -355,7 +355,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
       operations: [
         {
           type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
-          records: record ? [record] : [],
+          records: [record],
         },
       ],
     }

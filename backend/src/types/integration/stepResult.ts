@@ -55,6 +55,9 @@ export interface IStepContext {
   // integration that we are currently processing
   integration?: any
 
+  // webhook that we are currently processing
+  webhook?: any
+
   // repository options for integration services to use when creating new instances of repositories
   repoContext: IRepositoryOptions
 

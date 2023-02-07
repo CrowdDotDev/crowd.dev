@@ -1,9 +1,10 @@
 import moment from 'moment/moment'
 import lodash from 'lodash'
+import { TextChannelType, ChannelType } from 'discord.js'
 import {
-  DiscordMessages,
   DiscordMembers,
   DiscordMention,
+  DiscordMessages,
   DiscordStreamProcessResult,
   ProcessedChannel,
   ProcessedChannels,
@@ -15,6 +16,7 @@ import MemberAttributeSettingsService from '../../../../services/memberAttribute
 import {
   IIntegrationStream,
   IProcessStreamResults,
+  IProcessWebhookResults,
   IStepContext,
   IStreamResultOperation,
 } from '../../../../types/integration/stepResult'
@@ -31,6 +33,13 @@ import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWo
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import { singleOrDefault } from '../../../../utils/arrays'
 import getThreads from '../../usecases/discord/getThreads'
+import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
+import { getMember } from '../../usecases/discord/getMember'
+import { Logger } from '../../../../utils/logging'
+import { getMessage } from '../../usecases/discord/getMessage'
+import { createRedisClient } from '../../../../utils/redis'
+import { RedisCache } from '../../../../utils/redis/redisCache'
+import { getChannel } from '../../usecases/discord/getChannel'
 
 /* eslint class-methods-use-this: 0 */
 
@@ -41,23 +50,21 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   static readonly MAX_RETROSPECT = DISCORD_CONFIG.maxRetrospectInSeconds || 3600
 
-  public token: string
+  public static token: string = `Bot ${DISCORD_CONFIG.token}`
 
   constructor() {
-    super(IntegrationType.DISCORD, 60)
+    super(IntegrationType.DISCORD, -1)
 
     this.globalLimit = DISCORD_CONFIG.globalLimit || 0
     this.limitResetFrequencySeconds = (DISCORD_CONFIG.limitResetFrequencyDays || 0) * 24 * 60 * 60
-
-    this.token = `Bot ${DISCORD_CONFIG.token}`
   }
 
-  private getToken(context: IStepContext): string {
+  private static getToken(context: IStepContext): string {
     if (context.integration.token) {
       return `Bot ${context.integration.token}`
     }
 
-    return this.token
+    return DiscordIntegrationService.token
   }
 
   override async triggerIntegrationCheck(integrations: any[]): Promise<void> {
@@ -88,7 +95,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     const fromDiscordApi: ProcessedChannels = await getChannels(
       {
         guildId,
-        token: this.getToken(context),
+        token: DiscordIntegrationService.getToken(context),
       },
       this.logger(context),
     )
@@ -114,7 +121,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     const threads = await getThreads(
       {
         guildId,
-        token: this.getToken(context),
+        token: DiscordIntegrationService.getToken(context),
       },
       this.logger(context),
     )
@@ -158,6 +165,68 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   async createMemberAttributes(context: IStepContext): Promise<void> {
     const service = new MemberAttributeSettingsService(context.serviceContext)
     await service.createPredefined(DiscordMemberAttributes)
+  }
+
+  async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
+    const log = this.logger(context)
+
+    const redis = await createRedisClient(true)
+    context.pipelineData = {
+      channelCache: new RedisCache('discord-channels', redis),
+    }
+
+    const { event, data } = webhook.payload as DiscordWebsocketPayload
+
+    let record: AddActivitiesSingle | undefined
+
+    switch (event) {
+      case DiscordWebsocketEvent.MESSAGE_CREATED: {
+        record = await DiscordIntegrationService.parseWebhookMessage(data, context, log)
+        break
+      }
+      case DiscordWebsocketEvent.MESSAGE_UPDATED: {
+        record = await DiscordIntegrationService.parseWebhookMessage(data.message, context, log)
+        break
+      }
+
+      case DiscordWebsocketEvent.MEMBER_ADDED: {
+        record = await DiscordIntegrationService.parseWebhookMember(data, context, log)
+        break
+      }
+
+      case DiscordWebsocketEvent.MEMBER_UPDATED: {
+        record = await DiscordIntegrationService.parseWebhookMember(data.member, context, log)
+        break
+      }
+
+      default: {
+        log.error(`Unknown discord websocket event: ${event}!`)
+        throw new Error(`Unknown discord websocket event: ${event}!`)
+      }
+    }
+
+    if (record === undefined) {
+      log.warn(
+        {
+          event,
+          webhookId: context.webhook.id,
+        },
+        'No record created for event!',
+      )
+
+      return {
+        operations: [],
+      }
+    }
+
+    return {
+      operations: [
+        {
+          type: Operations.UPSERT_ACTIVITIES_WITH_MEMBERS,
+          records: [record],
+        },
+      ],
+    }
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
@@ -214,7 +283,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         const { records, nextPage, limit, timeUntilReset } = await fn(
           {
             ...arg,
-            token: this.getToken(context),
+            token: DiscordIntegrationService.getToken(context),
             page: stream.metadata.page,
             perPage: 100,
           },
@@ -328,13 +397,36 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   ): DiscordStreamProcessResult {
     switch (stream.value) {
       case 'members':
-        return this.parseMembers(context, records as DiscordMembers)
+        return DiscordIntegrationService.parseMembers(context, records as DiscordMembers)
       default:
         return this.parseMessages(context, records as DiscordMessages, stream)
     }
   }
 
-  parseMembers(context: IStepContext, records: Array<any>): DiscordStreamProcessResult {
+  public static async parseWebhookMember(
+    payload: any,
+    context: IStepContext,
+    logger: Logger,
+  ): Promise<AddActivitiesSingle | undefined> {
+    const discordMember = await getMember(
+      payload.guildId,
+      payload.userId,
+      DiscordIntegrationService.getToken(context),
+      logger,
+    )
+
+    if (!discordMember.user.bot) {
+      const results = DiscordIntegrationService.parseMembers(context, [discordMember])
+      if (results.activities.length > 0) return results.activities[0]
+    }
+
+    return undefined
+  }
+
+  public static parseMembers(
+    context: IStepContext,
+    records: Array<any>,
+  ): DiscordStreamProcessResult {
     // We only need the members if they are not bots
     const activities: AddActivitiesSingle[] = records.reduce((acc, record) => {
       if (!record.user.bot) {
@@ -377,6 +469,125 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       activities,
       newStreams: [],
     }
+  }
+
+  public static async parseWebhookMessage(
+    payload: any,
+    context: IStepContext,
+    logger: Logger,
+  ): Promise<AddActivitiesSingle | undefined> {
+    const message = await getMessage(
+      payload.channelId,
+      payload.id,
+      DiscordIntegrationService.getToken(context),
+      logger,
+    )
+
+    if (message.author.bot) {
+      return undefined
+    }
+
+    let channel: string
+    let sourceParentId: string | undefined
+    let isThread = false
+    let isForum = false
+    let guildId: string
+
+    const cache: RedisCache = context.pipelineData.channelCache
+    if (message.thread) {
+      await cache.setValue(message.thread.id, JSON.stringify(message.thread), 24 * 60 * 60)
+
+      channel = message.thread.name
+      sourceParentId = message.thread.id
+      guildId = message.thread.guild_id
+    } else {
+      let channelObj
+      const channelString = await cache.getValue(message.channel_id)
+      if (channelString) {
+        channelObj = JSON.parse(channelString)
+      } else {
+        channelObj = await getChannel(
+          message.channel_id,
+          DiscordIntegrationService.getToken(context),
+          logger,
+        )
+        await cache.setValue(message.channel_id, JSON.stringify(channelObj), 24 * 60 * 60)
+      }
+
+      channel = channelObj.name
+      guildId = channelObj.guild_id
+      const threadChannels: TextChannelType[] = [
+        ChannelType.PublicThread,
+        ChannelType.PrivateThread,
+      ]
+
+      if (threadChannels.includes(channelObj.type)) {
+        sourceParentId = channelObj.id
+        isThread = true
+      } else if (message.message_reference_message_id) {
+        sourceParentId = message.message_reference_message_id
+      }
+
+      if (isThread) {
+        const parentChannelString = await cache.getValue(channelObj.parent_id)
+        let parentChannelObj
+        if (parentChannelString) {
+          parentChannelObj = JSON.parse(parentChannelString)
+        } else {
+          parentChannelObj = await getChannel(
+            channelObj.parent_id,
+            DiscordIntegrationService.getToken(context),
+            logger,
+          )
+          await cache.setValue(parentChannelObj.id, JSON.stringify(parentChannelObj), 24 * 60 * 60)
+        }
+
+        isForum = parentChannelObj.type === ChannelType.GuildForum
+      }
+    }
+
+    let avatarUrl: string | boolean = false
+    if (message.author.avatar !== null && message.author.avatar !== undefined) {
+      avatarUrl = `https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.png`
+    }
+
+    const activityObject: AddActivitiesSingle = {
+      tenant: context.integration.tenantId,
+      platform: PlatformType.DISCORD,
+      type: isForum && message.id === sourceParentId ? 'thread_started' : 'message',
+      sourceId: message.id,
+      sourceParentId,
+      timestamp: moment(message.timestamp).utc().toDate(),
+      title: isThread || isForum ? channel : undefined,
+      body: message.content
+        ? DiscordIntegrationService.replaceMentions(message.content, message.mentions)
+        : '',
+      url: `https://discordapp.com/channels/${guildId}/${message.channel_id}/${message.id}`,
+      channel,
+      attributes: {
+        thread: isThread || isForum,
+        reactions: message.reactions ? message.reactions : [],
+        attachments: message.attachments ? message.attachments : [],
+        forum: isForum,
+      },
+      member: {
+        username: message.author.username,
+        attributes: {
+          [MemberAttributeName.SOURCE_ID]: {
+            [PlatformType.DISCORD]: message.author.id,
+          },
+          ...(avatarUrl && {
+            [MemberAttributeName.AVATAR_URL]: {
+              [PlatformType.DISCORD]: avatarUrl,
+            },
+          }),
+        },
+      },
+      score: DiscordGrid.message.score,
+      isKeyAction: DiscordGrid.message.isKeyAction,
+    }
+
+    return activityObject
   }
 
   parseMessages(

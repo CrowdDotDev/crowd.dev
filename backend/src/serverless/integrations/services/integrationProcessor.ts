@@ -41,6 +41,7 @@ import SequelizeRepository from '../../../database/repositories/sequelizeReposit
 import { IRepositoryOptions } from '../../../database/repositories/IRepositoryOptions'
 import IncomingWebhookRepository from '../../../database/repositories/incomingWebhookRepository'
 import { WebhookError, WebhookState } from '../../../types/webhooks'
+import { NodeWorkerProcessWebhookMessage } from '../../../types/mq/nodeWorkerProcessWebhookMessage'
 
 const MAX_STREAM_RETRIES = 5
 
@@ -227,6 +228,7 @@ export class IntegrationProcessor extends LoggingBase {
       limitCount: integration.limitCount || 0,
       onboarding: false,
       pipelineData: {},
+      webhook,
       integration,
       serviceContext: userContext,
       repoContext: userContext,
@@ -262,11 +264,20 @@ export class IntegrationProcessor extends LoggingBase {
       await repo.markCompleted(webhook.id)
       logger.debug('Webhook processed!')
     } catch (err) {
-      logger.error(err, 'Error processing webhook!')
-      await repo.markError(
-        webhook.id,
-        new WebhookError(webhook.id, 'Error processing webhook!', err),
-      )
+      if (err.rateLimitResetSeconds) {
+        logger.warn(err, 'Rate limit reached while processing webhook! Delaying...')
+        await sendNodeWorkerMessage(
+          integration.tenantId,
+          new NodeWorkerProcessWebhookMessage(integration.tenantId, webhookId),
+          err.rateLimitResetSeconds + 5,
+        )
+      } else {
+        logger.error(err, 'Error processing webhook!')
+        await repo.markError(
+          webhook.id,
+          new WebhookError(webhook.id, 'Error processing webhook!', err),
+        )
+      }
     } finally {
       await SequelizeRepository.commitTransaction(whContext.transaction)
     }
