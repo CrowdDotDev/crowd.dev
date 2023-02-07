@@ -37,6 +37,9 @@
         <app-eagle-eye-list />
       </div>
     </div>
+    <app-eagle-eye-email-digest
+      v-model="emailDigestDrawerOpen"
+    ></app-eagle-eye-email-digest>
   </app-page-wrapper>
 </template>
 
@@ -50,11 +53,14 @@ export default {
 import AppEagleEyeTabs from '../components/eagle-eye-tabs'
 import AppEagleEyeList from '../components/eagle-eye-list'
 import AppEagleEyeFilter from '../components/eagle-eye-filter'
+import AppEagleEyeEmailDigest from '../components/eagle-eye-email-digest'
 
 import { useStore } from 'vuex'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const store = useStore()
+
+const emailDigestDrawerOpen = ref(true)
 
 const loading = computed(
   () => store.state.eagleEye.list.loading

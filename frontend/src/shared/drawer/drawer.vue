@@ -20,12 +20,7 @@
             {{ preTitle }}
           </div>
           <div class="flex items-center">
-            <img
-              v-if="preTitleImgSrc"
-              :src="preTitleImgSrc"
-              class="w-6 h-6 mr-2"
-              :alt="preTitleImgAlt"
-            />
+            <slot name="beforeTitle" />
             <h5
               :id="titleId"
               class="text-black"
@@ -98,14 +93,6 @@ const props = defineProps({
   showFooter: {
     type: Boolean,
     default: () => true
-  },
-  preTitleImgSrc: {
-    type: String,
-    default: () => null
-  },
-  preTitleImgAlt: {
-    type: String,
-    default: () => null
   },
   hasBorder: {
     type: Boolean,
