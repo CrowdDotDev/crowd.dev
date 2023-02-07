@@ -166,7 +166,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
       // Update the user's EagleEye settings
       const userOut = await UserRepository.updateEagleEyeSettings(
         this.options.currentUser.id,
-        { eagleEyeSettings: data },
+        data,
         { ...this.options, transaction },
       )
 
