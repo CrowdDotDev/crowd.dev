@@ -1,9 +1,15 @@
+import moment from 'moment'
 import axios from 'axios'
 import { EAGLE_EYE_CONFIG } from '../config'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import { LoggingBase } from './loggingBase'
-import { EagleEyeContent, EagleEyeAction, EagleEyeSettings } from '../types/eagleEyeTypes'
+import {
+  EagleEyeContent,
+  EagleEyeAction,
+  EagleEyeSettings,
+  EagleEyePublishedDates,
+} from '../types/eagleEyeTypes'
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
 import UserRepository from '../database/repositories/userRepository'
@@ -60,6 +66,28 @@ export default class EagleEyeContentService extends LoggingBase {
     )
   }
 
+  /**
+   * Convert a relative string date to a Date. For example, 30 days ago -> 2020-01-01
+   * @param date String date. Can be one of EagleEyePublishedDates
+   * @returns The corresponding Date
+   */
+  static switchDate(date: string) {
+    switch (date) {
+      case EagleEyePublishedDates.LAST_24_HOURS:
+        return moment().subtract(1, 'days').format('YYYY-MM-DD')
+      case EagleEyePublishedDates.LAST_7_DAYS:
+        return moment().subtract(7, 'days').format('YYYY-MM-DD')
+      case EagleEyePublishedDates.LAST_14_DAYS:
+        return moment().subtract(14, 'days').format('YYYY-MM-DD')
+      case EagleEyePublishedDates.LAST_30_DAYS:
+        return moment().subtract(30, 'days').format('YYYY-MM-DD')
+      case EagleEyePublishedDates.LAST_90_DAYS:
+        return moment().subtract(90, 'days').format('YYYY-MM-DD')
+      default:
+        return null
+    }
+  }
+
   async search(email = false) {
     const eagleEyeSettings: EagleEyeSettings = (
       await UserRepository.findById(this.options.currentUser.id, this.options)
@@ -77,6 +105,8 @@ export default class EagleEyeContentService extends LoggingBase {
       ? feedSettings.excludedKeywords.join(',')
       : ''
 
+    const afterDate = EagleEyeContentService.switchDate(feedSettings.publishedDate)
+
     const config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -86,7 +116,7 @@ export default class EagleEyeContentService extends LoggingBase {
         keywords,
         exact_keywords: exactKeywords,
         exclude_keywords: excludedKeywords,
-        after_date: feedSettings.publishedDate,
+        after_date: afterDate,
       },
       headers: {
         Authorization: `Bearer ${EAGLE_EYE_CONFIG.apiKey}`,
@@ -94,6 +124,8 @@ export default class EagleEyeContentService extends LoggingBase {
     }
 
     const response = await axios(config)
+
+    // const interacted = this.query({ filter: { user: this.options.currentUser.id } })
     return response.data
   }
 }

@@ -6,6 +6,11 @@ export default (app) => {
     safeWrap(require('./eagleEyeContentQuery').default),
   )
 
+  app.post(
+    `/tenant/:tenantId/eagleEyeContent`,
+    safeWrap(require('./eagleEyeContentUpsert').default),
+  )
+
   app.get(
     `/tenant/:tenantId/eagleEyeContent/search`,
     safeWrap(require('./eagleEyeContentSearch').default),

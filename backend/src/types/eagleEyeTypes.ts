@@ -28,7 +28,7 @@ export interface EagleEyeFeedSettings {
   keywords: string[]
   exactKeywords: string[]
   excludedKeywords: string[]
-  publishedDate: string | Date
+  publishedDate: string
   platforms: string[]
 }
 

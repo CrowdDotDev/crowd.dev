@@ -1,4 +1,3 @@
-import moment from 'moment'
 import lodash from 'lodash'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import UserRepository from '../database/repositories/userRepository'
@@ -57,16 +56,13 @@ export default class EagleEyeSettingsService extends LoggingBase {
 
     // We need a date. Make sure it's in the allowed list.
     const publishedDates = Object.values(EagleEyePublishedDates) as string[]
-    if (publishedDates.indexOf(data.publishedDate as string) === -1) {
+    if (publishedDates.indexOf(data.publishedDate) === -1) {
       throw new Error400(
         this.options.language,
         'errors.eagleEye.publishedDateMissing',
         publishedDates.join(', '),
       )
     }
-
-    // Convert the relative string date to a Date
-    data.publishedDate = EagleEyeSettingsService.switchDate(data.publishedDate as string)
 
     // Remove any extra fields
     return lodash.pick(data, [
@@ -76,28 +72,6 @@ export default class EagleEyeSettingsService extends LoggingBase {
       'publishedDate',
       'platforms',
     ])
-  }
-
-  /**
-   * Convert a relative string date to a Date. For example, 30 days ago -> 2020-01-01
-   * @param date String date. Can be one of EagleEyePublishedDates
-   * @returns The corresponding Date
-   */
-  static switchDate(date: string) {
-    switch (date) {
-      case EagleEyePublishedDates.LAST_24_HOURS:
-        return moment().subtract(1, 'days').format('YYYY-MM-DD')
-      case EagleEyePublishedDates.LAST_7_DAYS:
-        return moment().subtract(7, 'days').format('YYYY-MM-DD')
-      case EagleEyePublishedDates.LAST_14_DAYS:
-        return moment().subtract(14, 'days').format('YYYY-MM-DD')
-      case EagleEyePublishedDates.LAST_30_DAYS:
-        return moment().subtract(30, 'days').format('YYYY-MM-DD')
-      case EagleEyePublishedDates.LAST_90_DAYS:
-        return moment().subtract(90, 'days').format('YYYY-MM-DD')
-      default:
-        return null
-    }
   }
 
   /**
