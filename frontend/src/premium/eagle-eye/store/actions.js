@@ -109,11 +109,11 @@ export default {
 
       await EagleEyeService.updateSettings(data)
 
-      commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
-
       await dispatch(`auth/doRefreshCurrentUser`, null, {
         root: true
       })
+
+      commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
     } catch (error) {
       Errors.handle(error)
       commit('UPDATE_EAGLE_EYE_SETTINGS_ERROR')
