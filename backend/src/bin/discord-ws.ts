@@ -1,4 +1,5 @@
 import { Client, Events, GatewayIntentBits, MessageType } from 'discord.js'
+import moment from 'moment'
 import { DISCORD_CONFIG } from '../config'
 import { createChildLogger, getServiceLogger } from '../utils/logging'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
@@ -8,11 +9,14 @@ import IncomingWebhookRepository from '../database/repositories/incomingWebhookR
 import { DiscordWebsocketEvent, DiscordWebsocketPayload, WebhookType } from '../types/webhooks'
 import { sendNodeWorkerMessage } from '../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerProcessWebhookMessage } from '../types/mq/nodeWorkerProcessWebhookMessage'
+import { createRedisClient } from '../utils/redis'
+import { RedisCache } from '../utils/redis/redisCache'
+import { DiscordIntegrationService } from '../serverless/integrations/services/integrations/discordIntegrationService'
 
-const _log = getServiceLogger()
+const log = getServiceLogger()
 
 async function spawnClient(name: string, token: string) {
-  const logger = createChildLogger('discord-ws', _log, { clientName: name })
+  const logger = createChildLogger('discord-ws', log, { clientName: name })
 
   const repoOptions = await SequelizeRepository.getDefaultIRepositoryOptions()
   const repo = new IncomingWebhookRepository(repoOptions)
@@ -122,9 +126,45 @@ async function spawnClient(name: string, token: string) {
 }
 
 setImmediate(async () => {
+  // we are saving heartbeat timestamps in redis every 2 seconds
+  // on boot if we detect that there has been a downtime we should trigger discord integration checks
+  // so we don't miss anything
+  const redis = await createRedisClient(true)
+  const cache = new RedisCache('discord-ws', redis)
+
+  const lastHeartbeat = await cache.getValue('heartbeat')
+  let triggerCheck = false
+  if (!lastHeartbeat) {
+    log.info('No heartbeat found, triggering check!')
+    triggerCheck = true
+  } else {
+    const diff = moment().diff(lastHeartbeat, 'seconds')
+    // if we do rolling update deploys (kubernetes default)
+    // we might catch a heartbeat without the need to trigger a check
+    if (diff > 5) {
+      log.warn('Heartbeat is stale, triggering check!')
+      triggerCheck = true
+    }
+  }
+
+  if (triggerCheck) {
+    const integrations = await IntegrationRepository.findAllActive(PlatformType.DISCORD)
+    if (integrations.length > 0) {
+      log.warn(`Found ${integrations.length} integrations to trigger check for!`)
+      const service = new DiscordIntegrationService()
+      await service.triggerIntegrationCheck(integrations)
+    } else {
+      log.warn('Found no integrations to trigger check for!')
+    }
+  }
+
   await spawnClient('first-app', DISCORD_CONFIG.token)
 
   if (DISCORD_CONFIG.token2) {
     await spawnClient('second-app', DISCORD_CONFIG.token2)
   }
+
+  setInterval(async () => {
+    await cache.setValue('heartbeat', new Date().toISOString())
+  }, 2 * 1000)
 })
