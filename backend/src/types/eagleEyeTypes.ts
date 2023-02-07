@@ -65,8 +65,8 @@ export enum EagleEyePlatforms {
 
 export enum EagleEyePublishedDates {
   LAST_24_HOURS = 'Last 24h',
-  LAST_7_DAYS = 'Last 7 days',
-  LAST_14_DAYS = 'Last 14 days',
-  LAST_30_DAYS = 'Last 30 days',
-  LAST_90_DAYS = 'Last 90 days',
+  LAST_7_DAYS = 'Last 7d',
+  LAST_14_DAYS = 'Last 14d',
+  LAST_30_DAYS = 'Last 30d',
+  LAST_90_DAYS = 'Last 90d',
 }
