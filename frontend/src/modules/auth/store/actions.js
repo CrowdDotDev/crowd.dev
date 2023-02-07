@@ -173,10 +173,7 @@ export default {
     return Promise.resolve(null)
   },
 
-  doUpdateProfile(
-    { commit, dispatch },
-    { data, showSuccessMessage = true }
-  ) {
+  doUpdateProfile({ commit, dispatch }, data) {
     commit('UPDATE_PROFILE_START')
     return AuthService.updateProfile(data)
       .then(() => {
@@ -184,9 +181,7 @@ export default {
         return dispatch('doRefreshCurrentUser')
       })
       .then(() => {
-        if (showSuccessMessage) {
-          Message.success(i18n('auth.profile.success'))
-        }
+        Message.success(i18n('auth.profile.success'))
       })
       .catch((error) => {
         Errors.handle(error)

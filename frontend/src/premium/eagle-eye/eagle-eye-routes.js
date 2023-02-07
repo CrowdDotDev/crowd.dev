@@ -56,7 +56,6 @@ export default [
         beforeEnter: async (to, _from, next) => {
           const currentUser =
             store.getters['auth/currentUser']
-
           // Redirect to onboard page if user is not onboarded
           if (!currentUser.eagleEyeSettings?.onboarded) {
             next('/eagle-eye/onboard')
@@ -84,6 +83,16 @@ export default [
         meta: {
           auth: true,
           permission: Permissions.values.eagleEyeRead
+        },
+        beforeEnter: async (to, _from, next) => {
+          const currentUser =
+            store.getters['auth/currentUser']
+          // Redirect to onboard page if user is not onboarded
+          if (currentUser.eagleEyeSettings?.onboarded) {
+            next('/eagle-eye')
+          }
+
+          next()
         }
       }
     ]

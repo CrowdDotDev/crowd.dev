@@ -1,27 +1,17 @@
 export const publishedDateOptions = [
   {
-    period: 1,
-    granularity: 'day',
     label: 'Last 24h'
   },
   {
-    period: 7,
-    granularity: 'day',
     label: 'Last 7d'
   },
   {
-    period: 14,
-    granularity: 'day',
     label: 'Last 14d'
   },
   {
-    period: 30,
-    granularity: 'day',
     label: 'Last 30d'
   },
   {
-    period: 90,
-    granularity: 'day',
     label: 'Last 90d'
   }
 ]

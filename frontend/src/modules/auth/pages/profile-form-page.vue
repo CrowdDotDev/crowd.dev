@@ -360,7 +360,7 @@ const doSubmit = async () => {
       profileModel.value
     )
 
-    store.dispatch('auth/doUpdateProfile', { data: values })
+    store.dispatch('auth/doUpdateProfile', values)
     router.push('/')
   }
 
