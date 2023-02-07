@@ -70,3 +70,24 @@ export enum EagleEyePublishedDates {
   LAST_30_DAYS = 'Last 30d',
   LAST_90_DAYS = 'Last 90d',
 }
+
+export interface EagleEyeRawPost {
+  description: string
+  title: string
+  thumbnail?: string
+  url: string
+  platform: string
+  date: string
+}
+
+export interface EagleEyePostWithActions {
+  post: {
+    description: string
+    title: string
+    thumbnail?: string
+  }
+  url: string
+  platform: string
+  postedAt: string
+  actions: EagleEyeAction[]
+}

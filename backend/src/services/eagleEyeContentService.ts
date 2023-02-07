@@ -9,6 +9,8 @@ import {
   EagleEyeAction,
   EagleEyeSettings,
   EagleEyePublishedDates,
+  EagleEyeRawPost,
+  EagleEyePostWithActions,
 } from '../types/eagleEyeTypes'
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
@@ -71,21 +73,28 @@ export default class EagleEyeContentService extends LoggingBase {
    * @param date String date. Can be one of EagleEyePublishedDates
    * @returns The corresponding Date
    */
-  static switchDate(date: string) {
+  static switchDate(date: string, offset = 0) {
+    let dateMoment
     switch (date) {
       case EagleEyePublishedDates.LAST_24_HOURS:
-        return moment().subtract(1, 'days').format('YYYY-MM-DD')
+        dateMoment = moment().subtract(1, 'days')
+        break
       case EagleEyePublishedDates.LAST_7_DAYS:
-        return moment().subtract(7, 'days').format('YYYY-MM-DD')
+        dateMoment = moment().subtract(7, 'days')
+        break
       case EagleEyePublishedDates.LAST_14_DAYS:
-        return moment().subtract(14, 'days').format('YYYY-MM-DD')
+        dateMoment = moment().subtract(14, 'days')
+        break
       case EagleEyePublishedDates.LAST_30_DAYS:
-        return moment().subtract(30, 'days').format('YYYY-MM-DD')
+        dateMoment = moment().subtract(30, 'days')
+        break
       case EagleEyePublishedDates.LAST_90_DAYS:
-        return moment().subtract(90, 'days').format('YYYY-MM-DD')
+        dateMoment = moment().subtract(90, 'days')
+        break
       default:
         return null
     }
+    return dateMoment.add(offset, 'days').format('YYYY-MM-DD')
   }
 
   async search(email = false) {
@@ -125,7 +134,36 @@ export default class EagleEyeContentService extends LoggingBase {
 
     const response = await axios(config)
 
-    // const interacted = this.query({ filter: { user: this.options.currentUser.id } })
-    return response.data
+    const interacted = (
+      await this.query({
+        filter: {
+          postedAt: { gt: EagleEyeContentService.switchDate(feedSettings.publishedDate, 15) },
+        },
+      })
+    ).rows
+
+    const interactedMap = {}
+
+    for (const item of interacted) {
+      interactedMap[item.url] = item
+    }
+
+    const out: EagleEyePostWithActions[] = []
+    for (const item of response.data as EagleEyeRawPost[]) {
+      const post = {
+        description: item.description,
+        thumbnail: item.thumbnail,
+        title: item.title,
+      }
+      out.push({
+        url: item.url,
+        postedAt: item.date,
+        post,
+        platform: item.platform,
+        actions: interactedMap[item.url] ? interactedMap[item.url].actions : [],
+      })
+    }
+
+    return out
   }
 }
