@@ -24,11 +24,6 @@
             ><i class="ri-eye-line mr-2"></i>View
             report</router-link
           >
-          <app-report-share-button
-            :id="record.id"
-            v-model="isPublic"
-            class="mr-4"
-          />
           <app-report-dropdown
             :report="record"
             :show-view-report="false"
@@ -49,15 +44,13 @@
 import { mapActions, mapGetters } from 'vuex'
 import AppReportForm from '@/modules/report/components/report-form.vue'
 import AppReportDropdown from '@/modules/report/components/report-dropdown.vue'
-import AppReportShareButton from '@/modules/report/components/report-share-button.vue'
 
 export default {
   name: 'AppReportFormPage',
 
   components: {
     AppReportForm,
-    AppReportDropdown,
-    AppReportShareButton
+    AppReportDropdown
   },
 
   props: {
