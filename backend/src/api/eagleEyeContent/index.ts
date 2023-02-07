@@ -20,6 +20,11 @@ export default (app) => {
     safeWrap(require('./eagleEyeActionCreate').default),
   )
 
+  app.put(
+    `/tenant/:tenantId/eagleEyeContent/settings`,
+    safeWrap(require('./eagleEyeSettingsUpdate').default),
+  )
+
   app.delete(
     `/tenant/:tenantId/eagleEyeContent/:contentId/action/:actionId`,
     safeWrap(require('./eagleEyeActionDestroy').default),
