@@ -27,19 +27,19 @@
               {{ report.name }}
             </h1>
             <div v-if="!tenantId" class="flex items-center">
-              <span
-                class="badge mr-4"
-                :class="report.public ? 'badge--green' : ''"
-                >{{
-                  report.public ? 'Public' : 'Private'
-                }}</span
+              <div
+                v-if="report.public"
+                class="flex items-center gap-2 mr-9"
               >
-              <router-link
-                class="btn btn--transparent btn--sm mr-4"
-                :to="{ name: 'reportEdit', params: { id } }"
-                ><i class="ri-pencil-line mr-2"></i
-                >Edit</router-link
-              >
+                <i
+                  class="ri-global-line text-base text-green-600"
+                />
+                <div
+                  class="text-sm text-green-600 font-medium"
+                >
+                  Public
+                </div>
+              </div>
               <app-report-share-button
                 :id="id"
                 v-model="report.public"
@@ -47,7 +47,7 @@
               />
               <app-report-dropdown
                 :report="report"
-                :show-edit-report="false"
+                :show-edit-report="true"
                 :show-view-report="false"
               />
             </div>
