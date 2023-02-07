@@ -123,6 +123,7 @@ const en = {
       frequencyInvalid:
         'emailDigest.frequency needs to be one of daily, weekly. Settings not updated.',
       timeInvalid: 'emailDigest.time needs to be a valid time. Settings not updated.',
+      notOnboarded: 'Eagle eye is not set up yet.',
     },
     integrations: {
       badEndpoint: 'Bad endpoint: {0}',

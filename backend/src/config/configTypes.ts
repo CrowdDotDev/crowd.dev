@@ -179,3 +179,8 @@ export interface EnrichmentConfiguration {
   url: string
   apiKey: string
 }
+
+export interface EagleEyeConfiguration {
+  url: string
+  apiKey: string
+}

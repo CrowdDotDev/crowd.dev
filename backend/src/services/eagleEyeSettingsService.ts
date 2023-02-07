@@ -85,15 +85,15 @@ export default class EagleEyeSettingsService extends LoggingBase {
    */
   static switchDate(date: string) {
     switch (date) {
-      case 'Last 24h':
+      case EagleEyePublishedDates.LAST_24_HOURS:
         return moment().subtract(1, 'days').format('YYYY-MM-DD')
-      case 'Last 7 days':
+      case EagleEyePublishedDates.LAST_7_DAYS:
         return moment().subtract(7, 'days').format('YYYY-MM-DD')
-      case 'Last 14 days':
+      case EagleEyePublishedDates.LAST_14_DAYS:
         return moment().subtract(14, 'days').format('YYYY-MM-DD')
-      case 'Last 30 days':
+      case EagleEyePublishedDates.LAST_30_DAYS:
         return moment().subtract(30, 'days').format('YYYY-MM-DD')
-      case 'Last 90 days':
+      case EagleEyePublishedDates.LAST_90_DAYS:
         return moment().subtract(90, 'days').format('YYYY-MM-DD')
       default:
         return null

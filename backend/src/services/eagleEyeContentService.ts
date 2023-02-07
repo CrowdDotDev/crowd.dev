@@ -1,9 +1,12 @@
+import axios from 'axios'
+import { EAGLE_EYE_CONFIG } from '../config'
 import { IServiceOptions } from './IServiceOptions'
 import EagleEyeContentRepository from '../database/repositories/eagleEyeContentRepository'
 import { LoggingBase } from './loggingBase'
-import { EagleEyeContent, EagleEyeAction } from '../types/eagleEyeTypes'
+import { EagleEyeContent, EagleEyeAction, EagleEyeSettings } from '../types/eagleEyeTypes'
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
+import UserRepository from '../database/repositories/userRepository'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {
   content: EagleEyeContent
@@ -57,11 +60,40 @@ export default class EagleEyeContentService extends LoggingBase {
     )
   }
 
-  /**  
-  TODO
-  */
-  /* eslint-disable-next-line */
-  async search(args) {
-    return null
+  async search(email = false) {
+    const eagleEyeSettings: EagleEyeSettings = (
+      await UserRepository.findById(this.options.currentUser.id, this.options)
+    ).eagleEyeSettings
+
+    if (!eagleEyeSettings.onboarded) {
+      throw new Error400(this.options.language, 'errors.eagleEye.notOnboarded')
+    }
+
+    const feedSettings = email ? eagleEyeSettings.emailDigest.feed : eagleEyeSettings.feed
+
+    const keywords = feedSettings.keywords ? feedSettings.keywords.join(',') : ''
+    const exactKeywords = feedSettings.exactKeywords ? feedSettings.exactKeywords.join(',') : ''
+    const excludedKeywords = feedSettings.excludedKeywords
+      ? feedSettings.excludedKeywords.join(',')
+      : ''
+
+    const config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${EAGLE_EYE_CONFIG.url}`,
+      params: {
+        platforms: feedSettings.platforms.join(','),
+        keywords,
+        exact_keywords: exactKeywords,
+        exclude_keywords: excludedKeywords,
+        after_date: feedSettings.publishedDate,
+      },
+      headers: {
+        Authorization: `Bearer ${EAGLE_EYE_CONFIG.apiKey}`,
+      },
+    }
+
+    const response = await axios(config)
+    return response.data
   }
 }
