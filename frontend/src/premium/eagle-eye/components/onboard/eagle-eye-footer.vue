@@ -9,7 +9,7 @@
     <el-button
       v-if="showPreviousStep"
       class="btn btn--transparent btn--lg"
-      :disabled="loadingUpdateProfile"
+      :disabled="loadingUpdateSettings"
       @click="emit('onStepChange', -1)"
       ><i class="ri-arrow-left-s-line mr-3 text-lg" /><span
         >Previous step</span
@@ -19,9 +19,9 @@
     <el-button
       class="btn btn--primary btn--lg"
       :disabled="
-        isNextButtonDisabled || loadingUpdateProfile
+        isNextButtonDisabled || loadingUpdateSettings
       "
-      :loading="loadingUpdateProfile"
+      :loading="loadingUpdateSettings"
       @click="
         showFinalStep
           ? emit('onSubmit')
@@ -59,5 +59,5 @@ defineProps({
   }
 })
 
-const { loadingUpdateProfile } = mapState('auth')
+const { loadingUpdateSettings } = mapState('eagleEye')
 </script>
