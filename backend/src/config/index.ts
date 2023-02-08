@@ -24,6 +24,7 @@ import {
   PosthogConfiguration,
   PizzlyConfiguration,
   EnrichmentConfiguration,
+  EagleEyeConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -232,4 +233,11 @@ export const ENRICHMENT_CONFIG: EnrichmentConfiguration = KUBE_MODE
   : {
       url: process.env.ENRICHMENT_URL,
       apiKey: process.env.ENRICHMENT_SECRET_KEY,
+    }
+
+export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
+  ? config.get<EagleEyeConfiguration>('eagleEye')
+  : {
+      url: process.env.EAGLE_EYE_URL,
+      apiKey: process.env.EAGLE_EYE_SECRET_KEY,
     }

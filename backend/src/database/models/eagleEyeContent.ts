@@ -6,40 +6,16 @@ const eagleEyeContentModel = {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  sourceId: {
+  platform: {
     type: DataTypes.TEXT,
     allowNull: false,
     validate: {
       notEmpty: true,
     },
   },
-  vectorId: {
-    type: DataTypes.TEXT,
+  post: {
+    type: DataTypes.JSONB,
     allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  },
-  status: {
-    type: DataTypes.STRING(255),
-    validate: {
-      isIn: [['engaged', 'rejected']],
-    },
-    defaultValue: null,
-  },
-  title: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  },
-  username: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
   },
   url: {
     type: DataTypes.TEXT,
@@ -48,79 +24,16 @@ const eagleEyeContentModel = {
       notEmpty: true,
     },
   },
-  text: {
-    type: DataTypes.TEXT,
-  },
-  timestamp: {
+  postedAt: {
     type: DataTypes.DATE,
     allowNull: false,
-  },
-  platform: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-    },
-  },
-  keywords: {
-    type: DataTypes.ARRAY(DataTypes.TEXT),
-    default: [],
-  },
-  exactKeywords: {
-    type: DataTypes.ARRAY(DataTypes.TEXT),
-    default: [],
-  },
-  similarityScore: {
-    type: DataTypes.FLOAT,
-  },
-  userAttributes: {
-    type: DataTypes.JSONB,
-    default: {},
-  },
-  postAttributes: {
-    type: DataTypes.JSONB,
-    default: {},
-  },
-  importHash: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    validate: {
-      len: [0, 255],
-    },
   },
 }
 
 export default (sequelize) => {
   const eagleEyeContent = sequelize.define('eagleEyeContent', eagleEyeContentModel, {
-    indexes: [
-      {
-        unique: true,
-        fields: ['importHash', 'tenantId'],
-        where: {
-          deletedAt: null,
-        },
-      },
-      {
-        fields: ['platform', 'tenantId', 'timestamp'],
-        where: {
-          deletedAt: null,
-        },
-      },
-      {
-        fields: ['status', 'tenantId', 'timestamp'],
-        where: {
-          deletedAt: null,
-        },
-      },
-      {
-        fields: ['tenantId', 'timestamp'],
-        where: {
-          deletedAt: null,
-        },
-      },
-    ],
     timestamps: true,
-    paranoid: true,
+    paranoid: false,
   })
 
   eagleEyeContent.associate = (models) => {
@@ -130,13 +43,9 @@ export default (sequelize) => {
         allowNull: false,
       },
     })
-
-    models.eagleEyeContent.belongsTo(models.user, {
-      as: 'createdBy',
-    })
-
-    models.eagleEyeContent.belongsTo(models.user, {
-      as: 'updatedBy',
+    models.eagleEyeContent.hasMany(models.eagleEyeAction, {
+      as: 'actions',
+      foreignKey: 'contentId',
     })
   }
 
