@@ -198,23 +198,25 @@ const customAttributes = computed(() =>
   props.attributes
     .filter((attribute) => {
       return (
-        attribute.show &&
-        ![
-          'bio',
-          'url',
-          'location',
-          'jobTitle',
-          'emails',
-          'workExperiences', // we render them in _aside-enriched
-          'certifications', // we render them in _aside-enriched
-          'education', // we render them in _aside-enriched
-          'awards' // we render them in _aside-enriched
-        ].includes(attribute.name) &&
-        props.record.attributes[attribute.name]
+        (attribute.show &&
+          ![
+            'bio',
+            'url',
+            'location',
+            'jobTitle',
+            'emails',
+            'workExperiences', // we render them in _aside-enriched
+            'certifications', // we render them in _aside-enriched
+            'education', // we render them in _aside-enriched
+            'awards' // we render them in _aside-enriched
+          ].includes(attribute.name) &&
+          props.record.attributes[attribute.name]) ||
+        // Global attributes
+        attribute.canDelete
       )
     })
     .sort((a, b) => {
-      if (props.record.attributes[a.name].enrich) {
+      if (props.record.attributes[a.name]?.enrich) {
         return props.record.attributes[b.name].enrich
           ? 0
           : -1
