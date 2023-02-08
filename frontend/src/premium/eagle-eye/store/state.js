@@ -13,9 +13,9 @@ export default () => {
   return {
     records: {},
     views: {
-      inbox: {
-        id: 'inbox',
-        label: 'Inbox',
+      relevant: {
+        id: 'relevant',
+        label: 'Most relevant',
         initialFilter: {
           operator: 'and',
           attributes: {
@@ -60,52 +60,9 @@ export default () => {
         },
         active: true
       },
-      engaged: {
-        id: 'engaged',
-        label: 'Engaged',
-        initialFilter: {
-          operator: 'and',
-          attributes: {
-            status: {
-              name: 'status',
-              operator: 'eq',
-              defaultOperator: 'eq',
-              defaultValue: 'engaged',
-              value: 'engaged',
-              show: false
-            }
-          }
-        },
-        filter: {
-          operator: 'and',
-          attributes: {
-            status: {
-              name: 'status',
-              operator: 'eq',
-              defaultOperator: 'eq',
-              defaultValue: 'engaged',
-              value: 'engaged',
-              show: false
-            }
-          }
-        },
-        pagination: {
-          currentPage: 1,
-          pageSize: INITIAL_PAGE_SIZE
-        },
-        initialSorter: {
-          prop: 'similarityScore',
-          order: 'descending'
-        },
-        sorter: {
-          prop: 'similarityScore',
-          order: 'descending'
-        },
-        active: false
-      },
-      rejected: {
-        id: 'rejected',
-        label: 'Excluded',
+      bookmarked: {
+        id: 'bookmarked',
+        label: 'Bookmarked',
         initialFilter: {
           operator: 'and',
           attributes: {

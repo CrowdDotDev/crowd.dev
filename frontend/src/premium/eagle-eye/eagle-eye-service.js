@@ -89,4 +89,14 @@ export class EagleEyeService {
 
     return response.data
   }
+
+  static async search() {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/eagleEyeContent/search`
+    )
+
+    return response.data
+  }
 }

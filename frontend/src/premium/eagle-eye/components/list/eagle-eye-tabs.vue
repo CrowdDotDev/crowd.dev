@@ -1,0 +1,79 @@
+<template>
+  <div
+    class="flex gap-4 items-center py-8 bg-gray-50 sticky top-0"
+  >
+    <div
+      v-for="view of views"
+      :key="view.id"
+      class="flex items-center gap-4"
+    >
+      <div
+        class="eagle-eye-view-btn"
+        :class="{
+          selected: activeView.id === view.id
+        }"
+        @click="doChangeActiveView(view.id)"
+      >
+        <i class="icon" :class="icons[view.id]" />
+        <span class="text">{{ view.label }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+
+const icons = {
+  relevant: 'ri-eye-2-line',
+  bookmarked: 'ri-bookmark-line'
+}
+
+const store = useStore()
+const { doChangeActiveView } = mapActions('eagleEye')
+const { activeView } = mapGetters('eagleEye')
+
+const views = computed(() => {
+  return Object.values(store.state.eagleEye.views)
+})
+</script>
+
+<style lang="scss" scope>
+.eagle-eye-view-btn {
+  @apply flex items-center gap-2 px-3 rounded-lg h-8;
+
+  .icon {
+    @apply text-gray-400 text-lg;
+  }
+
+  .text {
+    @apply text-sm text-gray-500;
+  }
+
+  &:hover {
+    @apply bg-gray-200 cursor-pointer;
+
+    .icon,
+    .text {
+      @apply text-gray-900;
+    }
+  }
+
+  &.selected {
+    @apply bg-brand-50;
+
+    .icon {
+      @apply text-brand-500;
+    }
+
+    .text {
+      @apply font-medium text-gray-900;
+    }
+  }
+}
+</style>

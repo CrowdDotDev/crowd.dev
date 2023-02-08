@@ -1,43 +1,25 @@
 <template>
-  <app-page-wrapper size="narrow">
-    <div class="eagle-eye">
-      <div class="eagle-eye-header">
-        <div class="flex items-center">
-          <h4>Eagle Eye</h4>
-          <span
-            v-if="currentTenant.isTrialPlan"
-            class="badge badge--sm badge--light-yellow ml-4"
-            >Growth (trial)</span
-          >
-        </div>
-        <div class="text-xs text-gray-500">
-          Discover and engage with relevant content across
-          various community platforms.
-        </div>
-      </div>
-      <app-eagle-eye-tabs class="mt-10" />
-      <app-eagle-eye-filter />
-      <div
-        v-if="shouldRenderInboxEmptyState"
-        class="flex flex-col items-center justify-center w-full py-10"
-      >
-        <img
-          src="/images/empty-state/eagle-eye.svg"
-          alt=""
-          class="w-80"
-        />
-        <div class="text-xl font-medium mt-10">
-          Stop scrolling, start engaging
-        </div>
-        <div class="text-gray-600 text-sm mt-6">
-          Find relevant content across community platforms
-        </div>
-      </div>
-      <div v-else>
-        <app-eagle-eye-list />
-      </div>
+  <!-- <app-page-wrapper size="full-width"> -->
+  <div
+    class="absolute top-0 left-0 w-full max-h-screen flex flex-row"
+    :class="{
+      'pt-[55px]': showBanner
+    }"
+  >
+    <div
+      class="basis-3/12 overflow-auto overscroll-contain"
+    >
+      <app-eagle-eye-settings />
     </div>
-  </app-page-wrapper>
+
+    <div
+      class="basis-9/12 overflow-auto overscroll-contain pl-3"
+    >
+      <app-eagle-eye-tabs />
+      <app-eagle-eye-list />
+    </div>
+  </div>
+  <!-- </app-page-wrapper> -->
 </template>
 
 <script>
@@ -47,30 +29,16 @@ export default {
 </script>
 
 <script setup>
-import AppEagleEyeTabs from '../components/eagle-eye-tabs'
-import AppEagleEyeList from '../components/eagle-eye-list'
-import AppEagleEyeFilter from '../components/eagle-eye-filter'
+import AppEagleEyeTabs from '@/premium/eagle-eye/components/list/eagle-eye-tabs.vue'
+import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-settings.vue'
+import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { onMounted } from 'vue'
+import { EagleEyeService } from '../eagle-eye-service'
 
-import { useStore } from 'vuex'
-import { computed } from 'vue'
+const { showBanner } = mapGetters('tenant')
 
-const store = useStore()
-
-const loading = computed(
-  () => store.state.eagleEye.list.loading
-)
-const activeView = computed(
-  () => store.getters['eagleEye/activeView'].id
-)
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
-
-const shouldRenderInboxEmptyState = computed(() => {
-  return (
-    !localStorage.getItem('eagleEye_keywords') &&
-    !loading.value &&
-    activeView.value === 'inbox'
-  )
+onMounted(async () => {
+  await EagleEyeService.search()
 })
 </script>
