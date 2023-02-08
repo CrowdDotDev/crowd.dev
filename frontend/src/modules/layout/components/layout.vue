@@ -131,6 +131,7 @@ import identify from '@/shared/monitoring/identify'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import moment from 'moment'
 import config from '@/config'
+import Message from '@/shared/message/message'
 
 export default {
   name: 'AppLayout',
@@ -331,10 +332,19 @@ export default {
       })
 
       this.loading = true
-      await TenantService.deleteSampleData(
-        this.currentTenant.id
-      )
-      window.location.reload()
+      try {
+        await TenantService.deleteSampleData(
+          this.currentTenant.id
+        )
+        window.location.reload()
+      } catch (e) {
+        if (e.response.status === 403) {
+          Message.error(
+            'You do not have permission to delete sample data'
+          )
+          this.loading = false
+        }
+      }
     }
   }
 }
