@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex gap-4 items-center py-8 bg-gray-50 sticky top-0"
+    class="flex gap-4 items-center py-8 bg-gray-50 sticky top-0 pl-3 z-10"
   >
     <div
       v-for="view of views"
@@ -30,7 +30,7 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 
 const icons = {
-  relevant: 'ri-eye-2-line',
+  feed: 'ri-eye-2-line',
   bookmarked: 'ri-bookmark-line'
 }
 

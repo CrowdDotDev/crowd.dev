@@ -14,28 +14,19 @@
         :src="platformOptions[platform].img"
         class="w-6 h-6"
       />
-      <span class="text-gray-400 text-2xs">{{
-        formatDateToTimeAgo(publishedDate)
-      }}</span>
+      <span
+        v-if="postedAt"
+        class="text-gray-400 text-2xs"
+        >{{ formatDateToTimeAgo(postedAt) }}</span
+      >
     </div>
 
     <!-- Image -->
     <div
-      v-if="img || video"
+      v-if="img"
       class="rounded min-h-30 max-h-30 w-full overflow-hidden flex mt-4"
     >
-      <img
-        v-if="img"
-        :src="img"
-        class="object-cover object-center"
-      />
-      <video v-if="video" height="120" controls>
-        <source
-          :src="video"
-          type="video/mp4"
-          class="object-cover object-center"
-        />
-      </video>
+      <img :src="img" class="object-cover object-center" />
     </div>
 
     <!-- Title & Body -->
@@ -143,7 +134,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  publishedDate: {
+  postedAt: {
     type: String,
     required: true
   },
@@ -172,10 +163,6 @@ const props = defineProps({
     default: null
   },
   img: {
-    type: String,
-    default: null
-  },
-  video: {
     type: String,
     default: null
   }

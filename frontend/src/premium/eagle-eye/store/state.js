@@ -1,63 +1,12 @@
 import { INITIAL_PAGE_SIZE } from './constants'
 
-const savedKeywords = localStorage.getItem(
-  'eagleEye_keywords'
-)
-
-const savedKeywordsArray =
-  savedKeywords && savedKeywords !== ''
-    ? savedKeywords.split(',')
-    : []
-
 export default () => {
   return {
     records: {},
     views: {
-      relevant: {
-        id: 'relevant',
-        label: 'Most relevant',
-        initialFilter: {
-          operator: 'and',
-          attributes: {
-            keywords: {
-              name: 'keywords',
-              label: 'Keywords',
-              show: false,
-              operator: 'overlap',
-              defaultOperator: 'overlap',
-              type: 'custom',
-              value: savedKeywordsArray,
-              defaultValue: savedKeywordsArray
-            }
-          }
-        },
-        filter: {
-          operator: 'and',
-          attributes: {
-            keywords: {
-              name: 'keywords',
-              label: 'Keywords',
-              show: false,
-              operator: 'overlap',
-              defaultOperator: 'overlap',
-              type: 'custom',
-              value: savedKeywordsArray,
-              defaultValue: savedKeywordsArray
-            }
-          }
-        },
-        pagination: {
-          currentPage: 1,
-          pageSize: INITIAL_PAGE_SIZE
-        },
-        initialSorter: {
-          prop: 'similarityScore',
-          order: 'descending'
-        },
-        sorter: {
-          prop: 'similarityScore',
-          order: 'descending'
-        },
+      feed: {
+        id: 'feed',
+        label: 'Feed',
         active: true
       },
       bookmarked: {
@@ -105,7 +54,7 @@ export default () => {
       }
     },
     list: {
-      ids: [],
+      posts: [],
       loading: false
     },
     count: 0

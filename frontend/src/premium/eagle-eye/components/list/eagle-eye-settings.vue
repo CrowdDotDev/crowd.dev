@@ -64,60 +64,27 @@ import { platformOptions } from '@/premium/eagle-eye/eagle-eye-constants'
 import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
-// TODO: Delete this
-const eagleEyeSettings = {
-  emailDigestActive: false,
-  feed: {
-    keywords: ['Machine Learning', 'Data Science'],
-    exactKeywords: ['Artificial Intelligence'],
-    // How to display these
-    excludedKeywords: [],
-    publishedDate: '',
-    platforms: [
-      'devto',
-      'github',
-      'hackernews',
-      'kaggle',
-      'medium',
-      'producthunt'
-    ]
-  }
-  // emailDigest: {
-  //   email: '',
-  //   frequency: 'daily',
-  //   time: '',
-  //   keywords: [],
-  //   exactKeywords: [],
-  //   excludedKeywords: [],
-  //   publishedDate: [],
-  //   platforms: [],
-  //   matchFeedSettings: false
-  // }
-}
-
 const { currentUser } = mapGetters('auth')
 
 const keywords = computed(() => {
-  const settings =
-    currentUser.value.eagleEyeSettings || eagleEyeSettings
+  const { eagleEyeSettings } = currentUser.value
 
-  if (!settings?.feed) {
+  if (!eagleEyeSettings?.feed) {
     return []
   }
 
-  const { keywords, exactKeywords } = settings.feed
+  const { keywords, exactKeywords } = eagleEyeSettings.feed
 
   return keywords.concat(...exactKeywords)
 })
 const platforms = computed(() => {
-  const settings =
-    currentUser.value.eagleEyeSettings || eagleEyeSettings
+  const { eagleEyeSettings } = currentUser.value
 
-  if (!settings?.feed) {
+  if (!eagleEyeSettings?.feed) {
     return []
   }
 
-  return settings.feed.platforms
+  return eagleEyeSettings.feed.platforms
 })
 </script>
 

@@ -55,48 +55,17 @@
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 import { computed } from 'vue'
 
-// TODO: Delete this
-const eagleEyeSettings = {
-  emailDigestActive: false,
-  feed: {
-    keywords: ['Machine Learning', 'Data Science'],
-    exactKeywords: ['Artificial Intelligence'],
-    // How to display these
-    excludedKeywords: [],
-    publishedDate: '',
-    platforms: [
-      'devto',
-      'github',
-      'hackernews',
-      'kaggle',
-      'medium',
-      'producthunt'
-    ]
-  }
-  // emailDigest: {
-  //   email: '',
-  //   frequency: 'daily',
-  //   time: '',
-  //   keywords: [],
-  //   exactKeywords: [],
-  //   excludedKeywords: [],
-  //   publishedDate: [],
-  //   platforms: [],
-  //   matchFeedSettings: false
-  // }
-}
-
 const { currentUser } = mapGetters('auth')
-const isEmailDigestConfiguredOnce = computed(() => {
-  const settings =
-    currentUser.value.eagleEyeSettings || eagleEyeSettings
 
-  return !!Object.keys(settings.emailDigest || {}).length
-})
-const isEmailDigestActivated = computed(() => {
-  const settings =
-    currentUser.value.eagleEyeSettings || eagleEyeSettings
+const isEmailDigestConfiguredOnce = computed(
+  () =>
+    !!Object.keys(
+      currentUser.value.eagleEyeSettings.emailDigest || {}
+    ).length
+)
 
-  return settings.emailDigestActive
-})
+const isEmailDigestActivated = computed(
+  () =>
+    currentUser.value.eagleEyeSettings?.emailDigestActive
+)
 </script>
