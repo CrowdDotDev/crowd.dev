@@ -7,7 +7,17 @@ import MemberArrayAttributesField from '@/modules/member/member-array-attributes
 export default (customAttributes) => {
   return (
     Object.values(customAttributes)
-      .filter((a) => a.show)
+      .filter((a) => {
+        // Don't render special filters that do not have available options
+        if (
+          a.type === 'multiSelect' ||
+          a.type === 'special'
+        ) {
+          return a.options.length && a.show
+        }
+
+        return a.show
+      })
       .map((customAttribute) => {
         switch (customAttribute.type) {
           case 'boolean':
@@ -31,12 +41,12 @@ export default (customAttributes) => {
 
           case 'multiSelect':
           case 'special': {
-            const options = customAttributes[
-              customAttribute.name
-            ].options.map((o) => ({
-              value: o,
-              label: o
-            }))
+            const options = customAttribute.options.map(
+              (o) => ({
+                value: o,
+                label: o
+              })
+            )
 
             return new MemberArrayAttributesField(
               customAttribute.name,
