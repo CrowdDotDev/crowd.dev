@@ -1,4 +1,6 @@
 import { safeWrap } from '../../middlewares/errorMiddleware'
+import { featureFlagMiddleware } from '../../middlewares/featureFlagMiddleware'
+import { FeatureFlag } from '../../types/common'
 
 export default (app) => {
   app.post(
@@ -13,6 +15,7 @@ export default (app) => {
 
   app.get(
     `/tenant/:tenantId/eagleEyeContent/search`,
+    featureFlagMiddleware(FeatureFlag.EAGLE_EYE, 'entities.eagleEye.errors.planLimitExceeded'),
     safeWrap(require('./eagleEyeContentSearch').default),
   )
 

@@ -205,6 +205,12 @@ const en = {
         planLimitExceeded: 'You have exceeded # of automations you can have in your plan.',
       },
     },
+    eagleEye: {
+      errors: {
+        planLimitExceeded:
+          'EagleEye is only available in the Growth and Custom plans. Please upgrade your plan.',
+      },
+    },
   },
 
   communityHelpCenter: {
