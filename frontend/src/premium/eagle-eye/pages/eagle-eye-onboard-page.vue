@@ -92,7 +92,8 @@ onBeforeRouteLeave((to) => {
   if (
     step.value > 1 &&
     !wasFormSubmittedSuccessfuly.value &&
-    to.fullPath !== '/500'
+    to.fullPath !== '/500' &&
+    to.fullPath !== '/403'
   ) {
     return ConfirmDialog({})
       .then(() => {
