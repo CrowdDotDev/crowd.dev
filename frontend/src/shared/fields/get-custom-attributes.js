@@ -2,12 +2,22 @@ import StringField from '@/shared/fields/string-field'
 import BooleanField from '@/shared/fields/boolean-field'
 import IntegerField from '@/shared/fields/integer-field'
 import DateField from '@/shared/fields/date-field'
-import ArrayField from '@/shared/fields/array-field'
+import MemberArrayAttributesField from '@/modules/member/member-array-attributes-field'
 
 export default (customAttributes) => {
   return (
     Object.values(customAttributes)
-      .filter((a) => a.show)
+      .filter((a) => {
+        // Don't render special filters that do not have available options
+        if (
+          a.type === 'multiSelect' ||
+          a.type === 'special'
+        ) {
+          return a.options.length && a.show
+        }
+
+        return a.show
+      })
       .map((customAttribute) => {
         switch (customAttribute.type) {
           case 'boolean':
@@ -30,12 +40,20 @@ export default (customAttributes) => {
             )
 
           case 'multiSelect':
-          case 'special':
-            return new ArrayField(
-              customAttribute.name,
-              customAttribute.label
+          case 'special': {
+            const options = customAttribute.options.map(
+              (o) => ({
+                value: o,
+                label: o
+              })
             )
 
+            return new MemberArrayAttributesField(
+              customAttribute.name,
+              customAttribute.label,
+              { options }
+            )
+          }
           default:
             return new StringField(
               customAttribute.name,
