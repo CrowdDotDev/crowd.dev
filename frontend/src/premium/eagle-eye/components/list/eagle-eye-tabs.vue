@@ -1,23 +1,33 @@
 <template>
   <div
-    class="flex gap-4 items-center py-8 bg-gray-50 sticky top-0 pl-3 z-10"
+    class="flex items-center justify-between pr-8 sticky top-0 z-10 bg-gray-50 pl-3 py-8"
   >
-    <div
-      v-for="view of views"
-      :key="view.id"
-      class="flex items-center gap-4"
-    >
+    <div class="flex gap-4 items-center">
       <div
-        class="eagle-eye-view-btn"
-        :class="{
-          selected: activeView.id === view.id
-        }"
-        @click="doChangeActiveView(view.id)"
+        v-for="view of views"
+        :key="view.id"
+        class="flex items-center gap-4"
       >
-        <i class="icon" :class="icons[view.id]" />
-        <span class="text">{{ view.label }}</span>
+        <div
+          class="eagle-eye-view-btn"
+          :class="{
+            selected: activeView.id === view.id
+          }"
+          @click="doChangeActiveView(view.id)"
+        >
+          <i class="icon" :class="icons[view.id]" />
+          <span class="text">{{ view.label }}</span>
+        </div>
       </div>
     </div>
+    <app-inline-select-input
+      v-if="sorter"
+      v-model="sorter"
+      popper-class="sorter-popper-class"
+      placement="bottom-end"
+      :options="sorterOptions"
+      @change="doChangeSort"
+    />
   </div>
 </template>
 
@@ -35,12 +45,27 @@ const icons = {
 }
 
 const store = useStore()
-const { doChangeActiveView } = mapActions('eagleEye')
+const { doChangeActiveView, doChangeSort } =
+  mapActions('eagleEye')
 const { activeView } = mapGetters('eagleEye')
 
 const views = computed(() => {
   return Object.values(store.state.eagleEye.views)
 })
+
+const sorter = computed(() => activeView.value?.sorter)
+const sorterOptions = [
+  {
+    value: 'individualBookmarks',
+    label: 'My bookmarks'
+  },
+  {
+    value: 'teamBookmarks',
+    label: 'Team bookmarks',
+    description:
+      'Only results bookmarked by members of your team'
+  }
+]
 </script>
 
 <style lang="scss" scope>

@@ -26,10 +26,21 @@
         <el-dropdown-item
           v-for="option of computedOptions"
           :key="`option-${option.value}`"
-          :class="option.selected ? 'is-selected' : ''"
+          :class="{
+            '!h-fit !py-2.5': option.description,
+            'is-selected': option.selected
+          }"
           @click="handleOptionClick(option)"
         >
-          {{ option.label }}
+          <div class="flex flex-col">
+            <span>{{ option.label }}</span>
+            <span
+              v-if="option.description"
+              class="text-2xs text-gray-500"
+            >
+              {{ option.description }}
+            </span>
+          </div>
         </el-dropdown-item>
       </template>
     </el-dropdown>

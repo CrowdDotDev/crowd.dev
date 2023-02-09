@@ -2,7 +2,7 @@
   <div
     class="bg-white shadow-sm px-5 pt-5 pb-4 rounded-lg h-fit"
     :class="{
-      'hover:shadow-md hover:cursor-pointer': url
+      'hover:shadow-md hover:cursor-pointer': result.url
     }"
     @click="onCardClick"
   >
@@ -11,36 +11,34 @@
       class="flex items-center justify-between pb-4 border-b border-gray-100"
     >
       <img
-        :src="platformOptions[platform].img"
+        :src="platformOptions[result.platform].img"
         class="w-6 h-6"
       />
       <span
-        v-if="postedAt"
+        v-if="result.postedAt"
         class="text-gray-400 text-2xs"
-        >{{ formatDateToTimeAgo(postedAt) }}</span
+        >{{ formatDateToTimeAgo(result.postedAt) }}</span
       >
     </div>
 
     <!-- Image -->
     <div
-      v-if="img"
+      v-if="result.post.thumbnail"
       class="rounded min-h-30 max-h-30 w-full overflow-hidden flex mt-4"
     >
-      <img :src="img" class="object-cover object-center" />
+      <img
+        :src="result.post.thumbnail"
+        class="object-cover object-center w-full"
+      />
     </div>
 
-    <!-- Title & Body -->
+    <!-- Title & description -->
     <div class="mt-4 pb-9 border-b border-gray-100">
-      <a
-        v-if="subreddit"
-        :href="`https://www.reddit.com/${subreddit}`"
-        target="_blank"
-        class="text-xs mb-1 font-medium"
-        >{{ subreddit }}</a
-      >
-      <h6 v-if="title" class="black mb-3">{{ title }}</h6>
+      <h6 v-if="result.post.title" class="black mb-3">
+        {{ result.post.title }}
+      </h6>
       <app-parsed-html
-        :body="body"
+        :description="result.post.description"
         class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4"
       />
     </div>
@@ -55,9 +53,15 @@
           <div
             class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
             :class="{
-              'bg-green-100 hover:bg-green-100': isRelevant
+              'bg-green-100 hover:bg-green-100': isRelevant,
+              'pointer-events-none opacity-50': isLoading
             }"
-            @click.stop
+            @click.stop="
+              onThumbsClick({
+                actionType: 'thumbs-up',
+                shouldAdd: !isRelevant
+              })
+            "
           >
             <i
               class="text-lg group-hover:text-gray-900"
@@ -75,34 +79,44 @@
           <div
             class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
             :class="{
-              'bg-red-100 hover:bg-red-100':
-                isRelevant === false
+              'bg-red-100 hover:bg-red-100': isNotRelevant,
+              'pointer-events-none opacity-50': isLoading
             }"
-            @click.stop
+            @click.stop="
+              onThumbsClick({
+                actionType: 'thumbs-down',
+                shouldAdd: !isNotRelevant
+              })
+            "
           >
             <i
               class="text-lg group-hover:text-gray-900"
               :class="{
                 'ri-thumb-down-line text-gray-400':
-                  isRelevant !== false,
+                  !isNotRelevant,
                 'ri-thumb-down-fill text-red-600 group-hover:text-red-600':
-                  isRelevant === false
+                  isNotRelevant
               }"
             />
           </div>
         </el-tooltip>
       </div>
-
       <el-tooltip
         placement="top"
-        :content="isBookmarked ? 'Unbookmark' : 'Bookmark'"
+        :content="bookmarkTooltip"
       >
         <div
           class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
           :class="{
-            'bg-blue-100 hover:bg-blue-100': isBookmarked
+            'bg-blue-100 hover:bg-blue-100': isBookmarked,
+            'pointer-events-none opacity-50': isLoading
           }"
-          @click.stop
+          @click.stop="
+            onActionClick({
+              actionType: 'bookmark',
+              shouldAdd: !isBookmarked
+            })
+          "
         >
           <i
             class="text-lg text-gray-400 group-hover:text-gray-900"
@@ -121,59 +135,93 @@
 
 <script setup>
 import { formatDateToTimeAgo } from '@/utils/date'
-import { defineProps } from 'vue'
+import { computed, defineProps } from 'vue'
 import { platformOptions } from '@/premium/eagle-eye/eagle-eye-constants'
 import { withHttp } from '@/utils/string'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
-  id: {
-    type: String,
+  result: {
+    type: Object,
     required: true
   },
-  platform: {
-    type: String,
+  index: {
+    type: Number,
     required: true
-  },
-  postedAt: {
-    type: String,
-    required: true
-  },
-  body: {
-    type: String,
-    required: true
-  },
-  title: {
-    type: String,
-    default: null
-  },
-  url: {
-    type: String,
-    default: null
-  },
-  isRelevant: {
-    type: Boolean,
-    default: null
-  },
-  isBookmarked: {
-    type: Boolean,
-    default: false
-  },
-  subreddit: {
-    type: String,
-    default: null
-  },
-  img: {
-    type: String,
-    default: null
   }
 })
 
+const { doAddAction, doRemoveAction } =
+  mapActions('eagleEye')
+
+const isLoading = computed(() => props.result.loading)
+const isBookmarked = computed(() =>
+  props.result.actions.some((a) => a.type === 'bookmark')
+)
+const isRelevant = computed(() =>
+  props.result.actions.some((a) => a.type === 'thumbs-up')
+)
+const isNotRelevant = computed(() =>
+  props.result.actions.some((a) => a.type === 'thumbs-down')
+)
+const bookmarkTooltip = computed(() => {
+  return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
+})
+
+// Open post in origin url
 const onCardClick = (e) => {
-  if (!props.url || e.target.localName === 'a') {
+  if (!props.result.url || e.target.localName === 'a') {
     return
   }
 
-  window.open(withHttp(props.url), '_blank')
+  window.open(withHttp(props.result.url), '_blank')
+}
+
+// If opposite thumbs up is set, remove before creating the new action
+const onThumbsClick = async ({ actionType, shouldAdd }) => {
+  if (isLoading.value) {
+    return
+  }
+
+  if (actionType === 'thumbs-up' && isNotRelevant.value) {
+    await onActionClick({
+      actionType: 'thumbs-down',
+      shouldAdd: false
+    })
+  }
+
+  if (actionType === 'thumbs-down' && isRelevant.value) {
+    await onActionClick({
+      actionType: 'thumbs-up',
+      shouldAdd: false
+    })
+  }
+
+  await onActionClick({ actionType, shouldAdd })
+}
+
+const onActionClick = async ({ actionType, shouldAdd }) => {
+  if (isLoading.value) {
+    return
+  }
+
+  if (shouldAdd) {
+    await doAddAction({
+      post: props.result,
+      action: actionType,
+      index: props.index
+    })
+  } else {
+    const actionId = props.result.actions.find(
+      (a) => a.type === actionType
+    ).id
+    await doRemoveAction({
+      postId: props.result.id,
+      actionId,
+      actionType,
+      index: props.index
+    })
+  }
 }
 </script>
 

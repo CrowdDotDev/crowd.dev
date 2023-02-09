@@ -3,23 +3,17 @@
     class="grid grid-cols-3 sm:grid-cols-2 gap-5 pr-8 pb-10 pl-3"
   >
     <div
-      v-for="(_, index) in Array(3)"
-      :key="index"
+      v-for="(_, i) in Array(3)"
+      :key="i"
       class="col-span-1 flex flex-col gap-5"
     >
       <div
-        v-for="item in getItemsInColumn(index)"
+        v-for="(item, index) in getItemsInColumn(i)"
         :key="item.post.title"
       >
         <app-eagle-eye-result-card
-          :title="item.post.title"
-          :body="item.post.description"
-          :platform="item.platform"
-          :url="item.url"
-          :img="item.post.thumbnail"
-          :video="item.video"
-          :posted-at="item.postedAt"
-          :subreddit="item.subreddit"
+          :result="item"
+          :index="index * 3 + i"
         />
       </div>
     </div>

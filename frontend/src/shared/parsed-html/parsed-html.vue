@@ -8,7 +8,7 @@ import { withHttp } from '@/utils/string'
 export default {
   name: 'AppParsedHtml',
   props: {
-    body: {
+    description: {
       type: String,
       required: true
     }
@@ -17,7 +17,7 @@ export default {
     parsedHtml() {
       let parser = new DOMParser()
       const doc = parser.parseFromString(
-        this.body,
+        this.description,
         'text/html'
       )
 

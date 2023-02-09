@@ -10,5 +10,46 @@ export default {
     state.list.loading = false
     state.list.posts = list
     state.count = list.length
+  },
+
+  UPDATE_ACTION_LOADING(state, { index }) {
+    state.list.posts[index].loading = true
+  },
+
+  CREATE_CONTENT_SUCCESS(state, { post, index }) {
+    state.list.posts[index] = {
+      ...state.list.posts[index],
+      ...post
+    }
+  },
+
+  CREATE_ACTION_SUCCESS(state, { action, index }) {
+    state.list.posts[index].loading = false
+    state.list.posts[index].actions.push(action)
+  },
+
+  DELETE_ACTION_SUCCESS(
+    state,
+    { actionId, actionType, index }
+  ) {
+    state.list.posts[index].loading = false
+
+    if (actionType === 'bookmark') {
+      state.list.posts.splice(index, 1)
+    } else {
+      const deleteIndex = state.list.posts[
+        index
+      ].actions.findIndex((a) => a.id === actionId)
+      state.list.posts[index].actions.splice(deleteIndex, 1)
+    }
+  },
+
+  UPDATE_ACTION_ERROR(state, { index }) {
+    state.list.posts[index].loading = false
+  },
+
+  SORTER_CHANGED(state, payload) {
+    const { activeView, sorter } = payload
+    state.views[activeView.id].sorter = sorter
   }
 }
