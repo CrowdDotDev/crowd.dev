@@ -102,6 +102,7 @@ function models() {
     require('./conversation').default,
     require('./conversationSettings').default,
     require('./eagleEyeContent').default,
+    require('./eagleEyeAction').default,
     require('./automation').default,
     require('./automationExecution').default,
     require('./organization').default,

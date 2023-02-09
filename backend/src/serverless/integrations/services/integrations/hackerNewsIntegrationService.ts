@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html'
+import moment from 'moment'
 import { MemberAttributeName } from '../../../../database/attributes/member/enums'
 import { HackerNewsMemberAttributes } from '../../../../database/attributes/member/hackerNews'
 import MemberAttributeSettingsService from '../../../../services/memberAttributeSettingsService'
@@ -13,9 +14,9 @@ import Operations from '../../../dbOperations/operations'
 import getPost from '../../usecases/hackerNews/getPost'
 import { HackerNewsGrid } from '../../grid/hackerNewsGrid'
 import {
-  EagleEyeResponse,
   HackerNewsResponse,
   HackerNewsIntegrationSettings,
+  HackerNewsSearchResult,
 } from '../../types/hackerNewsTypes'
 import { AddActivitiesSingle } from '../../types/messageTypes'
 import getPostsByKeywords from '../../usecases/hackerNews/getPostsByKeywords'
@@ -43,7 +44,10 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
     this.logger(context).info(`Fetching posts for keywords: ${keywords}`)
     const posts = await getPostsByKeywords(
-      { keywords, nDays: context.onboarding ? 1000000 : 3 },
+      {
+        keywords,
+        after: context.onboarding ? 0 : moment().subtract(30, 'days').unix(),
+      },
       context.serviceContext,
       this.logger(context),
     )
@@ -55,8 +59,8 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
   }
 
   async getStreams(context: IStepContext): Promise<IIntegrationStream[]> {
-    return context.pipelineData.posts.map((a: EagleEyeResponse) => ({
-      value: a.sourceId.slice(a.sourceId.lastIndexOf(':') + 1),
+    return context.pipelineData.posts.map((a: HackerNewsSearchResult) => ({
+      value: a.postId,
       metadata: {
         channel: a.keywords[0],
       },

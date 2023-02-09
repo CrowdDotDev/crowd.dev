@@ -1,12 +1,11 @@
 import Permissions from '../../security/permissions'
-import track from '../../segment/track'
-import EagleEyeContentService from '../../services/eagleEyeContentService'
+import EagleEyeSettingsService from '../../services/eagleEyeSettingsService'
 import PermissionChecker from '../../services/user/permissionChecker'
 
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeActionCreate)
 
-  const payload = await new EagleEyeContentService(req).search()
-  track('EagleEye backend search', { ...req.body }, { ...req })
+  const payload = await new EagleEyeSettingsService(req).update(req.body)
+
   await req.responseHandler.success(req, res, payload)
 }

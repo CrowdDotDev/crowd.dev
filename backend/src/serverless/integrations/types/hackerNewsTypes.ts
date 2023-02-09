@@ -1,22 +1,37 @@
-export interface EagleEyeResponse {
-  vectorId: number
-  sourceId: string
-  title: string
-  url: string
-  createdAt: string
-  text: string
-  username: string
-  platform: string
-  timestamp: string
-  userAttributes: any
-  postAttributes: {
-    commentsCount: number
-    score: number
-  }
-  keywords: string[]
+export interface HackerNewsSearchResponseRaw {
+  hits: [
+    {
+      created_at: string
+      title: string
+      url: string
+      author: string
+      points: number
+      story_text: string
+      comment_text: string | null
+      num_comments: number
+      story_id: string | null
+      story_title: string | null
+      story_url: string | null
+      parent_id: string | null
+      created_at_i: number
+      _tags: string[]
+      objectID: string
+      _highlightResult: {
+        [key: string]: {
+          value: string
+          matchLevel: string
+          matchedWords: string[]
+          fullyHighlighted?: boolean
+        }
+      }
+    },
+  ]
 }
 
-export type EagleEyeResponses = EagleEyeResponse[]
+export interface HackerNewsSearchResult {
+  keywords: string[]
+  postId: number
+}
 
 export interface HackerNewsPost {
   by: string
@@ -49,7 +64,7 @@ export interface HackerNewsIntegrationSettings {
   urls: string[]
 }
 
-export interface EagleEyeInput {
+export interface HackerNewsKeywordSearchInput {
   keywords: string[]
-  nDays: number
+  after: number
 }

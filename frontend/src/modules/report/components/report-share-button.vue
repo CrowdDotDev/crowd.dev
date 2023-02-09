@@ -1,8 +1,12 @@
 <template>
-  <el-dropdown trigger="click" placement="bottom-end"
+  <el-dropdown
+    trigger="click"
+    placement="bottom-end"
+    @visible-change="open = $event"
     ><el-button
       type="button"
       class="btn btn--transparent btn--md"
+      :class="{ '!bg-gray-200': open }"
     >
       <i class="ri-share-line mr-2"></i>Share
     </el-button>
@@ -62,7 +66,12 @@
 
 <script setup>
 import Message from '@/shared/message/message'
-import { computed, defineProps, defineEmits } from 'vue'
+import {
+  ref,
+  computed,
+  defineProps,
+  defineEmits
+} from 'vue'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 
@@ -77,6 +86,8 @@ const props = defineProps({
     required: true
   }
 })
+
+const open = ref(false)
 
 const { doUpdate } = mapActions('report')
 
