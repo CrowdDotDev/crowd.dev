@@ -29,6 +29,7 @@
       <img
         :src="result.post.thumbnail"
         class="object-cover object-center"
+        :alt="result.post.title"
       />
     </div>
 

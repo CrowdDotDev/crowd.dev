@@ -2,23 +2,31 @@ import sharedActions from '@/shared/store/actions'
 import { EagleEyeService } from '@/premium/eagle-eye/eagle-eye-service'
 import Errors from '@/shared/error/errors'
 import moment from 'moment'
+import {
+  getResultsFromStorage,
+  setResultsInStorage,
+  shouldFetchNewResults
+} from '@/premium/eagle-eye/eagle-eye-storage'
 
 export default {
   ...sharedActions('eagleEye'),
   async doFetch(
     { commit, getters, rootGetters },
-    { keepPagination = false }
+    { keepPagination = false, resetStorage = false }
   ) {
     try {
+      const currentUser = rootGetters['auth/currentUser']
+      const currentTenant =
+        rootGetters['auth/currentTenant']
       let list = [],
         count,
         appendToList
+
       commit('FETCH_STARTED', { keepPagination })
 
       // Bookmarks View
       if (getters.activeView.id === 'bookmarked') {
         const { sorter } = getters.activeView
-        const currentUser = rootGetters['auth/currentUser']
         const response = await EagleEyeService.query(
           {
             action: {
@@ -42,7 +50,26 @@ export default {
       }
       // Feed view
       else {
-        list = await EagleEyeService.search()
+        const fetchNewResults =
+          shouldFetchNewResults({
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          }) || resetStorage
+
+        if (fetchNewResults) {
+          list = await EagleEyeService.search()
+
+          setResultsInStorage({
+            posts: list,
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
+        } else {
+          list = getResultsFromStorage({
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
+        }
       }
 
       commit('FETCH_SUCCESS', {
