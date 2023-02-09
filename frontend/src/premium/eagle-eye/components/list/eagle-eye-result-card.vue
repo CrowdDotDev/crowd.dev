@@ -209,7 +209,7 @@ const isBookmarkDisabled = computed(() => {
 })
 
 const bookmarkTooltip = computed(() => {
-  if (!isBookmarkedByUser.value) {
+  if (isBookmarked.value && !isBookmarkedByUser.value) {
     return 'Bookmarked by team member'
   }
 
