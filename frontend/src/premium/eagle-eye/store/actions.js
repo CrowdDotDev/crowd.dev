@@ -101,5 +101,22 @@ export default {
       Errors.handle(error)
       commit('ENGAGE_ERROR')
     }
+  },
+
+  async doUpdateSettings({ commit, dispatch }, data) {
+    try {
+      commit('UPDATE_EAGLE_EYE_SETTINGS_STARTED')
+
+      await EagleEyeService.updateSettings(data)
+
+      await dispatch(`auth/doRefreshCurrentUser`, null, {
+        root: true
+      })
+
+      commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
+    } catch (error) {
+      Errors.handle(error)
+      commit('UPDATE_EAGLE_EYE_SETTINGS_ERROR')
+    }
   }
 }

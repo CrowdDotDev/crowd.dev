@@ -151,6 +151,7 @@ export default () => {
       ids: [],
       loading: false
     },
-    count: 0
+    count: 0,
+    loadingUpdateSettings: false
   }
 }
