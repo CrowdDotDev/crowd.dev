@@ -18,11 +18,31 @@
       </div>
     </div>
   </div>
+
+  <!-- Load more button -->
+  <div
+    v-if="isLoadMoreVisible"
+    class="flex grow justify-center pt-4 mb-12"
+  >
+    <div
+      v-if="loading"
+      v-loading="loading"
+      class="app-page-spinner h-16 w-16 !relative !min-h-fit"
+    ></div>
+    <el-button
+      v-else
+      class="btn btn-link btn-link--primary"
+      @click="onLoadMore"
+      ><i class="ri-arrow-down-line"></i
+      ><span class="text-xs">Load more</span></el-button
+    >
+  </div>
 </template>
 
 <script setup>
 import AppEagleEyeResultCard from '@/premium/eagle-eye/components/list/eagle-eye-result-card.vue'
-import { defineProps } from 'vue'
+import { computed, defineProps } from 'vue'
+import { useStore } from 'vuex'
 
 const props = defineProps({
   list: {
@@ -31,9 +51,33 @@ const props = defineProps({
   }
 })
 
+const store = useStore()
+const loading = computed(
+  () => store.state.eagleEye.list.loading
+)
+const count = computed(() => store.state.eagleEye.count)
+const pagination = computed(
+  () => store.getters['eagleEye/pagination']
+)
+
+const isLoadMoreVisible = computed(() => {
+  return (
+    pagination.value.currentPage *
+      pagination.value.pageSize <
+    count.value
+  )
+})
+
 const getItemsInColumn = (column) => {
   return props.list.filter(
     (_v, i) => (i - column) % 3 === 0
+  )
+}
+
+const onLoadMore = () => {
+  store.dispatch(
+    'eagleEye/doChangePaginationCurrentPage',
+    pagination.value.currentPage + 1
   )
 }
 </script>

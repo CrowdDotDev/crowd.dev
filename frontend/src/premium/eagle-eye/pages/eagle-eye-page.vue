@@ -15,7 +15,9 @@
       class="basis-9/12 overflow-auto overscroll-contain"
     >
       <app-eagle-eye-tabs />
-      <app-eagle-eye-loading-state v-if="loading" />
+      <app-eagle-eye-loading-state
+        v-if="loading && !list.length"
+      />
       <app-empty-state-cta
         v-else-if="!loading && !list.length"
         :icon="emptyStateContent.icon"

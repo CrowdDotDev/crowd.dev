@@ -5,10 +5,15 @@ import moment from 'moment'
 
 export default {
   ...sharedActions('eagleEye'),
-  async doFetch({ commit, getters, rootGetters }) {
+  async doFetch(
+    { commit, getters, rootGetters },
+    { keepPagination = false }
+  ) {
     try {
-      let list = []
-      commit('FETCH_STARTED')
+      let list = [],
+        count,
+        appendToList
+      commit('FETCH_STARTED', { keepPagination })
 
       // Bookmarks View
       if (getters.activeView.id === 'bookmarked') {
@@ -29,6 +34,11 @@ export default {
         )
 
         list = response.rows
+        count = response.count
+
+        if (getters.offset !== 0) {
+          appendToList = true
+        }
       }
       // Feed view
       else {
@@ -36,7 +46,9 @@ export default {
       }
 
       commit('FETCH_SUCCESS', {
-        list
+        list,
+        ...(count && { count }),
+        ...(appendToList && { appendToList })
       })
     } catch (error) {
       Errors.handle(error)

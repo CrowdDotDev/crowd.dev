@@ -2,14 +2,35 @@ import sharedMutations from '@/shared/store/mutations'
 
 export default {
   ...sharedMutations(),
-  FETCH_STARTED(state) {
+  FETCH_STARTED(state, payload) {
     state.list.loading = true
+
+    if (state.table) {
+      state.list.table.clearSelection()
+    }
+
+    if (!payload.keepPagination) {
+      state.list.posts.length = 0
+    }
+
+    state.pagination =
+      payload && payload.keepPagination
+        ? state.pagination
+        : {
+            currentPage: 1,
+            pageSize:
+              state.pagination && state.pagination.pageSize
+          }
   },
 
-  FETCH_SUCCESS(state, { list }) {
+  FETCH_SUCCESS(state, { list, count, appendToList }) {
     state.list.loading = false
-    state.list.posts = list
-    state.count = list.length
+    if (appendToList) {
+      state.list.posts.concat(list)
+    } else {
+      state.list.posts = list
+    }
+    state.count = count
   },
 
   UPDATE_ACTION_LOADING(state, { index }) {

@@ -51,84 +51,109 @@
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-1">
         <el-tooltip placement="top" content="Relevant">
-          <div
-            class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
+          <span
             :class="{
-              'bg-green-100 hover:bg-green-100': isRelevant,
-              'pointer-events-none opacity-50': isLoading
+              '!cursor-auto': isLoading
             }"
-            @click.stop="
-              onThumbsClick({
-                actionType: 'thumbs-up',
-                shouldAdd: !isRelevant
-              })
-            "
+            @click.stop
           >
-            <i
-              class="text-lg group-hover:text-gray-900"
+            <div
+              class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'ri-thumb-up-line text-gray-400':
-                  !isRelevant,
-                'ri-thumb-up-fill text-green-600 group-hover:text-green-600':
-                  isRelevant
+                'bg-green-100 hover:bg-green-100':
+                  isRelevant,
+                'pointer-events-none opacity-50': isLoading
               }"
-            />
-          </div>
+              @click.stop="
+                onThumbsClick({
+                  actionType: 'thumbs-up',
+                  shouldAdd: !isRelevant
+                })
+              "
+            >
+              <i
+                class="text-lg group-hover:text-gray-900"
+                :class="{
+                  'ri-thumb-up-line text-gray-400':
+                    !isRelevant,
+                  'ri-thumb-up-fill text-green-600 group-hover:text-green-600':
+                    isRelevant
+                }"
+              />
+            </div>
+          </span>
         </el-tooltip>
 
         <el-tooltip placement="top" content="Not relevant">
-          <div
-            class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
+          <span
             :class="{
-              'bg-red-100 hover:bg-red-100': isNotRelevant,
-              'pointer-events-none opacity-50': isLoading
+              '!cursor-auto': isLoading
             }"
-            @click.stop="
-              onThumbsClick({
-                actionType: 'thumbs-down',
-                shouldAdd: !isNotRelevant
-              })
-            "
+            @click.stop
           >
-            <i
-              class="text-lg group-hover:text-gray-900"
+            <div
+              class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'ri-thumb-down-line text-gray-400':
-                  !isNotRelevant,
-                'ri-thumb-down-fill text-red-600 group-hover:text-red-600':
-                  isNotRelevant
+                'bg-red-100 hover:bg-red-100':
+                  isNotRelevant,
+                'pointer-events-none opacity-50': isLoading
               }"
-            />
-          </div>
+              @click.stop="
+                onThumbsClick({
+                  actionType: 'thumbs-down',
+                  shouldAdd: !isNotRelevant
+                })
+              "
+            >
+              <i
+                class="text-lg group-hover:text-gray-900"
+                :class="{
+                  'ri-thumb-down-line text-gray-400':
+                    !isNotRelevant,
+                  'ri-thumb-down-fill text-red-600 group-hover:text-red-600':
+                    isNotRelevant
+                }"
+              />
+            </div>
+          </span>
         </el-tooltip>
       </div>
       <el-tooltip
         placement="top"
         :content="bookmarkTooltip"
       >
-        <div
-          class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
+        <span
           :class="{
-            'bg-blue-100 hover:bg-blue-100': isBookmarked,
-            'pointer-events-none opacity-50': isLoading
+            '!cursor-auto': isBookmarkDisabled
           }"
-          @click.stop="
-            onActionClick({
-              actionType: 'bookmark',
-              shouldAdd: !isBookmarked
-            })
-          "
+          @click.stop
         >
-          <i
-            class="text-lg text-gray-400 group-hover:text-gray-900"
+          <div
+            class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
             :class="{
-              'ri-bookmark-line text-gray-400':
-                !isBookmarked,
-              'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
-                isBookmarked
+              'bg-blue-100 hover:bg-blue-100': isBookmarked,
+              'pointer-events-none bg-transparent':
+                isBookmarkDisabled
             }"
-          />
-        </div>
+            @click.stop="
+              onActionClick({
+                actionType: 'bookmark',
+                shouldAdd: !isBookmarked
+              })
+            "
+          >
+            <i
+              class="text-lg text-gray-400 group-hover:text-gray-900"
+              :class="{
+                'ri-bookmark-line text-gray-400':
+                  !isBookmarked,
+                'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
+                  isBookmarked,
+                'text-blue-300': isBookmarkDisabled
+              }"
+            />
+          </div>
+        </span>
       </el-tooltip>
     </div>
   </div>
@@ -139,7 +164,10 @@ import { formatDateToTimeAgo } from '@/utils/date'
 import { computed, defineProps } from 'vue'
 import { platformOptions } from '@/premium/eagle-eye/eagle-eye-constants'
 import { withHttp } from '@/utils/string'
-import { mapActions } from '@/shared/vuex/vuex.helpers'
+import {
+  mapActions,
+  mapGetters
+} from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   result: {
@@ -152,6 +180,7 @@ const props = defineProps({
   }
 })
 
+const { currentUser } = mapGetters('auth')
 const { doAddAction, doRemoveAction } =
   mapActions('eagleEye')
 
@@ -165,7 +194,24 @@ const isRelevant = computed(() =>
 const isNotRelevant = computed(() =>
   props.result.actions.some((a) => a.type === 'thumbs-down')
 )
+const isBookmarkedByUser = computed(
+  () =>
+    props.result.actions.find((a) => a.type === 'bookmark')
+      ?.actionById === currentUser.value.id
+)
+
+const isBookmarkDisabled = computed(() => {
+  return (
+    isLoading.value ||
+    (isBookmarked.value && !isBookmarkedByUser.value)
+  )
+})
+
 const bookmarkTooltip = computed(() => {
+  if (!isBookmarkedByUser.value) {
+    return 'Bookmarked by team member'
+  }
+
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
 })
 

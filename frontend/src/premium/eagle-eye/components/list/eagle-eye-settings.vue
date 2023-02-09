@@ -8,7 +8,10 @@
     </div>
 
     <!-- Keywords -->
-    <div v-if="keywords.length" class="my-8">
+    <div
+      v-if="keywords.length || exactKeywords.length"
+      class="my-8"
+    >
       <div class="eagle-eye-settings-small-title">
         Keywords
       </div>
@@ -19,6 +22,13 @@
           class="text-xs text-gray-900 px-2 h-6 flex items-center bg-white border-gray-200 border rounded-md"
         >
           {{ keyword }}
+        </div>
+        <div
+          v-for="exactKeyword in exactKeywords"
+          :key="exactKeyword"
+          class="text-xs text-gray-900 px-2 h-6 flex items-center bg-white border-gray-200 border rounded-md"
+        >
+          "{{ exactKeyword }}"
         </div>
       </div>
     </div>
@@ -73,9 +83,16 @@ const keywords = computed(() => {
     return []
   }
 
-  const { keywords, exactKeywords } = eagleEyeSettings.feed
+  return eagleEyeSettings.feed.keywords
+})
+const exactKeywords = computed(() => {
+  const { eagleEyeSettings } = currentUser.value
 
-  return keywords.concat(...exactKeywords)
+  if (!eagleEyeSettings?.feed) {
+    return []
+  }
+
+  return eagleEyeSettings.feed.exactKeywords
 })
 const platforms = computed(() => {
   const { eagleEyeSettings } = currentUser.value
