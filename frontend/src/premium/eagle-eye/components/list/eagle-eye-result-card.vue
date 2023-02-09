@@ -37,10 +37,11 @@
       <h6 v-if="result.post.title" class="black mb-3">
         {{ result.post.title }}
       </h6>
-      <app-parsed-html
-        :description="result.post.description"
+      <div
         class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4"
-      />
+      >
+        {{ result.post.description }}
+      </div>
     </div>
 
     <!-- Actions footer -->
