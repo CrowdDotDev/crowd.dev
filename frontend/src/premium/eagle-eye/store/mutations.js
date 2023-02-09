@@ -51,5 +51,17 @@ export default {
   SORTER_CHANGED(state, payload) {
     const { activeView, sorter } = payload
     state.views[activeView.id].sorter = sorter
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_STARTED(state) {
+    state.loadingUpdateSettings = true
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_SUCCESS(state) {
+    state.loadingUpdateSettings = false
+  },
+
+  UPDATE_EAGLE_EYE_SETTINGS_ERROR(state) {
+    state.loadingUpdateSettings = false
   }
 }

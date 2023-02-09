@@ -24,6 +24,7 @@ export default () => {
       posts: [],
       loading: false
     },
-    count: 0
+    count: 0,
+    loadingUpdateSettings: false
   }
 }

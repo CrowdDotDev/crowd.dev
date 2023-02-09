@@ -24,11 +24,11 @@
     <!-- Image -->
     <div
       v-if="result.post.thumbnail"
-      class="rounded min-h-30 max-h-30 w-full overflow-hidden flex mt-4"
+      class="rounded max-h-30 w-full overflow-hidden flex mt-4"
     >
       <img
         :src="result.post.thumbnail"
-        class="object-cover object-center w-full"
+        class="object-cover object-center"
       />
     </div>
 

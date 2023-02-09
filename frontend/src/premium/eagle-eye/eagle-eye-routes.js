@@ -22,6 +22,11 @@ const EagleEyeMainPage = async () => {
   return EagleEyePage()
 }
 
+const EagleEyeOnboardPage = () =>
+  import(
+    '@/premium/eagle-eye/pages/eagle-eye-onboard-page.vue'
+  )
+
 const EagleEyePage = () =>
   import('@/premium/eagle-eye/pages/eagle-eye-page.vue')
 
@@ -49,6 +54,15 @@ export default [
           module: 'eagleEye'
         },
         beforeEnter: async (to, _from, next) => {
+          // Redirect to onboard page if user is not onboarded
+          if (await isEagleEyeFeatureEnabled()) {
+            const currentUser =
+              store.getters['auth/currentUser']
+            if (!currentUser.eagleEyeSettings?.onboarded) {
+              next('/eagle-eye/onboard')
+            }
+          }
+
           if (
             to.query.activeTab !== undefined &&
             store.getters['eagleEye/activeView'].id !==
@@ -58,6 +72,26 @@ export default [
               'eagleEye/doChangeActiveView',
               to.query.activeTab
             )
+          }
+
+          next()
+        }
+      },
+      {
+        name: 'eagleEyeOnboard',
+        path: '/eagle-eye/onboard',
+        component: EagleEyeOnboardPage,
+        exact: true,
+        meta: {
+          auth: true,
+          permission: Permissions.values.eagleEyeRead
+        },
+        beforeEnter: async (to, _from, next) => {
+          const currentUser =
+            store.getters['auth/currentUser']
+          // Redirect to onboard page if user is not onboarded
+          if (currentUser.eagleEyeSettings?.onboarded) {
+            next('/eagle-eye')
           }
 
           next()

@@ -23,15 +23,6 @@
       </button>
       <template #dropdown>
         <el-dropdown-item
-          v-if="report.public && showViewReportPublic"
-          :command="{
-            action: 'reportPublicUrl',
-            report: report
-          }"
-          ><i class="ri-link mr-1"></i>Copy Public
-          Url</el-dropdown-item
-        >
-        <el-dropdown-item
           v-if="showViewReport"
           :command="{
             action: 'reportView',
@@ -48,6 +39,15 @@
           }"
           ><i class="ri-pencil-line mr-1" />Edit
           Report</el-dropdown-item
+        >
+        <el-dropdown-item
+          v-if="report.public && showViewReportPublic"
+          :command="{
+            action: 'reportPublicUrl',
+            report: report
+          }"
+          ><i class="ri-link mr-1"></i>Copy Public
+          Url</el-dropdown-item
         >
         <el-divider
           v-if="showEditReport || showViewReportPublic"
