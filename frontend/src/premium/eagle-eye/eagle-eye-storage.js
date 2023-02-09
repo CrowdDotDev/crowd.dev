@@ -19,14 +19,18 @@ export const shouldFetchNewResults = ({
 
   // Fetch new results if it is a new day from the previous stored one,
   // or if storage is not set or if user is not set in storage
-  const userNotStore =
-    !JSON.parse(storage)[tenantId]?.[userId]
-  const isNotToday = !currentDay.isSame(
-    JSON.parse(storage)[tenantId][userId].storageDate,
-    'd'
-  )
+  if (
+    !storage ||
+    !JSON.parse(storage)[tenantId]?.[userId] ||
+    !currentDay.isSame(
+      JSON.parse(storage)[tenantId][userId].storageDate,
+      'd'
+    )
+  ) {
+    return true
+  }
 
-  return !storage || userNotStore || isNotToday
+  return false
 }
 
 // Get posts from local storage
@@ -37,7 +41,7 @@ export const getResultsFromStorage = ({
   const storage = localStorage.getItem('eagleEyeResults')
 
   if (!storage) {
-    return []
+    return null
   }
 
   return JSON.parse(storage)[tenantId][userId].posts
@@ -61,7 +65,6 @@ export const setResultsInStorage = ({
   if (storage[tenantId]) {
     storage[tenantId][userId] = payload
   } else {
-    // Add/update user posts in new tenantId
     storage[tenantId] = {
       [userId]: payload
     }
