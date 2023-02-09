@@ -126,6 +126,8 @@ export default class EagleEyeContentRepository {
       const parsedActionQuery: QueryOutput = actionQueryParser.parse({
         filter: advancedFilter.action,
         orderBy: 'timestamp_DESC',
+        limit,
+        offset,
       })
 
       actionsSequelizeInclude.where = parsedActionQuery.where ?? {}

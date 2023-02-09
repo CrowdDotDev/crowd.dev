@@ -18,7 +18,10 @@ export default class EagleEyeActionService extends LoggingBase {
     const transaction = await SequelizeRepository.createTransaction(this.options)
 
     // find content
-    const content = await EagleEyeContentRepository.findById(contentId, this.options)
+    const content = await EagleEyeContentRepository.findById(contentId, {
+      ...this.options,
+      transaction,
+    })
 
     if (!content) {
       throw new Error404(this.options.language, 'errors.eagleEye.contentNotFound')

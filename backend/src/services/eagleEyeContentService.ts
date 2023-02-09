@@ -94,7 +94,7 @@ export default class EagleEyeContentService extends LoggingBase {
       default:
         return null
     }
-    return dateMoment.add(offset, 'days').format('YYYY-MM-DD')
+    return dateMoment.subtract(offset, 'days').format('YYYY-MM-DD')
   }
 
   async search(email = false) {
@@ -137,7 +137,7 @@ export default class EagleEyeContentService extends LoggingBase {
     const interacted = (
       await this.query({
         filter: {
-          postedAt: { gt: EagleEyeContentService.switchDate(feedSettings.publishedDate, 15) },
+          postedAt: { gt: EagleEyeContentService.switchDate(feedSettings.publishedDate, 90) },
         },
       })
     ).rows
