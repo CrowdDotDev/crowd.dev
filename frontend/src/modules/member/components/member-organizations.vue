@@ -96,6 +96,11 @@ export default {
 
 <script setup>
 import { defineProps, ref } from 'vue'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 import { useRouter } from 'vue-router'
 
@@ -118,9 +123,17 @@ const props = defineProps({
 const isUpgradeModalOpen = ref(false)
 
 const onOrganizationClick = async (organization) => {
-  router.push({
-    name: 'organizationView',
-    params: { id: organization.id }
-  })
+  const isFlagEnabled = await isFeatureEnabled(
+    featureFlags.organizations
+  )
+
+  if (config.hasPremiumModules && isFlagEnabled) {
+    router.push({
+      name: 'organizationView',
+      params: { id: organization.id }
+    })
+  } else {
+    isUpgradeModalOpen.value = true
+  }
 }
 </script>

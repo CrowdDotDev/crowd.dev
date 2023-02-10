@@ -40,6 +40,11 @@
 <script>
 import AppAvatar from '@/shared/avatar/avatar.vue'
 import AppLoading from '@/shared/loading/loading-placeholder.vue'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
 export default {
@@ -72,10 +77,18 @@ export default {
   },
   methods: {
     async onOrganizationClick() {
-      this.$router.push({
-        name: 'organizationView',
-        params: { id: this.organization.id }
-      })
+      const isFlagEnabled = await isFeatureEnabled(
+        featureFlags.organizations
+      )
+
+      if (config.hasPremiumModules && isFlagEnabled) {
+        this.$router.push({
+          name: 'organizationView',
+          params: { id: this.organization.id }
+        })
+      } else {
+        this.isUpgradeModalOpen = true
+      }
     }
   }
 }

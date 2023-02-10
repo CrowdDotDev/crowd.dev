@@ -93,6 +93,11 @@ export const processWebhook = async (message: any) => {
 
         await timeout(2000)
 
+        // Ensure a growth specific flag is available before sending websocket message
+        await ensureFlagUpdated(FeatureFlag.ORGANIZATIONS, tenantId, posthog, {
+          plan: Plans.values.growth,
+        })
+
         log.info('Emitting to redis pubsub for websocket forwarding from api..')
 
         // Wait few more seconds to ensure redirect is completed
