@@ -351,8 +351,7 @@ const en = {
         replied: 'replied to a message',
         replied_thread: 'replied to a thread',
         started_thread: 'started a new thread',
-        joined_guild: 'joined server',
-        left_guild: 'left server'
+        joined_guild: 'joined server'
       },
       slack: {
         contributed_to_community:
