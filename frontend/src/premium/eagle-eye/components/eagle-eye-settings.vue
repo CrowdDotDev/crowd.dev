@@ -6,7 +6,12 @@
           Keywords
         </h5>
 
-        <el-form ref="formRef" :model="form" :rules="rules">
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="rules"
+          @validate="validate()"
+        >
           <!-- include -->
           <section class="pb-8">
             <p
@@ -22,9 +27,9 @@
               :key="ii"
               class="pb-3 flex items-center"
             >
-              <div class="flex flex-grow items-center">
+              <div class="flex flex-grow items-start">
                 <el-form-item
-                  class="mr-3 mb-0 no-margin basis-7/12"
+                  class="mr-3 mb-0 no-margin basis-7/12 is-error-relative"
                   :prop="`include.${ii}.keyword`"
                   :rules="rules.include.$each.keyword"
                 >
@@ -34,7 +39,7 @@
                   ></el-input>
                 </el-form-item>
                 <el-form-item
-                  class="mr-3 mb-0 no-margin basis-5/12"
+                  class="mr-3 mb-0 no-margin basis-5/12 is-error-relative"
                   :prop="`include.${ii}.match`"
                   :rules="rules.include.$each.match"
                 >
@@ -114,7 +119,6 @@
               <el-form-item
                 class="mr-3 mb-0 no-margin flex-grow"
                 :prop="`exclude.${ei}.keyword`"
-                :rules="rules.exclude.$each.keyword"
               >
                 <el-input
                   v-model="exclude.keyword"
@@ -216,10 +220,12 @@
           @click="emit('update:modelValue', false)"
           >Cancel
         </el-button>
+
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
+          :disabled="!isFormValid"
           @click="onSubmit(formRef)"
           >Update
         </el-button>
@@ -268,32 +274,14 @@ const rules = reactive({
       keyword: [
         {
           required: true,
-          message: 'Please enter keyword',
+          message: 'This field is required',
           trigger: 'blur'
         }
       ],
       match: [
         {
           required: true,
-          message: 'Please select match type',
-          trigger: 'blur'
-        }
-      ]
-    }
-  },
-  exclude: {
-    $each: {
-      keyword: [
-        {
-          required: true,
-          message: 'Please enter keyword',
-          trigger: 'blur'
-        }
-      ],
-      match: [
-        {
-          required: true,
-          message: 'Please select match type',
+          message: 'This field is required',
           trigger: 'blur'
         }
       ]
@@ -302,7 +290,7 @@ const rules = reactive({
   datePublished: [
     {
       required: true,
-      message: 'Please select date published',
+      message: 'This field is required',
       trigger: 'blur'
     }
   ],
@@ -331,6 +319,17 @@ const form = reactive({
   exclude: [],
   datePublished: '',
   platforms: {}
+})
+
+const isFormValid = computed(() => {
+  const includeValid = form.include.every(
+    (i) => i.keyword.length > 0 && i.match.length > 0
+  )
+  const platformsValid =
+    Object.values({
+      ...form.platforms
+    }).filter((v) => v).length > 0
+  return includeValid && platformsValid
 })
 
 const drawerModel = computed({
@@ -369,7 +368,7 @@ const addExclude = () => {
 }
 
 const removeExclude = (index) => {
-  form.include.splice(index, 1)
+  form.exclude.splice(index, 1)
 }
 
 const fillForm = (user) => {
@@ -410,9 +409,9 @@ const onSubmit = async (formEl) => {
         exactKeywords: form.include
           .filter((i) => i.match === 'exact')
           .map((i) => i.keyword),
-        excludedKeywords: form.exclude.map(
-          (e) => e.keyword
-        ),
+        excludedKeywords: form.exclude
+          .filter((e) => e.keyword.trim().length > 0)
+          .map((e) => e.keyword),
         publishedDate: form.datePublished,
         platforms: Object.entries(form.platforms)
           .filter(([, enabled]) => enabled)
