@@ -184,7 +184,7 @@ export class IntegrationProcessor extends LoggingBase {
     }
   }
 
-  async processWebhook(webhookId: string) {
+  async processWebhook(webhookId: string, force?: boolean) {
     let logger = createChildLogger('processWebhook', this.log, { webhookId })
     logger.debug('Processing webhook!')
 
@@ -205,7 +205,7 @@ export class IntegrationProcessor extends LoggingBase {
 
     logger.info('Webhook found!')
 
-    if (webhook.state !== WebhookState.PENDING) {
+    if (!(force === true) && webhook.state !== WebhookState.PENDING) {
       logger.error({ state: webhook.state }, 'Webhook is not in pending state!')
       return
     }

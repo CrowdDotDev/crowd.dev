@@ -46,5 +46,5 @@ export const processWebhook = async (
 
   const processor = new IntegrationProcessor(options, redisEmitter)
 
-  await processor.processWebhook(msg.webhookId)
+  await processor.processWebhook(msg.webhookId, msg.force)
 }

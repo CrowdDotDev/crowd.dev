@@ -1,6 +1,6 @@
 import moment from 'moment/moment'
 import lodash from 'lodash'
-import { TextChannelType, ChannelType } from 'discord.js'
+import { ChannelType, MessageType } from 'discord.js'
 import {
   DiscordMembers,
   DiscordMention,
@@ -169,11 +169,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
     const log = this.logger(context)
-
-    const redis = await createRedisClient(true)
-    context.pipelineData = {
-      channelCache: new RedisCache('discord-channels', redis),
-    }
 
     const { event, data } = webhook.payload as DiscordWebsocketPayload
 
@@ -493,56 +488,35 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     let isForum = false
     let guildId: string
 
-    const cache: RedisCache = context.pipelineData.channelCache
     if (message.thread) {
-      await cache.setValue(message.thread.id, JSON.stringify(message.thread), 24 * 60 * 60)
-
+      await DiscordIntegrationService.cacheChannel(message.thread, context)
       channel = message.thread.name
       sourceParentId = message.thread.id
       guildId = message.thread.guild_id
     } else {
-      let channelObj
-      const channelString = await cache.getValue(message.channel_id)
-      if (channelString) {
-        channelObj = JSON.parse(channelString)
-      } else {
-        channelObj = await getChannel(
-          message.channel_id,
-          DiscordIntegrationService.getToken(context),
-          logger,
-        )
-        await cache.setValue(message.channel_id, JSON.stringify(channelObj), 24 * 60 * 60)
-      }
+      const channelObj = await DiscordIntegrationService.getChannel(
+        message.channel_id,
+        context,
+        logger,
+      )
 
       channel = channelObj.name
       guildId = channelObj.guild_id
-      const threadChannels: TextChannelType[] = [
-        ChannelType.PublicThread,
-        ChannelType.PrivateThread,
-      ]
 
-      if (threadChannels.includes(channelObj.type)) {
+      if (DiscordIntegrationService.isThread(channelObj)) {
         sourceParentId = channelObj.id
         isThread = true
-      } else if (message.message_reference_message_id) {
-        sourceParentId = message.message_reference_message_id
+      } else if (message.message_reference?.message_id) {
+        sourceParentId = message.message_reference.message_id
       }
 
       if (isThread) {
-        const parentChannelString = await cache.getValue(channelObj.parent_id)
-        let parentChannelObj
-        if (parentChannelString) {
-          parentChannelObj = JSON.parse(parentChannelString)
-        } else {
-          parentChannelObj = await getChannel(
-            channelObj.parent_id,
-            DiscordIntegrationService.getToken(context),
-            logger,
-          )
-          await cache.setValue(parentChannelObj.id, JSON.stringify(parentChannelObj), 24 * 60 * 60)
-        }
-
-        isForum = parentChannelObj.type === ChannelType.GuildForum
+        const parentChannelObj = await DiscordIntegrationService.getChannel(
+          channelObj.parent_id,
+          context,
+          logger,
+        )
+        isForum = DiscordIntegrationService.isForum(parentChannelObj)
       }
     }
 
@@ -655,7 +629,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         avatarUrl = `https://cdn.discordapp.com/avatars/${record.author.id}/${record.author.avatar}.png`
       }
 
-      if (!record.author.bot) {
+      if (!record.author.bot && [MessageType.Default, MessageType.Reply].includes(record.type)) {
         const activityObject = {
           tenant: context.integration.tenantId,
           platform: PlatformType.DISCORD,
@@ -753,5 +727,44 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       default:
         throw new Error(`Unknown stream ${stream.value}!`)
     }
+  }
+
+  private static async cacheChannel(channel: any, context: IStepContext): Promise<void> {
+    if (!context.pipelineData.channelCache) {
+      const redis = await createRedisClient(true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+    }
+
+    const cache = context.pipelineData.channelCache as RedisCache
+
+    await cache.setValue(channel.id, JSON.stringify(channel), 24 * 60 * 60)
+  }
+
+  private static async getChannel(id: string, context: IStepContext, logger: Logger): Promise<any> {
+    if (!context.pipelineData.channelCache) {
+      const redis = await createRedisClient(true)
+      context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
+    }
+
+    const cache = context.pipelineData.channelCache as RedisCache
+
+    const cached = await cache.getValue(id)
+
+    if (cached) {
+      return JSON.parse(cached)
+    }
+
+    const channel = await getChannel(id, DiscordIntegrationService.getToken(context), logger)
+    await cache.setValue(id, JSON.stringify(channel), 24 * 60 * 60)
+
+    return channel
+  }
+
+  private static isForum(channel: any): boolean {
+    return channel.type === ChannelType.GuildForum
+  }
+
+  private static isThread(channel: any): boolean {
+    return channel.type === ChannelType.PublicThread || channel.type === ChannelType.PrivateThread
   }
 }
