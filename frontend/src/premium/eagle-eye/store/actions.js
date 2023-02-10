@@ -83,7 +83,10 @@ export default {
     }
   },
 
-  async doAddAction({ commit }, { post, action, index }) {
+  async doAddAction(
+    { state, commit, rootGetters },
+    { post, action, index }
+  ) {
     try {
       commit('UPDATE_ACTION_LOADING', {
         index
@@ -116,13 +119,24 @@ export default {
         action: actionResponse,
         index
       })
+
+      // Update local storage with updated action
+      const currentUser = rootGetters['auth/currentUser']
+      const currentTenant =
+        rootGetters['auth/currentTenant']
+
+      setResultsInStorage({
+        posts: state.list.posts,
+        tenantId: currentTenant.id,
+        userId: currentUser.id
+      })
     } catch (error) {
       commit('UPDATE_ACTION_ERROR')
     }
   },
 
   async doRemoveAction(
-    { commit },
+    { state, commit, getters, rootGetters },
     { postId, actionId, actionType, index }
   ) {
     try {
@@ -138,7 +152,19 @@ export default {
       commit('DELETE_ACTION_SUCCESS', {
         actionId,
         actionType,
-        index
+        index,
+        activeView: getters.activeView.id
+      })
+
+      // Update local storage with updated action
+      const currentUser = rootGetters['auth/currentUser']
+      const currentTenant =
+        rootGetters['auth/currentTenant']
+
+      setResultsInStorage({
+        posts: state.list.posts,
+        tenantId: currentTenant.id,
+        userId: currentUser.id
       })
     } catch (error) {
       commit('UPDATE_ACTION_ERROR')

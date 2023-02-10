@@ -26,9 +26,8 @@
       v-if="result.post.thumbnail"
       class="rounded max-h-30 w-full overflow-hidden flex mt-4"
     >
-      <img
+      <app-image
         :src="result.post.thumbnail"
-        class="object-cover object-center"
         :alt="result.post.title"
       />
     </div>
@@ -147,10 +146,11 @@
               class="text-lg text-gray-400 group-hover:text-gray-900"
               :class="{
                 'ri-bookmark-line text-gray-400':
-                  !isBookmarked,
+                  !isBookmarked && !isBookmarkDisabled,
                 'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
-                  isBookmarked,
-                'text-blue-300': isBookmarkDisabled
+                  isBookmarked && !isBookmarkDisabled,
+                'ri-bookmark-fill text-blue-300':
+                  isBookmarkDisabled
               }"
             />
           </div>

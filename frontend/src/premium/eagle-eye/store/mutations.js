@@ -51,17 +51,25 @@ export default {
 
   DELETE_ACTION_SUCCESS(
     state,
-    { actionId, actionType, index }
+    { actionId, actionType, index, activeView }
   ) {
     state.list.posts[index].loading = false
 
-    if (actionType === 'bookmark') {
+    // Remove post from bookmarks view
+    if (
+      actionType === 'bookmark' &&
+      activeView === 'bookmarked'
+    ) {
       state.list.posts.splice(index, 1)
+      // Remove action from post
     } else {
       const deleteIndex = state.list.posts[
         index
       ].actions.findIndex((a) => a.id === actionId)
+
+      console.log(state.list.posts[index].actions)
       state.list.posts[index].actions.splice(deleteIndex, 1)
+      console.log(state.list.posts[index].actions)
     }
   },
 

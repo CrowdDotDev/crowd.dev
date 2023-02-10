@@ -62,8 +62,7 @@ const sorterOptions = [
   {
     value: 'teamBookmarks',
     label: 'Team bookmarks',
-    description:
-      'Only results bookmarked by members of your team'
+    description: 'All posts bookmarked by your team'
   }
 ]
 </script>
