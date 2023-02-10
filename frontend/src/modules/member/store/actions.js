@@ -366,7 +366,7 @@ export default {
     }
   },
 
-  async doBulkEnrich({ rootGetters }, ids) {
+  async doBulkEnrich({ rootGetters, dispatch }, ids) {
     try {
       const currentTenant =
         rootGetters['auth/currentTenant']
@@ -403,6 +403,8 @@ export default {
       showEnrichmentLoadingMessage({ isBulk: true })
 
       await MemberService.enrichMemberBulk(ids)
+
+      await dispatch('doFetchCustomAttributes')
     } catch (error) {
       Message.closeAll()
       Errors.handle(error)

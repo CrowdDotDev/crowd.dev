@@ -6,7 +6,8 @@
         "twitter": "gilfoyle",
         "discord": "bg69",
         "github": "gilfoyle",
-        "devto": "iamgilfoyle"
+        "devto": "iamgilfoyle",
+        "linkedin": "gilfoyle"
       },
       "attributes": {
         "bio": {
@@ -51,7 +52,8 @@
         "twitter": "richhendricks",
         "discord": "rhndrcks",
         "github": "rhendricks",
-        "devto": "iamrichard"
+        "devto": "iamrichard",
+        "linkedin": "richardhendricks"
       },
       "attributes": {
         "bio": {
@@ -96,7 +98,8 @@
         "twitter": "erlichbach",
         "discord": "baaaaachman",
         "github": "bachman",
-        "devto": "ebachman"
+        "devto": "ebachman",
+        "linkedin": "erlichbachman"
       },
       "attributes": {
         "bio": {
@@ -141,7 +144,8 @@
         "twitter": "bighead",
         "discord": "bGbghead",
         "github": "bighead",
-        "devto": "bigheader"
+        "devto": "bigheader",
+        "linkedin": "bighead"
       },
       "attributes": {
         "bio": {
@@ -186,7 +190,8 @@
         "twitter": "dinesh",
         "discord": "dineshish",
         "github": "dinesh",
-        "devto": "dinesh"
+        "devto": "dinesh",
+        "linkedin": "dinesh"
       },
       "attributes": {
         "bio": {
@@ -231,7 +236,8 @@
         "twitter": "petgregory",
         "discord": "pgregory",
         "github": "pgregory",
-        "devto": "thegregory"
+        "devto": "thegregory",
+        "linkedin": "pgregory"
       },
       "attributes": {
         "bio": {
@@ -276,7 +282,8 @@
         "twitter": "monicahall",
         "discord": "monimoni",
         "github": "monicahall",
-        "devto": "iamthemonica"
+        "devto": "iamthemonica",
+        "linkedin": "monicahall"
       },
       "attributes": {
         "bio": {
@@ -340,7 +347,8 @@
         "twitter": "jared",
         "discord": "jaredjared",
         "github": "jaredjared",
-        "devto": "jaredjared"
+        "devto": "jaredjared",
+        "linkedin": "jaredjared"
       },
       "attributes": {
         "bio": {
@@ -385,7 +393,8 @@
         "twitter": "gavin",
         "discord": "gavinbelson",
         "github": "gavinbelson",
-        "devto": "thebelson"
+        "devto": "thebelson",
+        "linkedin": "gavinbelson"
       },
       "attributes": {
         "bio": {
@@ -430,7 +439,8 @@
         "twitter": "jianyang",
         "discord": "jianyang",
         "github": "thejian",
-        "devto": "jianyang"
+        "devto": "jianyang",
+        "linkedin": "jianyang"
       },
       "attributes": {
         "bio": {
@@ -475,7 +485,8 @@
         "twitter": "lauriebream",
         "discord": "lrbream",
         "github": "lauriebream",
-        "devto": "lauriebream"
+        "devto": "lauriebream",
+        "linkedin": "lauriebream"
       },
       "attributes": {
         "bio": {
@@ -539,7 +550,8 @@
         "twitter": "russhanneman",
         "discord": "russhanneman",
         "github": "russhanneman",
-        "devto": "russhanneman"
+        "devto": "russhanneman",
+        "linkedin": "russhanneman"
       },
       "attributes": {
         "bio": {
@@ -564,7 +576,8 @@
         "twitter": "barker",
         "discord": "thebarker",
         "github": "barker",
-        "devto": "iambarker"
+        "devto": "iambarker",
+        "linkedin": "barker"
       },
       "attributes": {
         "bio": {
@@ -610,11 +623,10 @@
         "member": "Jared Dunn",
         "timestamp": "2022-09-19T18:50:47",
         "title": "Jared about his dancing skills",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Oh, I was the sloppy girl in the discotheque, just twirling and twirling like the night would never end.",
         "sourceId": "mqngwkgehkjygpu",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 10.912733525037766,
@@ -817,11 +829,11 @@
       {
         "member": "Gavin Belson",
         "timestamp": "2022-09-22T14:25:22",
-        "channel": "random",
-        "type": "message",
+        "type": "comment",
+        "title": "Pied-Piper on TechCrunch Disrupt",
         "body": "Since leaving Hooli, I've co-authored 37 adult romance novels. Fondly, Margeaux. The Lighthouse Dancer. Cold Ice Cream and Hot Kisses. Over here, The Prince of Puget Sound. Uh, and lastly, His Hazel Glance. All international best sellers.",
         "sourceId": "tpelkkzsmkyjvgj",
-        "platform": "discord",
+        "platform": "linkedin",
         "sentiment": {
           "label": "positive",
           "mixed": 0.003578843461582437,
@@ -1230,11 +1242,11 @@
       {
         "member": "Russ Hanneman",
         "timestamp": "2022-09-22T07:11:33",
-        "channel": "random",
-        "type": "message",
+        "type": "comment",
+        "title": "Puddle of Mudd",
         "body": "Crazy Town's gonna be there. So is Puddle of Mudd. You know Puddle of Mudd?",
         "sourceId": "oirewrmvkwlnvdn",
-        "platform": "discord",
+        "platform": "linkedin",
         "sentiment": {
           "label": "neutral",
           "mixed": 0.0074948969995602965,
@@ -2150,11 +2162,10 @@
         "member": "Big Head",
         "timestamp": "2022-09-25T21:06:09",
         "title": "New products by Hooli",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Truth be told, we kind of put all our eggs into this basket, but we do have the awesome potato cannon, though. Although, actually, this one is broken. We tried to put a Mr. Potato Head in it, and it did not like that.",
         "sourceId": "oxyjfxvfwzhpjgp",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 6.249425187706947,
@@ -2244,11 +2255,10 @@
         "member": "Gavin Belson",
         "timestamp": "2022-09-21T22:58:47",
         "title": "Hooli XYZ announcement",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "I give you Dr. Bannerchek, the one and only man fit to be the first head dreamer of Hooli XYZ. Also I give you the one and only man fit to be his co-head dreamer, our very own Nelson Bighetti, otherwise known around here as \"Baghead\". Come on up here, Baghead.",
         "sourceId": "pthbwnuqhvlkenm",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "neutral",
           "mixed": 0.036339747020974755,
@@ -2755,10 +2765,11 @@
         "member": "Laurie Bream",
         "timestamp": "2022-09-25T01:25:59",
         "channel": "raviga",
+        "title": "101 VC: How to write a pass email to a startup",
         "type": "message",
         "body": "Dress unattractively when you tell them. I read a study. The less interest they feel for you, the less perturbing it will be. It sounds strange, but it's credible. May I suggest the beige ensemble in which you came to work Tuesday?",
         "sourceId": "mggyucxyfbabtux",
-        "platform": "discord",
+        "platform": "linkedin",
         "sentiment": {
           "label": "mixed",
           "mixed": 63.57584595680237,
@@ -2994,11 +3005,10 @@
         "member": "Richard Hendricks",
         "timestamp": "2022-09-24T16:45:06",
         "title": "Data Manipulation RFC",
-        "channel": "PiedPiper/pied-piper",
-        "type": "pull_request-opened",
+        "type": "comment",
         "body": "Last night I was watching my friends here have this argument. About, you know, manipulating data And, you know, how many datas could one guy manipulate at once and, uh And I was just I was thinking. Maybe it could be another way, you know? Something that I would call, \"middle out\".",
         "sourceId": "fdytfoajevbdzwf",
-        "platform": "github",
+        "platform": "linkedin",
         "sentiment": {
           "label": "neutral",
           "mixed": 0.03720761160366237,
@@ -3014,11 +3024,10 @@
         "member": "Gavin Belson",
         "timestamp": "2022-09-18T08:35:16",
         "title": "Nucleus is the fastest platform ever",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Anyone who tells you their platform is faster than ours better have good lawyers.",
         "sourceId": "ruuvmolczbcxqrc",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "positive",
           "mixed": 0.04908519913442433,
@@ -3973,11 +3982,10 @@
         "member": "Erlich Bachman",
         "timestamp": "2022-09-29T01:52:53",
         "title": "Naming for the company",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Are you serious? Lowercase letters? Twitter, lowercase \"t\". Google, lowercase \"g\". Facebook, lowercase \"f\". Every company in the Valley has lowercase letters. Why? Because it's safe.",
         "sourceId": "xfmvdxgsvplyyzh",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 0.004434339643921703,
@@ -4105,11 +4113,10 @@
         "member": "Gavin Belson",
         "timestamp": "2022-09-29T03:43:49",
         "title": "Hooli Chat is awesome",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "The audio's still working! Audio worked a hundred years ago!",
         "sourceId": "owepzuqzfivbgpx",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "mixed",
           "mixed": 46.8488872051239,
@@ -5153,11 +5160,10 @@
         "member": "Gavin Belson",
         "timestamp": "2022-09-26T01:09:39",
         "title": "Revolutionary ideas at Hooli",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "If we can make your audio and video files smaller, we can make cancer smaller. And hunger. And... AIDS.",
         "sourceId": "cakszdxzeltqmca",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "neutral",
           "mixed": 10.653513669967651,
@@ -5542,11 +5548,10 @@
         "member": "Erlich Bachman",
         "timestamp": "2022-09-26T23:14:04",
         "title": "Making the world a better place",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Infotrode Cloud-based, disruptive platforms. Disrupting the cloud through I said cloud twice. Making the world a better place through cross-platform business facing cloud. There's that cloud again! Info-trode, Info-trode!? What is Info-trode? What is that? It's all just meaningless words! Ok. No, no, no Making the world a better place. Making the world a better place. Making the world a better place...",
         "sourceId": "ggzqxkttplmbube",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 1.1531402356922626,
@@ -5766,11 +5771,10 @@
         "member": "Erlich Bachman",
         "timestamp": "2022-09-24T17:36:01",
         "title": "All truth about Silicon Valley",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "Let me explain something to you. Your whole life you've been an ugly chick but now suddenly you're a hot chick, with big tits and small nipples. So guys like that are gonna keep coming around. Don't be a slut, Richard.",
         "sourceId": "tydpmatdmzaxncu",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 1.4293895103037357,
@@ -6299,11 +6303,10 @@
         "member": "Gavin Belson",
         "timestamp": "2022-09-19T22:25:23",
         "title": "All truth about programmers",
-        "channel": "pied-piper",
         "type": "comment",
         "body": "It's weird. They always travel in groups of five. These programmers, there's always a tall, skinny white guy; short, skinny Asian guy; fat guy with a ponytail; some guy with crazy facial hair; and then an East Indian guy. It's like they trade guys until they all have the right group.",
         "sourceId": "snanikmjfiqrbvp",
-        "platform": "devto",
+        "platform": "linkedin",
         "sentiment": {
           "label": "negative",
           "mixed": 0.5294091533869505,
