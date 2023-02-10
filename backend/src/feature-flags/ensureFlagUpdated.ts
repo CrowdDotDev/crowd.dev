@@ -54,6 +54,7 @@ export default async (
       break
     }
     case FeatureFlag.EAGLE_EYE:
+    case FeatureFlag.ORGANIZATIONS:
     case FeatureFlag.COMMUNITY_HELP_CENTER_PRO: {
       expectedFlag = payload.plan === Plans.values.growth
       break
