@@ -205,6 +205,11 @@ import {
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
 import { formatNumberToCompact } from '@/utils/number'
+import {
+  isFeatureEnabled,
+  featureFlags
+} from '@/utils/posthog'
+import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
 export default {
@@ -265,10 +270,18 @@ export default {
     },
     formatNumberToCompact,
     async onViewMoreClick() {
-      this.$router.push({
-        name: 'organization',
-        query: { activeTab: 'new-and-active' }
-      })
+      const isFlagEnabled = await isFeatureEnabled(
+        featureFlags.organizations
+      )
+
+      if (config.hasPremiumModules && isFlagEnabled) {
+        this.$router.push({
+          name: 'organization',
+          query: { activeTab: 'new-and-active' }
+        })
+      } else {
+        this.isUpgradeModalOpen = true
+      }
     }
   }
 }
