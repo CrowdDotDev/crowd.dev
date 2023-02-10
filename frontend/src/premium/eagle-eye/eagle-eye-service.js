@@ -89,4 +89,15 @@ export class EagleEyeService {
 
     return response.data
   }
+
+  static async updateSettings(data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/eagleEyeContent/settings`,
+      data
+    )
+
+    return response.data
+  }
 }

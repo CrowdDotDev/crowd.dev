@@ -55,5 +55,15 @@ export default {
     state.records[recordId].status = null
     state.count--
   },
-  REVERT_EXCLUDE_ERROR() {}
+  REVERT_EXCLUDE_ERROR() {},
+
+  UPDATE_EAGLE_EYE_SETTINGS_STARTED(state) {
+    state.loadingUpdateSettings = true
+  },
+  UPDATE_EAGLE_EYE_SETTINGS_SUCCESS(state) {
+    state.loadingUpdateSettings = false
+  },
+  UPDATE_EAGLE_EYE_SETTINGS_ERROR(state) {
+    state.loadingUpdateSettings = false
+  }
 }

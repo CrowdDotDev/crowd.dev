@@ -15,6 +15,7 @@ import {
 import { PageData, QueryData } from '../types/common'
 import Error400 from '../errors/Error400'
 import UserRepository from '../database/repositories/userRepository'
+import SequelizeRepository from '../database/repositories/sequelizeRepository'
 
 export interface EagleEyeContentUpsertData extends EagleEyeAction {
   content: EagleEyeContent
@@ -38,19 +39,36 @@ export default class EagleEyeContentService extends LoggingBase {
     if (!data.url) {
       throw new Error400(this.options.language, 'errors.eagleEye.urlRequiredWhenUpserting')
     }
+    const transaction = await SequelizeRepository.createTransaction(this.options)
 
-    // find by url
-    const existing = await EagleEyeContentRepository.findByUrl(data.url, this.options)
+    try {
+      // find by url
+      const existing = await EagleEyeContentRepository.findByUrl(data.url, {
+        ...this.options,
+        transaction,
+      })
 
-    let record
+      let record
 
-    if (existing) {
-      record = await EagleEyeContentRepository.update(existing.id, data, this.options)
-    } else {
-      record = await EagleEyeContentRepository.create(data, this.options)
+      if (existing) {
+        record = await EagleEyeContentRepository.update(existing.id, data, {
+          ...this.options,
+          transaction,
+        })
+      } else {
+        record = await EagleEyeContentRepository.create(data, {
+          ...this.options,
+          transaction,
+        })
+      }
+
+      await SequelizeRepository.commitTransaction(transaction)
+
+      return record
+    } catch (error) {
+      await SequelizeRepository.rollbackTransaction(transaction)
+      throw error
     }
-
-    return record
   }
 
   async findById(id: string): Promise<EagleEyeContent> {
@@ -94,7 +112,7 @@ export default class EagleEyeContentService extends LoggingBase {
       default:
         return null
     }
-    return dateMoment.add(offset, 'days').format('YYYY-MM-DD')
+    return dateMoment.subtract(offset, 'days').format('YYYY-MM-DD')
   }
 
   async search(email = false) {
@@ -137,7 +155,7 @@ export default class EagleEyeContentService extends LoggingBase {
     const interacted = (
       await this.query({
         filter: {
-          postedAt: { gt: EagleEyeContentService.switchDate(feedSettings.publishedDate, 15) },
+          postedAt: { gt: EagleEyeContentService.switchDate(feedSettings.publishedDate, 90) },
         },
       })
     ).rows
