@@ -11,6 +11,8 @@
     <br>
     <a href="https://crowd.dev/sign-up">Cloud Version (Beta)</a>
     |
+    <a href="https://dub.sh/crowd-dev-demo">Demo</a>
+    |
     <a href="https://docs.crowd.dev">Docs</a>
     |
     <a href="https://crowd.dev/discord">Discord</a>
