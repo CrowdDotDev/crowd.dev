@@ -37,6 +37,7 @@
         <app-eagle-eye-list />
       </div>
     </div>
+    <app-eagle-eye-settings v-model="settingsOpen" />
   </app-page-wrapper>
 </template>
 
@@ -50,11 +51,14 @@ export default {
 import AppEagleEyeTabs from '../components/eagle-eye-tabs'
 import AppEagleEyeList from '../components/eagle-eye-list'
 import AppEagleEyeFilter from '../components/eagle-eye-filter'
+import AppEagleEyeSettings from '../components/eagle-eye-settings'
 
 import { useStore } from 'vuex'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const store = useStore()
+
+const settingsOpen = ref(true)
 
 const loading = computed(
   () => store.state.eagleEye.list.loading
