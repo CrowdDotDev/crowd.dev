@@ -29,7 +29,7 @@ export const prettyActivityTypes = {
     replied_thread: 'replied to a thread',
     thread_started: 'started a new thread',
     started_thread: 'started a new thread',
-    joined_guild: 'joined server'
+    joined_guild: 'joined server',
   },
   [PlatformType.SLACK]: {
     contributed_to_community: 'contributed to community',
