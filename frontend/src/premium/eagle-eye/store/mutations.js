@@ -67,9 +67,7 @@ export default {
         index
       ].actions.findIndex((a) => a.id === actionId)
 
-      console.log(state.list.posts[index].actions)
       state.list.posts[index].actions.splice(deleteIndex, 1)
-      console.log(state.list.posts[index].actions)
     }
   },
 
