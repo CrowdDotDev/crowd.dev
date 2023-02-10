@@ -8,7 +8,6 @@
     :destroy-on-close="true"
     :close-on-click-modal="false"
     :size="size"
-    :width="width"
     @close="onClose"
   >
     <template #header="{ close, titleId, titleClass }">
@@ -111,10 +110,6 @@ const props = defineProps({
   hasBorder: {
     type: Boolean,
     default: () => false
-  },
-  width: {
-    type: String,
-    default: () => ''
   }
 })
 

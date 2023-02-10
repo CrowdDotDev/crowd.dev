@@ -1,0 +1,46 @@
+{
+  "devto": {
+    "label": "DEV",
+    "img": "https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
+  },
+  "github": {
+    "label": "GitHub",
+    "img": "https://cdn-icons-png.flaticon.com/512/25/25231.png"
+  },
+  "hackernews": {
+    "label": "Hacker News",
+    "img": "/images/integrations/hackernews.svg"
+  },
+  "hashnode": {
+    "label": "Hashnode",
+    "img": "https://cdn.hashnode.com/res/hashnode/image/upload/v1611902473383/CDyAuTy75.png?auto=compress"
+  },
+  "kaggle": {
+    "label": "Kaggle",
+    "img": "/images/integrations/kaggle.png"
+  },
+  "medium": {
+    "label": "Medium",
+    "img": "https://cdn-icons-png.flaticon.com/512/5968/5968885.png"
+  },
+  "producthunt": {
+    "label": "Product Hunt",
+    "img": "/images/integrations/producthunt.png"
+  },
+  "reddit": {
+    "label": "Reddit",
+    "img": "/images/integrations/reddit.svg"
+  },
+  "stackoverflow": {
+    "label": "Stack Overflow",
+    "img": "https://cdn-icons-png.flaticon.com/512/2111/2111628.png"
+  },
+  "twitter": {
+    "label": "Twitter",
+    "img": "https://cdn-icons-png.flaticon.com/512/733/733579.png"
+  },
+  "youtube": {
+    "label": "YouTube",
+    "img": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+  }
+}

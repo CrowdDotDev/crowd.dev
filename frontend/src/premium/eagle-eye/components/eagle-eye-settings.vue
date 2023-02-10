@@ -1,16 +1,12 @@
 <template>
-  <app-drawer
-    v-model="drawerModel"
-    title="Feed settings"
-    width="600px"
-  >
+  <app-drawer v-model="drawerModel" title="Feed settings">
     <template #content>
       <div class="pt-2">
         <h5 class="text-base leading-5 font-semibold pb-6">
           Keywords
         </h5>
 
-        <el-form :model="form" :rules="rules">
+        <el-form ref="formRef" :model="form" :rules="rules">
           <!-- include -->
           <section class="pb-8">
             <p
@@ -83,11 +79,13 @@
                 </el-form-item>
               </div>
               <div
-                class="p-2 cursor-pointer"
-                @click="removeInclude(ii)"
+                class="p-2"
+                :class="{ 'cursor-pointer': ii > 0 }"
+                @click="ii > 0 ? removeInclude(ii) : null"
               >
                 <i
                   class="ri-delete-bin-line text-lg h-5 text-gray-600 flex items-center"
+                  :class="{ 'opacity-50': ii <= 0 }"
                 ></i>
               </div>
             </article>
@@ -113,62 +111,16 @@
               :key="ei"
               class="pb-3 flex items-center"
             >
-              <div class="flex flex-grow items-center">
-                <el-form-item
-                  class="mr-3 mb-0 no-margin basis-7/12"
-                  :prop="`exclude.${ei}.keyword`"
-                  :rules="rules.exclude.$each.keyword"
-                >
-                  <el-input
-                    v-model="exclude.keyword"
-                    placeholder="Keyword"
-                  ></el-input>
-                </el-form-item>
-                <el-form-item
-                  class="mr-3 mb-0 no-margin basis-5/12"
-                  :prop="`exclude.${ei}.match`"
-                  :rules="rules.exclude.$each.match"
-                >
-                  <el-select
-                    v-model="exclude.match"
-                    class="w-full"
-                    placeholder="Match type"
-                  >
-                    <el-option
-                      value="semantic"
-                      label="Semantic match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
-                    >
-                      <h6
-                        class="text-xs leading-5 font-medium"
-                      >
-                        Semantic match
-                      </h6>
-                      <p
-                        class="text-2xs leading-5 text-gray-500"
-                      >
-                        Results semantically related
-                      </p>
-                    </el-option>
-                    <el-option
-                      value="exact"
-                      label="Exact match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
-                    >
-                      <h6
-                        class="text-xs leading-5 font-medium"
-                      >
-                        Exact match
-                      </h6>
-                      <p
-                        class="text-2xs leading-5 text-gray-500"
-                      >
-                        Results containing the keyword
-                      </p>
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-              </div>
+              <el-form-item
+                class="mr-3 mb-0 no-margin flex-grow"
+                :prop="`exclude.${ei}.keyword`"
+                :rules="rules.exclude.$each.keyword"
+              >
+                <el-input
+                  v-model="exclude.keyword"
+                  placeholder="Keyword"
+                ></el-input>
+              </el-form-item>
               <div
                 class="p-2 cursor-pointer"
                 @click="removeExclude(ei)"
@@ -202,26 +154,19 @@
               Date published
             </h6>
             <div class="pb-8">
-              <el-form-item prop="datePublished">
+              <el-form-item
+                prop="datePublished"
+                class="mb-0 no-margin"
+              >
                 <el-radio-group
                   v-model="form.datePublished"
                   class="radio-button-group is-small"
                 >
-                  <el-radio-button label="last24h"
-                    >Last 24h</el-radio-button
-                  >
-                  <el-radio-button label="last7d"
-                    >Last 7 days</el-radio-button
-                  >
-                  <el-radio-button label="last14d"
-                    >Last 14 days</el-radio-button
-                  >
-                  <el-radio-button label="last30d"
-                    >Last 30 days</el-radio-button
-                  >
-                  <el-radio-button label="last90d"
-                    >Last 90 days</el-radio-button
-                  >
+                  <el-radio-button
+                    v-for="date of datePublished"
+                    :key="date.label"
+                    :label="date.label"
+                  />
                 </el-radio-group>
               </el-form-item>
             </div>
@@ -232,22 +177,28 @@
             <el-form-item
               prop="platforms"
               :rules="rules.platforms"
+              class="mb-0"
             >
               <div class="w-full">
                 <article
-                  class="h-12 flex items-center justify-between border-b border-gray-200"
+                  v-for="(
+                    platform, name, index
+                  ) in platforms"
+                  :key="name"
+                  :class="{ 'border-t': index > 0 }"
+                  class="h-12 flex items-center justify-between border-gray-200"
                 >
                   <div class="flex items-center">
                     <div class="h-6 w-6 mr-4">
-                      <img
-                        src="https://cdn-icons-png.flaticon.com/512/5969/5969051.png"
-                      />
+                      <img :src="platform.img" />
                     </div>
-                    <p class="text-xs leading-5">DEV</p>
+                    <p class="text-xs leading-5">
+                      {{ platform.label }}
+                    </p>
                   </div>
                   <div>
                     <el-switch
-                      v-model="form.platforms['dev']"
+                      v-model="form.platforms[name]"
                     ></el-switch>
                   </div>
                 </article>
@@ -259,32 +210,42 @@
     </template>
 
     <template #footer>
-      <!--      <div style="flex: auto">-->
-      <!--        <el-button-->
-      <!--          class="btn btn&#45;&#45;md btn&#45;&#45;transparent mr-3"-->
-      <!--          @click="handleCancel"-->
-      <!--        >Cancel-->
-      <!--        </el-button>-->
-      <!--        <el-button-->
-      <!--          type="primary"-->
-      <!--          class="btn btn&#45;&#45;md btn&#45;&#45;primary"-->
-      <!--          :loading="loading"-->
-      <!--          @click="doSubmit"-->
-      <!--        >Update-->
-      <!--        </el-button>-->
-      <!--      </div>-->
+      <div style="flex: auto" class="-my-2">
+        <el-button
+          class="btn btn--md btn--transparent mr-3"
+          @click="emit('update:modelValue', false)"
+          >Cancel
+        </el-button>
+        <el-button
+          type="primary"
+          class="btn btn--md btn--primary"
+          :loading="loadingUpdateSettings"
+          @click="onSubmit(formRef)"
+          >Update
+        </el-button>
+      </div>
     </template>
   </app-drawer>
 </template>
 
 <script setup>
+import datePublished from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
+import platforms from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import {
   computed,
   defineEmits,
   defineProps,
-  reactive
+  onMounted,
+  reactive,
+  ref,
+  watch
 } from 'vue'
+import {
+  mapActions,
+  mapGetters,
+  mapState
+} from '@/shared/vuex/vuex.helpers'
 
 const props = defineProps({
   modelValue: {
@@ -294,6 +255,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const { currentUser } = mapGetters('auth')
+const { doUpdateSettings } = mapActions('eagleEye')
+const { loadingUpdateSettings } = mapState('eagleEye')
+
+const formRef = ref()
 
 const rules = reactive({
   include: {
@@ -366,10 +333,28 @@ const form = reactive({
   platforms: {}
 })
 
+const drawerModel = computed({
+  get() {
+    return props.modelValue
+  },
+  set(value) {
+    emit('update:modelValue', value)
+  }
+})
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      fillForm(currentUser.value)
+    }
+  }
+)
+
 const addInclude = () => {
   form.include.push({
     keyword: '',
-    match: ''
+    match: 'semantic'
   })
 }
 
@@ -379,8 +364,7 @@ const removeInclude = (index) => {
 
 const addExclude = () => {
   form.exclude.push({
-    keyword: '',
-    match: ''
+    keyword: ''
   })
 }
 
@@ -388,12 +372,62 @@ const removeExclude = (index) => {
   form.include.splice(index, 1)
 }
 
-const drawerModel = computed({
-  get() {
-    return props.modelValue
-  },
-  set(value) {
-    emit('update:modelValue', value)
+const fillForm = (user) => {
+  if (!user) {
+    return
   }
+  const { eagleEyeSettings } = user
+  const { feed } = eagleEyeSettings
+  form.include = [
+    ...feed.keywords.map((keyword) => ({
+      keyword,
+      match: 'semantic'
+    })),
+    ...feed.exactKeywords.map((keyword) => ({
+      keyword,
+      match: 'exact'
+    }))
+  ]
+  form.exclude = feed.excludedKeywords.map((keyword) => ({
+    keyword
+  }))
+  Object.keys(platforms).forEach((platform) => {
+    form.platforms[platform] =
+      feed.platforms.includes(platform)
+  })
+
+  form.datePublished = feed.publishedDate
+}
+
+const onSubmit = async (formEl) => {
+  if (!formEl) return
+  await formEl.validate(async (valid) => {
+    if (valid) {
+      const data = {
+        keywords: form.include
+          .filter((i) => i.match === 'semantic')
+          .map((i) => i.keyword),
+        exactKeywords: form.include
+          .filter((i) => i.match === 'exact')
+          .map((i) => i.keyword),
+        excludedKeywords: form.exclude.map(
+          (e) => e.keyword
+        ),
+        publishedDate: form.datePublished,
+        platforms: Object.entries(form.platforms)
+          .filter(([, enabled]) => enabled)
+          .map(([platform]) => platform)
+      }
+      await doUpdateSettings({
+        ...currentUser.eagleEyeSettings,
+        feed: data
+      })
+      emit('update:modelValue', false)
+    }
+  })
+}
+
+onMounted(() => {
+  fillForm(currentUser.value)
 })
 </script>
