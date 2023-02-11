@@ -1,8 +1,8 @@
 import axios from 'axios'
 import {
+  DiscordApiMember,
   DiscordGetMembersInput,
   DiscordGetMembersOutput,
-  DiscordMembers,
 } from '../../types/discordTypes'
 import { Logger } from '../../../../utils/logging'
 
@@ -24,10 +24,10 @@ async function getMembers(
     }
 
     const response = await axios(config)
-    const records: DiscordMembers = response.data
+    const records: DiscordApiMember[] = response.data
     const limit = parseInt(response.headers['x-ratelimit-remaining'], 10)
     const timeUntilReset = parseInt(response.headers['x-ratelimit-reset-after'], 10)
-    const nextPage = records.length > 0 ? (records[records.length - 1].id as string) : ''
+    const nextPage = records.length > 0 ? (records[records.length - 1].user.id as string) : ''
     return {
       records,
       nextPage,

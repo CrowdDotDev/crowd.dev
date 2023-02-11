@@ -9,9 +9,12 @@ import { MemberAttributeName } from '../../../../database/attributes/member/enum
 import { IntegrationServiceBase } from '../../services/integrationServiceBase'
 import { GithubIntegrationService } from '../../services/integrations/githubIntegrationService'
 import { IStepContext } from '../../../../types/integration/stepResult'
+import { getServiceLogger } from '../../../../utils/logging'
 
 const db = null
 const installId = '23585816'
+
+const log = getServiceLogger()
 
 async function fakeContext(integration = {}): Promise<IStepContext> {
   const options = await SequelizeTestUtils.getTestIRepositoryOptions(db)
@@ -23,6 +26,7 @@ async function fakeContext(integration = {}): Promise<IStepContext> {
     serviceContext: options,
     limitCount: 0,
     startTimestamp: 0,
+    logger: log,
     pipelineData: {},
   }
 }

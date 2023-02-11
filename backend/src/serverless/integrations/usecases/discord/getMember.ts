@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { DiscordMember } from '../../types/discordTypes'
+import { DiscordApiMember } from '../../types/discordTypes'
 import { Logger } from '../../../../utils/logging'
 import { handleDiscordError } from './errorHandler'
 
@@ -8,7 +8,7 @@ export const getMember = async (
   userId: string,
   token: string,
   logger: Logger,
-): Promise<DiscordMember> => {
+): Promise<DiscordApiMember> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://discord.com/api/v10/guilds/${guildId}/members/${userId}`,

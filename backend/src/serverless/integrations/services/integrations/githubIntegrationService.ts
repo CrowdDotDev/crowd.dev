@@ -85,8 +85,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const log = this.logger(context)
-
     const redis = await createRedisClient(true)
     const emailCache = new RedisCache('github-emails', redis)
 
@@ -108,7 +106,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
         if (e.rateLimitResetSeconds) {
           throw e
         } else {
-          log.warn(
+          context.logger.warn(
             `Repo ${repo.name} will not be parsed. It is not available with the github token`,
           )
           unavailableRepos.push(repo)
@@ -290,8 +288,6 @@ export class GithubIntegrationService extends IntegrationServiceBase {
   }
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
-    const log = this.logger(context)
-
     let record: AddActivitiesSingle | undefined
 
     await GithubIntegrationService.verifyWebhookSignature(
@@ -338,7 +334,7 @@ export class GithubIntegrationService extends IntegrationServiceBase {
     }
 
     if (record === undefined) {
-      log.warn(
+      context.logger.warn(
         {
           event,
           action: payload.action,

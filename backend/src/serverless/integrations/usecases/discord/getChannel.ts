@@ -1,12 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { Logger } from '../../../../utils/logging'
 import { handleDiscordError } from './errorHandler'
+import { DiscordApiChannel } from '../../types/discordTypes'
 
 export const getChannel = async (
   channelId: string,
   token: string,
   logger: Logger,
-): Promise<any> => {
+): Promise<DiscordApiChannel> => {
   const config: AxiosRequestConfig<any> = {
     method: 'get',
     url: `https://discord.com/api/v10/channels/${channelId}`,

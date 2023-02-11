@@ -29,6 +29,7 @@
     "stripe:start": "stripe listen --forward-to localhost:8080/api/plan/stripe/webhook",
     "lint": "npx eslint .",
     "format": "npx prettier --write .",
+    "tsc-check": "tsc --noEmit",
     "script:process-integration": "SERVICE=script ts-node ./src/bin/scripts/process-integration.ts",
     "script:change-tenant-plan": "SERVICE=script ts-node ./src/bin/scripts/change-tenant-plan.ts",
     "script:process-webhook": "SERVICE=script ts-node ./src/bin/scripts/process-webhook.ts",

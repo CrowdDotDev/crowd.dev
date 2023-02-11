@@ -21,67 +21,10 @@ export interface DiscordGetMembersInput {
   perPage: number | 100
 }
 
-export interface DiscordChannel {
-  parentId?: string
-  id: string
-  name: string
-  thread?: boolean
-  type?: number
-}
-
-export type DiscordChannels = DiscordChannel[]
-
-export interface DiscordChannelsOut {
-  channels: DiscordChannels
-  forumChannels: DiscordChannels
-}
-
-export interface DiscordAuthor {
-  id: string
-  username: string
-  avatar: string | null
-  bot?: boolean
-}
-
-export interface DiscordMention {
-  id: string
-  username: string
-}
-
-export interface DiscordMessage {
-  id: string
-  type: number
-  content: string
-  channel_id: string
-  author: DiscordAuthor
-  attachments?: any
-  reactions?: any
-  timestamp: string
-  mentions?: [DiscordMention]
-  message_reference: {
-    message_id: string
-    guild_id: string
-    channel_id: string
-  }
-  thread: {
-    id: string
-  }
-}
-
-export type DiscordMessages = DiscordMessage[]
-
 export interface DiscordStreamProcessResult {
   activities: AddActivitiesSingle[]
   newStreams: IIntegrationStream[]
 }
-
-export interface DiscordMember {
-  user: DiscordAuthor
-  joined_at: string
-  id: string
-}
-
-export type DiscordMembers = DiscordMember[]
 
 export interface DiscordParsedReponse {
   records: any
@@ -91,21 +34,107 @@ export interface DiscordParsedReponse {
 }
 
 export interface DiscordGetMessagesOutput extends DiscordParsedReponse {
-  records: DiscordMessages | []
+  records: DiscordApiMessage[]
 }
 
 export interface DiscordGetMembersOutput extends DiscordParsedReponse {
-  records: DiscordMembers | []
+  records: DiscordApiMember[]
 }
 
-export type ProcessedChannel = {
+export interface DiscordApiChannel {
   id: string
-  name: string
-  thread?: boolean
-  new?: boolean
+  type: number
+  guild_id?: string
+  name?: string
+  topic?: string
+  nsfw?: boolean
+  last_message_id?: string
+  parent_id?: string
+  flags?: number
 }
 
-export interface ProcessedChannels {
-  channels: Array<ProcessedChannel>
-  forumChannels: Array<ProcessedChannel>
+export interface DiscordApiChannelMention {
+  id: string
+  guild_id: string
+  type: number
+  name: string
+}
+
+export interface DiscordApiMessageReference {
+  message_id?: string
+  channel_id?: string
+  guild_id?: string
+  fail_if_not_exists?: boolean
+}
+
+export interface DiscordApiReaction {
+  count: number
+  me: boolean
+  emoji: any
+}
+
+export interface DiscordApiAttachment {
+  id: string
+  filename: string
+  description?: string
+  content_type?: string
+  size: number
+  url: string
+  proxy_url: string
+  height?: number
+  width?: number
+  ephemeral?: boolean
+}
+
+export interface DiscordApiMessage {
+  id: string
+  channel_id: string
+  author?: DiscordApiUser
+  content: string
+  timestamp: string
+  edited_timestamp: string | null
+  mention_everyone: boolean
+  mentions: DiscordApiUser[]
+  mention_roles: string[]
+  mention_channels: DiscordApiChannelMention[]
+  pinned: boolean
+  type: number
+  message_reference?: DiscordApiMessageReference
+  flags?: number
+  referenced_message?: DiscordApiMessage
+  thread?: DiscordApiChannel
+  reactions?: DiscordApiReaction[]
+  attachments?: DiscordApiAttachment[]
+}
+
+export interface DiscordApiUser {
+  id: string
+  username: string
+  discriminator: string
+  avatar?: string
+  bot?: boolean
+  system?: boolean
+  banner?: string
+  accent_color?: number
+  locale?: string
+  verified?: boolean
+  email?: string
+  flags?: number
+  premium_type?: number
+  public_flags?: number
+}
+
+export interface DiscordApiMember {
+  user?: DiscordApiUser
+  nick?: string
+  avatar?: string
+  roles: string[]
+  joined_at: string
+  premium_since?: string
+  deaf: boolean
+  mute: boolean
+  flags: number
+  pending?: boolean
+  permissions?: string
+  communication_disabled_until?: string
 }
