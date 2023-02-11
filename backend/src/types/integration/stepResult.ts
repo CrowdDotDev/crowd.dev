@@ -1,5 +1,6 @@
 import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
+import { Logger } from '../../utils/logging'
 
 export interface IIntegrationStream {
   value: string
@@ -63,4 +64,7 @@ export interface IStepContext {
 
   // service options for integration services to use when creating new instances of services
   serviceContext: IServiceOptions
+
+  // logger associated with the integration
+  logger: Logger
 }

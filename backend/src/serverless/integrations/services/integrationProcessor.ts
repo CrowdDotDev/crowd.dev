@@ -232,6 +232,7 @@ export class IntegrationProcessor extends LoggingBase {
       integration,
       serviceContext: userContext,
       repoContext: userContext,
+      logger,
     }
 
     if (integration.settings.updateMemberAttributes) {
@@ -328,6 +329,7 @@ export class IntegrationProcessor extends LoggingBase {
       integration,
       serviceContext: userContext,
       repoContext: userContext,
+      logger,
     }
 
     if (integration.settings.updateMemberAttributes) {

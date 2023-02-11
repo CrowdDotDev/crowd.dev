@@ -31,11 +31,9 @@ import { IntegrationServiceBase } from '../integrationServiceBase'
 import { sendNodeWorkerMessage } from '../../../utils/nodeWorkerSQS'
 import { NodeWorkerIntegrationProcessMessage } from '../../../../types/mq/nodeWorkerIntegrationProcessMessage'
 import { AddActivitiesSingle } from '../../types/messageTypes'
-import { singleOrDefault } from '../../../../utils/arrays'
 import getThreads from '../../usecases/discord/getThreads'
 import { DiscordWebsocketEvent, DiscordWebsocketPayload } from '../../../../types/webhooks'
 import { getMember } from '../../usecases/discord/getMember'
-import { Logger } from '../../../../utils/logging'
 import { getMessage } from '../../usecases/discord/getMessage'
 import { createRedisClient } from '../../../../utils/redis'
 import { RedisCache } from '../../../../utils/redis/redisCache'
@@ -97,7 +95,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         guildId,
         token: DiscordIntegrationService.getToken(context),
       },
-      this.logger(context),
+      context.logger,
     )
 
     let channelsFromDiscordAPI: ProcessedChannel[] = fromDiscordApi.channels
@@ -123,7 +121,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         guildId,
         token: DiscordIntegrationService.getToken(context),
       },
-      this.logger(context),
+      context.logger,
     )
 
     const forumChannelsFromDiscordAPi = []
@@ -168,40 +166,38 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   }
 
   async processWebhook(webhook: any, context: IStepContext): Promise<IProcessWebhookResults> {
-    const log = this.logger(context)
-
     const { event, data } = webhook.payload as DiscordWebsocketPayload
 
     let record: AddActivitiesSingle | undefined
 
     switch (event) {
       case DiscordWebsocketEvent.MESSAGE_CREATED: {
-        record = await DiscordIntegrationService.parseWebhookMessage(data, context, log)
+        record = await DiscordIntegrationService.parseWebhookMessage(data, context)
         break
       }
       case DiscordWebsocketEvent.MESSAGE_UPDATED: {
-        record = await DiscordIntegrationService.parseWebhookMessage(data.message, context, log)
+        record = await DiscordIntegrationService.parseWebhookMessage(data.message, context)
         break
       }
 
       case DiscordWebsocketEvent.MEMBER_ADDED: {
-        record = await DiscordIntegrationService.parseWebhookMember(data, context, log)
+        record = await DiscordIntegrationService.parseWebhookMember(data, context)
         break
       }
 
       case DiscordWebsocketEvent.MEMBER_UPDATED: {
-        record = await DiscordIntegrationService.parseWebhookMember(data.member, context, log)
+        record = await DiscordIntegrationService.parseWebhookMember(data.member, context)
         break
       }
 
       default: {
-        log.error(`Unknown discord websocket event: ${event}!`)
+        context.logger.error(`Unknown discord websocket event: ${event}!`)
         throw new Error(`Unknown discord websocket event: ${event}!`)
       }
     }
 
     if (record === undefined) {
-      log.warn(
+      context.logger.warn(
         {
           event,
           webhookId: context.webhook.id,
@@ -261,8 +257,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger = this.logger(context)
-
     // sleep for 2 seconds for rate limit
     await timeout(2000)
     for (
@@ -282,7 +276,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             page: stream.metadata.page,
             perPage: 100,
           },
-          logger,
+          context.logger,
         )
 
         const nextPageStream = nextPage
@@ -299,7 +293,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           }
         }
 
-        const { activities, newStreams } = this.parseActivities(stream, context, records)
+        const { activities, newStreams } = await this.parseActivities(stream, context, records)
 
         const lastRecord = activities.length > 0 ? activities[activities.length - 1] : undefined
         return {
@@ -320,10 +314,10 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           ![504, 502, 500].includes(err.statusCode) ||
           retryCount === DiscordIntegrationService.ENDPOINT_MAX_RETRY - 1
         ) {
-          logger.error(err, `Error while processing a stream!`)
+          context.logger.error(err, `Error while processing a stream!`)
           throw err
         } else {
-          logger.error(
+          context.logger.error(
             err,
             `Error while processing a stream (retry #${retryCount + 1} out of ${
               DiscordIntegrationService.ENDPOINT_MAX_RETRY
@@ -385,43 +379,42 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     )
   }
 
-  parseActivities(
+  async parseActivities(
     stream: IIntegrationStream,
     context: IStepContext,
     records: DiscordMessages | DiscordMembers,
-  ): DiscordStreamProcessResult {
+  ): Promise<DiscordStreamProcessResult> {
     switch (stream.value) {
       case 'members':
         return DiscordIntegrationService.parseMembers(context, records as DiscordMembers)
       default:
-        return this.parseMessages(context, records as DiscordMessages, stream)
+        return DiscordIntegrationService.parseMessages(context, records as DiscordMessages)
     }
   }
 
   public static async parseWebhookMember(
     payload: any,
     context: IStepContext,
-    logger: Logger,
   ): Promise<AddActivitiesSingle | undefined> {
     const discordMember = await getMember(
       payload.guildId,
       payload.userId,
       DiscordIntegrationService.getToken(context),
-      logger,
+      context.logger,
     )
 
     if (!discordMember.user.bot) {
-      const results = DiscordIntegrationService.parseMembers(context, [discordMember])
+      const results = await DiscordIntegrationService.parseMembers(context, [discordMember])
       if (results.activities.length > 0) return results.activities[0]
     }
 
     return undefined
   }
 
-  public static parseMembers(
+  public static async parseMembers(
     context: IStepContext,
     records: Array<any>,
-  ): DiscordStreamProcessResult {
+  ): Promise<DiscordStreamProcessResult> {
     // We only need the members if they are not bots
     const activities: AddActivitiesSingle[] = records.reduce((acc, record) => {
       if (!record.user.bot) {
@@ -469,13 +462,12 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
   public static async parseWebhookMessage(
     payload: any,
     context: IStepContext,
-    logger: Logger,
   ): Promise<AddActivitiesSingle | undefined> {
     const message = await getMessage(
       payload.channelId,
       payload.id,
       DiscordIntegrationService.getToken(context),
-      logger,
+      context.logger,
     )
 
     if (message.author.bot) {
@@ -494,11 +486,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       sourceParentId = message.thread.id
       guildId = message.thread.guild_id
     } else {
-      const channelObj = await DiscordIntegrationService.getChannel(
-        message.channel_id,
-        context,
-        logger,
-      )
+      const channelObj = await DiscordIntegrationService.getChannel(message.channel_id, context)
 
       channel = channelObj.name
       guildId = channelObj.guild_id
@@ -514,7 +502,6 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         const parentChannelObj = await DiscordIntegrationService.getChannel(
           channelObj.parent_id,
           context,
-          logger,
         )
         isForum = DiscordIntegrationService.isForum(parentChannelObj)
       }
@@ -564,35 +551,15 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     return activityObject
   }
 
-  parseMessages(
+  public static async parseMessages(
     context: IStepContext,
     records: DiscordMessages,
-    stream: IIntegrationStream,
-  ): DiscordStreamProcessResult {
+  ): Promise<DiscordStreamProcessResult> {
     const newStreams: IIntegrationStream[] = []
-    const activities: AddActivitiesSingle[] = records.reduce((acc, record) => {
-      let parent = ''
+    const activities: AddActivitiesSingle[] = []
 
-      const isForum = stream.metadata.forumChannelId !== undefined
-
-      let channelInfo = context.pipelineData.channelsInfo[stream.metadata.id]
-      if (isForum) {
-        channelInfo = context.pipelineData.forumChannelsInfo[stream.metadata.forumChannelId]
-      }
-
-      if (!channelInfo) {
-        const log = this.logger(context)
-        log.error(
-          {
-            stream: stream.value,
-            streamMetadata: stream.metadata,
-            channelsInfo: context.pipelineData.channelsInfo,
-          },
-          'Channel info not found for stream!',
-        )
-        throw new Error('Channel info not found for stream!')
-      }
-
+    for (const record of records) {
+      let parent: string | undefined
       // is the message starting a thread?
       if (record.thread) {
         parent = record.thread.id
@@ -600,28 +567,24 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           value: 'thread',
           metadata: {
             id: record.thread.id,
-            forumChannelId: stream.metadata.forumChannelId,
           },
         })
 
-        context.pipelineData.channelsInfo[record.thread.id] = {
-          name: context.pipelineData.channelsInfo[record.channel_id].name,
-          new:
-            singleOrDefault(
-              context.pipelineData.settingsChannels,
-              (c) => c.id === record.thread.id,
-            ) === undefined,
-        }
+        await DiscordIntegrationService.cacheChannel(record.thread, context)
       }
+
+      const channel = await DiscordIntegrationService.getChannel(record.channel_id, context)
+
+      const isForum = DiscordIntegrationService.isForum(channel)
+      const isThread = DiscordIntegrationService.isThread(channel)
+
       // if we're parsing a thread, mark each message as a child of this thread
-      else if (stream.value === 'thread') {
-        parent = stream.metadata.id
+      if (isThread || isForum) {
+        parent = channel.id
       }
       // record.parentId means that it's a reply
       else if (record.message_reference && record.message_reference.message_id) {
         parent = record.message_reference.message_id
-      } else if (stream.value === 'forumChannel') {
-        parent = stream.metadata.id
       }
 
       let avatarUrl: string | boolean = false
@@ -637,18 +600,14 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           sourceId: record.id,
           sourceParentId: parent,
           timestamp: moment(record.timestamp).utc().toDate(),
-          ...(stream.value === 'forumChannel' &&
-            record.id === parent && { title: stream.metadata.threadName }),
+          title: isThread || isForum ? channel.name : undefined,
           body: record.content
             ? DiscordIntegrationService.replaceMentions(record.content, record.mentions)
             : '',
-          url: `https://discordapp.com/channels/${context.pipelineData.guildId}/${stream.metadata.id}/${record.id}`,
-          channel: channelInfo.name,
+          url: `https://discordapp.com/channels/${context.pipelineData.guildId}/${channel.id}/${record.id}`,
+          channel: channel.name,
           attributes: {
-            thread:
-              record.thread !== undefined ||
-              stream.value === 'thread' ||
-              stream.value === 'forumChannel',
+            thread: isThread,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],
             forum: isForum,
@@ -670,10 +629,9 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           isKeyAction: DiscordGrid.message.isKeyAction,
         } as any
 
-        acc.push(activityObject)
+        activities.push(activityObject)
       }
-      return acc
-    }, [])
+    }
 
     return {
       activities,
@@ -740,7 +698,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
     await cache.setValue(channel.id, JSON.stringify(channel), 24 * 60 * 60)
   }
 
-  private static async getChannel(id: string, context: IStepContext, logger: Logger): Promise<any> {
+  private static async getChannel(id: string, context: IStepContext): Promise<any> {
     if (!context.pipelineData.channelCache) {
       const redis = await createRedisClient(true)
       context.pipelineData.channelCache = new RedisCache('discord-channels', redis)
@@ -754,7 +712,11 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
       return JSON.parse(cached)
     }
 
-    const channel = await getChannel(id, DiscordIntegrationService.getToken(context), logger)
+    const channel = await getChannel(
+      id,
+      DiscordIntegrationService.getToken(context),
+      context.logger,
+    )
     await cache.setValue(id, JSON.stringify(channel), 24 * 60 * 60)
 
     return channel
