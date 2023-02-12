@@ -443,9 +443,11 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
     for (const record of records) {
       let parent: string | undefined
-      // is the message starting a thread?
+      let parentChannel: string | undefined
+
+      let firstThreadMessage = false
+      // is the message starting a thread? if so we should get thread messages as well
       if (record.thread) {
-        parent = record.thread.id
         newStreams.push({
           value: 'channel',
           metadata: {
@@ -453,6 +455,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           },
         })
 
+        firstThreadMessage = true
         await DiscordIntegrationService.cacheChannel(record.thread as DiscordApiChannel, context)
       }
 
@@ -463,7 +466,17 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
 
       // if we're parsing a thread, mark each message as a child of this thread
       if (isThread || isForum) {
-        parent = channel.id
+        if (!firstThreadMessage) {
+          parent = channel.id
+        }
+
+        if (channel.parent_id) {
+          const parentChannelObj = await DiscordIntegrationService.getChannel(
+            channel.parent_id,
+            context,
+          )
+          parentChannel = parentChannelObj.name
+        }
       }
       // record.parentId means that it's a reply
       else if (record.message_reference && record.message_reference.message_id) {
@@ -490,6 +503,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           url: `https://discordapp.com/channels/${context.pipelineData.guildId}/${channel.id}/${record.id}`,
           channel: channel.name,
           attributes: {
+            parentChannel,
             thread: isThread,
             reactions: record.reactions ? record.reactions : [],
             attachments: record.attachments ? record.attachments : [],

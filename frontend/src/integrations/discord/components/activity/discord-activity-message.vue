@@ -22,26 +22,36 @@
     class="inline-block ml-1"
   >
     <span
-      v-if="!short && !channelOnly"
-      class="text-gray-900"
-      >{{
-        ['channel_joined', 'channel_left'].includes(
+      v-if="
+        !short &&
+        !channelOnly &&
+        !['channel_joined', 'channel_left'].includes(
           activity.type
         )
-          ? ''
-          : activity.attributes.forum
-          ? 'in forum channel'
+      "
+    >
+      {{
+        activity.attributes.forum ||
+        activity.attributes.thread
+          ? 'in thread'
           : 'in channel'
-      }}</span
-    >
-    <span
+      }}
+    </span>
+    <template
       v-if="activity.channel || activity.attributes.channel"
-      class="text-brand-500 truncate max-w-2xs"
     >
-      #{{
-        activity.channel || activity.attributes.channel
-      }}</span
-    >
+      <span class="text-brand-500 truncate max-w-2xs">
+        #{{
+          activity.channel || activity.attributes.channel
+        }}</span
+      >
+      <template v-if="activity.attributes.parentChannel">
+        <span> -&gt; </span>
+        <span class="text-brand-500 truncate max-w-2xs">
+          #{{ activity.attributes.parentChannel }}</span
+        >
+      </template>
+    </template>
   </span>
 </template>
 
