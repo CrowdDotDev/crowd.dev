@@ -164,6 +164,7 @@
 import { formatDateToTimeAgo } from '@/utils/date'
 import { computed, defineProps } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import { EagleEyeService } from '../../eagle-eye-service'
 import { withHttp } from '@/utils/string'
 import {
   mapActions,
@@ -217,12 +218,17 @@ const bookmarkTooltip = computed(() => {
 })
 
 // Open post in origin url
-const onCardClick = (e) => {
+const onCardClick = async (e) => {
   if (!props.result.url || e.target.localName === 'a') {
     return
   }
 
   window.open(withHttp(props.result.url), '_blank')
+
+  await EagleEyeService.trackClick({
+    url: props.result.url,
+    platform: props.result.platform
+  })
 }
 
 // If opposite thumbs up is set, remove before creating the new action

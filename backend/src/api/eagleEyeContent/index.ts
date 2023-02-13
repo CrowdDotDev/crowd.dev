@@ -15,6 +15,12 @@ export default (app) => {
     safeWrap(require('./eagleEyeContentUpsert').default),
   )
 
+  app.post(
+    `/tenant/:tenantId/eagleEyeContent/track`,
+    featureFlagMiddleware(FeatureFlag.EAGLE_EYE, 'entities.eagleEye.errors.planLimitExceeded'),
+    safeWrap(require('./eagleEyeContentTrack').default),
+  )
+
   app.get(
     `/tenant/:tenantId/eagleEyeContent/search`,
     featureFlagMiddleware(FeatureFlag.EAGLE_EYE, 'entities.eagleEye.errors.planLimitExceeded'),

@@ -5,6 +5,7 @@ import Error404 from '../errors/Error404'
 import { EagleEyeAction, EagleEyeActionType } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
+import track from '../segment/telemetryTrack'
 
 export default class EagleEyeActionService extends LoggingBase {
   options: IServiceOptions
@@ -72,6 +73,17 @@ export default class EagleEyeActionService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      track(
+        `Eagle Eye post ${record.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
+        {
+          type: record.type,
+          url: content.url,
+          platform: content.platform,
+          action: 'create',
+        },
+        { ...this.options },
+      )
+
       return record
     } catch (error) {
       await SequelizeRepository.rollbackTransaction(transaction)
@@ -96,5 +108,16 @@ export default class EagleEyeActionService extends LoggingBase {
     if (content.actions.length === 0) {
       await EagleEyeContentRepository.destroy(contentId, this.options)
     }
+
+    track(
+      `Eagle Eye post ${action.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
+      {
+        type: action.type,
+        url: content.url,
+        platform: content.platform,
+        action: 'destroy',
+      },
+      { ...this.options },
+    )
   }
 }
