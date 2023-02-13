@@ -188,11 +188,11 @@
               </h6>
               <div class="flex flex-wrap">
                 <div
-                  v-for="excluded of results.excludedKeywords"
-                  :key="excluded"
+                  v-for="platform of results.platforms"
+                  :key="platform"
                   class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
                 >
-                  {{ excluded }}
+                  {{ platformOptions[platform].label }}
                 </div>
               </div>
             </section>
@@ -247,6 +247,7 @@ import {
   mapState
 } from '@/shared/vuex/vuex.helpers'
 import Message from '@/shared/message/message'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 
 const props = defineProps({
   modelValue: {
@@ -386,7 +387,7 @@ const doSubmit = async (formEl) => {
         emailDigestActive: active.value,
         emailDigest: data
       })
-      Message.success('Email digest settings updated!')
+      Message.success('Email Digest settings successfully updated')
       emit('update:modelValue', false)
     }
   })
