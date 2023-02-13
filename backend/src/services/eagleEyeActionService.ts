@@ -51,7 +51,10 @@ export default class EagleEyeActionService extends LoggingBase {
         await EagleEyeActionRepository.removeActionFromContent(
           EagleEyeActionType.THUMBS_UP,
           contentId,
-          this.options,
+          {
+            ...this.options,
+            transaction,
+          },
         )
       } else if (
         data.type === EagleEyeActionType.THUMBS_UP &&
@@ -60,16 +63,18 @@ export default class EagleEyeActionService extends LoggingBase {
         await EagleEyeActionRepository.removeActionFromContent(
           EagleEyeActionType.THUMBS_DOWN,
           contentId,
-          this.options,
+          {
+            ...this.options,
+            transaction,
+          },
         )
       }
 
       // add new action
-      const record = await EagleEyeActionRepository.createActionForContent(
-        data,
-        contentId,
-        this.options,
-      )
+      const record = await EagleEyeActionRepository.createActionForContent(data, contentId, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
