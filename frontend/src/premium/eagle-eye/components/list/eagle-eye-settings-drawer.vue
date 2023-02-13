@@ -419,7 +419,7 @@ const onSubmit = async (formEl) => {
           .map(([platform]) => platform)
       }
       await doUpdateSettings({
-        ...currentUser.eagleEyeSettings,
+        ...currentUser.value.eagleEyeSettings,
         feed: data
       })
       Message.success('Feed settings updated!')

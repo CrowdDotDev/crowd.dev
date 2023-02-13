@@ -23,166 +23,169 @@
             <el-switch v-model="active" />
           </div>
         </div>
-        <el-form
-          ref="form"
-          label-position="top"
-          class="form pt-6 pb-10"
-          :rules="rules"
-          :model="model"
-          @submit.prevent="doSubmit"
-        >
-          <el-form-item
-            :prop="computedFields.email.name"
-            :required="computedFields.email.required"
-            class="col-span-2 mb-6"
+        <div :class="{ 'opacity-50': !active }">
+          <el-form
+            ref="formRef"
+            label-position="top"
+            class="form pt-6 pb-10"
+            :rules="rules"
+            :model="model"
+            @submit.prevent="doSubmit"
           >
-            <label
-              class="text-sm mb-1 font-medium leading-5"
-              >{{ computedFields.email.label }}</label
+            <el-form-item
+              prop="email"
+              class="col-span-2 mb-6"
             >
-            <el-input
-              ref="focus"
-              v-model="model[computedFields.email.name]"
-            />
-          </el-form-item>
-          <el-form-item
-            :prop="computedFields.frequency.name"
-            :required="computedFields.frequency.required"
-            class="mb-6"
-          >
-            <div>
-              <label
-                class="text-sm mb-4 font-medium leading-5"
-                >{{ computedFields.frequency.label }}</label
-              >
-              <el-radio-group
-                v-model="
-                  model[computedFields.frequency.name]
-                "
-              >
-                <el-radio
-                  label="daily"
-                  size="large"
-                  class="frequency-radio !flex items-start mb-3"
-                >
-                  <h6
-                    class="text-sm leading-5 font-medium mb-1"
-                  >
-                    Daily
-                  </h6>
-                  <p
-                    class="text-2xs leading-4.5 text-gray-500"
-                  >
-                    From Monday to Friday (results from
-                    previous day)
-                  </p>
-                </el-radio>
-                <el-radio
-                  label="weekly"
-                  size="large"
-                  class="frequency-radio !flex items-start"
-                >
-                  <h6
-                    class="text-sm leading-5 font-medium mb-1"
-                  >
-                    Weekly
-                  </h6>
-                  <p
-                    class="text-2xs leading-4.5 text-gray-500"
-                  >
-                    Every Monday (results from previous
-                    week)
-                  </p>
-                </el-radio>
-              </el-radio-group>
-            </div>
-          </el-form-item>
-          <el-form-item
-            :prop="computedFields.time.name"
-            :required="computedFields.time.required"
-            class="mb-6"
-          >
-            <div class="w-36">
               <label
                 class="text-sm mb-1 font-medium leading-5"
-                >{{ computedFields.time.label }}</label
+                >Email
+                <span class="text-brand-500">*</span></label
               >
-              <el-time-select
-                v-model="model[computedFields.time.name]"
-                start="00:00"
-                step="00:30"
-                end="23:59"
-                placeholder="Select time"
-                format="hh:mm A"
-                :clearable="false"
-              />
-            </div>
-          </el-form-item>
+              <el-input ref="focus" v-model="model.email" :disabled="!active" />
+            </el-form-item>
+            <el-form-item prop="frequency" class="mb-6">
+              <div>
+                <label
+                  class="text-sm mb-4 font-medium leading-5"
+                  >Frequency</label
+                >
+                <el-radio-group v-model="model.frequency" :disabled="!active">
+                  <el-radio
+                    label="daily"
+                    size="large"
+                    class="frequency-radio !flex items-start mb-3"
+                  >
+                    <h6
+                      class="text-sm leading-5 font-medium mb-1"
+                    >
+                      Daily
+                    </h6>
+                    <p
+                      class="text-2xs leading-4.5 text-gray-500"
+                    >
+                      From Monday to Friday (results from
+                      previous day)
+                    </p>
+                  </el-radio>
+                  <el-radio
+                    label="weekly"
+                    size="large"
+                    class="frequency-radio !flex items-start"
+                  >
+                    <h6
+                      class="text-sm leading-5 font-medium mb-1"
+                    >
+                      Weekly
+                    </h6>
+                    <p
+                      class="text-2xs leading-4.5 text-gray-500"
+                    >
+                      Every Monday (results from previous
+                      week)
+                    </p>
+                  </el-radio>
+                </el-radio-group>
+              </div>
+            </el-form-item>
+            <el-form-item prop="time" class="mb-6">
+              <div class="w-36">
+                <label
+                  class="text-sm mb-1 font-medium leading-5"
+                  >Time</label
+                >
+                <el-time-select
+                  v-model="model.time"
+                  start="00:00"
+                  step="00:30"
+                  end="23:59"
+                  placeholder="Select time"
+                  format="hh:mm A"
+                  :disabled="!active"
+                  :clearable="false"
+                />
+              </div>
+            </el-form-item>
 
-          <el-checkbox
-            v-model="
-              model[computedFields.updateResults.name]
-            "
-            class="filter-checkbox"
-          >
-            <span class="text-sm text-gray-900"
-              >Update email results based on your current
-              feed settings</span
-            ></el-checkbox
-          >
-        </el-form>
-        <hr />
-        <h4
-          class="text-base font-semibold text-gray-900 py-6"
-        >
-          Results summary
-        </h4>
-        <section class="pt-3 pb-1 border-b border-gray-200">
-          <h6
-            class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-          >
-            Keywords
-          </h6>
-          <div class="flex flex-wrap">
-            <div
-              class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
+            <el-checkbox
+              v-model="model.updateResults"
+              class="filter-checkbox"
+              :disabled="!active"
             >
-              Machine Learning
-            </div>
-            <div
-              class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
+              <span class="text-sm text-gray-900"
+                >Update email results based on your current
+                feed settings</span
+              ></el-checkbox
             >
-              Machine
-            </div>
+          </el-form>
+          <hr />
+          <!-- Results summary -->
+          <div v-if="currentUser">
+            <h4
+              class="text-base font-semibold text-gray-900 py-6"
+            >
+              Results summary
+            </h4>
+            <section
+              class="pt-3 pb-1 border-b border-gray-200"
+            >
+              <h6
+                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
+              >
+                Keywords
+              </h6>
+              <div class="flex flex-wrap">
+                <div
+                  v-for="semantic of currentUser
+                    .eagleEyeSettings.feed.keywords"
+                  :key="semantic"
+                  class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
+                >
+                  {{ semantic }}
+                </div>
+                <div
+                  v-for="exact of currentUser
+                    .eagleEyeSettings.feed.exactKeywords"
+                  :key="exact"
+                  class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
+                >
+                  {{ exact }}
+                </div>
+              </div>
+            </section>
+            <section
+              class="pt-3 pb-1 border-b border-gray-200"
+            >
+              <h6
+                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
+              >
+                Platforms
+              </h6>
+              <div class="flex flex-wrap">
+                <div
+                  v-for="excluded of currentUser
+                    .eagleEyeSettings.feed.excludedKeywords"
+                  :key="excluded"
+                  class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
+                >
+                  {{ excluded }}
+                </div>
+              </div>
+            </section>
+            <section class="pt-3 pb-1">
+              <h6
+                class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
+              >
+                Date published
+              </h6>
+              <div class="text-xs leading-5">
+                {{
+                  currentUser.eagleEyeSettings.feed
+                    .publishedDate
+                }}
+              </div>
+            </section>
           </div>
-        </section>
-        <section class="pt-3 pb-1 border-b border-gray-200">
-          <h6
-            class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-          >
-            Platforms
-          </h6>
-          <div class="flex flex-wrap">
-            <div
-              class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
-            >
-              DEV
-            </div>
-            <div
-              class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
-            >
-              Medium
-            </div>
-          </div>
-        </section>
-        <section class="pt-3 pb-1">
-          <h6
-            class="text-2xs font-medium leading-4.5 text-gray-400 pb-2"
-          >
-            Date published
-          </h6>
-          <div class="text-xs leading-5">Last 24h</div>
-        </section>
+        </div>
       </div>
     </template>
 
@@ -196,8 +199,8 @@
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
-          :loading="loading"
-          @click="doSubmit"
+          :loading="loadingUpdateSettings"
+          @click="doSubmit(formRef)"
           >Update
         </el-button>
       </div>
@@ -210,11 +213,19 @@ import AppDrawer from '@/shared/drawer/drawer.vue'
 import {
   ref,
   computed,
+  reactive,
   defineEmits,
-  defineProps
+  defineProps,
+  onMounted,
+  watch
 } from 'vue'
-import { FormSchema } from '@/shared/form/form-schema'
-import { EagleEyeEmailDigestModel } from '@/premium/eagle-eye/eagle-eye-email-digest-model'
+import {
+  mapActions,
+  mapGetters,
+  mapState
+} from '@/shared/vuex/vuex.helpers'
+import Message from '@/shared/message/message'
+import moment from 'moment'
 
 const props = defineProps({
   modelValue: {
@@ -223,27 +234,44 @@ const props = defineProps({
   }
 })
 
+const { currentUser } = mapGetters('auth')
+const { doUpdateSettings } = mapActions('eagleEye')
+const { loadingUpdateSettings } = mapState('eagleEye')
+
 const emit = defineEmits(['update:modelValue'])
 
-const { fields } = EagleEyeEmailDigestModel
-const formSchema = new FormSchema([
-  fields.email,
-  fields.frequency,
-  fields.time,
-  fields.updateResults
-])
-const rules = ref(formSchema.rules())
-const model = ref({
+const rules = {
+  email: [
+    {
+      required: true,
+      message: 'This field is required',
+      trigger: 'blur'
+    }
+  ],
+  frequency: [
+    {
+      required: true,
+      message: 'This field is required',
+      trigger: 'blur'
+    }
+  ],
+  time: [
+    {
+      required: true,
+      message: 'This field is required',
+      trigger: 'blur'
+    }
+  ]
+}
+
+const model = reactive({
   frequency: 'daily',
   time: '09:00 AM',
   updateResults: true
 })
 
-const loading = ref(false)
-
-const computedFields = computed(() => fields)
-
 const active = ref(false)
+const formRef = ref()
 
 const drawerModel = computed({
   get() {
@@ -254,13 +282,59 @@ const drawerModel = computed({
   }
 })
 
-const doSubmit = () => {
-  console.log(model)
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      fillForm(currentUser.value)
+    }
+  }
+)
+
+const fillForm = (user) => {
+  const { eagleEyeSettings } = user
+  active.value = eagleEyeSettings.emailDigestActive || true
+  model.email =
+    eagleEyeSettings.emailDigest?.email || user.email
+  model.frequency =
+    eagleEyeSettings.emailDigest?.frequency || 'daily'
+  model.time =
+    eagleEyeSettings.emailDigest?.time || '09:00 AM'
+  model.updateResults =
+    eagleEyeSettings.emailDigest?.matchFeedSettings || true
+}
+const doSubmit = async (formEl) => {
+  if (!formEl) return
+  await formEl.validate(async (valid) => {
+    if (valid) {
+      const data = {
+        email: model.email,
+        frequency: model.frequency,
+        time: moment(model.time, 'hh:mm A').utc().format('hh:mm'),
+        matchFeedSettings: model.updateResults,
+        feed: currentUser.value.eagleEyeSettings.feed
+      }
+      await doUpdateSettings({
+        ...currentUser.value.eagleEyeSettings,
+        emailDigestActive: active.value,
+        emailDigest:
+          active.value || currentUser.value.emailDigest
+            ? data
+            : undefined
+      })
+      Message.success('Feed settings updated!')
+      emit('update:modelValue', false)
+    }
+  })
 }
 
 const handleCancel = () => {
   emit('update:modelValue', false)
 }
+
+onMounted(() => {
+  fillForm(currentUser.value)
+})
 </script>
 
 <style lang="scss">
