@@ -2,77 +2,93 @@ import sharedMutations from '@/shared/store/mutations'
 
 export default {
   ...sharedMutations(),
-  FETCH_STARTED(state, payload) {
-    state.list.loading = true
+  FETCH_STARTED(state, { keepPagination, activeView }) {
+    state.views[activeView].list.loading = true
 
-    if (state.table) {
-      state.list.table.clearSelection()
+    if (!keepPagination) {
+      state.views[activeView].list.posts.length = 0
     }
 
-    if (!payload.keepPagination) {
-      state.list.posts.length = 0
-    }
-
-    state.pagination =
-      payload && payload.keepPagination
-        ? state.pagination
-        : {
-            currentPage: 1,
-            pageSize:
-              state.pagination && state.pagination.pageSize
-          }
+    state.pagination = keepPagination
+      ? state.pagination
+      : {
+          currentPage: 1,
+          pageSize:
+            state.pagination && state.pagination.pageSize
+        }
   },
 
-  FETCH_SUCCESS(state, { list, count, appendToList }) {
-    state.list.loading = false
+  FETCH_SUCCESS(
+    state,
+    { list, count, appendToList, activeView }
+  ) {
+    state.views[activeView].list.loading = false
     if (appendToList) {
-      state.list.posts.concat(list)
+      state.views[activeView].list.posts.concat(list)
     } else {
-      state.list.posts = list
+      state.views[activeView].list.posts = list
     }
     state.count = count
   },
 
-  UPDATE_ACTION_LOADING(state, { index }) {
-    state.list.posts[index].loading = true
+  UPDATE_ACTION_LOADING(state, { index, activeView }) {
+    state.views[activeView].list.posts[index].loading = true
   },
 
-  CREATE_CONTENT_SUCCESS(state, { post, index }) {
-    state.list.posts[index] = {
-      ...state.list.posts[index],
+  CREATE_CONTENT_SUCCESS(
+    state,
+    { post, index, activeView }
+  ) {
+    state.views[activeView].list.posts[index] = {
+      ...state.views[activeView].list.posts[index],
       ...post
     }
   },
 
-  CREATE_ACTION_SUCCESS(state, { action, index }) {
-    state.list.posts[index].loading = false
-    state.list.posts[index].actions.push(action)
+  CREATE_ACTION_SUCCESS(
+    state,
+    { action, index, activeView }
+  ) {
+    state.views[activeView].list.posts[
+      index
+    ].loading = false
+    state.views[activeView].list.posts[index].actions.push(
+      action
+    )
   },
 
   DELETE_ACTION_SUCCESS(
     state,
     { actionId, actionType, index, activeView }
   ) {
-    state.list.posts[index].loading = false
+    state.views[activeView].list.posts[
+      index
+    ].loading = false
 
     // Remove post from bookmarks view
     if (
       actionType === 'bookmark' &&
       activeView === 'bookmarked'
     ) {
-      state.list.posts.splice(index, 1)
+      state.views[activeView].list.posts.splice(index, 1)
       // Remove action from post
     } else {
-      const deleteIndex = state.list.posts[
-        index
-      ].actions.findIndex((a) => a.id === actionId)
+      const deleteIndex = state.views[
+        activeView
+      ].list.posts[index].actions.findIndex(
+        (a) => a.id === actionId
+      )
 
-      state.list.posts[index].actions.splice(deleteIndex, 1)
+      state.views[activeView].list.posts[
+        index
+      ].actions.splice(deleteIndex, 1)
     }
   },
 
-  UPDATE_ACTION_ERROR(state, { index }) {
-    state.list.posts[index].loading = false
+  UPDATE_ACTION_ERROR(state, { index, activeView }) {
+    state.views[activeView].list.posts[
+      index
+    ].loading = false
   },
 
   SORTER_CHANGED(state, payload) {

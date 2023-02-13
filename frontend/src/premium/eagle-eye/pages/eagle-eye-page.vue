@@ -15,11 +15,9 @@
       class="basis-9/12 overflow-auto overscroll-contain"
     >
       <app-eagle-eye-tabs />
-      <app-eagle-eye-loading-state
-        v-if="loading && !list.length"
-      />
+      <app-eagle-eye-loading-state v-if="isLoading" />
       <app-empty-state-cta
-        v-else-if="!loading && !list.length"
+        v-else-if="showEmptyState"
         :icon="emptyStateContent.icon"
         :title="emptyStateContent.title"
         :description="emptyStateContent.description"
@@ -48,11 +46,20 @@ const { showBanner } = mapGetters('tenant')
 
 const store = useStore()
 
-const list = computed(() => store.state.eagleEye.list.posts)
-const loading = computed(
-  () => store.state.eagleEye.list.loading
+const { activeView, activeViewList } =
+  mapGetters('eagleEye')
+
+const list = computed(() => activeViewList.value.posts)
+const isLoading = computed(() => {
+  if (activeView.value.id === 'feed') {
+    return activeViewList.value.loading
+  }
+
+  return activeViewList.value.loading && !list.value.length
+})
+const showEmptyState = computed(
+  () => !activeViewList.value.loading && !list.value.length
 )
-const { activeView } = mapGetters('eagleEye')
 const emptyStateContent = computed(() => {
   if (activeView.value.id === 'feed') {
     return {
@@ -71,7 +78,7 @@ const emptyStateContent = computed(() => {
 
 onMounted(async () => {
   // Prevent new fetch if it still loading results from onboarding
-  if (!loading.value) {
+  if (!activeViewList.value.loading) {
     await store.dispatch('eagleEye/doFetch', {
       keepPagination: true,
       resetStorage: false

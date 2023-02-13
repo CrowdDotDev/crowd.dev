@@ -7,11 +7,21 @@ export default () => {
       feed: {
         id: 'feed',
         label: 'Feed',
+        list: {
+          posts: [],
+          loading: false
+        },
+        count: 0,
         active: true
       },
       bookmarked: {
         id: 'bookmarked',
         label: 'Bookmarked',
+        list: {
+          posts: [],
+          loading: false
+        },
+        count: 0,
         pagination: {
           currentPage: 1,
           pageSize: INITIAL_PAGE_SIZE
@@ -20,11 +30,6 @@ export default () => {
         active: false
       }
     },
-    list: {
-      posts: [],
-      loading: false
-    },
-    count: 0,
     loadingUpdateSettings: false
   }
 }

@@ -3,12 +3,25 @@
  * [tenantId]: {
  *    [userId]: {
  *      posts: []
- *      storageDate: ''
+ *      storageDate: '',
  *    }
  * }
  */
 
 import moment from 'moment'
+
+export const isStorageUpdating = ({ tenantId, userId }) => {
+  const storage = localStorage.getItem('eagleEyeResults')
+
+  if (
+    !storage ||
+    !JSON.parse(storage)?.[tenantId]?.[userId]
+  ) {
+    return null
+  }
+
+  return !JSON.parse(storage)[tenantId][userId].storageDate
+}
 
 export const shouldFetchNewResults = ({
   tenantId,
@@ -49,6 +62,7 @@ export const getResultsFromStorage = ({
 
 // Set results in storage for the given tenant and user id
 export const setResultsInStorage = ({
+  storageDate,
   posts,
   tenantId,
   userId
@@ -58,7 +72,7 @@ export const setResultsInStorage = ({
   )
   const payload = {
     posts,
-    storageDate: moment()
+    storageDate
   }
 
   // Add/update user posts in tenantId
