@@ -238,6 +238,7 @@
 import datePublished from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
 import platforms from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import AppDrawer from '@/shared/drawer/drawer.vue'
+import Message from '@/shared/message/message'
 import {
   computed,
   defineEmits,
@@ -421,6 +422,7 @@ const onSubmit = async (formEl) => {
         ...currentUser.eagleEyeSettings,
         feed: data
       })
+      Message.success('Feed settings updated!')
       emit('update:modelValue', false)
     }
   })

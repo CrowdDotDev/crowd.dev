@@ -26,7 +26,6 @@
       ></app-empty-state-cta>
       <app-eagle-eye-list v-else :list="list" />
     </div>
-    <app-eagle-eye-settings v-model="settingsOpen" />
   </div>
 </template>
 
@@ -41,16 +40,13 @@ import AppEagleEyeTabs from '@/premium/eagle-eye/components/list/eagle-eye-tabs.
 import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-settings.vue'
 import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue'
 import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue'
-import AppEagleEyeSettings from '../components/eagle-eye-settings'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { ref, computed, onMounted } from 'vue'
+import {  computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 
 const { showBanner } = mapGetters('tenant')
 
 const store = useStore()
-
-const settingsOpen = ref(false)
 
 const list = computed(() => store.state.eagleEye.list.posts)
 const loading = computed(

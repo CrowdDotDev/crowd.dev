@@ -163,7 +163,7 @@
 <script setup>
 import { formatDateToTimeAgo } from '@/utils/date'
 import { computed, defineProps } from 'vue'
-import { platformOptions } from '@/premium/eagle-eye/eagle-eye-constants'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import { withHttp } from '@/utils/string'
 import {
   mapActions,

@@ -180,6 +180,9 @@ export default {
       await dispatch(`auth/doRefreshCurrentUser`, null, {
         root: true
       })
+      dispatch(`doFetch`, {
+        resetStorage: true
+      })
 
       commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
     } catch (error) {
