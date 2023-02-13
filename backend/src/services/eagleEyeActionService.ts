@@ -73,6 +73,7 @@ export default class EagleEyeActionService extends LoggingBase {
 
       await SequelizeRepository.commitTransaction(transaction)
 
+      // Tracking here so we have access to url and platform
       track(
         `Eagle Eye post ${record.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
         {
@@ -109,6 +110,7 @@ export default class EagleEyeActionService extends LoggingBase {
       await EagleEyeContentRepository.destroy(contentId, this.options)
     }
 
+    // Tracking here so we have access to url and platform
     track(
       `Eagle Eye post ${action.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
       {
