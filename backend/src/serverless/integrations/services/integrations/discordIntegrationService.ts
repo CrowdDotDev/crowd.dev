@@ -459,9 +459,13 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
         await DiscordIntegrationService.cacheChannel(record.thread as DiscordApiChannel, context)
       }
 
+      if (record.id === record.channel_id) {
+        firstThreadMessage = true
+      }
+
       const channel = await DiscordIntegrationService.getChannel(record.channel_id, context)
 
-      const isForum = DiscordIntegrationService.isForum(channel)
+      let isForum = false
       const isThread = DiscordIntegrationService.isThread(channel)
 
       // if we're parsing a thread, mark each message as a child of this thread
@@ -476,6 +480,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
             context,
           )
           parentChannel = parentChannelObj.name
+          isForum = DiscordIntegrationService.isForum(parentChannelObj)
         }
       }
       // record.parentId means that it's a reply
