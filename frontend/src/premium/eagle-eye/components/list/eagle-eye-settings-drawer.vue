@@ -78,16 +78,13 @@
                   </el-select>
                 </el-form-item>
               </div>
-              <div
-                class="p-2"
-                :class="{ 'cursor-pointer': ii > 0 }"
-                @click="ii > 0 ? removeInclude(ii) : null"
+              <el-button
+                class="btn btn--md btn--transparent w-10 h-10"
+                :disabled="form.include.length === 1"
+                @click="removeInclude(ii)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg h-5 text-gray-600 flex items-center"
-                  :class="{ 'opacity-50': ii <= 0 }"
-                ></i>
-              </div>
+                <i class="ri-delete-bin-line text-lg"></i>
+              </el-button>
             </article>
             <div class="flex">
               <p
@@ -120,14 +117,12 @@
                   placeholder="Keyword"
                 ></el-input>
               </el-form-item>
-              <div
-                class="p-2 cursor-pointer"
+              <el-button
+                class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeExclude(ei)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg h-5 text-gray-600 flex items-center"
-                ></i>
-              </div>
+                <i class="ri-delete-bin-line text-lg"></i>
+              </el-button>
             </article>
             <div class="flex">
               <p

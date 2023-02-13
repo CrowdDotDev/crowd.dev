@@ -70,9 +70,12 @@ const emptyStateContent = computed(() => {
 })
 
 onMounted(async () => {
-  await store.dispatch('eagleEye/doFetch', {
-    keepPagination: true,
-    resetStorage: false
-  })
+  // Prevent new fetch if it still loading results from onboarding
+  if (!loading.value) {
+    await store.dispatch('eagleEye/doFetch', {
+      keepPagination: true,
+      resetStorage: false
+    })
+  }
 })
 </script>

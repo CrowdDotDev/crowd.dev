@@ -22,7 +22,11 @@ export default {
         count,
         appendToList
 
-      commit('FETCH_STARTED', { keepPagination })
+      commit('FETCH_STARTED', {
+        keepPagination: resetStorage
+          ? false
+          : keepPagination
+      })
 
       // Bookmarks View
       if (getters.activeView.id === 'bookmarked') {
@@ -51,10 +55,11 @@ export default {
       // Feed view
       else {
         const fetchNewResults =
+          resetStorage ||
           shouldFetchNewResults({
             tenantId: currentTenant.id,
             userId: currentUser.id
-          }) || resetStorage
+          })
 
         if (fetchNewResults) {
           list = await EagleEyeService.search()

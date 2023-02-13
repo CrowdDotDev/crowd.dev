@@ -1,43 +1,45 @@
 <template>
-  <div>
-    <h6 class="text-gray-900">Select platforms</h6>
-    <div class="text-xs mt-2 text-gray-500">
-      Choose the community platforms and timeframe you want
-      to monitor.
+  <el-form @submit.prevent>
+    <div>
+      <h6 class="text-gray-900">Select platforms</h6>
+      <div class="text-xs mt-2 text-gray-500">
+        Choose the community platforms and timeframe you
+        want to monitor.
+      </div>
     </div>
-  </div>
 
-  <div class="mt-8">
-    <div class="text-gray-900 text-xs font-semibold">
-      Date published
+    <div class="mt-8">
+      <div class="text-gray-900 text-xs font-semibold">
+        Date published
+      </div>
+      <div class="flex gap-2 mt-2">
+        <app-eagle-eye-published-date
+          v-model:date-published="publishedDate"
+        />
+      </div>
     </div>
-    <div class="flex gap-2 mt-2">
-      <app-eagle-eye-published-date
-        v-model:date-published="publishedDate"
+
+    <div class="mt-8">
+      <div class="text-gray-900 text-xs font-semibold mb-2">
+        Platforms
+        <span class="text-brand-500 ml-0.5 font-normal"
+          >*</span
+        >
+      </div>
+
+      <app-eagle-eye-platforms
+        v-model:platforms="platforms"
       />
     </div>
-  </div>
 
-  <div class="mt-8">
-    <div class="text-gray-900 text-xs font-semibold mb-2">
-      Platforms
-      <span class="text-brand-500 ml-0.5 font-normal"
-        >*</span
-      >
-    </div>
-
-    <app-eagle-eye-platforms
-      v-model:platforms="platforms"
+    <eagle-eye-footer
+      :show-previous-step="true"
+      :is-next-button-disabled="!isPlatformsFormValid"
+      @on-step-change="
+        (increment) => emit('onStepChange', increment)
+      "
     />
-  </div>
-
-  <eagle-eye-footer
-    :show-previous-step="true"
-    :is-next-button-disabled="!isPlatformsFormValid"
-    @on-step-change="
-      (increment) => emit('onStepChange', increment)
-    "
-  />
+  </el-form>
 </template>
 
 <script setup>
