@@ -1,44 +1,33 @@
 <template>
-  <app-page-wrapper size="narrow">
-    <div class="eagle-eye">
-      <div class="eagle-eye-header">
-        <div class="flex items-center">
-          <h4>Eagle Eye</h4>
-          <span
-            v-if="currentTenant.isTrialPlan"
-            class="badge badge--sm badge--light-yellow ml-4"
-            >Growth (trial)</span
-          >
-        </div>
-        <div class="text-xs text-gray-500">
-          Discover and engage with relevant content across
-          various community platforms.
-        </div>
-      </div>
-      <app-eagle-eye-tabs class="mt-10" />
-      <app-eagle-eye-filter />
-      <div
-        v-if="shouldRenderInboxEmptyState"
-        class="flex flex-col items-center justify-center w-full py-10"
-      >
-        <img
-          src="/images/empty-state/eagle-eye.svg"
-          alt=""
-          class="w-80"
-        />
-        <div class="text-xl font-medium mt-10">
-          Stop scrolling, start engaging
-        </div>
-        <div class="text-gray-600 text-sm mt-6">
-          Find relevant content across community platforms
-        </div>
-      </div>
-      <div v-else>
-        <app-eagle-eye-list />
-      </div>
+  <div
+    class="absolute top-0 left-0 w-full max-h-screen flex flex-row"
+    :class="{
+      'pt-[55px]': showBanner
+    }"
+  >
+    <div
+      class="basis-3/12 overflow-auto overscroll-contain"
+    >
+      <app-eagle-eye-settings />
+    </div>
+
+    <div
+      class="basis-9/12 overflow-auto overscroll-contain"
+    >
+      <app-eagle-eye-tabs />
+      <app-eagle-eye-loading-state
+        v-if="loading && !list.length"
+      />
+      <app-empty-state-cta
+        v-else-if="!loading && !list.length"
+        :icon="emptyStateContent.icon"
+        :title="emptyStateContent.title"
+        :description="emptyStateContent.description"
+      ></app-empty-state-cta>
+      <app-eagle-eye-list v-else :list="list" />
     </div>
     <app-eagle-eye-settings v-model="settingsOpen" />
-  </app-page-wrapper>
+  </div>
 </template>
 
 <script>
@@ -48,33 +37,46 @@ export default {
 </script>
 
 <script setup>
-import AppEagleEyeTabs from '../components/eagle-eye-tabs'
-import AppEagleEyeList from '../components/eagle-eye-list'
-import AppEagleEyeFilter from '../components/eagle-eye-filter'
+import AppEagleEyeTabs from '@/premium/eagle-eye/components/list/eagle-eye-tabs.vue'
+import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-settings.vue'
+import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue'
+import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue'
 import AppEagleEyeSettings from '../components/eagle-eye-settings'
-
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { computed, ref } from 'vue'
+
+const { showBanner } = mapGetters('tenant')
 
 const store = useStore()
 
-const settingsOpen = ref(true)
+const settingsOpen = ref(false)
 
+const list = computed(() => store.state.eagleEye.list.posts)
 const loading = computed(
   () => store.state.eagleEye.list.loading
 )
-const activeView = computed(
-  () => store.getters['eagleEye/activeView'].id
-)
-const currentTenant = computed(
-  () => store.getters['auth/currentTenant']
-)
+const { activeView } = mapGetters('eagleEye')
+const emptyStateContent = computed(() => {
+  if (activeView.value.id === 'feed') {
+    return {
+      icon: 'ri-search-eye-line',
+      title: 'No results found',
+      description: 'Try to refine your feed settings'
+    }
+  }
 
-const shouldRenderInboxEmptyState = computed(() => {
-  return (
-    !localStorage.getItem('eagleEye_keywords') &&
-    !loading.value &&
-    activeView.value === 'inbox'
-  )
+  return {
+    icon: 'ri-bookmark-line',
+    title: 'No bookmarks yet',
+    description: 'Bookmarked results will appear here'
+  }
+})
+
+onMounted(async () => {
+  await store.dispatch('eagleEye/doFetch', {
+    keepPagination: true,
+    resetStorage: false
+  })
 })
 </script>

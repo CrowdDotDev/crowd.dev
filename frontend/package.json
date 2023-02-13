@@ -59,12 +59,14 @@
     "vue-json-pretty": "^2.2.2",
     "vue-router": "^4.1.5",
     "vue3-click-away": "^1.2.4",
+    "vue3-lazyload": "^0.3.6",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "xlsx": "^0.17.2",
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@tailwindcss/line-clamp": "^0.4.2",
     "@tiptap/extension-link": "^2.0.0-beta.202",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.1",
