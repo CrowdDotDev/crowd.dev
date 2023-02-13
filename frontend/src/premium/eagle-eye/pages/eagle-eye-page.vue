@@ -41,7 +41,7 @@ import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-s
 import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue'
 import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import {  computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 
 const { showBanner } = mapGetters('tenant')

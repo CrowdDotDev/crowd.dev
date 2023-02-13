@@ -255,7 +255,7 @@ const drawerModel = computed({
 })
 
 const doSubmit = () => {
-  console.log(model);
+  console.log(model)
 }
 
 const handleCancel = () => {

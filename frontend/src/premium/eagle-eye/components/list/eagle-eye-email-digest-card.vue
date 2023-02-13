@@ -15,7 +15,9 @@
       to 10 most relevant results from Eagle Eye.
     </div>
 
-    <el-button class="btn btn--primary btn--full !h-8"
+    <el-button
+      class="btn btn--primary btn--full !h-8"
+      @click="isEmailDigestDrawerOpen = true"
       >Activate Email Digest</el-button
     >
   </div>
@@ -45,17 +47,27 @@
       </div>
     </div>
 
-    <el-button class="btn btn--transparent !h-8 !w-8">
+    <el-button
+      class="btn btn--transparent !h-8 !w-8"
+      @click="isEmailDigestDrawerOpen = true"
+    >
       <i class="ri-sound-module-line text-base" />
     </el-button>
   </div>
+
+  <app-eagle-eye-email-digest-drawer
+    v-model="isEmailDigestDrawerOpen"
+  />
 </template>
 
 <script setup>
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import { computed } from 'vue'
+import AppEagleEyeEmailDigestDrawer from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-drawer.vue'
+import { ref, computed } from 'vue'
 
 const { currentUser } = mapGetters('auth')
+
+const isEmailDigestDrawerOpen = ref(false)
 
 const isEmailDigestConfiguredOnce = computed(
   () =>
