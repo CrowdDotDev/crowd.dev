@@ -123,7 +123,9 @@ export default {
       })
     } catch (error) {
       Errors.handle(error)
-      commit('FETCH_ERROR')
+      commit('FETCH_ERROR', {
+        activeView
+      })
     }
   },
 

@@ -31,6 +31,12 @@ export default {
     state.count = count
   },
 
+  FETCH_ERROR(state, { activeView }) {
+    state.views[activeView].list.loading = false
+    state.views[activeView].list.posts = []
+    state.views[activeView].count = 0
+  },
+
   UPDATE_ACTION_LOADING(state, { index, activeView }) {
     state.views[activeView].list.posts[index].loading = true
   },
