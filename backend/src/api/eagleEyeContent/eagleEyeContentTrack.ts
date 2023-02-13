@@ -7,8 +7,8 @@ export default async (req, res) => {
   track(
     'Eagle Eye post click',
     {
-      url: req.params.postUrl,
-      platform: req.params.platform,
+      url: req.body.url,
+      platform: req.body.platform,
     },
     { ...req },
   )

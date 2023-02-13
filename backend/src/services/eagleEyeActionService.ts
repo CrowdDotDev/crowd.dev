@@ -28,6 +28,18 @@ export default class EagleEyeActionService extends LoggingBase {
       throw new Error404(this.options.language, 'errors.eagleEye.contentNotFound')
     }
 
+    // Tracking here so we have access to url and platform
+    track(
+      `Eagle Eye post ${data.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
+      {
+        type: data.type,
+        url: content.url,
+        platform: content.platform,
+        action: 'create',
+      },
+      { ...this.options },
+    )
+
     const existingUserActions: EagleEyeAction[] = content.actions.filter(
       (a) => a.actionById === this.options.currentUser.id,
     )
@@ -77,18 +89,6 @@ export default class EagleEyeActionService extends LoggingBase {
       })
 
       await SequelizeRepository.commitTransaction(transaction)
-
-      // Tracking here so we have access to url and platform
-      track(
-        `Eagle Eye post ${record.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
-        {
-          type: record.type,
-          url: content.url,
-          platform: content.platform,
-          action: 'create',
-        },
-        { ...this.options },
-      )
 
       return record
     } catch (error) {
