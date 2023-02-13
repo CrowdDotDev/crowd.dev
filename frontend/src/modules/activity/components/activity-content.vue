@@ -3,8 +3,9 @@
     <div
       v-if="
         activity.title &&
-        (activity.parent === undefined ||
-          activity.parent.body !== activity.title) &&
+        (!activity.parent ||
+          !activity.parent.body ||
+          !activity.parent.body !== activity.title) &&
         displayTitle
       "
     >
@@ -12,6 +13,7 @@
         activity.title
       }}</span>
     </div>
+
     <div
       v-if="activity.title && activity.body && displayTitle"
       class="mt-3"
