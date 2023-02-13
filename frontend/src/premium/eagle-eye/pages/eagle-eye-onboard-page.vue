@@ -1,0 +1,144 @@
+<template>
+  <div class="max-w-xl mx-auto pt-16 pb-24">
+    <div class="panel !p-0">
+      <!-- Banner -->
+      <eagle-eye-banner
+        :title="headerContent.title"
+        :pre-title="headerContent.preTitle"
+        :show-image="headerContent.showImage"
+      />
+
+      <!-- Content -->
+      <div class="px-8 pb-8 pt-9">
+        <eagle-eye-intro
+          v-if="step === 1"
+          @on-step-change="onStepChange"
+        />
+        <eagle-eye-keywords
+          v-if="step === 2"
+          v-model="keywords"
+          @on-step-change="onStepChange"
+        />
+        <eagle-eye-platforms
+          v-if="step === 3"
+          v-model:platforms="platforms"
+          v-model:publishedDate="publishedDate"
+          @on-step-change="onStepChange"
+        />
+        <eagle-eye-summary
+          v-if="step === 4"
+          @on-step-change="onStepChange"
+          @on-submit="onSubmit"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import {
+  computed,
+  reactive,
+  ref,
+  onMounted,
+  onBeforeUnmount
+} from 'vue'
+import { onBeforeRouteLeave, useRouter } from 'vue-router'
+import { premiumFeatureCopy } from '@/utils/posthog'
+import EagleEyeBanner from '@/premium/eagle-eye/components/onboard/eagle-eye-banner.vue'
+import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intro.vue'
+import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords.vue'
+import EagleEyePlatforms from '@/premium/eagle-eye/components/onboard/eagle-eye-platforms.vue'
+import EagleEyeSummary from '@/premium/eagle-eye/components/onboard/eagle-eye-summary.vue'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
+import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
+import { mapActions } from '@/shared/vuex/vuex.helpers'
+import { useStore } from 'vuex'
+
+const store = useStore()
+const router = useRouter()
+const { doUpdateSettings } = mapActions('eagleEye')
+const step = ref(1)
+const headerContent = computed(() => {
+  if (step.value === 1) {
+    return {
+      title: 'Eagle Eye',
+      preTitle: `${premiumFeatureCopy()} App`,
+      showImage: true
+    }
+  }
+
+  return {
+    title: 'Set up your feed',
+    preTitle: 'Eagle Eye'
+  }
+})
+
+const keywords = reactive([
+  {
+    value: null
+  }
+])
+const publishedDate = ref(publishedDateOptions[0].label)
+const wasFormSubmittedSuccessfuly = ref(false)
+const storeUnsubscribe = ref(() => {})
+const platforms = reactive(platformOptions)
+
+// Prevent lost data on route change
+onBeforeRouteLeave((to) => {
+  if (
+    step.value > 1 &&
+    !wasFormSubmittedSuccessfuly.value &&
+    to.fullPath !== '/500' &&
+    to.fullPath !== '/403'
+  ) {
+    return ConfirmDialog({})
+      .then(() => {
+        return true
+      })
+      .catch(() => {
+        return false
+      })
+  }
+
+  return true
+})
+
+onMounted(() => {
+  storeUnsubscribe.value = store.subscribe((mutation) => {
+    if (
+      mutation.type ===
+      'eagleEye/UPDATE_EAGLE_EYE_SETTINGS_SUCCESS'
+    ) {
+      wasFormSubmittedSuccessfuly.value = true
+      router.push({ name: 'eagleEye' })
+    }
+  })
+})
+
+onBeforeUnmount(() => {
+  storeUnsubscribe.value()
+})
+
+const onStepChange = (increment) => {
+  step.value = step.value + increment
+}
+
+const onSubmit = async () => {
+  const formattedKeywords = keywords.map((k) => k.value)
+  const formattedPlatforms = Object.entries(platforms)
+    .filter(([, value]) => value.enabled)
+    .map(([key]) => key)
+
+  await doUpdateSettings({
+    feed: {
+      keywords: formattedKeywords,
+      exactKeywords: [],
+      excludedKeywords: [],
+      publishedDate: publishedDate.value,
+      platforms: formattedPlatforms
+    }
+  })
+}
+</script>

@@ -1,21 +1,10 @@
 import authAxios from '@/shared/axios/auth-axios'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
-import buildApiPayload from '@/shared/filter/helpers/build-api-payload'
 
 export class EagleEyeService {
-  static async find(id) {
-    const tenantId = AuthCurrentTenant.get()
-
-    const response = await authAxios.get(
-      `/tenant/${tenantId}/eagleEyeContent/${id}`
-    )
-
-    return response.data
-  }
-
-  static async list(filter, orderBy, limit, offset) {
+  static async query(filter, orderBy, limit, offset) {
     const body = {
-      filter: buildApiPayload(filter),
+      filter,
       orderBy,
       limit,
       offset
@@ -31,60 +20,54 @@ export class EagleEyeService {
     return response.data
   }
 
-  static async populate(keywords) {
-    const data = {
-      exactKeywords: keywords
-        .filter((k) => {
-          return k[0] === '"' && k[k.length - 1] === '"'
-        })
-        .map((s) => s.replaceAll('"', '')),
-      keywords: keywords.filter((k) => {
-        return k[0] !== '"' && k[k.length - 1] !== '"'
-      })
-    }
-
+  static async search() {
     const tenantId = AuthCurrentTenant.get()
 
-    await authAxios.post(
+    const response = await authAxios.get(
+      `/tenant/${tenantId}/eagleEyeContent/search`
+    )
+
+    return response.data
+  }
+
+  static async createContent({ post }) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent`,
+      post
+    )
+
+    return response.data
+  }
+
+  static async addAction({ postId, actionData }) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.post(
+      `/tenant/${tenantId}/eagleEyeContent/${postId}/action`,
+      actionData
+    )
+
+    return response.data
+  }
+
+  static async deleteAction({ postId, actionId }) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.delete(
+      `/tenant/${tenantId}/eagleEyeContent/${postId}/action/${actionId}`
+    )
+
+    return response.data
+  }
+
+  static async updateSettings(data) {
+    const tenantId = AuthCurrentTenant.get()
+
+    const response = await authAxios.put(
+      `/tenant/${tenantId}/eagleEyeContent/settings`,
       data
-    )
-  }
-
-  static async exclude(id) {
-    const tenantId = AuthCurrentTenant.get()
-
-    const response = await authAxios.put(
-      `/tenant/${tenantId}/eagleEyeContent/${id}`,
-      {
-        status: 'rejected'
-      }
-    )
-
-    return response.data
-  }
-
-  static async engage(id) {
-    const tenantId = AuthCurrentTenant.get()
-
-    const response = await authAxios.put(
-      `/tenant/${tenantId}/eagleEyeContent/${id}`,
-      {
-        status: 'engaged'
-      }
-    )
-
-    return response.data
-  }
-
-  static async revertExclude(id) {
-    const tenantId = AuthCurrentTenant.get()
-
-    const response = await authAxios.put(
-      `/tenant/${tenantId}/eagleEyeContent/${id}`,
-      {
-        status: null
-      }
     )
 
     return response.data

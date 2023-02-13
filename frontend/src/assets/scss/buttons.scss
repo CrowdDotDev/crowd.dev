@@ -93,8 +93,9 @@
     &:active {
       @apply bg-gray-200 text-gray-600 border-2 border-gray-200 border-solid;
     }
-    &[disabled] {
-      @apply cursor-not-allowed bg-white text-gray-400 border-2 border-gray-100 border-solid;
+    &[disabled],
+    &.disabled {
+      @apply cursor-not-allowed bg-white text-gray-400 border-none;
     }
   }
 
