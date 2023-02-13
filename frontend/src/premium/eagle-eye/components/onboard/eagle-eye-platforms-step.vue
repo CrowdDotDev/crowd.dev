@@ -12,20 +12,9 @@
       Date published
     </div>
     <div class="flex gap-2 mt-2">
-      <el-radio-group
-        id="tenantSize"
-        v-model="publishedDate"
-        class="radio-chips together"
-        size="medium"
-      >
-        <el-radio-button
-          v-for="option in publishedDateOptions"
-          :key="option.value"
-          :label="option.label"
-        >
-          {{ option.label }}
-        </el-radio-button>
-      </el-radio-group>
+      <app-eagle-eye-published-date
+        v-model:date-published="publishedDate"
+      />
     </div>
   </div>
 
@@ -37,20 +26,9 @@
       >
     </div>
 
-    <div
-      v-for="[key, value] of Object.entries(platforms)"
-      :key="key"
-      class="h-12 flex items-center border-b last:border-none border-gray-200 hover:bg-gray-50 hover:cursor-pointer"
-    >
-      <div>
-        <img :src="value.img" class="w-6 h-6" />
-      </div>
-      <el-switch
-        v-model="value.enabled"
-        :inactive-text="value.label"
-        class="h-full"
-      />
-    </div>
+    <app-eagle-eye-platforms
+      v-model:platforms="platforms"
+    />
   </div>
 
   <eagle-eye-footer
@@ -71,7 +49,8 @@ import {
   watch,
   ref
 } from 'vue'
-import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
+import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms.vue'
+import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue'
 
 const emit = defineEmits([
   'update:platforms',
@@ -90,8 +69,9 @@ const props = defineProps({
 })
 
 const arePlatformsValid = (platformsObject) => {
-  return Object.values(platformsObject).some(
-    (p) => p.enabled
+  return (
+    Object.values(platformsObject).filter((v) => v).length >
+    0
   )
 }
 
@@ -127,32 +107,3 @@ watch(
   { deep: true }
 )
 </script>
-
-<style lang="scss">
-.el-radio-group {
-  &.radio-chips.together {
-    .el-radio-button {
-      @apply mr-0 mb-0;
-
-      .el-radio-button__inner {
-        @apply border-l-0 h-8 px-2 rounded-none border-gray-200 text-gray-500;
-      }
-
-      &.is-active {
-        .el-radio-button__inner {
-          @apply border-r border-y border-brand-500 rounded-none text-gray-900;
-          box-shadow: -1px 0 0 0 rgb(233 79 46);
-        }
-      }
-
-      &:first-child .el-radio-button__inner {
-        @apply rounded-l-lg border-l;
-      }
-
-      &:last-child .el-radio-button__inner {
-        @apply rounded-r-lg;
-      }
-    }
-  }
-}
-</style>
