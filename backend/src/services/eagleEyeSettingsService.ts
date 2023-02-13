@@ -2,7 +2,7 @@ import lodash from 'lodash'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import UserRepository from '../database/repositories/userRepository'
 import Error400 from '../errors/Error400'
-import track from '../segment/telemetryTrack'
+import track from '../segment/track'
 import {
   EagleEyeSettings,
   EagleEyeFeedSettings,

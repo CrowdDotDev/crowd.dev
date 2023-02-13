@@ -5,7 +5,7 @@ import Error404 from '../errors/Error404'
 import { EagleEyeAction, EagleEyeActionType } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
-import track from '../segment/telemetryTrack'
+import track from '../segment/track'
 
 export default class EagleEyeActionService extends LoggingBase {
   options: IServiceOptions
