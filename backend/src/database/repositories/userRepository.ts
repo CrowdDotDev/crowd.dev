@@ -330,7 +330,7 @@ export default class UserRepository {
 
     await user.update(
       {
-        eagleEyeSettings: data,
+        eagleEyeSettings: {...user.eagleEyeSettings, ...data},
         updatedById: currentUser.id,
       },
       { transaction },

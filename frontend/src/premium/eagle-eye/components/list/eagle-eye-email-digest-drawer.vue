@@ -41,7 +41,11 @@
                 >Email
                 <span class="text-brand-500">*</span></label
               >
-              <el-input ref="focus" v-model="model.email" :disabled="!active" />
+              <el-input
+                ref="focus"
+                v-model="model.email"
+                :disabled="!active"
+              />
             </el-form-item>
             <el-form-item prop="frequency" class="mb-6">
               <div>
@@ -49,7 +53,10 @@
                   class="text-sm mb-4 font-medium leading-5"
                   >Frequency</label
                 >
-                <el-radio-group v-model="model.frequency" :disabled="!active">
+                <el-radio-group
+                  v-model="model.frequency"
+                  :disabled="!active"
+                >
                   <el-radio
                     label="daily"
                     size="large"
@@ -91,7 +98,7 @@
               <div class="w-36">
                 <label
                   class="text-sm mb-1 font-medium leading-5"
-                  >Time</label
+                  >Time (UTC)</label
                 >
                 <el-time-select
                   v-model="model.time"
@@ -99,7 +106,7 @@
                   step="00:30"
                   end="23:59"
                   placeholder="Select time"
-                  format="hh:mm A"
+                  format="HH:mm"
                   :disabled="!active"
                   :clearable="false"
                 />
@@ -119,12 +126,33 @@
           </el-form>
           <hr />
           <!-- Results summary -->
-          <div v-if="currentUser">
+          <div v-if="results">
             <h4
               class="text-base font-semibold text-gray-900 py-6"
             >
               Results summary
             </h4>
+            <!-- update feed warning -->
+            <div
+              v-if="displayFeedWarning"
+              class="bg-yellow-50 border border-yellow-100 rounded-md py-2.5 px-3 flex items-center justify-between mb-4"
+            >
+              <div class="flex items-center">
+                <i
+                  class="text-base ri-alert-fill text-yellow-500 mr-2"
+                ></i>
+                <p class="text-2xs leading-5">
+                  Current feed settings don’t match the
+                  digest results
+                </p>
+              </div>
+              <p
+                class="text-xs text-yellow-600 font-medium cursor-pointer"
+                @click="updateFeed()"
+              >
+                Update
+              </p>
+            </div>
             <section
               class="pt-3 pb-1 border-b border-gray-200"
             >
@@ -135,16 +163,14 @@
               </h6>
               <div class="flex flex-wrap">
                 <div
-                  v-for="semantic of currentUser
-                    .eagleEyeSettings.feed.keywords"
+                  v-for="semantic of results.keywords"
                   :key="semantic"
                   class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
                 >
                   {{ semantic }}
                 </div>
                 <div
-                  v-for="exact of currentUser
-                    .eagleEyeSettings.feed.exactKeywords"
+                  v-for="exact of results.exactKeywords"
                   :key="exact"
                   class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
                 >
@@ -162,8 +188,7 @@
               </h6>
               <div class="flex flex-wrap">
                 <div
-                  v-for="excluded of currentUser
-                    .eagleEyeSettings.feed.excludedKeywords"
+                  v-for="excluded of results.excludedKeywords"
                   :key="excluded"
                   class="border border-gray-200 mr-2 mb-2 rounded-md py-0.5 px-2 text-xs leading-5"
                 >
@@ -178,10 +203,7 @@
                 Date published
               </h6>
               <div class="text-xs leading-5">
-                {{
-                  currentUser.eagleEyeSettings.feed
-                    .publishedDate
-                }}
+                {{ results.publishedDate }}
               </div>
             </section>
           </div>
@@ -225,7 +247,6 @@ import {
   mapState
 } from '@/shared/vuex/vuex.helpers'
 import Message from '@/shared/message/message'
-import moment from 'moment'
 
 const props = defineProps({
   modelValue: {
@@ -266,7 +287,7 @@ const rules = {
 
 const model = reactive({
   frequency: 'daily',
-  time: '09:00 AM',
+  time: '09:00',
   updateResults: true
 })
 
@@ -282,6 +303,44 @@ const drawerModel = computed({
   }
 })
 
+const feed = ref(null)
+
+const results = computed(() => {
+  if (!model.updateResults) {
+    if (currentUser.value && feed.value) {
+      return feed.value
+    }
+  } else {
+    if (
+      currentUser &&
+      currentUser.value.eagleEyeSettings.feed
+    ) {
+      return (
+        currentUser &&
+        currentUser.value.eagleEyeSettings.feed
+      )
+    }
+  }
+  return null
+})
+
+const displayFeedWarning = computed(() => {
+  if (model.updateResults) {
+    return false
+  }
+  if (
+    currentUser.value.eagleEyeSettings.feed &&
+    feed.value
+  ) {
+    return (
+      JSON.stringify(
+        currentUser.value.eagleEyeSettings.feed
+      ) !== JSON.stringify(feed.value)
+    )
+  }
+  return false
+})
+
 watch(
   () => props.modelValue,
   (open) => {
@@ -291,17 +350,25 @@ watch(
   }
 )
 
+const updateFeed = () => {
+  console.log(feed.value)
+  console.log(currentUser.value?.eagleEyeSettings.feed)
+  feed.value =
+    currentUser.value?.eagleEyeSettings.feed ?? null
+}
+
 const fillForm = (user) => {
   const { eagleEyeSettings } = user
-  active.value = eagleEyeSettings.emailDigestActive || true
+  active.value = eagleEyeSettings.emailDigestActive || false
   model.email =
     eagleEyeSettings.emailDigest?.email || user.email
   model.frequency =
     eagleEyeSettings.emailDigest?.frequency || 'daily'
-  model.time =
-    eagleEyeSettings.emailDigest?.time || '09:00 AM'
-  model.updateResults =
-    eagleEyeSettings.emailDigest?.matchFeedSettings || true
+  model.time = eagleEyeSettings.emailDigest?.time || '09:00'
+  model.updateResults = !eagleEyeSettings.emailDigest
+    ? true
+    : eagleEyeSettings.emailDigest?.matchFeedSettings
+  feed.value = user.eagleEyeSettings.emailDigest.feed
 }
 const doSubmit = async (formEl) => {
   if (!formEl) return
@@ -310,19 +377,16 @@ const doSubmit = async (formEl) => {
       const data = {
         email: model.email,
         frequency: model.frequency,
-        time: moment(model.time, 'hh:mm A').utc().format('hh:mm'),
+        time: model.time,
         matchFeedSettings: model.updateResults,
-        feed: currentUser.value.eagleEyeSettings.feed
+        feed: !model.updateResults ? feed : undefined
       }
       await doUpdateSettings({
         ...currentUser.value.eagleEyeSettings,
         emailDigestActive: active.value,
-        emailDigest:
-          active.value || currentUser.value.emailDigest
-            ? data
-            : undefined
+        emailDigest: data
       })
-      Message.success('Feed settings updated!')
+      Message.success('Email digest settings updated!')
       emit('update:modelValue', false)
     }
   })

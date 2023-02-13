@@ -127,11 +127,8 @@ export default class EagleEyeSettingsService extends LoggingBase {
 
       // If an email digest was sent, validate and normalize email digest settings
       // Otherwise, set email digest to false
-      if (data.emailDigest || data.emailDigestActive) {
-        data.emailDigestActive = true
+      if (data.emailDigestActive && data.emailDigest) {
         data.emailDigest = this.getEmailDigestSettings(data.emailDigest, data.feed)
-      } else {
-        data.emailDigestActive = false
       }
 
       // Remove any extra fields
