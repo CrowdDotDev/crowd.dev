@@ -24,6 +24,7 @@ import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
 import marked from '@/plugins/marked'
 import posthog from 'posthog-js'
+import VueLazyLoad from 'vue3-lazyload'
 
 i18nInit()
 /**
@@ -57,6 +58,8 @@ i18nInit()
   app.use(Vue3Sanitize, vueSanitizeOptions)
   app.use(VueClickAway)
   app.use(marked)
+  app.use(VueLazyLoad)
+
   app.config.productionTip =
     process.env.NODE_ENV === 'production'
 

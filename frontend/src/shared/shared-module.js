@@ -46,6 +46,7 @@ import Platform from '@/shared/platform/platform'
 import Drawer from '@/shared/drawer/drawer'
 import AppLoader from '@/shared/loading/loader'
 import AppPageWrapper from '@/shared/layout/page-wrapper'
+import Image from '@/shared/image/image'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -101,6 +102,7 @@ export default {
     'app-platform': Platform,
     'app-drawer': Drawer,
     'app-loader': AppLoader,
-    'app-page-wrapper': AppPageWrapper
+    'app-page-wrapper': AppPageWrapper,
+    'app-image': Image
   }
 }
