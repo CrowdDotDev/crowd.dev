@@ -71,7 +71,7 @@ import {
   watch,
   ref
 } from 'vue'
-import { publishedDateOptions } from '@/premium/eagle-eye/eagle-eye-constants'
+import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
 
 const emit = defineEmits([
   'update:platforms',

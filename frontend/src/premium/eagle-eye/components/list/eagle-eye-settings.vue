@@ -58,6 +58,7 @@
     <!-- Feed Settings-->
     <el-button
       class="btn btn--full btn--md btn--secondary my-8"
+      @click="settingsDrawerOpen = true"
       ><i class="ri-sound-module-line text-lg" /><span
         >Feed settings</span
       ></el-button
@@ -65,16 +66,22 @@
 
     <!-- Email Digest settings -->
     <app-eagle-eye-email-digest-card />
+    <app-eagle-eye-settings-drawer
+      v-model="settingsDrawerOpen"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { platformOptions } from '@/premium/eagle-eye/eagle-eye-constants'
+import { ref, computed } from 'vue'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import AppEagleEyeEmailDigestCard from '@/premium/eagle-eye/components/list/eagle-eye-email-digest-card.vue'
+import AppEagleEyeSettingsDrawer from '@/premium/eagle-eye/components/list/eagle-eye-settings-drawer.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
 
 const { currentUser } = mapGetters('auth')
+
+const settingsDrawerOpen = ref(false)
 
 const keywords = computed(() => {
   const { eagleEyeSettings } = currentUser.value

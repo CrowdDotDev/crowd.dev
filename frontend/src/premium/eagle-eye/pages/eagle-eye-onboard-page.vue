@@ -50,10 +50,8 @@ import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intr
 import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords.vue'
 import EagleEyePlatforms from '@/premium/eagle-eye/components/onboard/eagle-eye-platforms.vue'
 import EagleEyeSummary from '@/premium/eagle-eye/components/onboard/eagle-eye-summary.vue'
-import {
-  platformOptions,
-  publishedDateOptions
-} from '@/premium/eagle-eye/eagle-eye-constants'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import { useStore } from 'vuex'

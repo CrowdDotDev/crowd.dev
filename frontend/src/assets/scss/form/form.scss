@@ -30,3 +30,15 @@
     @apply flex flex-row-reverse gap-1 mb-1 text-xs text-gray-900 font-semibold;
   }
 }
+
+.el-form-item.no-margin .el-form-item__content{
+  @apply mb-0;
+}
+
+.el-form-item.is-error-relative .el-form-item__error{
+  position: relative;
+  top: 0%;
+}
+.el-form-item.is-error-above .el-form-item__error{
+  top: -1rem;
+}
