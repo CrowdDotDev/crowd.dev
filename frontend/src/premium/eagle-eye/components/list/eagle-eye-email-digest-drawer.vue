@@ -52,7 +52,11 @@
                 v-model="form.frequency"
                 :disabled="!form.active"
               >
-              <el-input ref="focus" v-model="model.email" :disabled="!active" />
+              <el-input
+                ref="focus"
+                v-model="model.email"
+                :disabled="!active"
+              />
             </el-form-item>
             <el-form-item prop="frequency" class="mb-6">
               <div>
@@ -60,7 +64,10 @@
                   class="text-sm mb-4 font-medium leading-5"
                   >Frequency</label
                 >
-                <el-radio-group v-model="model.frequency" :disabled="!active">
+                <el-radio-group
+                  v-model="model.frequency"
+                  :disabled="!active"
+                >
                   <el-radio
                     label="daily"
                     size="large"
@@ -102,7 +109,7 @@
               <div class="w-36">
                 <label
                   class="text-sm mb-1 font-medium leading-5"
-                  >Time</label
+                  >Time (UTC)</label
                 >
                   <h6
                     class="text-sm leading-5 font-medium mb-1"
