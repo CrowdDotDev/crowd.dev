@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.19.0 - 2023-02-13
+
+### Changes
+
+### ✨ Improvements
+
+- Added LinkedIn to sample data @joanreyero (#481)
+- Moved the organizations' module to the essential plan @themarolt (#514)
+
+### 🐞 Bug Fixes
+
+- Fix global attributes not showing in the Edit attributes drawer. @joanagmaia (#488)
+- Fix filters for custom attributes. @joanagmaia (#492)
+- Fix the reach filter on the members' page. @joanagmaia (#491)
+- Share button visible on custom reports page @gaspergrom (#484)
+
 ## v0.18.0 - 2023-02-06
 
 ### Changes
@@ -20,7 +36,6 @@ Introducing our member enrichment feature! With it you can populate your communi
 - Added the special type for member attributes @joanreyero (#431)
 - Multi-select attribute type for members @joanreyero (#426)
 - Tweak error messages when enriching in bulk @joanagmaia (#477)
-
 #### Detailed report drawers
 
 You can now get a detailed view of the members returned by widgets in default reports. For example, you can see exactly which members were active this month, as well as the total count.
@@ -28,7 +43,6 @@ You can now get a detailed view of the members returned by widgets in default re
 <img width="860" alt="Screenshot 2023-02-06 at 16 34 00" src="https://user-images.githubusercontent.com/37874460/217014619-f2b3b0ff-b25e-457b-9206-7793998b7a23.png">
 - Report detailed drawers @joanagmaia (#461)
 - Find active members endpoint @themarolt (#449)
-
 ### ✨ Improvements
 
 - Optimizations in the LinkedIn integration. @themarolt (#464)
@@ -58,7 +72,6 @@ Introduction the LinkedIn integration! With it, you can bring the comments and r
 <img width="1727" alt="Linkedin" src="https://user-images.githubusercontent.com/37874460/214154195-3e3ba24e-ba70-4eae-9f65-c22f3bd9042e.png">
 - Linkedin integration @mariobalca (#442)
 ### ✨ Improvements
-
 - Add global filters to Default Reports. @joanagmaia (#425)
 - Added a Stripe integration for payment so we can automatically upgrade new Growth workspaces. @epipav (#419)
 - Show the current date's value differently in reports. @joanagmaia (#443)
@@ -93,7 +106,6 @@ Introducing our newest feature: Default Reports! These specially crafted reports
 Our first external code contribution! @mattinannt and the [Formbricks](https://formbricks.com/) team added an in-app feedback box to our menu. If you have an idea, something needs to be fixed, or want to point out which features you like, you can leave us feedback there!
 <img width="200" alt="Screenshot 2023-01-16 at 14 04 37" src="https://user-images.githubusercontent.com/37874460/212684851-8edd5ee7-1f40-4b48-9556-78190249707e.png">
 - Add formbricks feedback @mattinannt (#411)
-
 ### ✨ Improvements
 
 - Added the capability of filtering members by the types of activities they performed. @joanreyero (#421)
@@ -128,7 +140,6 @@ For example, imagine you want to search for content that talks about *generatice
 #### Discord forum channels
 Forum channels are now supported as part of the Discord integration. We will get posts and all comments on those channels. If you already have a Discord integration connected, we will get posts in public forum channels automatically. You'll need to add the bot to the forum channels that you want if they are private.
 - Get forum channels from Discord @joanreyero (#405)
-
 ### ✨ Improvements
 
 - Preventing that an automation is executed twice. @themarolt (#401)
@@ -174,7 +185,6 @@ You can now export your community members as CSV. You can export all members or 
 - Update the "Read more" URL for custom integrations. @dende (#372)
 - Notes and tasks were being unlinked when updating tags in a member. @joanreyero (#370)
 - Fix the sorting in the dashboard's *active members* widget. @joanagmaia (#369)
-
 ## v0.13.0 - 2022-12-19
 
 ### Changes
@@ -209,7 +219,6 @@ We are advancing in making premium plans possible. This week we introduced a *Pl
 - Fix a copy in the pricing page @joanagmaia (#353)
 - Fix a copy error in the Hacker News integration's connection page. @jonathimer (#343)
 ## v0.12.0 - 2022-12-13
-
 ### Changes
 
 - Fix identities for hackernews integration @joanagmaia (#313)
@@ -274,7 +283,6 @@ The Hacker News integration will detect any post that mentions your community in
 ### Changes
 This release introduces three new features: organizations, tasks, and notes. Furthermore, we added a bunch of bug fixes and improvements based on your feedback.
 ### :rocket: Features
-
 #### Organizations
 
 You can now track how organizations are adopting your community. With the organizations' list, you can have an overview of all organizations. You can also have several views and perform filtering. For each organization, there is an organization page with all its background information, a list of all the members that belong to the organization, and their activities.
@@ -318,7 +326,6 @@ We’ve added social sign-in to make signing up and logging into [crowd.dev](htt
 #### Breaking changes
 This version introduces breaking API changes. While the API has vastly improved and it is now much more powerful, previous scripts written with the API will need to be adjusted. For more information, refer to the [API docs](https://docs.crowd.dev/reference).
 ## v0.8.0 - 2022-10-07
-
 ### Changes
 
 ### ✨ Enhancements
@@ -355,7 +362,9 @@ This version introduces breaking API changes. While the API has vastly improved 
 - 
 - 
 - 
+- 
 - - When a new activity is created
+- 
 - 
 - 
 - 
@@ -433,7 +442,6 @@ This version introduces breaking API changes. While the API has vastly improved 
 - EagleEye events @joanreyero (#6)
 ## v0.0.3 - 2022-08-24
 ### Changes
-
 ### 🚀 Features
 
 - Eagle Eye backend @joanreyero
