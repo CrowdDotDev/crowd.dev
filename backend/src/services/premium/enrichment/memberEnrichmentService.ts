@@ -29,7 +29,7 @@ import RedisPubSubEmitter from '../../../utils/redis/pubSubEmitter'
 import { createRedisClient } from '../../../utils/redis'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import MemberEnrichmentCacheRepository from '../../../database/repositories/memberEnrichmentCacheRepository'
-import track from '../../../segment/telemetryTrack'
+import track from '../../../segment/track'
 
 export default class MemberEnrichmentService extends LoggingBase {
   options: IServiceOptions

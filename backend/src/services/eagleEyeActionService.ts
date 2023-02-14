@@ -5,6 +5,7 @@ import Error404 from '../errors/Error404'
 import { EagleEyeAction, EagleEyeActionType } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
+import track from '../segment/track'
 
 export default class EagleEyeActionService extends LoggingBase {
   options: IServiceOptions
@@ -26,6 +27,18 @@ export default class EagleEyeActionService extends LoggingBase {
     if (!content) {
       throw new Error404(this.options.language, 'errors.eagleEye.contentNotFound')
     }
+
+    // Tracking here so we have access to url and platform
+    track(
+      `Eagle Eye post ${data.type === EagleEyeActionType.BOOKMARK ? 'bookmarked' : 'voted'}`,
+      {
+        type: data.type,
+        url: content.url,
+        platform: content.platform,
+        action: 'create',
+      },
+      { ...this.options },
+    )
 
     const existingUserActions: EagleEyeAction[] = content.actions.filter(
       (a) => a.actionById === this.options.currentUser.id,
@@ -50,7 +63,10 @@ export default class EagleEyeActionService extends LoggingBase {
         await EagleEyeActionRepository.removeActionFromContent(
           EagleEyeActionType.THUMBS_UP,
           contentId,
-          this.options,
+          {
+            ...this.options,
+            transaction,
+          },
         )
       } else if (
         data.type === EagleEyeActionType.THUMBS_UP &&
@@ -59,16 +75,18 @@ export default class EagleEyeActionService extends LoggingBase {
         await EagleEyeActionRepository.removeActionFromContent(
           EagleEyeActionType.THUMBS_DOWN,
           contentId,
-          this.options,
+          {
+            ...this.options,
+            transaction,
+          },
         )
       }
 
       // add new action
-      const record = await EagleEyeActionRepository.createActionForContent(
-        data,
-        contentId,
-        this.options,
-      )
+      const record = await EagleEyeActionRepository.createActionForContent(data, contentId, {
+        ...this.options,
+        transaction,
+      })
 
       await SequelizeRepository.commitTransaction(transaction)
 
@@ -96,5 +114,17 @@ export default class EagleEyeActionService extends LoggingBase {
     if (content.actions.length === 0) {
       await EagleEyeContentRepository.destroy(contentId, this.options)
     }
+
+    // Tracking here so we have access to url and platform
+    track(
+      `Eagle Eye post ${action.type === EagleEyeActionType.BOOKMARK ? 'bookmarked' : 'voted'}`,
+      {
+        type: action.type,
+        url: content.url,
+        platform: content.platform,
+        action: 'destroy',
+      },
+      { ...this.options },
+    )
   }
 }

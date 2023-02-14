@@ -2,6 +2,7 @@ import lodash from 'lodash'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import UserRepository from '../database/repositories/userRepository'
 import Error400 from '../errors/Error400'
+import track from '../segment/track'
 import {
   EagleEyeSettings,
   EagleEyeFeedSettings,
@@ -142,6 +143,41 @@ export default class EagleEyeSettingsService extends LoggingBase {
       )
 
       await SequelizeRepository.commitTransaction(transaction)
+
+      // Track the events in Segment
+      const settingsOut: EagleEyeSettings = userOut.eagleEyeSettings
+
+      if (data.emailDigestActive) {
+        track(
+          'Eagle Eye email settings updated',
+          {
+            email: settingsOut.emailDigest.email,
+            frequency: settingsOut.emailDigest.frequency,
+            time: settingsOut.emailDigest.time,
+            matchFeedSettings: settingsOut.emailDigest.matchFeedSettings,
+            platforms: settingsOut.emailDigest.feed.platforms,
+            publishedDate: settingsOut.emailDigest.feed.publishedDate,
+            keywords: settingsOut.emailDigest.feed.keywords,
+            exactKeywords: settingsOut.emailDigest.feed.exactKeywords,
+            excludeKeywords: settingsOut.emailDigest.feed.excludedKeywords,
+          },
+          { ...this.options },
+        )
+      } else {
+        track(
+          'Eagle Eye settings updated',
+          {
+            onboarded: settingsOut.onboarded,
+            emailDigestActive: settingsOut.emailDigestActive,
+            platforms: settingsOut.feed.platforms,
+            publishedDate: settingsOut.feed.publishedDate,
+            keywords: settingsOut.feed.keywords,
+            exactKeywords: settingsOut.feed.exactKeywords,
+            excludeKeywords: settingsOut.feed.excludedKeywords,
+          },
+          { ...this.options },
+        )
+      }
 
       return userOut.eagleEyeSettings
     } catch (error) {
