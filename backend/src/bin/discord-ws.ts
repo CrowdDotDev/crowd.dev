@@ -96,20 +96,20 @@ async function spawnClient(name: string, token: string) {
 
   // listen to discord events
   client.on(Events.GuildMemberAdd, async (member) => {
-    logger.info({ member }, 'Member joined guild!')
+    logger.debug({ member }, 'Member joined guild!')
     await processPayload(DiscordWebsocketEvent.MEMBER_ADDED, member, member.guild.id)
   })
 
   client.on(Events.MessageCreate, async (message) => {
     if (message.type === MessageType.Default || message.type === MessageType.Reply) {
-      logger.info({ message }, 'Message created!')
+      logger.debug({ message }, 'Message created!')
       await processPayload(DiscordWebsocketEvent.MESSAGE_CREATED, message, message.guildId)
     }
   })
 
   client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
     if (newMessage.type === MessageType.Default) {
-      logger.info({ oldMessage, newMessage }, 'Message updated!')
+      logger.debug({ oldMessage, newMessage }, 'Message updated!')
       await processPayload(
         DiscordWebsocketEvent.MESSAGE_UPDATED,
         {
