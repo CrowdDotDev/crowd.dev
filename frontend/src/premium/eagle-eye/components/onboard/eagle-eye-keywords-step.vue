@@ -16,6 +16,7 @@
 
     <el-form
       class="mt-3 eagle-eye-keywords-form flex flex-col gap-3"
+      @submit.prevent
     >
       <div
         v-for="(keyword, index) in keywords"

@@ -15,11 +15,9 @@
       class="basis-9/12 overflow-auto overscroll-contain"
     >
       <app-eagle-eye-tabs />
-      <app-eagle-eye-loading-state
-        v-if="loading && !list.length"
-      />
+      <app-eagle-eye-loading-state v-if="isLoading" />
       <app-empty-state-cta
-        v-else-if="!loading && !list.length"
+        v-else-if="showEmptyState"
         :icon="emptyStateContent.icon"
         :title="emptyStateContent.title"
         :description="emptyStateContent.description"
@@ -41,18 +39,27 @@ import AppEagleEyeSettings from '@/premium/eagle-eye/components/list/eagle-eye-s
 import AppEagleEyeList from '@/premium/eagle-eye/components/list/eagle-eye-list.vue'
 import AppEagleEyeLoadingState from '@/premium/eagle-eye/components/list/eagle-eye-loading-state.vue'
 import { mapGetters } from '@/shared/vuex/vuex.helpers'
-import {  computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 
 const { showBanner } = mapGetters('tenant')
 
 const store = useStore()
 
-const list = computed(() => store.state.eagleEye.list.posts)
-const loading = computed(
-  () => store.state.eagleEye.list.loading
+const { activeView, activeViewList } =
+  mapGetters('eagleEye')
+
+const list = computed(() => activeViewList.value.posts)
+const isLoading = computed(() => {
+  if (activeView.value.id === 'feed') {
+    return activeViewList.value.loading
+  }
+
+  return activeViewList.value.loading && !list.value.length
+})
+const showEmptyState = computed(
+  () => !activeViewList.value.loading && !list.value.length
 )
-const { activeView } = mapGetters('eagleEye')
 const emptyStateContent = computed(() => {
   if (activeView.value.id === 'feed') {
     return {
@@ -70,9 +77,12 @@ const emptyStateContent = computed(() => {
 })
 
 onMounted(async () => {
-  await store.dispatch('eagleEye/doFetch', {
-    keepPagination: true,
-    resetStorage: false
-  })
+  // Prevent new fetch if it still loading results from onboarding
+  if (!activeViewList.value.loading) {
+    await store.dispatch('eagleEye/doFetch', {
+      keepPagination: true,
+      resetStorage: false
+    })
+  }
 })
 </script>

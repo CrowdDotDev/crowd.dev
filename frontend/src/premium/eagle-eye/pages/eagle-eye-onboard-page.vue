@@ -16,13 +16,13 @@
         />
         <eagle-eye-keywords
           v-if="step === 2"
-          v-model="keywords"
+          v-model="form.keywords"
           @on-step-change="onStepChange"
         />
         <eagle-eye-platforms
           v-if="step === 3"
-          v-model:platforms="platforms"
-          v-model:publishedDate="publishedDate"
+          v-model:platforms="form.platforms"
+          v-model:publishedDate="form.datePublished"
           @on-step-change="onStepChange"
         />
         <eagle-eye-summary
@@ -46,11 +46,10 @@ import {
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { premiumFeatureCopy } from '@/utils/posthog'
 import EagleEyeBanner from '@/premium/eagle-eye/components/onboard/eagle-eye-banner.vue'
-import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intro.vue'
-import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords.vue'
-import EagleEyePlatforms from '@/premium/eagle-eye/components/onboard/eagle-eye-platforms.vue'
-import EagleEyeSummary from '@/premium/eagle-eye/components/onboard/eagle-eye-summary.vue'
-import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intro-step.vue'
+import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords-step.vue'
+import EagleEyePlatforms from '@/premium/eagle-eye/components/onboard/eagle-eye-platforms-step.vue'
+import EagleEyeSummary from '@/premium/eagle-eye/components/onboard/eagle-eye-summary-step.vue'
 import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
@@ -58,8 +57,20 @@ import { useStore } from 'vuex'
 
 const store = useStore()
 const router = useRouter()
+
 const { doUpdateSettings } = mapActions('eagleEye')
+
 const step = ref(1)
+const form = reactive({
+  keywords: [
+    {
+      value: null
+    }
+  ],
+  datePublished: publishedDateOptions[0].label,
+  platforms: {}
+})
+
 const headerContent = computed(() => {
   if (step.value === 1) {
     return {
@@ -75,15 +86,8 @@ const headerContent = computed(() => {
   }
 })
 
-const keywords = reactive([
-  {
-    value: null
-  }
-])
-const publishedDate = ref(publishedDateOptions[0].label)
 const wasFormSubmittedSuccessfuly = ref(false)
 const storeUnsubscribe = ref(() => {})
-const platforms = reactive(platformOptions)
 
 // Prevent lost data on route change
 onBeforeRouteLeave((to) => {
@@ -126,9 +130,11 @@ const onStepChange = (increment) => {
 }
 
 const onSubmit = async () => {
-  const formattedKeywords = keywords.map((k) => k.value)
-  const formattedPlatforms = Object.entries(platforms)
-    .filter(([, value]) => value.enabled)
+  const formattedKeywords = form.keywords.map(
+    (s) => s.value
+  )
+  const formattedPlatforms = Object.entries(form.platforms)
+    .filter(([, value]) => value)
     .map(([key]) => key)
 
   await doUpdateSettings({
@@ -136,7 +142,7 @@ const onSubmit = async () => {
       keywords: formattedKeywords,
       exactKeywords: [],
       excludedKeywords: [],
-      publishedDate: publishedDate.value,
+      publishedDate: form.datePublished,
       platforms: formattedPlatforms
     }
   })

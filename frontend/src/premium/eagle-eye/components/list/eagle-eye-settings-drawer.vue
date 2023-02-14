@@ -6,12 +6,7 @@
           Keywords
         </h5>
 
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          @validate="validate()"
-        >
+        <el-form ref="formRef" :model="form" :rules="rules">
           <!-- include -->
           <section class="pb-8">
             <p
@@ -83,16 +78,13 @@
                   </el-select>
                 </el-form-item>
               </div>
-              <div
-                class="p-2"
-                :class="{ 'cursor-pointer': ii > 0 }"
-                @click="ii > 0 ? removeInclude(ii) : null"
+              <el-button
+                class="btn btn--md btn--transparent w-10 h-10"
+                :disabled="form.include.length === 1"
+                @click="removeInclude(ii)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg h-5 text-gray-600 flex items-center"
-                  :class="{ 'opacity-50': ii <= 0 }"
-                ></i>
-              </div>
+                <i class="ri-delete-bin-line text-lg"></i>
+              </el-button>
             </article>
             <div class="flex">
               <p
@@ -125,14 +117,12 @@
                   placeholder="Keyword"
                 ></el-input>
               </el-form-item>
-              <div
-                class="p-2 cursor-pointer"
+              <el-button
+                class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeExclude(ei)"
               >
-                <i
-                  class="ri-delete-bin-line text-lg h-5 text-gray-600 flex items-center"
-                ></i>
-              </div>
+                <i class="ri-delete-bin-line text-lg"></i>
+              </el-button>
             </article>
             <div class="flex">
               <p
@@ -158,56 +148,18 @@
               Date published
             </h6>
             <div class="pb-8">
-              <el-form-item
-                prop="datePublished"
-                class="mb-0 no-margin"
-              >
-                <el-radio-group
-                  v-model="form.datePublished"
-                  class="radio-button-group is-small"
-                >
-                  <el-radio-button
-                    v-for="date of datePublished"
-                    :key="date.label"
-                    :label="date.label"
-                  />
-                </el-radio-group>
-              </el-form-item>
+              <app-eagle-eye-published-date
+                v-model:date-published="form.datePublished"
+              />
             </div>
           </section>
 
           <!-- platforms -->
           <section>
-            <el-form-item
-              prop="platforms"
+            <app-eagle-eye-platforms
+              v-model:platforms="form.platforms"
               :rules="rules.platforms"
-              class="mb-0"
-            >
-              <div class="w-full">
-                <article
-                  v-for="(
-                    platform, name, index
-                  ) in platforms"
-                  :key="name"
-                  :class="{ 'border-t': index > 0 }"
-                  class="h-12 flex items-center justify-between border-gray-200"
-                >
-                  <div class="flex items-center">
-                    <div class="h-6 w-6 mr-4">
-                      <img :src="platform.img" />
-                    </div>
-                    <p class="text-xs leading-5">
-                      {{ platform.label }}
-                    </p>
-                  </div>
-                  <div>
-                    <el-switch
-                      v-model="form.platforms[name]"
-                    ></el-switch>
-                  </div>
-                </article>
-              </div>
-            </el-form-item>
+            />
           </section>
         </el-form>
       </div>
@@ -235,7 +187,6 @@
 </template>
 
 <script setup>
-import datePublished from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
 import platforms from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import Message from '@/shared/message/message'
@@ -253,6 +204,8 @@ import {
   mapGetters,
   mapState
 } from '@/shared/vuex/vuex.helpers'
+import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms.vue'
+import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue'
 
 const props = defineProps({
   modelValue: {
@@ -299,7 +252,7 @@ const rules = reactive({
     {
       type: 'object',
       trigger: 'change',
-      validator: (rule, value, callback) => {
+      validator: (_rule, _value, callback) => {
         const trueValues = Object.values({
           ...form.platforms
         }).filter((v) => v)

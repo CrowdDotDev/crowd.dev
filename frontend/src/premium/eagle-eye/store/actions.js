@@ -5,27 +5,46 @@ import moment from 'moment'
 import {
   getResultsFromStorage,
   setResultsInStorage,
-  shouldFetchNewResults
+  shouldFetchNewResults,
+  isStorageUpdating
 } from '@/premium/eagle-eye/eagle-eye-storage'
 
 export default {
   ...sharedActions('eagleEye'),
   async doFetch(
-    { commit, getters, rootGetters },
+    { state, commit, getters, rootGetters },
     { keepPagination = false, resetStorage = false }
   ) {
-    try {
-      const currentUser = rootGetters['auth/currentUser']
-      const currentTenant =
-        rootGetters['auth/currentTenant']
-      let list = [],
-        count,
-        appendToList
+    const currentUser = rootGetters['auth/currentUser']
+    const currentTenant = rootGetters['auth/currentTenant']
+    const activeView = getters.activeView.id
+    let list = [],
+      count = 0,
+      appendToList = false
 
-      commit('FETCH_STARTED', { keepPagination })
+    // Edge case where new results were fetched but user changed tabs
+    // This is to prevent a new fetch until the previous results were loaded
+    if (
+      activeView === 'feed' &&
+      state.views[activeView].list.loading &&
+      isStorageUpdating({
+        tenantId: currentTenant.id,
+        userId: currentUser.id
+      })
+    ) {
+      return
+    }
+
+    try {
+      commit('FETCH_STARTED', {
+        keepPagination: resetStorage
+          ? false
+          : keepPagination,
+        activeView
+      })
 
       // Bookmarks View
-      if (getters.activeView.id === 'bookmarked') {
+      if (activeView === 'bookmarked') {
         const { sorter } = getters.activeView
         const response = await EagleEyeService.query(
           {
@@ -44,27 +63,49 @@ export default {
         list = response.rows
         count = response.count
 
+        // Append to existing list if offset is not 0
+        // User clicked on load more button
         if (getters.offset !== 0) {
           appendToList = true
         }
       }
       // Feed view
       else {
+        // Fetch for new results when
+        // resetStorage = true (settings were updated)
+        // or criteria to fetch new results = true (new day)
+        // or storage is waiting for results
         const fetchNewResults =
+          resetStorage ||
           shouldFetchNewResults({
             tenantId: currentTenant.id,
             userId: currentUser.id
-          }) || resetStorage
+          }) ||
+          isStorageUpdating({
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
 
         if (fetchNewResults) {
+          // Set storage to be in updating state
+          setResultsInStorage({
+            posts: [],
+            storageDate: null,
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
+
           list = await EagleEyeService.search()
 
+          // Set new results in local storage
           setResultsInStorage({
             posts: list,
+            storageDate: moment(),
             tenantId: currentTenant.id,
             userId: currentUser.id
           })
         } else {
+          // Get results from local storage
           list = getResultsFromStorage({
             tenantId: currentTenant.id,
             userId: currentUser.id
@@ -72,24 +113,32 @@ export default {
         }
       }
 
+      // Only update view list results if active view is the same from the initial request
+      // This is to prevent the user changing between tabs and the request was still loading
       commit('FETCH_SUCCESS', {
         list,
         ...(count && { count }),
-        ...(appendToList && { appendToList })
+        ...(appendToList && { appendToList }),
+        activeView
       })
     } catch (error) {
       Errors.handle(error)
-      commit('FETCH_ERROR')
+      commit('FETCH_ERROR', {
+        activeView
+      })
     }
   },
 
   async doAddAction(
-    { state, commit, rootGetters },
+    { state, commit, getters, rootGetters },
     { post, action, index }
   ) {
+    const activeView = getters.activeView.id
+
     try {
       commit('UPDATE_ACTION_LOADING', {
-        index
+        index,
+        activeView
       })
 
       // Create content in database
@@ -100,7 +149,8 @@ export default {
 
       commit('CREATE_CONTENT_SUCCESS', {
         post: postResponse,
-        index
+        index,
+        activeView
       })
 
       // Add action to db content
@@ -117,7 +167,8 @@ export default {
 
       commit('CREATE_ACTION_SUCCESS', {
         action: actionResponse,
-        index
+        index,
+        activeView
       })
 
       // Update local storage with updated action
@@ -131,7 +182,10 @@ export default {
         userId: currentUser.id
       })
     } catch (error) {
-      commit('UPDATE_ACTION_ERROR')
+      commit('UPDATE_ACTION_ERROR', {
+        index,
+        activeView
+      })
     }
   },
 
@@ -139,9 +193,12 @@ export default {
     { state, commit, getters, rootGetters },
     { postId, actionId, actionType, index }
   ) {
+    const activeView = getters.activeView.id
+
     try {
       commit('UPDATE_ACTION_LOADING', {
-        index
+        index,
+        activeView
       })
 
       await EagleEyeService.deleteAction({
@@ -153,7 +210,7 @@ export default {
         actionId,
         actionType,
         index,
-        activeView: getters.activeView.id
+        activeView
       })
 
       // Update local storage with updated action
@@ -167,7 +224,7 @@ export default {
         userId: currentUser.id
       })
     } catch (error) {
-      commit('UPDATE_ACTION_ERROR')
+      commit('UPDATE_ACTION_ERROR', { index, activeView })
     }
   },
 
