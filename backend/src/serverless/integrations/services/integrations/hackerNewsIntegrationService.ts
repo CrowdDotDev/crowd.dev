@@ -41,11 +41,11 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     const settings = context.integration.settings as HackerNewsIntegrationSettings
 
     const keywords = Array.from(new Set([...settings.keywords, ...settings.urls]))
-    this.logger(context).info(`Fetching posts for keywords: ${keywords}`)
+    context.logger.info(`Fetching posts for keywords: ${keywords}`)
     const posts = await getPostsByKeywords(
       { keywords, nDays: context.onboarding ? 1000000 : 3 },
       context.serviceContext,
-      this.logger(context),
+      context.logger,
     )
 
     context.pipelineData = {
@@ -67,10 +67,9 @@ export class HackerNewsIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger = this.logger(context)
     let newStreams: IIntegrationStream[]
 
-    const post: HackerNewsResponse = await getPost(stream.value, logger)
+    const post: HackerNewsResponse = await getPost(stream.value, context.logger)
 
     if (post.kids !== undefined) {
       newStreams = post.kids.map((a: number) => ({

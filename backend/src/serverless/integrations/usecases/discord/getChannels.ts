@@ -1,8 +1,6 @@
 import axios from 'axios'
 import {
-  DiscordChannel,
-  DiscordChannels,
-  DiscordChannelsOut,
+  DiscordApiChannel,
   DiscordGetChannelsInput,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
@@ -12,8 +10,8 @@ import { Logger } from '../../../../utils/logging'
 
 /**
  * Try if a channel is readable
- * @param accessToken Discord bot token
- * @param channel Channel ID
+ * @param input getMessages input parameters
+ * @param logger logger
  * @returns Limit if the channel is readable, false otherwise
  */
 async function tryChannel(input: DiscordGetMessagesInput, logger: Logger): Promise<any> {
@@ -32,7 +30,7 @@ async function getChannels(
   input: DiscordGetChannelsInput,
   logger: Logger,
   tryChannels = true,
-): Promise<DiscordChannelsOut> {
+): Promise<DiscordApiChannel[]> {
   try {
     const config = {
       method: 'get',
@@ -43,18 +41,10 @@ async function getChannels(
     }
 
     const response = await axios(config)
-    const result: DiscordChannels = response.data
-
-    const forumChannels = result
-      .filter((c) => c.type === 15)
-      .map((c) => ({
-        name: c.name,
-        id: c.id,
-        thread: true,
-      }))
+    const result: any = response.data
 
     if (tryChannels) {
-      const out: DiscordChannels = []
+      const out: any[] = []
       for (const channel of result) {
         const limit = await tryChannel(
           {
@@ -66,31 +56,16 @@ async function getChannels(
           logger,
         )
         if (limit) {
-          const toOut: DiscordChannel = {
-            name: channel.name,
-            id: channel.id,
-          }
-          out.push(toOut)
+          out.push(channel)
           if (limit <= 1 && limit !== false) {
             await timeout(5 * 1000)
           }
         }
       }
-      return {
-        channels: out,
-        forumChannels,
-      }
+      return out
     }
 
-    const channelsOut = result.map((c) => ({
-      name: c.name,
-      id: c.id,
-    }))
-
-    return {
-      channels: channelsOut,
-      forumChannels,
-    }
+    return result
   } catch (err) {
     logger.error({ err, input }, 'Error while getting channels from Discord')
     throw err

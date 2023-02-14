@@ -114,11 +114,9 @@ export class DevtoIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger = this.logger(context)
-
     const articleId = parseInt(stream.value, 10)
 
-    logger.debug({ articleId }, 'Processing article!')
+    context.logger.debug({ articleId }, 'Processing article!')
 
     const comments = await getArticleComments(articleId)
 

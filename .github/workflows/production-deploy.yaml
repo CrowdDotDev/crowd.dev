@@ -15,6 +15,10 @@ on:
         description: Deploy nodejs-worker service?
         required: true
         type: boolean
+      deploy_discord_ws:
+        description: Deploy discord-ws service?
+        required: true
+        type: boolean
       deploy_python_worker:
         description: Deploy python-worker service?
         required: true
@@ -184,6 +188,24 @@ jobs:
       - uses: ./.github/actions/deploy-service
         with:
           service: nodejs-worker
+          image: ${{ needs.build-and-push-backend.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-discord-ws:
+    needs: build-and-push-backend
+    runs-on: ubuntu-latest
+    if: ${{ inputs.deploy_discord_ws }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: discord-ws
           image: ${{ needs.build-and-push-backend.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
 

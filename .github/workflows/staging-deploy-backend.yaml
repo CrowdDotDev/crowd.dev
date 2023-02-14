@@ -90,3 +90,20 @@ jobs:
           service: job-generator
           image: ${{ needs.build-and-push.outputs.image }}
           cluster: ${{ env.CROWD_CLUSTER }}
+
+  deploy-discord-ws:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - uses: ./.github/actions/deploy-service
+        with:
+          service: discord-ws
+          image: ${{ needs.build-and-push.outputs.image }}
+          cluster: ${{ env.CROWD_CLUSTER }}

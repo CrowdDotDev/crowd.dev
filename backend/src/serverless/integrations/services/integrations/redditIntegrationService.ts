@@ -81,16 +81,15 @@ export class RedditIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const logger: Logger = this.logger(context)
     let newStreams: IIntegrationStream[]
 
     switch (stream.value.split(':')[0]) {
       case 'subreddit':
-        return this.subRedditStream(stream, context, logger)
+        return this.subRedditStream(stream, context)
       case 'comments':
-        return this.commentsStream(stream, context, logger)
+        return this.commentsStream(stream, context)
       default:
-        return this.moreCommentsStream(stream, context, logger)
+        return this.moreCommentsStream(stream, context)
     }
   }
 
@@ -100,18 +99,19 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * For each post, it will create a new stream to fetch its comments.
    * @param stream the full stream information
    * @param context context passed along worker messages
-   * @param logger a logger instance for structured logging
    * @returns the processed stream results
    */
   async subRedditStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    logger: Logger,
   ): Promise<IProcessStreamResults> {
     const subreddit = stream.value.split(':')[1]
     const pizzlyId = context.pipelineData.pizzlyId
     const after = stream.metadata.after
-    const response: RedditPostsResponse = await getPosts({ subreddit, pizzlyId, after }, logger)
+    const response: RedditPostsResponse = await getPosts(
+      { subreddit, pizzlyId, after },
+      context.logger,
+    )
 
     const posts = response.data.children
 
@@ -169,13 +169,11 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * It will create new streams for the tree expansions that the API returns
    * @param stream the full stream information
    * @param context context passed along worker messages
-   * @param logger a logger instance for structured logging
    * @returns the processed stream results
    */
   async commentsStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    logger: Logger,
   ): Promise<IProcessStreamResults> {
     const subreddit = stream.metadata.channel
     const postId = stream.value.split(':')[1]
@@ -183,7 +181,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     const response: RedditCommentsResponse = await getComments(
       { subreddit, pizzlyId, postId },
-      logger,
+      context.logger,
     )
 
     const comments = response[1].data.children
@@ -199,7 +197,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         postId,
         stream,
         context,
-        logger,
+        context.logger,
       )
       activities = activities.concat(commentOut.activities)
       newStreams = newStreams.concat(commentOut.newStreams)
@@ -233,13 +231,11 @@ export class RedditIntegrationService extends IntegrationServiceBase {
    * Process a stream of type morecomments. It will expand the comments that are left to expand from the comment tree.
    * @param stream the full stream information
    * @param context context passed along worker messages
-   * @param logger a logger instance for structured logging
    * @returns the processed stream results
    */
   async moreCommentsStream(
     stream: IIntegrationStream,
     context: IStepContext,
-    logger: Logger,
   ): Promise<IProcessStreamResults> {
     const postId = stream.metadata.postId
     const sourceParentId = stream.metadata.sourceParentId
@@ -248,7 +244,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
 
     const response: RedditMoreCommentsResponse = await getMoreComments(
       { postId, pizzlyId, children },
-      logger,
+      context.logger,
     )
 
     const comments = response.json.data.things
@@ -264,7 +260,7 @@ export class RedditIntegrationService extends IntegrationServiceBase {
         sourceParentId,
         stream,
         context,
-        logger,
+        context.logger,
       )
       activities = activities.concat(commentOut.activities)
       newStreams = newStreams.concat(commentOut.newStreams)
