@@ -34,13 +34,24 @@
 
     <!-- Title & description -->
     <div class="mt-4 pb-9 border-b border-gray-100">
-      <h6 v-if="result.post.title" class="black mb-3">
-        {{ result.post.title }}
-      </h6>
       <div
-        class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4"
+        v-if="result.platform === 'twitter'"
+        class="text-sm text-gray-900 break-words"
       >
         {{ result.post.description }}
+      </div>
+      <div v-else>
+        <h6
+          v-if="result.post.title"
+          class="black mb-3 break-words"
+        >
+          {{ result.post.title }}
+        </h6>
+        <div
+          class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4 break-words"
+        >
+          {{ result.post.description }}
+        </div>
       </div>
     </div>
 
