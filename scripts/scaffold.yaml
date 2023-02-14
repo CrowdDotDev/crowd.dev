@@ -3,6 +3,7 @@ version: '3.1'
 services:
   cubejs:
     image: cubejs/cube
+    restart: always
     ports:
       - '4000:4000'
       - '3001:3000'
@@ -24,6 +25,7 @@ services:
 
   db:
     image: postgres:13.6-alpine
+    restart: always
     environment:
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=crowd-web
@@ -31,11 +33,18 @@ services:
       - 5432:5432
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready', '-d', 'crowd-web']
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     networks:
       - crowd-bridge
 
   search-engine:
     image: getmeili/meilisearch:v0.27.2
+    restart: always
     ports:
       - 7700:7700
     volumes:
@@ -55,6 +64,7 @@ services:
   sqs:
     build:
       context: scaffold/sqs
+    restart: always
     ports:
       - 9324:9324
       - 9325:9325
@@ -63,6 +73,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: always
     volumes:
       - ./scaffold/nginx/templates:/etc/nginx/templates
       - ./scaffold/nginx/ssl:/etc/nginx/ssl
@@ -76,6 +87,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:latest
+    restart: always
     ports:
       - 6333:6333
     networks:
@@ -85,6 +97,7 @@ services:
     build:
       context: scaffold/redis
     command: 'redis-server /redis.conf --requirepass crowdtest'
+    restart: always
     volumes:
       - redis-dev:/data
     ports:
@@ -95,6 +108,9 @@ services:
   pizzly:
     image: crowddotdev/pizzly-server:1
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       - NANGO_DB_HOST=db
       - NANGO_DB_PORT=5432
@@ -108,12 +124,51 @@ services:
     networks:
       - crowd-bridge
 
+  unleash-db:
+    image: postgres:13.6-alpine
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=crowd-unleash
+    ports:
+      - 5431:5432
+    volumes:
+      - pgdata-unleash-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready', '-d', 'crowd-unleash']
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    networks:
+      - crowd-bridge
+
+  # default user credentials: admin:unleash4all
+  unleash:
+    image: unleashorg/unleash-server:latest
+    restart: always
+    depends_on:
+      unleash-db:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=unleash-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=crowd-unleash
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=example
+      - DATABASE_SSL=false
+    ports:
+      - '4242:4242'
+    networks:
+      - crowd-bridge
+
 networks:
   crowd-bridge:
     external: true
 
 volumes:
   pgdata-dev:
+  pgdata-unleash-dev:
   search-dev:
   s3-dev:
   redis-dev:
