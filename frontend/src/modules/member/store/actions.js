@@ -32,7 +32,7 @@ export default {
     if (selected) {
       const ids = customIds.length
         ? customIds
-        : [getters.selectedRows.map((i) => i.id)]
+        : getters.selectedRows.map((i) => i.id)
 
       filter = {
         id: {
