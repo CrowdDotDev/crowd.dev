@@ -152,7 +152,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
 
       if (data.emailDigestActive) {
         track(
-          'EagleEye Email Settings Updated',
+          'Eagle Eye email settings updated',
           {
             email: settingsOut.emailDigest.email,
             frequency: settingsOut.emailDigest.frequency,
@@ -168,7 +168,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
         )
       } else {
         track(
-          'EagleEye Settings Updated',
+          'Eagle Eye settings updated',
           {
             onboarded: settingsOut.onboarded,
             emailDigestActive: settingsOut.emailDigestActive,

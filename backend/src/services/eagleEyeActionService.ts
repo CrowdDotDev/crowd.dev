@@ -30,7 +30,7 @@ export default class EagleEyeActionService extends LoggingBase {
 
     // Tracking here so we have access to url and platform
     track(
-      `Eagle Eye post ${data.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
+      `Eagle Eye post ${data.type === EagleEyeActionType.BOOKMARK ? 'bookmarked' : 'voted'}`,
       {
         type: data.type,
         url: content.url,
@@ -117,7 +117,7 @@ export default class EagleEyeActionService extends LoggingBase {
 
     // Tracking here so we have access to url and platform
     track(
-      `Eagle Eye post ${action.type === EagleEyeActionType.BOOKMARK ? 'bookmark' : 'feedback'}`,
+      `Eagle Eye post ${action.type === EagleEyeActionType.BOOKMARK ? 'bookmarked' : 'voted'}`,
       {
         type: action.type,
         url: content.url,

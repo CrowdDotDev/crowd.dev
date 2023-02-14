@@ -5,7 +5,7 @@ import track from '../../segment/track'
 export default async (req, res) => {
   new PermissionChecker(req).validateHas(Permissions.values.eagleEyeContentRead)
   track(
-    'Eagle Eye post click',
+    'Eagle Eye post clicked',
     {
       url: req.body.url,
       platform: req.body.platform,
