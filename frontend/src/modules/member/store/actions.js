@@ -25,7 +25,7 @@ export default {
       customIds = [],
       customFilter = null,
       count = null
-    }
+    } = {}
   ) {
     let filter
 
