@@ -231,19 +231,17 @@ export default {
   async doUpdateSettings({ commit, dispatch }, data) {
     commit('UPDATE_EAGLE_EYE_SETTINGS_STARTED')
     return EagleEyeService.updateSettings(data)
-      .then(() =>
+      .then(() => {
         dispatch(`auth/doRefreshCurrentUser`, null, {
           root: true
+        }).then(() => {
+          commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
+
+          dispatch(`doFetch`, {
+            resetStorage: true
+          })
+          return Promise.resolve()
         })
-      )
-      .then(() =>
-        dispatch(`doFetch`, {
-          resetStorage: true
-        })
-      )
-      .then(() => {
-        commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
-        return Promise.resolve()
       })
       .catch((error) => {
         Errors.handle(error)
