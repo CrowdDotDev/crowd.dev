@@ -311,18 +311,8 @@ const results = computed(() => {
     if (currentUser.value && feed.value) {
       return feed.value
     }
-  } else {
-    if (
-      currentUser &&
-      currentUser.value.eagleEyeSettings.feed
-    ) {
-      return (
-        currentUser &&
-        currentUser.value.eagleEyeSettings.feed
-      )
-    }
   }
-  return null
+  return currentUser?.value.eagleEyeSettings.feed
 })
 
 const displayFeedWarning = computed(() => {
@@ -352,8 +342,6 @@ watch(
 )
 
 const updateFeed = () => {
-  console.log(feed.value)
-  console.log(currentUser.value?.eagleEyeSettings.feed)
   feed.value =
     currentUser.value?.eagleEyeSettings.feed ?? null
 }
@@ -373,22 +361,25 @@ const fillForm = (user) => {
 }
 const doSubmit = async (formEl) => {
   if (!formEl) return
-  await formEl.validate(async (valid) => {
+  await formEl.validate((valid) => {
     if (valid) {
       const data = {
         email: model.email,
         frequency: model.frequency,
         time: model.time,
         matchFeedSettings: model.updateResults,
-        feed: !model.updateResults ? feed : undefined
+        feed: !model.updateResults ? feed.value : undefined
       }
-      await doUpdateSettings({
+      doUpdateSettings({
         ...currentUser.value.eagleEyeSettings,
         emailDigestActive: active.value,
         emailDigest: data
+      }).then(() => {
+        Message.success(
+          'Email Digest settings successfully updated'
+        )
+        emit('update:modelValue', false)
       })
-      Message.success('Email Digest settings successfully updated')
-      emit('update:modelValue', false)
     }
   })
 }
