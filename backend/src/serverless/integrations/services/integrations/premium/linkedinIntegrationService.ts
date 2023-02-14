@@ -44,8 +44,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   }
 
   async preprocess(context: IStepContext): Promise<void> {
-    const log = this.logger(context)
-    log.info('Preprocessing!')
+    context.logger.info('Preprocessing!')
 
     const redis = await createRedisClient(true)
     const membersCache = new RedisCache('linkedin-members', redis)
@@ -61,7 +60,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     const pizzlyId = `${context.integration.tenantId}-${PlatformType.LINKEDIN}`
 
     if (organization.profilePictureUrl === undefined) {
-      const org = await getOrganization(pizzlyId, organization.id.toString(), log)
+      const org = await getOrganization(pizzlyId, organization.id.toString(), context.logger)
       context.integration.settings.organizations = [
         ...context.integration.settings.organizations.filter((o) => o.id !== organization.id),
         {
@@ -71,7 +70,11 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       ]
     }
 
-    const posts = await getAllOrganizationPosts(pizzlyId, organization.organizationUrn, log)
+    const posts = await getAllOrganizationPosts(
+      pizzlyId,
+      organization.organizationUrn,
+      context.logger,
+    )
 
     let cachedData = context.integration.settings.posts || []
     if (cachedData.length === 0) {
@@ -124,8 +127,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const log = this.logger(context)
-    log.debug({ stream: stream.value, metadata: stream.metadata }, 'Processing stream!')
+    context.logger.debug({ stream: stream.value, metadata: stream.metadata }, 'Processing stream!')
 
     switch (stream.value) {
       case 'post_comments':
@@ -146,12 +148,10 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const log = this.logger(context)
-
     const comments = await getAllCommentComments(
       context.pipelineData.pizzlyId,
       stream.metadata.urnId,
-      log,
+      context.logger,
     )
 
     const activities: AddActivitiesSingle[] = []
@@ -215,8 +215,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const log = this.logger(context)
-
     let lastReactionTs: number | undefined
     const cachedPost = context.integration.settings.posts.find(
       (p) => p.id === stream.metadata.urnId,
@@ -231,7 +229,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     const reactions = await getAllPostReactions(
       context.pipelineData.pizzlyId,
       stream.metadata.urnId,
-      log,
+      context.logger,
       lastReactionTs,
     )
 
@@ -293,8 +291,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     stream: IIntegrationStream,
     context: IStepContext,
   ): Promise<IProcessStreamResults> {
-    const log = this.logger(context)
-
     let lastCommentTs: number | undefined
     const cachedPost = context.integration.settings.posts.find(
       (p) => p.id === stream.metadata.urnId,
@@ -316,7 +312,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
     const comments = await getAllPostComments(
       context.pipelineData.pizzlyId,
       stream.metadata.urnId,
-      log,
+      context.logger,
       lastCommentTs,
     )
 
@@ -389,8 +385,6 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
   }
 
   private async parseMember(memberUrn: string, context: IStepContext): Promise<Member> {
-    const log = this.logger(context)
-
     const member: Member = {
       username: {
         [PlatformType.LINKEDIN]: '',
@@ -416,7 +410,7 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const userString = await membersCache.getOrAdd(
         userId,
         async () => {
-          const user = await getMember(context.pipelineData.pizzlyId, userId, log)
+          const user = await getMember(context.pipelineData.pizzlyId, userId, context.logger)
           return JSON.stringify(user)
         },
         24 * 60 * 60,
@@ -449,7 +443,11 @@ export class LinkedinIntegrationService extends IntegrationServiceBase {
       const organizationString = await membersCache.getOrAdd(
         userId,
         async () => {
-          const organization = await getOrganization(context.pipelineData.pizzlyId, userId, log)
+          const organization = await getOrganization(
+            context.pipelineData.pizzlyId,
+            userId,
+            context.logger,
+          )
           return JSON.stringify(organization)
         },
         24 * 60 * 60,

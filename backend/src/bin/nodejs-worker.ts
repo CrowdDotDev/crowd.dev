@@ -9,8 +9,7 @@ import { NodeWorkerMessageBase } from '../types/mq/nodeWorkerMessageBase'
 import { createChildLogger, getServiceLogger, Logger } from '../utils/logging'
 import { deleteMessage, receiveMessage, sendMessage } from '../utils/sqs'
 import { timeout } from '../utils/timing'
-import { processIntegration, processIntegrationCheck } from './worker/integrations'
-import { processWebhook } from '../serverless/integrations/workers/githubWebhookWorker'
+import { processIntegration, processIntegrationCheck, processWebhook } from './worker/integrations'
 
 /* eslint-disable no-constant-condition */
 

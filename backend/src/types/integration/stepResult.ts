@@ -1,5 +1,6 @@
 import { IRepositoryOptions } from '../../database/repositories/IRepositoryOptions'
 import { IServiceOptions } from '../../services/IServiceOptions'
+import { Logger } from '../../utils/logging'
 
 export interface IIntegrationStream {
   value: string
@@ -32,6 +33,13 @@ export interface IProcessStreamResults {
   sleep?: number
 }
 
+export interface IProcessWebhookResults {
+  // result of stream processing are operations that have to be done after
+  operations: IStreamResultOperation[]
+  // seconds to pause between continuing with integration processing for the remaining streams
+  sleep?: number
+}
+
 export interface IStepContext {
   // when did integration processing start
   startTimestamp: number
@@ -48,9 +56,15 @@ export interface IStepContext {
   // integration that we are currently processing
   integration?: any
 
+  // webhook that we are currently processing
+  webhook?: any
+
   // repository options for integration services to use when creating new instances of repositories
   repoContext: IRepositoryOptions
 
   // service options for integration services to use when creating new instances of services
   serviceContext: IServiceOptions
+
+  // logger associated with the integration
+  logger: Logger
 }
