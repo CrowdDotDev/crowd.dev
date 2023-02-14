@@ -7,68 +7,98 @@
       various community platforms.
     </div>
 
-    <!-- Keywords -->
-    <div
-      v-if="keywords.length || exactKeywords.length"
-      class="my-8"
-    >
-      <div class="eagle-eye-settings-small-title">
-        Keywords
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <div
-          v-for="keyword in keywords"
-          :key="keyword"
-          class="text-xs text-gray-900 px-2 h-6 flex items-center bg-white border-gray-200 border rounded-md"
-        >
-          {{ keyword }}
+    <div v-if="eagleEyeFeedSettings">
+      <!-- Keywords -->
+      <div
+        v-if="
+          keywords.length ||
+          exactKeywords.length ||
+          excludedKeywords.length
+        "
+        class="mt-8 mb-6"
+      >
+        <div class="eagle-eye-settings-small-title">
+          Keywords
         </div>
-        <div
-          v-for="exactKeyword in exactKeywords"
-          :key="exactKeyword"
-          class="text-xs text-gray-900 px-2 h-6 flex items-center bg-white border-gray-200 border rounded-md"
-        >
-          "{{ exactKeyword }}"
+        <div class="flex flex-wrap gap-2">
+          <div
+            v-for="keyword in keywords"
+            :key="keyword"
+            class="eagle-eye-keyword"
+          >
+            {{ keyword }}
+          </div>
+          <div
+            v-for="exactKeyword in exactKeywords"
+            :key="exactKeyword"
+            class="eagle-eye-keyword"
+          >
+            "{{ exactKeyword }}"
+          </div>
+          <div
+            v-for="excludedKeyword in excludedKeywords"
+            :key="excludedKeyword"
+            class="eagle-eye-keyword excluded"
+          >
+            <el-tooltip
+              placement="top"
+              content="Excluded keyword"
+            >
+              <span>
+                {{ excludedKeyword }}
+              </span>
+            </el-tooltip>
+          </div>
         </div>
       </div>
+
+      <!-- Published date -->
+      <div v-if="publishedDate">
+        <div class="eagle-eye-settings-small-title">
+          Published date
+        </div>
+        <div class="text-gray-900 text-xs mb-6">
+          {{ publishedDate }}
+        </div>
+      </div>
+
+      <!-- Platforms -->
+      <div v-if="platforms.length">
+        <div class="eagle-eye-settings-small-title">
+          Platforms
+        </div>
+        <div class="flex flex-col gap-4">
+          <div
+            v-for="platform in platforms"
+            :key="platform"
+            class="flex items-center gap-3"
+          >
+            <img
+              :src="platformOptions[platform].img"
+              class="w-5 h-5"
+            />
+            <span class="text-xs text-gray-900">{{
+              platformOptions[platform].label
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feed Settings-->
+      <el-button
+        class="btn btn--full btn--md btn--secondary my-8"
+        @click="settingsDrawerOpen = true"
+        ><i class="ri-sound-module-line text-lg" /><span
+          >Feed settings</span
+        ></el-button
+      >
+
+      <!-- Email Digest settings -->
+      <app-eagle-eye-email-digest-card />
+      <app-eagle-eye-settings-drawer
+        v-model="settingsDrawerOpen"
+      />
     </div>
-
-    <!-- Platforms -->
-    <div v-if="platforms.length">
-      <div class="eagle-eye-settings-small-title">
-        Platforms
-      </div>
-      <div class="flex flex-col gap-4">
-        <div
-          v-for="platform in platforms"
-          :key="platform"
-          class="flex items-center gap-3"
-        >
-          <img
-            :src="platformOptions[platform].img"
-            class="w-5 h-5"
-          />
-          <span class="text-xs text-gray-900">{{
-            platformOptions[platform].label
-          }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feed Settings-->
-    <el-button
-      class="btn btn--full btn--md btn--secondary my-8"
-      @click="settingsDrawerOpen = true"
-      ><i class="ri-sound-module-line text-lg" /><span
-        >Feed settings</span
-      ></el-button
-    >
-
-    <!-- Email Digest settings -->
-    <app-eagle-eye-email-digest-card />
-    <app-eagle-eye-settings-drawer
-      v-model="settingsDrawerOpen"
-    />
   </div>
 </template>
 
@@ -83,37 +113,40 @@ const { currentUser } = mapGetters('auth')
 
 const settingsDrawerOpen = ref(false)
 
-const keywords = computed(() => {
-  const { eagleEyeSettings } = currentUser.value
-
-  if (!eagleEyeSettings?.feed) {
-    return []
-  }
-
-  return eagleEyeSettings.feed.keywords
+const eagleEyeFeedSettings = computed(() => {
+  return currentUser.value.eagleEyeSettings?.feed
 })
-const exactKeywords = computed(() => {
-  const { eagleEyeSettings } = currentUser.value
+const keywords = computed(
+  () => eagleEyeFeedSettings.value.keywords
+)
 
-  if (!eagleEyeSettings?.feed) {
-    return []
-  }
+const exactKeywords = computed(
+  () => eagleEyeFeedSettings.value.exactKeywords
+)
 
-  return eagleEyeSettings.feed.exactKeywords
-})
-const platforms = computed(() => {
-  const { eagleEyeSettings } = currentUser.value
+const excludedKeywords = computed(
+  () => eagleEyeFeedSettings.value.excludedKeywords
+)
 
-  if (!eagleEyeSettings?.feed) {
-    return []
-  }
+const platforms = computed(
+  () => eagleEyeFeedSettings.value.platforms
+)
 
-  return eagleEyeSettings.feed.platforms
-})
+const publishedDate = computed(
+  () => eagleEyeFeedSettings.value.publishedDate
+)
 </script>
 
 <style lang="scss" scoped>
 .eagle-eye-settings-small-title {
   @apply mb-3 uppercase text-gray-400 text-2xs font-semibold;
+}
+
+.eagle-eye-keyword {
+  @apply text-xs text-gray-900 px-2 h-6 flex items-center bg-white border-gray-200 border rounded-md;
+
+  &.excluded {
+    @apply text-gray-500 line-through decoration-gray-500;
+  }
 }
 </style>
