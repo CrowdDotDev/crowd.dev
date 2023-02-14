@@ -177,7 +177,8 @@ export default {
         rootGetters['auth/currentTenant']
 
       setResultsInStorage({
-        posts: state.list.posts,
+        storageDate: moment(),
+        posts: state.views[activeView].list.posts,
         tenantId: currentTenant.id,
         userId: currentUser.id
       })
@@ -219,7 +220,8 @@ export default {
         rootGetters['auth/currentTenant']
 
       setResultsInStorage({
-        posts: state.list.posts,
+        storageDate: moment(),
+        posts: state.views[activeView].list.posts,
         tenantId: currentTenant.id,
         userId: currentUser.id
       })
