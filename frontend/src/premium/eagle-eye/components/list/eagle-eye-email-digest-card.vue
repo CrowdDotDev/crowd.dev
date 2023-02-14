@@ -11,8 +11,8 @@
     </div>
 
     <div class="text-2xs text-gray-600 mt-4 mb-6">
-      Receive automatically in your inbox a collection of up
-      to 10 most relevant results from Eagle Eye.
+      Receive the 10 most relevant results from Eagle Eye
+      automatically in your inbox.
     </div>
 
     <el-button
