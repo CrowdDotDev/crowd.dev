@@ -505,7 +505,7 @@ export class DiscordIntegrationService extends IntegrationServiceBase {
           body: record.content
             ? DiscordIntegrationService.replaceMentions(record.content, record.mentions)
             : '',
-          url: `https://discordapp.com/channels/${context.pipelineData.guildId}/${channel.id}/${record.id}`,
+          url: `https://discordapp.com/channels/${channel.guild_id}/${channel.id}/${record.id}`,
           channel: channel.name,
           attributes: {
             parentChannel,
