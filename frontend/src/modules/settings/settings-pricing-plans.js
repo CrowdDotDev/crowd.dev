@@ -12,10 +12,10 @@ export const plans = {
       price: 'Free',
       features: [
         'Unlimited seats',
-        'Unlimited community members & activities',
+        'Unlimited community members, organizations & activities',
         'Community management',
         'Community intelligence',
-        'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, and Hacker News',
+        'Full API access & native integrations with GitHub, Discord, Slack, Twitter, DEV, Reddit, and Hacker News',
         '5 member enrichments per month (manual)',
         '2 active workflows & CSV exports per month',
         'Community & email support'
@@ -28,8 +28,7 @@ export const plans = {
       price: '$150/month',
       featuresNote: 'Everything in Essential, plus:',
       features: [
-        'Community growth',
-        'Organization-level insights',
+        'Community growth (e.g. Eagle Eye)',
         '1,000 member enrichments per month (manual)',
         '10 active workflows & CSV exports per month',
         'Slack connect support',
