@@ -354,7 +354,7 @@ const fillForm = (user) => {
 
 const onSubmit = async (formEl) => {
   if (!formEl) return
-  await formEl.validate(async (valid) => {
+  await formEl.validate((valid) => {
     if (valid) {
       const data = {
         keywords: form.include
@@ -371,12 +371,13 @@ const onSubmit = async (formEl) => {
           .filter(([, enabled]) => enabled)
           .map(([platform]) => platform)
       }
-      await doUpdateSettings({
-        ...currentUser.eagleEyeSettings,
+      doUpdateSettings({
+        ...currentUser.value.eagleEyeSettings,
         feed: data
+      }).then(() => {
+        Message.success('Feed settings updated!')
+        emit('update:modelValue', false)
       })
-      Message.success('Feed settings updated!')
-      emit('update:modelValue', false)
     }
   })
 }
