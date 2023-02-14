@@ -19,6 +19,14 @@
     </div>
   </div>
 
+  <!-- Bottom of feed message -->
+  <app-empty-state
+    v-if="showBottomFeedMessage"
+    icon="ri-search-eye-line"
+    description="We couldn't find any more results based on your feed settings"
+    class="pb-12"
+  />
+
   <!-- Load more button -->
   <div
     v-if="isLoadMoreVisible"
@@ -55,12 +63,19 @@ const store = useStore()
 const loading = computed(
   () => store.state.eagleEye.list.loading
 )
+const activeView = computed(
+  () => store.getters['eagleEye/activeView']
+)
 const count = computed(() => store.state.eagleEye.count)
 const pagination = computed(
   () => store.getters['eagleEye/pagination']
 )
 
 const isLoadMoreVisible = computed(() => {
+  if (activeView.value.id === 'feed') {
+    return false
+  }
+
   return (
     pagination.value.currentPage *
       pagination.value.pageSize <
@@ -80,4 +95,8 @@ const onLoadMore = () => {
     pagination.value.currentPage + 1
   )
 }
+
+const showBottomFeedMessage = computed(() => {
+  return activeView.value.id === 'feed'
+})
 </script>
