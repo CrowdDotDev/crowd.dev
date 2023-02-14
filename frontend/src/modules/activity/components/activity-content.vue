@@ -1,10 +1,19 @@
 <template>
   <div v-if="activity.title || activity.body">
-    <div v-if="activity.title && displayTitle">
+    <div
+      v-if="
+        activity.title &&
+        (!activity.parent ||
+          !activity.parent.body ||
+          !activity.parent.body !== activity.title) &&
+        displayTitle
+      "
+    >
       <span class="block title" :class="titleClasses">{{
         activity.title
       }}</span>
     </div>
+
     <div
       v-if="activity.title && activity.body && displayTitle"
       class="mt-3"

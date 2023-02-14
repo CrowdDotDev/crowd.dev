@@ -43,7 +43,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
   async preprocess(context: IStepContext): Promise<void> {
     let channelsFromSlackAPI = await getChannels(
       { token: context.integration.token },
-      this.logger(context),
+      context.logger,
     )
 
     const channels = context.integration.settings.channels
@@ -57,7 +57,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       return c
     })
 
-    const team = await getTeam({ token: context.integration.token }, this.logger(context))
+    const team = await getTeam({ token: context.integration.token }, context.logger)
     const teamUrl = team.url
 
     const members = context.integration.settings.members ? context.integration.settings.members : {}
@@ -105,7 +105,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         page: stream.metadata.page,
         perPage: 200,
       },
-      this.logger(context),
+      context.logger,
     )
 
     const nextPageStream: IIntegrationStream = nextPage
@@ -202,7 +202,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
       }
       const memberResponse = await getMember(
         { token: context.integration.token, userId },
-        this.logger(context),
+        context.logger,
       )
       const record = memberResponse.records
       const member = {
@@ -237,7 +237,7 @@ export class SlackIntegrationService extends IntegrationServiceBase {
         context,
       }
     } catch (e) {
-      this.logger(context).error('Error getting member in Slack', { userId })
+      context.logger.error('Error getting member in Slack', { userId })
       throw e
     }
   }

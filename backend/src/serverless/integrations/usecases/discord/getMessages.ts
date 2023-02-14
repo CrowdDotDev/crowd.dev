@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {
-  DiscordMessages,
+  DiscordApiMessage,
   DiscordParsedReponse,
   DiscordGetMessagesInput,
 } from '../../types/discordTypes'
@@ -25,7 +25,7 @@ async function getMessages(
     }
 
     const response = await axios(config)
-    const records: DiscordMessages = response.data
+    const records: DiscordApiMessage[] = response.data
 
     const limit = parseInt(response.headers['x-ratelimit-remaining'], 10)
     const timeUntilReset = parseInt(response.headers['x-ratelimit-reset-after'], 10)
