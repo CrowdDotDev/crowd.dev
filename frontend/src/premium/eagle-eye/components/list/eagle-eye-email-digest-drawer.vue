@@ -250,7 +250,6 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import Message from '@/shared/message/message'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
-import Schema from 'async-validator'
 
 const props = defineProps({
   modelValue: {
@@ -406,7 +405,6 @@ const handleCancel = () => {
 }
 
 onMounted(() => {
-  console.log(Schema)
   fillForm(currentUser.value)
 })
 </script>
