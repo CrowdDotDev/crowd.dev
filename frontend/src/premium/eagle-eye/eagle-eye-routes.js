@@ -54,14 +54,10 @@ export default [
           module: 'eagleEye'
         },
         beforeEnter: async (to, _from, next) => {
-          console.log('/eagle-eye')
           // Redirect to onboard page if user is not onboarded
           if (await isEagleEyeFeatureEnabled()) {
             const currentUser =
               store.getters['auth/currentUser']
-            console.log(
-              !currentUser.eagleEyeSettings?.onboarded
-            )
             if (!currentUser.eagleEyeSettings?.onboarded) {
               next('/eagle-eye/onboard')
               return
