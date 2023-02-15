@@ -1,53 +1,48 @@
 <template>
-  <div
-    class="flex items-center md:justify-end lg:justify-end -ml-1"
-  >
-    <!-- List of integrations -->
-    <div
-      v-for="active of Object.keys(activeIntegrations)"
+  <section>
+    <h6 class="text-base leading-6 font-semibold pb-3">
+      Integrations
+    </h6>
+    <article
+      v-for="(active, ai) of Object.keys(
+        activeIntegrations
+      )"
       :key="active"
-      class="m-1"
+      class="border-gray-100 py-3 flex items-center justify-between"
+      :class="{ 'border-t': ai > 0 }"
     >
-      <el-tooltip
-        effect="dark"
-        :content="platformDetails(active).name"
-        placement="top"
-      >
-        <div
-          class="w-8 h-8 rounded-full border flex items-center justify-center"
-          :style="{
-            background:
-              platformDetails(active).backgroundColor,
-            'border-color':
-              platformDetails(active).borderColor
-          }"
-        >
+      <div class="flex items-center">
+        <div class="mr-4">
           <img
-            class="w-4 h-4"
+            class="w-5 h-5"
             :src="platformDetails(active).image"
             :alt="platformDetails(active).name"
           />
         </div>
-      </el-tooltip>
-    </div>
+        <p class="text-xs leading-4">
+          {{ platformDetails(active).name }}
+        </p>
+      </div>
+      <div></div>
+    </article>
 
-    <!-- button linking to add new integrations -->
-    <el-tooltip
-      effect="dark"
-      content="Add integrations"
-      placement="top"
-    >
-      <router-link
-        :to="{ name: 'integration' }"
-        class="w-8 h-8 m-1 rounded-full border border-gray-400 hover:bg-brand-50 hover:border-brand-500 transition group border-dashed flex items-center justify-center"
-        route
-      >
-        <i
-          class="ri-add-line text-lg text-gray-400 group-hover:text-brand-500"
-        ></i>
-      </router-link>
-    </el-tooltip>
-  </div>
+    <!--    &lt;!&ndash; button linking to add new integrations &ndash;&gt;-->
+    <!--    <el-tooltip-->
+    <!--      effect="dark"-->
+    <!--      content="Add integrations"-->
+    <!--      placement="top"-->
+    <!--    >-->
+    <!--      <router-link-->
+    <!--        :to="{ name: 'integration' }"-->
+    <!--        class="w-8 h-8 m-1 rounded-full border border-gray-400 hover:bg-brand-50 hover:border-brand-500 transition group border-dashed flex items-center justify-center"-->
+    <!--        route-->
+    <!--      >-->
+    <!--        <i-->
+    <!--          class="ri-add-line text-lg text-gray-400 group-hover:text-brand-500"-->
+    <!--        ></i>-->
+    <!--      </router-link>-->
+    <!--    </el-tooltip>-->
+  </section>
 </template>
 
 <script>
@@ -84,7 +79,10 @@ export default {
       fetchIntegrations: 'doFetch'
     }),
     platformDetails(platform) {
-      return CrowdIntegrations.getConfig(platform)
+      return CrowdIntegrations.getMappedConfig(
+        platform,
+        this.$store
+      )
     }
   }
 }

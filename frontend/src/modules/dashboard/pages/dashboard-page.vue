@@ -1,56 +1,54 @@
 <template>
-  <div class="gap-x-4 px-6 lg:container lg:px-10">
-    <div>
-      <div class="border-b border-gray-200">
-        <app-dashboard-header class="pb-4" />
-        <app-dashboard-task class="!mb-8" />
-      </div>
-      <app-dashboard-filters />
-      <div class="flex flex-wrap -mx-3">
-        <div class="w-full md:w-2/3 lg:w-3/4 px-3">
-          <app-dashboard-activities class="mb-6" />
-        </div>
-        <div class="w-full md:w-1/3 lg:w-1/4 px-3">
-          <app-dashboard-members class="mb-6" />
-          <app-dashboard-organizations class="mb-6" />
+  <div class="flex -m-5">
+    <div class="flex-grow h-screen overflow-auto">
+      <div class="flex justify-center">
+        <div class="home-content px-8">
+          <div class="py-8">
+            <h4 class="text-xl leading-9 font-semibold">
+              {{ currentTenant.name }} team overview
+            </h4>
+          </div>
+
+          <app-dashboard-filters class="mb-8" />
+          <app-dashboard-members class="mb-8"/>
+          <app-dashboard-organizations class="mb-8"/>
+          <app-dashboard-activities  class="mb-8"/>
         </div>
       </div>
     </div>
+    <aside
+      class="border-l border-gray-200 h-screen overflow-auto px-5 py-6"
+    >
+      <app-dashboard-integrations />
+      <app-dashboard-task class="hidden" />
+    </aside>
   </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex'
-import moment from 'moment'
+<script setup>
 import AppDashboardActivities from '@/modules/dashboard/components/dashboard-activities'
 import AppDashboardMembers from '@/modules/dashboard/components/dashboard-members'
 import AppDashboardOrganizations from '@/modules/dashboard/components/dashboard-organizations'
-import AppDashboardHeader from '@/modules/dashboard/components/dashboard-header'
 import AppDashboardTask from '@/modules/dashboard/components/dashboard-task'
 import AppDashboardFilters from '@/modules/dashboard/components/dashboard-filters'
+import AppDashboardIntegrations from '@/modules/dashboard/components/dashboard-active-integrations.vue'
 
-export default {
-  name: 'AppDashboardPage',
-  components: {
-    AppDashboardFilters,
-    AppDashboardTask,
-    AppDashboardHeader,
-    AppDashboardOrganizations,
-    AppDashboardMembers,
-    AppDashboardActivities
-  },
-  computed: {
-    ...mapGetters('auth', {
-      currentTenant: 'currentTenant'
-    }),
-    lastUpdated() {
-      return moment(this.currentTenant.updatedAt).format(
-        'hh:mm'
-      )
-    }
-  },
-  async mounted() {
-    window.analytics.page('Dashboard')
-  }
-}
+import { onMounted } from 'vue'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+
+const { currentTenant } = mapGetters('auth')
+
+onMounted(() => {
+  window.analytics.page('Dashboard')
+})
 </script>
+
+<style lang="scss">
+aside {
+  width: 16.25rem;
+}
+.home-content {
+  max-width: 60rem;
+  width: 100%;
+}
+</style>

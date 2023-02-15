@@ -1,8 +1,11 @@
 <template>
-  <div class="flex items-center py-6">
+  <div
+    class="flex items-center py-4 border-y border-gray-200"
+  >
     <!-- period filters -->
     <app-widget-period
       :period="period"
+      class="uppercase"
       @on-update="setPeriod"
     />
 
