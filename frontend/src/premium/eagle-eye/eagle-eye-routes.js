@@ -60,6 +60,7 @@ export default [
               store.getters['auth/currentUser']
             if (!currentUser.eagleEyeSettings?.onboarded) {
               next('/eagle-eye/onboard')
+              return
             }
           }
 
@@ -92,6 +93,7 @@ export default [
           // Redirect to onboard page if user is not onboarded
           if (currentUser.eagleEyeSettings?.onboarded) {
             next('/eagle-eye')
+            return
           }
 
           next()

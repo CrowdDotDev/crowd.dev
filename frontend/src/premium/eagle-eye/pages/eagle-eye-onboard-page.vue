@@ -51,6 +51,7 @@ import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-k
 import EagleEyePlatforms from '@/premium/eagle-eye/components/onboard/eagle-eye-platforms-step.vue'
 import EagleEyeSummary from '@/premium/eagle-eye/components/onboard/eagle-eye-summary-step.vue'
 import publishedDateOptions from '@/premium/eagle-eye/constants/eagle-eye-date-published.json'
+import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog.js'
 import { mapActions } from '@/shared/vuex/vuex.helpers'
 import { useStore } from 'vuex'
@@ -61,14 +62,18 @@ const router = useRouter()
 const { doUpdateSettings } = mapActions('eagleEye')
 
 const step = ref(1)
+
 const form = reactive({
   keywords: [
     {
       value: null
     }
   ],
-  datePublished: publishedDateOptions[0].label,
-  platforms: {}
+  datePublished: publishedDateOptions[1].label,
+  platforms: Object.keys(platformOptions).reduce((a, b) => {
+    a[b] = true
+    return a
+  }, {})
 })
 
 const headerContent = computed(() => {

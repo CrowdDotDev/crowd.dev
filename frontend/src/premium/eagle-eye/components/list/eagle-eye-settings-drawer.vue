@@ -6,7 +6,7 @@
           Keywords
         </h5>
 
-        <el-form ref="formRef" :model="form" :rules="rules">
+        <el-form ref="formRef" @submit.prevent>
           <!-- include -->
           <section class="pb-8">
             <p
@@ -17,75 +17,21 @@
                 >*</span
               >
             </p>
-            <article
+            <app-eagle-eye-settings-include
               v-for="(include, ii) of form.include"
               :key="ii"
-              class="pb-3 flex items-center"
+              v-model="form.include[ii]"
             >
-              <div class="flex flex-grow items-start">
-                <el-form-item
-                  class="mr-3 mb-0 no-margin basis-7/12 is-error-relative"
-                  :prop="`include.${ii}.keyword`"
-                  :rules="rules.include.$each.keyword"
+              <template #after>
+                <el-button
+                  class="btn btn--md btn--transparent w-10 h-10"
+                  :disabled="form.include.length === 1"
+                  @click="removeInclude(ii)"
                 >
-                  <el-input
-                    v-model="include.keyword"
-                    placeholder="Keyword"
-                  ></el-input>
-                </el-form-item>
-                <el-form-item
-                  class="mr-3 mb-0 no-margin basis-5/12 is-error-relative"
-                  :prop="`include.${ii}.match`"
-                  :rules="rules.include.$each.match"
-                >
-                  <el-select
-                    v-model="include.match"
-                    class="w-full"
-                    placeholder="Match type"
-                  >
-                    <el-option
-                      value="semantic"
-                      label="Semantic match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
-                    >
-                      <h6
-                        class="text-xs leading-5 font-medium"
-                      >
-                        Semantic match
-                      </h6>
-                      <p
-                        class="text-2xs leading-5 text-gray-500"
-                      >
-                        Results semantically related
-                      </p>
-                    </el-option>
-                    <el-option
-                      value="exact"
-                      label="Exact match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
-                    >
-                      <h6
-                        class="text-xs leading-5 font-medium"
-                      >
-                        Exact match
-                      </h6>
-                      <p
-                        class="text-2xs leading-5 text-gray-500"
-                      >
-                        Results containing the keyword
-                      </p>
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-              </div>
-              <el-button
-                class="btn btn--md btn--transparent w-10 h-10"
-                :disabled="form.include.length === 1"
-                @click="removeInclude(ii)"
-              >
-                <i class="ri-delete-bin-line text-lg"></i>
-              </el-button>
-            </article>
+                  <i class="ri-delete-bin-line text-lg"></i>
+                </el-button>
+              </template>
+            </app-eagle-eye-settings-include>
             <div class="flex">
               <p
                 class="text-sm leading-5 text-brand-500 cursor-pointer"
@@ -108,15 +54,14 @@
               :key="ei"
               class="pb-3 flex items-center"
             >
-              <el-form-item
+              <app-form-item
                 class="mr-3 mb-0 no-margin flex-grow"
-                :prop="`exclude.${ei}.keyword`"
               >
                 <el-input
                   v-model="exclude.keyword"
                   placeholder="Keyword"
                 ></el-input>
-              </el-form-item>
+              </app-form-item>
               <el-button
                 class="btn btn--md btn--transparent w-10 h-10"
                 @click="removeExclude(ei)"
@@ -147,7 +92,7 @@
             >
               Date published
             </h6>
-            <div class="pb-8">
+            <div class="pb-7">
               <app-eagle-eye-published-date
                 v-model:date-published="form.datePublished"
               />
@@ -156,9 +101,12 @@
 
           <!-- platforms -->
           <section>
+            <p class="mb-3 text-xs text-gray-500">
+              For better results, we recommend choosing at
+              least 3 platforms.
+            </p>
             <app-eagle-eye-platforms
               v-model:platforms="form.platforms"
-              :rules="rules.platforms"
             />
           </section>
         </el-form>
@@ -172,12 +120,11 @@
           @click="emit('update:modelValue', false)"
           >Cancel
         </el-button>
-
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
-          :disabled="!isFormValid"
+          :disabled="$v.$invalid || !hasFormChanged"
           @click="onSubmit(formRef)"
           >Update
         </el-button>
@@ -187,7 +134,6 @@
 </template>
 
 <script setup>
-import platforms from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import AppDrawer from '@/shared/drawer/drawer.vue'
 import Message from '@/shared/message/message'
 import {
@@ -197,15 +143,20 @@ import {
   onMounted,
   reactive,
   ref,
-  watch
+  watch,
+  defineExpose
 } from 'vue'
 import {
   mapActions,
   mapGetters,
   mapState
 } from '@/shared/vuex/vuex.helpers'
-import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms.vue'
+import AppEagleEyePlatforms from '@/premium/eagle-eye/components/eagle-eye-platforms-drawers.vue'
 import AppEagleEyePublishedDate from '@/premium/eagle-eye/components/eagle-eye-published-date.vue'
+import useVuelidate from '@vuelidate/core'
+import AppEagleEyeSettingsInclude from '@/premium/eagle-eye/components/form/eagle-eye-settings-include.vue'
+import AppFormItem from '@/shared/form/form-item.vue'
+import formChangeDetector from '@/shared/form/form-change'
 
 const props = defineProps({
   modelValue: {
@@ -222,69 +173,16 @@ const { loadingUpdateSettings } = mapState('eagleEye')
 
 const formRef = ref()
 
-const rules = reactive({
-  include: {
-    $each: {
-      keyword: [
-        {
-          required: true,
-          message: 'This field is required',
-          trigger: 'blur'
-        }
-      ],
-      match: [
-        {
-          required: true,
-          message: 'This field is required',
-          trigger: 'blur'
-        }
-      ]
-    }
-  },
-  datePublished: [
-    {
-      required: true,
-      message: 'This field is required',
-      trigger: 'blur'
-    }
-  ],
-  platforms: [
-    {
-      type: 'object',
-      trigger: 'change',
-      validator: (_rule, _value, callback) => {
-        const trueValues = Object.values({
-          ...form.platforms
-        }).filter((v) => v)
-        if (trueValues.length === 0) {
-          callback(
-            new Error('Please select at least one platform')
-          )
-        } else {
-          callback()
-        }
-      }
-    }
-  ]
-})
-
 const form = reactive({
   include: [],
   exclude: [],
   datePublished: '',
-  platforms: {}
+  platforms: []
 })
+const { hasFormChanged, formSnapshot } =
+  formChangeDetector(form)
 
-const isFormValid = computed(() => {
-  const includeValid = form.include.every(
-    (i) => i.keyword.length > 0 && i.match.length > 0
-  )
-  const platformsValid =
-    Object.values({
-      ...form.platforms
-    }).filter((v) => v).length > 0
-  return includeValid && platformsValid
-})
+const $v = useVuelidate({}, form)
 
 const drawerModel = computed({
   get() {
@@ -331,6 +229,7 @@ const fillForm = (user) => {
   }
   const { eagleEyeSettings } = user
   const { feed } = eagleEyeSettings
+
   form.include = [
     ...feed.keywords.map((keyword) => ({
       keyword,
@@ -344,12 +243,10 @@ const fillForm = (user) => {
   form.exclude = feed.excludedKeywords.map((keyword) => ({
     keyword
   }))
-  Object.keys(platforms).forEach((platform) => {
-    form.platforms[platform] =
-      feed.platforms.includes(platform)
-  })
+  form.platforms = feed.platforms
 
   form.datePublished = feed.publishedDate
+  formSnapshot()
 }
 
 const onSubmit = async (formEl) => {
@@ -384,5 +281,9 @@ const onSubmit = async (formEl) => {
 
 onMounted(() => {
   fillForm(currentUser.value)
+})
+
+defineExpose({
+  $v
 })
 </script>

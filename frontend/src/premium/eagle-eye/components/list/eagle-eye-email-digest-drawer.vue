@@ -20,103 +20,94 @@
             </p>
           </div>
           <div>
-            <el-switch v-model="active" />
+            <el-switch v-model="form.active" />
           </div>
         </div>
-        <div :class="{ 'opacity-50': !active }">
+        <div :class="{ 'opacity-50': !form.active }">
           <el-form
             ref="formRef"
             label-position="top"
             class="form pt-6 pb-10"
-            :rules="rules"
-            :model="model"
             @submit.prevent="doSubmit"
           >
-            <el-form-item
-              prop="email"
+            <app-form-item
               class="col-span-2 mb-6"
+              :validation="$v.email"
+              label="Email"
+              :required="true"
+              :error-messages="{
+                required: 'This field is required',
+                email: 'Enter valid email'
+              }"
             >
-              <label
-                class="text-sm mb-1 font-medium leading-5"
-                >Email
-                <span class="text-brand-500">*</span></label
-              >
               <el-input
                 ref="focus"
-                v-model="model.email"
-                :disabled="!active"
+                v-model="form.email"
+                :disabled="!form.active"
+                @blur="$v.email.$touch"
+                @change="$v.email.$touch"
               />
-            </el-form-item>
-            <el-form-item prop="frequency" class="mb-6">
-              <div>
-                <label
-                  class="text-sm mb-4 font-medium leading-5"
-                  >Frequency</label
+            </app-form-item>
+            <app-form-item class="mb-6" label="Frequency">
+              <el-radio-group
+                v-model="form.frequency"
+                :disabled="!form.active"
+              >
+                <el-radio
+                  label="daily"
+                  size="large"
+                  class="frequency-radio !flex items-start mb-3"
                 >
-                <el-radio-group
-                  v-model="model.frequency"
-                  :disabled="!active"
+                  <h6
+                    class="text-sm leading-5 font-medium mb-1"
+                  >
+                    Daily
+                  </h6>
+                  <p
+                    class="text-2xs leading-4.5 text-gray-500"
+                  >
+                    From Monday to Friday (results from
+                    previous day)
+                  </p>
+                </el-radio>
+                <el-radio
+                  label="weekly"
+                  size="large"
+                  class="frequency-radio !flex items-start"
                 >
-                  <el-radio
-                    label="daily"
-                    size="large"
-                    class="frequency-radio !flex items-start mb-3"
+                  <h6
+                    class="text-sm leading-5 font-medium mb-1"
                   >
-                    <h6
-                      class="text-sm leading-5 font-medium mb-1"
-                    >
-                      Daily
-                    </h6>
-                    <p
-                      class="text-2xs leading-4.5 text-gray-500"
-                    >
-                      From Monday to Friday (results from
-                      previous day)
-                    </p>
-                  </el-radio>
-                  <el-radio
-                    label="weekly"
-                    size="large"
-                    class="frequency-radio !flex items-start"
+                    Weekly
+                  </h6>
+                  <p
+                    class="text-2xs leading-4.5 text-gray-500"
                   >
-                    <h6
-                      class="text-sm leading-5 font-medium mb-1"
-                    >
-                      Weekly
-                    </h6>
-                    <p
-                      class="text-2xs leading-4.5 text-gray-500"
-                    >
-                      Every Monday (results from previous
-                      week)
-                    </p>
-                  </el-radio>
-                </el-radio-group>
-              </div>
-            </el-form-item>
-            <el-form-item prop="time" class="mb-6">
+                    Every Monday (results from previous
+                    week)
+                  </p>
+                </el-radio>
+              </el-radio-group>
+            </app-form-item>
+            <app-form-item class="mb-6" label="Time (UTC)">
               <div class="w-36">
-                <label
-                  class="text-sm mb-1 font-medium leading-5"
-                  >Time (UTC)</label
-                >
                 <el-time-select
-                  v-model="model.time"
+                  v-model="form.time"
                   start="00:00"
                   step="00:30"
                   end="23:59"
                   placeholder="Select time"
                   format="HH:mm"
-                  :disabled="!active"
+                  :disabled="!form.active"
                   :clearable="false"
                 />
               </div>
-            </el-form-item>
+            </app-form-item>
 
             <el-checkbox
-              v-model="model.updateResults"
+              v-model="form.updateResults"
               class="filter-checkbox"
-              :disabled="!active"
+              :disabled="!form.active"
             >
               <span class="text-sm text-gray-900"
                 >Update email results based on your current
@@ -222,7 +213,8 @@
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
-          @click="doSubmit(formRef)"
+          :disabled="$v.$invalid || !hasFormChanged"
+          @click="doSubmit()"
           >Update
         </el-button>
       </div>
@@ -248,6 +240,10 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import Message from '@/shared/message/message'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import { email, required } from '@vuelidate/validators'
+import useVuelidate from '@vuelidate/core'
+import AppFormItem from '@/shared/form/form-item.vue'
+import formChangeDetector from '@/shared/form/form-change'
 
 const props = defineProps({
   modelValue: {
@@ -263,36 +259,24 @@ const { loadingUpdateSettings } = mapState('eagleEye')
 const emit = defineEmits(['update:modelValue'])
 
 const rules = {
-  email: [
-    {
-      required: true,
-      message: 'This field is required',
-      trigger: 'blur'
-    }
-  ],
-  frequency: [
-    {
-      required: true,
-      message: 'This field is required',
-      trigger: 'blur'
-    }
-  ],
-  time: [
-    {
-      required: true,
-      message: 'This field is required',
-      trigger: 'blur'
-    }
-  ]
+  email: {
+    required,
+    email
+  }
 }
 
-const model = reactive({
+const form = reactive({
+  active: false,
+  email: '',
   frequency: 'daily',
   time: '09:00',
   updateResults: true
 })
+const { hasFormChanged, formSnapshot } =
+  formChangeDetector(form)
 
-const active = ref(false)
+const $v = useVuelidate(rules, form)
+
 const formRef = ref()
 
 const drawerModel = computed({
@@ -307,7 +291,7 @@ const drawerModel = computed({
 const feed = ref(null)
 
 const results = computed(() => {
-  if (!model.updateResults) {
+  if (!form.updateResults) {
     if (currentUser.value && feed.value) {
       return feed.value
     }
@@ -316,7 +300,7 @@ const results = computed(() => {
 })
 
 const displayFeedWarning = computed(() => {
-  if (model.updateResults) {
+  if (form.updateResults) {
     return false
   }
   if (
@@ -348,40 +332,40 @@ const updateFeed = () => {
 
 const fillForm = (user) => {
   const { eagleEyeSettings } = user
-  active.value = eagleEyeSettings.emailDigestActive || false
-  model.email =
+  form.active = eagleEyeSettings.emailDigestActive || false
+  form.email =
     eagleEyeSettings.emailDigest?.email || user.email
-  model.frequency =
+  form.frequency =
     eagleEyeSettings.emailDigest?.frequency || 'daily'
-  model.time = eagleEyeSettings.emailDigest?.time || '09:00'
-  model.updateResults = !eagleEyeSettings.emailDigest
+  form.time = eagleEyeSettings.emailDigest?.time || '09:00'
+  form.updateResults = !eagleEyeSettings.emailDigest
     ? true
     : eagleEyeSettings.emailDigest?.matchFeedSettings
   feed.value = user.eagleEyeSettings.emailDigest.feed
+
+  formSnapshot()
 }
-const doSubmit = async (formEl) => {
-  if (!formEl) return
-  await formEl.validate((valid) => {
-    if (valid) {
-      const data = {
-        email: model.email,
-        frequency: model.frequency,
-        time: model.time,
-        matchFeedSettings: model.updateResults,
-        feed: !model.updateResults ? feed.value : undefined
-      }
-      doUpdateSettings({
-        ...currentUser.value.eagleEyeSettings,
-        emailDigestActive: active.value,
-        emailDigest: data
-      }).then(() => {
-        Message.success(
-          'Email Digest settings successfully updated'
-        )
-        emit('update:modelValue', false)
-      })
+const doSubmit = async () => {
+  $v.value.$touch()
+  if (!$v.value.$invalid) {
+    const data = {
+      email: form.email,
+      frequency: form.frequency,
+      time: form.time,
+      matchFeedSettings: form.updateResults,
+      feed: !form.updateResults ? feed.value : undefined
     }
-  })
+    doUpdateSettings({
+      ...currentUser.value.eagleEyeSettings,
+      emailDigestActive: form.active,
+      emailDigest: data
+    }).then(() => {
+      Message.success(
+        'Email Digest settings successfully updated'
+      )
+      emit('update:modelValue', false)
+    })
+  }
 }
 
 const handleCancel = () => {
