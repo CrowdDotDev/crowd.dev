@@ -211,6 +211,13 @@ export default {
         activeView
       })
 
+      // Also update action from feed posts
+      if (activeView === 'bookmarked') {
+        commit('UPDATE_FEED_POST_SUCCESS', {
+          postId: post.id
+        })
+      }
+
       // Update local storage with updated action
       const currentUser = rootGetters['auth/currentUser']
       const currentTenant =
@@ -218,7 +225,7 @@ export default {
 
       setResultsInStorage({
         storageDate: moment(),
-        posts: state.views[activeView].list.posts,
+        posts: state.views['feed'].list.posts,
         tenantId: currentTenant.id,
         userId: currentUser.id
       })
@@ -257,6 +264,13 @@ export default {
         actionId
       })
 
+      // Also remove action from feed posts
+      if (activeView === 'bookmarked') {
+        commit('UPDATE_FEED_POST_SUCCESS', {
+          postId
+        })
+      }
+
       // Update local storage with updated action
       const currentUser = rootGetters['auth/currentUser']
       const currentTenant =
@@ -264,7 +278,7 @@ export default {
 
       setResultsInStorage({
         storageDate: moment(),
-        posts: state.views[activeView].list.posts,
+        posts: state.views['feed'].list.posts,
         tenantId: currentTenant.id,
         userId: currentUser.id
       })

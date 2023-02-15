@@ -60,13 +60,18 @@ const props = defineProps({
 })
 
 const store = useStore()
-const loading = computed(
-  () => store.state.eagleEye.list.loading
-)
 const activeView = computed(
   () => store.getters['eagleEye/activeView']
 )
-const count = computed(() => store.state.eagleEye.count)
+const loading = computed(
+  () =>
+    store.state.eagleEye.views[activeView.value.id].list
+      .loading
+)
+const count = computed(
+  () =>
+    store.state.eagleEye.views[activeView.value.id].count
+)
 const pagination = computed(
   () => store.getters['eagleEye/pagination']
 )

@@ -24,11 +24,11 @@ export default {
   ) {
     state.views[activeView].list.loading = false
     if (appendToList) {
-      state.views[activeView].list.posts.concat(list)
+      state.views[activeView].list.posts.push(...list)
     } else {
       state.views[activeView].list.posts = list
     }
-    state.count = count
+    state.views[activeView].count = count
   },
 
   FETCH_ERROR(state, { activeView }) {
@@ -67,15 +67,40 @@ export default {
     }
   },
 
+  UPDATE_FEED_POST_SUCCESS(state, { postId }) {
+    const feedPostIndex = state.views[
+      'feed'
+    ].list.posts.findIndex((p) => p.id === postId)
+
+    const bookmarkPost = state.views[
+      'bookmarked'
+    ].list.posts.find((p) => p.id === postId)
+
+    // Update feed with action
+    if (feedPostIndex && bookmarkPost) {
+      state.views['feed'].list.posts[feedPostIndex] =
+        bookmarkPost
+      // Scenario for bookmarks
+    } else if (feedPostIndex) {
+      const actionIndex = state.views['feed'].list.posts[
+        feedPostIndex
+      ].actions.findIndex((a) => a.type === 'bookmark')
+
+      state.views['feed'].list.posts[
+        feedPostIndex
+      ].actions.splice(actionIndex, 1)
+    }
+  },
+
   DELETE_ACTION_SUCCESS(
     state,
     { actionType, index, activeView }
   ) {
-    // Remove post from bookmarks view
     if (
       actionType === 'bookmark' &&
       activeView === 'bookmarked'
     ) {
+      // Remove post from bookmarks view
       state.views[activeView].list.posts.splice(index, 1)
       // Remove action from post
     } else {
