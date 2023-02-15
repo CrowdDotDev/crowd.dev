@@ -92,7 +92,7 @@
             >
               Date published
             </h6>
-            <div class="pb-8">
+            <div class="pb-7">
               <app-eagle-eye-published-date
                 v-model:date-published="form.datePublished"
               />
@@ -101,6 +101,10 @@
 
           <!-- platforms -->
           <section>
+            <p class="mb-3 text-xs text-gray-500">
+              For better results, we recommend choosing at
+              least 3 platforms.
+            </p>
             <app-eagle-eye-platforms
               v-model:platforms="form.platforms"
             />
