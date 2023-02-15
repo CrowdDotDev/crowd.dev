@@ -72,6 +72,12 @@
   </div>
 </template>
 
+<script>
+export default {
+  name: 'CrEagleEyeSetting'
+}
+</script>
+
 <script setup>
 import { ref, computed } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
