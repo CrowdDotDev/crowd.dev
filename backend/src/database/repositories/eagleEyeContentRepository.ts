@@ -119,9 +119,6 @@ export default class EagleEyeContentRepository {
       as: 'actions',
       required: true,
       where: {},
-      throught: {
-        attributes: [],
-      },
       limit: null,
       offset: 0,
     }
