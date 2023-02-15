@@ -122,7 +122,7 @@ export default class EagleEyeContentRepository {
       throught: {
         attributes: [],
       },
-      limit: 0,
+      limit: null,
       offset: 0,
     }
 
