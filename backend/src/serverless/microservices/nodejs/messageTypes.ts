@@ -15,6 +15,10 @@ export type CsvExportMessage = BaseNodeMicroserviceMessage & {
   criteria: any
 }
 
+export type EagleEyeEmailDigestMessage = BaseNodeMicroserviceMessage & {
+  user: string
+} 
+
 export type ActivityAutomationData = {
   activityId?: string
   activity?: any

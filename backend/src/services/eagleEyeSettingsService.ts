@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import moment from 'moment'
 import SequelizeRepository from '../database/repositories/sequelizeRepository'
 import UserRepository from '../database/repositories/userRepository'
 import Error400 from '../errors/Error400'
@@ -97,8 +98,29 @@ export default class EagleEyeSettingsService extends LoggingBase {
       throw new Error400(this.options.language, 'errors.eagleEye.emailInvalid')
     }
 
-    // Make sure the frequency exists and is valid
-    if (['daily', 'weekly'].indexOf(data.frequency) === -1) {
+    // Make sure the frequency exists and is valid and set nextEmailAt
+
+    const now = moment()
+
+    if (data.frequency === 'daily') {
+      data.nextEmailAt = moment(data.time, "HH:mm").toISOString()
+
+      if (now > moment(data.time, "HH:mm")) {
+        data.nextEmailAt = moment(data.time, "HH:mm").add(1, 'day').toISOString()
+      }
+
+    }
+    else if (data.frequency === 'weekly') {
+      const [hour, minute] = data.time.split(":")
+      const startOfWeek = moment().startOf('isoWeek').set('hour', parseInt(hour, 10)).set('minute', parseInt(minute, 10))
+
+      data.nextEmailAt = startOfWeek.toISOString()
+
+      if (now > startOfWeek) {
+        data.nextEmailAt = startOfWeek.add(1, 'week').toISOString()
+      }
+    }
+    else {
       throw new Error400(this.options.language, 'errors.eagleEye.frequencyInvalid')
     }
 
@@ -109,7 +131,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
     }
 
     // Remove any extra fields
-    return lodash.pick(data, ['email', 'frequency', 'time', 'matchFeedSettings', 'feed'])
+    return lodash.pick(data, ['email', 'frequency', 'time', 'matchFeedSettings', 'feed', 'nextEmailAt'])
   }
 
   /**
@@ -130,6 +152,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
       // Otherwise, set email digest to false
       if (data.emailDigestActive && data.emailDigest) {
         data.emailDigest = this.getEmailDigestSettings(data.emailDigest, data.feed)
+
       }
 
       // Remove any extra fields

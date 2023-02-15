@@ -36,6 +36,7 @@ export interface EagleEyeEmailDigestSettings {
   email: string
   frequency: 'daily' | 'weekly'
   time: string
+  nextEmailAt: string
   feed: EagleEyeFeedSettings
   matchFeedSettings: boolean
 }
