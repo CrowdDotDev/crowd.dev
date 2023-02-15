@@ -13,7 +13,6 @@
   "cubejs": {},
   "searchEngine": {},
   "segment": {},
-  "posthog": {},
   "comprehend": {
     "aws": {}
   },
@@ -35,5 +34,8 @@
   },
   "github": {},
   "enrichment": {},
-  "eagleEye": {}
+  "eagleEye": {},
+  "unleash": {
+    "db": {}
+  }
 }

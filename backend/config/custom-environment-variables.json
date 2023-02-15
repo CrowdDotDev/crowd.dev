@@ -66,9 +66,6 @@
   "segment": {
     "writeKey": "CROWD_SEGMENT_WRITE_KEY"
   },
-  "posthog": {
-    "apiKey": "CROWD_POSTHOG_API_KEY"
-  },
   "comprehend": {
     "aws": {
       "accountId": "CROWD_COMPREHEND_AWS_ACCOUNT_ID",
@@ -139,5 +136,18 @@
   "eagleEye": {
     "url": "CROWD_EAGLE_EYE_URL",
     "apiKey": "CROWD_EAGLE_EYE_API_KEY"
+  },
+  "unleash": {
+    "url": "CROWD_UNLEASH_URL",
+    "adminApiKey": "CROWD_UNLEASH_ADMIN_API_KEY",
+    "frontendApiKey": "CROWD_UNLEASH_FRONTEND_API_KEY",
+    "backendApiKey": "CROWD_UNLEASH_BACKEND_API_KEY",
+    "db": {
+      "host": "CROWD_UNLEASH_DB_HOST",
+      "port": "CROWD_UNLEASH_DB_PORT",
+      "username": "CROWD_UNLEASH_DB_USERNAME",
+      "password": "CROWD_UNLEASH_DB_PASSWORD",
+      "database": "CROWD_UNLEASH_DB_DATABASE"
+    }
   }
 }

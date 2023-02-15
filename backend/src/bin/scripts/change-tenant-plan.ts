@@ -1,14 +1,9 @@
-import { PostHog } from 'posthog-node'
 import commandLineArgs from 'command-line-args'
 import commandLineUsage from 'command-line-usage'
 import * as fs from 'fs'
 import path from 'path'
 import { createServiceLogger } from '../../utils/logging'
 import SequelizeRepository from '../../database/repositories/sequelizeRepository'
-import setPosthogTenantProperties from '../../feature-flags/setTenantProperties'
-import { POSTHOG_CONFIG } from '../../config'
-import { timeout } from '../../utils/timing'
-import { createRedisClient } from '../../utils/redis'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -73,7 +68,6 @@ if (parameters.help || !parameters.tenant || !parameters.plan) {
 
     const options = await SequelizeRepository.getDefaultIRepositoryOptions()
     const tenantIds = parameters.tenant.split(',')
-    const redis = await createRedisClient(true)
 
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
@@ -83,23 +77,14 @@ if (parameters.help || !parameters.tenant || !parameters.plan) {
         process.exit(1)
       } else {
         log.info({ tenantId, isTrial }, `Tenant found - updating tenant plan to ${plan}!`)
-        const updated = await tenant.update({
+        await tenant.update({
           plan,
           isTrialPlan: isTrial,
           trialEndsAt,
         })
-
-        setPosthogTenantProperties(
-          updated,
-          new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
-          options.database,
-          redis,
-        )
       }
     }
 
-    // give time to posthog to process queue messages
-    await timeout(2000)
     process.exit(0)
   })
 }

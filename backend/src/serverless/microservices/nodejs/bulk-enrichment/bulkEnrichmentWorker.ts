@@ -1,7 +1,4 @@
-import { PostHog } from 'posthog-node'
-import { POSTHOG_CONFIG } from '../../../../config'
 import getUserContext from '../../../../database/utils/getUserContext'
-import setPosthogTenantProperties from '../../../../feature-flags/setTenantProperties'
 import MemberEnrichmentService from '../../../../services/premium/enrichment/memberEnrichmentService'
 import { FeatureFlagRedisKey } from '../../../../types/common'
 import { createRedisClient } from '../../../../utils/redis'
@@ -57,14 +54,6 @@ async function bulkEnrichmentWorker(tenantId: string, memberIds: string[]) {
         secondsRemainingUntilEndOfMonth,
       )
     }
-
-    // send data to posthog
-    setPosthogTenantProperties(
-      userContext.currentTenant,
-      new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 }),
-      userContext.database,
-      redis,
-    )
   }
 }
 export { bulkEnrichmentWorker }

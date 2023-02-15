@@ -79,10 +79,6 @@ export interface SegmentConfiguration {
   writeKey: string
 }
 
-export interface PosthogConfiguration {
-  apiKey: string
-}
-
 export interface ApiConfiguration {
   port: number
   url: string
@@ -183,4 +179,19 @@ export interface EnrichmentConfiguration {
 export interface EagleEyeConfiguration {
   url: string
   apiKey: string
+}
+
+export interface UnleashConfiguration {
+  url: string
+  adminApiKey: string
+  frontendApiKey: string
+  backendApiKey: string
+
+  db: {
+    host: string
+    port: number
+    username: string
+    password: string
+    database: string
+  }
 }

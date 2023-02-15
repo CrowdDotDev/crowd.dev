@@ -1,9 +1,7 @@
 import moment from 'moment'
-import { PostHog } from 'posthog-node'
 import { Stripe } from 'stripe'
-import { PLANS_CONFIG, POSTHOG_CONFIG } from '../../../config'
+import { PLANS_CONFIG } from '../../../config'
 import SequelizeRepository from '../../../database/repositories/sequelizeRepository'
-import setPosthogTenantProperties from '../../../feature-flags/setTenantProperties'
 import Plans from '../../../security/plans'
 import { ApiWebsocketMessage } from '../../../types/mq/apiWebsocketMessage'
 import { NodeWorkerMessageBase } from '../../../types/mq/nodeWorkerMessageBase'
@@ -50,7 +48,6 @@ export const processWebhook = async (message: any) => {
 
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const redis = await createRedisClient(true)
-  const posthog = new PostHog(POSTHOG_CONFIG.apiKey, { flushAt: 1, flushInterval: 1 })
 
   const apiPubSubEmitter = new RedisPubSubEmitter('api-pubsub', redis, (err) => {
     log.error({ err }, 'Error in api-ws emitter!')
@@ -79,17 +76,13 @@ export const processWebhook = async (message: any) => {
         process.exit(1)
       } else {
         log.info({ tenantId }, `Tenant found - updating tenant plan to Growth plan!`)
-        const updated = await tenant.update({
+        await tenant.update({
           plan: Plans.values.growth,
           isTrialPlan: false,
           trialEndsAt: null,
           stripeSubscriptionId: stripeWebhookMessage.data.object.subscription,
           planSubscriptionEndsAt: moment(subscriptionEndsAt, 'X').toISOString(),
         })
-
-        setPosthogTenantProperties(updated, posthog, options.database, redis)
-
-        await timeout(2000)
 
         log.info('Emitting to redis pubsub for websocket forwarding from api..')
 

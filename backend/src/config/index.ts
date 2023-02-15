@@ -21,10 +21,10 @@ import {
   ClearbitConfiguration,
   DevtoConfiguration,
   RedisConfiguration,
-  PosthogConfiguration,
   PizzlyConfiguration,
   EnrichmentConfiguration,
   EagleEyeConfiguration,
+  UnleashConfiguration,
 } from './configTypes'
 
 // TODO-kube
@@ -93,12 +93,6 @@ export const SEGMENT_CONFIG: SegmentConfiguration = KUBE_MODE
   ? config.get<SegmentConfiguration>('segment')
   : {
       writeKey: process.env.SEGMENT_WRITE_KEY,
-    }
-
-export const POSTHOG_CONFIG: PosthogConfiguration = KUBE_MODE
-  ? config.get<PosthogConfiguration>('posthog')
-  : {
-      apiKey: process.env.POSTHOG_API_KEY,
     }
 
 export const COMPREHEND_CONFIG: ComprehendConfiguration = KUBE_MODE
@@ -241,3 +235,5 @@ export const EAGLE_EYE_CONFIG: EagleEyeConfiguration = KUBE_MODE
       url: process.env.EAGLE_EYE_URL,
       apiKey: process.env.EAGLE_EYE_SECRET_KEY,
     }
+
+export const UNLEASH_CONFIG: UnleashConfiguration = config.get<UnleashConfiguration>('unleash')
