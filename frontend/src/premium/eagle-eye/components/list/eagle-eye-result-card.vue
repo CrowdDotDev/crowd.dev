@@ -62,21 +62,15 @@
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-1">
         <el-tooltip placement="top" content="Relevant">
-          <span
-            :class="{
-              '!cursor-auto': isLoading
-            }"
-            @click.stop
-          >
+          <span @click.stop>
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
                 'bg-green-100 hover:bg-green-100':
-                  isRelevant,
-                'pointer-events-none opacity-50': isLoading
+                  isRelevant
               }"
               @click.stop="
-                onThumbsClick({
+                onActionClick({
                   actionType: 'thumbs-up',
                   shouldAdd: !isRelevant
                 })
@@ -96,21 +90,14 @@
         </el-tooltip>
 
         <el-tooltip placement="top" content="Not relevant">
-          <span
-            :class="{
-              '!cursor-auto': isLoading
-            }"
-            @click.stop
-          >
+          <span @click.stop>
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-red-100 hover:bg-red-100':
-                  isNotRelevant,
-                'pointer-events-none opacity-50': isLoading
+                'bg-red-100 hover:bg-red-100': isNotRelevant
               }"
               @click.stop="
-                onThumbsClick({
+                onActionClick({
                   actionType: 'thumbs-down',
                   shouldAdd: !isNotRelevant
                 })
@@ -135,7 +122,7 @@
       >
         <span
           :class="{
-            '!cursor-auto': isBookmarkDisabled
+            '!cursor-auto': isBookmarkedByTeam
           }"
           @click.stop
         >
@@ -143,8 +130,7 @@
             class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
             :class="{
               'bg-blue-100 hover:bg-blue-100': isBookmarked,
-              'pointer-events-none bg-transparent':
-                isBookmarkDisabled
+              'pointer-events-none': isBookmarkedByTeam
             }"
             @click.stop="
               onActionClick({
@@ -157,11 +143,11 @@
               class="text-lg text-gray-400 group-hover:text-gray-900"
               :class="{
                 'ri-bookmark-line text-gray-400':
-                  !isBookmarked && !isBookmarkDisabled,
+                  !isBookmarked && !isBookmarkedByTeam,
                 'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
-                  isBookmarked && !isBookmarkDisabled,
+                  isBookmarked && !isBookmarkedByTeam,
                 'ri-bookmark-fill text-blue-300':
-                  isBookmarkDisabled
+                  isBookmarkedByTeam
               }"
             />
           </div>
@@ -197,7 +183,6 @@ const { currentUser } = mapGetters('auth')
 const { doAddAction, doRemoveAction } =
   mapActions('eagleEye')
 
-const isLoading = computed(() => props.result.loading)
 const isBookmarked = computed(() =>
   props.result.actions.some((a) => a.type === 'bookmark')
 )
@@ -207,17 +192,18 @@ const isRelevant = computed(() =>
 const isNotRelevant = computed(() =>
   props.result.actions.some((a) => a.type === 'thumbs-down')
 )
-const isBookmarkedByUser = computed(
-  () =>
-    props.result.actions.find((a) => a.type === 'bookmark')
-      ?.actionById === currentUser.value.id
-)
-
-const isBookmarkDisabled = computed(() => {
-  return (
-    isLoading.value ||
-    (isBookmarked.value && !isBookmarkedByUser.value)
+const isBookmarkedByUser = computed(() => {
+  const bookmarkAction = props.result.actions.find(
+    (a) => a.type === 'bookmark'
   )
+  return (
+    !bookmarkAction?.actionById ||
+    bookmarkAction?.actionById === currentUser.value.id
+  )
+})
+
+const isBookmarkedByTeam = computed(() => {
+  return isBookmarked.value && !isBookmarkedByUser.value
 })
 
 const bookmarkTooltip = computed(() => {
@@ -242,38 +228,11 @@ const onCardClick = async (e) => {
   })
 }
 
-// If opposite thumbs up is set, remove before creating the new action
-const onThumbsClick = async ({ actionType, shouldAdd }) => {
-  if (isLoading.value) {
-    return
-  }
-
-  if (actionType === 'thumbs-up' && isNotRelevant.value) {
-    await onActionClick({
-      actionType: 'thumbs-down',
-      shouldAdd: false
-    })
-  }
-
-  if (actionType === 'thumbs-down' && isRelevant.value) {
-    await onActionClick({
-      actionType: 'thumbs-up',
-      shouldAdd: false
-    })
-  }
-
-  await onActionClick({ actionType, shouldAdd })
-}
-
 const onActionClick = async ({ actionType, shouldAdd }) => {
-  if (isLoading.value) {
-    return
-  }
-
   if (shouldAdd) {
     await doAddAction({
       post: props.result,
-      action: actionType,
+      actionType,
       index: props.index
     })
   } else {

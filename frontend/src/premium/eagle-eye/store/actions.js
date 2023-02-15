@@ -8,6 +8,7 @@ import {
   shouldFetchNewResults,
   isStorageUpdating
 } from '@/premium/eagle-eye/eagle-eye-storage'
+import Message from '@/shared/message/message'
 
 export default {
   ...sharedActions('eagleEye'),
@@ -131,37 +132,76 @@ export default {
 
   async doAddAction(
     { state, commit, getters, rootGetters },
-    { post, action, index }
+    { post, actionType, index }
   ) {
     const activeView = getters.activeView.id
 
     try {
-      commit('UPDATE_ACTION_LOADING', {
+      let updatedPost = JSON.parse(JSON.stringify(post))
+      const oppositeActionTypes = {
+        ['thumbs-up']: 'thumbs-down',
+        ['thumbs-down']: 'thumbs-up'
+      }
+      const actionData = {
+        type: actionType,
+        timestamp: moment().utc().format('YYYY-MM-DD')
+      }
+
+      // Add action to post, update immeadiately in the UI
+      commit('CREATE_ACTION_SUCCESS', {
+        action: actionData,
         index,
         activeView
       })
 
-      // Create content in database
-      const postResponse =
-        await EagleEyeService.createContent({
-          post
+      const oppositeAction = post.actions.find(
+        (a) => a.type === oppositeActionTypes[actionType]
+      )
+
+      // If action is thumbs up, delete opposite thumbs from post
+      if (
+        oppositeActionTypes[actionType] &&
+        oppositeAction
+      ) {
+        // Delete action from post, update immeadiately in the UI
+        commit('DELETE_ACTION_SUCCESS', {
+          actionType: oppositeActionTypes[actionType],
+          index,
+          activeView
         })
 
-      commit('CREATE_CONTENT_SUCCESS', {
-        post: postResponse,
-        index,
-        activeView
-      })
+        updatedPost.actions = updatedPost.actions.filter(
+          (a) => a.type !== oppositeActionTypes[actionType]
+        )
 
-      // Add action to db content
-      const actionData = {
-        type: action,
-        timestamp: moment().utc().format('YYYY-MM-DD')
+        await EagleEyeService.deleteAction({
+          postId: updatedPost.id,
+          actionId: oppositeAction.id
+        })
+      }
+
+      // Create content in database if payload does not have any actions yet
+      if (!updatedPost.actions.length) {
+        updatedPost = await EagleEyeService.createContent({
+          post: {
+            actions: updatedPost.actions,
+            platform: updatedPost.platform,
+            post: updatedPost.post,
+            postedAt: updatedPost.postedAt,
+            url: updatedPost.url
+          }
+        })
+
+        commit('CREATE_CONTENT_SUCCESS', {
+          post: updatedPost,
+          index,
+          activeView
+        })
       }
 
       const actionResponse =
         await EagleEyeService.addAction({
-          postId: postResponse.id,
+          postId: updatedPost.id,
           actionData
         })
 
@@ -183,9 +223,14 @@ export default {
         userId: currentUser.id
       })
     } catch (error) {
+      Message.error(
+        'Something went wrong. Please try again'
+      )
+
       commit('UPDATE_ACTION_ERROR', {
         index,
-        activeView
+        activeView,
+        actions: post.actions
       })
     }
   },
@@ -195,9 +240,14 @@ export default {
     { postId, actionId, actionType, index }
   ) {
     const activeView = getters.activeView.id
+    const postActions =
+      state.views[activeView].list.posts.find(
+        (p) => p.id === postId
+      )?.actions || []
 
     try {
-      commit('UPDATE_ACTION_LOADING', {
+      commit('DELETE_ACTION_SUCCESS', {
+        actionType,
         index,
         activeView
       })
@@ -205,13 +255,6 @@ export default {
       await EagleEyeService.deleteAction({
         postId,
         actionId
-      })
-
-      commit('DELETE_ACTION_SUCCESS', {
-        actionId,
-        actionType,
-        index,
-        activeView
       })
 
       // Update local storage with updated action
@@ -226,7 +269,15 @@ export default {
         userId: currentUser.id
       })
     } catch (error) {
-      commit('UPDATE_ACTION_ERROR', { index, activeView })
+      Message.error(
+        'Something went wrong. Please try again'
+      )
+
+      commit('UPDATE_ACTION_ERROR', {
+        index,
+        activeView,
+        actions: postActions
+      })
     }
   },
 

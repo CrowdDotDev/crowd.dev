@@ -37,17 +37,14 @@ export default {
     state.views[activeView].count = 0
   },
 
-  UPDATE_ACTION_LOADING(state, { index, activeView }) {
-    state.views[activeView].list.posts[index].loading = true
-  },
-
   CREATE_CONTENT_SUCCESS(
     state,
     { post, index, activeView }
   ) {
     state.views[activeView].list.posts[index] = {
-      ...state.views[activeView].list.posts[index],
-      ...post
+      ...post,
+      actions:
+        state.views[activeView].list.posts[index].actions
     }
   },
 
@@ -55,22 +52,25 @@ export default {
     state,
     { action, index, activeView }
   ) {
-    state.views[activeView].list.posts[
+    const indexAction = state.views[activeView].list.posts[
       index
-    ].loading = false
-    state.views[activeView].list.posts[index].actions.push(
-      action
-    )
+    ].actions.findIndex((a) => a.type === action.type)
+
+    if (indexAction === -1) {
+      state.views[activeView].list.posts[
+        index
+      ].actions.push(action)
+    } else {
+      state.views[activeView].list.posts[index].actions[
+        indexAction
+      ] = action
+    }
   },
 
   DELETE_ACTION_SUCCESS(
     state,
-    { actionId, actionType, index, activeView }
+    { actionType, index, activeView }
   ) {
-    state.views[activeView].list.posts[
-      index
-    ].loading = false
-
     // Remove post from bookmarks view
     if (
       actionType === 'bookmark' &&
@@ -82,7 +82,7 @@ export default {
       const deleteIndex = state.views[
         activeView
       ].list.posts[index].actions.findIndex(
-        (a) => a.id === actionId
+        (a) => a.type === actionType
       )
 
       state.views[activeView].list.posts[
@@ -91,10 +91,12 @@ export default {
     }
   },
 
-  UPDATE_ACTION_ERROR(state, { index, activeView }) {
-    state.views[activeView].list.posts[
-      index
-    ].loading = false
+  UPDATE_ACTION_ERROR(
+    state,
+    { index, activeView, actions }
+  ) {
+    state.views[activeView].list.posts[index].actions =
+      actions
   },
 
   SORTER_CHANGED(state, payload) {
