@@ -117,7 +117,10 @@ export default class EagleEyeContentRepository {
     const actionsSequelizeInclude = {
       model: options.database.eagleEyeAction,
       as: 'actions',
+      required: true,
       where: {},
+      limit: null,
+      offset: 0,
     }
 
     if (advancedFilter && advancedFilter.action) {
@@ -126,8 +129,8 @@ export default class EagleEyeContentRepository {
       const parsedActionQuery: QueryOutput = actionQueryParser.parse({
         filter: advancedFilter.action,
         orderBy: 'timestamp_DESC',
-        limit,
-        offset,
+        limit: 0,
+        offset: 0,
       })
 
       actionsSequelizeInclude.where = parsedActionQuery.where ?? {}
@@ -145,39 +148,54 @@ export default class EagleEyeContentRepository {
       offset,
     })
 
-    let {
-      rows,
-      count, // eslint-disable-line prefer-const
-    } = await options.database.eagleEyeContent.findAndCountAll({
+    const hasActionFilter = Object.keys(actionsSequelizeInclude.where).length !== 0
+
+    let rows = await options.database.eagleEyeContent.findAll({
       include,
       ...(parsed.where ? { where: parsed.where } : {}),
       order: parsed.order,
-      limit: parsed.limit,
-      offset: parsed.offset,
+      limit: hasActionFilter ? null : parsed.limit,
+      offset: hasActionFilter ? 0 : parsed.offset,
       transaction: SequelizeRepository.getTransaction(options),
-      subQuery: false,
+      subQuery: true,
+      distinct: true,
     })
+
+    // count query will group by content id and create a response with action counts
+    // ie: it returns a payload similar to this
+    // [ contentId1: #ofActionsForContent1, contentId2: #ofActionsForContent2 ]
+    // To get the content count, we need to get the length of the response.
+    const count = (
+      await options.database.eagleEyeContent.count({
+        include,
+        ...(parsed.where ? { where: parsed.where } : {}),
+        transaction: SequelizeRepository.getTransaction(options),
+        distinct: true,
+        group: ['eagleEyeContent.id'],
+      })
+    ).length
 
     // If we have an actions filter, we should query again to eager
     // load the all actions on a content because previous query will
     // omit actions that don't match the given action filter
-    if (Object.keys(actionsSequelizeInclude.where).length !== 0) {
-      rows = (
-        await options.database.eagleEyeContent.findAndCountAll({
-          include: [{ ...actionsSequelizeInclude, where: {} }],
-          where: { id: { [Op.in]: rows.map((i) => i.id) } },
-          order: parsed.order,
-          limit: parsed.limit,
-          offset: parsed.offset,
-          transaction: SequelizeRepository.getTransaction(options),
-          subQuery: false,
-        })
-      ).rows
+    if (hasActionFilter) {
+      rows = await options.database.eagleEyeContent.findAll({
+        include: [
+          { ...actionsSequelizeInclude, where: {}, limit: null, offset: 0, required: true },
+        ],
+        where: { id: { [Op.in]: rows.map((i) => i.id) } },
+        order: parsed.order,
+        transaction: SequelizeRepository.getTransaction(options),
+        subQuery: true,
+        limit: parsed.limit,
+        offset: parsed.offset,
+        distinct: true,
+      })
     }
 
     rows = await this._populateRelationsForRows(rows)
 
-    return { rows, count, limit: parsed.limit, offset: parsed.offset }
+    return { rows: rows ?? [], count, limit: parsed.limit, offset: parsed.offset }
   }
 
   static async findByUrl(url: string, options: IRepositoryOptions) {
