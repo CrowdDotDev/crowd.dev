@@ -46,7 +46,7 @@
                     <el-option
                       value="semantic"
                       label="Semantic match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
+                      class="flex-col !items-start !px-3 !py-2.5 !h-16 no-checkmark"
                     >
                       <h6
                         class="text-xs leading-5 font-medium"
@@ -62,7 +62,7 @@
                     <el-option
                       value="exact"
                       label="Exact match"
-                      class="flex-col !items-start !px-3 !py-2.5 !h-16"
+                      class="flex-col !items-start !px-3 !py-2.5 !h-16 no-checkmark"
                     >
                       <h6
                         class="text-xs leading-5 font-medium"
@@ -172,12 +172,11 @@
           @click="emit('update:modelValue', false)"
           >Cancel
         </el-button>
-
         <el-button
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
-          :disabled="!isFormValid"
+          :disabled="!isFormValid || !hasFormChanged"
           @click="onSubmit(formRef)"
           >Update
         </el-button>
@@ -268,6 +267,8 @@ const rules = reactive({
   ]
 })
 
+const tempForm = ref('')
+
 const form = reactive({
   include: [],
   exclude: [],
@@ -284,6 +285,10 @@ const isFormValid = computed(() => {
       ...form.platforms
     }).filter((v) => v).length > 0
   return includeValid && platformsValid
+})
+
+const hasFormChanged = computed(() => {
+  return tempForm.value !== JSON.stringify(form)
 })
 
 const drawerModel = computed({
@@ -331,6 +336,7 @@ const fillForm = (user) => {
   }
   const { eagleEyeSettings } = user
   const { feed } = eagleEyeSettings
+
   form.include = [
     ...feed.keywords.map((keyword) => ({
       keyword,
@@ -350,6 +356,7 @@ const fillForm = (user) => {
   })
 
   form.datePublished = feed.publishedDate
+  tempForm.value = JSON.stringify(form)
 }
 
 const onSubmit = async (formEl) => {

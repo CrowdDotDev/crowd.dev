@@ -29,10 +29,11 @@
             label-position="top"
             class="form pt-6 pb-10"
             :rules="rules"
-            :model="model"
+            :model="form"
             @submit.prevent="doSubmit"
           >
             <el-form-item
+              ref="emailRef"
               prop="email"
               class="col-span-2 mb-6"
             >
@@ -43,7 +44,7 @@
               >
               <el-input
                 ref="focus"
-                v-model="model.email"
+                v-model="form.email"
                 :disabled="!active"
               />
             </el-form-item>
@@ -54,7 +55,7 @@
                   >Frequency</label
                 >
                 <el-radio-group
-                  v-model="model.frequency"
+                  v-model="form.frequency"
                   :disabled="!active"
                 >
                   <el-radio
@@ -101,7 +102,7 @@
                   >Time (UTC)</label
                 >
                 <el-time-select
-                  v-model="model.time"
+                  v-model="form.time"
                   start="00:00"
                   step="00:30"
                   end="23:59"
@@ -114,7 +115,7 @@
             </el-form-item>
 
             <el-checkbox
-              v-model="model.updateResults"
+              v-model="form.updateResults"
               class="filter-checkbox"
               :disabled="!active"
             >
@@ -222,6 +223,7 @@
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
+          :disabled="!isFormValid || !hasFormChanged"
           @click="doSubmit(formRef)"
           >Update
         </el-button>
@@ -248,6 +250,7 @@ import {
 } from '@/shared/vuex/vuex.helpers'
 import Message from '@/shared/message/message'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
+import Schema from 'async-validator'
 
 const props = defineProps({
   modelValue: {
@@ -268,25 +271,16 @@ const rules = {
       required: true,
       message: 'This field is required',
       trigger: 'blur'
-    }
-  ],
-  frequency: [
+    },
     {
-      required: true,
-      message: 'This field is required',
-      trigger: 'blur'
-    }
-  ],
-  time: [
-    {
-      required: true,
-      message: 'This field is required',
+      type: 'email',
+      message: 'Enter valid email',
       trigger: 'blur'
     }
   ]
 }
 
-const model = reactive({
+const form = reactive({
   frequency: 'daily',
   time: '09:00',
   updateResults: true
@@ -294,6 +288,10 @@ const model = reactive({
 
 const active = ref(false)
 const formRef = ref()
+const emailRef = ref()
+
+const tempForm = ref('')
+const tempActive = ref(false)
 
 const drawerModel = computed({
   get() {
@@ -304,10 +302,25 @@ const drawerModel = computed({
   }
 })
 
+const isFormValid = computed(() => {
+  const emailRegex =
+    /^(([^<>()\\[\].,;:\s@"]+(\.[^<>()\\[\].,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+\.)+[a-zA-Z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{2,}))$/
+  return (
+    form.email.length > 0 && form.email.match(emailRegex)
+  )
+})
+
+const hasFormChanged = computed(() => {
+  return (
+    tempForm.value !== JSON.stringify(form) ||
+    active.value !== tempActive.value
+  )
+})
+
 const feed = ref(null)
 
 const results = computed(() => {
-  if (!model.updateResults) {
+  if (!form.updateResults) {
     if (currentUser.value && feed.value) {
       return feed.value
     }
@@ -316,7 +329,7 @@ const results = computed(() => {
 })
 
 const displayFeedWarning = computed(() => {
-  if (model.updateResults) {
+  if (form.updateResults) {
     return false
   }
   if (
@@ -349,26 +362,30 @@ const updateFeed = () => {
 const fillForm = (user) => {
   const { eagleEyeSettings } = user
   active.value = eagleEyeSettings.emailDigestActive || false
-  model.email =
+  form.email =
     eagleEyeSettings.emailDigest?.email || user.email
-  model.frequency =
+  form.frequency =
     eagleEyeSettings.emailDigest?.frequency || 'daily'
-  model.time = eagleEyeSettings.emailDigest?.time || '09:00'
-  model.updateResults = !eagleEyeSettings.emailDigest
+  form.time = eagleEyeSettings.emailDigest?.time || '09:00'
+  form.updateResults = !eagleEyeSettings.emailDigest
     ? true
     : eagleEyeSettings.emailDigest?.matchFeedSettings
   feed.value = user.eagleEyeSettings.emailDigest.feed
+
+  tempForm.value = JSON.stringify(form)
+  tempActive.value =
+    eagleEyeSettings.emailDigestActive || false
 }
 const doSubmit = async (formEl) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
       const data = {
-        email: model.email,
-        frequency: model.frequency,
-        time: model.time,
-        matchFeedSettings: model.updateResults,
-        feed: !model.updateResults ? feed.value : undefined
+        email: form.email,
+        frequency: form.frequency,
+        time: form.time,
+        matchFeedSettings: form.updateResults,
+        feed: !form.updateResults ? feed.value : undefined
       }
       doUpdateSettings({
         ...currentUser.value.eagleEyeSettings,
@@ -389,6 +406,7 @@ const handleCancel = () => {
 }
 
 onMounted(() => {
+  console.log(Schema)
   fillForm(currentUser.value)
 })
 </script>
