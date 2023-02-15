@@ -6,23 +6,26 @@
     }"
   >
     <div
-      class="basis-3/12 overflow-auto overscroll-contain"
+      :style="cssVars"
+      class="md:basis-3/12 lg:basis-4/12 overflow-auto overscroll-contain eagle-eye-settings-wrapper"
     >
       <app-eagle-eye-settings />
     </div>
 
     <div
-      class="basis-9/12 overflow-auto overscroll-contain"
+      class="md:basis-9/12 lg:basis-8/12 overflow-auto overscroll-contain"
     >
-      <app-eagle-eye-tabs />
-      <app-eagle-eye-loading-state v-if="isLoading" />
-      <app-empty-state-cta
-        v-else-if="showEmptyState"
-        :icon="emptyStateContent.icon"
-        :title="emptyStateContent.title"
-        :description="emptyStateContent.description"
-      ></app-empty-state-cta>
-      <app-eagle-eye-list v-else :list="list" />
+      <div :style="cssVars" class="eagle-eye-list-wrapper">
+        <app-eagle-eye-tabs />
+        <app-eagle-eye-loading-state v-if="isLoading" />
+        <app-empty-state-cta
+          v-else-if="showEmptyState"
+          :icon="emptyStateContent.icon"
+          :title="emptyStateContent.title"
+          :description="emptyStateContent.description"
+        ></app-empty-state-cta>
+        <app-eagle-eye-list v-else :list="list" />
+      </div>
     </div>
   </div>
 </template>
@@ -49,6 +52,15 @@ const store = useStore()
 const { activeView, activeViewList } =
   mapGetters('eagleEye')
 
+const cssVars = computed(() => {
+  const isMenuCollapsed =
+    store.getters['layout/menuCollapsed']
+  const menuWidth = isMenuCollapsed ? '64px' : '260px'
+
+  return {
+    '--eagle-eye-padding': menuWidth
+  }
+})
 const list = computed(() => activeViewList.value.posts)
 const isLoading = computed(() => {
   if (activeView.value.id === 'feed') {
@@ -86,3 +98,17 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style>
+.eagle-eye-list-wrapper {
+  padding-right: calc(
+    calc(calc(100vw - var(--eagle-eye-padding)) - 72rem) / 2
+  );
+}
+
+.eagle-eye-settings-wrapper {
+  padding-left: calc(
+    calc(calc(100vw - var(--eagle-eye-padding)) - 72rem) / 2
+  );
+}
+</style>

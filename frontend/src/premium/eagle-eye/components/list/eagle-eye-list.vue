@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-3 sm:grid-cols-2 gap-5 pr-8 pb-10 pl-3"
+    class="grid grid-cols-3 md:grid-cols-2 gap-5 pr-8 pb-10 pl-3"
   >
     <div
       v-for="(_, i) in Array(3)"
