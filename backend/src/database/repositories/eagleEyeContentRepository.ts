@@ -117,10 +117,10 @@ export default class EagleEyeContentRepository {
     const actionsSequelizeInclude = {
       model: options.database.eagleEyeAction,
       as: 'actions',
-      required:true,
+      required: true,
       where: {},
       throught: {
-        attributes: []
+        attributes: [],
       },
       limit: 0,
       offset: 0,
@@ -166,32 +166,34 @@ export default class EagleEyeContentRepository {
 
     // count query will group by content id and create a response with action counts
     // ie: it returns a payload similar to this
-    // [ contentId1: #ofActionsForContent1, contentId2: #ofActionsForContent2 ] 
+    // [ contentId1: #ofActionsForContent1, contentId2: #ofActionsForContent2 ]
     // To get the content count, we need to get the length of the response.
-    const count =  (await options.database.eagleEyeContent.count({
-      include,
-      ...(parsed.where ? { where: parsed.where } : {}),
-      transaction: SequelizeRepository.getTransaction(options),
-      distinct: true,
-      group: ['eagleEyeContent.id']
-    })).length
+    const count = (
+      await options.database.eagleEyeContent.count({
+        include,
+        ...(parsed.where ? { where: parsed.where } : {}),
+        transaction: SequelizeRepository.getTransaction(options),
+        distinct: true,
+        group: ['eagleEyeContent.id'],
+      })
+    ).length
 
     // If we have an actions filter, we should query again to eager
     // load the all actions on a content because previous query will
     // omit actions that don't match the given action filter
     if (hasActionFilter) {
-      rows = (
-        await options.database.eagleEyeContent.findAll({
-          include: [{ ...actionsSequelizeInclude, where: {}, limit:null, offset:0, required:true }],
-          where: { id: { [Op.in]: rows.map((i) => i.id) } },
-          order: parsed.order,
-          transaction: SequelizeRepository.getTransaction(options),
-          subQuery: true,
-          limit: parsed.limit,
-          offset: parsed.offset,
-          distinct: true
-        })
-      )
+      rows = await options.database.eagleEyeContent.findAll({
+        include: [
+          { ...actionsSequelizeInclude, where: {}, limit: null, offset: 0, required: true },
+        ],
+        where: { id: { [Op.in]: rows.map((i) => i.id) } },
+        order: parsed.order,
+        transaction: SequelizeRepository.getTransaction(options),
+        subQuery: true,
+        limit: parsed.limit,
+        offset: parsed.offset,
+        distinct: true,
+      })
     }
 
     rows = await this._populateRelationsForRows(rows)
