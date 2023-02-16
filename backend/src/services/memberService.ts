@@ -471,6 +471,7 @@ export default class MemberService extends LoggingBase {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       displayName: (oldValue, _newValue) => oldValue,
       reach: (oldReach, newReach) => MemberService.calculateReach(oldReach, newReach),
+      score: (oldScore, newScore) => Math.max(oldScore, newScore),
       email: (oldEmail, newEmail) => {
         if (newEmail && newEmail.trim().length > 0) {
           return newEmail.trim()
