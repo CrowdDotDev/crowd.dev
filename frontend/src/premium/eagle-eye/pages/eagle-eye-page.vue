@@ -2,7 +2,7 @@
   <div
     class="absolute top-0 left-0 w-full max-h-screen flex flex-row"
     :class="{
-      'pt-[56px]': showBanner
+      'pt-14': showBanner
     }"
   >
     <div
