@@ -198,7 +198,6 @@
             </section>
           </div>
         </div>
-        {{ hasElementChanged }}
       </div>
     </template>
 
