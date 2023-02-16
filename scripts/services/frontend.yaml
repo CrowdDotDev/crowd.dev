@@ -14,6 +14,7 @@ services:
     environment:
       - DOCKER_BUILDKIT=1
       - BACKEND_URL=http://api:8080
+      - UNLEASH_URL=http://unleash:4242
     ports:
       - '8081:8081'
     restart: always
@@ -33,6 +34,7 @@ services:
     environment:
       - DOCKER_BUILDKIT=1
       - BACKEND_URL=http://api:8080
+      - UNLEASH_URL=http://unleash:4242
     ports:
       - '8081:8081'
     networks:

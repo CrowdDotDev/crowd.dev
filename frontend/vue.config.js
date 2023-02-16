@@ -24,6 +24,14 @@ module.exports = {
         pathRewrite: {
           '^/api': ''
         }
+      },
+      '/unleash': {
+        target:
+          process.env.UNLEASH_URL ||
+          'http://localhost:4242',
+        pathRewrite: {
+          '^/unleash': ''
+        }
       }
     }
   },
