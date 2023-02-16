@@ -6,7 +6,7 @@
           Keywords
         </h5>
 
-        <el-form ref="formRef" @submit.prevent>
+        <el-form @submit.prevent>
           <!-- include -->
           <section class="pb-8">
             <p
@@ -125,7 +125,7 @@
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
           :disabled="$v.$invalid || !hasFormChanged"
-          @click="onSubmit(formRef)"
+          @click="onSubmit()"
           >Update
         </el-button>
       </div>
@@ -142,7 +142,6 @@ import {
   defineProps,
   onMounted,
   reactive,
-  ref,
   watch,
   defineExpose
 } from 'vue'
@@ -170,8 +169,6 @@ const emit = defineEmits(['update:modelValue'])
 const { currentUser } = mapGetters('auth')
 const { doUpdateSettings } = mapActions('eagleEye')
 const { loadingUpdateSettings } = mapState('eagleEye')
-
-const formRef = ref()
 
 const form = reactive({
   include: [],
@@ -249,34 +246,30 @@ const fillForm = (user) => {
   formSnapshot()
 }
 
-const onSubmit = async (formEl) => {
-  if (!formEl) return
-  await formEl.validate((valid) => {
-    if (valid) {
-      const data = {
-        keywords: form.include
-          .filter((i) => i.match === 'semantic')
-          .map((i) => i.keyword),
-        exactKeywords: form.include
-          .filter((i) => i.match === 'exact')
-          .map((i) => i.keyword),
-        excludedKeywords: form.exclude
-          .filter((e) => e.keyword.trim().length > 0)
-          .map((e) => e.keyword),
-        publishedDate: form.datePublished,
-        platforms: Object.entries(form.platforms)
-          .filter(([, enabled]) => enabled)
-          .map(([platform]) => platform)
-      }
-      doUpdateSettings({
-        ...currentUser.value.eagleEyeSettings,
-        feed: data
-      }).then(() => {
-        Message.success('Feed settings updated!')
-        emit('update:modelValue', false)
-      })
+const onSubmit = async () => {
+  $v.value.$touch()
+  if (!$v.value.$invalid) {
+    const data = {
+      keywords: form.include
+        .filter((i) => i.match === 'semantic')
+        .map((i) => i.keyword),
+      exactKeywords: form.include
+        .filter((i) => i.match === 'exact')
+        .map((i) => i.keyword),
+      excludedKeywords: form.exclude
+        .filter((e) => e.keyword.trim().length > 0)
+        .map((e) => e.keyword),
+      publishedDate: form.datePublished,
+      platforms: form.platforms
     }
-  })
+    doUpdateSettings({
+      ...currentUser.value.eagleEyeSettings,
+      feed: data
+    }).then(() => {
+      Message.success('Feed settings updated!')
+      emit('update:modelValue', false)
+    })
+  }
 }
 
 onMounted(() => {
