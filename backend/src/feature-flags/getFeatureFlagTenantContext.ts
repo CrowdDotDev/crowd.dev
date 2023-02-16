@@ -34,8 +34,8 @@ export default async function getFeatureFlagTenantContext(
   return {
     tenantId: tenant.id,
     plan: tenant.plan,
-    automationCount,
-    csvExportCount: parseInt(csvExportCount, 10),
-    memberEnrichmentCount: parseInt(memberEnrichmentCount, 10),
+    automationCount: automationCount.toString(),
+    csvExportCount,
+    memberEnrichmentCount,
   }
 }
