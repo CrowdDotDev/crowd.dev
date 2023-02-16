@@ -2,18 +2,18 @@
   <div
     class="absolute top-0 left-0 w-full max-h-screen flex flex-row"
     :class="{
-      'pt-[55px]': showBanner
+      'pt-[56px]': showBanner
     }"
   >
     <div
       :style="cssVars"
-      class="md:basis-3/12 lg:basis-4/12 overflow-auto overscroll-contain eagle-eye-settings-wrapper"
+      class="basis-2/5 overflow-auto overscroll-contain eagle-eye-settings-wrapper"
     >
       <app-eagle-eye-settings />
     </div>
 
     <div
-      class="md:basis-9/12 lg:basis-8/12 overflow-auto overscroll-contain"
+      class="basis-full overflow-auto overscroll-contain"
     >
       <div :style="cssVars" class="eagle-eye-list-wrapper">
         <app-eagle-eye-tabs />
@@ -102,13 +102,15 @@ onMounted(async () => {
 <style>
 .eagle-eye-list-wrapper {
   padding-right: calc(
-    calc(calc(100vw - var(--eagle-eye-padding)) - 72rem) / 2
+    calc(calc(100vw - var(--eagle-eye-padding)) - 1400px) /
+      2
   );
 }
 
 .eagle-eye-settings-wrapper {
   padding-left: calc(
-    calc(calc(100vw - var(--eagle-eye-padding)) - 72rem) / 2
+    calc(calc(100vw - var(--eagle-eye-padding)) - 1400px) /
+      2
   );
 }
 </style>
