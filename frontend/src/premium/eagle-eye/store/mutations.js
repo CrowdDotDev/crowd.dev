@@ -24,11 +24,11 @@ export default {
   ) {
     state.views[activeView].list.loading = false
     if (appendToList) {
-      state.views[activeView].list.posts.concat(list)
+      state.views[activeView].list.posts.push(...list)
     } else {
       state.views[activeView].list.posts = list
     }
-    state.count = count
+    state.views[activeView].count = count
   },
 
   FETCH_ERROR(state, { activeView }) {
@@ -37,64 +37,128 @@ export default {
     state.views[activeView].count = 0
   },
 
-  UPDATE_ACTION_LOADING(state, { index, activeView }) {
-    state.views[activeView].list.posts[index].loading = true
-  },
-
-  CREATE_CONTENT_SUCCESS(
+  CREATE_ACTION_SUCCESS(
     state,
-    { post, index, activeView }
+    { post, action, index, activeView }
   ) {
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.url === post.url
+      )
+
+      if (feedPost) {
+        const indexAction = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
+
+        if (indexAction === -1) {
+          feedPost.actions.push(action)
+        } else {
+          feedPost.actions[indexAction] = {
+            ...action,
+            id: action.id
+          }
+        }
+      }
+    }
+
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    // Update store post with new one, except for actions
     state.views[activeView].list.posts[index] = {
-      ...state.views[activeView].list.posts[index],
-      ...post
+      ...post,
+      actions
+    }
+
+    if (indexAction === -1) {
+      actions.push(action)
+    } else {
+      actions[indexAction] = {
+        ...action,
+        id: action.id
+      }
     }
   },
 
-  CREATE_ACTION_SUCCESS(
+  REMOVE_ACTION_SUCCESS(
     state,
-    { action, index, activeView }
+    { postId, action, index, activeView }
   ) {
-    state.views[activeView].list.posts[
-      index
-    ].loading = false
-    state.views[activeView].list.posts[index].actions.push(
-      action
-    )
-  },
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.id === postId
+      )
 
-  DELETE_ACTION_SUCCESS(
-    state,
-    { actionId, actionType, index, activeView }
-  ) {
-    state.views[activeView].list.posts[
-      index
-    ].loading = false
+      if (feedPost) {
+        const deleteIndex = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
+
+        if (deleteIndex !== -1) {
+          feedPost.actions.splice(deleteIndex, 1)
+          console.log(feedPost.actions)
+        }
+      }
+    }
 
     // Remove post from bookmarks view
     if (
-      actionType === 'bookmark' &&
+      action.type === 'bookmark' &&
       activeView === 'bookmarked'
     ) {
       state.views[activeView].list.posts.splice(index, 1)
-      // Remove action from post
     } else {
-      const deleteIndex = state.views[
-        activeView
-      ].list.posts[index].actions.findIndex(
-        (a) => a.id === actionId
+      // Remove action from post
+      const { actions } =
+        state.views[activeView].list.posts[index]
+      const deleteIndex = actions.findIndex(
+        (a) => a.type === action.type
       )
 
-      state.views[activeView].list.posts[
-        index
-      ].actions.splice(deleteIndex, 1)
+      if (deleteIndex !== -1) {
+        actions.splice(deleteIndex, 1)
+      }
     }
   },
 
-  UPDATE_ACTION_ERROR(state, { index, activeView }) {
-    state.views[activeView].list.posts[
-      index
-    ].loading = false
+  CREATE_TEMPORARY_ACTION(
+    state,
+    { action, activeView, index }
+  ) {
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    if (indexAction === -1) {
+      actions.push(action)
+    } else {
+      actions[indexAction] = action
+    }
+  },
+
+  REMOVE_TEMPORARY_ACTION(
+    state,
+    { action, activeView, index }
+  ) {
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const deleteIndex = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    actions[deleteIndex].toRemove = true
+  },
+
+  UPDATE_POST(state, { activeView, index, post }) {
+    state.views[activeView].list.posts[index] = post
   },
 
   SORTER_CHANGED(state, payload) {
@@ -112,5 +176,17 @@ export default {
 
   UPDATE_EAGLE_EYE_SETTINGS_ERROR(state) {
     state.loadingUpdateSettings = false
+  },
+
+  ADD_PENDING_ACTION(state, job) {
+    state.pendingActions.push(job)
+  },
+
+  SET_ACTIVE_ACTION(state, job) {
+    state.activeAction = job
+  },
+
+  POP_CURRENT_ACTION(state) {
+    state.pendingActions.shift()
   }
 }

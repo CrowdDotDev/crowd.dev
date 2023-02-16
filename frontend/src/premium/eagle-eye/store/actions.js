@@ -8,6 +8,7 @@ import {
   shouldFetchNewResults,
   isStorageUpdating
 } from '@/premium/eagle-eye/eagle-eye-storage'
+import Message from '@/shared/message/message'
 
 export default {
   ...sharedActions('eagleEye'),
@@ -129,103 +130,230 @@ export default {
     }
   },
 
+  // Add temporary actions to post so that UI updates immeadiately
+  async doAddTemporaryPostAction(
+    { commit, getters },
+    { index, storeActionType, action }
+  ) {
+    const activeView = getters.activeView.id
+
+    // Add new action
+    if (storeActionType === 'add') {
+      commit('CREATE_TEMPORARY_ACTION', {
+        action,
+        activeView,
+        index
+      })
+      // Remove action
+    } else {
+      commit('REMOVE_TEMPORARY_ACTION', {
+        action,
+        activeView,
+        index
+      })
+    }
+  },
+
+  // Add or remove actions from the database depending on the action type
+  async doUpdatePostAction(
+    { state, dispatch, getters },
+    { post, index, storeActionType, actionType }
+  ) {
+    const activeView = getters.activeView.id
+    const action = state.views[activeView].list.posts[
+      index
+    ].actions.find((a) => a.type === actionType) || {
+      type: actionType,
+      timestamp: moment()
+    }
+    // Add new action
+    if (storeActionType === 'add') {
+      await dispatch('doAddAction', {
+        post,
+        action,
+        index
+      })
+      // Remove action
+    } else {
+      await dispatch('doRemoveAction', {
+        postId: post.id,
+        action,
+        index
+      })
+    }
+  },
+
   async doAddAction(
     { state, commit, getters, rootGetters },
     { post, action, index }
   ) {
     const activeView = getters.activeView.id
+    const oppositeActionTypes = {
+      ['thumbs-up']: 'thumbs-down',
+      ['thumbs-down']: 'thumbs-up'
+    }
+    const oppositeAction = state.views[
+      activeView
+    ].list.posts[index].actions.find(
+      (a) => a.type === oppositeActionTypes[action.type]
+    )
 
-    try {
-      commit('UPDATE_ACTION_LOADING', {
-        index,
-        activeView
+    // If action is thumbs, delete opposite thumbs from post
+    if (
+      oppositeActionTypes[action.type] &&
+      oppositeAction
+    ) {
+      commit('REMOVE_TEMPORARY_ACTION', {
+        action: oppositeAction,
+        activeView,
+        index
       })
 
-      // Create content in database
-      const postResponse =
-        await EagleEyeService.createContent({
-          post
-        })
-
-      commit('CREATE_CONTENT_SUCCESS', {
-        post: postResponse,
-        index,
-        activeView
-      })
-
-      // Add action to db content
-      const actionData = {
-        type: action,
-        timestamp: moment().utc().format('YYYY-MM-DD')
-      }
-
-      const actionResponse =
-        await EagleEyeService.addAction({
-          postId: postResponse.id,
-          actionData
-        })
-
-      commit('CREATE_ACTION_SUCCESS', {
-        action: actionResponse,
-        index,
-        activeView
-      })
-
-      // Update local storage with updated action
-      const currentUser = rootGetters['auth/currentUser']
-      const currentTenant =
-        rootGetters['auth/currentTenant']
-
-      setResultsInStorage({
-        posts: state.list.posts,
-        tenantId: currentTenant.id,
-        userId: currentUser.id
-      })
-    } catch (error) {
-      commit('UPDATE_ACTION_ERROR', {
-        index,
-        activeView
+      await EagleEyeService.deleteAction({
+        postId: post.id,
+        actionId: oppositeAction.id
       })
     }
+
+    const postDb = await EagleEyeService.createContent({
+      post: {
+        actions: [],
+        platform: post.platform,
+        post: post.post,
+        postedAt: post.postedAt,
+        url: post.url
+      }
+    })
+
+    const actionDb = await EagleEyeService.addAction({
+      postId: postDb.id,
+      action
+    })
+
+    commit('CREATE_ACTION_SUCCESS', {
+      post: postDb,
+      action: actionDb,
+      index,
+      activeView
+    })
+
+    // Update posts with new actions in local storage
+    const currentUser = rootGetters['auth/currentUser']
+    const currentTenant = rootGetters['auth/currentTenant']
+
+    setResultsInStorage({
+      posts: state.views['feed'].list.posts,
+      storageDate: moment(),
+      tenantId: currentTenant.id,
+      userId: currentUser.id
+    })
   },
 
   async doRemoveAction(
     { state, commit, getters, rootGetters },
-    { postId, actionId, actionType, index }
+    { postId, action, index }
   ) {
     const activeView = getters.activeView.id
+    const actionId = action.id
+    const deleteImmeadiately =
+      activeView === 'bookmarked' &&
+      action.type === 'bookmark'
 
-    try {
-      commit('UPDATE_ACTION_LOADING', {
-        index,
-        activeView
-      })
-
-      await EagleEyeService.deleteAction({
+    if (deleteImmeadiately) {
+      commit('REMOVE_ACTION_SUCCESS', {
         postId,
-        actionId
-      })
-
-      commit('DELETE_ACTION_SUCCESS', {
-        actionId,
-        actionType,
+        action,
         index,
         activeView
       })
-
-      // Update local storage with updated action
-      const currentUser = rootGetters['auth/currentUser']
-      const currentTenant =
-        rootGetters['auth/currentTenant']
-
-      setResultsInStorage({
-        posts: state.list.posts,
-        tenantId: currentTenant.id,
-        userId: currentUser.id
-      })
-    } catch (error) {
-      commit('UPDATE_ACTION_ERROR', { index, activeView })
     }
+
+    await EagleEyeService.deleteAction({
+      postId,
+      actionId
+    })
+
+    if (!deleteImmeadiately) {
+      commit('REMOVE_ACTION_SUCCESS', {
+        postId,
+        action,
+        index,
+        activeView
+      })
+    }
+
+    // Update posts with new actions in local storage
+    const currentUser = rootGetters['auth/currentUser']
+    const currentTenant = rootGetters['auth/currentTenant']
+
+    setResultsInStorage({
+      posts: state.views['feed'].list.posts,
+      storageDate: moment(),
+      tenantId: currentTenant.id,
+      userId: currentUser.id
+    })
+  },
+
+  doAddActionQueue({ commit, state, dispatch }, job) {
+    commit('ADD_PENDING_ACTION', job)
+
+    // If there are no actions active, start the next one in the queue
+    if (Object.keys(state.activeAction).length == 0) {
+      dispatch('doStartActionQueue')
+    }
+  },
+
+  async doStartActionQueue({
+    commit,
+    dispatch,
+    state,
+    getters,
+    rootGetters
+  }) {
+    if (state.pendingActions.length > 0) {
+      commit('SET_ACTIVE_ACTION', state.pendingActions[0])
+
+      const pendingAction = { ...state.pendingActions[0] }
+
+      commit('POP_CURRENT_ACTION')
+
+      try {
+        await pendingAction.handler()
+        await dispatch('doStartActionQueue')
+      } catch (error) {
+        // In case of an error, create post again and update it in UI
+        EagleEyeService.createContent({
+          post: pendingAction.post
+        }).then((response) => {
+          const activeView = getters.activeView.id
+          const currentUser =
+            rootGetters['auth/currentUser']
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          commit('UPDATE_POST', {
+            activeView,
+            index: pendingAction.index,
+            post: response
+          })
+
+          // Update posts with new actions in local storage
+          setResultsInStorage({
+            posts: state.views['feed'].list.posts,
+            storageDate: moment(),
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
+        })
+
+        Message.error(
+          'Something went wrong. Please try again'
+        )
+        commit('SET_ACTIVE_ACTION', {})
+      }
+    }
+
+    commit('SET_ACTIVE_ACTION', {})
   },
 
   async doUpdateSettings({ commit, dispatch }, data) {

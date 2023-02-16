@@ -34,13 +34,32 @@
 
     <!-- Title & description -->
     <div class="mt-4 pb-9 border-b border-gray-100">
-      <h6 v-if="result.post.title" class="black mb-3">
-        {{ result.post.title }}
-      </h6>
       <div
-        class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4"
+        v-if="result.platform === 'twitter'"
+        class="text-sm text-gray-900 break-words"
       >
         {{ result.post.description }}
+      </div>
+      <div v-else>
+        <a
+          v-if="subreddit"
+          class="text-xs mb-1 font-medium leading-6"
+          target="_blank"
+          :href="`https://www.reddit.com/${subreddit}`"
+        >
+          {{ subreddit }}
+        </a>
+        <h6
+          v-if="result.post.title"
+          class="black mb-3 break-words"
+        >
+          {{ result.post.title }}
+        </h6>
+        <div
+          class="eagle-eye-result-content text-gray-600 text-xs line-clamp-4 break-words"
+        >
+          {{ result.post.description }}
+        </div>
       </div>
     </div>
 
@@ -51,21 +70,15 @@
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-1">
         <el-tooltip placement="top" content="Relevant">
-          <span
-            :class="{
-              '!cursor-auto': isLoading
-            }"
-            @click.stop
-          >
+          <span @click.stop>
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
                 'bg-green-100 hover:bg-green-100':
-                  isRelevant,
-                'pointer-events-none opacity-50': isLoading
+                  isRelevant
               }"
               @click.stop="
-                onThumbsClick({
+                onActionClick({
                   actionType: 'thumbs-up',
                   shouldAdd: !isRelevant
                 })
@@ -85,21 +98,14 @@
         </el-tooltip>
 
         <el-tooltip placement="top" content="Not relevant">
-          <span
-            :class="{
-              '!cursor-auto': isLoading
-            }"
-            @click.stop
-          >
+          <span @click.stop>
             <div
               class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
               :class="{
-                'bg-red-100 hover:bg-red-100':
-                  isNotRelevant,
-                'pointer-events-none opacity-50': isLoading
+                'bg-red-100 hover:bg-red-100': isNotRelevant
               }"
               @click.stop="
-                onThumbsClick({
+                onActionClick({
                   actionType: 'thumbs-down',
                   shouldAdd: !isNotRelevant
                 })
@@ -124,7 +130,7 @@
       >
         <span
           :class="{
-            '!cursor-auto': isBookmarkDisabled
+            '!cursor-auto': isBookmarkedByTeam
           }"
           @click.stop
         >
@@ -132,8 +138,7 @@
             class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 group"
             :class="{
               'bg-blue-100 hover:bg-blue-100': isBookmarked,
-              'pointer-events-none bg-transparent':
-                isBookmarkDisabled
+              'pointer-events-none': isBookmarkedByTeam
             }"
             @click.stop="
               onActionClick({
@@ -146,11 +151,11 @@
               class="text-lg text-gray-400 group-hover:text-gray-900"
               :class="{
                 'ri-bookmark-line text-gray-400':
-                  !isBookmarked && !isBookmarkDisabled,
+                  !isBookmarked && !isBookmarkedByTeam,
                 'ri-bookmark-fill text-blue-600 group-hover:text-blue-600':
-                  isBookmarked && !isBookmarkDisabled,
+                  isBookmarked && !isBookmarkedByTeam,
                 'ri-bookmark-fill text-blue-300':
-                  isBookmarkDisabled
+                  isBookmarkedByTeam
               }"
             />
           </div>
@@ -166,10 +171,9 @@ import { computed, defineProps } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import { EagleEyeService } from '../../eagle-eye-service'
 import { withHttp } from '@/utils/string'
-import {
-  mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { useStore } from 'vuex'
+import moment from 'moment'
 
 const props = defineProps({
   result: {
@@ -182,31 +186,36 @@ const props = defineProps({
   }
 })
 
+const store = useStore()
 const { currentUser } = mapGetters('auth')
-const { doAddAction, doRemoveAction } =
-  mapActions('eagleEye')
 
-const isLoading = computed(() => props.result.loading)
 const isBookmarked = computed(() =>
-  props.result.actions.some((a) => a.type === 'bookmark')
+  props.result.actions.some(
+    (a) => a.type === 'bookmark' && !a.toRemove
+  )
 )
 const isRelevant = computed(() =>
-  props.result.actions.some((a) => a.type === 'thumbs-up')
+  props.result.actions.some(
+    (a) => a.type === 'thumbs-up' && !a.toRemove
+  )
 )
 const isNotRelevant = computed(() =>
-  props.result.actions.some((a) => a.type === 'thumbs-down')
-)
-const isBookmarkedByUser = computed(
-  () =>
-    props.result.actions.find((a) => a.type === 'bookmark')
-      ?.actionById === currentUser.value.id
-)
-
-const isBookmarkDisabled = computed(() => {
-  return (
-    isLoading.value ||
-    (isBookmarked.value && !isBookmarkedByUser.value)
+  props.result.actions.some(
+    (a) => a.type === 'thumbs-down' && !a.toRemove
   )
+)
+const isBookmarkedByUser = computed(() => {
+  const bookmarkAction = props.result.actions.find(
+    (a) => a.type === 'bookmark'
+  )
+  return (
+    !bookmarkAction?.actionById ||
+    bookmarkAction?.actionById === currentUser.value.id
+  )
+})
+
+const isBookmarkedByTeam = computed(() => {
+  return isBookmarked.value && !isBookmarkedByUser.value
 })
 
 const bookmarkTooltip = computed(() => {
@@ -215,6 +224,22 @@ const bookmarkTooltip = computed(() => {
   }
 
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
+})
+
+const subreddit = computed(() => {
+  if (props.result.platform !== 'reddit') {
+    return null
+  }
+
+  const pattern =
+    /.*reddit\.com(?<subreddit>\/r\/.[^\\/]*).*/gm
+  const matches = pattern.exec(props.result.url)
+
+  if (!matches.groups.subreddit) {
+    return null
+  }
+
+  return matches.groups.subreddit.slice(1)
 })
 
 // Open post in origin url
@@ -231,51 +256,35 @@ const onCardClick = async (e) => {
   })
 }
 
-// If opposite thumbs up is set, remove before creating the new action
-const onThumbsClick = async ({ actionType, shouldAdd }) => {
-  if (isLoading.value) {
-    return
-  }
-
-  if (actionType === 'thumbs-up' && isNotRelevant.value) {
-    await onActionClick({
-      actionType: 'thumbs-down',
-      shouldAdd: false
-    })
-  }
-
-  if (actionType === 'thumbs-down' && isRelevant.value) {
-    await onActionClick({
-      actionType: 'thumbs-up',
-      shouldAdd: false
-    })
-  }
-
-  await onActionClick({ actionType, shouldAdd })
-}
-
 const onActionClick = async ({ actionType, shouldAdd }) => {
-  if (isLoading.value) {
-    return
-  }
+  const storeActionType = shouldAdd ? 'add' : 'delete'
+  const action = shouldAdd
+    ? {
+        type: actionType,
+        timestamp: moment()
+      }
+    : props.result.actions.find(
+        (a) => a.type === actionType
+      )
 
-  if (shouldAdd) {
-    await doAddAction({
-      post: props.result,
-      action: actionType,
-      index: props.index
-    })
-  } else {
-    const actionId = props.result.actions.find(
-      (a) => a.type === actionType
-    ).id
-    await doRemoveAction({
-      postId: props.result.id,
-      actionId,
-      actionType,
-      index: props.index
-    })
-  }
+  store.dispatch('eagleEye/doAddTemporaryPostAction', {
+    index: props.index,
+    storeActionType,
+    action
+  })
+
+  store.dispatch('eagleEye/doAddActionQueue', {
+    index: props.index,
+    id: props.result.id,
+    post: props.result,
+    handler: async () =>
+      await store.dispatch('eagleEye/doUpdatePostAction', {
+        post: props.result,
+        index: props.index,
+        storeActionType,
+        actionType
+      })
+  })
 }
 </script>
 
