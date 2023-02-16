@@ -12,7 +12,7 @@ info:
   x-github: https://github.com/crowdHQ
 
 servers:
-  - url: https://api.crowd.dev/api
+  - url: https://app.crowd.dev/api
 
 tags:
   - name: Members
