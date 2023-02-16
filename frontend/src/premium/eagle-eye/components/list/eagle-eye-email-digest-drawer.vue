@@ -212,7 +212,10 @@
           type="primary"
           class="btn btn--md btn--primary"
           :loading="loadingUpdateSettings"
-          :disabled="$v.$invalid || !hasFormChanged"
+          :disabled="
+            $v.$invalid ||
+            (!hasFormChanged && !hasElementChanged)
+          "
           @click="doSubmit()"
           >Update
         </el-button>
@@ -243,6 +246,7 @@ import { email, required } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 import AppFormItem from '@/shared/form/form-item.vue'
 import formChangeDetector from '@/shared/form/form-change'
+import elementChangeDetector from '@/shared/form/element-change'
 
 const props = defineProps({
   modelValue: {
@@ -274,6 +278,10 @@ const form = reactive({
 const { hasFormChanged, formSnapshot } =
   formChangeDetector(form)
 
+const feed = ref(null)
+const { elementSnapshot, hasElementChanged } =
+  elementChangeDetector(feed)
+
 const $v = useVuelidate(rules, form)
 
 const drawerModel = computed({
@@ -284,8 +292,6 @@ const drawerModel = computed({
     emit('update:modelValue', value)
   }
 })
-
-const feed = ref(null)
 
 const results = computed(() => {
   if (!form.updateResults) {
@@ -338,9 +344,12 @@ const fillForm = (user) => {
   form.updateResults = !eagleEyeSettings.emailDigest
     ? true
     : eagleEyeSettings.emailDigest?.matchFeedSettings
-  feed.value = user.eagleEyeSettings.emailDigest.feed
-
   formSnapshot()
+  feed.value =
+    eagleEyeSettings?.emailDigest?.feed ||
+    eagleEyeSettings?.feed ||
+    null
+  elementSnapshot()
 }
 const doSubmit = async () => {
   $v.value.$touch()
