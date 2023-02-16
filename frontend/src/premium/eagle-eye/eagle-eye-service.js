@@ -53,12 +53,12 @@ export class EagleEyeService {
     return response.data
   }
 
-  static async addAction({ postId, actionData }) {
+  static async addAction({ postId, action }) {
     const tenantId = AuthCurrentTenant.get()
 
     const response = await authAxios.post(
       `/tenant/${tenantId}/eagleEyeContent/${postId}/action`,
-      actionData
+      action
     )
 
     return response.data

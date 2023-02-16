@@ -30,6 +30,8 @@ export default () => {
         active: false
       }
     },
+    pendingActions: [],
+    activeAction: {},
     loadingUpdateSettings: false
   }
 }

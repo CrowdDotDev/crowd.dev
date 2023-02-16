@@ -163,10 +163,9 @@ import { computed, defineProps } from 'vue'
 import platformOptions from '@/premium/eagle-eye/constants/eagle-eye-platforms.json'
 import { EagleEyeService } from '../../eagle-eye-service'
 import { withHttp } from '@/utils/string'
-import {
-  mapActions,
-  mapGetters
-} from '@/shared/vuex/vuex.helpers'
+import { mapGetters } from '@/shared/vuex/vuex.helpers'
+import { useStore } from 'vuex'
+import moment from 'moment'
 
 const props = defineProps({
   result: {
@@ -179,18 +178,23 @@ const props = defineProps({
   }
 })
 
+const store = useStore()
 const { currentUser } = mapGetters('auth')
-const { doAddAction, doRemoveAction } =
-  mapActions('eagleEye')
 
 const isBookmarked = computed(() =>
-  props.result.actions.some((a) => a.type === 'bookmark')
+  props.result.actions.some(
+    (a) => a.type === 'bookmark' && !a.toRemove
+  )
 )
 const isRelevant = computed(() =>
-  props.result.actions.some((a) => a.type === 'thumbs-up')
+  props.result.actions.some(
+    (a) => a.type === 'thumbs-up' && !a.toRemove
+  )
 )
 const isNotRelevant = computed(() =>
-  props.result.actions.some((a) => a.type === 'thumbs-down')
+  props.result.actions.some(
+    (a) => a.type === 'thumbs-down' && !a.toRemove
+  )
 )
 const isBookmarkedByUser = computed(() => {
   const bookmarkAction = props.result.actions.find(
@@ -229,23 +233,34 @@ const onCardClick = async (e) => {
 }
 
 const onActionClick = async ({ actionType, shouldAdd }) => {
-  if (shouldAdd) {
-    await doAddAction({
-      post: props.result,
-      actionType,
-      index: props.index
-    })
-  } else {
-    const actionId = props.result.actions.find(
-      (a) => a.type === actionType
-    ).id
-    await doRemoveAction({
-      postId: props.result.id,
-      actionId,
-      actionType,
-      index: props.index
-    })
-  }
+  const storeActionType = shouldAdd ? 'add' : 'delete'
+  const action = shouldAdd
+    ? {
+        type: actionType,
+        timestamp: moment()
+      }
+    : props.result.actions.find(
+        (a) => a.type === actionType
+      )
+
+  store.dispatch('eagleEye/doAddTemporaryPostAction', {
+    index: props.index,
+    storeActionType,
+    action
+  })
+
+  store.dispatch('eagleEye/doAddActionQueue', {
+    index: props.index,
+    storeActionType,
+    action,
+    handler: async () =>
+      await store.dispatch('eagleEye/doUpdatePostAction', {
+        post: props.result,
+        index: props.index,
+        storeActionType,
+        actionType
+      })
+  })
 }
 </script>
 

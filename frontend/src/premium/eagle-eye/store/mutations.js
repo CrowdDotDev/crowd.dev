@@ -37,91 +37,86 @@ export default {
     state.views[activeView].count = 0
   },
 
-  CREATE_CONTENT_SUCCESS(
-    state,
-    { post, index, activeView }
-  ) {
-    state.views[activeView].list.posts[index] = {
-      ...post,
-      actions:
-        state.views[activeView].list.posts[index].actions
-    }
+  UPDATE_ACTION_ERROR() {
+    // state.views[activeView].list.posts[index].actions =
+    //   actions
+    // TODO
   },
 
   CREATE_ACTION_SUCCESS(
     state,
-    { action, index, activeView }
+    { post, action, index, activeView }
   ) {
-    const indexAction = state.views[activeView].list.posts[
-      index
-    ].actions.findIndex((a) => a.type === action.type)
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    // Update store post with new one, except for actions
+    state.views[activeView].list.posts[index] = {
+      ...post,
+      actions
+    }
 
     if (indexAction === -1) {
-      state.views[activeView].list.posts[
-        index
-      ].actions.push(action)
+      actions.push(action)
     } else {
-      state.views[activeView].list.posts[index].actions[
-        indexAction
-      ] = action
+      actions[indexAction] = action
     }
   },
 
-  UPDATE_FEED_POST_SUCCESS(state, { postId }) {
-    const feedPostIndex = state.views[
-      'feed'
-    ].list.posts.findIndex((p) => p.id === postId)
-
-    const bookmarkPost = state.views[
-      'bookmarked'
-    ].list.posts.find((p) => p.id === postId)
-
-    // Update feed with action
-    if (feedPostIndex && bookmarkPost) {
-      state.views['feed'].list.posts[feedPostIndex] =
-        bookmarkPost
-      // Scenario for bookmarks
-    } else if (feedPostIndex) {
-      const actionIndex = state.views['feed'].list.posts[
-        feedPostIndex
-      ].actions.findIndex((a) => a.type === 'bookmark')
-
-      state.views['feed'].list.posts[
-        feedPostIndex
-      ].actions.splice(actionIndex, 1)
-    }
-  },
-
-  DELETE_ACTION_SUCCESS(
+  REMOVE_ACTION_SUCCESS(
     state,
-    { actionType, index, activeView }
+    { action, index, activeView }
   ) {
+    // Remove post from bookmarks view
     if (
-      actionType === 'bookmark' &&
+      action.type === 'bookmark' &&
       activeView === 'bookmarked'
     ) {
-      // Remove post from bookmarks view
       state.views[activeView].list.posts.splice(index, 1)
-      // Remove action from post
     } else {
-      const deleteIndex = state.views[
-        activeView
-      ].list.posts[index].actions.findIndex(
-        (a) => a.type === actionType
+      // Remove action from post
+      const { actions } =
+        state.views[activeView].list.posts[index]
+      const deleteIndex = actions.findIndex(
+        (a) => a.type === action.type
       )
 
-      state.views[activeView].list.posts[
-        index
-      ].actions.splice(deleteIndex, 1)
+      actions.splice(deleteIndex, 1)
     }
   },
 
-  UPDATE_ACTION_ERROR(
+  CREATE_TEMPORARY_ACTION(
     state,
-    { index, activeView, actions }
+    { action, activeView, index }
   ) {
-    state.views[activeView].list.posts[index].actions =
-      actions
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const indexAction = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    if (indexAction === -1) {
+      actions.push(action)
+    } else {
+      actions[indexAction] = action
+    }
+  },
+
+  REMOVE_TEMPORARY_ACTION(
+    state,
+    { action, activeView, index }
+  ) {
+    // TODO: Handle bookmarks
+    const { actions } =
+      state.views[activeView].list.posts[index]
+    const deleteIndex = actions.findIndex(
+      (a) => a.type === action.type
+    )
+
+    actions[deleteIndex].toRemove = true
   },
 
   SORTER_CHANGED(state, payload) {
@@ -139,5 +134,17 @@ export default {
 
   UPDATE_EAGLE_EYE_SETTINGS_ERROR(state) {
     state.loadingUpdateSettings = false
+  },
+
+  ADD_PENDING_ACTION(state, job) {
+    state.pendingActions.push(job)
+  },
+
+  SET_ACTIVE_ACTION(state, job) {
+    state.activeAction = job
+  },
+
+  POP_CURRENT_ACTION(state) {
+    state.pendingActions.shift()
   }
 }
