@@ -37,16 +37,32 @@ export default {
     state.views[activeView].count = 0
   },
 
-  UPDATE_ACTION_ERROR() {
-    // state.views[activeView].list.posts[index].actions =
-    //   actions
-    // TODO
-  },
-
   CREATE_ACTION_SUCCESS(
     state,
     { post, action, index, activeView }
   ) {
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.url === post.url
+      )
+
+      if (feedPost) {
+        const indexAction = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
+
+        if (indexAction === -1) {
+          feedPost.actions.push(action)
+        } else {
+          feedPost.actions[indexAction] = {
+            ...action,
+            id: action.id
+          }
+        }
+      }
+    }
+
     const { actions } =
       state.views[activeView].list.posts[index]
     const indexAction = actions.findIndex(
@@ -62,14 +78,35 @@ export default {
     if (indexAction === -1) {
       actions.push(action)
     } else {
-      actions[indexAction] = action
+      actions[indexAction] = {
+        ...action,
+        id: action.id
+      }
     }
   },
 
   REMOVE_ACTION_SUCCESS(
     state,
-    { action, index, activeView }
+    { postId, action, index, activeView }
   ) {
+    // Update feed post if bookmark action is updated
+    if (activeView === 'bookmarked') {
+      const feedPost = state.views['feed'].list.posts.find(
+        (p) => p.id === postId
+      )
+
+      if (feedPost) {
+        const deleteIndex = feedPost.actions.findIndex(
+          (a) => a.type === action.type
+        )
+
+        if (deleteIndex !== -1) {
+          feedPost.actions.splice(deleteIndex, 1)
+          console.log(feedPost.actions)
+        }
+      }
+    }
+
     // Remove post from bookmarks view
     if (
       action.type === 'bookmark' &&
@@ -84,7 +121,9 @@ export default {
         (a) => a.type === action.type
       )
 
-      actions.splice(deleteIndex, 1)
+      if (deleteIndex !== -1) {
+        actions.splice(deleteIndex, 1)
+      }
     }
   },
 
@@ -109,7 +148,6 @@ export default {
     state,
     { action, activeView, index }
   ) {
-    // TODO: Handle bookmarks
     const { actions } =
       state.views[activeView].list.posts[index]
     const deleteIndex = actions.findIndex(
@@ -117,6 +155,10 @@ export default {
     )
 
     actions[deleteIndex].toRemove = true
+  },
+
+  UPDATE_POST(state, { activeView, index, post }) {
+    state.views[activeView].list.posts[index] = post
   },
 
   SORTER_CHANGED(state, payload) {

@@ -41,6 +41,14 @@
         {{ result.post.description }}
       </div>
       <div v-else>
+        <a
+          v-if="subreddit"
+          class="text-xs mb-1 font-medium leading-6"
+          target="_blank"
+          :href="`https://www.reddit.com/${subreddit}`"
+        >
+          {{ subreddit }}
+        </a>
         <h6
           v-if="result.post.title"
           class="black mb-3 break-words"
@@ -218,6 +226,22 @@ const bookmarkTooltip = computed(() => {
   return isBookmarked.value ? 'Unbookmark' : 'Bookmark'
 })
 
+const subreddit = computed(() => {
+  if (props.result.platform !== 'reddit') {
+    return null
+  }
+
+  const pattern =
+    /.*reddit\.com(?<subreddit>\/r\/.[^\\/]*).*/gm
+  const matches = pattern.exec(props.result.url)
+
+  if (!matches.groups.subreddit) {
+    return null
+  }
+
+  return matches.groups.subreddit.slice(1)
+})
+
 // Open post in origin url
 const onCardClick = async (e) => {
   if (!props.result.url || e.target.localName === 'a') {
@@ -251,8 +275,8 @@ const onActionClick = async ({ actionType, shouldAdd }) => {
 
   store.dispatch('eagleEye/doAddActionQueue', {
     index: props.index,
-    storeActionType,
-    action,
+    id: props.result.id,
+    post: props.result,
     handler: async () =>
       await store.dispatch('eagleEye/doUpdatePostAction', {
         post: props.result,

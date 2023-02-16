@@ -254,17 +254,33 @@ export default {
     { postId, action, index }
   ) {
     const activeView = getters.activeView.id
+    const actionId = action.id
+    const deleteImmeadiately =
+      activeView === 'bookmarked' &&
+      action.type === 'bookmark'
+
+    if (deleteImmeadiately) {
+      commit('REMOVE_ACTION_SUCCESS', {
+        postId,
+        action,
+        index,
+        activeView
+      })
+    }
 
     await EagleEyeService.deleteAction({
       postId,
-      actionId: action.id
+      actionId
     })
 
-    commit('REMOVE_ACTION_SUCCESS', {
-      action,
-      index,
-      activeView
-    })
+    if (!deleteImmeadiately) {
+      commit('REMOVE_ACTION_SUCCESS', {
+        postId,
+        action,
+        index,
+        activeView
+      })
+    }
 
     // Update posts with new actions in local storage
     const currentUser = rootGetters['auth/currentUser']
@@ -287,7 +303,13 @@ export default {
     }
   },
 
-  async doStartActionQueue({ commit, dispatch, state }) {
+  async doStartActionQueue({
+    commit,
+    dispatch,
+    state,
+    getters,
+    rootGetters
+  }) {
     if (state.pendingActions.length > 0) {
       commit('SET_ACTIVE_ACTION', state.pendingActions[0])
 
@@ -299,6 +321,31 @@ export default {
         await pendingAction.handler()
         await dispatch('doStartActionQueue')
       } catch (error) {
+        // In case of an error, create post again and update it in UI
+        EagleEyeService.createContent({
+          post: pendingAction.post
+        }).then((response) => {
+          const activeView = getters.activeView.id
+          const currentUser =
+            rootGetters['auth/currentUser']
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          commit('UPDATE_POST', {
+            activeView,
+            index: pendingAction.index,
+            post: response
+          })
+
+          // Update posts with new actions in local storage
+          setResultsInStorage({
+            posts: state.views['feed'].list.posts,
+            storageDate: moment(),
+            tenantId: currentTenant.id,
+            userId: currentUser.id
+          })
+        })
+
         Message.error(
           'Something went wrong. Please try again'
         )
