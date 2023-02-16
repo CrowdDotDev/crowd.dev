@@ -25,7 +25,6 @@
         </div>
         <div :class="{ 'opacity-50': !form.active }">
           <el-form
-            ref="formRef"
             label-position="top"
             class="form pt-6 pb-10"
             @submit.prevent="doSubmit"
@@ -276,8 +275,6 @@ const { hasFormChanged, formSnapshot } =
   formChangeDetector(form)
 
 const $v = useVuelidate(rules, form)
-
-const formRef = ref()
 
 const drawerModel = computed({
   get() {
