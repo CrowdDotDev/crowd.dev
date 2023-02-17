@@ -82,6 +82,12 @@
           <app-dashboard-activity-sentiment />
         </div>
       </section>
+      <section class="px-5 w-1/2">
+        <h6 class="text-sm leading-5 font-semibold mb-4">
+          Top activities by type
+        </h6>
+        <app-dashboard-activity-types />
+      </section>
     </div>
 
     <div class="tabs">
@@ -116,10 +122,12 @@ import AppDashboardActivityList from '@/modules/dashboard/components/activity/da
 import AppDashboardActivitySentiment from '@/modules/dashboard/components/activity/dashboard-activity-sentiment'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count'
 import { formatNumberToCompact } from '@/utils/number'
+import AppDashboardActivityTypes from '@/modules/dashboard/components/activity/dashboard-activity-types.vue'
 
 export default {
   name: 'AppDashboardActivities',
   components: {
+    AppDashboardActivityTypes,
     AppDashboardCount,
     AppDashboardActivitySentiment,
     AppDashboardActivityList,

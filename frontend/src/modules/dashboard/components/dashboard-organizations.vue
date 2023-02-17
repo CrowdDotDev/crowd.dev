@@ -219,10 +219,6 @@
       </section>
     </div>
   </div>
-  <app-paywall-modal
-    v-model="isUpgradeModalOpen"
-    module="organizations"
-  />
 </template>
 
 <script>
@@ -240,15 +236,13 @@ import {
 import AppDashboardOrganizationItem from '@/modules/dashboard/components/organization/dashboard-organization-item.vue'
 import AppDashboardCount from '@/modules/dashboard/components/dashboard-count.vue'
 import { formatNumberToCompact } from '@/utils/number'
-import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
 export default {
   name: 'AppDashboardOrganizations',
   components: {
     AppDashboardCount,
     AppDashboardOrganizationItem,
-    AppWidgetCubeRenderer,
-    AppPaywallModal
+    AppWidgetCubeRenderer
   },
   data() {
     return {
@@ -258,8 +252,7 @@ export default {
       newOrganizationCount,
       activeOrganizationCount,
       chartOptions,
-      hideLabels,
-      isUpgradeModalOpen: false
+      hideLabels
     }
   },
   computed: {

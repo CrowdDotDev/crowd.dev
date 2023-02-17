@@ -54,7 +54,7 @@ export default {
     showBadge: {
       type: Boolean,
       required: false,
-      default: true,
+      default: true
     },
     loading: {
       type: Boolean,

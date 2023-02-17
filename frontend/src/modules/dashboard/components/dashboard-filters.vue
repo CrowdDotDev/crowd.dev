@@ -25,8 +25,8 @@
           <i class="ri-apps-2-line text-base mr-2"></i>
           <span class="font-medium">Platform:</span>
           <span class="text-gray-600 pl-1">{{
-              getPlatformName
-            }}</span>
+            getPlatformName
+          }}</span>
         </div>
       </el-button>
 

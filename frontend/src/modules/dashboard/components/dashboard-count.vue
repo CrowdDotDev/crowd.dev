@@ -4,11 +4,13 @@
     :loading="loading"
   >
     <template #loading>
-        <app-loading height="56px" width="44px" radius="4px" class="mb-2" />
-        <app-loading
-          width="80px"
-          height="16px"
-        ></app-loading>
+      <app-loading
+        height="56px"
+        width="44px"
+        radius="4px"
+        class="mb-2"
+      />
+      <app-loading width="80px" height="16px"></app-loading>
     </template>
 
     <template #default="current">

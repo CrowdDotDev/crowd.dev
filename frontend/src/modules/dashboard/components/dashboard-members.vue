@@ -103,21 +103,22 @@
               class="mb-3"
               :member="member"
             >
-            <span
-              v-if="
-                member.lastActivity &&
-                getPlatformDetails(
-                  member.lastActivity.platform
-                )
-              "
-            >joined
-              {{ formatDateToTimeAgo(member.joinedAt) }} on
-              {{
-                getPlatformDetails(
-                  member.lastActivity.platform
-                ).name
-              }}</span
-            >
+              <span
+                v-if="
+                  member.lastActivity &&
+                  getPlatformDetails(
+                    member.lastActivity.platform
+                  )
+                "
+                >joined
+                {{ formatDateToTimeAgo(member.joinedAt) }}
+                on
+                {{
+                  getPlatformDetails(
+                    member.lastActivity.platform
+                  ).name
+                }}</span
+              >
             </app-dashboard-member-item>
             <div v-if="recentMembers.length === 0">
               <p
@@ -133,15 +134,14 @@
               <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
-                name: 'member',
-                query: { activeTab: 'new-and-active' }
-              }"
+                  name: 'member',
+                  query: { activeTab: 'new-and-active' }
+                }"
                 class="text-sm leading-5 font-medium text-red"
-              >View more</router-link
+                >View more</router-link
               >
             </div>
           </div>
-
         </div>
       </section>
 
@@ -204,14 +204,14 @@
               class="mb-3"
               :member="member"
             >
-            <span
-            >{{ member.activityCount }}
-                    {{
-                +member.activityCount > 1
-                  ? 'activities'
-                  : 'activity'
-              }}</span
-            >
+              <span
+                >{{ member.activityCount }}
+                {{
+                  +member.activityCount > 1
+                    ? 'activities'
+                    : 'activity'
+                }}</span
+              >
             </app-dashboard-member-item>
             <div v-if="activeMembers.length === 0">
               <p
@@ -224,19 +224,17 @@
               v-if="activeMembers.length >= 5"
               class="pt-3"
             >
-
               <!-- TODO: add dynamic links based on time period -->
               <router-link
                 :to="{
-                name: 'member',
-                query: { activeTab: 'most-engaged' }
-              }"
+                  name: 'member',
+                  query: { activeTab: 'most-engaged' }
+                }"
                 class="text-sm leading-5 font-medium text-red"
-              >View more</router-link
+                >View more</router-link
               >
             </div>
           </div>
-
         </div>
       </section>
     </div>

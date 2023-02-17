@@ -35,7 +35,7 @@ export const chartOptions = {
   }
 }
 
-function dateRange(period) {
+export function dateRange(period) {
   const end = moment().utc().endOf('day')
   const start = moment()
     .subtract(
@@ -106,6 +106,32 @@ export function activitiesCount(dateRange, platform) {
       {
         dimension: 'Activities.date',
         dateRange
+      }
+    ],
+    filters:
+      platform !== 'all'
+        ? [
+            {
+              member: 'Activities.platform',
+              operator: 'equals',
+              values: [platform]
+            }
+          ]
+        : undefined
+  }
+}
+
+export function activityTypes(period, platform) {
+  return {
+    measures: ['Activities.count'],
+    order: {
+      'Activities.count': 'desc'
+    },
+    dimensions: ['Activities.platform', 'Activities.type'],
+    timeDimensions: [
+      {
+        dimension: 'Activities.date',
+        dateRange: dateRange(period)
       }
     ],
     filters:

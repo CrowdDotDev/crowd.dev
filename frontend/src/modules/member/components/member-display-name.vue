@@ -35,7 +35,7 @@ const props = defineProps({
   showBadge: {
     type: Boolean,
     required: false,
-    default: true,
+    default: true
   },
   withLink: {
     type: Boolean,
