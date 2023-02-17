@@ -14,7 +14,7 @@
     >
       {{ member.displayName }}
     </component>
-    <app-member-badge :member="member" />
+    <app-member-badge v-if="showBadge" :member="member" />
   </div>
 </template>
 
@@ -31,6 +31,11 @@ const props = defineProps({
   member: {
     type: Object,
     default: () => {}
+  },
+  showBadge: {
+    type: Boolean,
+    required: false,
+    default: true,
   },
   withLink: {
     type: Boolean,

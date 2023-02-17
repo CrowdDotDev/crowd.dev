@@ -12,7 +12,7 @@
       >
         <el-button
           v-if="taskCreatePermission"
-          class="btn btn--icon--sm btn--transparent custom-btn h-8 w-8 !p-1.5"
+          class="btn btn--icon--sm btn--transparent h-8 w-8 !p-1.5"
           @click="addTask()"
         >
           <i

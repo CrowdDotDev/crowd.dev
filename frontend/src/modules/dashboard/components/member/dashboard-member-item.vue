@@ -14,20 +14,21 @@
   </article>
   <router-link
     v-else
-    class="flex items-center group"
+    class="flex items-center justify-between group"
     :to="{ name: 'memberView', params: { id: member.id } }"
   >
-    <app-avatar :entity="member" size="xs" />
-    <div class="flex-grow pl-3">
+    <div class="flex items-center">
+      <app-avatar :entity="member" size="xs" />
       <app-member-display-name
         :member="member"
-        class="flex items-center"
+        :show-badge="showBadge"
+        class="flex items-center pl-3"
         custom-class="text-xs leading-5 font-medium text-gray-900 group-hover:text-brand-500 transition"
       />
-      <p class="text-2xs leading-4 !text-gray-500">
-        <slot />
-      </p>
     </div>
+    <p class="text-2xs leading-4 !text-gray-500 pl-3">
+      <slot />
+    </p>
   </router-link>
 </template>
 
@@ -35,6 +36,7 @@
 import AppAvatar from '@/shared/avatar/avatar'
 import AppLoading from '@/shared/loading/loading-placeholder'
 import AppMemberDisplayName from '@/modules/member/components/member-display-name'
+import { CrowdIntegrations } from '@/integrations/integrations-config'
 
 export default {
   name: 'AppDashboardMemberItem',
@@ -49,10 +51,20 @@ export default {
       required: false,
       default: () => ({})
     },
+    showBadge: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
     loading: {
       type: Boolean,
       required: false,
       default: false
+    }
+  },
+  methods: {
+    getPlatformDetails(platform) {
+      return CrowdIntegrations.getConfig(platform)
     }
   }
 }

@@ -1,56 +1,87 @@
 <template>
   <div class="widget panel !p-6">
     <!-- header -->
-    <div class="flex items-center">
-      <div
-        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
-      >
-        <i class="ri-radar-line text-lg text-white"></i>
-      </div>
-      <div>
-        <h6 class="text-sm font-semibold leading-5">
+    <div
+      class="flex items-center justify-between pb-5 border-b border-gray-200"
+    >
+      <div class="flex items-center">
+        <h5 class="text-lg font-semibold leading-7 pr-3">
           Activities
-        </h6>
-        <p class="text-2xs text-gray-500">
+        </h5>
+        <p class="text-xs text-gray-500 leading-5">
           Total:
           {{ formatNumberToCompact(activities.total) }}
         </p>
       </div>
+      <div class="flex items-center">
+        <router-link
+          :to="{
+            name: 'activity'
+          }"
+          class="mr-4"
+        >
+          <el-button
+            class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
+          >
+            All activities
+          </el-button>
+        </router-link>
+        <!-- TODO: link to default report -->
+        <router-link
+          :to="{
+            name: 'activity'
+          }"
+        >
+          <el-button
+            class="custom-btn flex items-center text-gray-600 !px-3"
+          >
+            <i
+              class="ri-bar-chart-line text-base text-gray-600 mr-2"
+            ></i>
+            <span class="text-xs">View report</span>
+          </el-button>
+        </router-link>
+      </div>
     </div>
 
     <div class="pt-6 flex -mx-5 pb-12">
-      <div class="w-7/12 px-5 pb-4">
-        <div
-          v-if="activities.loading"
-          v-loading="activities.loading"
-          class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="activitiesChart(period, platform)"
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="chartOptions"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="w-5/12 px-5 pb-4">
-        <p
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
-        >
-          New activities
-        </p>
-        <app-dashboard-count
-          :query="activitiesCount"
-          :percentage="true"
-        />
-        <p
-          class="text-2xs leading-5 font-semibold text-gray-400 mb-3 tracking-1 uppercase"
-        >
-          OVERALL SENTIMENT
-        </p>
-        <app-dashboard-activity-sentiment />
-      </div>
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
+            >
+              New activities
+            </h6>
+            <app-dashboard-count
+              :loading="activities.loading"
+              :query="activitiesCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <div
+              v-if="activities.loading"
+              v-loading="activities.loading"
+              class="app-page-spinner h-16 !relative !min-h-5 chart-loading"
+            ></div>
+            <app-widget-cube-renderer
+              v-else
+              class="chart"
+              :widget="activitiesChart(period, platform)"
+              :dashboard="false"
+              :show-subtitle="false"
+              :chart-options="chartOptions"
+            ></app-widget-cube-renderer>
+          </div>
+        </div>
+        <div class="pt-10">
+          <h6 class="text-sm leading-5 font-semibold mb-4">
+            Overall sentiment
+          </h6>
+          <app-dashboard-activity-sentiment />
+        </div>
+      </section>
     </div>
 
     <div class="tabs">
@@ -125,7 +156,7 @@ export default {
 }
 .chart::v-deep {
   div {
-    line-height: 233px !important;
+    line-height: 104px !important;
     height: auto !important;
   }
   .cube-widget-chart {
@@ -133,12 +164,12 @@ export default {
     min-height: 0;
   }
   canvas {
-    height: 233px !important;
+    height: 104px !important;
   }
 }
 
 .chart-loading {
   @apply flex items-center justify-center;
-  height: 233px;
+  height: 104px;
 }
 </style>

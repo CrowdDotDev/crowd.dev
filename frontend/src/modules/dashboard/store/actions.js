@@ -230,7 +230,7 @@ export default {
         ]
       },
       'joinedAt_DESC',
-      20,
+      5,
       0,
       false
     )
@@ -338,7 +338,7 @@ export default {
         ]
       },
       'createdAt_DESC',
-      20,
+      5,
       0,
       false
     )

@@ -1,187 +1,223 @@
 <template>
-  <div class="widget panel !p-5">
+  <div class="widget panel !p-5" v-bind="$attrs">
     <!-- header -->
-    <div class="flex items-center pb-5">
-      <div
-        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
-      >
-        <i class="ri-community-line text-lg text-white"></i>
-      </div>
-      <div>
-        <h6 class="text-sm font-semibold leading-5">
+    <div
+      class="flex items-center justify-between pb-5 border-b border-gray-200"
+    >
+      <div class="flex items-center">
+        <h5 class="text-lg font-semibold leading-7 pr-3">
           Organizations
-        </h6>
-        <p class="text-2xs text-gray-500">
+        </h5>
+        <p class="text-xs text-gray-500 leading-5">
           Total:
           {{ formatNumberToCompact(organizations.total) }}
         </p>
       </div>
-    </div>
-
-    <!-- tabs -->
-    <div class="flex -mx-5">
-      <app-dashboard-tab
-        class="w-1/2"
-        :active="tab === 'new'"
-        @click="tab = 'new'"
-      >
-        New
-      </app-dashboard-tab>
-      <app-dashboard-tab
-        class="w-1/2"
-        :active="tab === 'active'"
-        @click="tab = 'active'"
-      >
-        Active
-      </app-dashboard-tab>
-    </div>
-
-    <section v-show="tab === 'new'">
-      <div
-        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-      >
-        <!-- difference in period -->
-        <app-dashboard-count
-          :loading="organizations.loadingRecent"
-          :query="newOrganizationCount"
-        />
-        <!-- Chart -->
-        <div
-          v-if="organizations.loadingRecent"
-          v-loading="organizations.loadingRecent"
-          class="app-page-spinner !relative chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="newOrganizationChart(period, platform)"
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="{
-            ...chartOptions,
-            library: {
-              ...chartOptions.library,
-              ...hideLabels
-            }
+      <div class="flex items-center">
+        <router-link
+          :to="{
+            name: 'organization'
           }"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="list -mx-5 -mb-5 p-5">
-        <div v-if="organizations.loadingRecent">
-          <app-dashboard-organization-item
-            v-for="el of new Array(3)"
-            :key="el"
-            class="mb-2"
-            :loading="true"
-          />
-        </div>
-        <div v-else>
-          <template
-            v-for="(
-              organization, oi
-            ) of recentOrganizations"
-            :key="organization.id"
+          class="mr-4"
+        >
+          <el-button
+            class="btn btn-brand--transparent btn--sm w-full leading-5 text-brand-500"
           >
-            <p
-              v-if="getTimeText(oi)"
-              class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+            All organizations
+          </el-button>
+        </router-link>
+        <!-- TODO: link to default report -->
+        <router-link
+          :to="{
+            name: 'organization'
+          }"
+        >
+          <el-button
+            class="custom-btn flex items-center text-gray-600 !px-3"
+          >
+            <i
+              class="ri-bar-chart-line text-base text-gray-600 mr-2"
+            ></i>
+            <span class="text-xs">View report</span>
+          </el-button>
+        </router-link>
+      </div>
+    </div>
+
+    <div class="flex -mx-5 pt-7">
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
             >
-              {{ getTimeText(oi) }}
-            </p>
+              New organizations
+            </h6>
+            <app-dashboard-count
+              :loading="organizations.loadingRecent"
+              :query="newOrganizationCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <!-- Chart -->
+            <div
+              v-if="organizations.loadingRecent"
+              v-loading="organizations.loadingRecent"
+              class="app-page-spinner !relative chart-loading"
+            ></div>
+            <app-widget-cube-renderer
+              v-else
+              class="chart"
+              :widget="
+                newOrganizationChart(period, platform)
+              "
+              :dashboard="false"
+              :show-subtitle="false"
+              :chart-options="{
+                ...chartOptions,
+                library: {
+                  ...chartOptions.library,
+                  ...hideLabels
+                }
+              }"
+            ></app-widget-cube-renderer>
+          </div>
+        </div>
+        <div class="pt-8">
+          <p
+            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
+          >
+            Most recent
+          </p>
+          <div v-if="organizations.loadingRecent">
             <app-dashboard-organization-item
+              v-for="el in 3"
+              :key="el"
+              class="mb-4"
+              :loading="true"
+            />
+          </div>
+          <div v-else>
+            <app-dashboard-organization-item
+              v-for="organization of recentOrganizations"
+              :key="organization.id"
+              :show-badge="false"
               class="mb-4"
               :organization="organization"
-            />
-          </template>
-          <div v-if="recentOrganizations.length === 0">
-            <p
-              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
             >
-              No new organizations during this period
-            </p>
-          </div>
-          <div class="pt-1 flex justify-center">
-            <el-button
-              class="btn-link btn-link--primary text-xs leading-5 font-medium"
-              @click="onViewMoreClick"
-              >View more</el-button
+            </app-dashboard-organization-item>
+            <div v-if="recentOrganizations.length === 0">
+              <p
+                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+              >
+                No new organizations during this period
+              </p>
+            </div>
+            <div
+              v-if="organizations.length >= 5"
+              class="pt-3"
             >
+              <!-- TODO: add dynamic links based on time period -->
+              <router-link
+                :to="{
+                  name: 'organization',
+                  query: { activeTab: 'new-and-active' }
+                }"
+                class="text-sm leading-5 font-medium text-red"
+                >View more</router-link
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section v-show="tab === 'active'">
-      <div
-        class="-mx-5 pb-5 px-5 pt-6 border-b border-gray-200"
-      >
-        <!-- difference in period -->
-        <app-dashboard-count
-          :loading="organizations.loadingActive"
-          :query="activeOrganizationCount"
-        />
-        <!-- Chart -->
-        <div
-          v-if="organizations.loadingActive"
-          v-loading="organizations.loadingActive"
-          class="app-page-spinner !relative chart-loading"
-        ></div>
-        <app-widget-cube-renderer
-          v-else
-          class="chart"
-          :widget="
-            activeOrganizationChart(period, platform)
-          "
-          :dashboard="false"
-          :show-subtitle="false"
-          :chart-options="{
-            ...chartOptions,
-            library: {
-              ...chartOptions.library,
-              ...hideLabels
-            }
-          }"
-        ></app-widget-cube-renderer>
-      </div>
-      <div class="list -mx-5 -mb-5 p-5">
-        <div v-if="organizations.loadingActive">
-          <app-dashboard-organization-item
-            v-for="el of new Array(3)"
-            :key="el"
-            class="mb-2"
-            :loading="true"
-          />
+      <section class="px-5 w-1/2">
+        <div class="flex">
+          <div class="w-5/12">
+            <!-- info -->
+            <h6
+              class="text-sm leading-5 font-semibold mb-1"
+            >
+              Active organizations
+            </h6>
+            <app-dashboard-count
+              :loading="organizations.loadingActive"
+              :query="activeOrganizationCount"
+            ></app-dashboard-count>
+          </div>
+          <div class="w-7/12">
+            <!-- Chart -->
+            <div
+              v-if="organizations.loadingActive"
+              v-loading="organizations.loadingActive"
+              class="app-page-spinner !relative chart-loading"
+            ></div>
+            <app-widget-cube-renderer
+              v-else
+              class="chart"
+              :widget="
+                activeOrganizationChart(period, platform)
+              "
+              :dashboard="false"
+              :show-subtitle="false"
+              :chart-options="{
+                ...chartOptions,
+                library: {
+                  ...chartOptions.library,
+                  ...hideLabels
+                }
+              }"
+            ></app-widget-cube-renderer>
+          </div>
         </div>
-        <div v-else>
+        <div class="pt-8">
           <p
-            v-if="activeOrganizations.length > 0"
-            class="text-2xs leading-5 font-semibold text-gray-400 mb-2 tracking-1 uppercase"
+            class="text-2xs leading-5 font-semibold text-gray-400 pb-4 tracking-1 uppercase"
           >
             Most active
           </p>
-          <app-dashboard-organization-item
-            v-for="organization of activeOrganizations"
-            :key="organization.id"
-            class="mb-4"
-            :organization="organization"
-          />
-          <div v-if="activeOrganizations.length === 0">
-            <p
-              class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
-            >
-              No active organizations during this period
-            </p>
+          <div v-if="organizations.loadingActive">
+            <app-dashboard-organization-item
+              v-for="el in 3"
+              :key="el"
+              class="mb-4"
+              :loading="true"
+            />
           </div>
-          <div class="pt-1 flex justify-center">
-            <el-button
-              class="btn-link btn-link--primary text-xs leading-5 font-medium"
-              @click="onViewMoreClick"
-              >View more</el-button
+          <div v-else>
+            <app-dashboard-organization-item
+              v-for="organization of activeOrganizations"
+              :key="organization.id"
+              class="mb-4"
+              :organization="organization"
             >
+            </app-dashboard-organization-item>
+            <div v-if="activeOrganizations.length === 0">
+              <p
+                class="text-xs leading-5 text-center italic text-gray-400 pb-4 pt-2"
+              >
+                No new organizations during this period
+              </p>
+            </div>
+            <div
+              v-if="activeOrganizations.length >= 5"
+              class="pt-3"
+            >
+              <!-- TODO: add dynamic links based on time period -->
+              <router-link
+                :to="{
+                  name: 'organization',
+                  query: { activeTab: 'most-engaged' }
+                }"
+                class="text-sm leading-5 font-medium text-red"
+                >View more</router-link
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
   <app-paywall-modal
     v-model="isUpgradeModalOpen"
@@ -190,7 +226,6 @@
 </template>
 
 <script>
-import AppDashboardTab from '@/modules/dashboard/components/shared/dashboard-tab.vue'
 import { mapGetters } from 'vuex'
 import moment from 'moment'
 import AppWidgetCubeRenderer from '@/modules/widget/components/cube/widget-cube-renderer.vue'
@@ -213,7 +248,6 @@ export default {
     AppDashboardCount,
     AppDashboardOrganizationItem,
     AppWidgetCubeRenderer,
-    AppDashboardTab,
     AppPaywallModal
   },
   data() {
