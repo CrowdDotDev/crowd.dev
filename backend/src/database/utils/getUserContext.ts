@@ -1,7 +1,6 @@
 import { IRepositoryOptions } from '../repositories/IRepositoryOptions'
 import SequelizeRepository from '../repositories/sequelizeRepository'
 import TenantRepository from '../repositories/tenantRepository'
-import UserRepository from '../repositories/userRepository'
 
 /**
  * Gets the IRepositoryOptions for given tenantId
