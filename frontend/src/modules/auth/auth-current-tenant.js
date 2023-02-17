@@ -1,6 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import config from '@/config'
-import { inject } from 'vue'
+import { UnleashIntance } from '@/unleash'
 
 /**
  * Auth Current Tenant
@@ -109,11 +109,10 @@ export default class AuthCurrentTenant {
     if (!tenant) {
       return this.clear()
     }
-    const unleash = inject('unleash')
 
     // Refresh feature flags each time tenant is set
     if (!config.isCommunityVersion) {
-      await unleash?.updateContext({
+      await UnleashIntance?.updateContext({
         automationCount: tenant.automationCount,
         csvExportCount: tenant.csvExportCount,
         memberEnrichmentCount: tenant.memberEnrichmentCount,

@@ -17,6 +17,7 @@ const defaultConfig = {
     protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
   },
   backendUrl: process.env.VUE_APP_BACKEND_URL,
+  unleashUrl: process.env.VUE_APP_UNLEASH_URL,
   websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
@@ -61,6 +62,7 @@ const composedConfig = {
     protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
   },
   backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
+  unleashUrl: 'CROWD_VUE_APP_UNLEASH_URL',
   websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,

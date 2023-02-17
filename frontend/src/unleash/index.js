@@ -12,7 +12,7 @@ export const FEATURE_FLAGS = {
 export class Unleash {
   constructor() {
     const unleashConfig = {
-      url: config.unleash.host + '/api/frontend',
+      url: `${config.unleash.host}/api/frontend`,
       clientKey: config.unleash.apiKey,
       appName: 'test',
       environment: 'production'
@@ -48,3 +48,5 @@ export class Unleash {
     }
   }
 }
+
+export const UnleashIntance = new Unleash()
