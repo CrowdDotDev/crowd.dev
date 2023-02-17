@@ -1,17 +1,12 @@
 <template>
-  <div class="widget panel !p-5">
+  <div class="panel !p-6">
     <!-- header -->
-    <div class="flex items-center pb-5">
-      <div
-        class="w-8 h-8 rounded-md bg-gray-900 flex items-center justify-center mr-3"
-      >
-        <i class="ri-contacts-line text-lg text-white"></i>
-      </div>
-      <div>
-        <h6 class="text-sm font-semibold leading-5">
+    <div class="flex items-center justify-between pb-5">
+      <div class="flex items-center">
+        <h5 class="text-lg font-semibold leading-7 pr-3">
           Members
-        </h6>
-        <p class="text-2xs text-gray-500">
+        </h5>
+        <p class="text-xs text-gray-500 leading-5">
           Total: {{ formatNumberToCompact(members.total) }}
         </p>
       </div>

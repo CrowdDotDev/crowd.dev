@@ -10,16 +10,16 @@
           </div>
 
           <app-dashboard-filters class="mb-8" />
-          <app-dashboard-members class="mb-8"/>
-          <app-dashboard-organizations class="mb-8"/>
-          <app-dashboard-activities  class="mb-8"/>
+          <app-dashboard-members class="mb-8" />
+          <app-dashboard-organizations class="mb-8" />
+          <app-dashboard-activities class="mb-8" />
         </div>
       </div>
     </div>
     <aside
       class="border-l border-gray-200 h-screen overflow-auto px-5 py-6"
     >
-      <app-dashboard-integrations />
+      <app-dashboard-integrations class="mb-10" />
       <app-dashboard-task class="hidden" />
     </aside>
   </div>

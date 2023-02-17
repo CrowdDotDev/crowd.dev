@@ -526,6 +526,7 @@ module.exports = {
       ]
     },
     fontSize: {
+      '4xs': ['0.5rem'],
       '3xs': ['0.625rem'],
       '2xs': ['0.75rem'],
       xs: ['0.8125rem'],

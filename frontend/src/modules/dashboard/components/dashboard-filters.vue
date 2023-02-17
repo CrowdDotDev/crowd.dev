@@ -9,9 +9,35 @@
       @on-update="setPeriod"
     />
 
+    <app-filter-list-item filter-class="custom"
+      ><template #button
+        ><div class="relative">
+          <el-button class="custom-btn"
+            ><div class="flex items-center gap-2">
+              <i class="ri-apps-2-line" /><span
+                class="font-medium"
+                >Platforms:
+                <span class="font-normal text-gray-600">{{
+                  platformLabel
+                }}</span></span
+              >
+            </div></el-button
+          >
+          <div
+            v-if="hasSelectedPlatform"
+            class="w-2 h-2 rounded-full bg-brand-500 outline outline-4 outline-gray-50 absolute top-[-4px] right-[-4px]"
+          ></div></div></template
+    ></app-filter-list-item>
     <!-- platform filter -->
+    <!--    <el-dropdown-->
+    <!--      v-if="Object.keys(activeIntegrations).length > 1"-->
+    <!--      class="ml-4"-->
+    <!--      placement="bottom-start"-->
+    <!--      trigger="click"-->
+    <!--      size="large"-->
+    <!--      @visible-change="platformDropdownOpen = $event"-->
+    <!--    >-->
     <el-dropdown
-      v-if="Object.keys(activeIntegrations).length > 1"
       class="ml-4"
       placement="bottom-start"
       trigger="click"
@@ -60,10 +86,12 @@
 import { mapGetters, mapActions } from 'vuex'
 import { CrowdIntegrations } from '@/integrations/integrations-config'
 import AppWidgetPeriod from '@/modules/widget/components/v2/shared/widget-period.vue'
+import AppFilterListItem from '@/shared/filter/components/filter-list-item.vue'
 
 export default {
   name: 'AppDashboardFilters',
   components: {
+    AppFilterListItem,
     AppWidgetPeriod
   },
   data() {
