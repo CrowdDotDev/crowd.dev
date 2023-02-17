@@ -36,9 +36,9 @@ const defaultConfig = {
     process.env.VUE_APP_PIZZLY_PUBLISHABLE_KEY,
   typeformId: process.env.VUE_APP_TYPEFORM_ID,
   typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE,
-  posthog: {
-    apiKey: process.env.VUE_APP_POSTHOG_API_KEY,
-    host: process.env.VUE_APP_POSTHOG_HOST
+  unleash: {
+    apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
+    host: process.env.VUE_APP_UNLEASH_HOST
   },
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
@@ -80,9 +80,9 @@ const composedConfig = {
     'CROWD_VUE_APP_PIZZLY_PUBLISHABLE_KEY',
   typeformId: 'CROWD_VUE_APP_TYPEFORM_ID',
   typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
-  posthog: {
-    apiKey: 'CROWD_VUE_APP_POSTHOG_API_KEY',
-    host: 'CROWD_VUE_APP_POSTHOG_HOST'
+  unleash: {
+    apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
+    host: 'CROWD_VUE_APP_UNLEASH_HOST'
   },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',

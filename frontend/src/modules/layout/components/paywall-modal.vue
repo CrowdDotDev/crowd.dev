@@ -52,9 +52,14 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import { premiumFeatureCopy } from '@/utils/posthog'
+import {
+  defineProps,
+  defineEmits,
+  computed,
+  inject
+} from 'vue'
 
+const unleash = inject('unleash')
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
   modelValue: {
@@ -81,7 +86,7 @@ const modal = computed(() => modalContent[props.module])
 const modalContent = {
   organizations: {
     title: 'Organizations',
-    preTitle: `${premiumFeatureCopy()} feature`,
+    preTitle: `${unleash.premiumFeatureCopy()} feature`,
     imageSrc: '/images/paywall/organizations.png',
     imageClass: 'ml-10 mt-6',
     imageWrapperClass: 'h-52',
@@ -91,7 +96,7 @@ const modalContent = {
   },
   communityHelpCenter: {
     title: 'Custom domain',
-    preTitle: `${premiumFeatureCopy()} feature`,
+    preTitle: `${unleash.premiumFeatureCopy()} feature`,
     imageSrc: '/images/paywall/community-help-center.png',
     imageClass: 'absolute bottom-0 right-0',
     imageWrapperClass: 'h-30',

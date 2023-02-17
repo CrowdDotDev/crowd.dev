@@ -50,7 +50,7 @@
         <span
           v-if="integration.premium"
           class="text-2xs text-brand-500 ml-1"
-          >{{ premiumFeatureCopy() }}</span
+          >{{ unleash.premiumFeatureCopy() }}</span
         >
       </div>
       <span class="block mb-6 text-xs text-gray-500">{{
@@ -106,10 +106,10 @@ export default {
 </script>
 <script setup>
 import { useStore } from 'vuex'
-import { defineProps, computed, ref } from 'vue'
+import { defineProps, computed, ref, inject } from 'vue'
 import AppIntegrationConnect from '@/modules/integration/components/integration-connect'
-import { premiumFeatureCopy } from '@/utils/posthog'
 
+const unleash = inject('unleash')
 const store = useStore()
 const props = defineProps({
   integration: {

@@ -2,7 +2,7 @@ import config from '@/config'
 import { AutomationService } from '@/modules/automation/automation-service'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
-import posthog from 'posthog-js'
+import { inject } from 'vue'
 
 const INITIAL_PAGE_SIZE = 20
 
@@ -427,7 +427,7 @@ export default {
         commit('FETCH_ERROR')
       }
     },
-    async doCreate({ commit }, automation) {
+    async doCreate({ commit, rootGetters }, automation) {
       try {
         commit('CREATE_STARTED')
 
@@ -439,7 +439,18 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          const unleash = inject('unleash')
+
+          await unleash.updateContext({
+            automationCount: currentTenant.automationCount,
+            csvExportCount: currentTenant.csvExportCount,
+            memberEnrichmentCount:
+              currentTenant.memberEnrichmentCount,
+            plan: currentTenant.plan
+          })
         }
 
         Message.success('Automation created successfully')
@@ -462,7 +473,18 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          const unleash = inject('unleash')
+
+          await unleash.updateContext({
+            automationCount: currentTenant.automationCount,
+            csvExportCount: currentTenant.csvExportCount,
+            memberEnrichmentCount:
+              currentTenant.memberEnrichmentCount,
+            plan: currentTenant.plan
+          })
         }
 
         dispatch(
@@ -492,7 +514,18 @@ export default {
 
         // Make sure that feature flags are updated for automationsCount
         if (!config.isCommunityVersion) {
-          posthog.reloadFeatureFlags()
+          const currentTenant =
+            rootGetters['auth/currentTenant']
+
+          const unleash = inject('unleash')
+
+          await unleash.updateContext({
+            automationCount: currentTenant.automationCount,
+            csvExportCount: currentTenant.csvExportCount,
+            memberEnrichmentCount:
+              currentTenant.memberEnrichmentCount,
+            plan: currentTenant.plan
+          })
         }
 
         dispatch(

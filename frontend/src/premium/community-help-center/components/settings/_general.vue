@@ -86,18 +86,15 @@ import {
   defineEmits,
   computed,
   onMounted,
-  ref
+  ref,
+  inject
 } from 'vue'
 import { useStore } from 'vuex'
 import { ConversationPermissions } from '@/modules/conversation/conversation-permissions'
-import {
-  isFeatureEnabled,
-  featureFlags,
-  premiumFeatureCopy
-} from '@/utils/posthog'
 import config from '@/config'
 import AppPaywallModal from '@/modules/layout/components/paywall-modal.vue'
 
+const unleash = inject('unleash')
 const store = useStore()
 
 const props = defineProps({
@@ -167,12 +164,12 @@ const hasPermissionToCustomize = computed(() => {
 })
 
 onMounted(async () => {
-  const isFlagEnabled = await isFeatureEnabled(
-    featureFlags.communityCenterPro
+  const isFeatureEnabled = await unleash.isFlagEnabled(
+    unleash.flags.communityCenterPro
   )
 
   hasPremiumPlan.value =
-    config.hasPremiumModules && isFlagEnabled
+    config.hasPremiumModules && isFeatureEnabled
 })
 
 const onUnlockClick = () => {

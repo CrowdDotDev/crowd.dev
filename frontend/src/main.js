@@ -5,6 +5,7 @@ import plugins from '@/plugins'
 import VueClickAway from 'vue3-click-away'
 import modules from '@/modules'
 import config from '@/config'
+import { Unleash } from '@/unleash'
 
 import {
   init as i18nInit,
@@ -23,7 +24,6 @@ import 'v-network-graph/lib/style.css'
 import App from '@/app.vue'
 import { vueSanitizeOptions } from '@/plugins/sanitize'
 import marked from '@/plugins/marked'
-import posthog from 'posthog-js'
 import VueLazyLoad from 'vue3-lazyload'
 
 i18nInit()
@@ -34,16 +34,6 @@ i18nInit()
 ;(async function () {
   if (config.env === 'production') {
     LogRocket.init('nm6fil/crowddev')
-  }
-
-  // Initialize posthog for crowd hosted version
-  if (!config.isCommunityVersion) {
-    posthog.init(config.posthog.apiKey, {
-      api_host: config.posthog.host,
-      autocapture: false,
-      capture_pageview: false,
-      persistence: 'cookie'
-    })
   }
 
   const app = createApp(App)
@@ -59,6 +49,9 @@ i18nInit()
   app.use(VueClickAway)
   app.use(marked)
   app.use(VueLazyLoad)
+
+  // Provide unleash instance for all app
+  app.provide('unleash', new Unleash())
 
   app.config.productionTip =
     process.env.NODE_ENV === 'production'

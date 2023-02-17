@@ -27,14 +27,32 @@ export default {
     AppResizePage
   },
 
+  inject: ['unleash'],
+
   computed: {
     ...mapGetters({
-      loadingInit: 'auth/loadingInit'
+      loadingInit: 'auth/loadingInit',
+      currentTenant: 'auth/currentTenant'
     })
   },
 
   async created() {
     await this.doInit()
+
+    const {
+      automationCount,
+      csvExportCount,
+      memberEnrichmentCount,
+      plan
+    } = this.currentTenant
+
+    this.unleash.init({
+      automationCount,
+      csvExportCount,
+      memberEnrichmentCount,
+      plan
+    })
+
     window.addEventListener('resize', this.handleResize)
     this.handleResize()
   },

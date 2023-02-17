@@ -15,7 +15,8 @@
           </div>
           <div class="flex flex-col">
             <div class="text-2xs text-brand-500">
-              {{ premiumFeatureCopy() }} feature
+              {{ unleash.premiumFeatureCopy() }}
+              feature
             </div>
             <h5 class="text-gray-900">
               {{ page.headerTitle }}
@@ -95,10 +96,10 @@
 <script setup>
 import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
-import { defineProps, computed } from 'vue'
-import { premiumFeatureCopy } from '@/utils/posthog'
 import { pageContent } from '@/modules/layout/layout-page-content'
+import { defineProps, computed, inject } from 'vue'
 
+const unleash = inject('unleash')
 const props = defineProps({
   module: {
     type: String,

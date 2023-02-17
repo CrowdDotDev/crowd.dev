@@ -1,6 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import config from '@/config'
-import posthog from 'posthog-js'
+import { inject } from 'vue'
 
 /**
  * Auth Current Tenant
@@ -105,16 +105,20 @@ export default class AuthCurrentTenant {
     return {}
   }
 
-  static set(tenant) {
+  static async set(tenant) {
     if (!tenant) {
       return this.clear()
     }
+    const unleash = inject('unleash')
 
-    // Set group in posthog with tenant id
     // Refresh feature flags each time tenant is set
     if (!config.isCommunityVersion) {
-      posthog.group('tenant', tenant.id)
-      posthog.reloadFeatureFlags()
+      await unleash?.updateContext({
+        automationCount: tenant.automationCount,
+        csvExportCount: tenant.csvExportCount,
+        memberEnrichmentCount: tenant.memberEnrichmentCount,
+        plan: tenant.plan
+      })
     }
 
     localStorage.setItem('tenant', JSON.stringify(tenant))

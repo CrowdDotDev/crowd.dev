@@ -1,26 +1,6 @@
 import Layout from '@/modules/layout/components/layout.vue'
 import Permissions from '@/security/permissions'
 import { store } from '@/store'
-import config from '@/config'
-import {
-  isFeatureEnabled,
-  featureFlags
-} from '@/utils/posthog'
-
-const isEagleEyeFeatureEnabled = async () => {
-  return (
-    config.hasPremiumModules &&
-    (await isFeatureEnabled(featureFlags.eagleEye))
-  )
-}
-
-const EagleEyeMainPage = async () => {
-  if (!(await isEagleEyeFeatureEnabled())) {
-    return EagleEyePaywall()
-  }
-
-  return EagleEyePage()
-}
 
 const EagleEyeOnboardPage = () =>
   import(
@@ -28,10 +8,9 @@ const EagleEyeOnboardPage = () =>
   )
 
 const EagleEyePage = () =>
-  import('@/premium/eagle-eye/pages/eagle-eye-page.vue')
-
-const EagleEyePaywall = () =>
-  import('@/modules/layout/pages/paywall-page.vue')
+  import(
+    '@/premium/eagle-eye/pages/eagle-eye-page-wrapper.vue'
+  )
 
 export default [
   {
@@ -44,7 +23,7 @@ export default [
       {
         name: 'eagleEye',
         path: '/eagle-eye',
-        component: EagleEyeMainPage,
+        component: EagleEyePage,
         exact: true,
         meta: {
           auth: true,

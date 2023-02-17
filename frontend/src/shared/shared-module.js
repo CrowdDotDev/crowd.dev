@@ -47,6 +47,7 @@ import Drawer from '@/shared/drawer/drawer'
 import AppLoader from '@/shared/loading/loader'
 import AppPageWrapper from '@/shared/layout/page-wrapper'
 import Image from '@/shared/image/image'
+import AppPageLoader from '@/shared/loading/page-loader'
 
 /**
  * All shared components are globally registered, so there's no need to import them from other components
@@ -103,6 +104,7 @@ export default {
     'app-drawer': Drawer,
     'app-loader': AppLoader,
     'app-page-wrapper': AppPageWrapper,
-    'app-image': Image
+    'app-image': Image,
+    'app-page-loader': AppPageLoader
   }
 }

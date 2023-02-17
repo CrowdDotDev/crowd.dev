@@ -369,7 +369,7 @@ function up_scaffold() {
     wait_for_db
     migrate_local
     create_s3_buckets
-    create_qdrant_collection
+    # create_qdrant_collection
     bash pizzly-integrations.sh
     init_unleash
 }
