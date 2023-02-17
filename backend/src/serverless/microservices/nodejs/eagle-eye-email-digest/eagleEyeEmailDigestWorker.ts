@@ -31,7 +31,9 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
     return c
   })
 
-  await new EmailSender(EmailSender.TEMPLATES.EAGLE_EYE_DIGEST, { content }).sendTo(user.eagleEyeSettings.emailDigest.email)
+  await new EmailSender(EmailSender.TEMPLATES.EAGLE_EYE_DIGEST, { content }).sendTo(
+    user.eagleEyeSettings.emailDigest.email,
+  )
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 

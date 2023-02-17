@@ -34,11 +34,16 @@ export interface EagleEyeFeedSettings {
 
 export interface EagleEyeEmailDigestSettings {
   email: string
-  frequency: 'daily' | 'weekly'
+  frequency: EagleEyeEmailDigestFrequency
   time: string
   nextEmailAt: string
   feed: EagleEyeFeedSettings
   matchFeedSettings: boolean
+}
+
+export enum EagleEyeEmailDigestFrequency {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
 }
 
 export interface EagleEyeSettings {

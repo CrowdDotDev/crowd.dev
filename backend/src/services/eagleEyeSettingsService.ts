@@ -10,9 +10,12 @@ import {
   EagleEyePlatforms,
   EagleEyePublishedDates,
   EagleEyeEmailDigestSettings,
+  EagleEyeEmailDigestFrequency,
 } from '../types/eagleEyeTypes'
 import { IServiceOptions } from './IServiceOptions'
 import { LoggingBase } from './loggingBase'
+
+/* eslint-disable no-case-declarations */
 
 export default class EagleEyeSettingsService extends LoggingBase {
   options: IServiceOptions
@@ -98,38 +101,8 @@ export default class EagleEyeSettingsService extends LoggingBase {
       throw new Error400(this.options.language, 'errors.eagleEye.emailInvalid')
     }
 
-    // Make sure the frequency exists and is valid
-    // eagleEyeSettings.emailDigest.nextEmailAt will be
-    // set to actual send time minus 5 minutes.
-    // This serves as a buffer for cronjobs - Email crons will fire
-    // at every half hour (10:00, 10:30, 11:00,...) to ensure the
-    // correct send time set by the user.
-    const now = moment()
-
-    if (data.frequency === 'daily') {
-      data.nextEmailAt = moment(data.time, 'HH:mm').subtract(5, 'minutes').toISOString()
-
-      // if send time has passed for today, set it to next day
-      if (now > moment(data.time, 'HH:mm')) {
-        data.nextEmailAt = moment(data.time, 'HH:mm').add(1, 'day').toISOString()
-      }
-    } else if (data.frequency === 'weekly') {
-      const [hour, minute] = data.time.split(':')
-      const startOfWeek = moment()
-        .startOf('isoWeek')
-        .set('hour', parseInt(hour, 10))
-        .set('minute', parseInt(minute, 10))
-        .subtract(5, 'minutes')
-
-      data.nextEmailAt = startOfWeek.toISOString()
-
-      // if send time has passed for this week, set it to next week
-      if (now > startOfWeek) {
-        data.nextEmailAt = startOfWeek.add(1, 'week').toISOString()
-      }
-    } else {
-      throw new Error400(this.options.language, 'errors.eagleEye.frequencyInvalid')
-    }
+    // get next email trigger time
+    data.nextEmailAt = EagleEyeSettingsService.getNextEmailDigestDate(data)
 
     // Make sure the time exists and is valid
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]?$/
@@ -149,21 +122,49 @@ export default class EagleEyeSettingsService extends LoggingBase {
   }
 
   /**
-   * Finds the next email digest send time
-   * using the frequency set by the user
+   * Finds the next email digest send time using the frequency set by the user
+   * eagleEyeSettings.emailDigest.nextEmailAt will be
+   * set to actual send time minus 5 minutes.
+   * This serves as a buffer for cronjobs - Email crons will fire
+   * at every half hour (10:00, 10:30, 11:00,...) to ensure the
+   * correct send time set by the user.
    * @param settings
    * @returns next email date as iso string
    */
   static getNextEmailDigestDate(settings: EagleEyeEmailDigestSettings): string {
-    if (settings.frequency !== 'weekly' && settings.frequency !== 'daily') {
-      throw new Error(`Unknown email digest frequency: ${settings.frequency}`)
+    const now = moment()
+
+    let nextEmailAt: string = ''
+
+    switch (settings.frequency) {
+      case EagleEyeEmailDigestFrequency.DAILY:
+        nextEmailAt = moment(settings.time, 'HH:mm').subtract(5, 'minutes').toISOString()
+
+        // if send time has passed for today, set it to next day
+        if (now > moment(settings.time, 'HH:mm')) {
+          nextEmailAt = moment(settings.time, 'HH:mm').add(1, 'day').toISOString()
+        }
+        break
+      case EagleEyeEmailDigestFrequency.WEEKLY:
+        const [hour, minute] = settings.time.split(':')
+        const startOfWeek = moment()
+          .startOf('isoWeek')
+          .set('hour', parseInt(hour, 10))
+          .set('minute', parseInt(minute, 10))
+          .subtract(5, 'minutes')
+
+        nextEmailAt = startOfWeek.toISOString()
+
+        // if send time has passed for this week, set it to next week
+        if (now > startOfWeek) {
+          nextEmailAt = startOfWeek.add(1, 'week').toISOString()
+        }
+        break
+      default:
+        throw new Error(`Unknown email digest frequency: ${settings.frequency}`)
     }
 
-    if (settings.frequency === 'weekly') {
-      return moment(settings.nextEmailAt).add(1, 'week').toISOString()
-    }
-
-    return moment(settings.nextEmailAt).add(1, 'day').toISOString()
+    return nextEmailAt
   }
 
   /**
