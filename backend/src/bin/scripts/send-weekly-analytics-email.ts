@@ -9,7 +9,8 @@ import { timeout } from '../../utils/timing'
 import { sendNodeWorkerMessage } from '../../serverless/utils/nodeWorkerSQS'
 import { NodeWorkerMessageType } from '../../serverless/types/workerTypes'
 import { NodeWorkerMessageBase } from '../../types/mq/nodeWorkerMessageBase'
-import WeeklyAnalyticsEmailsHistoryRepository from '../../database/repositories/weeklyAnalyticsEmailsHistoryRepository'
+import WeeklyAnalyticsEmailsHistoryRepository from '../../database/repositories/recurringEmailsHistoryRepository'
+import { RecurringEmailType } from '../../types/recurringEmailsHistoryTypes'
 
 const banner = fs.readFileSync(path.join(__dirname, 'banner.txt'), 'utf8')
 
@@ -60,7 +61,11 @@ if (parameters.help || !parameters.tenant) {
     for (const tenantId of tenantIds) {
       const tenant = await options.database.tenant.findByPk(tenantId)
       const isEmailAlreadySent =
-        (await waeRepository.findByWeekOfYear(tenantId, weekOfYear)) !== null
+        (await waeRepository.findByWeekOfYear(
+          tenantId,
+          weekOfYear,
+          RecurringEmailType.WEEKLY_ANALYTICS,
+        )) !== null
 
       if (!tenant) {
         log.error({ tenantId }, 'Tenant not found! Skipping.')

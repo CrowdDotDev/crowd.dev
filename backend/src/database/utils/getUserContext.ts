@@ -10,7 +10,10 @@ import UserRepository from '../repositories/userRepository'
  * @param tenantId
  * @returns IRepositoryOptions injected with currentTenant and currentUser
  */
-export default async function getUserContext(tenantId: string, userId?: string): Promise<IRepositoryOptions> {
+export default async function getUserContext(
+  tenantId: string,
+  userId?: string,
+): Promise<IRepositoryOptions> {
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const tenant = await TenantRepository.findById(tenantId, {
     ...options,
@@ -20,15 +23,13 @@ export default async function getUserContext(tenantId: string, userId?: string):
 
   if (userId) {
     user = await options.database.user.findByPk(userId)
-  }
-  else {
+  } else {
     const tenantUsers = await tenant.getUsers()
 
     if (tenantUsers.length > 0) {
       user = await tenantUsers[0].getUser()
     }
   }
-
 
   // Inject user and tenant to IRepositoryOptions
   return SequelizeRepository.getDefaultIRepositoryOptions(user, tenant)

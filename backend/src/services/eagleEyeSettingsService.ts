@@ -103,24 +103,25 @@ export default class EagleEyeSettingsService extends LoggingBase {
     const now = moment()
 
     if (data.frequency === 'daily') {
-      data.nextEmailAt = moment(data.time, "HH:mm").toISOString()
+      data.nextEmailAt = moment(data.time, 'HH:mm').subtract(5, 'minutes').toISOString()
 
-      if (now > moment(data.time, "HH:mm")) {
-        data.nextEmailAt = moment(data.time, "HH:mm").add(1, 'day').toISOString()
+      if (now > moment(data.time, 'HH:mm')) {
+        data.nextEmailAt = moment(data.time, 'HH:mm').add(1, 'day').toISOString()
       }
-
-    }
-    else if (data.frequency === 'weekly') {
-      const [hour, minute] = data.time.split(":")
-      const startOfWeek = moment().startOf('isoWeek').set('hour', parseInt(hour, 10)).set('minute', parseInt(minute, 10))
+    } else if (data.frequency === 'weekly') {
+      const [hour, minute] = data.time.split(':')
+      const startOfWeek = moment()
+        .startOf('isoWeek')
+        .set('hour', parseInt(hour, 10))
+        .set('minute', parseInt(minute, 10))
+        .subtract(5, 'minutes')
 
       data.nextEmailAt = startOfWeek.toISOString()
 
       if (now > startOfWeek) {
         data.nextEmailAt = startOfWeek.add(1, 'week').toISOString()
       }
-    }
-    else {
+    } else {
       throw new Error400(this.options.language, 'errors.eagleEye.frequencyInvalid')
     }
 
@@ -131,7 +132,22 @@ export default class EagleEyeSettingsService extends LoggingBase {
     }
 
     // Remove any extra fields
-    return lodash.pick(data, ['email', 'frequency', 'time', 'matchFeedSettings', 'feed', 'nextEmailAt'])
+    return lodash.pick(data, [
+      'email',
+      'frequency',
+      'time',
+      'matchFeedSettings',
+      'feed',
+      'nextEmailAt',
+    ])
+  }
+
+  static getNextEmailDigestDate(settings: EagleEyeEmailDigestSettings): string {
+    if (settings.frequency === 'weekly') {
+      return moment(settings.nextEmailAt).add(1, 'week').toISOString()
+    }
+
+    return moment(settings.nextEmailAt).add(1, 'day').toISOString()
   }
 
   /**
@@ -152,7 +168,6 @@ export default class EagleEyeSettingsService extends LoggingBase {
       // Otherwise, set email digest to false
       if (data.emailDigestActive && data.emailDigest) {
         data.emailDigest = this.getEmailDigestSettings(data.emailDigest, data.feed)
-
       }
 
       // Remove any extra fields

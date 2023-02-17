@@ -1,12 +1,15 @@
 import { randomUUID } from 'crypto'
 
 import SequelizeTestUtils from '../../utils/sequelizeTestUtils'
-import { WeeklyAnalyticsEmailsHistoryData } from '../../../types/weeklyAnalyticsEmailsHistoryTypes'
-import WeeklyAnalyticsEmailsHistoryRepository from '../weeklyAnalyticsEmailsHistoryRepository'
+import {
+  RecurringEmailsHistoryData,
+  RecurringEmailType,
+} from '../../../types/recurringEmailsHistoryTypes'
+import RecurringEmailsHistoryRepository from '../recurringEmailsHistoryRepository'
 
 const db = null
 
-describe('WeeklyAnalyticsEmailsHistory tests', () => {
+describe('RecurringEmailsHistory tests', () => {
   beforeEach(async () => {
     await SequelizeTestUtils.wipeDatabase(db)
   })
@@ -18,18 +21,19 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
   })
 
   describe('create method', () => {
-    it('Should create weekly analytics email history with given values', async () => {
+    it('Should create recurring email history with given values', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const historyData: WeeklyAnalyticsEmailsHistoryData = {
+      const historyData: RecurringEmailsHistoryData = {
         emailSentAt: '2023-01-02T00:00:00Z',
+        type: RecurringEmailType.WEEKLY_ANALYTICS,
         emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
         tenantId: mockIRepositoryOptions.currentTenant.id,
         weekOfYear: '1',
       }
 
-      const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(mockIRepositoryOptions)
-      const history = await waeRepository.create(historyData)
+      const rehRepository = new RecurringEmailsHistoryRepository(mockIRepositoryOptions)
+      const history = await rehRepository.create(historyData)
 
       expect(new Date(historyData.emailSentAt)).toStrictEqual(history.emailSentAt)
       expect(historyData.emailSentTo).toStrictEqual(history.emailSentTo)
@@ -40,40 +44,43 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
     it('Should throw an error when mandatory fields are missing', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(mockIRepositoryOptions)
+      const rehRepository = new RecurringEmailsHistoryRepository(mockIRepositoryOptions)
       await expect(() =>
-        waeRepository.create({
+        rehRepository.create({
           emailSentAt: '2023-01-02T00:00:00Z',
           emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
           tenantId: mockIRepositoryOptions.currentTenant.id,
-          weekOfYear: undefined,
+          type: undefined,
         }),
       ).rejects.toThrowError()
 
       await expect(() =>
-        waeRepository.create({
+        rehRepository.create({
           emailSentAt: undefined,
           emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
           tenantId: mockIRepositoryOptions.currentTenant.id,
           weekOfYear: '1',
+          type: RecurringEmailType.WEEKLY_ANALYTICS,
         }),
       ).rejects.toThrowError()
 
       await expect(() =>
-        waeRepository.create({
+        rehRepository.create({
           emailSentAt: '2023-01-02T00:00:00Z',
           emailSentTo: undefined,
           tenantId: mockIRepositoryOptions.currentTenant.id,
           weekOfYear: '1',
+          type: RecurringEmailType.WEEKLY_ANALYTICS,
         }),
       ).rejects.toThrowError()
 
       await expect(() =>
-        waeRepository.create({
+        rehRepository.create({
           emailSentAt: '2023-01-02T00:00:00Z',
           emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
           tenantId: undefined,
           weekOfYear: '1',
+          type: RecurringEmailType.WEEKLY_ANALYTICS,
         }),
       ).rejects.toThrowError()
     })
@@ -83,26 +90,27 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
     it('Should find historical receipt by id', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const historyData: WeeklyAnalyticsEmailsHistoryData = {
+      const historyData: RecurringEmailsHistoryData = {
         emailSentAt: '2023-01-02T00:00:00Z',
         emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
         tenantId: mockIRepositoryOptions.currentTenant.id,
         weekOfYear: '1',
+        type: RecurringEmailType.WEEKLY_ANALYTICS,
       }
 
-      const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(mockIRepositoryOptions)
+      const rehRepository = new RecurringEmailsHistoryRepository(mockIRepositoryOptions)
 
-      const receiptCreated = await waeRepository.create(historyData)
-      const receiptFoundById = await waeRepository.findById(receiptCreated.id)
+      const receiptCreated = await rehRepository.create(historyData)
+      const receiptFoundById = await rehRepository.findById(receiptCreated.id)
 
       expect(receiptFoundById).toStrictEqual(receiptCreated)
     })
 
     it('Should return null for non-existing receipt entry', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
-      const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(mockIRepositoryOptions)
+      const rehRepository = new RecurringEmailsHistoryRepository(mockIRepositoryOptions)
 
-      const cache = await waeRepository.findById(randomUUID())
+      const cache = await rehRepository.findById(randomUUID())
       expect(cache).toBeNull()
     })
   })
@@ -111,19 +119,20 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
     it('Should find historical receipt by week of year', async () => {
       const mockIRepositoryOptions = await SequelizeTestUtils.getTestIRepositoryOptions(db)
 
-      const historyData: WeeklyAnalyticsEmailsHistoryData = {
+      const historyData: RecurringEmailsHistoryData = {
         emailSentAt: '2023-01-02T00:00:00Z',
         emailSentTo: ['anil@crowd.dev', 'uros@crowd.dev'],
         tenantId: mockIRepositoryOptions.currentTenant.id,
         weekOfYear: '1',
+        type: RecurringEmailType.EAGLE_EYE_DIGEST,
       }
 
-      const waeRepository = new WeeklyAnalyticsEmailsHistoryRepository(mockIRepositoryOptions)
+      const rehRepository = new RecurringEmailsHistoryRepository(mockIRepositoryOptions)
 
-      const receiptCreated = await waeRepository.create(historyData)
+      const receiptCreated = await rehRepository.create(historyData)
 
       // should find recently created receipt
-      let receiptFound = await waeRepository.findByWeekOfYear(
+      let receiptFound = await rehRepository.findByWeekOfYear(
         mockIRepositoryOptions.currentTenant.id,
         '1',
       )
@@ -131,7 +140,7 @@ describe('WeeklyAnalyticsEmailsHistory tests', () => {
       expect(receiptCreated).toStrictEqual(receiptFound)
 
       // shouldn't find any receipts
-      receiptFound = await waeRepository.findByWeekOfYear(
+      receiptFound = await rehRepository.findByWeekOfYear(
         mockIRepositoryOptions.currentTenant.id,
         '2',
       )
