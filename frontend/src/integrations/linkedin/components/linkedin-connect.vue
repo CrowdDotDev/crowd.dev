@@ -32,9 +32,8 @@ import Pizzly from '@nangohq/pizzly-frontend'
 import { useStore } from 'vuex'
 import AuthCurrentTenant from '@/modules/auth/auth-current-tenant'
 import { useThrottleFn } from '@vueuse/core'
-import { inject } from 'vue'
+import { FeatureFlag } from '@/unleash'
 
-const unleash = inject('unleash')
 const store = useStore()
 const router = useRouter()
 const props = defineProps({
@@ -85,8 +84,8 @@ const settings = () => {
 }
 
 onMounted(async () => {
-  isLinkedinEnabled.value = await unleash.isFlagEnabled(
-    unleash.flags.linkedin
+  isLinkedinEnabled.value = FeatureFlag.isFlagEnabled(
+    FeatureFlag.flags.linkedin
   )
 })
 

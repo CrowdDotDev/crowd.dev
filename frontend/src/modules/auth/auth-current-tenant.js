@@ -1,6 +1,6 @@
 import { tenantSubdomain } from '@/modules/tenant/tenant-subdomain'
 import config from '@/config'
-import { UnleashInstance } from '@/unleash'
+import { FeatureFlag } from '@/unleash'
 
 /**
  * Auth Current Tenant
@@ -112,12 +112,7 @@ export default class AuthCurrentTenant {
 
     // Refresh feature flags each time tenant is set
     if (!config.isCommunityVersion) {
-      await UnleashInstance?.updateContext({
-        automationCount: tenant.automationCount,
-        csvExportCount: tenant.csvExportCount,
-        memberEnrichmentCount: tenant.memberEnrichmentCount,
-        plan: tenant.plan
-      })
+      await FeatureFlag.updateContext(tenant)
     }
 
     localStorage.setItem('tenant', JSON.stringify(tenant))

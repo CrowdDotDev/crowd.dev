@@ -2,7 +2,7 @@ import config from '@/config'
 import { AutomationService } from '@/modules/automation/automation-service'
 import Errors from '@/shared/error/errors'
 import Message from '@/shared/message/message'
-import { inject } from 'vue'
+import { FeatureFlag } from '@/unleash'
 
 const INITIAL_PAGE_SIZE = 20
 
@@ -442,15 +442,7 @@ export default {
           const currentTenant =
             rootGetters['auth/currentTenant']
 
-          const unleash = inject('unleash')
-
-          await unleash.updateContext({
-            automationCount: currentTenant.automationCount,
-            csvExportCount: currentTenant.csvExportCount,
-            memberEnrichmentCount:
-              currentTenant.memberEnrichmentCount,
-            plan: currentTenant.plan
-          })
+          await FeatureFlag.updateContext(currentTenant)
         }
 
         Message.success('Automation created successfully')
@@ -476,15 +468,7 @@ export default {
           const currentTenant =
             rootGetters['auth/currentTenant']
 
-          const unleash = inject('unleash')
-
-          await unleash.updateContext({
-            automationCount: currentTenant.automationCount,
-            csvExportCount: currentTenant.csvExportCount,
-            memberEnrichmentCount:
-              currentTenant.memberEnrichmentCount,
-            plan: currentTenant.plan
-          })
+          await currentTenant.updateContext(currentTenant)
         }
 
         dispatch(
@@ -517,15 +501,7 @@ export default {
           const currentTenant =
             rootGetters['auth/currentTenant']
 
-          const unleash = inject('unleash')
-
-          await unleash.updateContext({
-            automationCount: currentTenant.automationCount,
-            csvExportCount: currentTenant.csvExportCount,
-            memberEnrichmentCount:
-              currentTenant.memberEnrichmentCount,
-            plan: currentTenant.plan
-          })
+          await FeatureFlag.updateContext(currentTenant)
         }
 
         dispatch(

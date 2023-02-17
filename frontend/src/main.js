@@ -5,7 +5,6 @@ import plugins from '@/plugins'
 import VueClickAway from 'vue3-click-away'
 import modules from '@/modules'
 import config from '@/config'
-import { UnleashInstance } from '@/unleash'
 
 import {
   init as i18nInit,
@@ -49,9 +48,6 @@ i18nInit()
   app.use(VueClickAway)
   app.use(marked)
   app.use(VueLazyLoad)
-
-  // Provide unleash instance for all app
-  app.provide('unleash', UnleashInstance)
 
   app.config.productionTip =
     process.env.NODE_ENV === 'production'

@@ -1,6 +1,6 @@
 import io from 'socket.io-client'
 import config from '@/config'
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import { store } from '@/store'
 import Message from '@/shared/message/message'
 import {
@@ -8,6 +8,7 @@ import {
   getEnrichmentMax
 } from '@/modules/member/member-enrichment'
 import pluralize from 'pluralize'
+import { FeatureFlag } from '@/unleash'
 
 let socketIoClient
 
@@ -60,16 +61,7 @@ export const connectSocket = (token) => {
         data
       )
 
-      const unleash = inject('unleash')
-
-      await unleash.updateContext({
-        automationCount:
-          currentTenant.value.automationCount,
-        csvExportCount: currentTenant.value.csvExportCount,
-        memberEnrichmentCount:
-          currentTenant.value.memberEnrichmentCount,
-        plan: currentTenant.value.plan
-      })
+      await FeatureFlag.updateContext(currentTenant.value)
 
       store.dispatch('auth/doRefreshCurrentUser')
       Message.success(

@@ -3,16 +3,14 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
 import { defineAsyncComponent } from 'vue'
 import AppPageLoader from '@/shared/loading/page-loader.vue'
-
-const unleash = inject('unleash')
+import { FeatureFlag } from '@/unleash'
 
 const EagleEyePage = defineAsyncComponent({
-  loader: async () => {
-    const isFeatureEnabled = await unleash.isFlagEnabled(
-      unleash.flags.eagleEye
+  loader: () => {
+    const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+      FeatureFlag.flags.eagleEye
     )
 
     if (isFeatureEnabled) {
@@ -23,6 +21,7 @@ const EagleEyePage = defineAsyncComponent({
 
     return import('@/modules/layout/pages/paywall-page.vue')
   },
-  loadingComponent: AppPageLoader
+  loadingComponent: AppPageLoader,
+  delay: 0
 })
 </script>

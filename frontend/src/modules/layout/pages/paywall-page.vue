@@ -15,7 +15,7 @@
           </div>
           <div class="flex flex-col">
             <div class="text-2xs text-brand-500">
-              {{ unleash.premiumFeatureCopy() }}
+              {{ FeatureFlag.premiumFeatureCopy() }}
               feature
             </div>
             <h5 class="text-gray-900">
@@ -97,9 +97,9 @@
 import config from '@/config'
 import AppPageWrapper from '@/shared/layout/page-wrapper.vue'
 import { pageContent } from '@/modules/layout/layout-page-content'
-import { defineProps, computed, inject } from 'vue'
+import { defineProps, computed } from 'vue'
+import { FeatureFlag } from '@/unleash'
 
-const unleash = inject('unleash')
 const props = defineProps({
   module: {
     type: String,

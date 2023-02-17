@@ -9,7 +9,7 @@ export const FEATURE_FLAGS = {
   linkedin: 'linkedin'
 }
 
-export class Unleash {
+export class FeatureFlagService {
   constructor() {
     const unleashConfig = {
       url: `${config.unleash.url}/api/frontend`,
@@ -22,14 +22,13 @@ export class Unleash {
     this.unleash = new UnleashClient(unleashConfig)
   }
 
-  init(context) {
+  init(tenant) {
+    const context = this.getContextFromTenant(tenant)
+
     this.unleash.start()
-
     this.updateContext(context)
-
     this.unleash.on('ready', () => {
-      console.log('unleash ready')
-      console.log('toggles', this.unleash.getAllToggles())
+      console.log('Unleash is ready')
     })
   }
 
@@ -37,8 +36,23 @@ export class Unleash {
     return this.unleash.isEnabled(flag)
   }
 
-  updateContext(context) {
+  updateContext(tenant) {
+    const context = this.getContextFromTenant(tenant)
+
     this.unleash.updateContext(context)
+  }
+
+  getContextFromTenant(tenant) {
+    return {
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      isTrialPlan: tenant.isTrialPlan,
+      email: tenant.email,
+      automationCount: tenant.automationCount,
+      csvExportCount: tenant.csvExportCount,
+      memberEnrichmentCount: tenant.memberEnrichmentCount,
+      plan: tenant.plan
+    }
   }
 
   premiumFeatureCopy() {
@@ -50,4 +64,4 @@ export class Unleash {
   }
 }
 
-export const UnleashInstance = new Unleash()
+export const FeatureFlag = new FeatureFlagService()

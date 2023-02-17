@@ -19,6 +19,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import AppResizePage from '@/modules/layout/pages/resize-page.vue'
+import { FeatureFlag } from '@/unleash'
 
 export default {
   name: 'App',
@@ -26,8 +27,6 @@ export default {
   components: {
     AppResizePage
   },
-
-  inject: ['unleash'],
 
   computed: {
     ...mapGetters({
@@ -39,19 +38,7 @@ export default {
   async created() {
     await this.doInit()
 
-    const {
-      automationCount,
-      csvExportCount,
-      memberEnrichmentCount,
-      plan
-    } = this.currentTenant
-
-    this.unleash.init({
-      automationCount,
-      csvExportCount,
-      memberEnrichmentCount,
-      plan
-    })
+    FeatureFlag.init(this.currentTenant)
 
     window.addEventListener('resize', this.handleResize)
     this.handleResize()

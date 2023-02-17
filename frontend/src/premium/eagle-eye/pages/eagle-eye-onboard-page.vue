@@ -44,7 +44,7 @@ import {
   onBeforeUnmount
 } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
-import { premiumFeatureCopy } from '@/utils/posthog'
+import { FeatureFlag } from '@/unleash'
 import EagleEyeBanner from '@/premium/eagle-eye/components/onboard/eagle-eye-banner.vue'
 import EagleEyeIntro from '@/premium/eagle-eye/components/onboard/eagle-eye-intro-step.vue'
 import EagleEyeKeywords from '@/premium/eagle-eye/components/onboard/eagle-eye-keywords-step.vue'
@@ -80,7 +80,7 @@ const headerContent = computed(() => {
   if (step.value === 1) {
     return {
       title: 'Eagle Eye',
-      preTitle: `${premiumFeatureCopy()} App`,
+      preTitle: `${FeatureFlag.premiumFeatureCopy()} App`,
       showImage: true
     }
   }

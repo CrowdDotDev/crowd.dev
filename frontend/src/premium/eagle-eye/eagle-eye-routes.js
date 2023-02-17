@@ -33,17 +33,13 @@ export default [
           module: 'eagleEye'
         },
         beforeEnter: async (to, _from, next) => {
-          // Redirect to onboard page if user is not onboarded
-          if (await isEagleEyeFeatureEnabled()) {
-            const currentUser =
-              store.getters['auth/currentUser']
-            if (!currentUser.eagleEyeSettings?.onboarded) {
-              next('/eagle-eye/onboard')
-              return
-            }
-          }
+          const currentUser =
+            store.getters['auth/currentUser']
 
-          if (
+          // Redirect to onboard page if user is not onboarded
+          if (!currentUser.eagleEyeSettings?.onboarded) {
+            return next('/eagle-eye/onboard')
+          } else if (
             to.query.activeTab !== undefined &&
             store.getters['eagleEye/activeView'].id !==
               to.query.activeTab
@@ -54,7 +50,7 @@ export default [
             )
           }
 
-          next()
+          return next()
         }
       },
       {
@@ -71,11 +67,10 @@ export default [
             store.getters['auth/currentUser']
           // Redirect to onboard page if user is not onboarded
           if (currentUser.eagleEyeSettings?.onboarded) {
-            next('/eagle-eye')
-            return
+            return next('/eagle-eye')
           }
 
-          next()
+          return next()
         }
       }
     ]

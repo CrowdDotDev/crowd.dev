@@ -76,6 +76,7 @@ import { mapGetters, mapActions } from 'vuex'
 import pluralize from 'pluralize'
 import ConfirmDialog from '@/shared/dialog/confirm-dialog'
 import { router } from '@/router'
+import { FeatureFlag } from '@/unleash'
 
 export default {
   name: 'AppAutomationListPage',
@@ -84,7 +85,6 @@ export default {
     AppAutomationListTable,
     AppWebhookForm
   },
-  inject: ['unleash'],
   data() {
     return {
       newAutomation: {
@@ -133,10 +133,9 @@ export default {
       this.automation = null
     },
     async onAddWebhookClick() {
-      const isFeatureEnabled =
-        await this.unleash.isFlagEnabled(
-          this.unleash.flags.automations
-        )
+      const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+        FeatureFlag.flags.automations
+      )
 
       if (isFeatureEnabled) {
         this.isAutomationDrawerOpen = true

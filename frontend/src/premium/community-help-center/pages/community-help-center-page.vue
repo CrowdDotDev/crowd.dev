@@ -67,6 +67,7 @@ import AppCommunityHelpCenterFilter from '@/premium/community-help-center/compon
 import AppCommunityHelpCenterSettings from '@/premium/community-help-center/components/community-help-center-settings'
 import AppCommunityHelpCenterConversationDrawer from '@/premium/community-help-center/components/community-help-center-conversation-drawer'
 import config from '@/config'
+import { FeatureFlag } from '@/unleash'
 
 export default {
   name: 'AppConversationListPage',
@@ -78,8 +79,6 @@ export default {
     AppCommunityHelpCenterSettings,
     AppCommunityHelpCenterConversationDrawer
   },
-
-  inject: ['unleash'],
 
   data() {
     return {
@@ -101,8 +100,8 @@ export default {
   },
 
   async created() {
-    const isFeatureEnabled = this.unleash.isFlagEnabled(
-      this.unleash.flags.communityCenterPro
+    const isFeatureEnabled = FeatureFlag.isFlagEnabled(
+      FeatureFlag.flags.communityCenterPro
     )
 
     this.hasPremiumPlan =
