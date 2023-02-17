@@ -356,7 +356,10 @@ export default {
     commit('SET_ACTIVE_ACTION', {})
   },
 
-  async doUpdateSettings({ commit, dispatch }, data) {
+  async doUpdateSettings(
+    { commit, dispatch },
+    { data, fetchNewResults = true }
+  ) {
     commit('UPDATE_EAGLE_EYE_SETTINGS_STARTED')
     return EagleEyeService.updateSettings(data)
       .then(() => {
@@ -365,9 +368,11 @@ export default {
         }).then(() => {
           commit('UPDATE_EAGLE_EYE_SETTINGS_SUCCESS')
 
-          dispatch(`doFetch`, {
-            resetStorage: true
-          })
+          if (fetchNewResults) {
+            dispatch(`doFetch`, {
+              resetStorage: true
+            })
+          }
           return Promise.resolve()
         })
       })
