@@ -98,13 +98,18 @@ export default class EagleEyeSettingsService extends LoggingBase {
       throw new Error400(this.options.language, 'errors.eagleEye.emailInvalid')
     }
 
-    // Make sure the frequency exists and is valid and set nextEmailAt
-
+    // Make sure the frequency exists and is valid
+    // eagleEyeSettings.emailDigest.nextEmailAt will be
+    // set to actual send time minus 5 minutes.
+    // This serves as a buffer for cronjobs - Email crons will fire
+    // at every half hour (10:00, 10:30, 11:00,...) to ensure the
+    // correct send time set by the user.
     const now = moment()
 
     if (data.frequency === 'daily') {
       data.nextEmailAt = moment(data.time, 'HH:mm').subtract(5, 'minutes').toISOString()
 
+      // if send time has passed for today, set it to next day
       if (now > moment(data.time, 'HH:mm')) {
         data.nextEmailAt = moment(data.time, 'HH:mm').add(1, 'day').toISOString()
       }
@@ -118,6 +123,7 @@ export default class EagleEyeSettingsService extends LoggingBase {
 
       data.nextEmailAt = startOfWeek.toISOString()
 
+      // if send time has passed for this week, set it to next week
       if (now > startOfWeek) {
         data.nextEmailAt = startOfWeek.add(1, 'week').toISOString()
       }
@@ -142,7 +148,17 @@ export default class EagleEyeSettingsService extends LoggingBase {
     ])
   }
 
+  /**
+   * Finds the next email digest send time
+   * using the frequency set by the user
+   * @param settings
+   * @returns next email date as iso string
+   */
   static getNextEmailDigestDate(settings: EagleEyeEmailDigestSettings): string {
+    if (settings.frequency !== 'weekly' && settings.frequency !== 'daily') {
+      throw new Error(`Unknown email digest frequency: ${settings.frequency}`)
+    }
+
     if (settings.frequency === 'weekly') {
       return moment(settings.nextEmailAt).add(1, 'week').toISOString()
     }

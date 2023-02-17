@@ -7,13 +7,16 @@ import getUserContext from '../../../../database/utils/getUserContext'
 import EagleEyeContentService from '../../../../services/eagleEyeContentService'
 import EagleEyeSettingsService from '../../../../services/eagleEyeSettingsService'
 import EmailSender from '../../../../services/emailSender'
+import getStage from '../../../../services/helpers/getStage'
 import { RecurringEmailType } from '../../../../types/recurringEmailsHistoryTypes'
+import { createServiceChildLogger } from '../../../../utils/logging'
 
-async function eagleEyeEmailDigestWorker(userId: string): Promise<any> {
-  // const s3Url = `https://${
-  //     S3_CONFIG.microservicesAssetsBucket
-  //   }-${getStage()}.s3.eu-central-1.amazonaws.com`
-  const s3Url = `https://${S3_CONFIG.microservicesAssetsBucket}-staging.s3.eu-central-1.amazonaws.com`
+const log = createServiceChildLogger('eagleEyeEmailDigestWorker')
+
+async function eagleEyeEmailDigestWorker(userId: string): Promise<void> {
+  const s3Url = `https://${
+    S3_CONFIG.microservicesAssetsBucket
+  }-${getStage()}.s3.eu-central-1.amazonaws.com`
   const options = await SequelizeRepository.getDefaultIRepositoryOptions()
   const user = await UserRepository.findById(userId, {
     ...options,
@@ -22,25 +25,21 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<any> {
   const userContext = await getUserContext(user.tenants[0].tenant.id, user.id)
 
   const eagleEyeContentService = new EagleEyeContentService(userContext)
-  const content = (await eagleEyeContentService.search(true)).slice(0, 10).map((c) => {
-    ;(c as any).platformIcon = `${s3Url}/email/${c.platform}.png`
+  const content = (await eagleEyeContentService.search(true)).slice(0, 10).map((c: any) => {
+    c.platformIcon = `${s3Url}/email/${c.platform}.png`
     c.post.thumbnail = null
     return c
   })
 
-  console.log(content)
-  await new EmailSender(EmailSender.TEMPLATES.EAGLE_EYE_DIGEST, { content }).sendTo(
-    'epipav@gmail.com',
-  )
+  await new EmailSender(EmailSender.TEMPLATES.EAGLE_EYE_DIGEST, { content }).sendTo(user.email)
 
   const rehRepository = new RecurringEmailsHistoryRepository(userContext)
 
-  const emailSentTo: string[] = ['epipav@gmail.com']
   const reHistory = await rehRepository.create({
     tenantId: userContext.currentTenant.id,
     type: RecurringEmailType.EAGLE_EYE_DIGEST,
     emailSentAt: moment().toISOString(),
-    emailSentTo,
+    emailSentTo: [user.email],
   })
 
   // update nextEmailAt
@@ -48,7 +47,6 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<any> {
     user.eagleEyeSettings.emailDigest,
   )
   const updateSettings = user.eagleEyeSettings
-
   updateSettings.emailDigest.nextEmailAt = nextEmailAt
 
   await UserRepository.updateEagleEyeSettings(
@@ -57,8 +55,7 @@ async function eagleEyeEmailDigestWorker(userId: string): Promise<any> {
     userContext,
   )
 
-  console.log('receipt: ')
-  console.log(reHistory)
+  log.info({ receipt: reHistory })
 }
 
 export { eagleEyeEmailDigestWorker }

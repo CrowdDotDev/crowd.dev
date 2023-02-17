@@ -59,7 +59,7 @@ class RecurringEmailsHistoryRepository extends RepositoryBase<
   async findByWeekOfYear(
     tenantId: string,
     weekOfYear: string,
-    type: RecurringEmailType = RecurringEmailType.WEEKLY_ANALYTICS,
+    type: RecurringEmailType,
   ): Promise<RecurringEmailsHistoryData> {
     const records = await this.options.database.sequelize.query(
       `SELECT *

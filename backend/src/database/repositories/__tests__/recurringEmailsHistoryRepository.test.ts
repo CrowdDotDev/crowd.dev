@@ -135,6 +135,7 @@ describe('RecurringEmailsHistory tests', () => {
       let receiptFound = await rehRepository.findByWeekOfYear(
         mockIRepositoryOptions.currentTenant.id,
         '1',
+        RecurringEmailType.EAGLE_EYE_DIGEST,
       )
 
       expect(receiptCreated).toStrictEqual(receiptFound)
@@ -143,6 +144,7 @@ describe('RecurringEmailsHistory tests', () => {
       receiptFound = await rehRepository.findByWeekOfYear(
         mockIRepositoryOptions.currentTenant.id,
         '2',
+        RecurringEmailType.EAGLE_EYE_DIGEST,
       )
 
       expect(receiptFound).toBeNull()
