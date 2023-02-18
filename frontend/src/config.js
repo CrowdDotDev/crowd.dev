@@ -17,7 +17,6 @@ const defaultConfig = {
     protocol: process.env.VUE_APP_FRONTEND_PROTOCOL
   },
   backendUrl: process.env.VUE_APP_BACKEND_URL,
-  unleashUrl: process.env.VUE_APP_UNLEASH_URL,
   websocketsUrl: process.env.VUE_APP_WEBSOCKETS_URL,
   tenantMode,
   isPlanEnabled,
@@ -39,7 +38,7 @@ const defaultConfig = {
   typeformTitle: process.env.VUE_APP_TYPEFORM_TITLE,
   unleash: {
     apiKey: process.env.VUE_APP_UNLEASH_API_KEY,
-    host: process.env.VUE_APP_UNLEASH_HOST
+    url: process.env.VUE_APP_UNLEASH_URL
   },
   formbricks: {
     url: process.env.VUE_APP_FORMBRICKS_URL,
@@ -62,7 +61,6 @@ const composedConfig = {
     protocol: 'CROWD_VUE_APP_FRONTEND_PROTOCOL'
   },
   backendUrl: 'CROWD_VUE_APP_BACKEND_URL',
-  unleashUrl: 'CROWD_VUE_APP_UNLEASH_URL',
   websocketsUrl: 'CROWD_VUE_APP_WEBSOCKETS_URL',
   tenantMode,
   isPlanEnabled,
@@ -84,7 +82,7 @@ const composedConfig = {
   typeformTitle: 'CROWD_VUE_APP_TYPEFORM_TITLE',
   unleash: {
     apiKey: 'CROWD_VUE_APP_UNLEASH_API_KEY',
-    host: 'CROWD_VUE_APP_UNLEASH_HOST'
+    url: 'CROWD_VUE_APP_UNLEASH_URL'
   },
   formbricks: {
     url: 'CROWD_VUE_APP_FORMBRICKS_URL',

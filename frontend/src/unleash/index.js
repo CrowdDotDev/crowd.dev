@@ -12,9 +12,9 @@ export const FEATURE_FLAGS = {
 export class Unleash {
   constructor() {
     const unleashConfig = {
-      url: `${config.unleash.host}/api/frontend`,
+      url: `${config.unleash.url}/api/frontend`,
       clientKey: config.unleash.apiKey,
-      appName: 'test',
+      appName: 'crowd-web-app',
       environment: 'production'
     }
 
@@ -28,7 +28,8 @@ export class Unleash {
     this.updateContext(context)
 
     this.unleash.on('ready', () => {
-      console.log(this.unleash.getAllToggles())
+      console.log('unleash ready')
+      console.log('toggles', this.unleash.getAllToggles())
     })
   }
 
@@ -49,4 +50,4 @@ export class Unleash {
   }
 }
 
-export const UnleashIntance = new Unleash()
+export const UnleashInstance = new Unleash()
