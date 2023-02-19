@@ -1,10 +1,14 @@
 <template>
   <div class="bg-gray-100 rounded-lg p-5">
     <div
+      v-if="!description"
       class="w-6 h-6 rounded-full bg-gray-200 mb-8 animate-pulse"
     />
 
-    <div class="mb-5 flex flex-col gap-2">
+    <div
+      v-if="!description"
+      class="mb-5 flex flex-col gap-2"
+    >
       <div
         v-for="(_, index) in Array(tiles.title)"
         :key="index"
@@ -29,6 +33,10 @@ const props = defineProps({
   size: {
     type: String,
     default: 'small'
+  },
+  description: {
+    type: Boolean,
+    default: false
   }
 })
 
