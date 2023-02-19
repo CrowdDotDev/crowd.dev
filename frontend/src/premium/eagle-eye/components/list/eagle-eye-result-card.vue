@@ -154,128 +154,153 @@
           custom-class="eagle-eye-dialog"
         >
           <template #content>
-            <div
-              class="p-4 flex items-center justify-center flex-wrap"
-            >
-              <div class="bg-gray-50 rounded-lg w-full">
-                <Transition
-                  name="fade-out-in"
-                  mode="out-in"
+            <div>
+              <div
+                class="flex items-start gap-3 w-full rounded-b-lg px-6 pt-2"
+              >
+                <div
+                  class="rounded-full bg-yellow-100 flex items-center justify-center min-h-5 min-w-[1.3rem]"
                 >
-                  <div
-                    v-if="generatedReply === ''"
-                    class="mx-auto text-center w-full p-4"
-                  >
-                    <div class="flex flex-col gap-3 w-3/4">
-                      <div
-                        v-for="(_, dindex) in [1, 2, 3]"
-                        :key="dindex"
-                        class="bg-gray-200 h-3 w-full rounded animate-pulse"
-                        :class="{
-                          'w-11/12': dindex === 1
-                        }"
-                      />
-                    </div>
+                  <i
+                    class="ri-error-warning-line text-yellow-500"
+                  />
+                </div>
+                <div>
+                  <div class="text-gray-600 text-2xs">
+                    This is only a suggested starter. We
+                    recommend reading the post and modifying
+                    the reply to add more value.
                   </div>
-                  <div v-else class="mx-auto">
-                    <div
-                      class="h-full w-full cursor-copy p-4"
-                      @click="
-                        copyToClipboard(generatedReply)
-                      "
-                    >
-                      {{ generatedReply }}
-                    </div>
-                  </div>
-                </Transition>
+                </div>
               </div>
               <div
-                class="flex justify-between items-center mt-4 px-2 h-8 w-full"
+                class="p-4 flex items-center justify-center flex-wrap"
               >
-                <Transition name="fade">
-                  <div
-                    v-if="generatedReply !== ''"
-                    class="text-xs text-gray-400 flex items-center"
+                <div class="bg-gray-50 rounded-lg w-full">
+                  <Transition
+                    name="fade-out-in"
+                    mode="out-in"
                   >
-                    <span>Was this helpful? </span>
-                    <i
-                      class="cursor-pointer mx-1"
-                      :class="{
-                        'text-green-300':
-                          generatedReplyThumbsUpFeedback,
-                        'ri-thumb-up-line':
-                          !generatedReplyThumbsUpFeedback,
-                        'ri-thumb-up-fill':
-                          generatedReplyThumbsUpFeedback
-                      }"
-                      @click="
-                        generatedReplyFeedback(
-                          generatedReply,
-                          'thumbs-up'
-                        )
-                      "
-                    />
-                    <i
-                      class="cursor-pointer"
-                      :class="{
-                        'text-red-300':
-                          generatedReplyThumbsDownFeedback,
-                        'ri-thumb-down-line':
-                          !generatedReplyThumbsDownFeedback,
-                        'ri-thumb-down-fill':
-                          generatedReplyThumbsDownFeedback
-                      }"
-                      @click="
-                        generatedReplyFeedback(
-                          generatedReply,
-                          'thumbs-down'
-                        )
-                      "
-                    />
-                  </div>
-                </Transition>
-                <Transition name="fade">
-                  <div v-if="generatedReply !== ''">
-                    <Transition name="slide" mode="out-in">
+                    <div
+                      v-if="generatedReply === ''"
+                      class="mx-auto text-center w-full p-4"
+                    >
                       <div
-                        v-if="replyInClipboard"
-                        class="flex flex-wrap items-center"
+                        class="flex flex-col gap-3 w-3/4"
                       >
-                        <i
-                          class="ri-check-line text-brand-500"
-                        ></i>
-                        <span
-                          class="text-xs ml-1 text-brand-500"
-                          >Copied to clipboard.
-                          <span
-                            class="font-semibold cursor-pointer"
-                            @click="onCardClickFromDialog"
-                          >
-                            Go to post.
-                          </span>
-                        </span>
+                        <div
+                          v-for="(_, dindex) in [1, 2, 3]"
+                          :key="dindex"
+                          class="bg-gray-200 h-3 w-full rounded animate-pulse"
+                          :class="{
+                            'w-11/12': dindex === 1
+                          }"
+                        />
                       </div>
+                    </div>
+                    <div v-else class="mx-auto">
                       <div
-                        v-else
-                        class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-brand-50 group cursor-pointer"
+                        class="h-full w-full cursor-copy p-4"
+                        @click="
+                          copyToClipboard(generatedReply)
+                        "
                       >
-                        <el-tooltip
-                          placement="top"
-                          content="Copy to clipboard"
+                        {{ generatedReply }}
+                      </div>
+                    </div>
+                  </Transition>
+                </div>
+                <div
+                  class="flex justify-between items-center mt-4 px-2 h-8 w-full"
+                >
+                  <Transition name="fade">
+                    <div
+                      v-if="generatedReply !== ''"
+                      class="text-xs text-gray-400 flex items-center"
+                    >
+                      <span>Was this helpful? </span>
+                      <i
+                        class="cursor-pointer mx-1"
+                        :class="{
+                          'text-green-300':
+                            generatedReplyThumbsUpFeedback,
+                          'ri-thumb-up-line':
+                            !generatedReplyThumbsUpFeedback,
+                          'ri-thumb-up-fill':
+                            generatedReplyThumbsUpFeedback
+                        }"
+                        @click="
+                          generatedReplyFeedback(
+                            generatedReply,
+                            'thumbs-up'
+                          )
+                        "
+                      />
+                      <i
+                        class="cursor-pointer"
+                        :class="{
+                          'text-red-300':
+                            generatedReplyThumbsDownFeedback,
+                          'ri-thumb-down-line':
+                            !generatedReplyThumbsDownFeedback,
+                          'ri-thumb-down-fill':
+                            generatedReplyThumbsDownFeedback
+                        }"
+                        @click="
+                          generatedReplyFeedback(
+                            generatedReply,
+                            'thumbs-down'
+                          )
+                        "
+                      />
+                    </div>
+                  </Transition>
+                  <Transition name="fade">
+                    <div v-if="generatedReply !== ''">
+                      <Transition
+                        name="slide"
+                        mode="out-in"
+                      >
+                        <div
+                          v-if="replyInClipboard"
+                          class="flex flex-wrap items-center"
                         >
                           <i
-                            class="ri-clipboard-line text-lg text-gray-400 group-hover:text-brand-400"
-                            @click="
-                              copyToClipboard(
-                                generatedReply
-                              )
-                            "
+                            class="ri-check-line text-brand-500"
                           ></i>
-                        </el-tooltip>
-                      </div>
-                    </Transition>
-                  </div>
-                </Transition>
+                          <span
+                            class="text-xs ml-1 text-brand-500"
+                            >Copied to clipboard.
+                            <span
+                              class="font-semibold cursor-pointer"
+                              @click="onCardClickFromDialog"
+                            >
+                              Go to post.
+                            </span>
+                          </span>
+                        </div>
+                        <div
+                          v-else
+                          class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-brand-50 group cursor-pointer"
+                        >
+                          <el-tooltip
+                            placement="top"
+                            content="Copy to clipboard"
+                          >
+                            <i
+                              class="ri-clipboard-line text-lg text-gray-400 group-hover:text-brand-400"
+                              @click="
+                                copyToClipboard(
+                                  generatedReply
+                                )
+                              "
+                            ></i>
+                          </el-tooltip>
+                        </div>
+                      </Transition>
+                    </div>
+                  </Transition>
+                </div>
               </div>
             </div>
           </template>
