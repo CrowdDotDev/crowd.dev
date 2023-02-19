@@ -159,21 +159,19 @@
           <template #content>
             <div>
               <div
-                class="flex items-start gap-3 w-full rounded-b-lg px-6 pt-2"
+                class="flex items-center gap-3 w-full rounded-b-lg px-6 pt-0"
               >
                 <div
-                  class="rounded-full bg-yellow-100 flex items-center justify-center min-h-5 min-w-[1.3rem]"
+                  class="rounded-full bg-yellow-100 flex items-center justify-center min-h-6 min-w-[1.6rem]"
                 >
                   <i
-                    class="ri-error-warning-line text-yellow-500"
+                    class="ri-error-warning-line text-yellow-500 text-base"
                   />
                 </div>
-                <div>
-                  <div class="text-gray-600 text-2xs">
-                    This is only a suggested starter. We
-                    recommend reading the post and modifying
-                    the reply to add more value.
-                  </div>
+                <div class="text-gray-600 text-2xs">
+                  This is just a starting point. We suggest
+                  reading the post and adding more value to
+                  your response.
                 </div>
               </div>
               <div
